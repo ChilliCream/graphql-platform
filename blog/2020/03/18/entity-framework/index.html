@@ -1219,13 +1219,13 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
 <p>Before we get started let us setup our server project.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="90478111879779140000"
+              data-toaster-id="79979392341047740000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`mkdir ContosoUniversity
-dotnet new web`, `90478111879779140000`)"
+dotnet new web`, `79979392341047740000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1239,12 +1239,12 @@ dotnet new web</code></pre></div>
 <p>Next wee need to add <em>Entity Framework</em> to our project.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="70448528678195330000"
+              data-toaster-id="68694007359330340000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`dotnet add package Microsoft.EntityFrameworkCore`, `70448528678195330000`)"
+              onClick="copyToClipboard(`dotnet add package Microsoft.EntityFrameworkCore`, `68694007359330340000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1257,12 +1257,12 @@ dotnet new web</code></pre></div>
 <p>Last but not least we are adding the SQLLite <em>Entity Framework</em> provided in order to have a lightweight database.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="1692585254921352700"
+              data-toaster-id="9167819661536125000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`dotnet add package Microsoft.EntityFrameworkCore.Sqlite`, `1692585254921352700`)"
+              onClick="copyToClipboard(`dotnet add package Microsoft.EntityFrameworkCore.Sqlite`, `9167819661536125000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1279,7 +1279,7 @@ dotnet new web</code></pre></div>
 <p>Let’s copy our models into our project.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="58622099744145250000"
+              data-toaster-id="98483851772705420000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1331,7 +1331,7 @@ namespace ContosoUniversity
 
         public virtual ICollection<Enrollment> Enrollments { get; set; }
     }
-}`, `58622099744145250000`)"
+}`, `98483851772705420000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1391,7 +1391,7 @@ namespace ContosoUniversity
 <p>For our models we do need a <code class="language-text">DbContext</code> against which we can interact with our database.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="42651271792500785000"
+              data-toaster-id="66018083803590885000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1428,7 +1428,7 @@ namespace ContosoUniversity
                 .HasForeignKey(t => t.CourseId);
         }
     }
-}`, `42651271792500785000`)"
+}`, `66018083803590885000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1475,7 +1475,7 @@ namespace ContosoUniversity
 <p>Next, we need to register our <code class="language-text">SchoolContext</code> with the dependency injection so that our GraphQL server can request instances of it. For that lets open our <code class="language-text">Startup.cs</code> and replace the <code class="language-text">ConfigureServices</code> method with the following code.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="42868311261403200000"
+              data-toaster-id="60932872392573630000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1483,7 +1483,7 @@ namespace ContosoUniversity
               onClick="copyToClipboard(`public void ConfigureServices(IServiceCollection services)
 {
     services.AddDbContext<SchoolContext>();
-}`, `42868311261403200000`)"
+}`, `60932872392573630000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1501,7 +1501,7 @@ namespace ContosoUniversity
 <p>Add the following method to the <code class="language-text">Startup.cs</code>:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="10039128043533685000"
+              data-toaster-id="42290000559000140000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1533,7 +1533,7 @@ namespace ContosoUniversity
             context.SaveChangesAsync();
         }
     }
-}`, `10039128043533685000`)"
+}`, `42290000559000140000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1574,7 +1574,7 @@ namespace ContosoUniversity
 <p>Next call <code class="language-text">InitializeDatabase</code> in the first line of the <code class="language-text">Configure</code> method in the <code class="language-text">Startup.cs</code>. The updated <code class="language-text">Configure</code> method should look like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="23275939356829766000"
+              data-toaster-id="29843713564573872000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1597,7 +1597,7 @@ namespace ContosoUniversity
             await context.Response.WriteAsync(&quot;Hello World!&quot;);
         });
     });
-}`, `23275939356829766000`)"
+}`, `29843713564573872000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1633,13 +1633,13 @@ namespace ContosoUniversity
 <p>Before we actually can put some GraphQL types in our project we again need to add some packages. This time we need to add the <code class="language-text">HotChocolate.AspNetCore</code> package to enable the core GraphQL server functionality. Also we need the <code class="language-text">HotChocolate.Types.Selections</code> package to be able to use <em>Entity Framework</em> projections.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="67089969380530070000"
+              data-toaster-id="51929614701129000000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`dotnet add package HotChocolate.AspNetCore
-dotnet add package HotChocolate.Types.Selections`, `67089969380530070000`)"
+dotnet add package HotChocolate.Types.Selections`, `51929614701129000000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1654,7 +1654,7 @@ dotnet <span class="token function">add</span> package HotChocolate.Types.Select
 <p>The following class:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="20074756592375410000"
+              data-toaster-id="85569251496094710000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1665,7 +1665,7 @@ dotnet <span class="token function">add</span> package HotChocolate.Types.Select
     /// Gets all students.
     /// </summary>
     public IQueryable<Student> GetStudents() => throw new NotImplementedException();
-}`, `20074756592375410000`)"
+}`, `85569251496094710000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1684,7 +1684,7 @@ dotnet <span class="token function">add</span> package HotChocolate.Types.Select
 <p>Is translated to the following GraphQL type:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="83523145944822780000"
+              data-toaster-id="80116588757510540000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1694,7 +1694,7 @@ dotnet <span class="token function">add</span> package HotChocolate.Types.Select
   Gets all students
   &quot;&quot;&quot;
   students: [Student]
-}`, `83523145944822780000`)"
+}`, `80116588757510540000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1716,7 +1716,7 @@ dotnet <span class="token function">add</span> package HotChocolate.Types.Select
 <p>OK, with this knowledge lets implement our <code class="language-text">Query</code> class.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="35556813967465770000"
+              data-toaster-id="44052331467121730000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1728,7 +1728,7 @@ dotnet <span class="token function">add</span> package HotChocolate.Types.Select
     /// </summary>
     public IQueryable<Student> GetStudents([Service]SchoolContext schoolContext) =>
         schoolContext.Students;
-}`, `35556813967465770000`)"
+}`, `44052331467121730000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1750,7 +1750,7 @@ dotnet <span class="token function">add</span> package HotChocolate.Types.Select
 <p>In our case we want <em>Entity Framework</em> projections to work so that we can drill into data in our GraphQL query. For this we can add the selection middleware. Middleware in <em>pure code-first</em> are represented by simple attributes. Since middleware order is important the order of these middleware attributes is important too. Middleware attributes always start with the verb <code class="language-text">Use</code>. So, for our selections middleware we add <code class="language-text">[UseSelection]</code>.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="39297301595464230000"
+              data-toaster-id="67825854592424560000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1770,7 +1770,7 @@ namespace ContosoUniversity
         public IQueryable<Student> GetStudents([Service]SchoolContext schoolContext) =>
             schoolContext.Students;
     }
-}`, `39297301595464230000`)"
+}`, `67825854592424560000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1801,7 +1801,7 @@ namespace ContosoUniversity
 <p>For that replace the <code class="language-text">ConfigureServices</code> method with the following code.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="94114870415459630000"
+              data-toaster-id="14165723005080721000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1815,7 +1815,7 @@ namespace ContosoUniversity
             .AddQueryType<Query>()
             .Create(),
         new QueryExecutionOptions { ForceSerialExecution = true });
-}`, `94114870415459630000`)"
+}`, `14165723005080721000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1837,14 +1837,14 @@ namespace ContosoUniversity
 <p>The above code registers a GraphQL schema with the dependency injection container.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="30114493955876397000"
+              data-toaster-id="44832074416011980000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`SchemaBuilder.New()
     .AddQueryType<Query>()
-    .Create()`, `30114493955876397000`)"
+    .Create()`, `44832074416011980000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1859,12 +1859,12 @@ namespace ContosoUniversity
 <p>The schema builder registers our <code class="language-text">Query</code> class as GraphQL <code class="language-text">Query</code> root type.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="35463689602681490000"
+              data-toaster-id="46055533149114390000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`new QueryExecutionOptions { ForceSerialExecution = true }`, `35463689602681490000`)"
+              onClick="copyToClipboard(`new QueryExecutionOptions { ForceSerialExecution = true }`, `46055533149114390000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1882,7 +1882,7 @@ namespace ContosoUniversity
 <p>For that we need to replace the <code class="language-text">Configure</code> method of our <code class="language-text">Startup.cs</code> with the following code.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="77906260671079600000"
+              data-toaster-id="24387755678083270000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1907,7 +1907,7 @@ namespace ContosoUniversity
             await context.Response.WriteAsync(&quot;Hello World!&quot;);
         });
     });
-}`, `77906260671079600000`)"
+}`, `24387755678083270000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1973,12 +1973,12 @@ namespace ContosoUniversity
 <p>But you can also opt for <em>Playground</em> and host a simple GraphQL IDE as a middleware with the server. If you want to use playground add the following package to the project:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="8039540479759611000"
+              data-toaster-id="76390809194601350000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`dotnet add package HotChocolate.AspNetCore.Playground`, `8039540479759611000`)"
+              onClick="copyToClipboard(`dotnet add package HotChocolate.AspNetCore.Playground`, `76390809194601350000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1992,7 +1992,7 @@ namespace ContosoUniversity
 <p>The <code class="language-text">Configure</code> method should now look like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="62065247307887610000"
+              data-toaster-id="62338595207256285000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2018,7 +2018,7 @@ namespace ContosoUniversity
             await context.Response.WriteAsync(&quot;Hello World!&quot;);
         });
     });
-}`, `62065247307887610000`)"
+}`, `62338595207256285000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2052,12 +2052,12 @@ namespace ContosoUniversity
 <p>Let’s test our GraphQL server.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="16716893051500260000"
+              data-toaster-id="11370483087864236000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`dotnet run --urls http://localhost:5000`, `16716893051500260000`)"
+              onClick="copyToClipboard(`dotnet run --urls http://localhost:5000`, `11370483087864236000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2243,7 +2243,7 @@ namespace ContosoUniversity
 </blockquote>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="69713616667900010000"
+              data-toaster-id="79213443783539750000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2295,7 +2295,7 @@ scalar DateTime
 scalar Int
 
 &quot;The \`String\` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.&quot;
-scalar String`, `69713616667900010000`)"
+scalar String`, `79213443783539750000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2357,7 +2357,7 @@ scalar String`, `69713616667900010000`)"
 <p>Let us start with a simple query in which we ask for the first name of all students that we have in our database.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="65359416600710500000"
+              data-toaster-id="27825767589296580000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2366,7 +2366,7 @@ scalar String`, `69713616667900010000`)"
   students {
     firstMidName
   }
-}`, `65359416600710500000`)"
+}`, `27825767589296580000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2383,7 +2383,7 @@ scalar String`, `69713616667900010000`)"
 <p>The above query resolves correctly the data from our database, and we get the following result:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="13768770829844802000"
+              data-toaster-id="94181710337600770000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2402,7 +2402,7 @@ scalar String`, `69713616667900010000`)"
       }
     ]
   }
-}`, `13768770829844802000`)"
+}`, `94181710337600770000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2430,12 +2430,12 @@ scalar String`, `69713616667900010000`)"
 <p>The SQL query in this case will look like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="88210825889820560000"
+              data-toaster-id="22711474263158428000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`SELECT &quot;s&quot;.&quot;FirstMidName&quot; FROM &quot;Students&quot; AS &quot;s&quot;`, `88210825889820560000`)"
+              onClick="copyToClipboard(`SELECT &quot;s&quot;.&quot;FirstMidName&quot; FROM &quot;Students&quot; AS &quot;s&quot;`, `22711474263158428000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2448,7 +2448,7 @@ scalar String`, `69713616667900010000`)"
 <p>Let us drill into the data a little more and fetch additionally to the <code class="language-text">firstMidName</code> also the title of the course the students are enlisted to.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="62354545169834320000"
+              data-toaster-id="77022720038647500000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2462,7 +2462,7 @@ scalar String`, `69713616667900010000`)"
       }
     }
   }
-}`, `62354545169834320000`)"
+}`, `77022720038647500000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2484,7 +2484,7 @@ scalar String`, `69713616667900010000`)"
 <p>The above query returns:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="5321460400264421000"
+              data-toaster-id="59273593533061145000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2524,7 +2524,7 @@ scalar String`, `69713616667900010000`)"
       }
     ]
   }
-}`, `5321460400264421000`)"
+}`, `59273593533061145000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2572,7 +2572,7 @@ scalar String`, `69713616667900010000`)"
 <p>In order to fetch the data, the GraphQL query is rewritten to the following SQL:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="92317610905383930000"
+              data-toaster-id="24400489633107345000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2592,7 +2592,7 @@ scalar String`, `69713616667900010000`)"
         INNER JOIN &quot;Courses&quot; AS &quot;c&quot;
               ON &quot;e&quot;.&quot;CourseId&quot; = &quot;c&quot;.&quot;CourseId&quot;
     ) AS &quot;t&quot; ON &quot;s&quot;.&quot;Id&quot; = &quot;t&quot;.&quot;StudentId&quot;
-    ORDER BY &quot;s&quot;.&quot;Id&quot;, &quot;t&quot;.&quot;EnrollmentId&quot;, &quot;t&quot;.&quot;CourseId&quot;`, `92317610905383930000`)"
+    ORDER BY &quot;s&quot;.&quot;Id&quot;, &quot;t&quot;.&quot;EnrollmentId&quot;, &quot;t&quot;.&quot;CourseId&quot;`, `24400489633107345000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2625,13 +2625,13 @@ scalar String`, `69713616667900010000`)"
 <p>First, we need to add two more packages that will add the sorting and filtering middleware.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="44485468425355540000"
+              data-toaster-id="69763387521907425000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`dotnet add package HotChocolate.Types.Filters
-dotnet add package HotChocolate.Types.Sorting`, `44485468425355540000`)"
+dotnet add package HotChocolate.Types.Sorting`, `69763387521907425000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2645,7 +2645,7 @@ dotnet <span class="token function">add</span> package HotChocolate.Types.Sortin
 <p>With these new packages in place let us rewrite our query type in order to enable proper filtering support.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="62056577364560250000"
+              data-toaster-id="67627836848244940000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2664,7 +2664,7 @@ namespace ContosoUniversity
         public IQueryable<Student> GetStudents([Service]SchoolContext context) =>
             context.Students;
     }
-}`, `62056577364560250000`)"
+}`, `67627836848244940000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2690,17 +2690,17 @@ namespace ContosoUniversity
 <span class="token punctuation">}</span></code></pre></div>
 <p>The above query type has now two new attributes <code class="language-text">UseFiltering</code> and <code class="language-text">UseSorting</code>. Let me again state that the order of middleware is important.</p>
 <p>In order to understand how a field pipeline with middleware works have a look at the following sequence diagram which depicts our data pipeline applied to the above resolver.</p>
-<div class="mermaid" data-processed="true"><svg id="mermaid-1605525309300" width="100%" xmlns="http://www.w3.org/2000/svg" height="513" style="max-width: 1050px;" viewBox="-50 -10 1050 513"><style>#mermaid-1605525309300{font-family:sans-serif;font-size:16px;fill:#333;}#mermaid-1605525309300 .error-icon{fill:#552222;}#mermaid-1605525309300 .error-text{fill:#552222;stroke:#552222;}#mermaid-1605525309300 .edge-thickness-normal{stroke-width:2px;}#mermaid-1605525309300 .edge-thickness-thick{stroke-width:3.5px;}#mermaid-1605525309300 .edge-pattern-solid{stroke-dasharray:0;}#mermaid-1605525309300 .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-1605525309300 .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-1605525309300 .marker{fill:#333333;}#mermaid-1605525309300 .marker.cross{stroke:#333333;}#mermaid-1605525309300 svg{font-family:sans-serif;font-size:16px;}#mermaid-1605525309300 .actor{stroke:hsl(259.6261682243,59.7765363128%,87.9019607843%);fill:#ECECFF;}#mermaid-1605525309300 text.actor &gt; tspan{fill:black;stroke:none;}#mermaid-1605525309300 .actor-line{stroke:grey;}#mermaid-1605525309300 .messageLine0{stroke-width:1.5;stroke-dasharray:none;stroke:#333;}#mermaid-1605525309300 .messageLine1{stroke-width:1.5;stroke-dasharray:2,2;stroke:#333;}#mermaid-1605525309300 #arrowhead path{fill:#333;stroke:#333;}#mermaid-1605525309300 .sequenceNumber{fill:white;}#mermaid-1605525309300 #sequencenumber{fill:#333;}#mermaid-1605525309300 #crosshead path{fill:#333;stroke:#333;}#mermaid-1605525309300 .messageText{fill:#333;stroke:#333;}#mermaid-1605525309300 .labelBox{stroke:hsl(259.6261682243,59.7765363128%,87.9019607843%);fill:#ECECFF;}#mermaid-1605525309300 .labelText,#mermaid-1605525309300 .labelText &gt; tspan{fill:black;stroke:none;}#mermaid-1605525309300 .loopText,#mermaid-1605525309300 .loopText &gt; tspan{fill:black;stroke:none;}#mermaid-1605525309300 .loopLine{stroke-width:2px;stroke-dasharray:2,2;stroke:hsl(259.6261682243,59.7765363128%,87.9019607843%);fill:hsl(259.6261682243,59.7765363128%,87.9019607843%);}#mermaid-1605525309300 .note{stroke:#aaaa33;fill:#fff5ad;}#mermaid-1605525309300 .noteText,#mermaid-1605525309300 .noteText &gt; tspan{fill:black;stroke:none;}#mermaid-1605525309300 .activation0{fill:#f4f4f4;stroke:#666;}#mermaid-1605525309300 .activation1{fill:#f4f4f4;stroke:#666;}#mermaid-1605525309300 .activation2{fill:#f4f4f4;stroke:#666;}#mermaid-1605525309300:root{--mermaid-font-family:sans-serif;}#mermaid-1605525309300 sequence{fill:apa;}</style><g></g><g><line id="actor0" x1="75" y1="5" x2="75" y2="502" class="actor-line" stroke-width="0.5px" stroke="#999"></line><rect x="0" y="0" fill="#eaeaea" stroke="#666" width="150" height="65" rx="3" ry="3" class="actor"></rect><text x="75" y="32.5" dominant-baseline="central" alignment-baseline="central" class="actor" style="text-anchor: middle; font-size: 14px; font-weight: 400; font-family: Open-Sans, sans-serif;"><tspan x="75" dy="0">UsePaging</tspan></text></g><g><line id="actor1" x1="275" y1="5" x2="275" y2="502" class="actor-line" stroke-width="0.5px" stroke="#999"></line><rect x="200" y="0" fill="#eaeaea" stroke="#666" width="150" height="65" rx="3" ry="3" class="actor"></rect><text x="275" y="32.5" dominant-baseline="central" alignment-baseline="central" class="actor" style="text-anchor: middle; font-size: 14px; font-weight: 400; font-family: Open-Sans, sans-serif;"><tspan x="275" dy="0">UseSelection</tspan></text></g><g><line id="actor2" x1="475" y1="5" x2="475" y2="502" class="actor-line" stroke-width="0.5px" stroke="#999"></line><rect x="400" y="0" fill="#eaeaea" stroke="#666" width="150" height="65" rx="3" ry="3" class="actor"></rect><text x="475" y="32.5" dominant-baseline="central" alignment-baseline="central" class="actor" style="text-anchor: middle; font-size: 14px; font-weight: 400; font-family: Open-Sans, sans-serif;"><tspan x="475" dy="0">UseFiltering</tspan></text></g><g><line id="actor3" x1="675" y1="5" x2="675" y2="502" class="actor-line" stroke-width="0.5px" stroke="#999"></line><rect x="600" y="0" fill="#eaeaea" stroke="#666" width="150" height="65" rx="3" ry="3" class="actor"></rect><text x="675" y="32.5" dominant-baseline="central" alignment-baseline="central" class="actor" style="text-anchor: middle; font-size: 14px; font-weight: 400; font-family: Open-Sans, sans-serif;"><tspan x="675" dy="0">UseSorting</tspan></text></g><g><line id="actor4" x1="875" y1="5" x2="875" y2="502" class="actor-line" stroke-width="0.5px" stroke="#999"></line><rect x="800" y="0" fill="#eaeaea" stroke="#666" width="150" height="65" rx="3" ry="3" class="actor"></rect><text x="875" y="32.5" dominant-baseline="central" alignment-baseline="central" class="actor" style="text-anchor: middle; font-size: 14px; font-weight: 400; font-family: Open-Sans, sans-serif;"><tspan x="875" dy="0">Resolver</tspan></text></g><defs><marker id="arrowhead" refX="5" refY="2" markerWidth="6" markerHeight="4" orient="auto"><path d="M 0,0 V 4 L6,2 Z"></path></marker></defs><defs><marker id="crosshead" markerWidth="15" markerHeight="8" orient="auto" refX="16" refY="4"><path fill="black" stroke="#000000" stroke-width="1px" d="M 9,2 V 6 L16,4 Z" style="stroke-dasharray: 0, 0;"></path><path fill="none" stroke="#000000" stroke-width="1px" d="M 0,1 L 6,7 M 6,1 L 0,7" style="stroke-dasharray: 0, 0;"></path></marker></defs><defs><marker id="sequencenumber" refX="15" refY="15" markerWidth="60" markerHeight="40" orient="auto"><circle cx="15" cy="15" r="6"></circle></marker></defs><text x="175" y="80" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="messageText" dy="1em" style="font-family: &quot;trebuchet ms&quot;, verdana, arial; font-size: 16px; font-weight: 400;">next(context)</text><line x1="75" y1="109" x2="275" y2="109" class="messageLine0" stroke-width="2" stroke="none" marker-end="url(#arrowhead)" marker-start="url(#sequencenumber)" style="fill: none;"></line><text x="75" y="113" font-family="sans-serif" font-size="12px" text-anchor="middle" textLength="16px" class="sequenceNumber">1</text><g><rect x="270" y="109" fill="#EDF2AE" stroke="#666" width="10" height="308" rx="0" ry="0" class="activation0"></rect></g><text x="378" y="124" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="messageText" dy="1em" style="font-family: &quot;trebuchet ms&quot;, verdana, arial; font-size: 16px; font-weight: 400;">next(context)</text><line x1="280" y1="153" x2="475" y2="153" class="messageLine0" stroke-width="2" stroke="none" marker-end="url(#arrowhead)" marker-start="url(#sequencenumber)" style="fill: none;"></line><text x="280" y="157" font-family="sans-serif" font-size="12px" text-anchor="middle" textLength="16px" class="sequenceNumber">2</text><g><rect x="470" y="155" fill="#EDF2AE" stroke="#666" width="10" height="218" rx="0" ry="0" class="activation0"></rect></g><text x="578" y="168" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="messageText" dy="1em" style="font-family: &quot;trebuchet ms&quot;, verdana, arial; font-size: 16px; font-weight: 400;">next(context)</text><line x1="480" y1="197" x2="675" y2="197" class="messageLine0" stroke-width="2" stroke="none" marker-end="url(#arrowhead)" marker-start="url(#sequencenumber)" style="fill: none;"></line><text x="480" y="201" font-family="sans-serif" font-size="12px" text-anchor="middle" textLength="16px" class="sequenceNumber">3</text><g><rect x="670" y="199" fill="#EDF2AE" stroke="#666" width="10" height="130" rx="0" ry="0" class="activation0"></rect></g><text x="778" y="212" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="messageText" dy="1em" style="font-family: &quot;trebuchet ms&quot;, verdana, arial; font-size: 16px; font-weight: 400;">next(context)</text><line x1="680" y1="241" x2="875" y2="241" class="messageLine0" stroke-width="2" stroke="none" marker-end="url(#arrowhead)" marker-start="url(#sequencenumber)" style="fill: none;"></line><text x="680" y="245" font-family="sans-serif" font-size="12px" text-anchor="middle" textLength="16px" class="sequenceNumber">4</text><g><rect x="870" y="243" fill="#EDF2AE" stroke="#666" width="10" height="42" rx="0" ry="0" class="activation0"></rect></g><text x="775" y="256" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="messageText" dy="1em" style="font-family: &quot;trebuchet ms&quot;, verdana, arial; font-size: 16px; font-weight: 400;">apply sorting</text><line x1="870" y1="285" x2="680" y2="285" class="messageLine1" stroke-width="2" stroke="none" marker-end="url(#arrowhead)" marker-start="url(#sequencenumber)" style="stroke-dasharray: 3, 3; fill: none;"></line><text x="870" y="289" font-family="sans-serif" font-size="12px" text-anchor="middle" textLength="16px" class="sequenceNumber">5</text><text x="575" y="300" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="messageText" dy="1em" style="font-family: &quot;trebuchet ms&quot;, verdana, arial; font-size: 16px; font-weight: 400;">apply filters</text><line x1="670" y1="329" x2="480" y2="329" class="messageLine1" stroke-width="2" stroke="none" marker-end="url(#arrowhead)" marker-start="url(#sequencenumber)" style="stroke-dasharray: 3, 3; fill: none;"></line><text x="670" y="333" font-family="sans-serif" font-size="12px" text-anchor="middle" textLength="16px" class="sequenceNumber">6</text><text x="375" y="344" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="messageText" dy="1em" style="font-family: &quot;trebuchet ms&quot;, verdana, arial; font-size: 16px; font-weight: 400;">apply projections</text><line x1="470" y1="373" x2="280" y2="373" class="messageLine1" stroke-width="2" stroke="none" marker-end="url(#arrowhead)" marker-start="url(#sequencenumber)" style="stroke-dasharray: 3, 3; fill: none;"></line><text x="470" y="377" font-family="sans-serif" font-size="12px" text-anchor="middle" textLength="16px" class="sequenceNumber">7</text><text x="173" y="388" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="messageText" dy="1em" style="font-family: &quot;trebuchet ms&quot;, verdana, arial; font-size: 16px; font-weight: 400;">apply paging</text><line x1="270" y1="417" x2="75" y2="417" class="messageLine1" stroke-width="2" stroke="none" marker-end="url(#arrowhead)" marker-start="url(#sequencenumber)" style="stroke-dasharray: 3, 3; fill: none;"></line><text x="270" y="421" font-family="sans-serif" font-size="12px" text-anchor="middle" textLength="16px" class="sequenceNumber">8</text><g><rect x="0" y="437" fill="#eaeaea" stroke="#666" width="150" height="65" rx="3" ry="3" class="actor"></rect><text x="75" y="469.5" dominant-baseline="central" alignment-baseline="central" class="actor" style="text-anchor: middle; font-size: 14px; font-weight: 400; font-family: Open-Sans, sans-serif;"><tspan x="75" dy="0">UsePaging</tspan></text></g><g><rect x="200" y="437" fill="#eaeaea" stroke="#666" width="150" height="65" rx="3" ry="3" class="actor"></rect><text x="275" y="469.5" dominant-baseline="central" alignment-baseline="central" class="actor" style="text-anchor: middle; font-size: 14px; font-weight: 400; font-family: Open-Sans, sans-serif;"><tspan x="275" dy="0">UseSelection</tspan></text></g><g><rect x="400" y="437" fill="#eaeaea" stroke="#666" width="150" height="65" rx="3" ry="3" class="actor"></rect><text x="475" y="469.5" dominant-baseline="central" alignment-baseline="central" class="actor" style="text-anchor: middle; font-size: 14px; font-weight: 400; font-family: Open-Sans, sans-serif;"><tspan x="475" dy="0">UseFiltering</tspan></text></g><g><rect x="600" y="437" fill="#eaeaea" stroke="#666" width="150" height="65" rx="3" ry="3" class="actor"></rect><text x="675" y="469.5" dominant-baseline="central" alignment-baseline="central" class="actor" style="text-anchor: middle; font-size: 14px; font-weight: 400; font-family: Open-Sans, sans-serif;"><tspan x="675" dy="0">UseSorting</tspan></text></g><g><rect x="800" y="437" fill="#eaeaea" stroke="#666" width="150" height="65" rx="3" ry="3" class="actor"></rect><text x="875" y="469.5" dominant-baseline="central" alignment-baseline="central" class="actor" style="text-anchor: middle; font-size: 14px; font-weight: 400; font-family: Open-Sans, sans-serif;"><tspan x="875" dy="0">Resolver</tspan></text></g></svg></div>
+<div class="mermaid" data-processed="true"><svg id="mermaid-1605538172479" width="100%" xmlns="http://www.w3.org/2000/svg" height="513" style="max-width: 1050px;" viewBox="-50 -10 1050 513"><style>#mermaid-1605538172479{font-family:sans-serif;font-size:16px;fill:#333;}#mermaid-1605538172479 .error-icon{fill:#552222;}#mermaid-1605538172479 .error-text{fill:#552222;stroke:#552222;}#mermaid-1605538172479 .edge-thickness-normal{stroke-width:2px;}#mermaid-1605538172479 .edge-thickness-thick{stroke-width:3.5px;}#mermaid-1605538172479 .edge-pattern-solid{stroke-dasharray:0;}#mermaid-1605538172479 .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-1605538172479 .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-1605538172479 .marker{fill:#333333;}#mermaid-1605538172479 .marker.cross{stroke:#333333;}#mermaid-1605538172479 svg{font-family:sans-serif;font-size:16px;}#mermaid-1605538172479 .actor{stroke:hsl(259.6261682243,59.7765363128%,87.9019607843%);fill:#ECECFF;}#mermaid-1605538172479 text.actor &gt; tspan{fill:black;stroke:none;}#mermaid-1605538172479 .actor-line{stroke:grey;}#mermaid-1605538172479 .messageLine0{stroke-width:1.5;stroke-dasharray:none;stroke:#333;}#mermaid-1605538172479 .messageLine1{stroke-width:1.5;stroke-dasharray:2,2;stroke:#333;}#mermaid-1605538172479 #arrowhead path{fill:#333;stroke:#333;}#mermaid-1605538172479 .sequenceNumber{fill:white;}#mermaid-1605538172479 #sequencenumber{fill:#333;}#mermaid-1605538172479 #crosshead path{fill:#333;stroke:#333;}#mermaid-1605538172479 .messageText{fill:#333;stroke:#333;}#mermaid-1605538172479 .labelBox{stroke:hsl(259.6261682243,59.7765363128%,87.9019607843%);fill:#ECECFF;}#mermaid-1605538172479 .labelText,#mermaid-1605538172479 .labelText &gt; tspan{fill:black;stroke:none;}#mermaid-1605538172479 .loopText,#mermaid-1605538172479 .loopText &gt; tspan{fill:black;stroke:none;}#mermaid-1605538172479 .loopLine{stroke-width:2px;stroke-dasharray:2,2;stroke:hsl(259.6261682243,59.7765363128%,87.9019607843%);fill:hsl(259.6261682243,59.7765363128%,87.9019607843%);}#mermaid-1605538172479 .note{stroke:#aaaa33;fill:#fff5ad;}#mermaid-1605538172479 .noteText,#mermaid-1605538172479 .noteText &gt; tspan{fill:black;stroke:none;}#mermaid-1605538172479 .activation0{fill:#f4f4f4;stroke:#666;}#mermaid-1605538172479 .activation1{fill:#f4f4f4;stroke:#666;}#mermaid-1605538172479 .activation2{fill:#f4f4f4;stroke:#666;}#mermaid-1605538172479:root{--mermaid-font-family:sans-serif;}#mermaid-1605538172479 sequence{fill:apa;}</style><g></g><g><line id="actor0" x1="75" y1="5" x2="75" y2="502" class="actor-line" stroke-width="0.5px" stroke="#999"></line><rect x="0" y="0" fill="#eaeaea" stroke="#666" width="150" height="65" rx="3" ry="3" class="actor"></rect><text x="75" y="32.5" dominant-baseline="central" alignment-baseline="central" class="actor" style="text-anchor: middle; font-size: 14px; font-weight: 400; font-family: Open-Sans, sans-serif;"><tspan x="75" dy="0">UsePaging</tspan></text></g><g><line id="actor1" x1="275" y1="5" x2="275" y2="502" class="actor-line" stroke-width="0.5px" stroke="#999"></line><rect x="200" y="0" fill="#eaeaea" stroke="#666" width="150" height="65" rx="3" ry="3" class="actor"></rect><text x="275" y="32.5" dominant-baseline="central" alignment-baseline="central" class="actor" style="text-anchor: middle; font-size: 14px; font-weight: 400; font-family: Open-Sans, sans-serif;"><tspan x="275" dy="0">UseSelection</tspan></text></g><g><line id="actor2" x1="475" y1="5" x2="475" y2="502" class="actor-line" stroke-width="0.5px" stroke="#999"></line><rect x="400" y="0" fill="#eaeaea" stroke="#666" width="150" height="65" rx="3" ry="3" class="actor"></rect><text x="475" y="32.5" dominant-baseline="central" alignment-baseline="central" class="actor" style="text-anchor: middle; font-size: 14px; font-weight: 400; font-family: Open-Sans, sans-serif;"><tspan x="475" dy="0">UseFiltering</tspan></text></g><g><line id="actor3" x1="675" y1="5" x2="675" y2="502" class="actor-line" stroke-width="0.5px" stroke="#999"></line><rect x="600" y="0" fill="#eaeaea" stroke="#666" width="150" height="65" rx="3" ry="3" class="actor"></rect><text x="675" y="32.5" dominant-baseline="central" alignment-baseline="central" class="actor" style="text-anchor: middle; font-size: 14px; font-weight: 400; font-family: Open-Sans, sans-serif;"><tspan x="675" dy="0">UseSorting</tspan></text></g><g><line id="actor4" x1="875" y1="5" x2="875" y2="502" class="actor-line" stroke-width="0.5px" stroke="#999"></line><rect x="800" y="0" fill="#eaeaea" stroke="#666" width="150" height="65" rx="3" ry="3" class="actor"></rect><text x="875" y="32.5" dominant-baseline="central" alignment-baseline="central" class="actor" style="text-anchor: middle; font-size: 14px; font-weight: 400; font-family: Open-Sans, sans-serif;"><tspan x="875" dy="0">Resolver</tspan></text></g><defs><marker id="arrowhead" refX="5" refY="2" markerWidth="6" markerHeight="4" orient="auto"><path d="M 0,0 V 4 L6,2 Z"></path></marker></defs><defs><marker id="crosshead" markerWidth="15" markerHeight="8" orient="auto" refX="16" refY="4"><path fill="black" stroke="#000000" stroke-width="1px" d="M 9,2 V 6 L16,4 Z" style="stroke-dasharray: 0, 0;"></path><path fill="none" stroke="#000000" stroke-width="1px" d="M 0,1 L 6,7 M 6,1 L 0,7" style="stroke-dasharray: 0, 0;"></path></marker></defs><defs><marker id="sequencenumber" refX="15" refY="15" markerWidth="60" markerHeight="40" orient="auto"><circle cx="15" cy="15" r="6"></circle></marker></defs><text x="175" y="80" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="messageText" dy="1em" style="font-family: &quot;trebuchet ms&quot;, verdana, arial; font-size: 16px; font-weight: 400;">next(context)</text><line x1="75" y1="109" x2="275" y2="109" class="messageLine0" stroke-width="2" stroke="none" marker-end="url(#arrowhead)" marker-start="url(#sequencenumber)" style="fill: none;"></line><text x="75" y="113" font-family="sans-serif" font-size="12px" text-anchor="middle" textLength="16px" class="sequenceNumber">1</text><g><rect x="270" y="109" fill="#EDF2AE" stroke="#666" width="10" height="308" rx="0" ry="0" class="activation0"></rect></g><text x="378" y="124" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="messageText" dy="1em" style="font-family: &quot;trebuchet ms&quot;, verdana, arial; font-size: 16px; font-weight: 400;">next(context)</text><line x1="280" y1="153" x2="475" y2="153" class="messageLine0" stroke-width="2" stroke="none" marker-end="url(#arrowhead)" marker-start="url(#sequencenumber)" style="fill: none;"></line><text x="280" y="157" font-family="sans-serif" font-size="12px" text-anchor="middle" textLength="16px" class="sequenceNumber">2</text><g><rect x="470" y="155" fill="#EDF2AE" stroke="#666" width="10" height="218" rx="0" ry="0" class="activation0"></rect></g><text x="578" y="168" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="messageText" dy="1em" style="font-family: &quot;trebuchet ms&quot;, verdana, arial; font-size: 16px; font-weight: 400;">next(context)</text><line x1="480" y1="197" x2="675" y2="197" class="messageLine0" stroke-width="2" stroke="none" marker-end="url(#arrowhead)" marker-start="url(#sequencenumber)" style="fill: none;"></line><text x="480" y="201" font-family="sans-serif" font-size="12px" text-anchor="middle" textLength="16px" class="sequenceNumber">3</text><g><rect x="670" y="199" fill="#EDF2AE" stroke="#666" width="10" height="130" rx="0" ry="0" class="activation0"></rect></g><text x="778" y="212" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="messageText" dy="1em" style="font-family: &quot;trebuchet ms&quot;, verdana, arial; font-size: 16px; font-weight: 400;">next(context)</text><line x1="680" y1="241" x2="875" y2="241" class="messageLine0" stroke-width="2" stroke="none" marker-end="url(#arrowhead)" marker-start="url(#sequencenumber)" style="fill: none;"></line><text x="680" y="245" font-family="sans-serif" font-size="12px" text-anchor="middle" textLength="16px" class="sequenceNumber">4</text><g><rect x="870" y="243" fill="#EDF2AE" stroke="#666" width="10" height="42" rx="0" ry="0" class="activation0"></rect></g><text x="775" y="256" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="messageText" dy="1em" style="font-family: &quot;trebuchet ms&quot;, verdana, arial; font-size: 16px; font-weight: 400;">apply sorting</text><line x1="870" y1="285" x2="680" y2="285" class="messageLine1" stroke-width="2" stroke="none" marker-end="url(#arrowhead)" marker-start="url(#sequencenumber)" style="stroke-dasharray: 3, 3; fill: none;"></line><text x="870" y="289" font-family="sans-serif" font-size="12px" text-anchor="middle" textLength="16px" class="sequenceNumber">5</text><text x="575" y="300" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="messageText" dy="1em" style="font-family: &quot;trebuchet ms&quot;, verdana, arial; font-size: 16px; font-weight: 400;">apply filters</text><line x1="670" y1="329" x2="480" y2="329" class="messageLine1" stroke-width="2" stroke="none" marker-end="url(#arrowhead)" marker-start="url(#sequencenumber)" style="stroke-dasharray: 3, 3; fill: none;"></line><text x="670" y="333" font-family="sans-serif" font-size="12px" text-anchor="middle" textLength="16px" class="sequenceNumber">6</text><text x="375" y="344" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="messageText" dy="1em" style="font-family: &quot;trebuchet ms&quot;, verdana, arial; font-size: 16px; font-weight: 400;">apply projections</text><line x1="470" y1="373" x2="280" y2="373" class="messageLine1" stroke-width="2" stroke="none" marker-end="url(#arrowhead)" marker-start="url(#sequencenumber)" style="stroke-dasharray: 3, 3; fill: none;"></line><text x="470" y="377" font-family="sans-serif" font-size="12px" text-anchor="middle" textLength="16px" class="sequenceNumber">7</text><text x="173" y="388" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="messageText" dy="1em" style="font-family: &quot;trebuchet ms&quot;, verdana, arial; font-size: 16px; font-weight: 400;">apply paging</text><line x1="270" y1="417" x2="75" y2="417" class="messageLine1" stroke-width="2" stroke="none" marker-end="url(#arrowhead)" marker-start="url(#sequencenumber)" style="stroke-dasharray: 3, 3; fill: none;"></line><text x="270" y="421" font-family="sans-serif" font-size="12px" text-anchor="middle" textLength="16px" class="sequenceNumber">8</text><g><rect x="0" y="437" fill="#eaeaea" stroke="#666" width="150" height="65" rx="3" ry="3" class="actor"></rect><text x="75" y="469.5" dominant-baseline="central" alignment-baseline="central" class="actor" style="text-anchor: middle; font-size: 14px; font-weight: 400; font-family: Open-Sans, sans-serif;"><tspan x="75" dy="0">UsePaging</tspan></text></g><g><rect x="200" y="437" fill="#eaeaea" stroke="#666" width="150" height="65" rx="3" ry="3" class="actor"></rect><text x="275" y="469.5" dominant-baseline="central" alignment-baseline="central" class="actor" style="text-anchor: middle; font-size: 14px; font-weight: 400; font-family: Open-Sans, sans-serif;"><tspan x="275" dy="0">UseSelection</tspan></text></g><g><rect x="400" y="437" fill="#eaeaea" stroke="#666" width="150" height="65" rx="3" ry="3" class="actor"></rect><text x="475" y="469.5" dominant-baseline="central" alignment-baseline="central" class="actor" style="text-anchor: middle; font-size: 14px; font-weight: 400; font-family: Open-Sans, sans-serif;"><tspan x="475" dy="0">UseFiltering</tspan></text></g><g><rect x="600" y="437" fill="#eaeaea" stroke="#666" width="150" height="65" rx="3" ry="3" class="actor"></rect><text x="675" y="469.5" dominant-baseline="central" alignment-baseline="central" class="actor" style="text-anchor: middle; font-size: 14px; font-weight: 400; font-family: Open-Sans, sans-serif;"><tspan x="675" dy="0">UseSorting</tspan></text></g><g><rect x="800" y="437" fill="#eaeaea" stroke="#666" width="150" height="65" rx="3" ry="3" class="actor"></rect><text x="875" y="469.5" dominant-baseline="central" alignment-baseline="central" class="actor" style="text-anchor: middle; font-size: 14px; font-weight: 400; font-family: Open-Sans, sans-serif;"><tspan x="875" dy="0">Resolver</tspan></text></g></svg></div>
 <p>Each field middleware initially yields control to the next field middleware until the resolver is invoked. The resolver returns its result and the field middleware will now on the way back apply their functionality to the result. In our case the field middleware are applying expressions to the queryable to build up the database query.</p>
 <p>With that upgraded <code class="language-text">Query</code> type let us restart our server.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="33163866207664160000"
+              data-toaster-id="80763671615930930000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`dotnet run --urls http://localhost:5000`, `33163866207664160000`)"
+              onClick="copyToClipboard(`dotnet run --urls http://localhost:5000`, `80763671615930930000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2746,7 +2746,7 @@ namespace ContosoUniversity
 <p>For our first query let us fetch the students with the <code class="language-text">lastName</code> <code class="language-text">Bar</code> or <code class="language-text">Baz</code>.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="89240886937419450000"
+              data-toaster-id="15205899116100352000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2761,7 +2761,7 @@ namespace ContosoUniversity
       }
     }
   }
-}`, `89240886937419450000`)"
+}`, `15205899116100352000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2784,7 +2784,7 @@ namespace ContosoUniversity
 <p>Which will return the following result:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="9190722139793239000"
+              data-toaster-id="69976095625302650000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2816,7 +2816,7 @@ namespace ContosoUniversity
       }
     ]
   }
-}`, `9190722139793239000`)"
+}`, `69976095625302650000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2856,7 +2856,7 @@ namespace ContosoUniversity
 <p>Again, we are rewriting the whole GraphQL query into one expression tree that translates into the following SQL.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="97016656942921710000"
+              data-toaster-id="506980182187422000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2878,7 +2878,7 @@ namespace ContosoUniversity
               ON &quot;e&quot;.&quot;CourseId&quot; = &quot;c&quot;.&quot;CourseId&quot;
     ) AS &quot;t&quot; ON &quot;s&quot;.&quot;Id&quot; = &quot;t&quot;.&quot;StudentId&quot;
     WHERE (&quot;s&quot;.&quot;LastName&quot; = 'Bar') OR (&quot;s&quot;.&quot;LastName&quot; = 'Baz')
-    ORDER BY &quot;s&quot;.&quot;Id&quot;, &quot;t&quot;.&quot;EnrollmentId&quot;, &quot;t&quot;.&quot;CourseId&quot;`, `97016656942921710000`)"
+    ORDER BY &quot;s&quot;.&quot;Id&quot;, &quot;t&quot;.&quot;EnrollmentId&quot;, &quot;t&quot;.&quot;CourseId&quot;`, `506980182187422000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2909,7 +2909,7 @@ namespace ContosoUniversity
 <p>In order to allow filtering on the enrollments we can add the same <code class="language-text">UseFiltering</code> attribute in our entity on the <code class="language-text">Enrollments</code> collection and this property becomes filterable.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="90733433124212930000"
+              data-toaster-id="79454487237827000000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2925,7 +2925,7 @@ namespace ContosoUniversity
 
     [UseFiltering]
     public virtual ICollection<Enrollment> Enrollments { get; set; }
-}`, `90733433124212930000`)"
+}`, `79454487237827000000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2950,12 +2950,12 @@ namespace ContosoUniversity
 <p>Let us restart our server and modify our query further.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="79350767807158880000"
+              data-toaster-id="33755440835848385000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`dotnet run --urls http://localhost:5000`, `79350767807158880000`)"
+              onClick="copyToClipboard(`dotnet run --urls http://localhost:5000`, `33755440835848385000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2968,7 +2968,7 @@ namespace ContosoUniversity
 <p>For the next query we will get all students with the last name <code class="language-text">Bar</code> that are enrolled in the course with the <code class="language-text">courseId</code> <code class="language-text">1</code>.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="62476166923478080000"
+              data-toaster-id="51318885312988540000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2984,7 +2984,7 @@ namespace ContosoUniversity
       }
     }
   }
-}`, `62476166923478080000`)"
+}`, `51318885312988540000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -3008,7 +3008,7 @@ namespace ContosoUniversity
 <p>The following query translates again to a single SQL statement.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="29060889720542150000"
+              data-toaster-id="85369611508589380000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -3033,7 +3033,7 @@ namespace ContosoUniversity
         WHERE &quot;e&quot;.&quot;CourseId&quot; = 1
     ) AS &quot;t&quot; ON &quot;s&quot;.&quot;Id&quot; = &quot;t&quot;.&quot;StudentId&quot;
     WHERE &quot;s&quot;.&quot;LastName&quot; = 'Bar'
-    ORDER BY &quot;s&quot;.&quot;Id&quot;, &quot;t&quot;.&quot;EnrollmentId&quot;, &quot;t&quot;.&quot;CourseId0&quot;`, `29060889720542150000`)"
+    ORDER BY &quot;s&quot;.&quot;Id&quot;, &quot;t&quot;.&quot;EnrollmentId&quot;, &quot;t&quot;.&quot;CourseId0&quot;`, `85369611508589380000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -3073,7 +3073,7 @@ namespace ContosoUniversity
 <p>Like with filtering, sorting and selection we just annotate the paging middleware and it just works. Again, middleware order is important, so we need to put the paging attribute on the top since the most top field middleware is actually applied last like shown in the diagram.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="90851476649049720000"
+              data-toaster-id="6577066017411282000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -3094,7 +3094,7 @@ namespace ContosoUniversity
         public IQueryable<Student> GetStudents([Service]SchoolContext context) =>
             context.Students;
     }
-}`, `90851476649049720000`)"
+}`, `6577066017411282000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -3125,7 +3125,7 @@ namespace ContosoUniversity
 <p>We could in fact just fetch the <code class="language-text">totalCount</code> of our data set.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="95936326282698060000"
+              data-toaster-id="50654045303471090000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -3134,7 +3134,7 @@ namespace ContosoUniversity
   students(first: 1) {
     totalCount
   }
-}`, `95936326282698060000`)"
+}`, `50654045303471090000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -3151,12 +3151,12 @@ namespace ContosoUniversity
 <p>Which would again translate to a simple SQL.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="73136098972246884000"
+              data-toaster-id="25182268817617072000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`SELECT 1 FROM &quot;Students&quot; AS &quot;s&quot;`, `73136098972246884000`)"
+              onClick="copyToClipboard(`SELECT 1 FROM &quot;Students&quot; AS &quot;s&quot;`, `25182268817617072000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -3169,7 +3169,7 @@ namespace ContosoUniversity
 <p>Next let us just fetch the <code class="language-text">lastName</code> of the first student.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="46116044776152100000"
+              data-toaster-id="11364601403390706000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -3180,7 +3180,7 @@ namespace ContosoUniversity
       lastName
     }
   }
-}`, `46116044776152100000`)"
+}`, `11364601403390706000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -3199,14 +3199,14 @@ namespace ContosoUniversity
 <p>Which translates to a simple limit query for <em>SQLLite</em>.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="43099446752083970000"
+              data-toaster-id="27464259936505610000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`SELECT &quot;s&quot;.&quot;LastName&quot;
     FROM &quot;Students&quot; AS &quot;s&quot;
-    LIMIT @__p_0`, `43099446752083970000`)"
+    LIMIT @__p_0`, `27464259936505610000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -3221,7 +3221,7 @@ namespace ContosoUniversity
 <p>In order to navigate forward through pages we also need to get data from our <code class="language-text">pageInfo</code> like if there is a next page and the last cursor of the current page.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="83692464889377470000"
+              data-toaster-id="80120403611093910000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -3236,7 +3236,7 @@ namespace ContosoUniversity
       endCursor
     }
   }
-}`, `83692464889377470000`)"
+}`, `80120403611093910000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -3258,7 +3258,7 @@ namespace ContosoUniversity
 <span class="token punctuation">}</span></code></pre></div>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="35934876087967728000"
+              data-toaster-id="22293623642931860000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -3277,7 +3277,7 @@ namespace ContosoUniversity
       }
     }
   }
-}`, `35934876087967728000`)"
+}`, `22293623642931860000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -3304,7 +3304,7 @@ namespace ContosoUniversity
 <p>With the <code class="language-text">endCursor</code> of a page we can get the next page that comes after the <code class="language-text">endCursor</code> by feeding the <code class="language-text">endCursor</code> into the <code class="language-text">after</code> argument.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="18706651142048125000"
+              data-toaster-id="43528909767074310000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -3319,7 +3319,7 @@ namespace ContosoUniversity
       endCursor
     }
   }
-}`, `18706651142048125000`)"
+}`, `43528909767074310000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -3341,7 +3341,7 @@ namespace ContosoUniversity
 <span class="token punctuation">}</span></code></pre></div>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="95772665794443050000"
+              data-toaster-id="94899042162501400000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -3360,7 +3360,7 @@ namespace ContosoUniversity
       }
     }
   }
-}`, `95772665794443050000`)"
+}`, `94899042162501400000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -3387,7 +3387,7 @@ namespace ContosoUniversity
 <p>This will then be translated into simple offset navigation when using <em>Entity Framework</em>.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="84934628178719930000"
+              data-toaster-id="38637471174149190000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -3395,7 +3395,7 @@ namespace ContosoUniversity
               onClick="copyToClipboard(`SELECT &quot;s&quot;.&quot;LastName&quot;
     FROM &quot;Students&quot; AS &quot;s&quot;
     ORDER BY (SELECT 1)
-    LIMIT @__p_0 OFFSET @__p_0`, `84934628178719930000`)"
+    LIMIT @__p_0 OFFSET @__p_0`, `38637471174149190000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -3411,7 +3411,7 @@ namespace ContosoUniversity
 <p>Again, without a lot of effort we were able to create a powerful GraphQL server with advanced filter and pagination capabilities by just writing basically one line of code with lots of attributes on top of that.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="56876429815348500000"
+              data-toaster-id="19776506848673047000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -3432,7 +3432,7 @@ namespace ContosoUniversity
         public IQueryable<Student> GetStudents([Service]SchoolContext context) =>
             context.Students;
     }
-}`, `56876429815348500000`)"
+}`, `19776506848673047000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -3463,7 +3463,7 @@ namespace ContosoUniversity
 <p>We still can improve our query and allow to explore the data from different angles.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="63730739607669970000"
+              data-toaster-id="62253890144226200000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -3491,7 +3491,7 @@ namespace ContosoUniversity
         public IQueryable<Course> GetCourses([Service]SchoolContext context) =>
             context.Courses;
     }
-}`, `63730739607669970000`)"
+}`, `62253890144226200000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -3528,13 +3528,13 @@ namespace ContosoUniversity
 <p>We could do something like the following and it would work.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="96622976935548130000"
+              data-toaster-id="95572773801685200000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`public Task<Student> GetStudentByIdAsync([Service]SchoolContext context, int studentId) =>
-    context.Students.FirstOrDefaultAsync(t => t.Id == studentId);`, `96622976935548130000`)"
+    context.Students.FirstOrDefaultAsync(t => t.Id == studentId);`, `95572773801685200000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -3551,7 +3551,7 @@ namespace ContosoUniversity
 <p>Let us rewrite the above resolver and look at it again.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="50036309120270020000"
+              data-toaster-id="62455975454798110000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -3559,7 +3559,7 @@ namespace ContosoUniversity
               onClick="copyToClipboard(`[UseFirstOrDefault]
 [UseSelection]
 public IQueryable<Student> GetStudentById([Service]SchoolContext context, int studentId) =>
-    context.Students.Where(t => t.Id == studentId);`, `50036309120270020000`)"
+    context.Students.Where(t => t.Id == studentId);`, `62455975454798110000`)"
             >
               <div
                 class="gatsby-code-button"
