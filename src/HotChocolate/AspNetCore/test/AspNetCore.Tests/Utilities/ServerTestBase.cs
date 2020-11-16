@@ -60,8 +60,8 @@ namespace HotChocolate.AspNetCore.Utilities
                     .UseEndpoints(endpoints =>
                     {
                         GraphQLEndpointConventionBuilder builder = endpoints.MapGraphQL(pattern);
-                        configureConventions?.Invoke(builder);
 
+                        configureConventions?.Invoke(builder);
                         endpoints.MapGraphQL("/evict", "evict");
                         endpoints.MapGraphQL("/arguments", "arguments");
                     }));
