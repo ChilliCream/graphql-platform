@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
+using HotChocolate.AspNetCore.Serialization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -129,7 +130,7 @@ namespace HotChocolate.Stitching.Integration
             Context.ServerFactory.Create(
                 services => services
                     .AddRouting()
-                    .AddHttpRequestSerializer(HttpResultSerialization.JsonArray)
+                    .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                     .AddGraphQLServer()
                     .AddAccountsSchema()
                     .PublishSchemaDefinition(c => c
@@ -152,7 +153,7 @@ namespace HotChocolate.Stitching.Integration
             Context.ServerFactory.Create(
                 services => services
                     .AddRouting()
-                    .AddHttpRequestSerializer(HttpResultSerialization.JsonArray)
+                    .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                     .AddGraphQLServer()
                     .AddInventorySchema()
                     .PublishSchemaDefinition(c => c
@@ -174,7 +175,7 @@ namespace HotChocolate.Stitching.Integration
             Context.ServerFactory.Create(
                 services => services
                     .AddRouting()
-                    .AddHttpRequestSerializer(HttpResultSerialization.JsonArray)
+                    .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                     .AddGraphQLServer()
                     .AddProductsSchema()
                     .PublishSchemaDefinition(c => c
@@ -197,7 +198,7 @@ namespace HotChocolate.Stitching.Integration
             Context.ServerFactory.Create(
                 services => services
                     .AddRouting()
-                    .AddHttpRequestSerializer(HttpResultSerialization.JsonArray)
+                    .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                     .AddGraphQLServer()
                     .AddReviewSchema()
                     .PublishSchemaDefinition(c => c

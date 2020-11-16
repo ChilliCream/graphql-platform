@@ -49,7 +49,7 @@ namespace HotChocolate.Execution.Pipeline
                         validationResult.Errors,
                         new Dictionary<string, object?>
                         {
-                            { ContextDataKeys.ValidationErrors, true }
+                            { WellKnownContextData.ValidationErrors, true }
                         });
                     _diagnosticEvents.ValidationErrors(context, validationResult.Errors);
                 }
