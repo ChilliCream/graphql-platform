@@ -71,6 +71,9 @@ GraphQL can also be served through an HTTP GET request. You have the same option
 
 Although you can get access to the schema metadata through introspection, we also support fetching the GraphQL schema SDL. The GraphQL schema SDL is richer with information and easier to read.
 
+SDL schema available in v10 under:
+`https://yourserver/GraphQL/Schema`
+
 ## HTTP POST Batching
 
 We support two kinds of batching variants.
