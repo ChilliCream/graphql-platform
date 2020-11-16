@@ -66,7 +66,7 @@ namespace HotChocolate.Types
             Type resultType);
 
         IObjectFieldDescriptor ResolveWith<TResolver>(
-            Expression<Func<TResolver, object>> propertyOrMethod);
+            Expression<Func<TResolver, object?>> propertyOrMethod);
 
         IObjectFieldDescriptor ResolveWith(MemberInfo propertyOrMethod);
 
