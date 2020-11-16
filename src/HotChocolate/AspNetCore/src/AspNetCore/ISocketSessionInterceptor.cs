@@ -4,7 +4,7 @@ using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.AspNetCore.Subscriptions.Messages;
 using HotChocolate.Execution;
 
-namespace HotChocolate.AspNetCore.Utilities
+namespace HotChocolate.AspNetCore
 {
     public interface ISocketSessionInterceptor
     {

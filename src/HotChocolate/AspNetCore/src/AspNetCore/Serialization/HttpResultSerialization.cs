@@ -1,4 +1,4 @@
-namespace HotChocolate.AspNetCore.Utilities
+namespace HotChocolate.AspNetCore.Serialization
 {
     public enum HttpResultSerialization
     {

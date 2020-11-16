@@ -1,13 +1,11 @@
 using System;
 
-namespace HotChocolate.AspNetCore.Utilities
+namespace HotChocolate.AspNetCore
 {
-    public static class ContentType
+    internal static class ContentType
     {
         public const string GraphQL = "application/graphql; charset=utf-8";
-
         public const string Json = "application/json; charset=utf-8";
-
         public const string MultiPart = "multipart/mixed; boundary=\"-\"";
 
         public static ReadOnlySpan<char> JsonSpan() => new char[]

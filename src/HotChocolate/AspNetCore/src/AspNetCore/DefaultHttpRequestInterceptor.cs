@@ -1,10 +1,10 @@
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Execution;
 using Microsoft.AspNetCore.Http;
+using HotChocolate.Execution;
 
-namespace HotChocolate.AspNetCore.Utilities
+namespace HotChocolate.AspNetCore
 {
     public class DefaultHttpRequestInterceptor : IHttpRequestInterceptor
     {
@@ -21,7 +21,7 @@ namespace HotChocolate.AspNetCore.Utilities
 
             if (context.IsTracingEnabled())
             {
-                requestBuilder.TryAddProperty(ContextDataKeys.EnableTracing, true);
+                requestBuilder.TryAddProperty(WellKnownContextData.EnableTracing, true);
             }
 
             return default;

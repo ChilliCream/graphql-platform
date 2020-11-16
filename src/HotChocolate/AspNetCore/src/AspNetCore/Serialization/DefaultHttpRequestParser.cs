@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
-using Microsoft.AspNetCore.Http;
 using static HotChocolate.Language.Utf8GraphQLRequestParser;
-using static HotChocolate.AspNetCore.Utilities.ThrowHelper;
+using static HotChocolate.AspNetCore.ThrowHelper;
 
-namespace HotChocolate.AspNetCore.Utilities
+namespace HotChocolate.AspNetCore.Serialization
 {
     internal class DefaultHttpRequestParser : IHttpRequestParser
     {

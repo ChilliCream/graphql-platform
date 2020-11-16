@@ -2,10 +2,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Language;
 using Microsoft.AspNetCore.Http;
+using HotChocolate.Language;
 
-namespace HotChocolate.AspNetCore.Utilities
+namespace HotChocolate.AspNetCore.Serialization
 {
     public interface IHttpRequestParser
     {
