@@ -28,6 +28,8 @@ namespace HotChocolate.Language
             _value = value;
         }
 
+        public string Value => _value;
+
         public bool Equals(DirectiveLocation? other)
         {
             if (ReferenceEquals(null, other))
