@@ -2,14 +2,14 @@ using System;
 
 namespace HotChocolate.Data.Filters.Expressions
 {
-    public class QueryableFilterProviderExtensions
+    public class QueryableFilterProviderExtension
         : FilterProviderExtensions<QueryableFilterContext>
     {
-        public QueryableFilterProviderExtensions()
+        public QueryableFilterProviderExtension()
         {
         }
 
-        public QueryableFilterProviderExtensions(
+        public QueryableFilterProviderExtension(
             Action<IFilterProviderDescriptor<QueryableFilterContext>> configure)
             : base(configure)
         {
