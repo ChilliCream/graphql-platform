@@ -1,13 +1,13 @@
-using System.Net.Http.Headers;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Utilities;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
+using HotChocolate.AspNetCore.Utilities;
 using Snapshooter.Xunit;
 using Xunit;
-using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.AspNetCore
 {
@@ -23,7 +23,25 @@ namespace HotChocolate.AspNetCore
         public async Task Fetch_Tool_Config_Without_Options()
         {
             // arrange
-            TestServer server = CreateStarWarsServer("/graphql");
+            TestServer server = CreateStarWarsServer();
+
+            // act
+            Result result = await GetAsync(server);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Fetch_Tool_When_Disabled()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer(
+                configureConventions: e => e.WithOptions(
+                    new GraphQLServerOptions 
+                    {
+                        Tool = { Enable = false }
+                    }));
 
             // act
             Result result = await GetAsync(server);
@@ -36,18 +54,21 @@ namespace HotChocolate.AspNetCore
         public async Task Fetch_Tool_Config_With_Options()
         {
             // arrange
-            ToolOptions options = new ToolOptions
+            var options = new GraphQLServerOptions
             {
-                Document = "# foo",
-                Credentials = DefaultCredentials.SameOrigin,
-                HttpHeaders = new HeaderDictionary
+                Tool =
                 {
-                    { "Content-Type", "application/json" }
-                },
-                HttpMethod = DefaultHttpMethod.Get
+                    Document = "# foo",
+                    Credentials = DefaultCredentials.SameOrigin,
+                    HttpHeaders = new HeaderDictionary
+                    {
+                        { "Content-Type", "application/json" }
+                    },
+                    HttpMethod = DefaultHttpMethod.Get
+                }
             };
             TestServer server = CreateStarWarsServer("/graphql",
-                builder => builder.WithToolOptions(options));
+                builder => builder.WithOptions(options));
 
             // act
             Result result = await GetAsync(server);
@@ -60,7 +81,7 @@ namespace HotChocolate.AspNetCore
         {
             HttpResponseMessage response = await server.CreateClient().GetAsync(
                 TestServerExtensions.CreateUrl("/graphql/bcp-config.json"));
-            string content = await response.Content.ReadAsStringAsync();
+            var content = await response.Content.ReadAsStringAsync();
 
             return new Result
             {

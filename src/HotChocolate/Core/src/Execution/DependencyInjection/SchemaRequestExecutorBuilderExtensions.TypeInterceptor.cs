@@ -2,6 +2,7 @@ using System;
 using HotChocolate;
 using HotChocolate.Configuration;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -356,10 +357,30 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(onAfterCompleteType));
             }
 
-            return builder.ConfigureSchema(b => b
-                .TryAddTypeInterceptor(new DelegateTypeInitializationInterceptor<T>(
-                    canHandle,
-                    onAfterCompleteType: onAfterCompleteType)));
+            return builder.ConfigureSchema(
+                b => b.TryAddTypeInterceptor(
+                    new DelegateTypeInitializationInterceptor<T>(
+                        canHandle,
+                        onAfterCompleteType: onAfterCompleteType)));
+        }
+
+        public static IRequestExecutorBuilder OnSchemaError(
+            this IRequestExecutorBuilder builder,
+            Action<IDescriptorContext, Exception> onError)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (onError is null)
+            {
+                throw new ArgumentNullException(nameof(onError));
+            }
+
+            return builder.ConfigureSchema(
+                b => b.TryAddSchemaInterceptor(
+                    new DelegateSchemaInterceptor(onError: onError)));
         }
     }
 }

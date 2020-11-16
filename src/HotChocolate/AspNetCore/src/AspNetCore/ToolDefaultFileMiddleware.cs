@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Net.Http.Headers;
-using HotChocolate.AspNetCore.Utilities;
 
 namespace HotChocolate.AspNetCore
 {
@@ -57,7 +56,8 @@ namespace HotChocolate.AspNetCore
         {
             if (context.Request.IsGetOrHeadMethod() &&
                 context.Request.AcceptHeaderContainsHtml() &&
-                context.Request.TryMatchPath(_matchUrl, true, out PathString subPath))
+                context.Request.TryMatchPath(_matchUrl, true, out PathString subPath) &&
+                (context.GetGraphQLToolOptions()?.Enable ?? true))
             {
                 var dirContents = _fileProvider.GetDirectoryContents(subPath.Value);
 

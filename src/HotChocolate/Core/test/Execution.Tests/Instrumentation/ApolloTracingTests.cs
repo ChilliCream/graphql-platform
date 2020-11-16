@@ -90,7 +90,7 @@ namespace HotChocolate.Execution.Instrumentation
             IExecutionResult result = await executor.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ a }")
-                    .SetProperty(ContextDataKeys.EnableTracing, true)
+                    .SetProperty(WellKnownContextData.EnableTracing, true)
                     .Create());
 
             // assert
