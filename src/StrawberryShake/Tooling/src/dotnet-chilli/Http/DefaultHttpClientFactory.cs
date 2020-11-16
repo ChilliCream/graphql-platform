@@ -16,7 +16,7 @@ namespace StrawberryShake.Tools.Http
                         "StrawberryShake",
                         typeof(Program).Assembly!.GetName()!.Version!.ToString())));
 
-            if (token is { })
+            if (!(token is { }))
             {
                 httpClient.DefaultRequestHeaders.Authorization =
                     new AuthenticationHeaderValue(scheme ?? "bearer", token);
