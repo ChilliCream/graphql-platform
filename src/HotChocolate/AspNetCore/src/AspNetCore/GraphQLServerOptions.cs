@@ -22,13 +22,13 @@ namespace HotChocolate.AspNetCore
         /// Defines if GraphQL HTTP GET requests are allowed.
         /// </summary>
         /// <value></value>
-        public bool EnableGetRequest { get; set; } = true;
+        public bool EnableGetRequests { get; set; } = true;
 
         /// <summary>
         /// Defines if the GraphQL schema SDL can be downloaded.
         /// </summary>
         /// <value></value>
-        public bool EnableSchemaRequest { get; set; } = true;
+        public bool EnableSchemaRequests { get; set; } = true;
     }
 
     /// <summary>

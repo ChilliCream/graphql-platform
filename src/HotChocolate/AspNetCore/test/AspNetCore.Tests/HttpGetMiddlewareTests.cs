@@ -590,7 +590,7 @@ namespace HotChocolate.AspNetCore
                 configureConventions: e => e.WithOptions(
                     new GraphQLServerOptions 
                     {
-                        EnableGetRequest = false
+                        EnableGetRequests = false
                     }));
 
             // act

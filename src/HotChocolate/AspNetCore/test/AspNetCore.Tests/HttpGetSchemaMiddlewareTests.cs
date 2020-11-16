@@ -41,7 +41,7 @@ namespace HotChocolate.AspNetCore
                 configureConventions: e => e.WithOptions(
                     new GraphQLServerOptions 
                     {
-                        EnableSchemaRequest = false
+                        EnableSchemaRequests = false
                     }));
             var url = TestServerExtensions.CreateUrl("/graphql?sdl");
             var request = new HttpRequestMessage(HttpMethod.Get, url);

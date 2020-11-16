@@ -23,7 +23,7 @@ namespace HotChocolate.AspNetCore
         {
             if (HttpMethods.IsGet(context.Request.Method) &&
                 context.Request.Query.ContainsKey("SDL") &&
-                (context.GetGraphQLServerOptions()?.EnableSchemaRequest ?? true))
+                (context.GetGraphQLServerOptions()?.EnableSchemaRequests ?? true))
             {
                 await HandleRequestAsync(context);
             }
