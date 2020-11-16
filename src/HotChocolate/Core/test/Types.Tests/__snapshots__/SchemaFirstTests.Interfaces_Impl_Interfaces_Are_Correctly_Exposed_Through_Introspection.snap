@@ -987,12 +987,6 @@
               "description": "Indicates this type is a non-null. \u0060ofType\u0060 is a valid field.",
               "isDeprecated": false,
               "deprecationReason": null
-            },
-            {
-              "name": "DIRECTIVE",
-              "description": null,
-              "isDeprecated": false,
-              "deprecationReason": null
             }
           ],
           "possibleTypes": null

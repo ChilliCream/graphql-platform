@@ -70,7 +70,7 @@ namespace HotChocolate.Types.Introspection
             public string? GetName([Parent] IType type) =>
                 type is INamedType n ? n.Name.Value : null;
 
-            public string? GetDescription([Parent] IType type) => 
+            public string? GetDescription([Parent] IType type) =>
                 type is INamedType n ? n.Description : null;
 
             public IEnumerable<IOutputField>? GetFields([Parent] IType type, bool includeDeprecated)
@@ -90,10 +90,12 @@ namespace HotChocolate.Types.Introspection
             public IEnumerable<IInterfaceType>? GetInterfaces([Parent] IType type) =>
                 type is IComplexOutputType complexType ? complexType.Interfaces : null;
 
-            public IEnumerable<IType>? GetPossibleTypes(ISchema schema, INamedType type) =>
+            public IEnumerable<IType>? GetPossibleTypes(ISchema schema, [Parent]INamedType type) =>
                 type.IsAbstractType() ? schema.GetPossibleTypes(type) : null;
 
-            public IEnumerable<IEnumValue>? GetEnumValues([Parent] IType type, bool includeDeprecated)
+            public IEnumerable<IEnumValue>? GetEnumValues(
+                [Parent] IType type,
+                bool includeDeprecated)
             {
                 if (type is EnumType et)
                 {
