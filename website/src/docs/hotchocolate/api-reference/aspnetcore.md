@@ -1,3 +1,7 @@
+---
+title: ASP.NET Core
+---
+
 Hot Chocolate comes with integration to the ASP.NET Core endpoints API. The middleware implementation follows the current GraphQL over HTTP Spec.
 
 ```csharp
