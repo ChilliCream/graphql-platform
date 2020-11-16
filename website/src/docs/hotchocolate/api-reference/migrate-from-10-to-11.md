@@ -1,18 +1,32 @@
 ---
-title: Migrate from 10 to 11
+title: Migrate from Hot Chocolate GraphQL server 10 to 11
 ---
 
-# Configuration
+This guide will walk you through the manual migration steps to get you Hot Chocolate GraphQL server to version 11.
 
-## Startup
+As a general preparation, we recommend first to remove all package references to your project. Then start by adding the `HotChocolate.AspNetCore` package. The server package now contains most of the needed packages.
 
-### ConfigureServices
+When do I need to add other Hot Chocolate packages explicitly?
 
-The creation of a schema has slightly changed. `AddGraphQL` is now called `AddGraphQLServer`.
-All methods that have been on the `SchemaBuilder` are also available on the `RequestExectuorBuilder`
-that is returned by `AddGraphQLServer`
+We have now added the most common packages to the Hot Chocolate core. But there are certain areas where we still need to add some additional packages.
 
-Old
+TABLE
+
+# Startup
+
+One of the main focuses of version 11 was to create a new configuration API that brings all our builders together in one unified API. This also means that we had to introduce breaking changes to the way we
+configure schemas.
+
+After you have cleaned up your packages, head over to the `Startup.cs` to start with your migration.
+
+## ConfigureServices
+
+In your `Startup.cs` head over to the `ConfigureServices` methods.
+The configuration of a schema has slightly changed, and the new configuration API has replaced the `SchemaBuilder`.
+
+We now start with `AddGraphQLServer` to define a new GraphQL server, `AddGraphQLServer`, returns the new `IRequestExecutorBuilder` that lets us apply all the configuration methods that used to be on the `SchemaBuilder`, `StitchingBuilder` and the `QueryExecutionBuilder`.
+
+**Old:**
 
 ```csharp
     services.AddGraphQL(sp  =>
@@ -24,7 +38,7 @@ Old
             .Create());
 ```
 
-New
+**New:**
 
 ```csharp
     services
@@ -34,28 +48,44 @@ New
         ...
 ```
 
-### Configure
+If you were using the `QueryRequestBuilder` to configure request options or change the request pipeline, the you can add those things now also to the configuration chain.
 
-HotChocolate uses AspNetCore endpoint routing. The registration of the middleware changed.
+```csharp
+    services
+        .AddGraphQLServer()
+        .AddQueryType<QueryType>()
+        .AddMutationType<MutationType>()
+        ...
+        .ModifyRequestOptions(o => o.ExecutionTimeout = TimeSpan.FromSeconds(180));
+```
 
-Old
+# Configure
+
+After migrating the schema configuration, the next area that has fundamentally changed is the schema middleware.
+
+Hot Chocolate server now embraces the new endpoint routing API from ASP.NET core and with that brings a lot of new features. Head over [here]() to read more about the ASP.NET Core integration.
+
+**Old:**
 
 ```csharp
     app.UseGraphQL();
 ```
 
-New
+**New:**
 
 ```csharp
+app.UseRouting();
     app.UseEndpoints(x => x.MapGraphQL());
 ```
 
-## DataLoaders
+# DataLoaders
 
-Dataloaders require a new constructor and now returns `ValueTask` instead of `Task`.
-It is not longer needed to call `AddDataLoaderRegistery()` on the service collection.
+With Hot Chocolate server 11, we have embraced the new DataLoader spec version 2. With that, we have decoupled the scheduler from the DataLoader itself, meaning you now have to pass on the `IBatchScheduler` to the base implementation of the DataLoader.
+Apart from that DataLoader now uses `ValueTask` instead of `Task` when doing async work.
 
-Old
+If you were adding the `DataLoaderRegistry` to the services, you could remove that code since `service.AddDataLoaderRegistry` is no longer needed.
+
+**Old:**
 
 ```csharp
     public class FooDataLoader : DataLoaderBase<Guid, Foo>
@@ -78,7 +108,7 @@ Old
 
 ```
 
-New
+**New:**
 
 ```csharp
     public class FooDataLoader : DataLoaderBase<Guid, Foo>
@@ -105,7 +135,7 @@ New
     }
 ```
 
-## Node Resolver
+# Node Resolver
 
 There are new APIs to specify Nodes.
 
@@ -133,7 +163,7 @@ New
         .Authorize(AuthorizationPolicies.Names.EmployeeAccess, ApplyPolicy.AfterResolver);
 ```
 
-## Pagination
+# Pagination
 
 You can configure paging options `MaxPageSize`, `DefaultPageSize` and `IncludeTotalCount` on the
 builder globally
@@ -178,7 +208,7 @@ Convention:
     }
 ```
 
-## IResolverContext.Source
+# IResolverContext.Source
 
 This API was removed. The reason for this is that it violates the concept of a tree.
 A GraphQL Type should never look up in a tree. All the data that is needed has to be pushed down
@@ -564,3 +594,5 @@ New
         scheduler,
         fooRepoMock.Object);
 ```
+
+A AA
