@@ -12,7 +12,10 @@ namespace HotChocolate.Types.Introspection
         {
             descriptor
                 .Name(Names.__DirectiveLocation)
-                .Description(TypeResources.DirectiveLocation_Description);
+                .Description(TypeResources.DirectiveLocation_Description)
+                // Introspection types must always be bound explicitly so that we
+                // do not get any interference with conventions.
+                .BindItems(BindingBehavior.Explicit);
 
             descriptor
                 .Item(DirectiveLocation.Query)

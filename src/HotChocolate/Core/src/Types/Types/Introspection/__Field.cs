@@ -14,6 +14,8 @@ namespace HotChocolate.Types.Introspection
             descriptor
                 .Name(Names.__Field)
                 .Description(TypeResources.Field_Description)
+                // Introspection types must always be bound explicitly so that we
+                // do not get any interference with conventions.
                 .BindFields(BindingBehavior.Explicit);
 
             descriptor
