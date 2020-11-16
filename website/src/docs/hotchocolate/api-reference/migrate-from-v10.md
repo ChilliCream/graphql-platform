@@ -8,8 +8,7 @@ title: Migrate from 10 to 11
 
 ### ConfigureServices
 
-The creation of a schema has slightly changed.
-`AddGraphQL` is now called `AddGraphQLServer`
+The creation of a schema has slightly changed. `AddGraphQL` is now called `AddGraphQLServer`.
 All methods that have been on the `SchemaBuilder` are also available on the `RequestExectuorBuilder`
 that is returned by `AddGraphQLServer`
 
