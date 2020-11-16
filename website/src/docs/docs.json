@@ -243,8 +243,8 @@
             "title": "Introduction"
           },
           {
-            "path": "getting-started",
-            "title": "Getting Started"
+            "path": "get-started",
+            "title": "Get Started"
           },
           {
             "path": "defining-a-schema",
@@ -321,6 +321,14 @@
               {
                 "path": "visitors",
                 "title": "Visitors"
+              },
+              {
+                "path": "aspnetcore",
+                "title": "ASP.NET Core"
+              },
+              {
+                "path": "migrate-from-10-to-11",
+                "title": "Migrate from 10.5 to 11.0"
               }
             ]
           }

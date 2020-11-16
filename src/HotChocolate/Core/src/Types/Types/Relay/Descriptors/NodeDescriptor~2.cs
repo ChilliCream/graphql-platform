@@ -57,7 +57,7 @@ namespace HotChocolate.Types.Relay.Descriptors
             });
 
         public IObjectFieldDescriptor ResolveNodeWith<TResolver>(
-            Expression<Func<TResolver, TNode>> method)
+            Expression<Func<TResolver, object?>> method)
         {
             if (method is null)
             {
@@ -102,11 +102,11 @@ namespace HotChocolate.Types.Relay.Descriptors
         public IObjectFieldDescriptor ResolveNodeWith<TResolver>() =>
             ResolveNodeWith(Context.TypeInspector.GetNodeResolverMethod(
                 typeof(TNode),
-                typeof(TResolver)));
+                typeof(TResolver))!);
 
         public IObjectFieldDescriptor ResolveNodeWith(Type type) =>
             ResolveNodeWith(Context.TypeInspector.GetNodeResolverMethod(
                 typeof(TNode),
-                type));
+                type)!);
     }
 }

@@ -1,4 +1,8 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
@@ -371,6 +375,36 @@ namespace HotChocolate.Types.Pagination
         }
 
         [Fact]
+        public async Task Executable_With_Field_Settings()
+        {
+            Snapshot.FullName();
+
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<ExecutableQueryType>()
+                    .Services
+                    .BuildServiceProvider()
+                    .GetRequestExecutorAsync();
+
+            await executor
+                .ExecuteAsync(@"
+                {
+                    fooExecutable {
+                        items {
+                            bar
+                        }
+                        pageInfo {
+                            hasNextPage
+                            hasPreviousPage
+                        }
+                        totalCount
+                    }
+                }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
         public async Task Attribute_Nested_List_With_Field_Settings()
         {
             Snapshot.FullName();
@@ -531,6 +565,22 @@ namespace HotChocolate.Types.Pagination
             }
         }
 
+        public class ExecutableQueryType : ObjectType<ExecutableQuery>
+        {
+            protected override void Configure(IObjectTypeDescriptor<ExecutableQuery> descriptor)
+            {
+                descriptor
+                    .Field(t => t.FoosExecutable())
+                    .Name("fooExecutable")
+                    .UseOffsetPaging(
+                        options: new PagingOptions
+                        {
+                            MaxPageSize = 2,
+                            IncludeTotalCount = true
+                        });
+            }
+        }
+
         public class Query
         {
             public string[] Letters => new[]
@@ -557,6 +607,19 @@ namespace HotChocolate.Types.Pagination
                 new List<Foo> { new Foo { Bar = "e" } },
                 new List<Foo> { new Foo { Bar = "f" } }
             };
+        }
+
+        public class ExecutableQuery
+        {
+            public IExecutable<Foo> FoosExecutable() => new MockExecutable<Foo>(new List<Foo>
+            {
+                  new Foo { Bar = "a" },
+                  new Foo { Bar = "b" },
+                  new Foo { Bar = "c" } ,
+                  new Foo { Bar = "d" },
+                  new Foo { Bar = "e" },
+                  new Foo { Bar = "f" }
+            }.AsQueryable());
         }
 
         public class Foo
@@ -609,6 +672,38 @@ namespace HotChocolate.Types.Pagination
         {
             [UseOffsetPaging(typeof(NonNullType<StringType>))]
             public string[] ExplicitType();
+        }
+    }
+
+    public class MockExecutable<T> : IExecutable<T>
+    {
+        private readonly IQueryable<T> _source;
+
+        public MockExecutable(IQueryable<T> source)
+        {
+            _source = source;
+        }
+
+        public object Source =>_source;
+
+        public ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
+        {
+            return new ValueTask<IList>(_source.ToList());
+        }
+
+        public ValueTask<object?> FirstOrDefaultAsync(CancellationToken cancellationToken)
+        {
+            return new ValueTask<object?>(_source.FirstOrDefault());
+        }
+
+        public ValueTask<object?> SingleOrDefaultAsync(CancellationToken cancellationToken)
+        {
+            return new ValueTask<object?>(_source.SingleOrDefault());
+        }
+
+        public string Print()
+        {
+            return _source.ToString();
         }
     }
 }

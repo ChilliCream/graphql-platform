@@ -21,6 +21,7 @@ namespace HotChocolate.Types.Descriptors
                     throw new InvalidOperationException(
                         "The convention scope is immutable.");
                 }
+
                 _scope = value;
             }
         }
@@ -30,6 +31,10 @@ namespace HotChocolate.Types.Descriptors
         protected internal virtual void Initialize(IConventionContext context)
         {
             MarkInitialized();
+        }
+
+        protected internal virtual void Complete(IConventionContext context)
+        {
         }
 
         protected void MarkInitialized()

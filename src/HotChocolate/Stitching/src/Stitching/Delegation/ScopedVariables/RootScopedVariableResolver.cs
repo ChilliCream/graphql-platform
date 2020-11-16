@@ -24,12 +24,12 @@ namespace HotChocolate.Stitching.Delegation.ScopedVariables
             ScopedVariableNode variable,
             IInputType targetType)
         {
-            if (context == null)
+            if (context is null)
             {
                 throw new ArgumentNullException(nameof(context));
             }
 
-            if (variable == null)
+            if (variable is null)
             {
                 throw new ArgumentNullException(nameof(variable));
             }
@@ -39,14 +39,10 @@ namespace HotChocolate.Stitching.Delegation.ScopedVariables
                 return resolver.Resolve(context, variable, targetType);
             }
 
-            throw new QueryException(ErrorBuilder.New()
-                .SetMessage(
-                    StitchingResources.RootScopedVariableResolver_ScopeNotSupported,
-                    variable.Scope.Value)
-                .SetCode(ErrorCodes.Stitching.ScopeNotDefined)
-                .SetPath(context.Path)
-                .AddLocation(context.FieldSelection)
-                .Build());
+            throw ThrowHelper.RootScopedVariableResolver_ScopeNotSupported(
+                variable.Scope.Value,
+                context.FieldSelection,
+                context.Path);
         }
     }
 }

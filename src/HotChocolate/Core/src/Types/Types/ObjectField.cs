@@ -122,7 +122,7 @@ namespace HotChocolate.Types
             ObjectFieldDefinition definition)
         {
             var isIntrospectionField = IsIntrospectionField
-                                       || DeclaringType.IsIntrospectionType();
+                || DeclaringType.IsIntrospectionType();
 
             Resolver = definition.Resolver!;
 

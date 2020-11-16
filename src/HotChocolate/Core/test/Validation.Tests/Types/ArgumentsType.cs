@@ -93,6 +93,13 @@ namespace HotChocolate.Validation.Types
                 .Type<NonNullType<BooleanType>>()
                 .Resolver(() => null);
 
+            // optionalNonNullBooleanArgField2(optionalBooleanArg: Boolean = true) : Boolean!
+            descriptor.Field("optionalNonNullBooleanArgField2")
+                .Argument("optionalBooleanArg",
+                    t => t.Type<BooleanType>().DefaultValue(true))
+                .Type<BooleanType>()
+                .Resolver(() => null);
+
             // booleanListArgField(booleanListArg: [Boolean]!) : [Boolean]
             descriptor.Field("nonNullBooleanListField")
                 .Argument("nonNullBooleanListArg",

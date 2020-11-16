@@ -3,7 +3,6 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Batching;
 using HotChocolate.Execution.Serialization;
 
 namespace HotChocolate

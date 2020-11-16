@@ -21,8 +21,8 @@ namespace HotChocolate.Types.Relay
 
         public override void OnBeforeCompleteType(
             ITypeCompletionContext completionContext,
-            DefinitionBase definition,
-            IDictionary<string, object> contextData)
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
         {
             if ((completionContext.IsQueryType ?? false) &&
                 definition is ObjectTypeDefinition objectTypeDefinition)

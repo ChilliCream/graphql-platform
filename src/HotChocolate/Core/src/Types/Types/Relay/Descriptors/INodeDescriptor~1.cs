@@ -29,7 +29,7 @@ namespace HotChocolate.Types.Relay.Descriptors
             NodeResolverDelegate<object, TId> fieldResolver);
 
         IObjectFieldDescriptor ResolveNodeWith<TResolver>(
-            Expression<Func<TResolver, TNode>> method);
+            Expression<Func<TResolver, object?>> method);
 
         IObjectFieldDescriptor ResolveNodeWith<TResolver>();
 

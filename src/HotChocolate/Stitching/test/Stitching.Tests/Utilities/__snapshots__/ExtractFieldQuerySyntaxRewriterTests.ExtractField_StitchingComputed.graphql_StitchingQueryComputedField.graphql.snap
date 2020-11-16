@@ -1,7 +1,0 @@
-query fetch {
-  customer(id: "Q3VzdG9tZXIKZDE=") {
-    id
-    name
-    __typename
-  }
-}

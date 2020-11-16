@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate.Language;
 using HotChocolate.Properties;
 
 #nullable enable
@@ -17,7 +18,8 @@ namespace HotChocolate.Execution
             IReadOnlyDictionary<string, object?>? contextData = null,
             IReadOnlyDictionary<string, object?>? extensions = null,
             IServiceProvider? services = null,
-            object? initialValue = null)
+            object? initialValue = null,
+            OperationType[]? allowedOperations = null)
         {
             if (query is null && queryId is null)
             {
@@ -34,6 +36,7 @@ namespace HotChocolate.Execution
             Extensions = extensions;
             Services = services;
             InitialValue = initialValue;
+            AllowedOperations = allowedOperations;
         }
 
         public IQuery? Query { get; }
@@ -53,5 +56,7 @@ namespace HotChocolate.Execution
         public IServiceProvider? Services { get; }
 
         public object? InitialValue { get; }
+
+        public OperationType[]? AllowedOperations { get; }
     }
 }

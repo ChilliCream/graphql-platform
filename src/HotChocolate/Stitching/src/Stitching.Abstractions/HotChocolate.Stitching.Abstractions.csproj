@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Stitching.Abstractions</PackageId>
+    <AssemblyName>HotChocolate.Stitching.Abstractions</AssemblyName>
+    <RootNamespace>HotChocolate.Stitching</RootNamespace>
+    <Description>Contains the Hot Chocolate GraphQL schema stitching abstractions.</Description>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Abstractions\HotChocolate.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\Language\src\Language.SyntaxTree\HotChocolate.Language.SyntaxTree.csproj" />
+  </ItemGroup>
+
+</Project>

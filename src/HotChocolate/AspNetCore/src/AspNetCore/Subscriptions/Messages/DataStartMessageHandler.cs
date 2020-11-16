@@ -1,9 +1,8 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Execution;
-using static HotChocolate.AspNetCore.Utilities.ThrowHelper;
+using static HotChocolate.AspNetCore.ThrowHelper;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Messages
 {

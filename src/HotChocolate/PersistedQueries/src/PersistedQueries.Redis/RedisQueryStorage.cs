@@ -5,7 +5,7 @@ using HotChocolate.Execution;
 using HotChocolate.Language;
 using StackExchange.Redis;
 
-namespace HotChocolate.PersistedQueries.FileSystem
+namespace HotChocolate.PersistedQueries.Redis
 {
     /// <summary>
     /// An implementation of <see cref="IReadStoredQueries"/>
@@ -45,13 +45,7 @@ namespace HotChocolate.PersistedQueries.FileSystem
             string queryId)
         {
             var buffer = (byte[]?)await _database.StringGetAsync(queryId).ConfigureAwait(false);
-
-            if (buffer is null)
-            {
-                return null;
-            }
-
-            return new QueryDocument(Utf8GraphQLParser.Parse(buffer));
+            return buffer is null ? null : new QueryDocument(Utf8GraphQLParser.Parse(buffer));
         }
 
         /// <inheritdoc />

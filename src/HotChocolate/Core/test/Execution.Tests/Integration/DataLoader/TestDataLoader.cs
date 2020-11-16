@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using GreenDonut;
 
-namespace HotChocolate.Integration.DataLoader
+namespace HotChocolate.Execution.Integration.DataLoader
 {
     public class TestDataLoader
         : DataLoaderBase<string, string>

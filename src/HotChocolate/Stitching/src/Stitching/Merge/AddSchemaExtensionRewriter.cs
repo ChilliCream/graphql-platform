@@ -8,24 +8,24 @@ using HotChocolate.Stitching.Properties;
 
 namespace HotChocolate.Stitching.Merge
 {
-    public class AddSchemaExtensionRewriter
+    public partial class AddSchemaExtensionRewriter
         : SchemaSyntaxRewriter<AddSchemaExtensionRewriter.MergeContext>
     {
-        private readonly Dictionary<string, DirectiveDefinitionNode> _gloabalDirectives;
+        private readonly Dictionary<string, DirectiveDefinitionNode> _globalDirectives;
 
         public AddSchemaExtensionRewriter()
         {
-            _gloabalDirectives = new Dictionary<string, DirectiveDefinitionNode>();
+            _globalDirectives = new Dictionary<string, DirectiveDefinitionNode>();
         }
 
-        public AddSchemaExtensionRewriter(IEnumerable<DirectiveDefinitionNode> gloabalDirectives)
+        public AddSchemaExtensionRewriter(IEnumerable<DirectiveDefinitionNode> globalDirectives)
         {
-            if (gloabalDirectives is null)
+            if (globalDirectives is null)
             {
-                throw new ArgumentNullException(nameof(gloabalDirectives));
+                throw new ArgumentNullException(nameof(globalDirectives));
             }
 
-            _gloabalDirectives = gloabalDirectives.ToDictionary(t => t.Name.Value);
+            _globalDirectives = globalDirectives.ToDictionary(t => t.Name.Value);
         }
 
         public DocumentNode AddExtensions(
@@ -42,19 +42,15 @@ namespace HotChocolate.Stitching.Merge
                 throw new ArgumentNullException(nameof(extensions));
             }
 
-            var newTypes = extensions.Definitions
-                .OfType<ITypeDefinitionNode>().ToList();
-            var newDirectives = extensions.Definitions
-                .OfType<DirectiveDefinitionNode>().ToList();
+            var newTypes = extensions.Definitions.OfType<ITypeDefinitionNode>().ToList();
+            var newDirectives = extensions.Definitions.OfType<DirectiveDefinitionNode>().ToList();
 
             DocumentNode current = schema;
 
             if (newTypes.Count > 0 || newDirectives.Count > 0)
             {
-                current = RemoveDirectives(current,
-                    newDirectives.Select(t => t.Name.Value));
-                current = RemoveTypes(current,
-                    newTypes.Select(t => t.Name.Value));
+                current = RemoveDirectives(current, newDirectives.Select(t => t.Name.Value));
+                current = RemoveTypes(current, newTypes.Select(t => t.Name.Value));
 
                 var definitions = schema.Definitions.ToList();
                 definitions.AddRange(newTypes);
@@ -64,6 +60,20 @@ namespace HotChocolate.Stitching.Merge
 
             var context = new MergeContext(current, extensions);
             current = RewriteDocument(current, context);
+
+            if (context.Extensions.Count > 0)
+            {
+                var definitions = current.Definitions.ToList();
+
+                foreach (string notProcessed in context.Extensions.Keys.Except(
+                    current.Definitions.OfType<ITypeDefinitionNode>().Select(t => t.Name.Value)))
+                {
+                    definitions.Add(context.Extensions[notProcessed]);
+                }
+
+                return current.WithDefinitions(definitions);
+            }
+
             return current;
         }
 
@@ -131,8 +141,7 @@ namespace HotChocolate.Stitching.Merge
                         extension,
                         string.Format(
                             CultureInfo.InvariantCulture,
-                            StitchingResources
-                                .AddSchemaExtensionRewriter_TypeMismatch,
+                            StitchingResources.AddSchemaExtensionRewriter_TypeMismatch,
                             node.Name.Value,
                             node.Kind,
                             extension.Kind));
@@ -151,8 +160,7 @@ namespace HotChocolate.Stitching.Merge
                 return typeDefinition;
             }
 
-            var types =
-                new OrderedDictionary<string, NamedTypeNode>();
+            var types = new OrderedDictionary<string, NamedTypeNode>();
 
             foreach (NamedTypeNode type in typeDefinition.Types)
             {
@@ -488,8 +496,8 @@ namespace HotChocolate.Stitching.Merge
 
             foreach (DirectiveNode directive in typeExtension.Directives)
             {
-                if (!_gloabalDirectives.TryGetValue(directive.Name.Value,
-                    out DirectiveDefinitionNode directiveDefinition)
+                if (!_globalDirectives.TryGetValue(directive.Name.Value,
+                    out DirectiveDefinitionNode? directiveDefinition)
                     && !context.Directives.TryGetValue(directive.Name.Value,
                         out directiveDefinition))
                 {
@@ -516,24 +524,6 @@ namespace HotChocolate.Stitching.Merge
             }
 
             return withDirectives.Invoke(directives);
-        }
-
-        public class MergeContext
-        {
-            public MergeContext(DocumentNode schema, DocumentNode extensions)
-            {
-                Extensions = extensions.Definitions
-                    .OfType<ITypeExtensionNode>()
-                    .ToDictionary(t => t.Name.Value);
-
-                Directives = schema.Definitions
-                    .OfType<DirectiveDefinitionNode>()
-                    .ToDictionary(t => t.Name.Value);
-            }
-
-            public IDictionary<string, ITypeExtensionNode> Extensions { get; }
-
-            public IDictionary<string, DirectiveDefinitionNode> Directives { get; }
         }
     }
 }

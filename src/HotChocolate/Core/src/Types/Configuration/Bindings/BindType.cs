@@ -2,6 +2,8 @@ using System;
 using System.Linq.Expressions;
 using HotChocolate.Utilities;
 
+#nullable enable
+
 namespace HotChocolate.Configuration.Bindings
 {
     internal class BindType<T>
