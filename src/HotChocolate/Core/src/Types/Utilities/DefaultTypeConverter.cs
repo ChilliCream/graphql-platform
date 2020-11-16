@@ -8,13 +8,10 @@ using HotChocolate.Properties;
 
 namespace HotChocolate.Utilities
 {
-    public partial class DefaultTypeConverter
-        : ITypeConverter
+    public partial class DefaultTypeConverter : ITypeConverter
     {
-        private readonly ConcurrentDictionary<Type, ConcurrentDictionary<Type, ChangeType>> _converters =
-            new ConcurrentDictionary<Type, ConcurrentDictionary<Type, ChangeType>>();
-        private readonly List<IChangeTypeProvider> _changeTypeProvider =
-            new List<IChangeTypeProvider>();
+        private readonly ConcurrentDictionary<Type, ConcurrentDictionary<Type, ChangeType>> _converters = new();
+        private readonly List<IChangeTypeProvider> _changeTypeProvider = new();
 
         public DefaultTypeConverter(IEnumerable<IChangeTypeProvider>? providers = null)
         {
@@ -107,11 +104,16 @@ namespace HotChocolate.Utilities
             Type to,
             [NotNullWhen(true)] out ChangeType? converter)
         {
-            if (TryGetConverter(from, to, out converter)
-                || TryCreateConverterFromFactory(from, to, out converter))
+            if (TryGetConverter(from, to, out converter))
             {
                 return true;
             }
+
+            if (TryCreateConverterFromFactory(from, to, out converter))
+            {
+                return true;
+            }
+
             return false;
         }
 
@@ -127,6 +129,11 @@ namespace HotChocolate.Utilities
                     if (provider.TryCreateConverter(
                         source, target, TryGetOrCreateConverter, out converter))
                     {
+                        ConcurrentDictionary<Type, ChangeType> lookup =
+                            _converters.GetOrAdd(
+                                source,
+                                _ => new ConcurrentDictionary<Type, ChangeType>());
+                        lookup.TryAdd(target, converter);
                         return true;
                     }
                 }
@@ -173,7 +180,7 @@ namespace HotChocolate.Utilities
                     return converter((TSource)input);
                 }));
 
-        public static DefaultTypeConverter Default { get; } = new DefaultTypeConverter();
+        public static DefaultTypeConverter Default { get; } = new();
 
         private sealed class DelegateTypeConverter : IChangeTypeProvider
         {
