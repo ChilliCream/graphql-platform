@@ -1,0 +1,13 @@
+﻿[
+  {
+    "Message": "Variable `abc` got an invalid value.",
+    "Code": "HC0016",
+    "Path": null,
+    "Locations": null,
+    "Extensions": {
+      "code": "HC0016",
+      "variable": "abc"
+    },
+    "Exception": null
+  }
+]

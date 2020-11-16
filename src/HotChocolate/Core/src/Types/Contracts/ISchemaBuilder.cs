@@ -6,6 +6,8 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
+#nullable enable
+
 namespace HotChocolate
 {
     public delegate DocumentNode LoadSchemaDocument(IServiceProvider services);
@@ -26,7 +28,7 @@ namespace HotChocolate
 
         ISchemaBuilder Use(FieldMiddleware middleware);
 
-        ISchemaBuilder AddDocument(LoadSchemaDocument loadSchemaDocument);
+        ISchemaBuilder AddDocument(LoadSchemaDocument loadDocument);
 
         ISchemaBuilder AddType(Type type);
 
@@ -50,17 +52,27 @@ namespace HotChocolate
 
         ISchemaBuilder AddServices(IServiceProvider services);
 
-        ISchemaBuilder AddContextData(string key, object value);
+        ISchemaBuilder SetContextData(string key, object? value);
 
-        ISchemaBuilder SetContextData(string key, object value);
+        ISchemaBuilder SetContextData(string key, Func<object?, object?> update);
 
-        ISchemaBuilder RemoveContextData(string key);
+        ISchemaBuilder TryAddTypeInterceptor(Type interceptor);
 
-        ISchemaBuilder ClearContextData();
+        ISchemaBuilder TryAddTypeInterceptor(ITypeInitializationInterceptor interceptor);
 
-        ISchemaBuilder AddTypeInterceptor(Type interceptor);
+        ISchemaBuilder TryAddSchemaInterceptor(Type interceptor);
 
-        ISchemaBuilder AddConvention(Type convention, CreateConvention factory);
+        ISchemaBuilder TryAddSchemaInterceptor(ISchemaInterceptor interceptor);
+
+        ISchemaBuilder AddConvention(
+            Type convention,
+            CreateConvention factory,
+            string? scope = null);
+
+        ISchemaBuilder TryAddConvention(
+            Type convention,
+            CreateConvention factory,
+            string? scope = null);
 
         ISchema Create();
     }

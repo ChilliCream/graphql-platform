@@ -7,9 +7,9 @@
       "Message": "query error 9",
       "Code": null,
       "Path": null,
-      "Locations": [],
-      "Exception": null,
-      "Extensions": {}
+      "Locations": null,
+      "Extensions": null,
+      "Exception": null
     }
   ],
   "Extensions": null,

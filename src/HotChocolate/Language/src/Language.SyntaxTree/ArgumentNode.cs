@@ -29,7 +29,7 @@ namespace HotChocolate.Language
             Value = value ?? throw new ArgumentNullException(nameof(value));
         }
 
-        public NodeKind Kind { get; } = NodeKind.Argument;
+        public SyntaxKind Kind { get; } = SyntaxKind.Argument;
 
         public Location? Location { get; }
 

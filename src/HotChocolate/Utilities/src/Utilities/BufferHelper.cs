@@ -12,12 +12,12 @@ namespace HotChocolate.Utilities
            Stream stream,
            Func<byte[], int, T> handle,
            CancellationToken cancellationToken) =>
-           ReadAsync<T>(stream, handle, null, cancellationToken);
+           ReadAsync(stream, handle, null, cancellationToken);
 
         public static async Task<T> ReadAsync<T>(
             Stream stream,
             Func<byte[], int, T> handle,
-            Action<int> checkSize,
+            Action<int>? checkSize,
             CancellationToken cancellationToken)
         {
             byte[] buffer = ArrayPool<byte>.Shared.Rent(1024);
@@ -31,7 +31,7 @@ namespace HotChocolate.Utilities
 
                     if (bytesRemaining == 0)
                     {
-                        var next = ArrayPool<byte>.Shared.Rent(buffer.Length * 2);
+                        byte[] next = ArrayPool<byte>.Shared.Rent(buffer.Length * 2);
                         Buffer.BlockCopy(buffer, 0, next, 0, buffer.Length);
                         ArrayPool<byte>.Shared.Return(buffer);
                         buffer = next;
@@ -50,10 +50,7 @@ namespace HotChocolate.Utilities
                     }
 
                     bytesBuffered += bytesRead;
-                    if (checkSize != null)
-                    {
-                        checkSize(bytesBuffered);
-                    }
+                    checkSize?.Invoke(bytesBuffered);
                 }
 
                 return handle(buffer, bytesBuffered);

@@ -1,8 +1,5 @@
 ﻿{
-  "Data": {
+  "data": {
     "hello": "World1"
-  },
-  "Errors": null,
-  "Extensions": null,
-  "ContextData": null
+  }
 }

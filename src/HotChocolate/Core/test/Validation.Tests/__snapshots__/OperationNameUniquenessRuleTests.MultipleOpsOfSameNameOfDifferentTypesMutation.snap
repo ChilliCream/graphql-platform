@@ -9,10 +9,10 @@
         "Column": 17
       }
     ],
-    "Exception": null,
     "Extensions": {
       "operation": "Foo",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Operation-Name-Uniqueness"
-    }
+    },
+    "Exception": null
   }
 ]

@@ -88,7 +88,7 @@ namespace HotChocolate.Validation.Rules
         {
             context.Names.Clear();
 
-            if (context.Schema.TryGetDirectiveType(node.Name.Value, out DirectiveType d))
+            if (context.Schema.TryGetDirectiveType(node.Name.Value, out DirectiveType? d))
             {
                 context.Directives.Push(d);
 

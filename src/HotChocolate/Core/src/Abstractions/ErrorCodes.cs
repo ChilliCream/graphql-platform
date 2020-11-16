@@ -13,15 +13,27 @@ namespace HotChocolate
         public static class Execution
         {
             public const string CannotSerialize = "EXEC_BATCH_VAR_SERIALIZE";
+            public const string CannotSerializeLeafValue = "EXEC_INVALID_LEAF_VALUE";
+            public const string CannotResolveAbstractType = "EXEC_UNABLE_TO_RESOLVE_ABSTRACT_TYPE";
+            public const string ListTypeNotSupported = "EXEC_LIST_TYPE_NOT_SUPPORTED";
             public const string AutoMapVarError = "EXEC_BATCH_AUTO_MAP_VAR_TYPE";
             public const string Incomplete = "EXEC_MIDDLEWARE_INCOMPLETE";
             public const string Timeout = "EXEC_TIMEOUT";
-            public const string QueryNotFound = "PERSISTED_QUERY_NOT_FOUND";
-            public const string NonNullViolation = "EXEC_NON_NULL_VIOLATION";
-            public const string CachedQueryNotFound = "CACHED_QUERY_NOT_FOUND";
-            public const string MustBeInputType = "EXEC_INPUT_TYPE_REQUIRED";
-            public const string InvalidType = "EXEC_INVALID_TYPE";
-            public const string SyntaxError = "EXEC_SYNTAX_ERROR";
+            public const string NonNullViolation = "HC0018";
+            public const string MustBeInputType = "HC0017";
+            public const string InvalidType = "HC0016";
+            public const string QueryNotFound = "HC0015";
+            public const string TaskProcessingError = "HC0008";
+            public const string SyntaxError = "HC0014";
+        }
+
+        public static class Server
+        {
+            public const string RequestInvalid = "HC0009";
+            public const string MaxRequestSize = "HC0010";
+            public const string SyntaxError = "HC0011";
+            public const string UnexpectedRequestParserError = "HC0012";
+            public const string QueryAndIdMissing = "HC0013";
         }
 
         public static class Schema
@@ -38,38 +50,63 @@ namespace HotChocolate
             public const string InterfaceNotImplemented = "SCHEMA_INTERFACE_NO_IMPL";
         }
 
+        public static class Scalars
+        {
+            /// <summary>
+            /// The runtime type is not supported by the scalars ParseValue method.
+            /// </summary>
+            public const string InvalidRuntimeType = "HC0001";
+
+            /// <summary>
+            /// Either the syntax node is invalid when parsing the literal or the syntax
+            /// node value has an invalid format.
+            /// </summary>
+            public const string InvalidSyntaxFormat = "HC0002";
+        }
+
+        public static class Apollo
+        {
+            public static class Federation
+            {
+                /// <summary>
+                /// The key attribute is used on the type level without specifying the the
+                /// fieldset.
+                /// </summary>
+                public const string KeyFieldSetNullOrEmpty = "HC0003";
+
+                /// <summary>
+                /// The provides attribute is used and the fieldset is set to <c>null</c> or
+                /// <see cref="string.Empty"/>.
+                /// </summary>
+                public const string ProvidesFieldSetNullOrEmpty = "HC0004";
+
+                /// <summary>
+                /// The requires attribute is used and the fieldset is set to <c>null</c> or
+                /// <see cref="string.Empty"/>.
+                /// </summary>
+                public const string RequiresFieldSetNullOrEmpty = "HC0005";
+            }
+        }
+
         public static class Filtering
         {
             public const string FilterObjectType = "FILTER_OBJECT_TYPE";
             public const string FilterFieldDescriptorType = "FILTER_FIELD_DESCRIPTOR_TYPE";
-            public const string NoOperationNameFound = "FILTER_CONVENTION_NO_OPERATION_NAME_FOUND";
         }
 
-        public static class Sorting
-        {
-            public const string SortObjectType = "SORT_OBJECT_TYPE";
-        }
 
-        public static class Serialization
+        public static class Stitching
         {
-            public const string ResultTypeNotSupported = "RESULT_TYPE_NOT_SUPPORTED";
-        }
+            public const string HttpRequestException = "HC0006";
 
-        public static class Server
-        {
-            public const string RequestInvalid = "INVALID_REQUEST";
-            public const string MaxRequestSize = "MAX_REQUEST_SIZE";
-        }
+            public const string UnknownRequestException = "HC0007";
 
-        public static class Validation
-        {
-            public const string UnknownType = "VALIDATION_UNKNOWN_TYPE";
-        }
-
-        public static class Utilities
-        {
-            public const string UnknownField = "EXEC_VAR_UNKNOWN_FIELD";
-            public const string NoConverter = "EXEC_VAR_NO_CONVERTER";
+            public const string ArgumentNotDefined = "STITCHING_ARG_NOT_DEFINED";
+            public const string FieldNotDefined = "STITCHING_FLD_NOT_DEFINED";
+            public const string VariableNotDefined = "STITCHING_VAR_NOT_DEFINED";
+            public const string ScopeNotDefined = "STITCHING_SCOPE_NOT_DEFINED";
+            public const string TypeNotDefined = "STITCHING_TYPE_NOT_DEFINED";
+            public const string ArgumentNotFound = "STITCHING_DEL_ARGUMENT_NOT_FOUND";
         }
     }
 }

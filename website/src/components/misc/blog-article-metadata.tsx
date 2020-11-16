@@ -45,7 +45,7 @@ const Metadata = styled.div`
   margin: 0 20px 20px;
   font-size: 0.778em;
 
-  @media only screen and (min-width: 800px) {
+  @media only screen and (min-width: 820px) {
     margin: 0 50px 20px;
   }
 `;

@@ -41,7 +41,7 @@ namespace HotChocolate.Configuration.Bindings
         public IBindFieldResolver<TResolver, TObjectType> Resolve<TPropType>(
             Expression<Func<TObjectType, TPropType>> field)
         {
-            if (field == null)
+            if (field is null)
             {
                 throw new ArgumentNullException(nameof(field));
             }

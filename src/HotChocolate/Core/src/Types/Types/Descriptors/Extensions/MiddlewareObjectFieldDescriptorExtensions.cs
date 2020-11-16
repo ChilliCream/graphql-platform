@@ -18,7 +18,7 @@ namespace HotChocolate.Types
             Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
             where TMiddleware : class
         {
-            if (factory == null)
+            if (factory is null)
             {
                 throw new ArgumentNullException(nameof(factory));
             }

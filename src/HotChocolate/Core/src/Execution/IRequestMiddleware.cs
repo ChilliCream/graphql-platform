@@ -11,8 +11,12 @@ namespace HotChocolate.Execution
         /// Request handling method.
         /// </summary>
         /// <param name="context">The <see cref="IRequestContext"/> for the request.</param>
-        /// <param name="next">The delegate representing the remaining middleware in the request pipeline.</param>
-        /// <returns>A <see cref="Task"/> that represents the execution of this middleware.</returns>
+        /// <param name="next">
+        /// The delegate representing the remaining middleware in the request pipeline.
+        /// </param>
+        /// <returns>
+        /// A <see cref="Task"/> that represents the execution of this middleware.
+        /// </returns>
         Task InvokeAsync(IRequestContext context, RequestDelegate next);
     }
 }

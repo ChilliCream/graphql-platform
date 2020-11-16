@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.StarWars</AssemblyName>
+    <RootNamespace>HotChocolate.StarWars</RootNamespace>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Core\HotChocolate.Core.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -4,6 +4,7 @@
   "SubscriptionTypeName": "Subscription",
   "StrictValidation": true,
   "UseXmlDocumentation": true,
+  "SortFieldsByName": false,
   "RemoveUnreachableTypes": false,
   "DefaultBindingBehavior": "Implicit",
   "FieldMiddleware": "UserDefinedFields"

@@ -1,0 +1,42 @@
+﻿{
+  "Label": null,
+  "Path": null,
+  "Data": {
+    "test": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          30.0,
+          10.0
+        ],
+        [
+          40.0,
+          40.0
+        ],
+        [
+          20.0,
+          40.0
+        ],
+        [
+          10.0,
+          20.0
+        ],
+        [
+          30.0,
+          10.0
+        ]
+      ],
+      "bbox": [
+        10.0,
+        10.0,
+        40.0,
+        40.0
+      ],
+      "crs": 4326
+    }
+  },
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null,
+  "HasNext": null
+}

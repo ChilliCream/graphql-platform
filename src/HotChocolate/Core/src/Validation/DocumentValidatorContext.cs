@@ -61,6 +61,9 @@ namespace HotChocolate.Validation
         public IDictionary<SelectionSetNode, IList<FieldInfo>> FieldSets { get; } =
             new Dictionary<SelectionSetNode, IList<FieldInfo>>();
 
+        public ISet<(FieldNode, FieldNode)> FieldTuples { get; } = 
+            new HashSet<(FieldNode, FieldNode)>();
+
         public ISet<string> VisitedFragments { get; } = new HashSet<string>();
 
         public IDictionary<string, object> VariableValues { get; } =
@@ -130,6 +133,7 @@ namespace HotChocolate.Validation
             Path.Clear();
             SelectionSets.Clear();
             FieldSets.Clear();
+            FieldTuples.Clear();
             VisitedFragments.Clear();
             VariableValues.Clear();
             Variables.Clear();
@@ -155,7 +159,7 @@ namespace HotChocolate.Validation
             if (_buffers.Count > 1)
             {
                 FieldInfoListBuffer buffer = _buffers.Pop();
-                buffer.Reset();
+                buffer.Clear();
 
                 for (int i = 0; i < _buffers.Count; i++)
                 {
@@ -167,7 +171,7 @@ namespace HotChocolate.Validation
             }
             else
             {
-                _buffers[0].Reset();
+                _buffers[0].Clear();
             }
         }
     }

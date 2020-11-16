@@ -1,11 +1,11 @@
 using System;
+using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
+using HotChocolate.Validation.Options;
 using Snapshooter.Xunit;
 using Xunit;
-using HotChocolate.Validation.Options;
-using System.Linq;
 
 namespace HotChocolate.Validation
 {
@@ -22,7 +22,7 @@ namespace HotChocolate.Validation
 
             IServiceProvider services = serviceCollection.BuildServiceProvider();
             Rule = services.GetRequiredService<IValidationConfiguration>()
-                .GetRules("Default").First();
+                .GetRules(Schema.DefaultName).First();
             StarWars = SchemaBuilder.New().AddStarWarsTypes().Create();
         }
 
@@ -37,7 +37,7 @@ namespace HotChocolate.Validation
             DocumentNode query = Utf8GraphQLParser.Parse(@"{ foo }");
 
             // act
-            Action a = () => Rule.Validate(null, query);
+            Action a = () => Rule.Validate(null!, query);
 
             // assert
             Assert.Throws<ArgumentNullException>(a);

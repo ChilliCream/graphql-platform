@@ -1,0 +1,13 @@
+﻿[
+  {
+    "Message": "Variable `abc` is required.",
+    "Code": "HC0018",
+    "Path": null,
+    "Locations": null,
+    "Extensions": {
+      "code": "HC0018",
+      "variable": "abc"
+    },
+    "Exception": null
+  }
+]

@@ -27,7 +27,7 @@ namespace HotChocolate.Types
         public override TypeKind Kind => TypeKind.Enum;
 
         protected override EnumTypeDefinition CreateDefinition(
-            IInitializationContext context)
+            ITypeDiscoveryContext context)
         {
             var descriptor = EnumTypeDescriptor.New(
                 context.DescriptorContext);
@@ -38,7 +38,7 @@ namespace HotChocolate.Types
         protected virtual void Configure(IEnumTypeDescriptor descriptor) { }
 
         protected override void OnRegisterDependencies(
-            IInitializationContext context,
+            ITypeDiscoveryContext context,
             EnumTypeDefinition definition)
         {
             base.OnRegisterDependencies(context, definition);
@@ -46,7 +46,7 @@ namespace HotChocolate.Types
         }
 
         internal override void Merge(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             INamedType type)
         {
             if (type is EnumType enumType)
@@ -75,20 +75,20 @@ namespace HotChocolate.Types
         }
 
         private void MergeValues(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             EnumTypeDefinition extension,
             EnumTypeDefinition type)
         {
             foreach (EnumValueDefinition enumValue in
                 extension.Values.Where(t => t.Value != null))
             {
-                if (type.ClrType.IsAssignableFrom(enumValue.Value.GetType()))
+                if (type.RuntimeType.IsAssignableFrom(enumValue.Value.GetType()))
                 {
                     EnumValueDefinition existingValue =
                         type.Values.FirstOrDefault(t =>
                             enumValue.Value.Equals(t.Value));
 
-                    if (existingValue == null)
+                    if (existingValue is null)
                     {
                         type.Values.Add(enumValue);
                     }

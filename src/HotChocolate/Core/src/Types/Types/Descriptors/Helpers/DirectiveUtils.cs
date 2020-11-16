@@ -10,7 +10,8 @@ namespace HotChocolate.Types.Descriptors
     {
         public static void AddDirective<T>(
             this IHasDirectiveDefinition directivesContainer,
-            T directive)
+            T directive,
+            ITypeInspector typeInspector)
             where T : class
         {
             if (directive is null)
@@ -32,7 +33,9 @@ namespace HotChocolate.Types.Descriptors
                     break;
                 default:
                     directivesContainer.Directives.Add(
-                        new DirectiveDefinition(directive));
+                        new DirectiveDefinition(
+                            directive,
+                            typeInspector.GetTypeRef(directive.GetType(), TypeContext.None)));
                     break;
             }
         }
@@ -42,10 +45,11 @@ namespace HotChocolate.Types.Descriptors
             NameString name,
             IEnumerable<ArgumentNode> arguments)
         {
-            directivesContainer.Directives.Add(new DirectiveDefinition(
-                new DirectiveNode(
-                    name.EnsureNotEmpty(nameof(name)),
-                    arguments.ToArray())));
+            directivesContainer.Directives.Add(
+                new DirectiveDefinition(
+                    new DirectiveNode(
+                        name.EnsureNotEmpty(nameof(name)),
+                        arguments.ToArray())));
         }
     }
 }

@@ -1,0 +1,7 @@
+﻿{
+  "errors": [
+    {
+      "message": "The specified root type \u0060Mutation\u0060 is not supported by this server."
+    }
+  ]
+}

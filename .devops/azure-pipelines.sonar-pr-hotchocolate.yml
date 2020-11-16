@@ -30,7 +30,7 @@ stages:
         displayName: 'Cover'
         dependsOn: [ ]
         strategy:
-          parallel: 6
+          parallel: 8
         steps:
           - task: CmdLine@2
             inputs:
@@ -39,8 +39,8 @@ stages:
             inputs:
               artifactName: test-results
               pathtoPublish: 'output/test-results'
-      - job: SonarPr
-        displayName: 'SonarPr'
+      - job: ReportCoverage
+        displayName: 'ReportCoverage'
         dependsOn: [ Cover ]
         steps:
           - task: DownloadBuildArtifacts@0
@@ -48,5 +48,22 @@ stages:
               artifactName: 'test-results'
               downloadPath: '$(Build.Repository.LocalPath)/output'
           - task: CmdLine@2
+            inputs:
+              script: './build.cmd ReportCoverage --skip'
+      - job: SonarPr
+        displayName: 'SonarPr'
+        dependsOn: [ ]
+        steps:
+          - task: JavaToolInstaller@0
+            inputs:
+              versionSpec: '11'
+              jdkArchitectureOption: 'x64'
+              jdkSourceOption: 'PreInstalled'
+              jdkDestinationDirectory: ./.java
+          - task: CmdLine@2
+            env:
+              HC_GITHUB_PR_NR: $(System.PullRequest.PullRequestNumber)
+              HC_GITHUB_HEAD_REF: $(System.PullRequest.SourceBranch)
+              HC_GITHUB_BASE_REF: $(System.PullRequest.TargetBranch)
             inputs:
               script: './build.cmd SonarPr --skip'

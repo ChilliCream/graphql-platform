@@ -27,7 +27,7 @@ namespace HotChocolate.Configuration.Bindings
                 return false;
             }
 
-            if (ResolverType == null)
+            if (ResolverType is null)
             {
                 return false;
             }

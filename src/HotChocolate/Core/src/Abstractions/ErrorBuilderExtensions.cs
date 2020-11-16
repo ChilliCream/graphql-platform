@@ -12,7 +12,7 @@ namespace HotChocolate
             this IErrorBuilder builder,
             ISyntaxNode? syntaxNode)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }

@@ -1,7 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Language;
 using Xunit;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Validation
 {
@@ -356,6 +354,58 @@ namespace HotChocolate.Validation
                 fragment fragB on Dog { ...fragB, ...fragC }
                 fragment fragC on Dog { ...fragA, ...fragB }
             ");
+        }
+
+        [Fact]
+        public void DoesNotInfiniteLoopOnRecursiveFragment()
+        {
+            ExpectErrors(@"
+                {
+                    dogOrHuman {
+                        ... fragA
+                    }
+                }
+
+                fragment fragA on Human {
+                    name
+                    ... fragA
+                }");
+        }
+
+        [Fact]
+        public void DoesNotInfiniteLoopOnImmediatelyRecursiveFragment()
+        {
+            ExpectErrors(@"
+                {
+                    dogOrHuman {
+                        ... fragA
+                    }
+                }
+
+                fragment fragA on Human {
+                    name
+                    relatives {
+                        name
+                        ... fragA
+                    }
+                }");
+        }
+
+        [Fact]
+        public void DoesNotInfiniteLoopOnTransitivelyRecursiveFragment()
+        {
+            ExpectErrors(@"
+                {
+                    dogOrHuman {
+                        ... fragA
+                        ... fragB
+                        ... fragC
+                    }
+                }
+
+                fragment fragA on Human { name, ...fragB }
+                fragment fragB on Human { name, ...fragC }
+                fragment fragC on Human { name, ...fragA }");
         }
     }
 }

@@ -1,29 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
-    <LangVersion>8.0</LangVersion>
+    <TargetFramework>net5.0</TargetFramework>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DebugType>portable</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DebugType>pdbonly</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-  </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="HotChocolate.AspNetCore" Version="10.3.4" />
-    <PackageReference Include="HotChocolate.AspNetCore.Playground" Version="10.3.4" />
-    <PackageReference Include="HotChocolate.AspNetCore.Voyager" Version="10.3.4" />
-    <PackageReference Include="HotChocolate.AspNetCore.Authorization" Version="10.3.4" />
-    <PackageReference Include="HotChocolate.Types.Filters" Version="10.3.4" />
-    <PackageReference Include="HotChocolate.Types.Sorting" Version="10.3.4" />
-    <PackageReference Include="HotChocolate.Subscriptions.InMemory" Version="10.3.4" />
+    <PackageReference Include="HotChocolate.AspNetCore" Version="11.0.0-rc.1" />
+    <PackageReference Include="HotChocolate.AspNetCore.Authorization" Version="11.0.0-rc.1" />
+    <PackageReference Include="HotChocolate.Data" Version="11.0.0-rc.1" />
   </ItemGroup>
 
 </Project>

@@ -1,0 +1,14 @@
+﻿[
+  {
+    "Message": "Variable `abc` is not an input type.",
+    "Code": "HC0017",
+    "Path": null,
+    "Locations": null,
+    "Extensions": {
+      "code": "HC0017",
+      "variable": "abc",
+      "type": "Human"
+    },
+    "Exception": null
+  }
+]

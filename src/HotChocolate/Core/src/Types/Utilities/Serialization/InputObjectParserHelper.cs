@@ -13,11 +13,11 @@ namespace HotChocolate.Utilities.Serialization
                 new DictionaryPoolPolicy(),
                 32);
 
-        public static object Parse(
+        public static object ParseLiteral(
             InputObjectType type,
             ObjectValueNode value,
             InputObjectFactory factory,
-            ITypeConversion converter)
+            ITypeConverter converter)
         {
             Dictionary<string, object> dict = _dictionaryPool.Get();
 
@@ -33,10 +33,10 @@ namespace HotChocolate.Utilities.Serialization
             }
         }
 
-        public static object Parse(
+        public static object ParseLiteralToDictionary(
             InputObjectType type,
             ObjectValueNode value,
-            ITypeConversion converter)
+            ITypeConverter converter)
         {
             var dict = new Dictionary<string, object>();
 
@@ -50,21 +50,25 @@ namespace HotChocolate.Utilities.Serialization
             InputObjectType type,
             ObjectValueNode source,
             IDictionary<string, object> target,
-            ITypeConversion converter)
+            ITypeConverter converter)
         {
-            for (int i = 0; i < source.Fields.Count; i++)
+            for (var i = 0; i < source.Fields.Count; i++)
             {
                 ObjectFieldNode fieldValue = source.Fields[i];
                 if (type.Fields.TryGetField(fieldValue.Name.Value, out InputField field))
                 {
                     object value = field.Type.ParseLiteral(fieldValue.Value);
+                    value = field.Formatter is not null
+                        ? field.Formatter.OnAfterDeserialize(value)
+                        : value;
                     target[field.Name] = ConvertValue(field, converter, value);
                 }
                 else
                 {
-                    throw new InputObjectSerializationException(
+                    throw new SerializationException(
                         $"The field `{fieldValue.Name.Value}` does not exist on " +
-                        $"the type `{type.Name}`.");
+                        $"the type `{type.Name}`.",
+                        type);
                 }
             }
         }
@@ -73,7 +77,7 @@ namespace HotChocolate.Utilities.Serialization
             InputObjectType type,
             IReadOnlyDictionary<string, object> value,
             InputObjectFactory factory,
-            ITypeConversion converter)
+            ITypeConverter converter)
         {
             Dictionary<string, object> dict = _dictionaryPool.Get();
 
@@ -89,10 +93,10 @@ namespace HotChocolate.Utilities.Serialization
             }
         }
 
-        public static Dictionary<string, object> Deserialize(
+        public static Dictionary<string, object> DeserializeToDictionary(
             InputObjectType type,
             IReadOnlyDictionary<string, object> value,
-            ITypeConversion converter)
+            ITypeConverter converter)
         {
             var dict = new Dictionary<string, object>();
 
@@ -106,20 +110,28 @@ namespace HotChocolate.Utilities.Serialization
             InputObjectType type,
             IReadOnlyDictionary<string, object> source,
             IDictionary<string, object> target,
-            ITypeConversion converter)
+            ITypeConverter converter)
         {
             foreach (KeyValuePair<string, object> fieldValue in source)
             {
                 if (type.Fields.TryGetField(fieldValue.Key, out InputField field))
                 {
-                    object value = field.Type.Deserialize(fieldValue.Value);
+                    object value = fieldValue.Value is IValueNode literal
+                        ? field.Type.ParseLiteral(literal)
+                        : field.Type.Deserialize(fieldValue.Value);
+
+                    value = field.Formatter is not null
+                        ? field.Formatter.OnAfterDeserialize(value)
+                        : value;
+
                     target[field.Name] = ConvertValue(field, converter, value);
                 }
                 else
                 {
-                    throw new InputObjectSerializationException(
+                    throw new SerializationException(
                         $"The field `{fieldValue.Key}` does not exist on " +
-                        $"the type `{type.Name}`.");
+                        $"the type `{type.Name}`.",
+                        type);
                 }
             }
         }
@@ -127,28 +139,36 @@ namespace HotChocolate.Utilities.Serialization
         private static void SetDefaultValues(
             InputObjectType type,
             IDictionary<string, object> dict,
-            ITypeConversion converter)
+            ITypeConverter converter)
         {
             foreach (InputField field in type.Fields)
             {
-                if (!field.IsOptional && !dict.ContainsKey(field.Name))
+                if (field.DefaultValue is not null && !dict.ContainsKey(field.Name))
                 {
-                    object value = field.Type.ParseLiteral(
-                        field.DefaultValue ?? NullValueNode.Default);
-                    dict[field.Name] = ConvertValue(field, converter, value);
+                    if (field.IsOptional)
+                    {
+                        continue;
+                    }
+
+                    dict.Add(
+                        field.Name,
+                        ConvertValue(
+                            field,
+                            converter,
+                            field.Type.ParseLiteral(field.DefaultValue, false)));
                 }
             }
         }
 
         private static object ConvertValue(
             InputField field,
-            ITypeConversion converter,
+            ITypeConverter converter,
             object value)
         {
             if (value is { }
-                && field.ClrType != typeof(object))
+                && field.RuntimeType != typeof(object))
             {
-                Type type = field.ClrType;
+                Type type = field.RuntimeType;
 
                 if (type.IsGenericType
                     && type.GetGenericTypeDefinition() == typeof(Optional<>))

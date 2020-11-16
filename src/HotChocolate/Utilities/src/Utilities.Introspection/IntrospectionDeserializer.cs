@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using HotChocolate.Language;
 using HotChocolate.Utilities.Introspection.Properties;
 
@@ -345,16 +344,9 @@ namespace HotChocolate.Utilities.Introspection
 
         private static IValueNode ParseDefaultValue(string defaultValue)
         {
-            if (!string.IsNullOrEmpty(defaultValue))
-            {
-                byte[] buffer = Encoding.UTF8.GetBytes(defaultValue);
-                var reader = new Utf8GraphQLReader(buffer);
-                reader.MoveNext();
-
-                var parser = new Utf8GraphQLParser(reader, ParserOptions.Default);
-                return parser.ParseValueLiteral(true);
-            }
-            return NullValueNode.Default;
+            return !string.IsNullOrEmpty(defaultValue)
+                ? Utf8GraphQLParser.Syntax.ParseValueLiteral(defaultValue)
+                : NullValueNode.Default;
         }
 
         private static ITypeNode CreateTypeReference(TypeRef typeRef)

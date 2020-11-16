@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="4.7.0" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.0" />
   </ItemGroup>
 
 </Project>

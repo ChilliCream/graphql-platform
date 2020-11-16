@@ -4,165 +4,171 @@ using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
+#nullable enable
+
 namespace HotChocolate.Execution
 {
-    public partial class QueryRequestBuilder
-        : IQueryRequestBuilder
+    public class QueryRequestBuilder : IQueryRequestBuilder
     {
-        private IQuery _query;
-        private string _queryName;
-        private string _queryHash;
-        private string _operationName;
-        private IReadOnlyDictionary<string, object> _readOnlyVariableValues;
-        private Dictionary<string, object> _variableValues;
-        private object _initialValue;
-        private IReadOnlyDictionary<string, object> _readOnlyProperties;
-        private Dictionary<string, object> _properties;
-        private IReadOnlyDictionary<string, object> _readOnlyExtensions;
-        private Dictionary<string, object> _extensions;
-        private IServiceProvider _services;
+        private IQuery? _query;
+        private string? _queryName;
+        private string? _queryHash;
+        private string? _operationName;
+        private IReadOnlyDictionary<string, object?>? _readOnlyVariableValues;
+        private Dictionary<string, object?>? _variableValuesDict;
+        private object? _initialValue;
+        private IReadOnlyDictionary<string, object?>? _readOnlyProperties;
+        private Dictionary<string, object?>? _properties;
+        private IReadOnlyDictionary<string, object?>? _readOnlyExtensions;
+        private Dictionary<string, object?>? _extensions;
+        private IServiceProvider? _services;
+        private OperationType[]? _allowedOperations;
 
-        public IQueryRequestBuilder SetQuery(string querySource)
+        public IQueryRequestBuilder SetQuery(string sourceText)
         {
-            if (string.IsNullOrEmpty(querySource))
+            if (string.IsNullOrEmpty(sourceText))
             {
                 throw new ArgumentException(
                     AbstractionResources.QueryRequestBuilder_QueryIsNullOrEmpty,
-                    nameof(querySource));
+                    nameof(sourceText));
             }
 
-            _query = new QuerySourceText(querySource);
+            _query = new QuerySourceText(sourceText);
             return this;
         }
 
-        public IQueryRequestBuilder SetQuery(DocumentNode queryDocument)
+        public IQueryRequestBuilder SetQuery(DocumentNode document)
         {
-            if (queryDocument is null)
+            if (document is null)
             {
-                throw new ArgumentNullException(nameof(queryDocument));
+                throw new ArgumentNullException(nameof(document));
             }
 
-            _query = new QueryDocument(queryDocument);
+            _query = new QueryDocument(document);
             return this;
         }
 
-        public IQueryRequestBuilder SetQueryName(string queryName)
+        public IQueryRequestBuilder SetQueryId(string? queryName)
         {
             _queryName = queryName;
             return this;
         }
 
-        public IQueryRequestBuilder SetQueryHash(string queryHash)
+        public IQueryRequestBuilder SetQueryHash(string? queryHash)
         {
             _queryHash = queryHash;
             return this;
         }
 
-        public IQueryRequestBuilder SetOperation(string operationName)
+        public IQueryRequestBuilder SetOperation(string? operationName)
         {
             _operationName = operationName;
             return this;
         }
 
-        public IQueryRequestBuilder SetInitialValue(object initialValue)
+        public IQueryRequestBuilder SetInitialValue(object? initialValue)
         {
             _initialValue = initialValue;
             return this;
         }
 
         public IQueryRequestBuilder SetServices(
-            IServiceProvider services)
+            IServiceProvider? services)
         {
             _services = services;
             return this;
         }
 
         public IQueryRequestBuilder TrySetServices(
-            IServiceProvider services)
+            IServiceProvider? services)
         {
-            if (_services is null)
-            {
-                _services = services;
-            }
+            _services ??= services;
+            return this;
+        }
+
+        public IQueryRequestBuilder SetAllowedOperations(
+            OperationType[]? allowedOperations)
+        {
+            _allowedOperations = allowedOperations;
             return this;
         }
 
         public IQueryRequestBuilder SetVariableValues(
-            Dictionary<string, object> variableValues) =>
-            SetVariableValues((IDictionary<string, object>)variableValues);
+            Dictionary<string, object?>? variableValues) =>
+            SetVariableValues((IDictionary<string, object?>)variableValues);
 
 
         public IQueryRequestBuilder SetVariableValues(
-            IDictionary<string, object> variableValues)
+            IDictionary<string, object?>? variableValues)
         {
-            _variableValues = variableValues is null
+            _variableValuesDict = variableValues is null
                 ? null
-                : new Dictionary<string, object>(variableValues);
+                : new Dictionary<string, object?>(variableValues);
             _readOnlyVariableValues = null;
             return this;
         }
 
         public IQueryRequestBuilder SetVariableValues(
-           IReadOnlyDictionary<string, object> variableValues)
+           IReadOnlyDictionary<string, object?>? variableValues)
         {
-            _variableValues = null;
+            _variableValuesDict = null;
             _readOnlyVariableValues = variableValues;
             return this;
         }
 
-        public IQueryRequestBuilder SetVariableValue(string name, object value)
+        public IQueryRequestBuilder SetVariableValue(string name, object? value)
         {
             InitializeVariables();
 
-            _variableValues[name] = value;
+            _variableValuesDict[name] = value;
             return this;
         }
 
         public IQueryRequestBuilder AddVariableValue(
-            string name, object value)
+            string name, object? value)
         {
             InitializeVariables();
 
-            _variableValues.Add(name, value);
+            _variableValuesDict.Add(name, value);
             return this;
         }
 
         public IQueryRequestBuilder TryAddVariableValue(
-            string name, object value)
+            string name, object? value)
         {
             InitializeVariables();
 
-            if (!_variableValues.ContainsKey(name))
+            if (!_variableValuesDict.ContainsKey(name))
             {
-                _variableValues.Add(name, value);
+                _variableValuesDict.Add(name, value);
             }
             return this;
         }
 
         public IQueryRequestBuilder SetProperties(
-            Dictionary<string, object> properties) =>
-            SetProperties((IDictionary<string, object>)properties);
+            Dictionary<string, object?>? properties) =>
+            SetProperties((IDictionary<string, object?>?)properties);
 
 
         public IQueryRequestBuilder SetProperties(
-            IDictionary<string, object> properties)
+            IDictionary<string, object?>? properties)
         {
             _properties = properties is null
                 ? null
-                : new Dictionary<string, object>(properties);
+                : new Dictionary<string, object?>(properties);
             _readOnlyProperties = null;
             return this;
         }
 
         public IQueryRequestBuilder SetProperties(
-            IReadOnlyDictionary<string, object> properties)
+            IReadOnlyDictionary<string, object?>? properties)
         {
             _properties = null;
             _readOnlyProperties = properties;
             return this;
         }
 
-        public IQueryRequestBuilder SetProperty(string name, object value)
+        public IQueryRequestBuilder SetProperty(string name, object? value)
         {
             InitializeProperties();
 
@@ -171,7 +177,7 @@ namespace HotChocolate.Execution
         }
 
         public IQueryRequestBuilder AddProperty(
-            string name, object value)
+            string name, object? value)
         {
             InitializeProperties();
 
@@ -180,7 +186,7 @@ namespace HotChocolate.Execution
         }
 
         public IQueryRequestBuilder TryAddProperty(
-            string name, object value)
+            string name, object? value)
         {
             InitializeProperties();
 
@@ -192,28 +198,28 @@ namespace HotChocolate.Execution
         }
 
         public IQueryRequestBuilder SetExtensions(
-            Dictionary<string, object> extensions) =>
-            SetExtensions((IDictionary<string, object>)extensions);
+            Dictionary<string, object?>? extensions) =>
+            SetExtensions((IDictionary<string, object?>?)extensions);
 
         public IQueryRequestBuilder SetExtensions(
-            IDictionary<string, object> extensions)
+            IDictionary<string, object?>? extensions)
         {
             _extensions = extensions is null
                 ? null
-                : new Dictionary<string, object>(extensions);
+                : new Dictionary<string, object?>(extensions);
             _readOnlyExtensions = null;
             return this;
         }
 
         public IQueryRequestBuilder SetExtensions(
-            IReadOnlyDictionary<string, object> extensions)
+            IReadOnlyDictionary<string, object?>? extensions)
         {
             _extensions = null;
             _readOnlyExtensions = extensions;
             return this;
         }
 
-        public IQueryRequestBuilder SetExtension(string name, object value)
+        public IQueryRequestBuilder SetExtension(string name, object? value)
         {
             InitializeExtensions();
 
@@ -222,7 +228,7 @@ namespace HotChocolate.Execution
         }
 
         public IQueryRequestBuilder AddExtension(
-            string name, object value)
+            string name, object? value)
         {
             InitializeExtensions();
 
@@ -231,7 +237,7 @@ namespace HotChocolate.Execution
         }
 
         public IQueryRequestBuilder TryAddExtension(
-            string name, object value)
+            string name, object? value)
         {
             InitializeExtensions();
 
@@ -244,83 +250,66 @@ namespace HotChocolate.Execution
 
         public IReadOnlyQueryRequest Create()
         {
-            if (_query is null && _queryName is null)
-            {
-                throw new QueryRequestBuilderException(
-                    AbstractionResources.QueryRequestBuilder_QueryIsNull);
-            }
-
             return new QueryRequest
-            {
-                Query = _query,
-                QueryName = _queryName,
-                QueryHash = _queryHash,
-                OperationName = _operationName,
-                InitialValue = _initialValue,
-                Services = _services,
-                VariableValues = GetVariableValues(),
-                Properties = GetProperties(),
-                Extensions = GetExtensions()
-            };
+            (
+                query: _query,
+                queryId: _queryName,
+                queryHash: _queryHash,
+                operationName: _operationName,
+                initialValue: _initialValue,
+                services: _services,
+                variableValues: GetVariableValues(),
+                contextData: GetProperties(),
+                extensions: GetExtensions(),
+                allowedOperations: _allowedOperations
+            );
         }
 
-        private IReadOnlyDictionary<string, object> GetVariableValues()
+        private IReadOnlyDictionary<string, object?> GetVariableValues()
         {
-            if (_variableValues != null)
-            {
-                return _variableValues;
-            }
-            return _readOnlyVariableValues ?? EmptyDictionary.Instance;
+            return _variableValuesDict ?? _readOnlyVariableValues;
         }
 
         private void InitializeVariables()
         {
-            if (_variableValues == null)
+            if (_variableValuesDict is null)
             {
-                _variableValues = _readOnlyVariableValues == null
-                    ? new Dictionary<string, object>()
+                _variableValuesDict = _readOnlyVariableValues is null
+                    ? new Dictionary<string, object?>()
                     : _readOnlyVariableValues.ToDictionary(
                         t => t.Key, t => t.Value);
                 _readOnlyVariableValues = null;
             }
         }
 
-        private IReadOnlyDictionary<string, object> GetProperties()
+        private IReadOnlyDictionary<string, object?> GetProperties()
         {
-            if (_properties != null)
-            {
-                return _properties;
-            }
-            return _readOnlyProperties ?? EmptyDictionary.Instance;
+            return _properties ?? _readOnlyProperties;
         }
 
         private void InitializeProperties()
         {
-            if (_properties == null)
+            if (_properties is null)
             {
-                _properties = _readOnlyProperties == null
-                    ? new Dictionary<string, object>()
+                _properties = _readOnlyProperties is null
+                    ? new Dictionary<string, object?>()
                     : _readOnlyProperties.ToDictionary(
                         t => t.Key, t => t.Value);
                 _readOnlyProperties = null;
             }
         }
 
-        private IReadOnlyDictionary<string, object> GetExtensions()
+        private IReadOnlyDictionary<string, object?> GetExtensions()
         {
-            if (_extensions != null)
-            {
-                return _extensions;
-            }
-            return _readOnlyProperties ?? EmptyDictionary.Instance;
+            return _extensions ?? _readOnlyProperties;
         }
 
         private void InitializeExtensions()
         {
-            if (_extensions == null)
+            if (_extensions is null)
             {
-                _extensions = _readOnlyExtensions == null
-                    ? new Dictionary<string, object>()
+                _extensions = _readOnlyExtensions is null
+                    ? new Dictionary<string, object?>()
                     : _readOnlyExtensions.ToDictionary(
                         t => t.Key, t => t.Value);
                 _readOnlyExtensions = null;
@@ -328,23 +317,24 @@ namespace HotChocolate.Execution
         }
 
         public static IReadOnlyQueryRequest Create(string query) =>
-            QueryRequestBuilder.New().SetQuery(query).Create();
+            New().SetQuery(query).Create();
 
-        public static QueryRequestBuilder New() =>
-            new QueryRequestBuilder();
+        public static QueryRequestBuilder New() => new();
 
-        public static QueryRequestBuilder From(IReadOnlyQueryRequest request)
+        public static QueryRequestBuilder From(IQueryRequest request)
         {
-            var builder = new QueryRequestBuilder();
-            builder._query = request.Query;
-            builder._queryName = request.QueryName;
-            builder._queryHash = request.QueryHash;
-            builder._operationName = request.OperationName;
-            builder._readOnlyVariableValues = request.VariableValues;
-            builder._initialValue = request.InitialValue;
-            builder._readOnlyProperties = request.Properties;
-            builder._readOnlyExtensions = request.Extensions;
-            builder._services = request.Services;
+            var builder = new QueryRequestBuilder
+            {
+                _query = request.Query,
+                _queryName = request.QueryId,
+                _queryHash = request.QueryHash,
+                _operationName = request.OperationName,
+                _readOnlyVariableValues = request.VariableValues,
+                _initialValue = request.InitialValue,
+                _readOnlyProperties = request.ContextData,
+                _readOnlyExtensions = request.Extensions,
+                _services = request.Services
+            };
 
             if (builder._query is null && builder._queryName is null)
             {
@@ -357,16 +347,16 @@ namespace HotChocolate.Execution
 
         public static QueryRequestBuilder From(GraphQLRequest request)
         {
-            var builder = QueryRequestBuilder.New();
+            QueryRequestBuilder builder = New();
 
             builder
-                .SetQueryName(request.QueryName)
+                .SetQueryId(request.QueryId)
                 .SetQueryHash(request.QueryHash)
                 .SetOperation(request.OperationName)
                 .SetVariableValues(request.Variables)
                 .SetExtensions(request.Extensions);
 
-            if (request.Query != null)
+            if (request.Query is not null)
             {
                 builder.SetQuery(request.Query);
             }

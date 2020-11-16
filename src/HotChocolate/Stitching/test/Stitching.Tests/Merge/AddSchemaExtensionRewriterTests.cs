@@ -21,7 +21,24 @@ namespace HotChocolate.Stitching.Merge
                 Utf8GraphQLParser.Parse(extensions));
 
             // assert
-            SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
+            merged.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void ObjectType_AddScalarField_2()
+        {
+            // arrange
+            const string schema = "type Foo { bar: String }";
+            const string extensions = "extend type Foo { baz: Int } extend type Baz { a: String }";
+
+            // act
+            var rewriter = new AddSchemaExtensionRewriter();
+            DocumentNode merged = rewriter.AddExtensions(
+                Utf8GraphQLParser.Parse(schema),
+                Utf8GraphQLParser.Parse(extensions));
+
+            // assert
+            merged.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -39,7 +56,7 @@ namespace HotChocolate.Stitching.Merge
                 Utf8GraphQLParser.Parse(extensions));
 
             // assert
-            SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
+            merged.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -57,7 +74,7 @@ namespace HotChocolate.Stitching.Merge
                 Utf8GraphQLParser.Parse(extensions));
 
             // assert
-            SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
+            merged.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -75,7 +92,7 @@ namespace HotChocolate.Stitching.Merge
                 Utf8GraphQLParser.Parse(extensions));
 
             // assert
-            SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
+            merged.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -93,7 +110,7 @@ namespace HotChocolate.Stitching.Merge
                 Utf8GraphQLParser.Parse(extensions));
 
             // assert
-            SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
+            merged.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -145,7 +162,7 @@ namespace HotChocolate.Stitching.Merge
                 Utf8GraphQLParser.Parse(extensions));
 
             // assert
-            SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
+            merged.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -163,7 +180,7 @@ namespace HotChocolate.Stitching.Merge
                 Utf8GraphQLParser.Parse(extensions));
 
             // assert
-            SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
+            merged.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -181,7 +198,7 @@ namespace HotChocolate.Stitching.Merge
                 Utf8GraphQLParser.Parse(extensions));
 
             // assert
-            SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
+            merged.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -236,7 +253,7 @@ namespace HotChocolate.Stitching.Merge
                 Utf8GraphQLParser.Parse(extensions));
 
             // assert
-            SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
+            merged.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -256,7 +273,7 @@ namespace HotChocolate.Stitching.Merge
                 Utf8GraphQLParser.Parse(extensions));
 
             // assert
-            SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
+            merged.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -312,7 +329,7 @@ namespace HotChocolate.Stitching.Merge
                 Utf8GraphQLParser.Parse(extensions));
 
             // assert
-            SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
+            merged.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -330,7 +347,7 @@ namespace HotChocolate.Stitching.Merge
                 Utf8GraphQLParser.Parse(extensions));
 
             // assert
-            SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
+            merged.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -348,7 +365,7 @@ namespace HotChocolate.Stitching.Merge
                 Utf8GraphQLParser.Parse(extensions));
 
             // assert
-            SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
+            merged.ToString().MatchSnapshot();
         }
 
         [Fact]

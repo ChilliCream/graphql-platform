@@ -1,8 +1,5 @@
 ﻿{
-  "Data": {
+  "data": {
     "desc": "hello"
-  },
-  "Errors": null,
-  "Extensions": null,
-  "ContextData": null
+  }
 }

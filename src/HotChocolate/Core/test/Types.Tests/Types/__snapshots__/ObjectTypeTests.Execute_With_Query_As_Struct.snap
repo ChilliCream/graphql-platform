@@ -1,9 +1,6 @@
 ﻿{
-  "Data": {
+  "data": {
     "bar": "Qux_Value_Bar_Value",
     "baz": "Baz_Value"
-  },
-  "Errors": null,
-  "Extensions": null,
-  "ContextData": null
+  }
 }

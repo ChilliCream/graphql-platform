@@ -6,6 +6,7 @@ using HotChocolate.Resolvers.CodeGeneration;
 using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
+
 namespace HotChocolate.Types.Descriptors
 {
     public static class FieldDescriptorUtilities
@@ -38,13 +39,13 @@ namespace HotChocolate.Types.Descriptors
             Func<TMember, TField> createdFieldDefinition,
             IDictionary<NameString, TField> fields,
             ISet<TMember> handledMembers)
-            where TDescriptor : IHasClrType, IHasDescriptorContext
+            where TDescriptor : IHasRuntimeType, IHasDescriptorContext
             where TMember : MemberInfo
             where TField : FieldDefinitionBase
         {
             AddImplicitFields<TDescriptor, TMember, TField>(
                 descriptor,
-                descriptor.ClrType,
+                descriptor.RuntimeType,
                 createdFieldDefinition,
                 fields,
                 handledMembers);
@@ -55,24 +56,32 @@ namespace HotChocolate.Types.Descriptors
             Type fieldBindingType,
             Func<TMember, TField> createdFieldDefinition,
             IDictionary<NameString, TField> fields,
-            ISet<TMember> handledMembers)
+            ISet<TMember> handledMembers,
+            Func<IReadOnlyList<TMember>, TMember, bool>? include = null)
             where TDescriptor : IHasDescriptorContext
             where TMember : MemberInfo
             where TField : FieldDefinitionBase
         {
             if (fieldBindingType != typeof(object))
             {
-                foreach (TMember member in descriptor.Context.Inspector
+                List<TMember> members = descriptor.Context.TypeInspector
                     .GetMembers(fieldBindingType)
-                    .OfType<TMember>())
-                {
-                    TField fieldDefinition = createdFieldDefinition(member);
+                    .OfType<TMember>()
+                    .ToList();
 
-                    if (!handledMembers.Contains(member)
-                        && !fields.ContainsKey(fieldDefinition.Name))
+                foreach (TMember member in members)
+                {
+                    if (include?.Invoke(members, member) ?? true)
                     {
-                        handledMembers.Add(member);
-                        fields[fieldDefinition.Name] = fieldDefinition;
+                        TField fieldDefinition = createdFieldDefinition(member);
+
+                        if (!handledMembers.Contains(member) &&
+                            !fields.ContainsKey(fieldDefinition.Name) &&
+                            !fieldDefinition.Ignore)
+                        {
+                            handledMembers.Add(member);
+                            fields[fieldDefinition.Name] = fieldDefinition;
+                        }
                     }
                 }
             }
@@ -81,9 +90,9 @@ namespace HotChocolate.Types.Descriptors
         public static void DiscoverArguments(
             IDescriptorContext context,
             ICollection<ArgumentDefinition> arguments,
-            MemberInfo member)
+            MemberInfo? member)
         {
-            if (arguments == null)
+            if (arguments is null)
             {
                 throw new ArgumentNullException(nameof(arguments));
             }

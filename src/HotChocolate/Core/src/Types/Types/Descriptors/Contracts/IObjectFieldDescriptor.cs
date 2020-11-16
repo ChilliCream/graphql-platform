@@ -1,4 +1,6 @@
 using System;
+using System.Linq.Expressions;
+using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -47,12 +49,26 @@ namespace HotChocolate.Types
 
         IObjectFieldDescriptor Ignore(bool ignore = true);
 
+        [Obsolete("Use Resolve(...)")]
         IObjectFieldDescriptor Resolver(
             FieldResolverDelegate fieldResolver);
 
+        [Obsolete("Use Resolve(...)")]
         IObjectFieldDescriptor Resolver(
             FieldResolverDelegate fieldResolver,
             Type resultType);
+
+        IObjectFieldDescriptor Resolve(
+            FieldResolverDelegate fieldResolver);
+
+        IObjectFieldDescriptor Resolve(
+            FieldResolverDelegate fieldResolver,
+            Type resultType);
+
+        IObjectFieldDescriptor ResolveWith<TResolver>(
+            Expression<Func<TResolver, object?>> propertyOrMethod);
+
+        IObjectFieldDescriptor ResolveWith(MemberInfo propertyOrMethod);
 
         IObjectFieldDescriptor Subscribe(
             SubscribeResolverDelegate subscribeResolver);
@@ -70,5 +86,7 @@ namespace HotChocolate.Types
         IObjectFieldDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments);
+
+        IObjectFieldDescriptor ConfigureContextData(Action<ExtensionData> configure);
     }
 }

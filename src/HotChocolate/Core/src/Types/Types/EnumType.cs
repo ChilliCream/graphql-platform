@@ -1,254 +1,224 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using HotChocolate.Configuration;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+
+#nullable enable
 
 namespace HotChocolate.Types
 {
-    public class EnumType
+    public partial class EnumType
         : NamedTypeBase<EnumTypeDefinition>
-        , ILeafType
+        , IEnumType
     {
-        private readonly Action<IEnumTypeDescriptor> _configure;
-        private readonly Dictionary<string, EnumValue> _nameToValues =
-            new Dictionary<string, EnumValue>();
-        private readonly Dictionary<object, EnumValue> _valueToValues =
-            new Dictionary<object, EnumValue>();
-
-        protected EnumType()
-        {
-            _configure = Configure;
-        }
-
-        public EnumType(Action<IEnumTypeDescriptor> configure)
-        {
-            _configure = configure
-                ?? throw new ArgumentNullException(nameof(configure));
-        }
-
         public override TypeKind Kind => TypeKind.Enum;
 
-        public EnumTypeDefinitionNode SyntaxNode { get; private set; }
+        public EnumTypeDefinitionNode? SyntaxNode { get; private set; }
 
-        public IReadOnlyCollection<EnumValue> Values => _nameToValues.Values;
+        public IReadOnlyCollection<IEnumValue> Values => _enumValues.Values;
 
-        public bool TryGetValue(string name, out object value)
+        protected IReadOnlyDictionary<NameString, IEnumValue> NameLookup => _enumValues;
+
+        protected IReadOnlyDictionary<object, IEnumValue> ValueLookup => _valueLookup;
+
+        public bool TryGetRuntimeValue(
+            NameString name,
+            [NotNullWhen(true)] out object? runtimeValue)
         {
-            if (_nameToValues.TryGetValue(name, out EnumValue enumValue))
+            if (_enumValues.TryGetValue(name, out IEnumValue? value))
             {
-                value = enumValue.Value;
+                runtimeValue = value.Value;
                 return true;
             }
 
-            value = null;
+            runtimeValue = null;
             return false;
         }
 
-        public bool TryGetName(object value, out string name)
+        /// <inheritdoc />
+        public bool IsInstanceOfType(IValueNode valueSyntax)
         {
-            if (_valueToValues.TryGetValue(value, out EnumValue enumValue))
+            if (valueSyntax is null)
             {
-                name = enumValue.Name;
-                return true;
+                throw new ArgumentNullException(nameof(valueSyntax));
             }
 
-            name = null;
-            return false;
-        }
-
-        #region Serialization
-
-        public bool IsInstanceOfType(IValueNode literal)
-        {
-            if (literal == null)
-            {
-                throw new ArgumentNullException(nameof(literal));
-            }
-
-            if (literal is NullValueNode)
+            if (valueSyntax is NullValueNode)
             {
                 return true;
             }
 
-            if (literal is EnumValueNode ev)
+            if (valueSyntax is EnumValueNode ev)
             {
-                return _nameToValues.ContainsKey(ev.Value);
+                return _enumValues.ContainsKey(ev.Value);
+            }
+
+            if (valueSyntax is StringValueNode sv)
+            {
+                return _enumValues.ContainsKey(sv.Value);
             }
 
             return false;
         }
 
-        public object ParseLiteral(IValueNode literal)
+        /// <inheritdoc />
+        public bool IsInstanceOfType(object? runtimeValue)
         {
-            if (literal == null)
+            return runtimeValue is null ||
+                RuntimeType.IsInstanceOfType(runtimeValue);
+        }
+
+        /// <inheritdoc />
+        public object? ParseLiteral(IValueNode valueSyntax, bool withDefaults = true)
+        {
+            if (valueSyntax is null)
             {
-                throw new ArgumentNullException(nameof(literal));
+                throw new ArgumentNullException(nameof(valueSyntax));
             }
 
-            if (literal is EnumValueNode evn
-                && _nameToValues.TryGetValue(evn.Value, out EnumValue ev))
+            if (valueSyntax is EnumValueNode evn &&
+                _enumValues.TryGetValue(evn.Value, out IEnumValue? ev))
             {
                 return ev.Value;
             }
 
-            if (literal is NullValueNode)
+            if (valueSyntax is StringValueNode svn &&
+                _enumValues.TryGetValue(svn.Value, out ev))
+            {
+                return ev.Value;
+            }
+
+            if (valueSyntax is NullValueNode)
             {
                 return null;
             }
 
-            throw new ArgumentException(
-                TypeResourceHelper.Scalar_Cannot_ParseLiteral(
-                    Name, literal.GetType()),
-                nameof(literal));
+            throw new SerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, valueSyntax.GetType()),
+                this);
         }
 
-        public bool IsInstanceOfType(object value)
+        /// <inheritdoc />
+        public IValueNode ParseValue(object? runtimeValue)
         {
-            if (value is null)
-            {
-                return true;
-            }
-
-            return ClrType.IsInstanceOfType(value);
-        }
-
-        public IValueNode ParseValue(object value)
-        {
-            if (value == null)
+            if (runtimeValue is null)
             {
                 return NullValueNode.Default;
             }
 
-            if (_valueToValues.TryGetValue(value, out EnumValue enumValue))
+            if (_valueLookup.TryGetValue(runtimeValue, out IEnumValue? enumValue))
             {
                 return new EnumValueNode(enumValue.Name);
             }
 
-            throw new ArgumentException(
-                TypeResourceHelper.Scalar_Cannot_ParseValue(
-                    Name, value.GetType()),
-                nameof(value));
+            throw new SerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseValue(Name, runtimeValue.GetType()),
+                this);
         }
 
-        public object Serialize(object value)
+        /// <inheritdoc />
+        public IValueNode ParseResult(object? resultValue)
         {
-            if (value == null)
+            if (resultValue is null)
+            {
+                return NullValueNode.Default;
+            }
+
+            if (resultValue is string s &&
+                _enumValues.TryGetValue(s, out IEnumValue? enumValue))
+            {
+                return new EnumValueNode(enumValue.Name);
+            }
+
+            if (resultValue is NameString n &&
+                _enumValues.TryGetValue(n, out enumValue))
+            {
+                return new EnumValueNode(enumValue.Name);
+            }
+
+            if (_valueLookup.TryGetValue(resultValue, out enumValue))
+            {
+                return new EnumValueNode(enumValue.Name);
+            }
+
+            throw new SerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()),
+                this);
+        }
+
+        /// <inheritdoc />
+        public object? Serialize(object? runtimeValue)
+        {
+            if (runtimeValue is null)
             {
                 return null;
             }
 
-            if (ClrType.IsInstanceOfType(value)
-                && _valueToValues.TryGetValue(value, out EnumValue enumValue))
+            if (RuntimeType.IsInstanceOfType(runtimeValue) &&
+                _valueLookup.TryGetValue(runtimeValue, out IEnumValue? enumValue))
             {
                 return enumValue.Name;
             }
 
             // schema first unbound enum type
-            if (ClrType == typeof(object)
-                && _nameToValues.TryGetValue(
-                    value.ToString().ToUpperInvariant(),
-                    out enumValue))
+            if (RuntimeType == typeof(object))
             {
-                return enumValue.Name;
+                string name = _naming.GetEnumValueName(runtimeValue);
+                if (_enumValues.TryGetValue(name, out enumValue))
+                {
+                    return enumValue.Name;
+                }
             }
 
-            throw new ArgumentException(
-                TypeResourceHelper.Scalar_Cannot_Serialize(Name));
+            throw new SerializationException(
+                TypeResourceHelper.Scalar_Cannot_Serialize(Name),
+                this);
         }
 
-        public object Deserialize(object serialized)
+        public object? Deserialize(object? resultValue)
         {
-            if (TryDeserialize(serialized, out object v))
+            if (TryDeserialize(resultValue, out object? runtimeValue))
             {
-                return v;
+                return runtimeValue;
             }
 
-            throw new ArgumentException(
-                TypeResourceHelper.Scalar_Cannot_Deserialize(Name));
+            throw new SerializationException(
+                TypeResourceHelper.Scalar_Cannot_Deserialize(Name),
+                this);
         }
 
-        public bool TryDeserialize(object serialized, out object value)
+        public bool TryDeserialize(object? resultValue, out object? runtimeValue)
         {
-            if (serialized is null)
+            if (resultValue is null)
             {
-                value = null;
+                runtimeValue = null;
                 return true;
             }
 
-            if (serialized is string name
-                && _nameToValues.TryGetValue(name, out EnumValue enumValue))
+            if (resultValue is string s &&
+                _enumValues.TryGetValue(s, out IEnumValue? enumValue))
             {
-                value = enumValue.Value;
+                runtimeValue = enumValue.Value;
                 return true;
             }
 
-            if (_valueToValues.TryGetValue(serialized, out enumValue))
+            if (resultValue is NameString n &&
+                _enumValues.TryGetValue(n, out enumValue))
             {
-                value = enumValue.Value;
+                runtimeValue = enumValue.Value;
                 return true;
             }
 
-            value = null;
+            if (_valueLookup.TryGetValue(resultValue, out enumValue))
+            {
+                runtimeValue = enumValue.Value;
+                return true;
+            }
+
+            runtimeValue = null;
             return false;
         }
-
-        #endregion
-
-        #region Initialization
-
-        protected override EnumTypeDefinition CreateDefinition(
-            IInitializationContext context)
-        {
-            var descriptor = EnumTypeDescriptor.FromSchemaType(
-                context.DescriptorContext,
-                GetType());
-            _configure(descriptor);
-            return descriptor.CreateDefinition();
-        }
-
-        protected virtual void Configure(IEnumTypeDescriptor descriptor) { }
-
-        protected override void OnRegisterDependencies(
-            IInitializationContext context,
-            EnumTypeDefinition definition)
-        {
-            base.OnRegisterDependencies(context, definition);
-            context.RegisterDependencies(definition);
-            SetTypeIdentity(typeof(EnumType<>));
-        }
-
-        protected override void OnCompleteType(
-            ICompletionContext context,
-            EnumTypeDefinition definition)
-        {
-            base.OnCompleteType(context, definition);
-
-            SyntaxNode = definition.SyntaxNode;
-
-            foreach (EnumValue enumValue in definition.Values
-                .Select(t => new EnumValue(t)))
-            {
-                _nameToValues[enumValue.Name] = enumValue;
-                _valueToValues[enumValue.Value] = enumValue;
-                enumValue.CompleteValue(context);
-            }
-
-            if (!Values.Any())
-            {
-                context.ReportError(
-                    SchemaErrorBuilder.New()
-                        .SetMessage(TypeResources.EnumType_NoValues, Name)
-                        .SetCode(ErrorCodes.Schema.NoEnumValues)
-                        .SetTypeSystemObject(this)
-                        .AddSyntaxNode(SyntaxNode)
-                        .Build());
-            }
-        }
-
-        #endregion
     }
 }

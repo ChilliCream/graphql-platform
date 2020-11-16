@@ -5,29 +5,35 @@ using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
-    public class EnumValue
-        : IHasDirectives
+    public sealed class EnumValue : IEnumValue
     {
-        private EnumValueDefinition _definition;
-        private Dictionary<string, object> _contextData;
+        private readonly DirectiveCollection _directives;
 
-        public EnumValue(EnumValueDefinition enumValueDefinition)
+        public EnumValue(
+            ITypeCompletionContext completionContext,
+            EnumValueDefinition enumValueDefinition)
         {
-            if (enumValueDefinition == null)
+            if (completionContext == null)
+            {
+                throw new ArgumentNullException(nameof(completionContext));
+            }
+
+            if (enumValueDefinition is null)
             {
                 throw new ArgumentNullException(nameof(enumValueDefinition));
             }
 
-            if (enumValueDefinition.Value == null)
+            if (enumValueDefinition.Value is null)
             {
                 throw new ArgumentException(
                     TypeResources.EnumValue_ValueIsNull,
                     nameof(enumValueDefinition));
             }
 
-            _definition = enumValueDefinition;
             SyntaxNode = enumValueDefinition.SyntaxNode;
             Name = enumValueDefinition.Name.HasValue
                 ? enumValueDefinition.Name
@@ -37,43 +43,26 @@ namespace HotChocolate.Types
             IsDeprecated = !string.IsNullOrEmpty(
                 enumValueDefinition.DeprecationReason);
             Value = enumValueDefinition.Value;
+            ContextData = enumValueDefinition.ContextData;
+
+            _directives = new DirectiveCollection(this, enumValueDefinition!.Directives);
+            _directives.CompleteCollection(completionContext);
         }
 
-        public EnumValueDefinitionNode SyntaxNode { get; }
+        public EnumValueDefinitionNode? SyntaxNode { get; }
 
-        public string Name { get; }
+        public NameString Name { get; }
 
-        public string Description { get; }
-
-        public string DeprecationReason { get; }
+        public string? Description { get; }
 
         public bool IsDeprecated { get; }
 
+        public string? DeprecationReason { get; }
+
         public object Value { get; }
 
-        public IDirectiveCollection Directives { get; private set; }
+        public IDirectiveCollection Directives => _directives;
 
-        public IReadOnlyDictionary<string, object> ContextData =>
-            _contextData;
-
-        internal void CompleteValue(ICompletionContext context)
-        {
-            var directives = new DirectiveCollection(
-                this, _definition.Directives);
-            directives.CompleteCollection(context);
-            Directives = directives;
-
-            OnCompleteValue(context, _definition);
-
-            _contextData = new Dictionary<string, object>(
-                _definition.ContextData);
-            _definition = null;
-        }
-
-        protected virtual void OnCompleteValue(
-            ICompletionContext context,
-            EnumValueDefinition definition)
-        {
-        }
+        public IReadOnlyDictionary<string, object?> ContextData { get; }
     }
 }

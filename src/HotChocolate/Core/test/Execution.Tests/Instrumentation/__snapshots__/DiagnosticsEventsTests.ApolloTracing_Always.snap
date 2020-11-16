@@ -1,0 +1,35 @@
+﻿{
+  "data": {
+    "a": "hello world a"
+  },
+  "extensions": {
+    "tracing": {
+      "version": 1,
+      "startTime": "2010-10-10T12:00:00.0000000Z",
+      "endTime": "2010-10-10T12:00:00.0500000Z",
+      "duration": 50000000,
+      "parsing": {
+        "startOffset": 20,
+        "duration": 20
+      },
+      "validation": {
+        "startOffset": 60,
+        "duration": 20
+      },
+      "execution": {
+        "resolvers": [
+          {
+            "path": [
+              "a"
+            ],
+            "parentType": "Query",
+            "fieldName": "a",
+            "returnType": "String",
+            "startOffset": 100,
+            "duration": 20
+          }
+        ]
+      }
+    }
+  }
+}

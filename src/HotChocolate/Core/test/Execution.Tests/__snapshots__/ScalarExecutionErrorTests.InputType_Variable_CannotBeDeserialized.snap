@@ -1,0 +1,17 @@
+﻿{
+  "errors": [
+    {
+      "message": "Variable \u0060a\u0060 got an invalid value.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 9
+        }
+      ],
+      "extensions": {
+        "code": "HC0016",
+        "variable": "a"
+      }
+    }
+  ]
+}

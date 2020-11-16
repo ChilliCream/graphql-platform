@@ -1,0 +1,29 @@
+﻿[
+  {
+    "Message": "Encountered fields for the same object that cannot be merged.",
+    "Code": null,
+    "Path": null,
+    "Locations": [
+      {
+        "Line": 16,
+        "Column": 25
+      },
+      {
+        "Line": 7,
+        "Column": 29
+      }
+    ],
+    "Extensions": {
+      "declaringTypeA": "Node",
+      "declaringTypeB": "Node",
+      "fieldA": "id",
+      "fieldB": "name",
+      "typeA": "ID",
+      "typeB": "String",
+      "responseNameA": "id",
+      "responseNameB": "id",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selection-Merging"
+    },
+    "Exception": null
+  }
+]

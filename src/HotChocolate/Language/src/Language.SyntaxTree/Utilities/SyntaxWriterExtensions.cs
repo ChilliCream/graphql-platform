@@ -65,31 +65,31 @@ namespace HotChocolate.Language.Utilities
 
             switch (node.Kind)
             {
-                case NodeKind.IntValue:
+                case SyntaxKind.IntValue:
                     WriteIntValue(writer, (IntValueNode)node);
                     break;
-                case NodeKind.FloatValue:
+                case SyntaxKind.FloatValue:
                     WriteFloatValue(writer, (FloatValueNode)node);
                     break;
-                case NodeKind.StringValue:
+                case SyntaxKind.StringValue:
                     WriteStringValue(writer, (StringValueNode)node);
                     break;
-                case NodeKind.BooleanValue:
+                case SyntaxKind.BooleanValue:
                     WriteBooleanValue(writer, (BooleanValueNode)node);
                     break;
-                case NodeKind.EnumValue:
+                case SyntaxKind.EnumValue:
                     WriteEnumValue(writer, (EnumValueNode)node);
                     break;
-                case NodeKind.NullValue:
+                case SyntaxKind.NullValue:
                     WriteNullValue(writer);
                     break;
-                case NodeKind.ListValue:
+                case SyntaxKind.ListValue:
                     WriteListValue(writer, (ListValueNode)node);
                     break;
-                case NodeKind.ObjectValue:
+                case SyntaxKind.ObjectValue:
                     WriteObjectValue(writer, (ObjectValueNode)node);
                     break;
-                case NodeKind.Variable:
+                case SyntaxKind.Variable:
                     WriteVariable(writer, (VariableNode)node);
                     break;
                 default:
@@ -244,13 +244,13 @@ namespace HotChocolate.Language.Utilities
         {
             switch (node.Kind)
             {
-                case NodeKind.NonNullType:
+                case SyntaxKind.NonNullType:
                     writer.WriteNonNullType((NonNullTypeNode)node);
                     break;
-                case NodeKind.ListType:
+                case SyntaxKind.ListType:
                     writer.WriteListType((ListTypeNode)node);
                     break;
-                case NodeKind.NamedType:
+                case SyntaxKind.NamedType:
                     writer.WriteNamedType((NamedTypeNode)node);
                     break;
                 default:

@@ -1,5 +1,5 @@
-using System;
 using System.Collections.Generic;
+
 namespace HotChocolate.Language
 {
     public class SyntaxNodeVisitor
@@ -46,7 +46,7 @@ namespace HotChocolate.Language
         , ISyntaxNodeVisitor<InputObjectTypeExtensionNode>
         , ISyntaxNodeVisitor<NameNode>
     {
-        private readonly IReadOnlyDictionary<NodeKind, VisitorAction> _actions;
+        private readonly IReadOnlyDictionary<SyntaxKind, VisitorAction> _actions;
         private readonly VisitorAction _defaultAction;
 
         protected SyntaxNodeVisitor()
@@ -62,7 +62,7 @@ namespace HotChocolate.Language
         }
 
         protected SyntaxNodeVisitor(
-            IReadOnlyDictionary<NodeKind, VisitorAction> actions,
+            IReadOnlyDictionary<SyntaxKind, VisitorAction> actions,
             VisitorAction defaultAction)
         {
             _actions = actions;
@@ -70,7 +70,7 @@ namespace HotChocolate.Language
         }
 
         protected SyntaxNodeVisitor(
-            IReadOnlyDictionary<NodeKind, VisitorAction> actions)
+            IReadOnlyDictionary<SyntaxKind, VisitorAction> actions)
         {
             _actions = actions;
             _defaultAction = VisitorAction.Skip;
@@ -830,7 +830,7 @@ namespace HotChocolate.Language
         {
             return GetDefaultAction(node.Kind);
         }
-        protected VisitorAction GetDefaultAction(NodeKind kind)
+        protected VisitorAction GetDefaultAction(SyntaxKind kind)
         {
             if (_actions != null
                 && _actions.TryGetValue(kind, out VisitorAction action))

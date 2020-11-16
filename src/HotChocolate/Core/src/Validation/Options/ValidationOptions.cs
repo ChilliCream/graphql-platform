@@ -53,9 +53,9 @@ namespace HotChocolate.Validation.Options
                     return cost.Complexity;
                 }
 
-                int complexity = 0;
+                var complexity = 0;
 
-                for (int i = 0; i < cost.Multipliers.Count; i++)
+                for (var i = 0; i < cost.Multipliers.Count; i++)
                 {
                     MultiplierPathString multiplier = cost.Multipliers[i];
                     ArgumentNode argument = selection.Arguments.FirstOrDefault(t =>

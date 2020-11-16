@@ -1,7 +1,10 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+
+#nullable enable
 
 namespace HotChocolate.Types
 {
@@ -27,68 +30,95 @@ namespace HotChocolate.Types
             Description = description;
         }
 
-        protected override DateTime ParseLiteral(StringValueNode literal)
+        protected override DateTime ParseLiteral(StringValueNode valueSyntax)
         {
-            if (TryDeserializeFromString(literal.Value, out DateTime? value))
+            if (TryDeserializeFromString(valueSyntax.Value, out DateTime? value))
             {
                 return value.Value;
             }
 
-            throw new ScalarSerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseLiteral(
-                    Name, literal.GetType()));
+            throw new SerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, valueSyntax.GetType()),
+                this);
         }
 
-        protected override StringValueNode ParseValue(DateTime value)
+        protected override StringValueNode ParseValue(DateTime runtimeValue)
         {
-            return new StringValueNode(Serialize(value));
+            return new StringValueNode(Serialize(runtimeValue));
         }
 
-        public override bool TrySerialize(object value, out object serialized)
+        public override IValueNode ParseResult(object? resultValue)
         {
-            if (value is null)
+            if (resultValue is null)
             {
-                serialized = null;
+                return NullValueNode.Default;
+            }
+
+            if (resultValue is string s)
+            {
+                return new StringValueNode(s);
+            }
+
+            if (resultValue is DateTimeOffset d)
+            {
+                return ParseValue(d);
+            }
+
+            if (resultValue is DateTime dt)
+            {
+                return ParseValue(new DateTimeOffset(dt.ToUniversalTime(), TimeSpan.Zero));
+            }
+
+            throw new SerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()),
+                this);
+        }
+
+        public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+        {
+            if (runtimeValue is null)
+            {
+                resultValue = null;
                 return true;
             }
 
-            if (value is DateTime dt)
+            if (runtimeValue is DateTime dt)
             {
-                serialized = Serialize(dt);
+                resultValue = Serialize(dt);
                 return true;
             }
 
-            serialized = null;
+            resultValue = null;
             return false;
         }
 
-        public override bool TryDeserialize(object serialized, out object value)
+        public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
         {
-            if (serialized is null)
+            if (resultValue is null)
             {
-                value = null;
+                runtimeValue = null;
                 return true;
             }
 
-            if (serialized is string s && TryDeserializeFromString(s, out DateTime? d))
+            if (resultValue is string s && TryDeserializeFromString(s, out DateTime? d))
             {
-                value = d;
+                runtimeValue = d;
                 return true;
             }
 
-            if (serialized is DateTimeOffset dt)
+            if (resultValue is DateTimeOffset dt)
             {
-                value = dt.UtcDateTime;
+                runtimeValue = dt.UtcDateTime;
                 return true;
             }
 
-            if (serialized is DateTime)
+            if (resultValue is DateTime)
             {
-                value = serialized;
+                runtimeValue = resultValue;
                 return true;
             }
 
-            value = null;
+            runtimeValue = null;
             return false;
         }
 
@@ -99,7 +129,9 @@ namespace HotChocolate.Types
                 CultureInfo.InvariantCulture);
         }
 
-        private static bool TryDeserializeFromString(string serialized, out DateTime? value)
+        private static bool TryDeserializeFromString(
+            string? serialized,
+            [NotNullWhen(true)]out DateTime? value)
         {
             if (DateTime.TryParse(
                serialized,

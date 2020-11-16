@@ -14,7 +14,7 @@ namespace HotChocolate.Configuration
         public IBindResolverDelegate BindResolver(
             FieldResolverDelegate fieldResolver)
         {
-            if (fieldResolver == null)
+            if (fieldResolver is null)
             {
                 throw new ArgumentNullException(nameof(fieldResolver));
             }

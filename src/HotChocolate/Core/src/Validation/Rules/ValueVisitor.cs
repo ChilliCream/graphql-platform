@@ -60,7 +60,7 @@ namespace HotChocolate.Validation.Rules
 
             if (context.Types.TryPeek(out IType type) &&
                 type.NamedType() is IComplexOutputType ot &&
-                ot.Fields.TryGetField(node.Name.Value, out IOutputField of))
+                ot.Fields.TryGetField(node.Name.Value, out IOutputField? of))
             {
                 context.OutputFields.Push(of);
                 context.Types.Push(of.Type);
@@ -107,7 +107,7 @@ namespace HotChocolate.Validation.Rules
             DirectiveNode node,
             IDocumentValidatorContext context)
         {
-            if (context.Schema.TryGetDirectiveType(node.Name.Value, out DirectiveType d))
+            if (context.Schema.TryGetDirectiveType(node.Name.Value, out DirectiveType? d))
             {
                 context.Directives.Push(d);
                 return Continue;
@@ -131,7 +131,7 @@ namespace HotChocolate.Validation.Rules
         {
             if (context.Directives.TryPeek(out DirectiveType directive))
             {
-                if (directive.Arguments.TryGetField(node.Name.Value, out Argument argument))
+                if (directive.Arguments.TryGetField(node.Name.Value, out Argument? argument))
                 {
                     context.InputFields.Push(argument);
                     context.Types.Push(argument.Type);
@@ -143,7 +143,7 @@ namespace HotChocolate.Validation.Rules
 
             if (context.OutputFields.TryPeek(out IOutputField field))
             {
-                if (field.Arguments.TryGetField(node.Name.Value, out IInputField argument))
+                if (field.Arguments.TryGetField(node.Name.Value, out IInputField? argument))
                 {
                     context.InputFields.Push(argument);
                     context.Types.Push(argument.Type);
@@ -221,7 +221,7 @@ namespace HotChocolate.Validation.Rules
         {
             if (context.Types.TryPeek(out IType type) &&
                 type.NamedType() is InputObjectType it &&
-                it.Fields.TryGetField(node.Name.Value, out InputField field))
+                it.Fields.TryGetField(node.Name.Value, out InputField? field))
             {
                 if (field.Type.IsNonNullType() &&
                     node.Value.IsNull())
@@ -312,14 +312,14 @@ namespace HotChocolate.Validation.Rules
         {
             error = node.Kind switch
             {
-                NodeKind.ObjectField =>
+                SyntaxKind.ObjectField =>
                     context.InputFields.TryPeek(out IInputField field)
                         ? context.FieldValueIsNotCompatible(field, locationType, valueNode)
                         : null,
-                NodeKind.VariableDefinition =>
+                SyntaxKind.VariableDefinition =>
                     context.VariableDefaultValueIsNotCompatible(
                         (VariableDefinitionNode)node, locationType, valueNode),
-                NodeKind.Argument =>
+                SyntaxKind.Argument =>
                     context.ArgumentValueIsNotCompatible(
                         (ArgumentNode)node, locationType, valueNode),
                 _ => null
@@ -333,9 +333,9 @@ namespace HotChocolate.Validation.Rules
         {
             for (var i = context.Path.Count - 1; i > 0; i--)
             {
-                if (context.Path[i].Kind == NodeKind.Argument ||
-                    context.Path[i].Kind == NodeKind.ObjectField ||
-                    context.Path[i].Kind == NodeKind.VariableDefinition)
+                if (context.Path[i].Kind == SyntaxKind.Argument ||
+                    context.Path[i].Kind == SyntaxKind.ObjectField ||
+                    context.Path[i].Kind == SyntaxKind.VariableDefinition)
                 {
                     node = context.Path[i];
                     return true;

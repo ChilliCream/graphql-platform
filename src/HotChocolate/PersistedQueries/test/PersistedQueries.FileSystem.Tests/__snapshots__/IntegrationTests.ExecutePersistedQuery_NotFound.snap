@@ -1,0 +1,20 @@
+﻿{
+  "Label": null,
+  "Path": null,
+  "Data": null,
+  "Errors": [
+    {
+      "Message": "The query request contains no document.",
+      "Code": "HC0015",
+      "Path": null,
+      "Locations": null,
+      "Extensions": {
+        "code": "HC0015"
+      },
+      "Exception": null
+    }
+  ],
+  "Extensions": null,
+  "ContextData": null,
+  "HasNext": null
+}

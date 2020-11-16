@@ -2,6 +2,8 @@ using System;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     public sealed class UrlType
@@ -32,67 +34,89 @@ namespace HotChocolate.Types
             Description = description;
         }
 
-        protected override bool IsInstanceOfType(StringValueNode literal)
+        protected override bool IsInstanceOfType(StringValueNode valueSyntax)
         {
-            return TryParseUri(literal.Value, out _);
+            return TryParseUri(valueSyntax.Value, out _);
         }
 
-        protected override Uri ParseLiteral(StringValueNode literal)
+        protected override Uri ParseLiteral(StringValueNode valueSyntax)
         {
-            if (TryParseUri(literal.Value, out Uri uri))
+            if (TryParseUri(valueSyntax.Value, out Uri uri))
             {
                 return uri;
             }
 
-            throw new ScalarSerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseLiteral(
-                    Name, literal.GetType()));
+            throw new SerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, valueSyntax.GetType()),
+                this);
         }
 
-        protected override StringValueNode ParseValue(Uri value)
+        protected override StringValueNode ParseValue(Uri runtimeValue)
         {
-            return new StringValueNode(value.AbsoluteUri);
+            return new StringValueNode(runtimeValue.AbsoluteUri);
         }
 
-        public override bool TrySerialize(object value, out object serialized)
+        public override IValueNode ParseResult(object? resultValue)
         {
-            if (value is null)
+            if (resultValue is null)
             {
-                serialized = null;
+                return NullValueNode.Default;
+            }
+
+            if (resultValue is string s)
+            {
+                return new StringValueNode(s);
+            }
+
+            if (resultValue is Uri uri)
+            {
+                return ParseValue(uri);
+            }
+
+            throw new SerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()),
+                this);
+        }
+
+        public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+        {
+            if (runtimeValue is null)
+            {
+                resultValue = null;
                 return true;
             }
 
-            if (value is Uri uri)
+            if (runtimeValue is Uri uri)
             {
-                serialized = uri.AbsoluteUri;
+                resultValue = uri.AbsoluteUri;
                 return true;
             }
 
-            serialized = null;
+            resultValue = null;
             return false;
         }
 
-        public override bool TryDeserialize(object serialized, out object value)
+        public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
         {
-            if (serialized is null)
+            if (resultValue is null)
             {
-                value = null;
+                runtimeValue = null;
                 return true;
             }
 
-            if (serialized is string s && TryParseUri(s, out Uri uri))
+            if (resultValue is string s && TryParseUri(s, out Uri uri))
             {
-                value = uri;
+                runtimeValue = uri;
                 return true;
             }
 
-            if (serialized is Uri u)
+            if (resultValue is Uri u)
             {
-                value = u;
+                runtimeValue = u;
                 return true;
             }
 
-            value = null;
+            runtimeValue = null;
             return false;
         }
 

@@ -5,17 +5,10 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Merge.Rewriters
 {
-    internal class RemoveRootTypeRewriter
-        : IDocumentRewriter
+    internal class RemoveRootTypeRewriter : IDocumentRewriter
     {
-        public RemoveRootTypeRewriter()
-        {
-        }
-
-        public RemoveRootTypeRewriter(NameString schemaName)
-        {
-            SchemaName = schemaName.EnsureNotEmpty(nameof(schemaName));
-        }
+        public RemoveRootTypeRewriter(NameString? schemaName = null) =>
+            SchemaName = schemaName?.EnsureNotEmpty(nameof(schemaName));
 
         public NameString? SchemaName { get; }
 
@@ -35,15 +28,15 @@ namespace HotChocolate.Stitching.Merge.Rewriters
             return document.WithDefinitions(definitions);
         }
 
-        private static void RemoveType(
-            ICollection<IDefinitionNode> definitions,
-            string typeName)
+        private static void RemoveType(ICollection<IDefinitionNode> definitions, string? typeName)
         {
-            if (typeName != null)
+            if (typeName is not null)
             {
-                var rootType = definitions.OfType<ITypeDefinitionNode>()
+                ITypeDefinitionNode? rootType = definitions
+                    .OfType<ITypeDefinitionNode>()
                     .FirstOrDefault(t => t.Name.Value.Equals(typeName));
-                if (rootType != null)
+
+                if (rootType is not null)
                 {
                     definitions.Remove(rootType);
                 }

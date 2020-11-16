@@ -11,7 +11,7 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             string schema)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -30,7 +30,7 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             string filePath)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -51,12 +51,12 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             DocumentNode document)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (document == null)
+            if (document is null)
             {
                 throw new ArgumentNullException(nameof(document));
             }

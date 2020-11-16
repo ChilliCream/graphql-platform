@@ -1,6 +1,7 @@
-using BenchmarkDotNet.Attributes;
-using System.Collections.Generic;
 using System.Buffers;
+using System.Collections.Generic;
+using BenchmarkDotNet.Attributes;
+using HotChocolate.Execution.Processing;
 
 namespace HotChocolate.Execution.Benchmarks
 {
@@ -32,7 +33,7 @@ namespace HotChocolate.Execution.Benchmarks
 
             for (int i = 0; i < Size; i++)
             {
-                buffer[i] = new ResultValue(i.ToString(), i);
+                buffer[i] = new ResultValue(i.ToString(), i, true);
             }
 
             ArrayPool<ResultValue>.Shared.Return(buffer);

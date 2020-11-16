@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Resolvers;
 
@@ -16,6 +17,10 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
         public MemberInfo? Member { get; set; }
 
+        public MemberInfo? ResolverMember { get; set; }
+
+        public Expression? Expression { get; set; }
+
         public Type? ResultType { get; set; }
 
         public FieldResolverDelegate? Resolver { get; set; }
@@ -24,5 +29,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
         public IList<FieldMiddleware> MiddlewareComponents { get; } =
             new List<FieldMiddleware>();
+
+        public bool IsIntrospectionField { get; internal set; }
     }
 }

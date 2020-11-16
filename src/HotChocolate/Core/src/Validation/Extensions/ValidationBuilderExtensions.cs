@@ -1,6 +1,8 @@
 using System;
+using System.Linq;
 using HotChocolate.Validation;
 using HotChocolate.Validation.Options;
+using HotChocolate.Validation.Properties;
 using Microsoft.Extensions.Options;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -28,12 +30,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IValidationBuilder builder,
             Action<ValidationOptionsModifiers> configure)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -65,12 +67,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IValidationBuilder builder,
             Action<IServiceProvider, ValidationOptionsModifiers> configureClient)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configureClient == null)
+            if (configureClient is null)
             {
                 throw new ArgumentNullException(nameof(configureClient));
             }
@@ -93,31 +95,58 @@ namespace Microsoft.Extensions.DependencyInjection
             builder.ConfigureValidation(m =>
                 m.Modifiers.Add(o => o.MaxAllowedComplexity = allowedComplexity));
 
+        /// <summary>
+        /// Sets the maximum allowed depth of a query. The default
+        /// value is <see langword="null"/>. The minimum allowed value is
+        /// <c>1</c>.
+        /// </summary>
         internal static IValidationBuilder SetAllowedExecutionDepth(
-            this IValidationBuilder builder, int allowedExecutionDepth) =>
-            builder.ConfigureValidation(m =>
+            this IValidationBuilder builder, int allowedExecutionDepth)
+        {
+            if (allowedExecutionDepth < 1)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(allowedExecutionDepth),
+                    allowedExecutionDepth,
+                    Resources.HotChocolateValidationBuilderExtensions_MinimumAllowedValue);
+            }
+
+            return builder.ConfigureValidation(m =>
                 m.Modifiers.Add(o => o.MaxAllowedExecutionDepth = allowedExecutionDepth));
+        }
 
         public static IValidationBuilder SetComplexityCalculation(
             this IValidationBuilder builder, ComplexityCalculation calculation) =>
             builder.ConfigureValidation(m =>
                 m.Modifiers.Add(o => o.ComplexityCalculation = calculation));
 
-        public static IValidationBuilder AddValidationRule<T>(
+        public static IValidationBuilder TryAddValidationRule<T>(
             this IValidationBuilder builder)
             where T : DocumentValidatorVisitor, new()
         {
             return builder.ConfigureValidation(m =>
-                m.Modifiers.Add(o => o.Rules.Add(new DocumentValidatorRule<T>(new T()))));
+                m.Modifiers.Add(o =>
+                {
+                    if (o.Rules.All(t => t.GetType() != typeof(DocumentValidatorRule<T>)))
+                    {
+                        o.Rules.Add(new DocumentValidatorRule<T>(new T()));
+                    }
+                }));
         }
 
-        public static IValidationBuilder AddValidationRule<T>(
+        public static IValidationBuilder TryAddValidationRule<T>(
             this IValidationBuilder builder,
             Func<IServiceProvider, ValidationOptions, T> factory)
             where T : DocumentValidatorVisitor
         {
             return builder.ConfigureValidation((s, m) =>
-                m.Modifiers.Add(o => o.Rules.Add(new DocumentValidatorRule<T>(factory(s, o)))));
+                m.Modifiers.Add(o =>
+                {
+                    if (o.Rules.All(t => t.GetType() != typeof(DocumentValidatorRule<T>)))
+                    {
+                        o.Rules.Add(new DocumentValidatorRule<T>(factory(s, o)));
+                    }
+                }));
         }
     }
 }

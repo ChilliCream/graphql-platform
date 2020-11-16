@@ -1,0 +1,3 @@
+﻿SELECT "d"."Id", "d"."BarShort"
+FROM "Data" AS "d"
+ORDER BY "d"."BarShort"

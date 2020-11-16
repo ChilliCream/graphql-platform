@@ -27,7 +27,7 @@ namespace HotChocolate.Language
             DefaultValue = defaultValue;
         }
 
-        public override NodeKind Kind { get; } = NodeKind.InputValueDefinition;
+        public override SyntaxKind Kind { get; } = SyntaxKind.InputValueDefinition;
 
         public StringValueNode? Description { get; }
 

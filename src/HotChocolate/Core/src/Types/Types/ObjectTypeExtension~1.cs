@@ -22,7 +22,7 @@ namespace HotChocolate.Types
         }
 
         protected override ObjectTypeDefinition CreateDefinition(
-            IInitializationContext context)
+            ITypeDiscoveryContext context)
         {
             var descriptor = ObjectTypeDescriptor.NewExtension<T>(
                 context.DescriptorContext);

@@ -4,6 +4,8 @@ using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 
+#nullable enable
+
 namespace HotChocolate.Types.Factories
 {
     internal sealed class ObjectTypeFactory
@@ -13,12 +15,12 @@ namespace HotChocolate.Types.Factories
             IBindingLookup bindingLookup,
             ObjectTypeDefinitionNode node)
         {
-            if (bindingLookup == null)
+            if (bindingLookup is null)
             {
                 throw new ArgumentNullException(nameof(bindingLookup));
             }
 
-            if (node == null)
+            if (node is null)
             {
                 throw new ArgumentNullException(nameof(node));
             }
@@ -34,8 +36,7 @@ namespace HotChocolate.Types.Factories
 
                 if (bindingInfo.SourceType != null)
                 {
-                    d.Extend().OnBeforeCreate(
-                        t => t.ClrType = bindingInfo.SourceType);
+                    d.Extend().OnBeforeCreate(t => t.RuntimeType = bindingInfo.SourceType);
                 }
 
                 foreach (DirectiveNode directive in node.Directives)
@@ -91,10 +92,10 @@ namespace HotChocolate.Types.Factories
                     }
                 }
 
-                string deprecactionReason = fieldDefinition.DeprecationReason();
-                if (!string.IsNullOrEmpty(deprecactionReason))
+                string deprecationReason = fieldDefinition.DeprecationReason();
+                if (!string.IsNullOrEmpty(deprecationReason))
                 {
-                    fieldDescriptor.Deprecated(deprecactionReason);
+                    fieldDescriptor.Deprecated(deprecationReason);
                 }
 
                 DeclareFieldArguments(fieldDescriptor, fieldDefinition);
@@ -112,8 +113,7 @@ namespace HotChocolate.Types.Factories
                     a =>
                     {
                         IArgumentDescriptor descriptor = a
-                            .Description(
-                                inputFieldDefinition.Description?.Value)
+                            .Description(inputFieldDefinition.Description?.Value)
                             .Type(inputFieldDefinition.Type)
                             .DefaultValue(inputFieldDefinition.DefaultValue)
                             .SyntaxNode(inputFieldDefinition);

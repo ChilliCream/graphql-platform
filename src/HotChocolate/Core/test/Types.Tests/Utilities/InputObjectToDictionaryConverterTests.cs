@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using ChilliCream.Testing;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
 using Xunit;
@@ -32,7 +31,7 @@ namespace HotChocolate.Utilities
 
             // act
             var converter = new InputObjectToDictionaryConverter(
-                TypeConversion.Default);
+                DefaultTypeConverter.Default);
             Dictionary<string, object> dict = converter.Convert(type, foo);
 
             // assert
@@ -62,7 +61,7 @@ namespace HotChocolate.Utilities
 
             // act
             var converter = new InputObjectToDictionaryConverter(
-                TypeConversion.Default);
+                DefaultTypeConverter.Default);
             Dictionary<string, object> dict = converter.Convert(type, foo);
 
             // assert
@@ -92,7 +91,7 @@ namespace HotChocolate.Utilities
 
             // act
             var converter = new InputObjectToDictionaryConverter(
-                TypeConversion.Default);
+                DefaultTypeConverter.Default);
             Dictionary<string, object> dict = converter.Convert(type, foo);
 
             // assert

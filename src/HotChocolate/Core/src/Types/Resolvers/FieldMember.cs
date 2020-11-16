@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Linq.Expressions;
 using System.Reflection;
+
+#nullable enable
 
 namespace HotChocolate.Resolvers
 {
@@ -7,7 +10,7 @@ namespace HotChocolate.Resolvers
         : FieldReferenceBase
         , IEquatable<FieldMember>
     {
-        private FieldReference _fieldReference;
+        private FieldReference? _fieldReference;
 
         public FieldMember(
             NameString typeName,
@@ -18,14 +21,29 @@ namespace HotChocolate.Resolvers
             Member = member ?? throw new ArgumentNullException(nameof(member));
         }
 
-        public FieldMember(FieldReference fieldReference, MemberInfo member)
-            : base(fieldReference)
+        public FieldMember(
+            NameString typeName,
+            NameString fieldName,
+            Expression expression)
+            : base(typeName, fieldName)
         {
-            _fieldReference = fieldReference;
-            Member = member ?? throw new ArgumentNullException(nameof(member));
+            Expression = expression ?? throw new ArgumentNullException(nameof(expression));
         }
 
-        public MemberInfo Member { get; }
+        private FieldMember(
+            NameString typeName,
+            NameString fieldName,
+            MemberInfo? member,
+            Expression? expression)
+            : base(typeName, fieldName)
+        {
+            Member = member;
+            Expression = expression;
+        }
+
+        public MemberInfo? Member { get; }
+
+        public Expression? Expression { get; }
 
         public FieldMember WithTypeName(NameString typeName)
         {
@@ -34,7 +52,7 @@ namespace HotChocolate.Resolvers
                 return this;
             }
 
-            return new FieldMember(typeName, FieldName, Member);
+            return new FieldMember(typeName, FieldName, Member, Expression);
         }
 
         public FieldMember WithFieldName(NameString fieldName)
@@ -44,7 +62,7 @@ namespace HotChocolate.Resolvers
                 return this;
             }
 
-            return new FieldMember(TypeName, fieldName, Member);
+            return new FieldMember(TypeName, fieldName, Member, Expression);
         }
 
         public FieldMember WithMember(MemberInfo member)
@@ -57,12 +75,22 @@ namespace HotChocolate.Resolvers
             return new FieldMember(TypeName, FieldName, member);
         }
 
-        public bool Equals(FieldMember other)
+        public FieldMember WithExpression(Expression expression)
+        {
+            if (Equals(Expression, expression))
+            {
+                return this;
+            }
+
+            return new FieldMember(TypeName, FieldName, expression);
+        }
+
+        public bool Equals(FieldMember? other)
         {
             return IsEqualTo(other);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is null)
             {
@@ -77,7 +105,7 @@ namespace HotChocolate.Resolvers
             return IsEqualTo(obj as FieldMember);
         }
 
-        private bool IsEqualTo(FieldMember other)
+        private bool IsEqualTo(FieldMember? other)
         {
             if (other is null)
             {
@@ -90,7 +118,8 @@ namespace HotChocolate.Resolvers
             }
 
             return base.IsEqualTo(other)
-                && other.Member.Equals(Member);
+                && ReferenceEquals(other.Member, Member)
+                && ReferenceEquals(other.Expression, Expression);
         }
 
         public override int GetHashCode()
@@ -98,22 +127,22 @@ namespace HotChocolate.Resolvers
             unchecked
             {
                 return (base.GetHashCode() * 397)
-                    ^ (Member.GetHashCode() * 17);
+                    ^ (Member?.GetHashCode() ?? 0 * 17)
+                    ^ (Expression?.GetHashCode() ?? 0 * 3);
             }
         }
 
         public override string ToString()
         {
-            return $"{base.ToString()} => {Member.Name}";
+            return $"{base.ToString()} => {Member?.Name ?? Expression!.ToString()}";
         }
 
         public FieldReference ToFieldReference()
         {
-            if (_fieldReference == null)
+            if (_fieldReference is null)
             {
                 _fieldReference = new FieldReference(TypeName, FieldName);
             }
-
             return _fieldReference;
         }
     }

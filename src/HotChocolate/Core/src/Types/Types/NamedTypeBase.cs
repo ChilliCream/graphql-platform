@@ -3,6 +3,7 @@ using System;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Types.Introspection;
 
 #nullable enable
 
@@ -12,7 +13,7 @@ namespace HotChocolate.Types
         : TypeSystemObjectBase<TDefinition>
         , INamedType
         , IHasDirectives
-        , IHasClrType
+        , IHasRuntimeType
         , IHasTypeIdentity
         where TDefinition : DefinitionBase, IHasDirectiveDefinition, IHasSyntaxNode
     {
@@ -36,7 +37,7 @@ namespace HotChocolate.Types
             }
         }
 
-        public Type ClrType
+        public Type RuntimeType
         {
             get
             {
@@ -54,13 +55,13 @@ namespace HotChocolate.Types
             ReferenceEquals(type, this);
 
         protected override void OnRegisterDependencies(
-            IInitializationContext context,
+            ITypeDiscoveryContext context,
             TDefinition definition)
         {
             base.OnRegisterDependencies(context, definition);
 
-            _clrType = definition is IHasClrType clr && clr.ClrType != GetType()
-                ? clr.ClrType
+            _clrType = definition is IHasRuntimeType clr && clr.RuntimeType != GetType()
+                ? clr.RuntimeType
                 : typeof(object);
 
             context.RegisterDependencyRange(
@@ -68,7 +69,7 @@ namespace HotChocolate.Types
         }
 
         protected override void OnCompleteType(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             TDefinition definition)
         {
             base.OnCompleteType(context, definition);
@@ -80,23 +81,20 @@ namespace HotChocolate.Types
             _directives = directives;
         }
 
-        protected void SetTypeIdentity(Type typeDefinition)
+        protected void SetTypeIdentity(Type typeDefinitionOrIdentity)
         {
-            if (typeDefinition is null)
+            if (typeDefinitionOrIdentity is null)
             {
-                throw new ArgumentNullException(nameof(typeDefinition));
+                throw new ArgumentNullException(nameof(typeDefinitionOrIdentity));
             }
 
-            if (!typeDefinition.IsGenericTypeDefinition)
+            if (!typeDefinitionOrIdentity.IsGenericTypeDefinition)
             {
-                throw new ArgumentException(
-                    "The type definition must be a generic type definition.",
-                    nameof(typeDefinition));
+                TypeIdentity = typeDefinitionOrIdentity;
             }
-
-            if (ClrType != typeof(object))
+            else if (RuntimeType != typeof(object))
             {
-                TypeIdentity = typeDefinition.MakeGenericType(ClrType);
+                TypeIdentity = typeDefinitionOrIdentity.MakeGenericType(RuntimeType);
             }
         }
     }

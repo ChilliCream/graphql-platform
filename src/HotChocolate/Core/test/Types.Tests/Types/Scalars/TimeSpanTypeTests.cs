@@ -97,7 +97,7 @@ namespace HotChocolate.Types
             Action a = () => timeSpanType.Serialize("bad");
 
             // assert
-            Assert.Throws<ScalarSerializationException>(a);
+            Assert.Throws<SerializationException>(a);
         }
 
         [Theory]

@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Concurrent;
+using HotChocolate.Execution.Processing;
+using static HotChocolate.Execution.Instrumentation.ApolloTracingResultKeys;
 
 namespace HotChocolate.Execution.Instrumentation
 {
@@ -7,14 +9,13 @@ namespace HotChocolate.Execution.Instrumentation
     {
         private const int _apolloTracingVersion = 1;
         private const long _ticksToNanosecondsMultiplicator = 100;
-        private readonly ConcurrentQueue<ApolloTracingResolverRecord>
-            _resolverRecords =
-                new ConcurrentQueue<ApolloTracingResolverRecord>();
+        private readonly ConcurrentQueue<ApolloTracingResolverRecord> _resolverRecords =
+            new ConcurrentQueue<ApolloTracingResolverRecord>();
         private TimeSpan _duration;
-        private OrderedDictionary _parsingResult;
+        private ResultMap? _parsingResult;
         private DateTimeOffset _startTime;
         private long _startTimestamp;
-        private OrderedDictionary _validationResult;
+        private ResultMap? _validationResult;
 
         public void SetRequestStartTime(
             DateTimeOffset startTime,
@@ -26,36 +27,21 @@ namespace HotChocolate.Execution.Instrumentation
 
         public void SetParsingResult(long startTimestamp, long endTimestamp)
         {
-            _parsingResult = new OrderedDictionary
-            {
-                {
-                    ApolloTracingResultKeys.StartOffset,
-                    startTimestamp - _startTimestamp
-                },
-                {
-                    ApolloTracingResultKeys.Duration,
-                    endTimestamp - startTimestamp
-                }
-            };
+            _parsingResult = new ResultMap();
+            _parsingResult.EnsureCapacity(2);
+            _parsingResult.SetValue(0, StartOffset, startTimestamp - _startTimestamp);
+            _parsingResult.SetValue(1, Duration, endTimestamp - startTimestamp);
         }
 
         public void SetValidationResult(long startTimestamp, long endTimestamp)
         {
-            _validationResult = new OrderedDictionary
-            {
-                {
-                    ApolloTracingResultKeys.StartOffset,
-                    startTimestamp - _startTimestamp
-                },
-                {
-                    ApolloTracingResultKeys.Duration,
-                    endTimestamp - startTimestamp
-                }
-            };
+            _validationResult = new ResultMap();
+            _validationResult.EnsureCapacity(2);
+            _validationResult.SetValue(0, StartOffset, startTimestamp - _startTimestamp);
+            _validationResult.SetValue(1, Duration, endTimestamp - startTimestamp);
         }
 
-        public void AddResolverResult(
-            ApolloTracingResolverRecord record)
+        public void AddResolverResult(ApolloTracingResolverRecord record)
         {
             _resolverRecords.Enqueue(record);
         }
@@ -65,88 +51,57 @@ namespace HotChocolate.Execution.Instrumentation
             _duration = duration;
         }
 
-        public OrderedDictionary Build()
+        public IResultMap Build()
         {
-            return new OrderedDictionary
+            if (_parsingResult is null)
             {
-                {
-                    ApolloTracingResultKeys.Version,
-                    _apolloTracingVersion
-                },
-                {
-                    ApolloTracingResultKeys.StartTime,
-                    _startTime.ToRfc3339DateTimeString()
-                },
-                {
-                    ApolloTracingResultKeys.EndTime,
-                    _startTime.Add(_duration).ToRfc3339DateTimeString()
-                },
-                {
-                    ApolloTracingResultKeys.Duration,
-                    _duration.Ticks * _ticksToNanosecondsMultiplicator
-                },
-                {
-                    ApolloTracingResultKeys.Parsing,
-                    _parsingResult
-                },
-                {
-                    ApolloTracingResultKeys.Validation,
-                    _validationResult
-                },
-                {
-                    ApolloTracingResultKeys.Execution,
-                    new OrderedDictionary
-                    {
-                        {
-                            ApolloTracingResultKeys.Resolvers,
-                            BuildResolverResults()
-                        }
-                    }
-                }
-            };
-        }
-
-        private OrderedDictionary[] BuildResolverResults()
-        {
-            ApolloTracingResolverRecord[] records =
-                _resolverRecords.ToArray();
-            var resolvers = new OrderedDictionary[records.Length];
-
-            for (var i = 0; i < records.Length; i++)
-            {
-                ApolloTracingResolverRecord record =
-                    records[i];
-
-                resolvers[i] = new OrderedDictionary
-                {
-                    {
-                        ApolloTracingResultKeys.Path,
-                        record.Path
-                    },
-                    {
-                        ApolloTracingResultKeys.ParentType,
-                        record.ParentType
-                    },
-                    {
-                        ApolloTracingResultKeys.FieldName,
-                        record.FieldName
-                    },
-                    {
-                        ApolloTracingResultKeys.ReturnType,
-                        record.ReturnType
-                    },
-                    {
-                        ApolloTracingResultKeys.StartOffset,
-                        record.StartTimestamp - _startTimestamp
-                    },
-                    {
-                        ApolloTracingResultKeys.Duration,
-                        record.EndTimestamp - record.StartTimestamp
-                    }
-                };
+                // in the case that the request pipeline cached the parsed document,
+                // we will set the parsing duration to 0.
+                SetParsingResult(_startTimestamp, _startTimestamp);
             }
 
-            return resolvers;
+            if (_validationResult is null)
+            {
+                // in the case that the request pipeline cached the validation result,
+                // we will set the validation duration to 0.
+                SetValidationResult(_startTimestamp, _startTimestamp);
+            }
+
+            var executionResult = new ResultMap();
+            executionResult.EnsureCapacity(1);
+            executionResult.SetValue(0, ApolloTracingResultKeys.Resolvers, BuildResolverResults());
+
+            var result = new ResultMap();
+            result.EnsureCapacity(7);
+            result.SetValue(0, ApolloTracingResultKeys.Version, _apolloTracingVersion);
+            result.SetValue(1, StartTime, _startTime.ToRfc3339DateTimeString());
+            result.SetValue(2, EndTime, _startTime.Add(_duration).ToRfc3339DateTimeString());
+            result.SetValue(3, Duration, _duration.Ticks * _ticksToNanosecondsMultiplicator);
+            result.SetValue(4, Parsing, _parsingResult);
+            result.SetValue(5, ApolloTracingResultKeys.Validation, _validationResult);
+            result.SetValue(6, ApolloTracingResultKeys.Execution, executionResult);
+            return result;
+        }
+
+        private ResultMap[] BuildResolverResults()
+        {
+            var i = 0;
+            var results = new ResultMap[_resolverRecords.Count];
+
+            foreach (ApolloTracingResolverRecord record in _resolverRecords)
+            {
+                var result = new ResultMap();
+                result.EnsureCapacity(6);
+                result.SetValue(0, ApolloTracingResultKeys.Path, record.Path);
+                result.SetValue(1, ParentType, record.ParentType);
+                result.SetValue(2, FieldName, record.FieldName);
+                result.SetValue(3, ReturnType, record.ReturnType);
+                result.SetValue(4, StartOffset, record.StartTimestamp - _startTimestamp);
+                result.SetValue(5, Duration, record.EndTimestamp - record.StartTimestamp);
+                results[i++] = result;
+            }
+
+            return results;
         }
     }
 }

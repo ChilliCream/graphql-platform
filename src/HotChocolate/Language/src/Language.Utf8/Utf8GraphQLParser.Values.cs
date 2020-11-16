@@ -25,7 +25,6 @@ namespace HotChocolate.Language
         /// <see cref="NullValueNode" />: null
         /// <see cref="EnumValueNode" />: Name but not true, false or null.
         /// </summary>
-        /// <param name="context">The parser context.</param>
         /// <param name="isConstant">
         /// Defines if only constant values are allowed;
         /// otherwise, variables are allowed.
@@ -65,7 +64,7 @@ namespace HotChocolate.Language
         {
             TokenInfo start = Start();
 
-            bool isBlock = _reader.Kind == TokenKind.BlockString;
+            var isBlock = _reader.Kind == TokenKind.BlockString;
             string value = ExpectString();
             Location? location = CreateLocation(in start);
 
@@ -78,7 +77,6 @@ namespace HotChocolate.Language
         /// - [ ]
         /// - [ Value[isConstant]+ ]
         /// </summary>
-        /// <param name="context">The parser context.</param>
         /// <param name="isConstant">
         /// Defines if only constant values are allowed;
         /// otherwise, variables are allowed.
@@ -126,7 +124,6 @@ namespace HotChocolate.Language
         /// - { }
         /// - { Value[isConstant]+ }
         /// </summary>
-        /// <param name="context">The parser context.</param>
         /// <param name="isConstant">
         /// Defines if only constant values are allowed;
         /// otherwise, variables are allowed.

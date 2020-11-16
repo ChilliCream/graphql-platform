@@ -46,67 +46,89 @@ namespace HotChocolate.Types
             _format = CreateFormatString(format);
         }
 
-        protected override bool IsInstanceOfType(StringValueNode literal)
+        protected override bool IsInstanceOfType(StringValueNode valueSyntax)
         {
-            return Utf8Parser.TryParse(literal.AsSpan(), out Guid _, out int _, _format[0]);
+            return Utf8Parser.TryParse(valueSyntax.AsSpan(), out Guid _, out int _, _format[0]);
         }
 
-        protected override Guid ParseLiteral(StringValueNode literal)
+        protected override Guid ParseLiteral(StringValueNode valueSyntax)
         {
-            if (Utf8Parser.TryParse(literal.AsSpan(), out Guid g, out int _, _format[0]))
+            if (Utf8Parser.TryParse(valueSyntax.AsSpan(), out Guid g, out int _, _format[0]))
             {
                 return g;
             }
 
-            throw new ScalarSerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseLiteral(
-                    Name, literal.GetType()));
+            throw new SerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, valueSyntax.GetType()),
+                this);
         }
 
-        protected override StringValueNode ParseValue(Guid value)
+        protected override StringValueNode ParseValue(Guid runtimeValue)
         {
-            return new StringValueNode(value.ToString(_format));
+            return new StringValueNode(runtimeValue.ToString(_format));
         }
 
-        public override bool TrySerialize(object value, out object? serialized)
+        public override IValueNode ParseResult(object? resultValue)
         {
-            if (value is null)
+            if (resultValue is null)
             {
-                serialized = null;
+                return NullValueNode.Default;
+            }
+
+            if (resultValue is string s)
+            {
+                return new StringValueNode(s);
+            }
+
+            if (resultValue is Guid g)
+            {
+                return ParseValue(g);
+            }
+
+            throw new SerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, resultValue.GetType()),
+                this);
+        }
+
+        public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+        {
+            if (runtimeValue is null)
+            {
+                resultValue = null;
                 return true;
             }
 
-            if (value is Guid uri)
+            if (runtimeValue is Guid uri)
             {
-                serialized = uri.ToString(_format);
+                resultValue = uri.ToString(_format);
                 return true;
             }
 
-            serialized = null;
+            resultValue = null;
             return false;
         }
 
-        public override bool TryDeserialize(object serialized, out object? value)
+        public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
         {
-            if (serialized is null)
+            if (resultValue is null)
             {
-                value = null;
+                runtimeValue = null;
                 return true;
             }
 
-            if (serialized is string s && Guid.TryParse(s, out Guid guid))
+            if (resultValue is string s && Guid.TryParse(s, out Guid guid))
             {
-                value = guid;
+                runtimeValue = guid;
                 return true;
             }
 
-            if (serialized is Guid)
+            if (resultValue is Guid)
             {
-                value = serialized;
+                runtimeValue = resultValue;
                 return true;
             }
 
-            value = null;
+            runtimeValue = null;
             return false;
         }
 

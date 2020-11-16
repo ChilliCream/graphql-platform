@@ -10,15 +10,15 @@ namespace HotChocolate.Types
     internal static class TypeDependencyHelper
     {
         public static void RegisterDependencies(
-            this IInitializationContext context,
+            this ITypeDiscoveryContext context,
             ObjectTypeDefinition definition)
         {
-            if (context == null)
+            if (context is null)
             {
                 throw new ArgumentNullException(nameof(context));
             }
 
-            if (definition == null)
+            if (definition is null)
             {
                 throw new ArgumentNullException(nameof(definition));
             }
@@ -33,27 +33,46 @@ namespace HotChocolate.Types
 
             foreach (ObjectFieldDefinition field in definition.Fields)
             {
-                if (field.Member != null && field.Resolver == null)
+                if (field.Resolver is null)
                 {
-                    context.RegisterResolver(
-                        field.Name,
-                        field.Member,
-                        definition.ClrType,
-                        field.ResolverType);
+                    if (field.Expression is not null)
+                    {
+                        context.RegisterResolver(
+                            field.Name,
+                            field.Expression,
+                            definition.RuntimeType,
+                            field.ResolverType);
+                    }
+                    else if (field.ResolverMember is not null)
+                    {
+                        context.RegisterResolver(
+                            field.Name,
+                            field.ResolverMember,
+                            definition.RuntimeType,
+                            field.ResolverType);
+                    }
+                    else if (field.Member is not null)
+                    {
+                        context.RegisterResolver(
+                            field.Name,
+                            field.Member,
+                            definition.RuntimeType,
+                            field.ResolverType);
+                    }
                 }
             }
         }
 
         public static void RegisterDependencies(
-            this IInitializationContext context,
+            this ITypeDiscoveryContext context,
             InterfaceTypeDefinition definition)
         {
-            if (context == null)
+            if (context is null)
             {
                 throw new ArgumentNullException(nameof(context));
             }
 
-            if (definition == null)
+            if (definition is null)
             {
                 throw new ArgumentNullException(nameof(definition));
             }
@@ -68,15 +87,15 @@ namespace HotChocolate.Types
         }
 
         public static void RegisterDependencies(
-            this IInitializationContext context,
+            this ITypeDiscoveryContext context,
             EnumTypeDefinition definition)
         {
-            if (context == null)
+            if (context is null)
             {
                 throw new ArgumentNullException(nameof(context));
             }
 
-            if (definition == null)
+            if (definition is null)
             {
                 throw new ArgumentNullException(nameof(definition));
             }
@@ -87,15 +106,15 @@ namespace HotChocolate.Types
         }
 
         public static void RegisterDependencies(
-            this IInitializationContext context,
+            this ITypeDiscoveryContext context,
             InputObjectTypeDefinition definition)
         {
-            if (context == null)
+            if (context is null)
             {
                 throw new ArgumentNullException(nameof(context));
             }
 
-            if (definition == null)
+            if (definition is null)
             {
                 throw new ArgumentNullException(nameof(definition));
             }
@@ -107,7 +126,7 @@ namespace HotChocolate.Types
             {
                 RegisterAdditionalDependencies(context, field);
 
-                if (field.Type != null)
+                if (field.Type is not null)
                 {
                     context.RegisterDependency(field.Type,
                         TypeDependencyKind.Default);
@@ -120,7 +139,7 @@ namespace HotChocolate.Types
         }
 
         private static void RegisterDirectiveDependencies<T>(
-            this IInitializationContext context,
+            this ITypeDiscoveryContext context,
             TypeDefinitionBase<T> definition)
             where T : class, ISyntaxNode
         {
@@ -130,7 +149,7 @@ namespace HotChocolate.Types
         }
 
         private static void RegisterAdditionalDependencies(
-            this IInitializationContext context,
+            this ITypeDiscoveryContext context,
             DefinitionBase definition)
         {
             context.RegisterDependencyRange(
@@ -138,14 +157,14 @@ namespace HotChocolate.Types
         }
 
         private static void RegisterFieldDependencies(
-            this IInitializationContext context,
-            IEnumerable<OutputFieldDefinitionBase> fields)
+            this ITypeDiscoveryContext context,
+            IReadOnlyList<OutputFieldDefinitionBase> fields)
         {
             foreach (OutputFieldDefinitionBase field in fields)
             {
                 RegisterAdditionalDependencies(context, field);
 
-                if (field.Type != null)
+                if (field.Type is not null)
                 {
                     context.RegisterDependency(field.Type,
                         TypeDependencyKind.Default);
@@ -154,21 +173,21 @@ namespace HotChocolate.Types
                 context.RegisterDependencyRange(
                     field.Directives.Select(t => t.TypeReference),
                     TypeDependencyKind.Completed);
-
-                RegisterFieldDependencies(context,
-                    fields.SelectMany(t => t.Arguments).ToList());
             }
+
+            RegisterFieldDependencies(context,
+                fields.SelectMany(t => t.Arguments));
         }
 
         private static void RegisterFieldDependencies(
-            this IInitializationContext context,
+            this ITypeDiscoveryContext context,
             IEnumerable<ArgumentDefinition> fields)
         {
             foreach (ArgumentDefinition field in fields)
             {
                 RegisterAdditionalDependencies(context, field);
 
-                if (field.Type != null)
+                if (field.Type is not null)
                 {
                     context.RegisterDependency(field.Type,
                         TypeDependencyKind.Completed);
@@ -181,7 +200,7 @@ namespace HotChocolate.Types
         }
 
         private static void RegisterEnumValueDependencies(
-            this IInitializationContext context,
+            this ITypeDiscoveryContext context,
             IEnumerable<EnumValueDefinition> enumValues)
         {
             foreach (EnumValueDefinition enumValue in enumValues)

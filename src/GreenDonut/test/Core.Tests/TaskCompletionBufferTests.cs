@@ -7,8 +7,6 @@
 //{
 //    public class TaskCompletionBufferTests
 //    {
-//        #region Constructor
-
 //        [Fact(DisplayName = "Constructor: Should not throw any exception")]
 //        public void ConstructorNoException()
 //        {
@@ -18,10 +16,6 @@
 //            // assert
 //            Assert.Null(Record.Exception(verify));
 //        }
-
-//        #endregion
-
-//        #region IsEmpty
 
 //        [Fact(DisplayName = "IsEmpty: Should return true")]
 //        public void IsEmptyTrue()
@@ -50,10 +44,6 @@
 //            // assert
 //            Assert.False(result);
 //        }
-
-//        #endregion
-
-//        #region GetAndClear
 
 //        [Fact(DisplayName = "GetAndClear: Should not throw any exception")]
 //        public void GetAndClearNoException()
@@ -102,10 +92,6 @@
 //                item => Assert.Equal("Foo", item.Key),
 //                item => Assert.Equal("Bar", item.Key));
 //        }
-
-//        #endregion
-
-//        #region TryAdd
 
 //        [Fact(DisplayName = "TryAdd: Should throw an argument null exception for key")]
 //        public void TryAddKeyNull()
@@ -198,7 +184,5 @@
 //                    Assert.Equal(expected, item.Value);
 //                });
 //        }
-
-//        #endregion
 //    }
 //}

@@ -48,6 +48,10 @@ else
     curl -Lsfo "$DOTNET_INSTALL_FILE" "$DOTNET_INSTALL_URL"
     chmod +x "$DOTNET_INSTALL_FILE"
 
+    "$DOTNET_INSTALL_FILE" --install-dir "$DOTNET_DIRECTORY" --version "2.1.809" --no-path
+    "$DOTNET_INSTALL_FILE" --install-dir "$DOTNET_DIRECTORY" --version "3.0.103" --no-path
+    "$DOTNET_INSTALL_FILE" --install-dir "$DOTNET_DIRECTORY" --version "3.1.401" --no-path
+
     # Install by channel or version
     if [[ -z ${DOTNET_VERSION+x} ]]; then
         "$DOTNET_INSTALL_FILE" --install-dir "$DOTNET_DIRECTORY" --channel "$DOTNET_CHANNEL" --no-path

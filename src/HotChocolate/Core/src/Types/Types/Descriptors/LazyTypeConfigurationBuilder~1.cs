@@ -10,7 +10,7 @@ namespace HotChocolate.Types.Descriptors
     {
         private ApplyConfigurationOn _on = ApplyConfigurationOn.Naming;
         private TypeDependencyKind _completeKind = TypeDependencyKind.Named;
-        private Action<ICompletionContext, T> _configure;
+        private Action<ITypeCompletionContext, T> _configure;
         private T _definition;
         private readonly List<(ITypeReference r, bool c)> _dependencies =
             new List<(ITypeReference, bool)>();
@@ -27,25 +27,15 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public LazyTypeConfigurationBuilder<T> Configure(
-            Action<ICompletionContext, T> configure)
+            Action<ITypeCompletionContext, T> configure)
         {
-            if (configure is null)
-            {
-                throw new ArgumentNullException(nameof(configure));
-            }
-
-            _configure = configure;
+            _configure = configure ?? throw new ArgumentNullException(nameof(configure));
             return this;
         }
 
         public LazyTypeConfigurationBuilder<T> Definition(T definition)
         {
-            if (definition is null)
-            {
-                throw new ArgumentNullException(nameof(definition));
-            }
-
-            _definition = definition;
+            _definition = definition ?? throw new ArgumentNullException(nameof(definition));
             return this;
         }
 
@@ -63,7 +53,7 @@ namespace HotChocolate.Types.Descriptors
 
         public ILazyTypeConfiguration Build()
         {
-            if (_configure == null)
+            if (_configure is null)
             {
                 // TODO : Resources
                 throw new InvalidOperationException(
@@ -71,7 +61,7 @@ namespace HotChocolate.Types.Descriptors
                     "before you can build.");
             }
 
-            if (_definition == null)
+            if (_definition is null)
             {
                 // TODO : Resources
                 throw new InvalidOperationException(
@@ -86,14 +76,12 @@ namespace HotChocolate.Types.Descriptors
                 Definition = _definition
             };
 
-            foreach (var dependency in _dependencies)
+            foreach ((ITypeReference r, bool c) dependency in _dependencies)
             {
                 configuration.Dependencies.Add(new TypeDependency
                 (
                     dependency.r,
-                    dependency.c
-                        ? _completeKind
-                        : TypeDependencyKind.Default
+                    dependency.c ? _completeKind : TypeDependencyKind.Default
                 ));
             }
 

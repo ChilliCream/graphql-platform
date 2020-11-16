@@ -1,0 +1,20 @@
+﻿{
+  "ContentType": "application/json; charset=utf-8",
+  "StatusCode": "BadRequest",
+  "Data": null,
+  "Errors": [
+    {
+      "message": "The request is missing the `query` property and the `id` property.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 2
+        }
+      ],
+      "extensions": {
+        "code": "HC0011"
+      }
+    }
+  ],
+  "Extensions": null
+}

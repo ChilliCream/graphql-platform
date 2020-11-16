@@ -1,0 +1,27 @@
+﻿{
+  "errors": [
+    {
+      "message": "Cannot return null for non-nullable field.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 41
+        }
+      ],
+      "path": [
+        "foo",
+        "nullable_list_nonnull_element",
+        0,
+        "b"
+      ],
+      "extensions": {
+        "code": "EXEC_NON_NULL_VIOLATION"
+      }
+    }
+  ],
+  "data": {
+    "foo": {
+      "nullable_list_nonnull_element": null
+    }
+  }
+}

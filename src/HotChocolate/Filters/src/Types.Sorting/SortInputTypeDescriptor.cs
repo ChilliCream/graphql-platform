@@ -4,10 +4,12 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Sorting.Extensions;
+using HotChocolate.Types.Sorting.Properties;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Sorting
@@ -24,14 +26,17 @@ namespace HotChocolate.Types.Sorting
             ISortingNamingConvention convention = context.GetSortingNamingConvention();
             Definition.EntityType = entityType
                 ?? throw new ArgumentNullException(nameof(entityType));
-            Definition.ClrType = typeof(object);
+            Definition.RuntimeType = typeof(object);
             Definition.Name = convention.GetSortingTypeName(context, entityType);
             Definition.Description = context.Naming.GetTypeDescription(
                 entityType, TypeKind.Object);
         }
 
-        internal protected sealed override SortInputTypeDefinition Definition { get; } =
-            new SortInputTypeDefinition();
+        protected internal sealed override SortInputTypeDefinition Definition
+        {
+            get;
+            protected set;
+        } = new SortInputTypeDefinition();
 
         protected ICollection<SortOperationDescriptorBase> Fields { get; } =
             new List<SortOperationDescriptorBase>();
@@ -54,14 +59,14 @@ namespace HotChocolate.Types.Sorting
             TDirective directiveInstance)
             where TDirective : class
         {
-            Definition.AddDirective(directiveInstance);
+            Definition.AddDirective(directiveInstance, Context.TypeInspector);
             return this;
         }
 
         public ISortInputTypeDescriptor<T> Directive<TDirective>()
             where TDirective : class, new()
         {
-            Definition.AddDirective(new TDirective());
+            Definition.AddDirective(new TDirective(), Context.TypeInspector);
             return this;
         }
 
@@ -98,7 +103,7 @@ namespace HotChocolate.Types.Sorting
 
             // TODO : resources
             throw new ArgumentException(
-                "Only properties are allowed for input types.",
+                SortingResources.SortInputTypeDescriptor_Ignore_OnlyPopertiesAreAllowed,
                 nameof(property));
         }
 
@@ -114,7 +119,7 @@ namespace HotChocolate.Types.Sorting
 
             // TODO : resources
             throw new ArgumentException(
-                "Only properties are allowed for input types.",
+                SortingResources.SortInputTypeDescriptor_Ignore_OnlyPopertiesAreAllowed,
                 nameof(property));
         }
 
@@ -127,9 +132,8 @@ namespace HotChocolate.Types.Sorting
                 return this;
             }
 
-            // TODO : resources
             throw new ArgumentException(
-                "Only properties are allowed for input types.",
+                SortingResources.SortInputTypeDescriptor_Ignore_OnlyPopertiesAreAllowed,
                 nameof(property));
         }
 
@@ -138,7 +142,7 @@ namespace HotChocolate.Types.Sorting
         {
             if (Definition.EntityType is { })
             {
-                Context.Inspector.ApplyAttributes(Context, this, Definition.EntityType);
+                Context.TypeInspector.ApplyAttributes(Context, this, Definition.EntityType);
             }
 
             var fields = new Dictionary<NameString, SortOperationDefintion>();
@@ -176,8 +180,8 @@ namespace HotChocolate.Types.Sorting
                 return;
             }
 
-            foreach (PropertyInfo property in Context.Inspector
-                .GetMembers(Definition.EntityType)
+            foreach (PropertyInfo property in Context.TypeInspector
+                .GetMembers(Definition.EntityType!)
                 .OfType<PropertyInfo>())
             {
                 if (handledProperties.Contains(property))
@@ -200,10 +204,11 @@ namespace HotChocolate.Types.Sorting
             Type type = property.PropertyType;
 
             if (type.IsGenericType
-                && System.Nullable.GetUnderlyingType(type) is Type nullableType)
+                && System.Nullable.GetUnderlyingType(type) is { } nullableType)
             {
                 type = nullableType;
             }
+
             if (typeof(IComparable).IsAssignableFrom(type))
             {
                 definition = SortOperationDescriptor
@@ -211,12 +216,17 @@ namespace HotChocolate.Types.Sorting
                     .CreateDefinition();
                 return true;
             }
-            if (type.IsClass && !DotNetTypeInfoFactory.IsListType(type))
+
+            if (Context.TypeInspector.TryCreateTypeInfo(type, out ITypeInfo? typeInfo) &&
+                typeInfo.GetExtendedType()?.IsList is {} isList)
             {
-                definition = SortObjectOperationDescriptor
-                    .CreateOperation(property, Context)
-                    .CreateDefinition();
-                return true;
+                if (type.IsClass && !isList)
+                {
+                    definition = SortObjectOperationDescriptor
+                        .CreateOperation(property, Context)
+                        .CreateDefinition();
+                    return true;
+                }
             }
 
             definition = null;

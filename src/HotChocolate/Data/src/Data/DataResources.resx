@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+              xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>1.3</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral,
+      PublicKeyToken=b77a5c561934e089
+    </value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral,
+      PublicKeyToken=b77a5c561934e089
+    </value>
+  </resheader>
+  <data name="FilterField_FilterField_TypeUnknown" xml:space="preserve">
+    <value>Unable to resolve the field runtime type for `{0}.{1}`.</value>
+  </data>
+  <data name="FilterConventionDescriptor_MustInheritFromFilterInputType" xml:space="preserve">
+    <value>The filter type must inherit from `FilterInputType`.</value>
+  </data>
+  <data name="FilterConventionDescriptor_MustImplementIFilterProvider" xml:space="preserve">
+    <value>A filter provider has to implement `IFilterProvider`.</value>
+  </data>
+  <data name="FilterConvention_NoConfigurationSpecified" xml:space="preserve">
+    <value>No configuration was specified.</value>
+  </data>
+  <data name="FilterProvider_NoConfigurationSpecified" xml:space="preserve">
+    <value>No configuration was specified.</value>
+  </data>
+  <data name="FilterConvention_UnknownType" xml:space="preserve">
+    <value>The type {0} is unknown</value>
+  </data>
+  <data name="FilterInputTypeDescriptor_Operation_OnlyMethods" xml:space="preserve">
+    <value>Only method are allowed for filter operations.</value>
+  </data>
+  <data name="FilterInputTypeDescriptor_Field_OnlyProperties" xml:space="preserve">
+    <value>Only properties are supported as fields.</value>
+  </data>
+  <data name="FilterObjectFieldDescriptorExtensions_UseFiltering_CannotHandleType" xml:space="preserve">
+    <value>Cannot handle the specified filter type.</value>
+  </data>
+  <data name="SortField_SortField_TypeUnknown" xml:space="preserve">
+    <value>Unable to resolve the field runtime type for `{0}.{1}`.</value>
+  </data>
+  <data name="SortConventionDescriptor_MustInheritFromSortInputOrEnumType" xml:space="preserve">
+    <value>The sorting type must inherit from `SortInputType` or `SortEnumType`.</value>
+  </data>
+  <data name="SortConventionDescriptor_MustImplementISortProvider" xml:space="preserve">
+    <value>A sorting provider has to implement `ISortProvider`.</value>
+  </data>
+  <data name="SortConvention_NoConfigurationSpecified" xml:space="preserve">
+    <value>No configuration was specified.</value>
+  </data>
+  <data name="SortProvider_NoConfigurationSpecified" xml:space="preserve">
+    <value>No configuration was specified.</value>
+  </data>
+  <data name="SortConvention_UnknownType" xml:space="preserve">
+    <value>The type {0} is unknown</value>
+  </data>
+  <data name="SortInputTypeDescriptor_Field_OnlyProperties" xml:space="preserve">
+    <value>Only properties are supported as fields.</value>
+  </data>
+  <data name="SortObjectFieldDescriptorExtensions_UseSorting_CannotHandleType" xml:space="preserve">
+    <value>Cannot handle the specified filter type.</value>
+  </data>
+  <data name="SortingVisitor_ListInput_AreNotSuported" xml:space="preserve">
+    <value>Lists are not supported by sorting!</value>
+  </data>
+  <data name="SortingEnumType_Cannot_ParseLiteral" xml:space="preserve">
+    <value>{0} cannot parse the given literal of type `{1}`.</value>
+  </data>
+  <data name="SortInvocation_Cannot_SortOnFields" xml:space="preserve">
+    <value>Sorting on fields with no operation is not supported</value>
+  </data>
+  <data name="QueryableSortHandler_InvalidSelector" xml:space="preserve">
+    <value>Sorting has encountered invalid selector</value>
+  </data>
+  <data name="FilterConvention_CouldNotConvertValue" xml:space="preserve">
+    <value>Filtering could not convert value into desired format.</value>
+  </data>
+  <data name="FilterObjectFieldDescriptorExtensions_CannotInfer" xml:space="preserve">
+    <value>The filter type cannot be inferred from `System.Object`.</value>
+  </data>
+  <data name="FilterDescriptorContextExtensions_NoConvention" xml:space="preserve">
+    <value>No filter convention found for scope `{0}`. Register a convention with `AddConvention&lt;IFilterConvention, TYourConvention&gt;("{0}")` on the schema builder.</value>
+  </data>
+  <data name="FilterDescriptorContextExtensions_NoConvention_Default" xml:space="preserve">
+    <value>No default filter convention found. Call `AddFiltering()` on the schema builder.</value>
+  </data>
+  <data name="SortProvider_NoFieldHandlersConfigured" xml:space="preserve">
+    <value>The sort provider `{0}` does not specify and field handler.</value>
+  </data>
+  <data name="SortProvider_NoOperationHandlersConfigured" xml:space="preserve">
+    <value>The sort provider `{0}` does not specify and operation handler.</value>
+  </data>
+  <data name="SortDescriptorContextExtensions_NoConvention" xml:space="preserve">
+    <value>No sorting convention found for scope `{0}`. Register a convention with `AddConvention&lt;ISortConvention, TYourConvention&gt;("{0}")` on the schema builder.</value>
+  </data>
+  <data name="SortDescriptorContextExtensions_NoConvention_Default" xml:space="preserve">
+    <value>No default sorting convention found. Call `AddSorting()` on the schema builder.</value>
+  </data>
+  <data name="SortInterceptor_NoFieldHandlerFoundForField" xml:space="preserve">
+    <value>For the field {0} of type {1} was no field handler found.</value>
+  </data>
+  <data name="SortInterceptor_NoOperationHandlerFoundForValue" xml:space="preserve">
+    <value>For the value {0} of type {1} was no operation handler found.</value>
+  </data>
+  <data name="SortConvention_NoProviderFound" xml:space="preserve">
+    <value>There is no provider defined for the sorting convention `{0}`.</value>
+  </data>
+  <data name="SortConvention_TypeOfMemberIsUnknown" xml:space="preserve">
+    <value>The type of the member {0} of the declaring type {1} is unknown</value>
+  </data>
+  <data name="FilterConvention_NoProviderFound" xml:space="preserve">
+    <value>There is no provider defined for the filter convention `{0}`.</value>
+  </data>
+  <data name="FilterConvention_TypeOfMemberIsUnknown" xml:space="preserve">
+    <value>The type of the member {0} of the declaring type {1} is unknown</value>
+  </data>
+  <data name="SortConvention_OperationNameNotFound" xml:space="preserve">
+    <value>Operation with identifier {0} has no name defined. Add a name to the sort convention</value>
+  </data>
+  <data name="SortObjectFieldDescriptorExtensions_CannotInfer" xml:space="preserve">
+    <value>The sort type cannot be inferred from `System.Object`.</value>
+  </data>
+  <data name="FilterConvention_OperationNameNotFound" xml:space="preserve">
+    <value>Operation with identifier {0} has no name defined. Add a name to the filter convention</value>
+  </data>
+  <data name="FilterProvider_NoHandlersConfigured" xml:space="preserve">
+    <value>The filter provider `{0}` does not specify and field handler.</value>
+  </data>
+  <data name="FilterInterceptor_NoHandlerFoundForField" xml:space="preserve">
+    <value>For the field {0} of type {1} was no handler found.</value>
+  </data>
+  <data name="ErrorHelper_CreateNonNullError" xml:space="preserve">
+    <value>The provided value for filter `{0}` of type {1} is invalid. Null values are not supported.</value>
+  </data>
+  <data name="FilterProvider_UnableToCreateFieldHandler" xml:space="preserve">
+    <value>Unable to create field handler `{0}` for filter provider `{1}`.</value>
+  </data>
+  <data name="SortProvider_UnableToCreateFieldHandler" xml:space="preserve">
+    <value>Unable to create field handler `{0}` for sort provider `{1}`.</value>
+  </data>
+  <data name="SortProvider_UnableToCreateOperationHandler" xml:space="preserve">
+    <value>Unable to create operation handler `{0}` for sort provider `{1}`.</value>
+  </data>
+  <data name="SortEnumValue_ValueIsNull" xml:space="preserve">
+    <value>The inner value of enum value cannot be null or empty</value>
+  </data>
+  <data name="SortVisitor_InvalidField" xml:space="preserve">
+    <value>Sorting visitor encountered invalid field</value>
+  </data>
+  <data name="SortVisitor_InvalidType" xml:space="preserve">
+    <value>Sorting visitor encountered invalid type</value>
+  </data>
+  <data name="FilterVisitor_InvalidType" xml:space="preserve">
+    <value>Filter visitor encountered invalid type</value>
+  </data>
+  <data name="FilterVisitor_InvalidField" xml:space="preserve">
+    <value>Filter visitor encountered invalid field</value>
+  </data>
+  <data name="ProjectionProvider_NoConfigurationSpecified" xml:space="preserve">
+    <value>No configuration was specified.</value>
+  </data>
+  <data name="ProjectionProvider_UnableToCreateFieldHandler" xml:space="preserve">
+    <value>Unable to create field handler `{0}` for projection convention `{1}`.</value>
+  </data>
+  <data name="ProjectionProvider_NoHandlersConfigured" xml:space="preserve">
+    <value>The projection convention `{0}` does not specify and field handler.</value>
+  </data>
+  <data name="ProjectionConvention_NoConfigurationSpecified" xml:space="preserve">
+    <value>No configuration was specified.</value>
+  </data>
+  <data name="ProjectionConvention_NoProviderFound" xml:space="preserve">
+    <value>There is no provider defined for the projection convention `{0}`.</value>
+  </data>
+  <data name="ProjectionConventionDescriptor_MustImplementIProjectionProvider" xml:space="preserve">
+    <value>A projection provider has to implement `IProjectionProvider`.</value>
+  </data>
+  <data name="ProjectionProvider_CreateMoreThanOneError" xml:space="preserve">
+    <value>Sequence contains more than one element.</value>
+  </data>
+  <data name="ProjectionProvider_CouldNotProjectFiltering" xml:space="preserve">
+    <value>Could not project filters on field</value>
+  </data>
+  <data name="ProjectionProvider_CouldNotProjectSorting" xml:space="preserve">
+    <value>Could not project sorting on field</value>
+  </data>
+  <data name="ProjectionConvention_CouldNotProject" xml:space="preserve">
+    <value>Projection Visitor is in invalid state. Projection failed!</value>
+  </data>
+  <data name="FilterConvention_ProviderHasToBeInitializedByConvention" xml:space="preserve">
+    <value>The filter provider {0} {1}was not initialized by a convention. It is only valid to register a provider over a FilterConvention</value>
+  </data>
+</root>

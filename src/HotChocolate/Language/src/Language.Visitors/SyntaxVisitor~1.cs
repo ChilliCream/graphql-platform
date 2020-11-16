@@ -70,7 +70,10 @@ namespace HotChocolate.Language.Visitors
 
             if (result.Kind == SyntaxVisitorActionKind.Continue)
             {
-                VisitChildren(node, context);
+                if (VisitChildren(node, context).Kind == SyntaxVisitorActionKind.Break)
+                {
+                    return Break;
+                }
             }
 
             if (result.Kind == SyntaxVisitorActionKind.Continue ||

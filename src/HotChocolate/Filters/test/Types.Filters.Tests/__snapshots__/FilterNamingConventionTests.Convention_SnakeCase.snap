@@ -8,65 +8,74 @@ type Query {
 
 input FooBarFilter {
   AND: [FooBarFilter!]
-  nested: String
-  nested_contains: String
-  nested_ends_with: String
-  nested_in: [String]
-  nested_not: String
-  nested_not_contains: String
-  nested_not_ends_with: String
-  nested_not_in: [String]
-  nested_not_starts_with: String
-  nested_starts_with: String
   OR: [FooBarFilter!]
+  nested: String
+  nested_not: String
+  nested_contains: String
+  nested_not_contains: String
+  nested_starts_with: String
+  nested_not_starts_with: String
+  nested_ends_with: String
+  nested_not_ends_with: String
+  nested_in: [String]
+  nested_not_in: [String]
 }
 
 input FooFilter {
   AND: [FooFilter!]
-  bool: Boolean
-  bool_not: Boolean
+  OR: [FooFilter!]
   comparable: Short
+  comparable_not: Short
+  comparable_in: [Short!]
+  comparable_not_in: [Short!]
+  comparable_gt: Short
+  comparable_not_gt: Short
+  comparable_gte: Short
+  comparable_not_gte: Short
+  comparable_lt: Short
+  comparable_not_lt: Short
+  comparable_lte: Short
+  comparable_not_lte: Short
+  comparableEnumerable_some: ISingleFilterOfInt16Filter
+  comparableEnumerable_none: ISingleFilterOfInt16Filter
   comparableEnumerable_all: ISingleFilterOfInt16Filter
   comparableEnumerable_any: Boolean
-  comparableEnumerable_none: ISingleFilterOfInt16Filter
-  comparableEnumerable_some: ISingleFilterOfInt16Filter
-  comparable_gt: Short
-  comparable_gte: Short
-  comparable_in: [Short!]
-  comparable_lt: Short
-  comparable_lte: Short
-  comparable_not: Short
-  comparable_not_gt: Short
-  comparable_not_gte: Short
-  comparable_not_in: [Short!]
-  comparable_not_lt: Short
-  comparable_not_lte: Short
+  bool: Boolean
+  bool_not: Boolean
   object: FooBarFilter
-  OR: [FooFilter!]
 }
 
 input ISingleFilterOfInt16Filter {
   AND: [ISingleFilterOfInt16Filter!]
-  element: Short
-  element_gt: Short
-  element_gte: Short
-  element_in: [Short!]
-  element_lt: Short
-  element_lte: Short
-  element_not: Short
-  element_not_gt: Short
-  element_not_gte: Short
-  element_not_in: [Short!]
-  element_not_lt: Short
-  element_not_lte: Short
   OR: [ISingleFilterOfInt16Filter!]
+  element: Short
+  element_not: Short
+  element_in: [Short!]
+  element_not_in: [Short!]
+  element_gt: Short
+  element_not_gt: Short
+  element_gte: Short
+  element_not_gte: Short
+  element_lt: Short
+  element_not_lt: Short
+  element_lte: Short
+  element_not_lte: Short
 }
 
-"The `Boolean` scalar type represents `true` or `false`."
-scalar Boolean
+"The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`."
+directive @defer("If this argument label has a value other than null, it will be passed on to the result of this defer directive. This label is intended to give client applications a way to identify to which fragment a deferred result belongs to." label: String "Deferred when true." if: Boolean) on FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+"The @deprecated directive is used within the type system definition language to indicate deprecated portions of a GraphQL service’s schema,such as deprecated fields on a type or deprecated enum values."
+directive @deprecated("Deprecations include a reason for why it is deprecated, which is formatted using Markdown syntax (as specified by CommonMark)." reason: String = "No longer supported") on FIELD_DEFINITION | ENUM_VALUE
+
+"Directs the executor to include this field or fragment only when the `if` argument is true."
+directive @include("Included when true." if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+"Directs the executor to skip this field or fragment when the `if` argument is true."
+directive @skip("Skipped when true." if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+"The `@stream` directive may be provided for a field of `List` type so that the backend can leverage technology such as asynchronous iterators to provide a partial list in the initial response, and additional list items in subsequent responses. `@include` and `@skip` take precedence over `@stream`."
+directive @stream("If this argument label has a value other than null, it will be passed on to the result of this stream directive. This label is intended to give client applications a way to identify to which fragment a streamed result belongs to." label: String "The initial elements that shall be send down to the consumer." initialCount: Int! "Streamed when true." if: Boolean!) on FIELD
 
 "The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1."
 scalar Short
-
-"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
-scalar String

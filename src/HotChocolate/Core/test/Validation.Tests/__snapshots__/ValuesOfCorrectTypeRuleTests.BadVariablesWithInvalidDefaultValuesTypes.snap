@@ -2,55 +2,55 @@
   {
     "Message": "The specified value type of variable `a` does not match the variable type.",
     "Code": null,
-    "Path": [],
+    "Path": null,
     "Locations": [
       {
         "Line": 3,
         "Column": 31
       }
     ],
-    "Exception": null,
     "Extensions": {
       "variable": "a",
       "variableType": "Int",
       "locationType": "Int",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
-    }
+    },
+    "Exception": null
   },
   {
     "Message": "The specified value type of variable `b` does not match the variable type.",
     "Code": null,
-    "Path": [],
+    "Path": null,
     "Locations": [
       {
         "Line": 4,
         "Column": 34
       }
     ],
-    "Exception": null,
     "Extensions": {
       "variable": "b",
       "variableType": "String",
       "locationType": "String",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
-    }
+    },
+    "Exception": null
   },
   {
     "Message": "The specified value type of variable `c` does not match the variable type.",
     "Code": null,
-    "Path": [],
+    "Path": null,
     "Locations": [
       {
         "Line": 5,
         "Column": 40
       }
     ],
-    "Exception": null,
     "Extensions": {
       "variable": "c",
       "variableType": "ComplexInput",
       "locationType": "ComplexInput",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
-    }
+    },
+    "Exception": null
   }
 ]

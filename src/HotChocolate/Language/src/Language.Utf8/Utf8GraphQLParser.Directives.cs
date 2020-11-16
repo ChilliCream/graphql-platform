@@ -21,7 +21,7 @@ namespace HotChocolate.Language
             List<InputValueDefinitionNode> arguments =
                 ParseArgumentDefinitions();
 
-            bool isRepeatable = SkipRepeatableKeyword();
+            var isRepeatable = SkipRepeatableKeyword();
             ExpectOnKeyword();
 
             List<NameNode> locations = ParseDirectiveLocations();

@@ -42,7 +42,17 @@ namespace HotChocolate.Validation.Rules
         {
             if (context.FieldSets.Count > 0)
             {
-                TryMergeFieldsInSet(context, context.FieldSets[node.SelectionSet]);
+                foreach (SelectionSetNode selectionSet in context.FieldSets.Keys)
+                {
+                    TryMergeFieldsInSet(context, context.FieldSets[selectionSet]);
+                }
+            }
+
+            if (node.SelectionSet.Selections.Count == 0)
+            {
+                context.Errors.Add(context.NoSelectionOnRootType(
+                    node,
+                    context.Schema.GetOperationType(node.Operation)));
             }
 
             return base.Leave(node, context);
@@ -64,27 +74,28 @@ namespace HotChocolate.Validation.Rules
                 fields.Add(new FieldInfo(context.Types.Peek(), context.NonNullString, node));
                 return Skip;
             }
-            else if (context.Types.TryPeek(out IType type) &&
+
+            if (context.Types.TryPeek(out IType type) &&
                 type.NamedType() is IComplexOutputType ct)
             {
-                if (ct.Fields.TryGetField(node.Name.Value, out IOutputField of))
+                if (ct.Fields.TryGetField(node.Name.Value, out IOutputField? of))
                 {
                     fields.Add(new FieldInfo(context.Types.Peek(), of.Type, node));
 
-                    if (node.SelectionSet is null)
+                    if (node.SelectionSet is null || node.SelectionSet.Selections.Count == 0)
                     {
                         if (of.Type.NamedType().IsCompositeType())
                         {
-                            context.Errors.Add(context.NoSelectionOnCompositeField(
-                                node, ct, of.Type));
+                            context.Errors.Add(
+                                context.NoSelectionOnCompositeField(node, ct, of.Type));
                         }
                     }
                     else
                     {
                         if (of.Type.NamedType().IsLeafType())
                         {
-                            context.Errors.Add(context.LeafFieldsCannotHaveSelections(
-                                node, ct, of.Type));
+                            context.Errors.Add
+                                (context.LeafFieldsCannotHaveSelections(node, ct, of.Type));
                             return Skip;
                         }
                     }
@@ -93,17 +104,13 @@ namespace HotChocolate.Validation.Rules
                     context.Types.Push(of.Type);
                     return Continue;
                 }
-                else
-                {
-                    context.Errors.Add(context.FieldDoesNotExist(node, ct));
-                    return Skip;
-                }
-            }
-            else
-            {
-                context.UnexpectedErrorsDetected = true;
+
+                context.Errors.Add(context.FieldDoesNotExist(node, ct));
                 return Skip;
             }
+
+            context.UnexpectedErrorsDetected = true;
+            return Skip;
         }
 
         protected override ISyntaxVisitorAction Leave(
@@ -129,8 +136,8 @@ namespace HotChocolate.Validation.Rules
 
             if (context.Path.TryPeek(out ISyntaxNode parent))
             {
-                if (parent.Kind == NodeKind.OperationDefinition ||
-                    parent.Kind == NodeKind.Field)
+                if (parent.Kind == SyntaxKind.OperationDefinition ||
+                    parent.Kind == SyntaxKind.Field)
                 {
                     context.SelectionSets.Push(node);
                 }
@@ -145,12 +152,13 @@ namespace HotChocolate.Validation.Rules
         {
             if (context.Path.TryPeek(out ISyntaxNode parent))
             {
-                if (parent.Kind == NodeKind.OperationDefinition ||
-                    parent.Kind == NodeKind.Field)
+                if (parent.Kind == SyntaxKind.OperationDefinition ||
+                    parent.Kind == SyntaxKind.Field)
                 {
                     context.SelectionSets.Pop();
                 }
             }
+
             return Continue;
         }
 
@@ -177,10 +185,10 @@ namespace HotChocolate.Validation.Rules
 
         private static bool HasFields(SelectionSetNode selectionSet)
         {
-            for (int i = 0; i < selectionSet.Selections.Count; i++)
+            for (var i = 0; i < selectionSet.Selections.Count; i++)
             {
                 ISelectionNode selection = selectionSet.Selections[i];
-                if (selection.Kind == NodeKind.Field)
+                if (selection.Kind == SyntaxKind.Field)
                 {
                     if (!IsTypeNameField(((FieldNode)selection).Name.Value))
                     {
@@ -210,16 +218,16 @@ namespace HotChocolate.Validation.Rules
             }
             else
             {
-                for (int i = 0; i < fields.Count - 1; i++)
+                for (var i = 0; i < fields.Count - 1; i++)
                 {
                     FieldInfo fieldA = fields[i];
-                    for (int j = i + 1; j < fields.Count; j++)
+                    for (var j = i + 1; j < fields.Count; j++)
                     {
                         FieldInfo fieldB = fields[j];
-                        if (!object.ReferenceEquals(fieldA.Field, fieldB.Field) &&
+                        if (!ReferenceEquals(fieldA.Field, fieldB.Field) &&
                             string.Equals(
-                                fieldA.ResponseName, 
-                                fieldB.ResponseName, 
+                                fieldA.ResponseName,
+                                fieldB.ResponseName,
                                 StringComparison.Ordinal))
                         {
                             if (SameResponseShape(fieldA.Type, fieldB.Type))
@@ -231,14 +239,14 @@ namespace HotChocolate.Validation.Rules
                                     {
                                         TryMergeFieldsInSet(context, fieldA, fieldB);
                                     }
-                                    else
+                                    else if(context.FieldTuples.Add((fieldA.Field, fieldB.Field)))
                                     {
                                         context.Errors.Add(
                                             context.FieldsAreNotMergable(fieldA, fieldB));
                                     }
                                 }
                             }
-                            else
+                            else if(context.FieldTuples.Add((fieldA.Field, fieldB.Field)))
                             {
                                 context.Errors.Add(context.FieldsAreNotMergable(fieldA, fieldB));
                             }
@@ -267,7 +275,7 @@ namespace HotChocolate.Validation.Rules
 
         private static void CopyFieldInfos(IList<FieldInfo> from, IList<FieldInfo> to)
         {
-            for (int i = 0; i < from.Count; i++)
+            for (var i = 0; i < from.Count; i++)
             {
                 to.Add(from[i]);
             }
@@ -276,7 +284,7 @@ namespace HotChocolate.Validation.Rules
         private static bool IsParentTypeAligned(FieldInfo fieldA, FieldInfo fieldB)
         {
             return ReferenceEquals(fieldA.DeclaringType, fieldB.DeclaringType) ||
-                (!fieldA.DeclaringType.IsObjectType() && !fieldB.DeclaringType.IsObjectType());
+                !fieldA.DeclaringType.IsObjectType() && !fieldB.DeclaringType.IsObjectType();
         }
 
         private static bool AreArgumentsIdentical(FieldNode fieldA, FieldNode fieldB)
@@ -291,12 +299,12 @@ namespace HotChocolate.Validation.Rules
                 return false;
             }
 
-            int validPairs = 0;
+            var validPairs = 0;
 
-            for (int i = 0; i < fieldA.Arguments.Count; i++)
+            for (var i = 0; i < fieldA.Arguments.Count; i++)
             {
                 ArgumentNode argumentA = fieldA.Arguments[i];
-                for (int j = 0; j < fieldB.Arguments.Count; j++)
+                for (var j = 0; j < fieldB.Arguments.Count; j++)
                 {
                     ArgumentNode argumentB = fieldB.Arguments[j];
                     if (argumentA.Name.Value.Equals(argumentB.Name.Value, StringComparison.Ordinal))

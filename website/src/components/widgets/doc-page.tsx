@@ -34,7 +34,10 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
   const { fields, frontmatter, html } = data.file!.childMarkdownRemark!;
   const slug = fields!.slug!.substring(1);
   const path = `/docs/${slug}`;
-  const selectedProduct = slug.substring(0, slug.indexOf("/"));
+  const productAndVersionPattern = /^([\w-]*?)\/(v\d+)?/g;
+  const result = productAndVersionPattern.exec(slug);
+  const selectedProduct = result![1]! || "";
+  const selectedVersion = (result && result[2]) || "";
   const title = frontmatter!.title!;
 
   const handleToggleTOC = useCallback(() => {
@@ -51,10 +54,11 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
         data={data}
         selectedPath={path}
         selectedProduct={selectedProduct}
+        selectedVersion={selectedVersion}
       />
       <ArticleWrapper>
         <Article>
-          <DocPageLegacy />
+          {false && <DocPageLegacy />}
           <ArticleHeader>
             <ResponsiveMenu>
               <Button onClick={handleToggleTOC} className="toc-toggle">
@@ -64,11 +68,11 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
                 <NewspaperIconSvg /> About this article
               </Button>
             </ResponsiveMenu>
-            <ArticleTitle>{title}</ArticleTitle>
+            <DocArticleTitle>{title}</DocArticleTitle>
           </ArticleHeader>
           <ArticleContent dangerouslySetInnerHTML={{ __html: html! }} />
         </Article>
-        <ArticleComments data={data} path={path} title={title} />
+        {false && <ArticleComments data={data} path={path} title={title} />}
       </ArticleWrapper>
       <DocPageAside>
         <DocPageCommunity data={data} originPath={originPath} />
@@ -105,36 +109,58 @@ const Container = styled.div`
   display: flex;
   flex-direction: row;
   width: 100%;
-  max-width: 800px;
+  max-width: 820px;
 
-  @media only screen and (min-width: 1050px) {
-    max-width: 1050px;
+  @media only screen and (min-width: 1070px) {
+    max-width: 1070px;
   }
 
-  @media only screen and (min-width: 1300px) {
-    max-width: 1300px;
+  @media only screen and (min-width: 1320px) {
+    max-width: 1320px;
   }
 `;
 
 const ResponsiveMenu = styled.div`
+  position: fixed;
+  right: 0;
+  left: 0;
+  z-index: 2;
   display: flex;
   flex-direction: row;
   align-items: center;
   padding: 30px 20px 20px;
+  background: linear-gradient(
+    180deg,
+    #ffffff 30%,
+    rgba(255, 255, 255, 0.75) 100%
+  );
 
-  @media only screen and (min-width: 800px) {
+  @media only screen and (min-width: 820px) {
+    position: initial;
+    right: initial;
+    left: initial;
+    z-index: initial;
     padding-right: 50px;
     padding-left: 50px;
+    background: initial;
   }
 
-  @media only screen and (min-width: 1050px) {
+  @media only screen and (min-width: 1070px) {
     > .toc-toggle {
       display: none;
     }
   }
 
-  @media only screen and (min-width: 1300px) {
+  @media only screen and (min-width: 1320px) {
     display: none;
+  }
+`;
+
+const DocArticleTitle = styled(ArticleTitle)`
+  margin-top: 68px;
+
+  @media only screen and (min-width: 820px) {
+    margin-top: 20px;
   }
 `;
 

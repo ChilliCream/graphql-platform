@@ -1,0 +1,49 @@
+﻿{
+  "data": {
+    "leftComparison": {
+      "name": "Luke Skywalker",
+      "appearsIn": [
+        "NEW_HOPE",
+        "EMPIRE",
+        "JEDI"
+      ],
+      "friends": {
+        "nodes": [
+          {
+            "name": "Han Solo"
+          },
+          {
+            "name": "Leia Organa"
+          },
+          {
+            "name": "C-3PO"
+          },
+          {
+            "name": "R2-D2"
+          }
+        ]
+      }
+    },
+    "rightComparison": {
+      "name": "R2-D2",
+      "appearsIn": [
+        "NEW_HOPE",
+        "EMPIRE",
+        "JEDI"
+      ],
+      "friends": {
+        "nodes": [
+          {
+            "name": "Luke Skywalker"
+          },
+          {
+            "name": "Han Solo"
+          },
+          {
+            "name": "Leia Organa"
+          }
+        ]
+      }
+    }
+  }
+}

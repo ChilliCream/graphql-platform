@@ -15,7 +15,6 @@ namespace HotChocolate
         : IEquatable<NameString>
         , IComparable<NameString>
     {
-
         /// <summary>
         /// Initializes a new instance of the <see cref="NameString"/> struct.
         /// </summary>

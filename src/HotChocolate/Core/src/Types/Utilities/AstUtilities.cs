@@ -21,7 +21,7 @@ namespace HotChocolate.Utilities
 
         private static bool TryGetTypeFromAst(ISchema schema, ITypeNode typeNode, out IType type)
         {
-            if (typeNode.Kind == NodeKind.NonNullType
+            if (typeNode.Kind == SyntaxKind.NonNullType
                 && TryGetTypeFromAst(schema,
                     ((NonNullTypeNode)typeNode).Type, out type))
             {
@@ -29,7 +29,7 @@ namespace HotChocolate.Utilities
                 return true;
             }
 
-            if (typeNode.Kind == NodeKind.ListType
+            if (typeNode.Kind == SyntaxKind.ListType
                 && TryGetTypeFromAst(schema,
                     ((ListTypeNode)typeNode).Type, out type))
             {
@@ -37,7 +37,7 @@ namespace HotChocolate.Utilities
                 return true;
             }
 
-            if (typeNode.Kind == NodeKind.NamedType
+            if (typeNode.Kind == SyntaxKind.NamedType
                 && schema.TryGetType(
                     ((NamedTypeNode)typeNode).Name.Value,
                     out INamedType namedType))

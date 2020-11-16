@@ -11,12 +11,12 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             Action<IObjectTypeDescriptor> configure)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -28,12 +28,12 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             Action<IObjectTypeDescriptor<T>> configure)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -45,12 +45,12 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             Type type)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
@@ -62,12 +62,12 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             ObjectType queryType)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (queryType == null)
+            if (queryType is null)
             {
                 throw new ArgumentNullException(nameof(queryType));
             }
@@ -79,7 +79,7 @@ namespace HotChocolate
             this ISchemaBuilder builder)
             where TQuery : class
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -91,12 +91,12 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             Action<IObjectTypeDescriptor> configure)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -108,12 +108,12 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             Action<IObjectTypeDescriptor<T>> configure)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -125,12 +125,12 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             Type type)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
@@ -142,12 +142,12 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             ObjectType queryType)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (queryType == null)
+            if (queryType is null)
             {
                 throw new ArgumentNullException(nameof(queryType));
             }
@@ -159,7 +159,7 @@ namespace HotChocolate
             this ISchemaBuilder builder)
             where TMutation : class
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -173,12 +173,12 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             Action<IObjectTypeDescriptor> configure)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -190,12 +190,12 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             Action<IObjectTypeDescriptor<T>> configure)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -207,12 +207,12 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             Type type)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
@@ -224,12 +224,12 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             ObjectType queryType)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (queryType == null)
+            if (queryType is null)
             {
                 throw new ArgumentNullException(nameof(queryType));
             }
@@ -241,7 +241,7 @@ namespace HotChocolate
             this ISchemaBuilder builder)
             where TSubscription : class
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -255,12 +255,12 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             Action<IObjectTypeDescriptor> configure)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -271,7 +271,7 @@ namespace HotChocolate
         public static ISchemaBuilder AddObjectType<T>(
             this ISchemaBuilder builder)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -283,12 +283,12 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             Action<IObjectTypeDescriptor<T>> configure)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -300,12 +300,12 @@ namespace HotChocolate
            this ISchemaBuilder builder,
            Action<IUnionTypeDescriptor> configure)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -316,7 +316,7 @@ namespace HotChocolate
         public static ISchemaBuilder AddUnionType<T>(
             this ISchemaBuilder builder)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -328,12 +328,12 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             Action<IUnionTypeDescriptor> configure)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -345,12 +345,12 @@ namespace HotChocolate
            this ISchemaBuilder builder,
            Action<IEnumTypeDescriptor> configure)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -361,7 +361,7 @@ namespace HotChocolate
         public static ISchemaBuilder AddEnumType<T>(
             this ISchemaBuilder builder)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -373,12 +373,12 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             Action<IEnumTypeDescriptor<T>> configure)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -390,12 +390,12 @@ namespace HotChocolate
            this ISchemaBuilder builder,
            Action<IInterfaceTypeDescriptor> configure)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -406,7 +406,7 @@ namespace HotChocolate
         public static ISchemaBuilder AddInterfaceType<T>(
             this ISchemaBuilder builder)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -418,12 +418,12 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             Action<IInterfaceTypeDescriptor<T>> configure)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -435,12 +435,12 @@ namespace HotChocolate
            this ISchemaBuilder builder,
            Action<IInputObjectTypeDescriptor> configure)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -451,7 +451,7 @@ namespace HotChocolate
         public static ISchemaBuilder AddInputObjectType<T>(
             this ISchemaBuilder builder)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -463,12 +463,12 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             Action<IInputObjectTypeDescriptor<T>> configure)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -479,7 +479,7 @@ namespace HotChocolate
         public static ISchemaBuilder AddType<T>(
             this ISchemaBuilder builder)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -491,12 +491,12 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             params INamedType[] types)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (types == null)
+            if (types is null)
             {
                 throw new ArgumentNullException(nameof(types));
             }
@@ -512,12 +512,12 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             params Type[] types)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (types == null)
+            if (types is null)
             {
                 throw new ArgumentNullException(nameof(types));
             }
@@ -533,12 +533,12 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             Type directiveType)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (directiveType == null)
+            if (directiveType is null)
             {
                 throw new ArgumentNullException(nameof(directiveType));
             }
@@ -567,7 +567,7 @@ namespace HotChocolate
             this ISchemaBuilder builder)
             where TDirective : DirectiveType
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -579,7 +579,7 @@ namespace HotChocolate
             this ISchemaBuilder builder)
             where TSchema : ISchema
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -591,7 +591,7 @@ namespace HotChocolate
             this ISchemaBuilder builder)
             where TSchemaType : INamedType
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }

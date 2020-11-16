@@ -1,28 +1,53 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
 using HotChocolate.Utilities;
 
+#nullable enable
+
 namespace HotChocolate.Types.Descriptors
 {
-    public sealed class DescriptorContext
-        : IDescriptorContext
+    public sealed class DescriptorContext : IDescriptorContext
     {
+        private readonly Dictionary<(Type, string?), IConvention> _conventions =
+            new Dictionary<(Type, string?), IConvention>();
+
+        private readonly IReadOnlyDictionary<(Type, string?), List<CreateConvention>>
+            _convFactories;
+
         private readonly IServiceProvider _services;
-        private readonly Dictionary<Type, IConvention> _conventions;
-        private INamingConventions _naming;
-        private ITypeInspector _inspector;
+
+        private INamingConventions? _naming;
+        private ITypeInspector? _inspector;
+
+        public event EventHandler<SchemaCompletedEventArgs>? SchemaCompleted;
 
         private DescriptorContext(
             IReadOnlySchemaOptions options,
-            IReadOnlyDictionary<Type, IConvention> conventions,
-            IServiceProvider services)
+            IReadOnlyDictionary<(Type, string?), List<CreateConvention>> convFactories,
+            IServiceProvider services,
+            IDictionary<string, object?> contextData,
+            SchemaBuilder.LazySchema schema,
+            ISchemaInterceptor schemaInterceptor,
+            ITypeInterceptor typeInterceptor)
         {
             Options = options;
-            _conventions = conventions.ToDictionary(t => t.Key, t => t.Value);
+            _convFactories = convFactories;
             _services = services;
+            ContextData = contextData;
+            SchemaInterceptor = schemaInterceptor;
+            TypeInterceptor = typeInterceptor;
+
+            schema.Completed += OnSchemaOnCompleted;
+
+            void OnSchemaOnCompleted(object sender, EventArgs args)
+            {
+                SchemaCompleted?.Invoke(this, new SchemaCompletedEventArgs(schema.Schema));
+            }
         }
+
+        public IServiceProvider Services => _services;
 
         public IReadOnlySchemaOptions Options { get; }
 
@@ -35,28 +60,34 @@ namespace HotChocolate.Types.Descriptors
                     _naming = GetConventionOrDefault<INamingConventions>(
                         () => new DefaultNamingConventions(Options.UseXmlDocumentation));
                 }
+
                 return _naming;
             }
         }
 
-        public ITypeInspector Inspector
+        public ITypeInspector TypeInspector
         {
             get
             {
                 if (_inspector is null)
                 {
-                    _inspector = GetConventionOrDefault<ITypeInspector>(
-                        DefaultTypeInspector.Default);
+                    _inspector = this.GetConventionOrDefault<ITypeInspector>(
+                        new DefaultTypeInspector());
                 }
+
                 return _inspector;
             }
         }
 
-        public T GetConventionOrDefault<T>(T defaultConvention)
-            where T : class, IConvention =>
-            GetConventionOrDefault<T>(() => defaultConvention);
+        public ISchemaInterceptor SchemaInterceptor { get; }
 
-        public T GetConventionOrDefault<T>(Func<T> defaultConvention)
+        public ITypeInterceptor TypeInterceptor { get; }
+
+        public IDictionary<string, object?> ContextData { get; }
+
+        public T GetConventionOrDefault<T>(
+            Func<T> defaultConvention,
+            string? scope = null)
             where T : class, IConvention
         {
             if (defaultConvention is null)
@@ -64,65 +95,109 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(defaultConvention));
             }
 
-            if (!TryGetConvention<T>(out T convention))
+            if (_conventions.TryGetValue((typeof(T), scope), out IConvention? conv) &&
+                conv is T castedConvention)
             {
-                convention = _services.GetService(typeof(T)) as T;
+                return castedConvention;
             }
 
-            if (convention is null)
+            CreateConventions<T>(
+                scope,
+                out IConvention? createdConvention,
+                out IList<IConventionExtension>? extensions);
+
+            createdConvention ??= createdConvention as T;
+            createdConvention ??= _services.GetService(typeof(T)) as T;
+            createdConvention ??= defaultConvention();
+
+            if (createdConvention is Convention init)
             {
-                convention = defaultConvention();
-                _conventions[typeof(T)] = convention;
+                ConventionContext conventionContext =
+                    ConventionContext.Create(scope, _services, this);
+
+                init.Initialize(conventionContext);
+                MergeExtensions(conventionContext, init, extensions);
+                init.Complete(conventionContext);
             }
 
-            return convention;
+            if (createdConvention is T createdConventionOfT)
+            {
+                _conventions[(typeof(T), scope)] = createdConventionOfT;
+                return createdConventionOfT;
+            }
+
+            throw ThrowHelper.Convention_ConventionCouldNotBeCreated(typeof(T), scope);
         }
 
-        private bool TryGetConvention<T>(out T convention)
-            where T : IConvention
+        private void CreateConventions<T>(
+            string? scope,
+            out IConvention? createdConvention,
+            out IList<IConventionExtension> extensions)
         {
-            if (_conventions.TryGetValue(typeof(T), out IConvention outConvetion)
-                && outConvetion is T conventionOfT)
+            createdConvention = null;
+            extensions = new List<IConventionExtension>();
+
+            if (_convFactories.TryGetValue(
+                (typeof(T), scope),
+                out List<CreateConvention>? factories))
             {
-                convention = conventionOfT;
-                return true;
+                for (var i = 0; i < factories.Count; i++)
+                {
+                    IConvention conv = factories[i](_services);
+                    if (conv is IConventionExtension extension)
+                    {
+                        extensions.Add(extension);
+                    }
+                    else
+                    {
+                        if (createdConvention is not null)
+                        {
+                            throw ThrowHelper.Convention_TwoConventionsRegisteredForScope(
+                                typeof(T),
+                                createdConvention,
+                                conv,
+                                scope);
+                        }
+
+                        createdConvention = conv;
+                    }
+                }
             }
-            convention = default;
-            return false;
         }
 
-        public static DescriptorContext Create(
-            IReadOnlySchemaOptions options,
-            IServiceProvider services,
-            IReadOnlyDictionary<Type, IConvention> conventions)
+        private static void MergeExtensions(
+            IConventionContext context,
+            Convention convention,
+            IList<IConventionExtension> extensions)
         {
-            if (options == null)
+            for (var m = 0; m < extensions.Count; m++)
             {
-                throw new ArgumentNullException(nameof(options));
+                if (extensions[m] is Convention extensionConvention)
+                {
+                    extensionConvention.Initialize(context);
+                    extensions[m].Merge(context, convention);
+                    extensionConvention.Complete(context);
+                }
             }
+        }
 
-            if (services == null)
-            {
-                throw new ArgumentNullException(nameof(services));
-            }
-
-            if (conventions == null)
-            {
-                throw new ArgumentNullException(nameof(conventions));
-            }
-
+        internal static DescriptorContext Create(
+            IReadOnlySchemaOptions? options = null,
+            IServiceProvider? services = null,
+            IReadOnlyDictionary<(Type, string?), List<CreateConvention>>? conventions = null,
+            IDictionary<string, object?>? contextData = null,
+            SchemaBuilder.LazySchema? schema = null,
+            ISchemaInterceptor? schemaInterceptor = null,
+            ITypeInterceptor? typeInterceptor = null)
+        {
             return new DescriptorContext(
-                options,
-                conventions,
-                services);
-        }
-
-        public static DescriptorContext Create()
-        {
-            return new DescriptorContext(
-                new SchemaOptions(),
-                new Dictionary<Type, IConvention>(),
-                new EmptyServiceProvider());
+                options ?? new SchemaOptions(),
+                conventions ?? new Dictionary<(Type, string?), List<CreateConvention>>(),
+                services ?? new EmptyServiceProvider(),
+                contextData ?? new Dictionary<string, object?>(),
+                schema ?? new SchemaBuilder.LazySchema(),
+                schemaInterceptor ?? new AggregateSchemaInterceptor(),
+                typeInterceptor ?? new AggregateTypeInterceptor());
         }
     }
 }

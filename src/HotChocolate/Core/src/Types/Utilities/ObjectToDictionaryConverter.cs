@@ -8,11 +8,11 @@ namespace HotChocolate.Utilities
 {
     internal class ObjectToDictionaryConverter
     {
-        private readonly ITypeConversion _converter;
+        private readonly ITypeConverter _converter;
         private readonly ConcurrentDictionary<Type, List<PropertyInfo>> _properties =
             new ConcurrentDictionary<Type, List<PropertyInfo>>();
 
-        public ObjectToDictionaryConverter(ITypeConversion converter)
+        public ObjectToDictionaryConverter(ITypeConverter converter)
         {
             _converter = converter
                 ?? throw new ArgumentNullException(nameof(converter));
@@ -20,7 +20,7 @@ namespace HotChocolate.Utilities
 
         public object Convert(object obj)
         {
-            if (obj == null)
+            if (obj is null)
             {
                 throw new ArgumentNullException(nameof(obj));
             }

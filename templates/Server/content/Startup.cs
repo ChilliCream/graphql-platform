@@ -1,9 +1,13 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using HotChocolate.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using HotChocolate;
-using HotChocolate.AspNetCore;
-using HotChocolate.AspNetCore.Voyager;
+using Microsoft.Extensions.Hosting;
 
 namespace HotChocolate.Server.Template
 {
@@ -15,30 +19,29 @@ namespace HotChocolate.Server.Template
         {
             // If you need dependency injection with your query object add your query type as a services.
             // services.AddSingleton<Query>();
-
-            // enable InMemory messaging services for subscription support.
-            // services.AddInMemorySubscriptionProvider();
-
-            // this enables you to use DataLoader in your resolvers.
-            services.AddDataLoaderRegistry();
-
-            // Add GraphQL Services
-            services.AddGraphQL(SchemaBuilder.New()
-                // enable for authorization support
-                // .AddAuthorizeDirectiveType()
-                .AddQueryType<Query>()
-                .ModifyOptions(o => o.RemoveUnreachableTypes = true));
+            services
+                .AddRouting()
+                .AddGraphQLServer()
+                .AddQueryType<Query>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            app
-                .UseRouting()
-                .UseWebSockets()
-                .UseGraphQL()
-                .UsePlayground()
-                .UseVoyager();
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+
+            app.UseRouting();
+
+            app.UseEndpoints(endpoints =>
+            {
+                // By default the GraphQL server is mapped to /graphql
+                // This route also provides you with our GraphQL IDE. In order to configure the
+                // the GraphQL IDE use endpoints.MapGraphQL().WithToolOptions(...).
+                endpoints.MapGraphQL();
+            });
         }
     }
 }

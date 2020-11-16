@@ -1,0 +1,12 @@
+﻿{
+  "MinValue": -1.7976931348623157E+308,
+  "result": {
+    "ContentType": "application/json; charset=utf-8",
+    "StatusCode": "OK",
+    "Data": {
+      "double_arg": -1.7976931348623157E+308
+    },
+    "Errors": null,
+    "Extensions": null
+  }
+}

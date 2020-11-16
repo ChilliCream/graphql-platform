@@ -31,7 +31,7 @@ namespace HotChocolate.Configuration
 
         public void AddBinding(IBindingInfo binding)
         {
-            if (binding == null)
+            if (binding is null)
             {
                 throw new ArgumentNullException(nameof(binding));
             }
@@ -49,14 +49,14 @@ namespace HotChocolate.Configuration
         public IBindingLookup Compile(
             IDescriptorContext descriptorContext)
         {
-            if (descriptorContext == null)
+            if (descriptorContext is null)
             {
                 throw new ArgumentNullException(nameof(descriptorContext));
             }
 
             CompleteComplexTypeBindings(descriptorContext.Naming);
             CompleteResolverTypeBindings(
-                descriptorContext.Inspector,
+                descriptorContext.TypeInspector,
                 descriptorContext.Naming);
             CompleteResolverBindings(descriptorContext.Naming);
 
@@ -98,7 +98,7 @@ namespace HotChocolate.Configuration
             {
                 ComplexTypeBindingInfo typeBinding = null;
 
-                if (binding.SourceType == null)
+                if (binding.SourceType is null)
                 {
                     binding.SourceType = typeof(object);
                 }
@@ -107,7 +107,7 @@ namespace HotChocolate.Configuration
                 {
                     typeBinding = _bindings.OfType<ComplexTypeBindingInfo>()
                         .FirstOrDefault(t => t.Type == binding.SourceType);
-                    if (typeBinding == null)
+                    if (typeBinding is null)
                     {
                         binding.TypeName = naming.GetTypeName(
                             binding.SourceType, TypeKind.Object);
@@ -120,7 +120,7 @@ namespace HotChocolate.Configuration
 
                 typeBinding = _bindings.OfType<ComplexTypeBindingInfo>()
                     .FirstOrDefault(t => t.Name.Equals(binding.TypeName));
-                if (typeBinding == null)
+                if (typeBinding is null)
                 {
                     _bindings.Add(new ComplexTypeBindingInfo
                     {
@@ -183,7 +183,7 @@ namespace HotChocolate.Configuration
                     ComplexTypeBindingInfo typeBinding =
                         _bindings.OfType<ComplexTypeBindingInfo>()
                             .FirstOrDefault(t => t.Type == binding.SourceType);
-                    binding.TypeName = typeBinding == null
+                    binding.TypeName = typeBinding is null
                         ? naming.GetTypeName(binding.SourceType)
                         : typeBinding.Name;
                 }
@@ -262,7 +262,7 @@ namespace HotChocolate.Configuration
                 if (!registerdResolvers.ContainsKey(field.FieldName))
                 {
                     IFieldReference fieldReference =
-                        field.ResolverMember == null
+                        field.ResolverMember is null
                         ? (IFieldReference)new FieldResolver(
                             typeName,
                             field.FieldName,

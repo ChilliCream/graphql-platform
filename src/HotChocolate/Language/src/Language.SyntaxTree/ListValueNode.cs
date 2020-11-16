@@ -48,7 +48,7 @@ namespace HotChocolate.Language
             Items = items ?? throw new ArgumentNullException(nameof(items));
         }
 
-        public NodeKind Kind { get; } = NodeKind.ListValue;
+        public SyntaxKind Kind { get; } = SyntaxKind.ListValue;
 
         public Location? Location { get; }
 

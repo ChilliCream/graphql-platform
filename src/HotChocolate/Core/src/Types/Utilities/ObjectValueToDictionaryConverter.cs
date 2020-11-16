@@ -5,26 +5,25 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Utilities
 {
-    internal class ObjectValueToDictionaryConverter
+    public class ObjectValueToDictionaryConverter
         : SyntaxWalkerBase<IValueNode, Action<object>>
     {
         public Dictionary<string, object> Convert(ObjectValueNode objectValue)
         {
-            if (objectValue == null)
+            if (objectValue is null)
             {
                 throw new ArgumentNullException(nameof(objectValue));
             }
 
             Dictionary<string, object> dict = null;
-            Action<object> setValue =
-                value => dict = (Dictionary<string, object>)value;
+            Action<object> setValue = value => dict = (Dictionary<string, object>)value;
             VisitObjectValue(objectValue, setValue);
             return dict;
         }
 
         public List<object> Convert(ListValueNode listValue)
         {
-            if (listValue == null)
+            if (listValue is null)
             {
                 throw new ArgumentNullException(nameof(listValue));
             }

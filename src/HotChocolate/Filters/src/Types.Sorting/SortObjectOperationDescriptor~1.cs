@@ -80,13 +80,13 @@ namespace HotChocolate.Types.Sorting
             SortOperation operation) =>
             new SortObjectOperationDescriptor<TObject>(context, name, type, operation);
 
-        public new static SortObjectOperationDescriptor<TObject> CreateOperation(
+        public static new SortObjectOperationDescriptor<TObject> CreateOperation(
             PropertyInfo property,
             IDescriptorContext context)
         {
             var operation = new SortOperation(property, true);
             NameString name = context.Naming.GetMemberName(property, MemberKind.InputObjectField);
-            var typeReference = new ClrTypeReference(
+            ExtendedTypeReference? typeReference = context.TypeInspector.GetTypeRef(
                 typeof(SortInputType<>).MakeGenericType(typeof(TObject)),
                 TypeContext.Input);
 

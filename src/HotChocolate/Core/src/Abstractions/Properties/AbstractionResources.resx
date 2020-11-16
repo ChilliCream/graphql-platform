@@ -138,4 +138,31 @@
   <data name="Type_NameIsNotValid" xml:space="preserve">
     <value>`{0}` is not a valid GraphQL type name.</value>
   </data>
+  <data name="Error_Unknown_Error" xml:space="preserve">
+    <value>Unknown Error</value>
+  </data>
+  <data name="Error_Message_Mustnt_Be_Null" xml:space="preserve">
+    <value>The message mustn't be null or empty.</value>
+  </data>
+  <data name="Error_WithMessage_Message_Cannot_Be_Empty" xml:space="preserve">
+    <value>Message cannot be null or empty.</value>
+  </data>
+  <data name="Path_WithPath_Path_Value_NotSupported" xml:space="preserve">
+    <value>Only string or int is allowed as path segment.</value>
+  </data>
+  <data name="Error_SetExtension_Key_Cannot_Be_Empty" xml:space="preserve">
+    <value>Key cannot be null or empty.</value>
+  </data>
+  <data name="Location_Line_Is_1_Based" xml:space="preserve">
+    <value>line is a 1-base index and cannot be less than one.</value>
+  </data>
+  <data name="Location_Column_Is_1_Based" xml:space="preserve">
+    <value>column is a 1-base index and cannot be less than one.</value>
+  </data>
+  <data name="SubscriptionResult_ResultHasErrors" xml:space="preserve">
+    <value>This result has errors and cannot read from the response stream.</value>
+  </data>
+  <data name="SubscriptionResult_ReadOnlyOnce" xml:space="preserve">
+    <value>You can only read a response stream once.</value>
+  </data>
 </root>

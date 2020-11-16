@@ -1,10 +1,10 @@
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
-using System.Reflection;
-using System.Linq;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -59,24 +59,23 @@ namespace HotChocolate.Types.Descriptors
 
         protected void Type(Type type)
         {
-            Type extractedType = Context.Inspector.ExtractType(type);
+            var typeInfo = Context.TypeInspector.CreateTypeInfo(type);
 
-            if (Context.Inspector.IsSchemaType(extractedType)
-                && !typeof(IOutputType).IsAssignableFrom(extractedType))
+            if (typeInfo.IsSchemaType && !typeInfo.IsOutputType())
             {
                 throw new ArgumentException(
                     TypeResources.ObjectFieldDescriptorBase_FieldType);
             }
 
             Definition.SetMoreSpecificType(
-                type,
+                typeInfo.GetExtendedType(),
                 TypeContext.Output);
         }
 
         protected void Type<TOutputType>(TOutputType outputType)
             where TOutputType : class, IOutputType
         {
-            if (outputType == null)
+            if (outputType is null)
             {
                 throw new ArgumentNullException(nameof(outputType));
             }
@@ -92,7 +91,7 @@ namespace HotChocolate.Types.Descriptors
 
         protected void Type(ITypeNode typeNode)
         {
-            if (typeNode == null)
+            if (typeNode is null)
             {
                 throw new ArgumentNullException(nameof(typeNode));
             }
@@ -103,7 +102,7 @@ namespace HotChocolate.Types.Descriptors
             NameString name,
             Action<IArgumentDescriptor> argument)
         {
-            if (argument == null)
+            if (argument is null)
             {
                 throw new ArgumentNullException(nameof(argument));
             }
@@ -137,7 +136,7 @@ namespace HotChocolate.Types.Descriptors
             else
             {
                 Definition.DeprecationReason = reason;
-                AddDeprectedDirective(reason);
+                AddDeprecatedDirective(reason);
             }
         }
 
@@ -145,10 +144,10 @@ namespace HotChocolate.Types.Descriptors
         {
             Definition.DeprecationReason =
                 WellKnownDirectives.DeprecationDefaultReason;
-            AddDeprectedDirective(null);
+            AddDeprecatedDirective(null);
         }
 
-        private void AddDeprectedDirective(string reason)
+        private void AddDeprecatedDirective(string reason)
         {
             if (_deprecatedDirective != null)
             {
@@ -156,15 +155,15 @@ namespace HotChocolate.Types.Descriptors
             }
 
             _deprecatedDirective = new DirectiveDefinition(
-                new DeprecatedDirective(reason));
+                new DeprecatedDirective(reason),
+                Context.TypeInspector.GetTypeRef(typeof(DeprecatedDirective)));
             Definition.Directives.Add(_deprecatedDirective);
 
             if (!_deprecatedDependencySet)
             {
                 Definition.Dependencies.Add(new TypeDependency(
-                    new ClrTypeReference(
-                        typeof(DeprecatedDirectiveType),
-                        TypeContext.None),
+                    Context.TypeInspector.GetTypeRef(
+                        typeof(DeprecatedDirectiveType)),
                     TypeDependencyKind.Completed));
                 _deprecatedDependencySet = true;
             }
@@ -178,13 +177,13 @@ namespace HotChocolate.Types.Descriptors
         protected void Directive<T>(T directive)
             where T : class
         {
-            Definition.AddDirective(directive);
+            Definition.AddDirective(directive, Context.TypeInspector);
         }
 
         protected void Directive<T>()
             where T : class, new()
         {
-            Definition.AddDirective(new T());
+            Definition.AddDirective(new T(), Context.TypeInspector);
         }
 
         protected void Directive(

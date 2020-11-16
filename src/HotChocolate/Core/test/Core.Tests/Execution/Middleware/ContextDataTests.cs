@@ -19,7 +19,7 @@ namespace HotChocolate.Execution
                 {
                     context.ContextData["field"] = "abc";
                     context.Result = context.ContextData["request"];
-                    return Task.CompletedTask;
+                    return default(ValueTask);
                 }));
 
             IQueryExecutor executor = schema.MakeExecutable(

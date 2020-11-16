@@ -3,19 +3,20 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Utilities
 {
-    public static class TypeConversionServiceProviderExtensions
+    public static class TypeConverterServiceProviderExtensions
     {
-        public static ITypeConversion GetTypeConversion(
+        public static ITypeConverter GetTypeConverter(
             this IServiceProvider services)
         {
-            return GetServiceOrDefault<ITypeConversion>(
-                services, TypeConversion.Default);
+            return GetServiceOrDefault<ITypeConverter>(
+                services,
+                DefaultTypeConverter.Default);
         }
 
-        public static ITypeConversion GetTypeConversion(
-            this IResolverContext services)
+        public static ITypeConverter GetTypeConverter(
+            this IResolverContext resolverContext)
         {
-            return services.Service<IServiceProvider>().GetTypeConversion();
+            return resolverContext.Services.GetTypeConverter();
         }
 
         public static T GetServiceOrDefault<T>(
@@ -23,7 +24,7 @@ namespace HotChocolate.Utilities
             T defaultService)
         {
             object service = services?.GetService(typeof(T));
-            if (service == null)
+            if (service is null)
             {
                 return defaultService;
             }

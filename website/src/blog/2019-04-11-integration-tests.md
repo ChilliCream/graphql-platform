@@ -178,7 +178,7 @@ Ok, lets have a look at our second category. This I think is the simplest test w
 
 _Hot Chocolate_ lets us print our schema as GraphQL SDL, this means that we can create a simple SDL representation like the following:
 
-```GraphQL
+```graphql
 type Query {
   sayHello: String
 }

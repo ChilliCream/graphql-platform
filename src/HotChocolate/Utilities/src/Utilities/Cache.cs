@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Utilities
 {
@@ -8,13 +9,12 @@ namespace HotChocolate.Utilities
     {
         private const int _defaultCacheSize = 10;
         private readonly object _sync = new object();
-        private readonly LinkedList<string> _ranking =
-            new LinkedList<string>();
+        private readonly LinkedList<string> _ranking = new LinkedList<string>();
         private readonly ConcurrentDictionary<string, CacheEntry> _cache =
             new ConcurrentDictionary<string, CacheEntry>();
-        private LinkedListNode<string> _first;
+        private LinkedListNode<string>? _first;
 
-        public event EventHandler<CacheEntryEventArgs<TValue>> RemovedEntry;
+        public event EventHandler<CacheEntryEventArgs<TValue>>? RemovedEntry;
 
         public Cache(int size)
         {
@@ -24,9 +24,9 @@ namespace HotChocolate.Utilities
         public int Size { get; }
         public int Usage => _cache.Count;
 
-        public bool TryGet(string key, out TValue value)
+        public bool TryGet(string key, [MaybeNull]out TValue value)
         {
-            if (_cache.TryGetValue(key, out CacheEntry entry))
+            if (_cache.TryGetValue(key, out CacheEntry? entry))
             {
                 TouchEntry(entry.Rank);
                 value = entry.Value;
@@ -39,7 +39,7 @@ namespace HotChocolate.Utilities
 
         public TValue GetOrCreate(string key, Func<TValue> create)
         {
-            if (_cache.TryGetValue(key, out CacheEntry entry))
+            if (_cache.TryGetValue(key, out CacheEntry? entry))
             {
                 TouchEntry(entry.Rank);
             }
@@ -88,13 +88,11 @@ namespace HotChocolate.Utilities
         {
             if (_cache.Count >= Size)
             {
-                LinkedListNode<string> rank = _ranking.Last;
-                if (_cache.TryRemove(rank.Value, out CacheEntry entry))
+                LinkedListNode<string>? rank = _ranking.Last;
+                if (rank is { } && _cache.TryRemove(rank.Value, out CacheEntry? entry))
                 {
                     _ranking.Remove(rank);
-                    RemovedEntry?.Invoke(this,
-                        new CacheEntryEventArgs<TValue>(
-                            entry.Key, entry.Value));
+                    RemovedEntry?.Invoke(this, new CacheEntryEventArgs<TValue>(entry.Key, entry.Value));
                 }
             }
         }
@@ -109,7 +107,9 @@ namespace HotChocolate.Utilities
             }
 
             public string Key { get; }
+
             public LinkedListNode<string> Rank { get; }
+
             public TValue Value { get; }
         }
     }

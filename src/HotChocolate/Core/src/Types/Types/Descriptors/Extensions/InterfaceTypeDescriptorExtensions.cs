@@ -9,12 +9,12 @@ namespace HotChocolate.Types
             this IInterfaceTypeDescriptor<T> descriptor,
             Expression<Func<T, object>> propertyOrMethod)
         {
-            if (descriptor == null)
+            if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            if (propertyOrMethod == null)
+            if (propertyOrMethod is null)
             {
                 throw new ArgumentNullException(nameof(propertyOrMethod));
             }

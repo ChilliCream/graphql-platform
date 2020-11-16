@@ -14,43 +14,43 @@ namespace HotChocolate
             this ISchemaConfiguration schemaConfiguration,
             Func<IResolverContext, object> resolver)
         {
-            if (schemaConfiguration == null)
+            if (schemaConfiguration is null)
             {
                 throw new ArgumentNullException(nameof(schemaConfiguration));
             }
 
             return schemaConfiguration.BindResolver(
-                ctx => Task.FromResult(resolver(ctx)));
+                ctx => new ValueTask<object>(resolver(ctx)));
         }
 
         public static IBindResolverDelegate BindResolver(
             this ISchemaConfiguration schemaConfiguration,
             Func<object> resolver)
         {
-            if (schemaConfiguration == null)
+            if (schemaConfiguration is null)
             {
                 throw new ArgumentNullException(nameof(schemaConfiguration));
             }
 
-            if (resolver == null)
+            if (resolver is null)
             {
                 throw new ArgumentNullException(nameof(resolver));
             }
 
             return schemaConfiguration.BindResolver(
-                ctx => Task.FromResult(resolver()));
+                ctx => new ValueTask<object>(resolver()));
         }
 
         public static IBindResolverDelegate BindResolver(
             this ISchemaConfiguration schemaConfiguration,
             Func<Task<object>> resolver)
         {
-            if (schemaConfiguration == null)
+            if (schemaConfiguration is null)
             {
                 throw new ArgumentNullException(nameof(schemaConfiguration));
             }
 
-            if (resolver == null)
+            if (resolver is null)
             {
                 throw new ArgumentNullException(nameof(resolver));
             }
@@ -62,12 +62,12 @@ namespace HotChocolate
             this ISchemaConfiguration schemaConfiguration,
             Func<IResolverContext, CancellationToken, Task<object>> resolver)
         {
-            if (schemaConfiguration == null)
+            if (schemaConfiguration is null)
             {
                 throw new ArgumentNullException(nameof(schemaConfiguration));
             }
 
-            if (resolver == null)
+            if (resolver is null)
             {
                 throw new ArgumentNullException(nameof(resolver));
             }
@@ -80,7 +80,7 @@ namespace HotChocolate
             this ISchemaConfiguration schemaConfiguration)
             where T : class
         {
-            if (schemaConfiguration == null)
+            if (schemaConfiguration is null)
             {
                 throw new ArgumentNullException(nameof(schemaConfiguration));
             }
@@ -92,7 +92,7 @@ namespace HotChocolate
             this ISchemaConfiguration schemaConfiguration)
             where TResolver : class
         {
-            if (schemaConfiguration == null)
+            if (schemaConfiguration is null)
             {
                 throw new ArgumentNullException(nameof(schemaConfiguration));
             }
@@ -104,7 +104,7 @@ namespace HotChocolate
         public static ISchemaConfiguration RegisterExtendedScalarTypes(
             this ISchemaConfiguration schemaConfiguration)
         {
-            if (schemaConfiguration == null)
+            if (schemaConfiguration is null)
             {
                 throw new ArgumentNullException(nameof(schemaConfiguration));
             }

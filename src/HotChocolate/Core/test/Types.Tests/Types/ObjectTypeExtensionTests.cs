@@ -1,14 +1,14 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 using HotChocolate.Execution;
-using HotChocolate.Resolvers;
-using Xunit;
-using Snapshooter.Xunit;
-using System;
 using HotChocolate.Language;
-using System.Linq;
+using HotChocolate.Resolvers;
 using Moq;
+using Snapshooter.Xunit;
+using Xunit;
 
 namespace HotChocolate.Types
 {
@@ -69,7 +69,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            IQueryExecutor executor = SchemaBuilder.New()
+            IRequestExecutor executor = SchemaBuilder.New()
                 .AddQueryType<FooType>()
                 .AddType<GenericFooTypeExtension>()
                 .Create()
@@ -77,7 +77,7 @@ namespace HotChocolate.Types
 
             // assert
             IExecutionResult result = await executor.ExecuteAsync("{ test }");
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -85,7 +85,7 @@ namespace HotChocolate.Types
         {
             // arrange
             FieldResolverDelegate resolver =
-                ctx => Task.FromResult<object>(null);
+                ctx => new ValueTask<object>(null);
 
             // act
             ISchema schema = SchemaBuilder.New()
@@ -94,7 +94,7 @@ namespace HotChocolate.Types
                     .Name("Foo")
                     .Field("description")
                     .Type<StringType>()
-                    .Resolver(resolver)))
+                    .Resolve(resolver)))
                 .Create();
 
             // assert
@@ -141,13 +141,13 @@ namespace HotChocolate.Types
                     .Use(next => context =>
                     {
                         context.Result = "BAR";
-                        return Task.CompletedTask;
+                        return default(ValueTask);
                     })))
                 .Create();
 
             // assert
-            IQueryExecutor executor = schema.MakeExecutable();
-            executor.Execute("{ description }").MatchSnapshot();
+            IRequestExecutor executor = schema.MakeExecutable();
+            executor.Execute("{ description }").ToJson().MatchSnapshot();
         }
 
         [Obsolete]
@@ -156,7 +156,7 @@ namespace HotChocolate.Types
         {
             // arrange
             FieldResolverDelegate resolver =
-                ctx => Task.FromResult<object>(null);
+                ctx => new ValueTask<object>(null);
 
             // act
             ISchema schema = SchemaBuilder.New()
@@ -179,7 +179,7 @@ namespace HotChocolate.Types
         {
             // arrange
             FieldResolverDelegate resolver =
-                ctx => Task.FromResult<object>(null);
+                ctx => new ValueTask<object>(null);
 
             // act
             ISchema schema = SchemaBuilder.New()
@@ -203,7 +203,7 @@ namespace HotChocolate.Types
         {
             // arrange
             FieldResolverDelegate resolver =
-                ctx => Task.FromResult<object>(null);
+                ctx => new ValueTask<object>(null);
 
             // act
             ISchema schema = SchemaBuilder.New()
@@ -247,7 +247,7 @@ namespace HotChocolate.Types
         {
             // arrange
             FieldResolverDelegate resolver =
-                ctx => Task.FromResult<object>(null);
+                ctx => new ValueTask<object>(null);
 
             // act
             ISchema schema = SchemaBuilder.New()
@@ -270,7 +270,7 @@ namespace HotChocolate.Types
         {
             // arrange
             FieldResolverDelegate resolver =
-                ctx => Task.FromResult<object>(null);
+                ctx => new ValueTask<object>(null);
 
             // act
             ISchema schema = SchemaBuilder.New()
@@ -437,7 +437,7 @@ namespace HotChocolate.Types
 
             // assert
             ObjectType type = schema.GetType<ObjectType>("Foo");
-            string value = type.Fields["name"].Arguments["a"]
+            var value = type.Fields["name"].Arguments["a"]
                 .Directives["dummy_arg"]
                 .First().GetArgument<string>("a");
             Assert.Equal("b", value);
@@ -506,10 +506,29 @@ namespace HotChocolate.Types
 
             // assert
             ObjectType type = schema.GetType<ObjectType>("Foo");
-            int count = type.Fields["name"].Arguments["a"]
+            var count = type.Fields["name"].Arguments["a"]
                 .Directives["dummy_rep"]
                 .Count();
             Assert.Equal(2, count);
+        }
+
+        [Fact]
+        public void ObjectTypeExtension_SetDirectiveOnArgument_Sdl_First()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<FooType>()
+                .AddDocumentFromString(
+                    @"extend type Foo {
+                        name(a: String @dummy): String
+                    }")
+                .AddDirectiveType<DummyDirective>()
+                .Create();
+
+            // assert
+            ObjectType type = schema.GetType<ObjectType>("Foo");
+            Assert.True(type.Fields["name"].Arguments["a"].Directives.Contains("dummy"));
         }
 
         public class FooType

@@ -73,10 +73,10 @@ namespace HotChocolate.Validation.Rules
         {
             context.Names.Clear();
 
-            for (int i = 0; i < node.Definitions.Count; i++)
+            for (var i = 0; i < node.Definitions.Count; i++)
             {
                 IDefinitionNode definition = node.Definitions[i];
-                if (definition.Kind == NodeKind.FragmentDefinition)
+                if (definition.Kind == SyntaxKind.FragmentDefinition)
                 {
                     FragmentDefinitionNode fragment = (FragmentDefinitionNode)definition;
                     if (!context.Names.Add(fragment.Name.Value))
@@ -114,19 +114,18 @@ namespace HotChocolate.Validation.Rules
             {
                 return Skip;
             }
-            else if (context.Types.TryPeek(out IType type) &&
+
+            if (context.Types.TryPeek(out IType type) &&
                 type.NamedType() is IComplexOutputType ot &&
-                ot.Fields.TryGetField(node.Name.Value, out IOutputField of))
+                ot.Fields.TryGetField(node.Name.Value, out IOutputField? of))
             {
                 context.OutputFields.Push(of);
                 context.Types.Push(of.Type);
                 return Continue;
             }
-            else
-            {
-                context.UnexpectedErrorsDetected = true;
-                return Skip;
-            }
+
+            context.UnexpectedErrorsDetected = true;
+            return Skip;
         }
 
         protected override ISyntaxVisitorAction Leave(
@@ -157,17 +156,13 @@ namespace HotChocolate.Validation.Rules
                     context.Types.Push(type);
                     return Continue;
                 }
-                else
-                {
-                    context.Errors.Add(context.FragmentOnlyCompositeType(node, type.NamedType()));
-                    return Skip;
-                }
-            }
-            else
-            {
-                context.Errors.Add(context.FragmentTypeConditionUnknown(node, node.TypeCondition));
+
+                context.Errors.Add(context.FragmentOnlyCompositeType(node, type.NamedType()));
                 return Skip;
             }
+
+            context.Errors.Add(context.FragmentTypeConditionUnknown(node, node.TypeCondition));
+            return Skip;
         }
 
         protected override ISyntaxVisitorAction Leave(
@@ -186,7 +181,8 @@ namespace HotChocolate.Validation.Rules
             {
                 return Continue;
             }
-            else if (context.Schema.TryGetType(
+
+            if (context.Schema.TryGetType(
                 node.TypeCondition.Name.Value,
                 out INamedOutputType type))
             {
@@ -199,17 +195,13 @@ namespace HotChocolate.Validation.Rules
                     context.Types.Push(type);
                     return Continue;
                 }
-                else
-                {
-                    context.Errors.Add(context.FragmentOnlyCompositeType(node, type.NamedType()));
-                    return Skip;
-                }
-            }
-            else
-            {
-                context.Errors.Add(context.FragmentTypeConditionUnknown(node, node.TypeCondition));
+
+                context.Errors.Add(context.FragmentOnlyCompositeType(node, type.NamedType()));
                 return Skip;
             }
+
+            context.Errors.Add(context.FragmentTypeConditionUnknown(node, node.TypeCondition));
+            return Skip;
         }
 
         protected override ISyntaxVisitorAction Enter(

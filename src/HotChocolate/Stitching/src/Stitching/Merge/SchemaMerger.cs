@@ -11,23 +11,16 @@ namespace HotChocolate.Stitching.Merge
     public class SchemaMerger
         : ISchemaMerger
     {
-        private static List<MergeTypeRuleFactory> _defaultMergeRules =
+        private static readonly List<MergeTypeRuleFactory> _defaultMergeRules =
             new List<MergeTypeRuleFactory>
             {
-                SchemaMergerExtensions
-                    .CreateTypeMergeRule<ScalarTypeMergeHandler>(),
-                SchemaMergerExtensions
-                    .CreateTypeMergeRule<InputObjectTypeMergeHandler>(),
-                SchemaMergerExtensions
-                    .CreateTypeMergeRule<RootTypeMergeHandler>(),
-                SchemaMergerExtensions
-                    .CreateTypeMergeRule<ObjectTypeMergeHandler>(),
-                SchemaMergerExtensions
-                    .CreateTypeMergeRule<InterfaceTypeMergeHandler>(),
-                SchemaMergerExtensions
-                    .CreateTypeMergeRule<UnionTypeMergeHandler>(),
-                SchemaMergerExtensions
-                    .CreateTypeMergeRule<EnumTypeMergeHandler>(),
+                SchemaMergerExtensions.CreateTypeMergeRule<ScalarTypeMergeHandler>(),
+                SchemaMergerExtensions.CreateTypeMergeRule<InputObjectTypeMergeHandler>(),
+                SchemaMergerExtensions.CreateTypeMergeRule<RootTypeMergeHandler>(),
+                SchemaMergerExtensions.CreateTypeMergeRule<ObjectTypeMergeHandler>(),
+                SchemaMergerExtensions.CreateTypeMergeRule<InterfaceTypeMergeHandler>(),
+                SchemaMergerExtensions.CreateTypeMergeRule<UnionTypeMergeHandler>(),
+                SchemaMergerExtensions.CreateTypeMergeRule<EnumTypeMergeHandler>(),
             };
         private readonly List<MergeTypeRuleFactory> _mergeRules =
             new List<MergeTypeRuleFactory>();
@@ -126,8 +119,7 @@ namespace HotChocolate.Stitching.Merge
         private IReadOnlyList<ISchemaInfo> CreateSchemaInfos()
         {
             List<SchemaInfo> original = _schemas
-                .Select(t => new SchemaInfo(t.Key,
-                    PrepareSchemaDocument(t.Value, t.Key)))
+                .Select(t => new SchemaInfo(t.Key, PrepareSchemaDocument(t.Value, t.Key)))
                 .ToList();
 
             if (_docRewriters.Count == 0 && _typeRewriters.Count == 0)
@@ -162,7 +154,7 @@ namespace HotChocolate.Stitching.Merge
             return rewritten;
         }
 
-        internal static DocumentNode PrepareSchemaDocument(
+        private static DocumentNode PrepareSchemaDocument(
             DocumentNode document,
             NameString schemaName)
         {
@@ -173,7 +165,6 @@ namespace HotChocolate.Stitching.Merge
                 {
                     if (!IsIntrospectionType(typeDefinition))
                     {
-                        // add source directive
                         definitions.Add(typeDefinition.Rename(
                             typeDefinition.Name.Value, schemaName));
                     }
@@ -186,12 +177,10 @@ namespace HotChocolate.Stitching.Merge
             return document.WithDefinitions(definitions);
         }
 
-        private static bool IsIntrospectionType(
-            ITypeDefinitionNode typeDefinition)
+        private static bool IsIntrospectionType(ITypeDefinitionNode typeDefinition)
         {
-            // we should check this against the actual kown list of intro types.
-            return typeDefinition.Name.Value
-                .StartsWith("__", StringComparison.Ordinal);
+            // we should check this against the actual known list of intro types.
+            return typeDefinition.Name.Value.StartsWith("__", StringComparison.Ordinal);
         }
 
         private DocumentNode RewriteDocument(
@@ -225,8 +214,7 @@ namespace HotChocolate.Stitching.Merge
                 {
                     foreach (ITypeRewriter rewriter in _typeRewriters)
                     {
-                        typeDefinition = rewriter.Rewrite(
-                            schema, typeDefinition);
+                        typeDefinition = rewriter.Rewrite(schema, typeDefinition);
                     }
                     definitions.Add(typeDefinition);
                 }
@@ -264,9 +252,8 @@ namespace HotChocolate.Stitching.Merge
 
             foreach (ISchemaInfo schema in schemas)
             {
-                ObjectTypeDefinitionNode rootType =
-                    schema.GetRootType(operation);
-                if (rootType != null)
+                ObjectTypeDefinitionNode rootType = schema.GetRootType(operation);
+                if (rootType is not null)
                 {
                     types.Add(new ObjectTypeInfo(rootType, schema));
                 }
@@ -281,7 +268,7 @@ namespace HotChocolate.Stitching.Merge
         private void MergeTypes(
             ISchemaMergeContext context,
             ISet<string> typeNames,
-            IEnumerable<ISchemaInfo> schemas,
+            IReadOnlyCollection<ISchemaInfo> schemas,
             MergeTypeRuleDelegate merge)
         {
             var types = new List<ITypeInfo>();
@@ -294,7 +281,7 @@ namespace HotChocolate.Stitching.Merge
         }
 
         private static ISet<string> CreateTypesNameSet(
-            IEnumerable<ISchemaInfo> schemas)
+            IReadOnlyCollection<ISchemaInfo> schemas)
         {
             HashSet<string> names = new HashSet<string>();
 
@@ -310,7 +297,7 @@ namespace HotChocolate.Stitching.Merge
         }
 
         private static ISet<string> CreateDirectivesNameSet(
-           IEnumerable<ISchemaInfo> schemas)
+            IReadOnlyCollection<ISchemaInfo> schemas)
         {
             HashSet<string> names = new HashSet<string>();
 
@@ -328,7 +315,7 @@ namespace HotChocolate.Stitching.Merge
         private void MergeDirectives(
             ISchemaMergeContext context,
             ISet<string> typeNames,
-            IEnumerable<ISchemaInfo> schemas,
+            IReadOnlyCollection<ISchemaInfo> schemas,
             MergeDirectiveRuleDelegate merge)
         {
             var directives = new List<IDirectiveTypeInfo>();
@@ -342,7 +329,7 @@ namespace HotChocolate.Stitching.Merge
 
         private void SetTypes(
             string name,
-            IEnumerable<ISchemaInfo> schemas,
+            IReadOnlyCollection<ISchemaInfo> schemas,
             ICollection<ITypeInfo> types)
         {
             types.Clear();
@@ -359,7 +346,7 @@ namespace HotChocolate.Stitching.Merge
 
         private void SetDirectives(
             string name,
-            IEnumerable<ISchemaInfo> schemas,
+            IReadOnlyCollection<ISchemaInfo> schemas,
             ICollection<IDirectiveTypeInfo> directives)
         {
             directives.Clear();
@@ -390,7 +377,7 @@ namespace HotChocolate.Stitching.Merge
             handlers.AddRange(_mergeRules);
             handlers.AddRange(_defaultMergeRules);
 
-            for (int i = handlers.Count - 1; i >= 0; i--)
+            for (var i = handlers.Count - 1; i >= 0; i--)
             {
                 current = handlers[i].Invoke(current);
             }
@@ -413,7 +400,7 @@ namespace HotChocolate.Stitching.Merge
             handlers.AddRange(_directiveMergeRules);
             handlers.Add(c => new DirectiveTypeMergeHandler(c).Merge);
 
-            for (int i = handlers.Count - 1; i >= 0; i--)
+            for (var i = handlers.Count - 1; i >= 0; i--)
             {
                 current = handlers[i].Invoke(current);
             }

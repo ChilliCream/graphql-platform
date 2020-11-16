@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Types.OffsetPagination</PackageId>
+    <AssemblyName>HotChocolate.Types.OffsetPagination</AssemblyName>
+    <RootNamespace>HotChocolate.Types.Pagination</RootNamespace>
+    <Description>Contains middleware and types for offset based pagination.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.8">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference-->
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\OffsetResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>OffsetResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\OffsetResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>OffsetResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  
+</Project>

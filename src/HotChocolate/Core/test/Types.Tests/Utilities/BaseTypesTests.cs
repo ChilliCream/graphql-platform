@@ -1,4 +1,5 @@
 ﻿using System;
+using HotChocolate.Internal;
 using HotChocolate.Types;
 using Xunit;
 
@@ -7,24 +8,26 @@ namespace HotChocolate.Utilities
     public class BaseTypesTests
     {
         [InlineData(typeof(StringType), true)]
-        [InlineData(typeof(ScalarType), true)]
+        [InlineData(typeof(ScalarType), false)]
         [InlineData(typeof(ListType<StringType>), true)]
         [InlineData(typeof(NonNullType<StringType>), true)]
-        [InlineData(typeof(InputObjectType), true)]
+        [InlineData(typeof(InputObjectType), false)]
         [InlineData(typeof(InputObjectType<Foo>), true)]
-        [InlineData(typeof(ObjectType), true)]
+        [InlineData(typeof(ObjectType), false)]
         [InlineData(typeof(ObjectType<Foo>), true)]
-        [InlineData(typeof(EnumType), true)]
+        [InlineData(typeof(EnumType), false)]
         [InlineData(typeof(EnumType<FooEnum>), true)]
-        [InlineData(typeof(InterfaceType), true)]
-        [InlineData(typeof(UnionType), true)]
+        [InlineData(typeof(InterfaceType), false)]
+        [InlineData(typeof(InterfaceType<object>), true)]
+        [InlineData(typeof(UnionType), false)]
+        [InlineData(typeof(UnionType<object>), true)]
         [InlineData(typeof(Foo), false)]
         [InlineData(typeof(FooEnum), false)]
         [Theory]
         public void IsSchemaType(Type type, bool expectedResult)
         {
             // act
-            bool result = BaseTypes.IsSchemaType(type);
+            var result = ExtendedType.Tools.IsSchemaType(type);
 
             // assert
             Assert.Equal(expectedResult, result);
@@ -48,7 +51,7 @@ namespace HotChocolate.Utilities
         public void IsNonGenericBaseType(Type type, bool expectedResult)
         {
             // act
-            bool result = BaseTypes.IsNonGenericBaseType(type);
+            var result = ExtendedType.Tools.IsNonGenericBaseType(type);
 
             // assert
             Assert.Equal(expectedResult, result);

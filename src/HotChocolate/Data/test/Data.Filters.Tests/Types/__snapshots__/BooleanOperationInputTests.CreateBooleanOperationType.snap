@@ -1,0 +1,20 @@
+﻿schema {
+  query: Query
+}
+
+type Query {
+  foo(test: BooleanOperationInput): String
+}
+
+input BooleanOperationInput {
+  AND: [BooleanOperationInput!]
+  eq: Boolean
+  neq: Boolean
+  OR: [BooleanOperationInput!]
+}
+
+"The `Boolean` scalar type represents `true` or `false`."
+scalar Boolean
+
+"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
+scalar String

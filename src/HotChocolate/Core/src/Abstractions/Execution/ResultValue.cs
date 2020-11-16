@@ -6,24 +6,27 @@ namespace HotChocolate.Execution
 {
     public readonly struct ResultValue : IEquatable<ResultValue?>
     {
-        public ResultValue(string name, object value)
+        public ResultValue(string name, object? value, bool isNullable)
         {
             Name = name;
             Value = value;
+            IsNullable = isNullable;
             HasValue = true;
         }
 
         public string Name { get; }
 
-        public object Value { get; }
+        public object? Value { get; }
+
+        public bool IsNullable { get; }
 
         public bool HasValue { get; }
 
         public override bool Equals(object? obj)
         {
-            return obj is FieldValue value &&
+            return obj is ResultValue value &&
                 HasValue == value.HasValue &&
-                Name == value.Key &&
+                Name == value.Name &&
                 Value == value.Value;
         }
 
@@ -52,8 +55,8 @@ namespace HotChocolate.Execution
         {
             unchecked
             {
-                int hash = (Name?.GetHashCode() ?? 0) * 3;
-                hash = hash ^ ((Value?.GetHashCode() ?? 0) * 7);
+                var hash = (Name?.GetHashCode() ?? 0) * 3;
+                hash ^= (Value?.GetHashCode() ?? 0) * 7;
                 return hash;
             }
         }

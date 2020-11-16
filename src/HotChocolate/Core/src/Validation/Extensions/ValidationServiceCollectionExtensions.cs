@@ -1,9 +1,7 @@
-using System;
-using HotChocolate;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.Validation;
 using HotChocolate.Validation.Options;
-using HotChocolate.Validation.Properties;
-using Microsoft.Extensions.DependencyInjection.Extensions;
+using HotChocolate;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -11,14 +9,9 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static IValidationBuilder AddValidation(
             this IServiceCollection services,
-            string schemaName = WellKnownSchema.Default)
+            NameString schemaName = default)
         {
-            if (string.IsNullOrEmpty(schemaName))
-            {
-                throw new ArgumentException(
-                    Resources.ServiceCollectionExtensions_Schema_Name_Is_Mandatory,
-                    nameof(schemaName));
-            }
+            schemaName = schemaName.HasValue ? schemaName : Schema.DefaultName;
 
             services.AddOptions();
             services.TryAddSingleton<IValidationConfiguration, ValidationConfiguration>();

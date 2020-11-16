@@ -2,61 +2,61 @@
   {
     "Message": "The following variables were not used: b.",
     "Code": null,
-    "Path": [],
+    "Path": null,
     "Locations": [
       {
         "Line": 2,
         "Column": 17
       }
     ],
-    "Exception": null,
     "Extensions": {
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variables-Used"
-    }
+    },
+    "Exception": null
   },
   {
     "Message": "The following variables were not declared: a.",
     "Code": null,
-    "Path": [],
+    "Path": null,
     "Locations": [
       {
         "Line": 2,
         "Column": 17
       }
     ],
-    "Exception": null,
     "Extensions": {
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variable-Uses-Defined"
-    }
+    },
+    "Exception": null
   },
   {
     "Message": "The following variables were not used: a.",
     "Code": null,
-    "Path": [],
+    "Path": null,
     "Locations": [
       {
         "Line": 5,
         "Column": 17
       }
     ],
-    "Exception": null,
     "Extensions": {
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variables-Used"
-    }
+    },
+    "Exception": null
   },
   {
     "Message": "The following variables were not declared: b.",
     "Code": null,
-    "Path": [],
+    "Path": null,
     "Locations": [
       {
         "Line": 5,
         "Column": 17
       }
     ],
-    "Exception": null,
     "Extensions": {
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variable-Uses-Defined"
-    }
+    },
+    "Exception": null
   }
 ]

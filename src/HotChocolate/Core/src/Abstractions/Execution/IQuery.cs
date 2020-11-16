@@ -6,7 +6,7 @@ using System.Threading;
 namespace HotChocolate.Execution
 {
     /// <summary>
-    /// Represent a executable query.
+    /// Represents an executable query.
     /// </summary>
     public interface IQuery
     {
@@ -28,7 +28,7 @@ namespace HotChocolate.Execution
         /// <summary>
         /// Returns the binary query representation.
         /// </summary>
-        ReadOnlySpan<byte> ToSpan();
+        ReadOnlySpan<byte> AsSpan();
 
         /// <summary>
         /// Returns the query string representation.

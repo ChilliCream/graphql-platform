@@ -4,6 +4,7 @@ import { useDispatch } from "react-redux";
 import styled from "styled-components";
 import { ArticleSectionsFragment } from "../../../graphql-types";
 import { closeAside } from "../../state/common";
+import { MostProminentSection } from "./doc-page-elements";
 
 interface ArticleSectionsProperties {
   data: ArticleSectionsFragment;
@@ -27,7 +28,7 @@ export const ArticleSections: FunctionComponent<ArticleSectionsProperties> = ({
 
         return {
           id: `toc-${id}`,
-          position: document.getElementById(id)!.offsetTop - 60,
+          position: document.getElementById(id)!.offsetTop - 80,
         };
       })
       .reverse();
@@ -74,15 +75,17 @@ export const ArticleSections: FunctionComponent<ArticleSectionsProperties> = ({
   return data.tableOfContents!.length > 0 ? (
     <Container>
       <Title>In this article</Title>
-      <Content
-        onClick={handleCloseClick}
-        dangerouslySetInnerHTML={{
-          __html: data.tableOfContents!.replace(
-            /href=\"(.*?#)(.*?)\"/gi,
-            'id="toc-$2" href="/docs$1$2"'
-          ),
-        }}
-      />
+      <MostProminentSection>
+        <Content
+          onClick={handleCloseClick}
+          dangerouslySetInnerHTML={{
+            __html: data.tableOfContents!.replace(
+              /href=\"(.*?#)(.*?)\"/gi,
+              'id="toc-$2" href="/docs$1$2"'
+            ),
+          }}
+        />
+      </MostProminentSection>
     </Container>
   ) : (
     <></>
@@ -91,7 +94,7 @@ export const ArticleSections: FunctionComponent<ArticleSectionsProperties> = ({
 
 export const ArticleSectionsGraphQLFragment = graphql`
   fragment ArticleSections on MarkdownRemark {
-    tableOfContents(maxDepth: 1)
+    tableOfContents(maxDepth: 2)
   }
 `;
 
@@ -103,30 +106,41 @@ const Title = styled.h6`
   padding: 0 25px;
   font-size: 0.833em;
 
-  @media only screen and (min-width: 1300px) {
+  @media only screen and (min-width: 1320px) {
     padding: 0 20px;
   }
 `;
 
 const Content = styled.div`
-  > ul {
+  ul {
     display: flex;
     flex-direction: column;
     margin: 0;
     padding: 0 25px 10px;
     list-style-type: none;
 
-    > li {
+    li {
       flex: 0 0 auto;
       margin: 5px 0;
       padding: 0;
       line-height: initial;
 
-      &.active > a {
+      > p {
+        margin: 0;
+        padding: 0;
+      }
+
+      > ul {
+        padding-right: 0;
+      }
+
+      &.active > a,
+      > p.active > a {
         font-weight: bold;
       }
 
-      > a {
+      > a,
+      > p > a {
         font-size: 0.833em;
         color: #666;
 
@@ -136,7 +150,7 @@ const Content = styled.div`
       }
     }
 
-    @media only screen and (min-width: 1300px) {
+    @media only screen and (min-width: 1320px) {
       padding: 0 20px 10px;
     }
   }

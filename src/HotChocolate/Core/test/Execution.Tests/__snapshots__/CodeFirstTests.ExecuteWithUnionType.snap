@@ -1,0 +1,18 @@
+﻿{
+  "Label": null,
+  "Path": null,
+  "Data": {
+    "fooOrBar": [
+      {
+        "nameFoo": "foo"
+      },
+      {
+        "nameBar": "bar"
+      }
+    ]
+  },
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null,
+  "HasNext": null
+}

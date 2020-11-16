@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using HotChocolate;
+using HotChocolate.Data;
 using HotChocolate.Types;
-using HotChocolate.Types.Relay;
 using StarWars.Characters;
 using StarWars.Repositories;
 

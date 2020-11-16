@@ -2,6 +2,8 @@ using System;
 using System.Linq.Expressions;
 using HotChocolate.Utilities;
 
+#nullable enable
+
 namespace HotChocolate.Configuration.Bindings
 {
     internal class BindType<T>
@@ -19,7 +21,7 @@ namespace HotChocolate.Configuration.Bindings
         public IBindField<T> Field<TPropertyType>(
             Expression<Func<T, TPropertyType>> field)
         {
-            if (field == null)
+            if (field is null)
             {
                 throw new ArgumentNullException(nameof(field));
             }

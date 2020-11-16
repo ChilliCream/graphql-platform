@@ -1,0 +1,46 @@
+﻿[
+  {
+    "Message": "The field `isAtLocation` does not exist on the type `Dog`.",
+    "Code": null,
+    "Path": {
+      "Parent": null,
+      "Depth": 0,
+      "Name": "catOrDog"
+    },
+    "Locations": [
+      {
+        "Line": 9,
+        "Column": 21
+      }
+    ],
+    "Extensions": {
+      "type": "Dog",
+      "field": "isAtLocation",
+      "responseName": "isAtLocation",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+    },
+    "Exception": null
+  },
+  {
+    "Message": "The field `isAtLocation` does not exist on the type `Dog`.",
+    "Code": null,
+    "Path": {
+      "Parent": null,
+      "Depth": 0,
+      "Name": "catOrDog"
+    },
+    "Locations": [
+      {
+        "Line": 10,
+        "Column": 21
+      }
+    ],
+    "Extensions": {
+      "type": "Dog",
+      "field": "isAtLocation",
+      "responseName": "isAtLocation",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+    },
+    "Exception": null
+  }
+]

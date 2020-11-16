@@ -6,7 +6,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
     {
         public static bool IsImplicitBinding<T>(this IBindableList<T> list)
         {
-            if (list == null)
+            if (list is null)
             {
                 throw new ArgumentNullException(nameof(list));
             }

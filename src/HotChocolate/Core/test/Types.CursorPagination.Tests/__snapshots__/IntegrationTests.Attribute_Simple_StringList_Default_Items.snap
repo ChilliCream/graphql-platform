@@ -1,0 +1,66 @@
+﻿{
+  "data": {
+    "letters": {
+      "edges": [
+        {
+          "node": "a",
+          "cursor": "MA=="
+        },
+        {
+          "node": "b",
+          "cursor": "MQ=="
+        },
+        {
+          "node": "c",
+          "cursor": "Mg=="
+        },
+        {
+          "node": "d",
+          "cursor": "Mw=="
+        },
+        {
+          "node": "e",
+          "cursor": "NA=="
+        },
+        {
+          "node": "f",
+          "cursor": "NQ=="
+        },
+        {
+          "node": "g",
+          "cursor": "Ng=="
+        },
+        {
+          "node": "h",
+          "cursor": "Nw=="
+        },
+        {
+          "node": "i",
+          "cursor": "OA=="
+        },
+        {
+          "node": "j",
+          "cursor": "OQ=="
+        }
+      ],
+      "nodes": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "e",
+        "f",
+        "g",
+        "h",
+        "i",
+        "j"
+      ],
+      "pageInfo": {
+        "hasNextPage": true,
+        "hasPreviousPage": false,
+        "startCursor": "MA==",
+        "endCursor": "OQ=="
+      }
+    }
+  }
+}

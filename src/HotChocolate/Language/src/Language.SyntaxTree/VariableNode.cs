@@ -29,7 +29,7 @@ namespace HotChocolate.Language
             Name = name ?? throw new ArgumentNullException(nameof(name));
         }
 
-        public NodeKind Kind { get; } = NodeKind.Variable;
+        public SyntaxKind Kind { get; } = SyntaxKind.Variable;
 
         public Location? Location { get; }
 

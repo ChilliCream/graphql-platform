@@ -94,13 +94,16 @@ namespace HotChocolate
             public Task<IPet?> GetPet(int id, CancellationToken cancellationToken) =>
                 throw new NotImplementedException();
 
-            // The arguments are needed to make the compiler apply attributes as expected for this use case
-            // It's not entirely clear what combination of arguments for this and other fields on the class makes it behave this way
+            // The arguments are needed to make the compiler apply attributes as expected 
+            // for this use case. It's not entirely clear what combination of arguments 
+            // for this and other fields on the class makes it behave this way
             // We want the compiler to apply these attributes to the GetPets method
             // [NullableContext(2)]
             // [return: Nullable(1)]
-            public Task<GenericWrapper<IPet>> GetPets(int? arg1, bool? arg2, bool? arg3, string? arg4,
-                GenericWrapper<string>? arg5, Greetings? arg6, CancellationToken cancellationToken) =>
+            public Task<GenericWrapper<IPet>> GetPets(
+                int? arg1, bool? arg2, bool? arg3, string? arg4,
+                GenericWrapper<string>? arg5, Greetings? arg6, 
+                CancellationToken cancellationToken) =>
                 throw new NotImplementedException();
         }
 

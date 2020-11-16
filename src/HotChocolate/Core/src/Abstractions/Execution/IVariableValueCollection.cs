@@ -1,4 +1,8 @@
-﻿namespace HotChocolate.Execution
+﻿using System.Diagnostics.CodeAnalysis;
+
+#nullable enable
+
+namespace HotChocolate.Execution
 {
     /// <summary>
     /// Represents a collection of coerced variables.
@@ -30,6 +34,6 @@
         /// <c>true</c> if a coerced variable exists and can be converted
         /// to the requested type; otherwise, <c>false</c> will be returned.
         /// </returns>
-        bool TryGetVariable<T>(NameString name, out T value);
+        bool TryGetVariable<T>(NameString name, [NotNullWhen(true)]out T value);
     }
 }

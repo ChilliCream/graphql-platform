@@ -125,8 +125,8 @@ type Customer {
   name: String!
   consultant: Consultant
   contracts: [Contract!]
-    @schema(name: "contract")
-    @delegate(path: "contracts(customerId:$fields:id)")
+  @schema(name: "contract")
+  @delegate(path: "contracts(customerId:$fields:id)")
 }
 
 type Consultant {

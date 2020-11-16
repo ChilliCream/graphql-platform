@@ -1,0 +1,20 @@
+﻿{
+  "ContentType": "application/json; charset=utf-8",
+  "StatusCode": "BadRequest",
+  "Data": null,
+  "Errors": [
+    {
+      "message": "The query field must be a string or null.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 15
+        }
+      ],
+      "extensions": {
+        "code": "HC0011"
+      }
+    }
+  ],
+  "Extensions": null
+}

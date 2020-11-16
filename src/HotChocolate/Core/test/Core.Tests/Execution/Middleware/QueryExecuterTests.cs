@@ -393,7 +393,7 @@ namespace HotChocolate.Execution
                 c.BindResolver(() => "hello world a")
                     .To("Query", "a");
                 c.BindResolver(
-                    ctx => "hello world " + ctx.Argument<string>("a"))
+                    ctx => "hello world " + ctx.ArgumentValue<string>("a"))
                     .To("Query", "b");
                 c.BindResolver(
                     () => ResolverResult<string>

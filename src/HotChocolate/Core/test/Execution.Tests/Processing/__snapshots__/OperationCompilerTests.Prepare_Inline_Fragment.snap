@@ -1,0 +1,14 @@
+﻿{
+  ... on Query {
+    hero(episode: EMPIRE) {
+      ... on Human {
+        name
+        homePlanet
+      }
+      ... on Droid {
+        name
+        primaryFunction
+      }
+    }
+  }
+}

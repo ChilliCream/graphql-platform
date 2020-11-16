@@ -15,7 +15,7 @@ namespace HotChocolate.Validation
             this IErrorBuilder errorBuilder,
             ISyntaxNode node)
         {
-            if (node.Kind == NodeKind.FragmentDefinition)
+            if (node.Kind == SyntaxKind.FragmentDefinition)
             {
                 errorBuilder.SetExtension("fragment", ((FragmentDefinitionNode)node).Name.Value);
             }

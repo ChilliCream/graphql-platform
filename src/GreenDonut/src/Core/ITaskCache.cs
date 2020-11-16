@@ -1,24 +1,17 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading.Tasks;
 
 namespace GreenDonut
 {
     /// <summary>
     /// A memorization cache for <c>DataLoader</c>.
     /// </summary>
-    /// <typeparam name="TValue">A value type.</typeparam>
-    public interface ITaskCache<TValue>
+    public interface ITaskCache
     {
         /// <summary>
         /// Gets the maximum size of the cache.
         /// </summary>
         int Size { get; }
-
-        /// <summary>
-        /// Gets the sliding expiration for the cache entries.
-        /// </summary>
-        TimeSpan SlidingExpirartion { get; }
 
         /// <summary>
         /// Gets the count of the entries inside the cache.
@@ -54,7 +47,7 @@ namespace GreenDonut
         /// <returns>
         /// A value indicating whether the add was successful.
         /// </returns>
-        bool TryAdd(object key, Task<TValue> value);
+        bool TryAdd(object key, object value);
 
         /// <summary>
         /// Tries to gets a single entry from the cache.
@@ -67,6 +60,6 @@ namespace GreenDonut
         /// <returns>
         /// A value indicating whether the get request returned an entry.
         /// </returns>
-        bool TryGetValue(object key, [NotNullWhen(true)]out Task<TValue>? value);
+        bool TryGetValue(object key, [NotNullWhen(true)]out object? value);
     }
 }

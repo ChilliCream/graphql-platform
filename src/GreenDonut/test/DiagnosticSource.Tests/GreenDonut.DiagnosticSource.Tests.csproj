@@ -2,7 +2,6 @@
 
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
     <AssemblyName>GreenDonut.DiagnosticSource.Tests</AssemblyName>
     <RootNamespace>GreenDonut</RootNamespace>
   </PropertyGroup>

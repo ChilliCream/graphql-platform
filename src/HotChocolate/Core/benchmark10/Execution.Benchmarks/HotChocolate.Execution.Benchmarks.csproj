@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="HotChocolate" Version="10.5.2" />
+    <ProjectReference Include="..\StarWars\HotChocolate.StarWars.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Resources\*.graphql" />
+    <EmbeddedResource Include="Resources\*.graphql" />
+  </ItemGroup>
+
+</Project>

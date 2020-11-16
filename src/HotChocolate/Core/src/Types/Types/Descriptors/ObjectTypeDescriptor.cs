@@ -7,6 +7,7 @@ using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
+using static HotChocolate.Properties.TypeResources;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -14,26 +15,34 @@ namespace HotChocolate.Types.Descriptors
         : DescriptorBase<ObjectTypeDefinition>
         , IObjectTypeDescriptor
     {
-        public ObjectTypeDescriptor(IDescriptorContext context, Type clrType)
+        protected ObjectTypeDescriptor(IDescriptorContext context, Type clrType)
             : base(context)
         {
-            if (clrType == null)
+            if (clrType is null)
             {
                 throw new ArgumentNullException(nameof(clrType));
             }
 
-            Definition.ClrType = clrType;
+            Definition.RuntimeType = clrType;
             Definition.Name = context.Naming.GetTypeName(clrType, TypeKind.Object);
             Definition.Description = context.Naming.GetTypeDescription(clrType, TypeKind.Object);
         }
 
-        public ObjectTypeDescriptor(IDescriptorContext context)
+        protected ObjectTypeDescriptor(IDescriptorContext context)
             : base(context)
         {
-            Definition.ClrType = typeof(object);
+            Definition.RuntimeType = typeof(object);
         }
 
-        internal protected override ObjectTypeDefinition Definition { get; } =
+        protected ObjectTypeDescriptor(
+            IDescriptorContext context,
+            ObjectTypeDefinition definition)
+            : base(context)
+        {
+            Definition = definition ?? throw new ArgumentNullException(nameof(definition));
+        }
+
+        protected internal override ObjectTypeDefinition Definition { get; protected set; } =
             new ObjectTypeDefinition();
 
         protected ICollection<ObjectFieldDescriptor> Fields { get; } =
@@ -45,12 +54,12 @@ namespace HotChocolate.Types.Descriptors
         protected override void OnCreateDefinition(
             ObjectTypeDefinition definition)
         {
-            if (Definition.ClrType is { })
+            if (Definition.FieldBindingType is not null)
             {
-                Context.Inspector.ApplyAttributes(
+                Context.TypeInspector.ApplyAttributes(
                     Context,
                     this,
-                    Definition.ClrType);
+                    Definition.FieldBindingType);
             }
 
             var fields = new Dictionary<NameString, ObjectFieldDefinition>();
@@ -81,10 +90,10 @@ namespace HotChocolate.Types.Descriptors
         {
             var processed = new HashSet<string>();
 
-            if (Definition.ClrType != typeof(object))
+            if (Definition.RuntimeType != typeof(object))
             {
-                foreach (Type resolverType in Context.Inspector
-                    .GetResolverTypes(Definition.ClrType))
+                foreach (Type resolverType in Context.TypeInspector
+                    .GetResolverTypes(Definition.RuntimeType))
                 {
                     ResolverTypes.Add(resolverType);
                 }
@@ -95,7 +104,7 @@ namespace HotChocolate.Types.Descriptors
                 AddResolvers(
                     fields,
                     processed,
-                    Definition.ClrType ?? typeof(object),
+                    Definition.RuntimeType ?? typeof(object),
                     resolverType);
             }
         }
@@ -106,7 +115,7 @@ namespace HotChocolate.Types.Descriptors
             Type sourceType,
             Type resolverType)
         {
-            foreach (MemberInfo member in Context.Inspector.GetMembers(resolverType))
+            foreach (MemberInfo member in Context.TypeInspector.GetMembers(resolverType))
             {
                 if (IsResolverRelevant(sourceType, member))
                 {
@@ -127,20 +136,19 @@ namespace HotChocolate.Types.Descriptors
             Type sourceType,
             MemberInfo resolver)
         {
-            if (resolver is PropertyInfo)
+            switch (resolver)
             {
-                return true;
-            }
+                case PropertyInfo:
+                    return true;
 
-            if (resolver is MethodInfo m)
-            {
-                ParameterInfo parent = m.GetParameters()
-                    .FirstOrDefault(t => t.IsDefined(typeof(ParentAttribute)));
-                return parent == null
-                    || parent.ParameterType.IsAssignableFrom(sourceType);
-            }
+                case MethodInfo m:
+                    ParameterInfo parent = m.GetParameters()
+                        .FirstOrDefault(t => t.IsDefined(typeof(ParentAttribute)));
+                    return parent is null || parent.ParameterType.IsAssignableFrom(sourceType);
 
-            return false;
+                default:
+                    return false;
+            }
         }
 
         public IObjectTypeDescriptor SyntaxNode(
@@ -171,7 +179,8 @@ namespace HotChocolate.Types.Descriptors
                     TypeResources.ObjectTypeDescriptor_InterfaceBaseClass);
             }
 
-            Definition.Interfaces.Add(typeof(TInterface).GetOutputType());
+            Definition.Interfaces.Add(
+                Context.TypeInspector.GetTypeRef(typeof(TInterface)));
             return this;
         }
 
@@ -179,7 +188,7 @@ namespace HotChocolate.Types.Descriptors
             TInterface type)
             where TInterface : InterfaceType
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
@@ -192,13 +201,12 @@ namespace HotChocolate.Types.Descriptors
         public IObjectTypeDescriptor Interface(
             NamedTypeNode namedType)
         {
-            if (namedType == null)
+            if (namedType is null)
             {
                 throw new ArgumentNullException(nameof(namedType));
             }
 
-            Definition.Interfaces.Add(new SyntaxTypeReference(
-                namedType, TypeContext.Output));
+            Definition.Interfaces.Add(TypeReference.Create(namedType, TypeContext.Output));
             return this;
         }
 
@@ -217,8 +225,7 @@ namespace HotChocolate.Types.Descriptors
         {
             if (typeof(IType).IsAssignableFrom(typeof(TResolver)))
             {
-                throw new ArgumentException(
-                    TypeResources.ObjectTypeDescriptor_Resolver_SchemaType);
+                throw new ArgumentException(ObjectTypeDescriptor_Resolver_SchemaType);
             }
 
             ResolverTypes.Add(typeof(TResolver));
@@ -250,15 +257,47 @@ namespace HotChocolate.Types.Descriptors
             Expression<Func<TResolver, object>> propertyOrMethod) =>
             Field<TResolver, object>(propertyOrMethod);
 
-        public IObjectFieldDescriptor Field<TResolver, TPropertyType>(
-            Expression<Func<TResolver, TPropertyType>> propertyOrMethod)
+        public IObjectFieldDescriptor Field(
+            MemberInfo propertyOrMethod)
         {
-            if (propertyOrMethod == null)
+            if (propertyOrMethod is null)
             {
                 throw new ArgumentNullException(nameof(propertyOrMethod));
             }
 
-            MemberInfo member = propertyOrMethod.ExtractMember();
+            if (propertyOrMethod is PropertyInfo || propertyOrMethod is MethodInfo)
+            {
+                ObjectFieldDescriptor fieldDescriptor =
+                    Fields.FirstOrDefault(t => t.Definition.Member == propertyOrMethod);
+                if (fieldDescriptor is { })
+                {
+                    return fieldDescriptor;
+                }
+
+                fieldDescriptor = ObjectFieldDescriptor.New(
+                    Context,
+                    propertyOrMethod,
+                    Definition.RuntimeType,
+                    propertyOrMethod.ReflectedType ?? Definition.RuntimeType);
+                Fields.Add(fieldDescriptor);
+                return fieldDescriptor;
+            }
+
+            throw new ArgumentException(
+                ObjectTypeDescriptor_MustBePropertyOrMethod,
+                nameof(propertyOrMethod));
+        }
+
+        public IObjectFieldDescriptor Field<TResolver, TPropertyType>(
+            Expression<Func<TResolver, TPropertyType>> propertyOrMethod)
+        {
+            if (propertyOrMethod is null)
+            {
+                throw new ArgumentNullException(nameof(propertyOrMethod));
+            }
+
+            MemberInfo member = propertyOrMethod.TryExtractMember();
+
             if (member is PropertyInfo || member is MethodInfo)
             {
                 ObjectFieldDescriptor fieldDescriptor =
@@ -269,27 +308,35 @@ namespace HotChocolate.Types.Descriptors
                 }
 
                 fieldDescriptor = ObjectFieldDescriptor.New(
-                    Context, member, Definition.ClrType, typeof(TResolver));
+                    Context, member, Definition.RuntimeType, typeof(TResolver));
+                Fields.Add(fieldDescriptor);
+                return fieldDescriptor;
+            }
+
+            if (member is null)
+            {
+                var fieldDescriptor = ObjectFieldDescriptor.New(
+                    Context, propertyOrMethod, Definition.RuntimeType, typeof(TResolver));
                 Fields.Add(fieldDescriptor);
                 return fieldDescriptor;
             }
 
             throw new ArgumentException(
-                TypeResources.ObjectTypeDescriptor_MustBePropertyOrMethod,
+                ObjectTypeDescriptor_MustBePropertyOrMethod,
                 nameof(member));
         }
 
         public IObjectTypeDescriptor Directive<T>(T directiveInstance)
             where T : class
         {
-            Definition.AddDirective(directiveInstance);
+            Definition.AddDirective(directiveInstance, Context.TypeInspector);
             return this;
         }
 
         public IObjectTypeDescriptor Directive<T>()
             where T : class, new()
         {
-            Definition.AddDirective(new T());
+            Definition.AddDirective(new T(), Context.TypeInspector);
             return this;
         }
 
@@ -323,8 +370,18 @@ namespace HotChocolate.Types.Descriptors
             Type schemaType)
         {
             var descriptor = new ObjectTypeDescriptor(context, schemaType);
-            descriptor.Definition.ClrType = typeof(object);
+            descriptor.Definition.RuntimeType = typeof(object);
             return descriptor;
         }
+
+        public static ObjectTypeDescriptor From(
+            IDescriptorContext context,
+            ObjectTypeDefinition definition) =>
+            new ObjectTypeDescriptor(context, definition);
+
+        public static ObjectTypeDescriptor<T> From<T>(
+            IDescriptorContext context,
+            ObjectTypeDefinition definition) =>
+            new ObjectTypeDescriptor<T>(context, definition);
     }
 }

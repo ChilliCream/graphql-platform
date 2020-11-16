@@ -1,7 +1,10 @@
 using System;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Internal;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
@@ -40,26 +43,28 @@ namespace HotChocolate.Types.Descriptors
             Type? resolverType)
             : base(context)
         {
-            Definition.Member = member
-                ?? throw new ArgumentNullException(nameof(member));
-
+            Definition.Member = member ??
+                throw new ArgumentNullException(nameof(member));
             Definition.Name = context.Naming.GetMemberName(
-                member, MemberKind.ObjectField);
+                member,
+                MemberKind.ObjectField);
             Definition.Description = context.Naming.GetMemberDescription(
-                member, MemberKind.ObjectField);
-            Definition.Type = context.Inspector.GetOutputReturnType(member);
+                member,
+                MemberKind.ObjectField);
+            Definition.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
             Definition.SourceType = sourceType;
-            Definition.ResolverType = resolverType;
+            Definition.ResolverType = resolverType == sourceType ? null : resolverType;
 
-            if (context.Naming.IsDeprecated(member, out string reason))
+            if (context.Naming.IsDeprecated(member, out var reason))
             {
                 Deprecated(reason);
             }
 
             if (member is MethodInfo m)
             {
-                Parameters = m.GetParameters().ToDictionary(
-                    t => new NameString(t.Name));
+                Parameters = m
+                    .GetParameters()
+                    .ToDictionary(t => new NameString(t.Name));
                 Definition.ResultType = m.ReturnType;
             }
             else if (member is PropertyInfo p)
@@ -68,16 +73,68 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
-        internal protected override ObjectFieldDefinition Definition { get; } =
+        protected ObjectFieldDescriptor(
+            IDescriptorContext context,
+            LambdaExpression expression,
+            Type sourceType,
+            Type? resolverType)
+            : base(context)
+        {
+            Definition.Expression = expression
+                ?? throw new ArgumentNullException(nameof(expression));
+            Definition.SourceType = sourceType;
+            Definition.ResolverType = resolverType;
+
+            MemberInfo member = ReflectionUtils.TryExtractCallMember(expression);
+
+            if (member is { })
+            {
+                Definition.Name = context.Naming.GetMemberName(
+                    member,
+                    MemberKind.ObjectField);
+                Definition.Description = context.Naming.GetMemberDescription(
+                    member,
+                    MemberKind.ObjectField);
+                Definition.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
+
+                if (context.Naming.IsDeprecated(member, out string? reason))
+                {
+                    Deprecated(reason);
+                }
+
+                if (member is MethodInfo m)
+                {
+                    Definition.ResultType = m.ReturnType;
+                }
+                else if (member is PropertyInfo p)
+                {
+                    Definition.ResultType = p.PropertyType;
+                }
+            }
+            else
+            {
+                Definition.Type = context.TypeInspector.GetOutputTypeRef(expression.ReturnType);
+                Definition.ResultType = expression.ReturnType;
+            }
+        }
+
+        protected ObjectFieldDescriptor(
+            IDescriptorContext context,
+            ObjectFieldDefinition definition)
+            : base(context)
+        {
+            Definition = definition ?? throw new ArgumentNullException(nameof(definition));
+        }
+
+        protected internal override ObjectFieldDefinition Definition { get; protected set; } =
             new ObjectFieldDefinition();
 
         protected override void OnCreateDefinition(
             ObjectFieldDefinition definition)
         {
-
             if (Definition.Member is { })
             {
-                Context.Inspector.ApplyAttributes(
+                Context.TypeInspector.ApplyAttributes(
                     Context,
                     this,
                     Definition.Member);
@@ -122,7 +179,7 @@ namespace HotChocolate.Types.Descriptors
 
         [Obsolete("Use `Deprecated`.")]
         public IObjectFieldDescriptor DeprecationReason(string? reason) =>
-           Deprecated(reason);
+            Deprecated(reason);
 
         public new IObjectFieldDescriptor Deprecated(string? reason)
         {
@@ -178,9 +235,18 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public IObjectFieldDescriptor Resolver(
+            FieldResolverDelegate fieldResolver) =>
+            Resolve(fieldResolver);
+
+        public IObjectFieldDescriptor Resolver(
+            FieldResolverDelegate fieldResolver,
+            Type resultType) =>
+            Resolve(fieldResolver, resultType);
+
+        public IObjectFieldDescriptor Resolve(
             FieldResolverDelegate fieldResolver)
         {
-            if (fieldResolver == null)
+            if (fieldResolver is null)
             {
                 throw new ArgumentNullException(nameof(fieldResolver));
             }
@@ -189,11 +255,11 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public IObjectFieldDescriptor Resolver(
+        public IObjectFieldDescriptor Resolve(
             FieldResolverDelegate fieldResolver,
             Type resultType)
         {
-            if (fieldResolver == null)
+            if (fieldResolver is null)
             {
                 throw new ArgumentNullException(nameof(fieldResolver));
             }
@@ -202,7 +268,9 @@ namespace HotChocolate.Types.Descriptors
 
             if (resultType != null)
             {
-                Definition.SetMoreSpecificType(resultType, TypeContext.Output);
+                Definition.SetMoreSpecificType(
+                    Context.TypeInspector.GetType(resultType),
+                    TypeContext.Output);
 
                 if (resultType.IsGenericType)
                 {
@@ -212,7 +280,7 @@ namespace HotChocolate.Types.Descriptors
                         ? resultType.GetGenericArguments()[0]
                         : resultType;
 
-                    if (!BaseTypes.IsSchemaType(clrResultType))
+                    if (!clrResultType.IsSchemaType())
                     {
                         Definition.ResultType = clrResultType;
                     }
@@ -220,6 +288,56 @@ namespace HotChocolate.Types.Descriptors
             }
 
             return this;
+        }
+
+        public IObjectFieldDescriptor ResolveWith<TResolver>(
+            Expression<Func<TResolver, object>> propertyOrMethod)
+        {
+            if (propertyOrMethod is null)
+            {
+                throw new ArgumentNullException(nameof(propertyOrMethod));
+            }
+
+            MemberInfo member = propertyOrMethod.ExtractMember();
+            if (member is PropertyInfo || member is MethodInfo)
+            {
+                Type resultType = member.GetReturnType();
+
+                Definition.SetMoreSpecificType(
+                    Context.TypeInspector.GetType(resultType),
+                    TypeContext.Output);
+
+                Definition.ResolverType = typeof(TResolver);
+                Definition.ResolverMember = member;
+                Definition.Resolver = null;
+                Definition.ResultType = resultType;
+                return this;
+            }
+
+            throw new ArgumentException(
+                TypeResources.ObjectTypeDescriptor_MustBePropertyOrMethod,
+                nameof(propertyOrMethod));
+        }
+
+        public IObjectFieldDescriptor ResolveWith(
+            MemberInfo propertyOrMethod)
+        {
+            if (propertyOrMethod is null)
+            {
+                throw new ArgumentNullException(nameof(propertyOrMethod));
+            }
+
+            if (propertyOrMethod is PropertyInfo || propertyOrMethod is MethodInfo)
+            {
+                Definition.ResolverType = propertyOrMethod.DeclaringType;
+                Definition.ResolverMember = propertyOrMethod;
+                Definition.Resolver = null;
+                Definition.ResultType = propertyOrMethod.GetReturnType();
+            }
+
+            throw new ArgumentException(
+                TypeResources.ObjectTypeDescriptor_MustBePropertyOrMethod,
+                nameof(propertyOrMethod));
         }
 
         public IObjectFieldDescriptor Subscribe(SubscribeResolverDelegate subscribeResolver)
@@ -230,7 +348,7 @@ namespace HotChocolate.Types.Descriptors
 
         public IObjectFieldDescriptor Use(FieldMiddleware middleware)
         {
-            if (middleware == null)
+            if (middleware is null)
             {
                 throw new ArgumentNullException(nameof(middleware));
             }
@@ -261,6 +379,13 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        public new IObjectFieldDescriptor ConfigureContextData(
+            Action<ExtensionData> configure)
+        {
+            base.ConfigureContextData(configure);
+            return this;
+        }
+
         public static ObjectFieldDescriptor New(
             IDescriptorContext context,
             NameString fieldName) =>
@@ -278,5 +403,17 @@ namespace HotChocolate.Types.Descriptors
             Type sourceType,
             Type resolverType) =>
             new ObjectFieldDescriptor(context, member, sourceType, resolverType);
+
+        public static ObjectFieldDescriptor New(
+            IDescriptorContext context,
+            LambdaExpression expression,
+            Type sourceType,
+            Type resolverType) =>
+            new ObjectFieldDescriptor(context, expression, sourceType, resolverType);
+
+        public static ObjectFieldDescriptor From(
+            IDescriptorContext context,
+            ObjectFieldDefinition definition) =>
+            new ObjectFieldDescriptor(context, definition);
     }
 }

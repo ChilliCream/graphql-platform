@@ -19,7 +19,7 @@ namespace HotChocolate.Language
             Type = type ?? throw new ArgumentNullException(nameof(type));
         }
 
-        public NodeKind Kind { get; } = NodeKind.NonNullType;
+        public SyntaxKind Kind { get; } = SyntaxKind.NonNullType;
 
         public Location? Location { get; }
 

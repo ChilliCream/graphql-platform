@@ -2,16 +2,16 @@
   {
     "Message": "The specified directive `onField` is not supported by the current schema.",
     "Code": null,
-    "Path": [],
+    "Path": null,
     "Locations": [
       {
         "Line": 2,
         "Column": 41
       }
     ],
-    "Exception": null,
     "Extensions": {
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Directives-Are-Defined"
-    }
+    },
+    "Exception": null
   }
 ]

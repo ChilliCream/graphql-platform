@@ -35,7 +35,7 @@ namespace HotChocolate.Validation
 
             IServiceProvider services = serviceCollection.BuildServiceProvider();
             var rule = services.GetRequiredService<IValidationConfiguration>()
-                .GetRules("Default").First();
+                .GetRules(Schema.DefaultName).First();
 
             IDocumentValidatorContext context = ValidationUtils.CreateContext(schema);
             DocumentNode query = Utf8GraphQLParser.Parse(sourceText);
@@ -77,7 +77,7 @@ namespace HotChocolate.Validation
 
             IServiceProvider services = serviceCollection.BuildServiceProvider();
             var rule = services.GetRequiredService<IValidationConfiguration>()
-                .GetRules("Default").First();
+                .GetRules(Schema.DefaultName).First();
 
             IDocumentValidatorContext context = ValidationUtils.CreateContext(schema);
             DocumentNode query = Utf8GraphQLParser.Parse(sourceText);

@@ -2,6 +2,8 @@ using System;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     /// <summary>
@@ -45,7 +47,7 @@ namespace HotChocolate.Types
 
         public override bool IsInstanceOfType(IValueNode literal)
         {
-            if (literal == null)
+            if (literal is null)
             {
                 throw new ArgumentNullException(nameof(literal));
             }
@@ -55,9 +57,9 @@ namespace HotChocolate.Types
                 || literal is NullValueNode;
         }
 
-        public override object ParseLiteral(IValueNode literal)
+        public override object? ParseLiteral(IValueNode literal, bool withDefaults = true)
         {
-            if (literal == null)
+            if (literal is null)
             {
                 throw new ArgumentNullException(nameof(literal));
             }
@@ -77,67 +79,89 @@ namespace HotChocolate.Types
                 return null;
             }
 
-            throw new ScalarSerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseLiteral(
-                    Name, literal.GetType()));
+            throw new SerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, literal.GetType()),
+                this);
         }
 
-        public override IValueNode ParseValue(object value)
+        public override IValueNode ParseValue(object? runtimeValue)
         {
-            if (value == null)
+            if (runtimeValue is null)
             {
-                return new NullValueNode(null);
+                return NullValueNode.Default;
             }
 
-            if (value is string s)
+            if (runtimeValue is string s)
             {
                 return new StringValueNode(s);
             }
 
-            throw new ScalarSerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseValue(
-                    Name, value.GetType()));
+            throw new SerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseValue(Name, runtimeValue.GetType()),
+                this);
         }
 
-        public override bool TrySerialize(object value, out object serialized)
+        public override IValueNode ParseResult(object? resultValue)
         {
-            if (value is null)
+            if (resultValue is null)
             {
-                serialized = null;
+                return NullValueNode.Default;
+            }
+
+            if (resultValue is string s)
+            {
+                return new StringValueNode(s);
+            }
+
+            if (resultValue is int i)
+            {
+                return new IntValueNode(i);
+            }
+
+            throw new SerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()),
+                this);
+        }
+
+        public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+        {
+            if (runtimeValue is null)
+            {
+                resultValue = null;
                 return true;
             }
 
-            if (value is string)
+            if (runtimeValue is string)
             {
-                serialized = value;
+                resultValue = runtimeValue;
                 return true;
             }
 
-            serialized = null;
+            resultValue = null;
             return false;
         }
 
-        public override bool TryDeserialize(object serialized, out object value)
+        public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
         {
-            if (serialized is null)
+            if (resultValue is null)
             {
-                value = null;
+                runtimeValue = null;
                 return true;
             }
 
-            if (serialized is string)
+            if (resultValue is string)
             {
-                value = serialized;
+                runtimeValue = resultValue;
                 return true;
             }
 
-            if (TryConvertSerialized(serialized, ValueKind.Integer, out string c))
+            if (TryConvertSerialized(resultValue, ValueKind.Integer, out string c))
             {
-                value = c;
+                runtimeValue = c;
                 return true;
             }
 
-            value = null;
+            runtimeValue = null;
             return false;
         }
     }

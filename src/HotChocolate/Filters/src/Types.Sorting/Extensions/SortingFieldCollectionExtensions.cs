@@ -12,22 +12,21 @@ namespace HotChocolate.Types.Sorting.Extensions
             PropertyInfo propertyInfo,
             Func<T> valueFactory) where T : SortOperationDescriptorBase
         {
-            if (fields == null)
+            if (fields is null)
             {
                 throw new ArgumentNullException(nameof(fields));
             }
-            if (propertyInfo == null)
+            if (propertyInfo is null)
             {
                 throw new ArgumentNullException(nameof(propertyInfo));
             }
-            if (valueFactory == null)
+            if (valueFactory is null)
             {
                 throw new ArgumentNullException(nameof(valueFactory));
             }
 
-            SortOperationDescriptorBase fieldDescriptor =
-                fields.FirstOrDefault(
-                    t => t.Definition?.Operation?.Property.Equals(propertyInfo) ?? false);
+            SortOperationDescriptorBase? fieldDescriptor = fields.FirstOrDefault(
+                t => t.Definition.Operation?.Property.Equals(propertyInfo) ?? false);
 
             if (fieldDescriptor is { })
             {
@@ -35,15 +34,13 @@ namespace HotChocolate.Types.Sorting.Extensions
                 {
                     return descritorOfT;
                 }
-                else
-                {
-                    fields.Remove(fieldDescriptor);
-                }
+
+                fields.Remove(fieldDescriptor);
             }
 
-            T newDescirptor = valueFactory.Invoke();
-            fields.Add(newDescirptor);
-            return newDescirptor;
+            T newDescriptor = valueFactory.Invoke();
+            fields.Add(newDescriptor);
+            return newDescriptor;
         }
     }
 }

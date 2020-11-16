@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Data.Spatial.Tests</AssemblyName>
+    <RootNamespace>HotChocolate</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Abstractions\HotChocolate.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
+    <ProjectReference Include="..\..\src\Data\HotChocolate.Data.Spatial.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
+    <ProjectReference Include="..\..\src\Types\HotChocolate.Types.Spatial.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NetTopologySuite" Version="2.0.0" />
+  </ItemGroup>
+
+  <!--For Visual Studio for Mac Test Explorer we need this reference here-->
+  <ItemGroup>
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+  </ItemGroup>
+
+</Project>

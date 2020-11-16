@@ -2,6 +2,9 @@ using System;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Internal;
+
+#nullable enable
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -10,11 +13,17 @@ namespace HotChocolate.Types.Descriptors
     {
         private readonly TypeConfiguration<T> _configuration;
 
-        protected DependencyDescriptorBase(TypeConfiguration<T> configuration)
+        protected DependencyDescriptorBase(
+            ITypeInspector typeInspector,
+            TypeConfiguration<T> configuration)
         {
-            _configuration = configuration
-                ?? throw new ArgumentNullException(nameof(configuration));
+            TypeInspector = typeInspector ??
+                throw new ArgumentNullException(nameof(configuration));
+            _configuration = configuration ??
+                throw new ArgumentNullException(nameof(configuration));
         }
+
+        protected ITypeInspector TypeInspector { get; }
 
         protected abstract TypeDependencyKind DependencyKind { get; }
 
@@ -22,14 +31,17 @@ namespace HotChocolate.Types.Descriptors
             where TType : ITypeSystemMember =>
             DependsOn(typeof(TType), mustBeNamedOrCompleted);
 
-        protected void DependsOn(Type schemaType, bool mustBeNamedOrCompleted)
+        protected void DependsOn(Type schemaType, bool mustBeNamedOrCompleted) =>
+            DependsOn(TypeInspector.GetType(schemaType), mustBeNamedOrCompleted);
+
+        protected void DependsOn(IExtendedType schemaType, bool mustBeNamedOrCompleted)
         {
-            if (schemaType == null)
+            if (schemaType is null)
             {
                 throw new ArgumentNullException(nameof(schemaType));
             }
 
-            if (!typeof(ITypeSystemMember).IsAssignableFrom(schemaType))
+            if (!schemaType.IsSchemaType)
             {
                 throw new ArgumentException(
                     TypeResources.DependencyDescriptorBase_OnlyTsoIsAllowed,
@@ -41,8 +53,7 @@ namespace HotChocolate.Types.Descriptors
                 : TypeDependencyKind.Default;
 
             _configuration.Dependencies.Add(
-                TypeDependency.FromSchemaType(
-                    schemaType, kind));
+                TypeDependency.FromSchemaType(schemaType, kind));
         }
 
         protected void DependsOn(
@@ -57,8 +68,7 @@ namespace HotChocolate.Types.Descriptors
 
             _configuration.Dependencies.Add(
                 new TypeDependency(
-                    new SyntaxTypeReference(
-                        new NamedTypeNode(typeName), TypeContext.None),
+                    TypeReference.Create(new NamedTypeNode(typeName), TypeContext.None),
                     kind));
         }
     }

@@ -1,9 +1,45 @@
 <Project>
-  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0' OR '$(TargetFramework)' == 'netcoreapp2.1'">
-    <NoWarn>$(NoWarn);8600;8601;8602;8603;8604;CS0436</NoWarn>
+
+  <PropertyGroup>
+    <LangVersion>preview</LangVersion>
+    <Version Condition="$(Version) == ''">0.0.0</Version>
+    <NoWarn>$(NoWarn);CS0436</NoWarn>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' OR '$(TargetFramework)' == 'netcoreapp2.1'">
-    <Compile Include="$(MSBuildThisFileDirectory)/Nullable.cs" />
+  <PropertyGroup>
+    <Product>Hot Chocolate</Product>
+    <Authors>ChilliCream authors and contributors</Authors>
+    <Company>ChilliCream</Company>
+    <Copyright>Copyright &#169; 2020 ChilliCream (Michael &amp; Rafael Staib)</Copyright>
+    <PackageLicenseUrl>https://github.com/ChilliCream/hotchocolate/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://chillicream.com</PackageProjectUrl>
+    <PackageReleaseNotes>Release notes: https://github.com/ChilliCream/hotchocolate/releases/$(PackageVersion)</PackageReleaseNotes>
+    <PackageTags>GraphQL ChilliCream</PackageTags>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageIconUrl>https://chillicream.com/resources/hotchocolate-signet.png</PackageIconUrl>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <RepositoryUrl>https://github.com/ChilliCream/hotchocolate.git</RepositoryUrl>
+    <RepositoryType>GitHub</RepositoryType>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <LibraryTargetFrameworks>net5.0; netcoreapp3.1; netstandard2.0</LibraryTargetFrameworks>
+    <TestTargetFrameworks>net5.0; netcoreapp3.1; netcoreapp2.1</TestTargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All"/>
   </ItemGroup>
+
 </Project>

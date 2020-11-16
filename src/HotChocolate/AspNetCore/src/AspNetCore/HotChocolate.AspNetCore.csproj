@@ -4,21 +4,36 @@
     <PackageId>HotChocolate.AspNetCore</PackageId>
     <AssemblyName>HotChocolate.AspNetCore</AssemblyName>
     <RootNamespace>HotChocolate.AspNetCore</RootNamespace>
-    <Description>Contains the Hot Chocolate GraphQL middleware for ASP .Net core.</Description>
+    <Description>This package contains the GraphQL ASP.NET Core middleware for Hot Chocolate. Moreover, this package includes the Banana Cake Pop middleware, which provides you with our beloved GraphQL IDE middleware.</Description>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
-    <ProjectReference Include="..\AspNetCore.Abstractions\HotChocolate.AspNetCore.Abstractions.csproj" />
-    <ProjectReference Include="..\AspNetCore.Authorization\HotChocolate.AspNetCore.Authorization.csproj" />
-    <ProjectReference Include="..\AspNetCore.HttpGetSchema\HotChocolate.AspNetCore.HttpGetSchema.csproj" />
-    <ProjectReference Include="..\AspNetCore.HttpGet\HotChocolate.AspNetCore.HttpGet.csproj" />
-    <ProjectReference Include="..\AspNetCore.HttpPost\HotChocolate.AspNetCore.HttpPost.csproj" />
-    <ProjectReference Include="..\AspNetCore.Subscriptions\HotChocolate.AspNetCore.Subscriptions.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.0" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.IO.Pipelines" Version="4.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Resources\**\*" />
+    <EmbeddedResource Include="Resources\**\*" />
+    <EmbeddedResource Update="Properties\AspNetCoreResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>AspNetCoreResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\AspNetCoreResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AspNetCoreResources.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>

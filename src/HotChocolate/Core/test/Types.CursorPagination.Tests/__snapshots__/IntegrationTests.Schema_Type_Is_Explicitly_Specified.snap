@@ -1,0 +1,26 @@
+﻿{
+  "data": {
+    "explicitType": {
+      "edges": [
+        {
+          "node": "a",
+          "cursor": "MA=="
+        },
+        {
+          "node": "b",
+          "cursor": "MQ=="
+        }
+      ],
+      "nodes": [
+        "a",
+        "b"
+      ],
+      "pageInfo": {
+        "hasNextPage": true,
+        "hasPreviousPage": false,
+        "startCursor": "MA==",
+        "endCursor": "MQ=="
+      }
+    }
+  }
+}

@@ -10,12 +10,9 @@ namespace HotChocolate.Language
     {
         public string GetString()
         {
-            if (_value.Length == 0)
-            {
-                return string.Empty;
-            }
-
-            return GetString(_value, _kind == TokenKind.BlockString);
+            return _value.Length == 0
+                ? string.Empty
+                : GetString(_value, _kind == TokenKind.BlockString);
         }
 
         public static string GetString(
@@ -27,15 +24,12 @@ namespace HotChocolate.Language
                 return string.Empty;
             }
 
-            int length = checked(escapedValue.Length);
-            bool useStackalloc =
-                length <= GraphQLConstants.StackallocThreshold;
-
+            var length = escapedValue.Length;
             byte[]? unescapedArray = null;
 
-            Span<byte> unescapedSpan = useStackalloc
+            Span<byte> unescapedSpan = length <= GraphQLConstants.StackallocThreshold
                 ? stackalloc byte[length]
-                : (unescapedArray = ArrayPool<byte>.Shared.Rent(length));
+                : unescapedArray = ArrayPool<byte>.Shared.Rent(length);
 
             try
             {
@@ -55,7 +49,7 @@ namespace HotChocolate.Language
         internal static string GetScalarValue(ReadOnlySpan<byte> unescapedValue) =>
             GetString(unescapedValue);
 
-        public unsafe static string GetString(ReadOnlySpan<byte> unescapedValue)
+        public static unsafe string GetString(ReadOnlySpan<byte> unescapedValue)
         {
             if (unescapedValue.Length == 0)
             {

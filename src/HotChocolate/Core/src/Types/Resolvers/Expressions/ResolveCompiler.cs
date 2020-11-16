@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -10,10 +9,12 @@ namespace HotChocolate.Resolvers.Expressions
 {
     internal sealed class ResolveCompiler : ResolverCompiler
     {
-        private static readonly MethodInfo _awaitHelper =
-            typeof(ExpressionHelper).GetMethod("AwaitHelper");
+        private static readonly MethodInfo _awaitTaskHelper =
+            typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.AwaitTaskHelper));
+        private static readonly MethodInfo _awaitValueTaskHelper =
+            typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.AwaitValueTaskHelper));
         private static readonly MethodInfo _wrapResultHelper =
-            typeof(ExpressionHelper).GetMethod("WrapResultHelper");
+            typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.WrapResultHelper));
 
         public ResolveCompiler()
         {
@@ -27,22 +28,75 @@ namespace HotChocolate.Resolvers.Expressions
 
         public FieldResolver Compile(ResolverDescriptor descriptor)
         {
+            if (descriptor.Field.Member is not null)
+            {
+                FieldResolverDelegate resolver;
+
+                if (descriptor.Field.Member is MethodInfo m && m.IsStatic)
+                {
+                    resolver = CreateResolver(
+                        descriptor.Field.Member,
+                        descriptor.SourceType);
+                }
+                else
+                {
+                    resolver = CreateResolver(
+                        CreateResolverInstance(descriptor),
+                        descriptor.Field.Member,
+                        descriptor.SourceType);
+                }
+
+                return new FieldResolver(
+                    descriptor.Field.TypeName,
+                    descriptor.Field.FieldName,
+                    resolver);
+            }
+
+            if (descriptor.Field.Expression is LambdaExpression lambda)
+            {
+                var resolver = Expression.Lambda<FieldResolverDelegate>(
+                    HandleResult(
+                        Expression.Invoke(lambda, CreateResolverInstance(descriptor)),
+                        lambda.ReturnType),
+                    Context);
+
+                return new FieldResolver(
+                    descriptor.Field.TypeName,
+                    descriptor.Field.FieldName,
+                    resolver.Compile());
+            }
+
+            throw new NotSupportedException();
+        }
+
+        private Expression CreateResolverInstance(ResolverDescriptor descriptor)
+        {
             MethodInfo resolverMethod = descriptor.ResolverType is null
                 ? Parent.MakeGenericMethod(descriptor.SourceType)
                 : Resolver.MakeGenericMethod(descriptor.ResolverType);
 
-            Expression resolverInstance = Expression.Call(
-                Context, resolverMethod);
+            return Expression.Call(Context, resolverMethod);
+        }
 
-            FieldResolverDelegate resolver = CreateResolver(
-                resolverInstance,
-                descriptor.Field.Member,
-                descriptor.SourceType);
+        private FieldResolverDelegate CreateResolver(
+            MemberInfo member,
+            Type sourceType)
+        {
+            if (member is null)
+            {
+                throw new ArgumentNullException(nameof(member));
+            }
 
-            return new FieldResolver(
-                descriptor.Field.TypeName,
-                descriptor.Field.FieldName,
-                resolver);
+            if (member is MethodInfo method)
+            {
+                IEnumerable<Expression> parameters =
+                    CreateParameters(method.GetParameters(), sourceType);
+                MethodCallExpression resolverExpression = Expression.Call(method, parameters);
+                Expression handleResult = HandleResult(resolverExpression, method.ReturnType);
+                return Expression.Lambda<FieldResolverDelegate>(handleResult, Context).Compile();
+            }
+
+            throw new NotSupportedException();
         }
 
         private FieldResolverDelegate CreateResolver(
@@ -50,7 +104,7 @@ namespace HotChocolate.Resolvers.Expressions
             MemberInfo member,
             Type sourceType)
         {
-            if (member == null)
+            if (member is null)
             {
                 throw new ArgumentNullException(nameof(member));
             }
@@ -59,27 +113,17 @@ namespace HotChocolate.Resolvers.Expressions
             {
                 IEnumerable<Expression> parameters = CreateParameters(
                     method.GetParameters(), sourceType);
-
                 MethodCallExpression resolverExpression =
                     Expression.Call(resolverInstance, method, parameters);
-
-                Expression handleResult = HandleResult(
-                    resolverExpression, method.ReturnType);
-
-                return Expression.Lambda<FieldResolverDelegate>(
-                    handleResult, Context).Compile();
+                Expression handleResult = HandleResult(resolverExpression, method.ReturnType);
+                return Expression.Lambda<FieldResolverDelegate>(handleResult, Context).Compile();
             }
 
             if (member is PropertyInfo property)
             {
-                MemberExpression propertyAccessor = Expression.Property(
-                    resolverInstance, property);
-
-                Expression handleResult = HandleResult(
-                    propertyAccessor, property.PropertyType);
-
-                return Expression.Lambda<FieldResolverDelegate>(
-                    handleResult, Context).Compile();
+                MemberExpression propertyAccessor = Expression.Property(resolverInstance, property);
+                Expression handleResult = HandleResult(propertyAccessor, property.PropertyType);
+                return Expression.Lambda<FieldResolverDelegate>(handleResult, Context).Compile();
             }
 
             throw new NotSupportedException();
@@ -89,37 +133,48 @@ namespace HotChocolate.Resolvers.Expressions
             Expression resolverExpression,
             Type resultType)
         {
-            if (resultType == typeof(Task<object>))
+            if (resultType == typeof(ValueTask<object>))
             {
                 return resolverExpression;
             }
-            else if (typeof(Task).IsAssignableFrom(resultType)
-                && resultType.IsGenericType)
+
+            if (typeof(Task).IsAssignableFrom(resultType) &&
+                resultType.IsGenericType)
             {
-                return AwaitMethodCall(
+                return AwaitTaskMethodCall(
                     resolverExpression,
-                    resultType.GetGenericArguments().First());
+                    resultType.GetGenericArguments()[0]);
             }
-            else
+
+            if (resultType.IsGenericType
+                && resultType.GetGenericTypeDefinition() == typeof(ValueTask<>))
             {
-                return WrapResult(
+                return AwaitValueTaskMethodCall(
                     resolverExpression,
-                    resultType);
+                    resultType.GetGenericArguments()[0]);
             }
+
+            return WrapResult(resolverExpression, resultType);
         }
 
-        private static MethodCallExpression AwaitMethodCall(
+        private static MethodCallExpression AwaitTaskMethodCall(
             Expression taskExpression, Type valueType)
         {
-            MethodInfo awaitHelper = _awaitHelper.MakeGenericMethod(valueType);
+            MethodInfo awaitHelper = _awaitTaskHelper.MakeGenericMethod(valueType);
+            return Expression.Call(awaitHelper, taskExpression);
+        }
+
+        private static MethodCallExpression AwaitValueTaskMethodCall(
+            Expression taskExpression, Type valueType)
+        {
+            MethodInfo awaitHelper = _awaitValueTaskHelper.MakeGenericMethod(valueType);
             return Expression.Call(awaitHelper, taskExpression);
         }
 
         private static MethodCallExpression WrapResult(
             Expression taskExpression, Type valueType)
         {
-            MethodInfo wrapResultHelper =
-                _wrapResultHelper.MakeGenericMethod(valueType);
+            MethodInfo wrapResultHelper = _wrapResultHelper.MakeGenericMethod(valueType);
             return Expression.Call(wrapResultHelper, taskExpression);
         }
     }

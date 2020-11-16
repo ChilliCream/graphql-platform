@@ -8,151 +8,151 @@ type Query {
 
 input FooFilter {
   AND: [FooFilter!]
-  barDecimal: Decimal
-  barDecimalNullable: Decimal
-  barDecimalNullable_gt: Decimal
-  barDecimalNullable_gte: Decimal
-  barDecimalNullable_in: [Decimal]
-  barDecimalNullable_lt: Decimal
-  barDecimalNullable_lte: Decimal
-  barDecimalNullable_not: Decimal
-  barDecimalNullable_not_gt: Decimal
-  barDecimalNullable_not_gte: Decimal
-  barDecimalNullable_not_in: [Decimal]
-  barDecimalNullable_not_lt: Decimal
-  barDecimalNullable_not_lte: Decimal
-  barDecimal_gt: Decimal
-  barDecimal_gte: Decimal
-  barDecimal_in: [Decimal!]
-  barDecimal_lt: Decimal
-  barDecimal_lte: Decimal
-  barDecimal_not: Decimal
-  barDecimal_not_gt: Decimal
-  barDecimal_not_gte: Decimal
-  barDecimal_not_in: [Decimal!]
-  barDecimal_not_lt: Decimal
-  barDecimal_not_lte: Decimal
-  barDouble: Float
-  barDoubleNullable: Float
-  barDoubleNullable_gt: Float
-  barDoubleNullable_gte: Float
-  barDoubleNullable_in: [Float]
-  barDoubleNullable_lt: Float
-  barDoubleNullable_lte: Float
-  barDoubleNullable_not: Float
-  barDoubleNullable_not_gt: Float
-  barDoubleNullable_not_gte: Float
-  barDoubleNullable_not_in: [Float]
-  barDoubleNullable_not_lt: Float
-  barDoubleNullable_not_lte: Float
-  barDouble_gt: Float
-  barDouble_gte: Float
-  barDouble_in: [Float!]
-  barDouble_lt: Float
-  barDouble_lte: Float
-  barDouble_not: Float
-  barDouble_not_gt: Float
-  barDouble_not_gte: Float
-  barDouble_not_in: [Float!]
-  barDouble_not_lt: Float
-  barDouble_not_lte: Float
-  barFloat: Float
-  barFloatNullable: Float
-  barFloatNullable_gt: Float
-  barFloatNullable_gte: Float
-  barFloatNullable_in: [Float]
-  barFloatNullable_lt: Float
-  barFloatNullable_lte: Float
-  barFloatNullable_not: Float
-  barFloatNullable_not_gt: Float
-  barFloatNullable_not_gte: Float
-  barFloatNullable_not_in: [Float]
-  barFloatNullable_not_lt: Float
-  barFloatNullable_not_lte: Float
-  barFloat_gt: Float
-  barFloat_gte: Float
-  barFloat_in: [Float!]
-  barFloat_lt: Float
-  barFloat_lte: Float
-  barFloat_not: Float
-  barFloat_not_gt: Float
-  barFloat_not_gte: Float
-  barFloat_not_in: [Float!]
-  barFloat_not_lt: Float
-  barFloat_not_lte: Float
+  OR: [FooFilter!]
   barInt: Int
-  barIntNullable: Int
-  barIntNullable_gt: Int
-  barIntNullable_gte: Int
-  barIntNullable_in: [Int]
-  barIntNullable_lt: Int
-  barIntNullable_lte: Int
-  barIntNullable_not: Int
-  barIntNullable_not_gt: Int
-  barIntNullable_not_gte: Int
-  barIntNullable_not_in: [Int]
-  barIntNullable_not_lt: Int
-  barIntNullable_not_lte: Int
-  barInt_gt: Int
-  barInt_gte: Int
-  barInt_in: [Int!]
-  barInt_lt: Int
-  barInt_lte: Int
   barInt_not: Int
-  barInt_not_gt: Int
-  barInt_not_gte: Int
+  barInt_in: [Int!]
   barInt_not_in: [Int!]
+  barInt_gt: Int
+  barInt_not_gt: Int
+  barInt_gte: Int
+  barInt_not_gte: Int
+  barInt_lt: Int
   barInt_not_lt: Int
+  barInt_lte: Int
   barInt_not_lte: Int
   barLong: Long
-  barLongNullable: Long
-  barLongNullable_gt: Long
-  barLongNullable_gte: Long
-  barLongNullable_in: [Long]
-  barLongNullable_lt: Long
-  barLongNullable_lte: Long
-  barLongNullable_not: Long
-  barLongNullable_not_gt: Long
-  barLongNullable_not_gte: Long
-  barLongNullable_not_in: [Long]
-  barLongNullable_not_lt: Long
-  barLongNullable_not_lte: Long
-  barLong_gt: Long
-  barLong_gte: Long
-  barLong_in: [Long!]
-  barLong_lt: Long
-  barLong_lte: Long
   barLong_not: Long
-  barLong_not_gt: Long
-  barLong_not_gte: Long
+  barLong_in: [Long!]
   barLong_not_in: [Long!]
+  barLong_gt: Long
+  barLong_not_gt: Long
+  barLong_gte: Long
+  barLong_not_gte: Long
+  barLong_lt: Long
   barLong_not_lt: Long
+  barLong_lte: Long
   barLong_not_lte: Long
+  barFloat: Float
+  barFloat_not: Float
+  barFloat_in: [Float!]
+  barFloat_not_in: [Float!]
+  barFloat_gt: Float
+  barFloat_not_gt: Float
+  barFloat_gte: Float
+  barFloat_not_gte: Float
+  barFloat_lt: Float
+  barFloat_not_lt: Float
+  barFloat_lte: Float
+  barFloat_not_lte: Float
+  barDouble: Float
+  barDouble_not: Float
+  barDouble_in: [Float!]
+  barDouble_not_in: [Float!]
+  barDouble_gt: Float
+  barDouble_not_gt: Float
+  barDouble_gte: Float
+  barDouble_not_gte: Float
+  barDouble_lt: Float
+  barDouble_not_lt: Float
+  barDouble_lte: Float
+  barDouble_not_lte: Float
+  barDecimal: Decimal
+  barDecimal_not: Decimal
+  barDecimal_in: [Decimal!]
+  barDecimal_not_in: [Decimal!]
+  barDecimal_gt: Decimal
+  barDecimal_not_gt: Decimal
+  barDecimal_gte: Decimal
+  barDecimal_not_gte: Decimal
+  barDecimal_lt: Decimal
+  barDecimal_not_lt: Decimal
+  barDecimal_lte: Decimal
+  barDecimal_not_lte: Decimal
   barShortNullable: Short
-  barShortNullable_gt: Short
-  barShortNullable_gte: Short
-  barShortNullable_in: [Short]
-  barShortNullable_lt: Short
-  barShortNullable_lte: Short
   barShortNullable_not: Short
-  barShortNullable_not_gt: Short
-  barShortNullable_not_gte: Short
+  barShortNullable_in: [Short]
   barShortNullable_not_in: [Short]
+  barShortNullable_gt: Short
+  barShortNullable_not_gt: Short
+  barShortNullable_gte: Short
+  barShortNullable_not_gte: Short
+  barShortNullable_lt: Short
   barShortNullable_not_lt: Short
+  barShortNullable_lte: Short
   barShortNullable_not_lte: Short
+  barIntNullable: Int
+  barIntNullable_not: Int
+  barIntNullable_in: [Int]
+  barIntNullable_not_in: [Int]
+  barIntNullable_gt: Int
+  barIntNullable_not_gt: Int
+  barIntNullable_gte: Int
+  barIntNullable_not_gte: Int
+  barIntNullable_lt: Int
+  barIntNullable_not_lt: Int
+  barIntNullable_lte: Int
+  barIntNullable_not_lte: Int
+  barLongNullable: Long
+  barLongNullable_not: Long
+  barLongNullable_in: [Long]
+  barLongNullable_not_in: [Long]
+  barLongNullable_gt: Long
+  barLongNullable_not_gt: Long
+  barLongNullable_gte: Long
+  barLongNullable_not_gte: Long
+  barLongNullable_lt: Long
+  barLongNullable_not_lt: Long
+  barLongNullable_lte: Long
+  barLongNullable_not_lte: Long
+  barFloatNullable: Float
+  barFloatNullable_not: Float
+  barFloatNullable_in: [Float]
+  barFloatNullable_not_in: [Float]
+  barFloatNullable_gt: Float
+  barFloatNullable_not_gt: Float
+  barFloatNullable_gte: Float
+  barFloatNullable_not_gte: Float
+  barFloatNullable_lt: Float
+  barFloatNullable_not_lt: Float
+  barFloatNullable_lte: Float
+  barFloatNullable_not_lte: Float
+  barDoubleNullable: Float
+  barDoubleNullable_not: Float
+  barDoubleNullable_in: [Float]
+  barDoubleNullable_not_in: [Float]
+  barDoubleNullable_gt: Float
+  barDoubleNullable_not_gt: Float
+  barDoubleNullable_gte: Float
+  barDoubleNullable_not_gte: Float
+  barDoubleNullable_lt: Float
+  barDoubleNullable_not_lt: Float
+  barDoubleNullable_lte: Float
+  barDoubleNullable_not_lte: Float
+  barDecimalNullable: Decimal
+  barDecimalNullable_not: Decimal
+  barDecimalNullable_in: [Decimal]
+  barDecimalNullable_not_in: [Decimal]
+  barDecimalNullable_gt: Decimal
+  barDecimalNullable_not_gt: Decimal
+  barDecimalNullable_gte: Decimal
+  barDecimalNullable_not_gte: Decimal
+  barDecimalNullable_lt: Decimal
+  barDecimalNullable_not_lt: Decimal
+  barDecimalNullable_lte: Decimal
+  barDecimalNullable_not_lte: Decimal
   fooBar: FooBar
-  fooBar_gt: FooBar
-  fooBar_gte: FooBar
-  fooBar_in: [FooBar!]
-  fooBar_lt: FooBar
-  fooBar_lte: FooBar
   fooBar_not: FooBar
-  fooBar_not_gt: FooBar
-  fooBar_not_gte: FooBar
+  fooBar_in: [FooBar!]
   fooBar_not_in: [FooBar!]
+  fooBar_gt: FooBar
+  fooBar_not_gt: FooBar
+  fooBar_gte: FooBar
+  fooBar_not_gte: FooBar
+  fooBar_lt: FooBar
   fooBar_not_lt: FooBar
+  fooBar_lte: FooBar
   fooBar_not_lte: FooBar
-  OR: [FooFilter!]
 }
 
 enum FooBar {
@@ -160,20 +160,26 @@ enum FooBar {
   BAR
 }
 
+"The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`."
+directive @defer("If this argument label has a value other than null, it will be passed on to the result of this defer directive. This label is intended to give client applications a way to identify to which fragment a deferred result belongs to." label: String "Deferred when true." if: Boolean) on FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+"The @deprecated directive is used within the type system definition language to indicate deprecated portions of a GraphQL service’s schema,such as deprecated fields on a type or deprecated enum values."
+directive @deprecated("Deprecations include a reason for why it is deprecated, which is formatted using Markdown syntax (as specified by CommonMark)." reason: String = "No longer supported") on FIELD_DEFINITION | ENUM_VALUE
+
+"Directs the executor to include this field or fragment only when the `if` argument is true."
+directive @include("Included when true." if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+"Directs the executor to skip this field or fragment when the `if` argument is true."
+directive @skip("Skipped when true." if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+"The `@stream` directive may be provided for a field of `List` type so that the backend can leverage technology such as asynchronous iterators to provide a partial list in the initial response, and additional list items in subsequent responses. `@include` and `@skip` take precedence over `@stream`."
+directive @stream("If this argument label has a value other than null, it will be passed on to the result of this stream directive. This label is intended to give client applications a way to identify to which fragment a streamed result belongs to." label: String "The initial elements that shall be send down to the consumer." initialCount: Int! "Streamed when true." if: Boolean!) on FIELD
+
 "The built-in `Decimal` scalar type."
 scalar Decimal
-
-"The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http:\/\/en.wikipedia.org\/wiki\/IEEE_floating_point)."
-scalar Float
-
-"The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1."
-scalar Int
 
 "The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
 scalar Long
 
 "The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1."
 scalar Short
-
-"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
-scalar String

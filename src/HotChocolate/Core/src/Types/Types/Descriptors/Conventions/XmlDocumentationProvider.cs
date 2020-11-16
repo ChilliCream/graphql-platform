@@ -13,8 +13,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
 {
-    public class XmlDocumentationProvider
-        : IDocumentationProvider
+    public class XmlDocumentationProvider : IDocumentationProvider
     {
         private const string _summaryElementName = "summary";
         private const string _exceptionElementName = "exception";
@@ -28,15 +27,9 @@ namespace HotChocolate.Types.Descriptors
 
         private readonly IXmlDocumentationFileResolver _fileResolver;
 
-        public XmlDocumentationProvider(
-            IXmlDocumentationFileResolver fileResolver)
+        public XmlDocumentationProvider(IXmlDocumentationFileResolver fileResolver)
         {
-            if (fileResolver == null)
-            {
-                throw new ArgumentNullException(nameof(fileResolver));
-            }
-
-            _fileResolver = fileResolver;
+            _fileResolver = fileResolver ?? throw new ArgumentNullException(nameof(fileResolver));
         }
 
         public string? GetDescription(Type type) =>
@@ -152,7 +145,7 @@ namespace HotChocolate.Types.Descriptors
             foreach (var node in element.Nodes())
             {
                 var currentElement = node as XElement;
-                if (currentElement == null)
+                if (currentElement is null)
                 {
                     description.Append(node);
                     continue;
@@ -244,7 +237,7 @@ namespace HotChocolate.Types.Descriptors
                     var result = document.XPathSelectElements(name.Path);
 
                     var element = result.FirstOrDefault();
-                    if (element == null)
+                    if (element is null)
                     {
                         return null;
                     }
@@ -277,7 +270,7 @@ namespace HotChocolate.Types.Descriptors
             MemberInfo member,
             XElement element)
         {
-            if (element == null)
+            if (element is null)
             {
                 return;
             }

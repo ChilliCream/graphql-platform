@@ -1,19 +1,17 @@
-using HotChocolate.Types.Filters.Conventions;
-
 namespace HotChocolate.Types.Filters
 {
     public class FilterMiddlewareContext
     {
-        public FilterMiddlewareContext(IFilterConvention convention)
+        public FilterMiddlewareContext(string argumentName)
         {
-            Convention = convention;
+            ArgumentName = argumentName;
         }
 
-        public IFilterConvention Convention { get; }
+        public string ArgumentName { get; }
 
-        public static FilterMiddlewareContext Create(IFilterConvention convention)
+        public static FilterMiddlewareContext Create(string argumentName)
         {
-            return new FilterMiddlewareContext(convention);
+            return new FilterMiddlewareContext(argumentName);
         }
     }
 }

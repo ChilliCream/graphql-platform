@@ -2,16 +2,18 @@ using System;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
-    public abstract class FloatTypeBase<TClrType>
-       : ScalarType<TClrType>
-       where TClrType : IComparable
+    public abstract class FloatTypeBase<TRuntimeType>
+       : ScalarType<TRuntimeType>
+       where TRuntimeType : IComparable
     {
         protected FloatTypeBase(
             NameString name,
-            TClrType min,
-            TClrType max,
+            TRuntimeType min,
+            TRuntimeType max,
             BindingBehavior bind = BindingBehavior.Explicit)
            : base(name, bind)
         {
@@ -19,23 +21,23 @@ namespace HotChocolate.Types
             MaxValue = max;
         }
 
-        public TClrType MinValue { get; }
+        public TRuntimeType MinValue { get; }
 
-        public TClrType MaxValue { get; }
+        public TRuntimeType MaxValue { get; }
 
-        public override bool IsInstanceOfType(IValueNode literal)
+        public override bool IsInstanceOfType(IValueNode valueSyntax)
         {
-            if (literal == null)
+            if (valueSyntax is null)
             {
-                throw new ArgumentNullException(nameof(literal));
+                throw new ArgumentNullException(nameof(valueSyntax));
             }
 
-            if (literal is NullValueNode)
+            if (valueSyntax is NullValueNode)
             {
                 return true;
             }
 
-            if (literal is FloatValueNode floatLiteral && IsInstanceOfType(floatLiteral))
+            if (valueSyntax is FloatValueNode floatLiteral && IsInstanceOfType(floatLiteral))
             {
                 return true;
             }
@@ -43,7 +45,7 @@ namespace HotChocolate.Types
             // Input coercion rules specify that float values can be coerced
             // from IntValueNode and FloatValueNode:
             // http://facebook.github.io/graphql/June2018/#sec-Float
-            if (literal is IntValueNode intLiteral && IsInstanceOfType(intLiteral))
+            if (valueSyntax is IntValueNode intLiteral && IsInstanceOfType(intLiteral))
             {
                 return true;
             }
@@ -51,45 +53,12 @@ namespace HotChocolate.Types
             return false;
         }
 
-        protected virtual bool IsInstanceOfType(IFloatValueLiteral literal)
+        protected virtual bool IsInstanceOfType(IFloatValueLiteral valueSyntax)
         {
-            return IsInstanceOfType(ParseLiteral(literal));
+            return IsInstanceOfType(ParseLiteral(valueSyntax));
         }
 
-        public override object ParseLiteral(IValueNode literal)
-        {
-            if (literal == null)
-            {
-                throw new ArgumentNullException(nameof(literal));
-            }
-
-            if (literal is NullValueNode)
-            {
-                return null;
-            }
-
-            if (literal is FloatValueNode floatLiteral)
-            {
-                return ParseLiteral(floatLiteral);
-            }
-
-            // Input coercion rules specify that float values can be coerced
-            // from IntValueNode and FloatValueNode:
-            // http://facebook.github.io/graphql/June2018/#sec-Float
-
-            if (literal is IntValueNode intLiteral)
-            {
-                return ParseLiteral(intLiteral);
-            }
-
-            throw new ScalarSerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseLiteral(
-                    Name, literal.GetType()));
-        }
-
-        protected abstract TClrType ParseLiteral(IFloatValueLiteral literal);
-
-        protected virtual bool IsInstanceOfType(TClrType value)
+        protected virtual bool IsInstanceOfType(TRuntimeType value)
         {
             if (value.CompareTo(MinValue) == -1 || value.CompareTo(MaxValue) == 1)
             {
@@ -99,66 +68,122 @@ namespace HotChocolate.Types
             return true;
         }
 
-        public override IValueNode ParseValue(object value)
+        public override object? ParseLiteral(IValueNode valueSyntax, bool withDefaults = true)
         {
-            if (value is null)
+            if (valueSyntax is null)
+            {
+                throw new ArgumentNullException(nameof(valueSyntax));
+            }
+
+            if (valueSyntax is NullValueNode)
+            {
+                return null;
+            }
+
+            if (valueSyntax is FloatValueNode floatLiteral)
+            {
+                return ParseLiteral(floatLiteral);
+            }
+
+            // Input coercion rules specify that float values can be coerced
+            // from IntValueNode and FloatValueNode:
+            // http://facebook.github.io/graphql/June2018/#sec-Float
+
+            if (valueSyntax is IntValueNode intLiteral)
+            {
+                return ParseLiteral(intLiteral);
+            }
+
+            throw new SerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, valueSyntax.GetType()),
+                this);
+        }
+
+        protected abstract TRuntimeType ParseLiteral(IFloatValueLiteral valueSyntax);
+
+        public override IValueNode ParseValue(object? runtimeValue)
+        {
+            if (runtimeValue is null)
             {
                 return NullValueNode.Default;
             }
 
-            if (value is TClrType casted && IsInstanceOfType(casted))
+            if (runtimeValue is TRuntimeType casted && IsInstanceOfType(casted))
             {
                 return ParseValue(casted);
             }
 
-            throw new ScalarSerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseValue(
-                    Name, value.GetType()));
+            throw new SerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseValue(Name, runtimeValue.GetType()),
+                this);
         }
 
-        protected abstract FloatValueNode ParseValue(TClrType value);
+        protected abstract FloatValueNode ParseValue(TRuntimeType runtimeValue);
 
-        public override bool TrySerialize(object value, out object serialized)
+        public sealed override IValueNode ParseResult(object? resultValue)
         {
-            if (value is null)
+            if (resultValue is null)
             {
-                serialized = null;
+                return NullValueNode.Default;
+            }
+
+            if (resultValue is TRuntimeType casted && IsInstanceOfType(casted))
+            {
+                return ParseValue(casted);
+            }
+
+            if (TryConvertSerialized(resultValue, ValueKind.Integer, out TRuntimeType c)
+                && IsInstanceOfType(c))
+            {
+                return ParseValue(c);
+            }
+
+            throw new SerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()),
+                this);
+        }
+
+        public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+        {
+            if (runtimeValue is null)
+            {
+                resultValue = null;
                 return true;
             }
 
-            if (value is TClrType casted && IsInstanceOfType(casted))
+            if (runtimeValue is TRuntimeType casted && IsInstanceOfType(casted))
             {
-                serialized = value;
+                resultValue = runtimeValue;
                 return true;
             }
 
-            serialized = null;
+            resultValue = null;
             return false;
         }
 
-        public override bool TryDeserialize(object serialized, out object value)
+        public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
         {
-            if (serialized is null)
+            if (resultValue is null)
             {
-                value = null;
+                runtimeValue = null;
                 return true;
             }
 
-            if (serialized is TClrType casted && IsInstanceOfType(casted))
+            if (resultValue is TRuntimeType casted && IsInstanceOfType(casted))
             {
-                value = serialized;
+                runtimeValue = resultValue;
                 return true;
             }
 
-            if ((TryConvertSerialized(serialized, ValueKind.Float, out TClrType c)
-                || TryConvertSerialized(serialized, ValueKind.Integer, out c))
+            if ((TryConvertSerialized(resultValue, ValueKind.Float, out TRuntimeType c)
+                || TryConvertSerialized(resultValue, ValueKind.Integer, out c))
                 && IsInstanceOfType(c))
             {
-                value = c;
+                runtimeValue = c;
                 return true;
             }
 
-            value = null;
+            runtimeValue = null;
             return false;
         }
     }

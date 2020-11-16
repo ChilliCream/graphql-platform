@@ -1,8 +1,5 @@
 ﻿{
-  "Data": {
+  "data": {
     "description": "BAR"
-  },
-  "Errors": null,
-  "Extensions": null,
-  "ContextData": null
+  }
 }

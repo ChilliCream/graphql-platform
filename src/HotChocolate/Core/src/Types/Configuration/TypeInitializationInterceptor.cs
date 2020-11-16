@@ -1,52 +1,83 @@
 using System.Collections.Generic;
 using HotChocolate.Types.Descriptors.Definitions;
 
+#nullable enable
+
 namespace HotChocolate.Configuration
 {
-    public class TypeInitializationInterceptor
+    public class TypeInterceptor
         : ITypeInitializationInterceptor
     {
+        public virtual bool TriggerAggregations => false;
+
         public virtual bool CanHandle(ITypeSystemObjectContext context) => true;
 
+        public virtual void OnBeforeInitialize(
+            ITypeDiscoveryContext discoveryContext)
+        {
+        }
+
+        public virtual void OnAfterInitialize(
+            ITypeDiscoveryContext discoveryContext,
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
+        {
+        }
+        
+        public virtual void OnTypesInitialized(
+            IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
+        {
+        }
+
         public virtual void OnAfterRegisterDependencies(
-            IInitializationContext context,
-            DefinitionBase definition,
-            IDictionary<string, object> contextData)
+            ITypeDiscoveryContext discoveryContext,
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
         {
         }
 
         public virtual void OnBeforeRegisterDependencies(
-            IInitializationContext context,
-            DefinitionBase definition,
-            IDictionary<string, object> contextData)
+            ITypeDiscoveryContext discoveryContext,
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
         {
         }
 
         public virtual void OnBeforeCompleteName(
-            ICompletionContext context,
-            DefinitionBase definition,
-            IDictionary<string, object> contextData)
+            ITypeCompletionContext completionContext,
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
         {
         }
 
         public virtual void OnAfterCompleteName(
-            ICompletionContext context,
-            DefinitionBase definition,
-            IDictionary<string, object> contextData)
+            ITypeCompletionContext completionContext,
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
+        {
+        }
+
+        public virtual void OnTypesCompletedName(
+            IReadOnlyCollection<ITypeCompletionContext> completionContext)
         {
         }
 
         public virtual void OnBeforeCompleteType(
-            ICompletionContext context,
-            DefinitionBase definition,
-            IDictionary<string, object> contextData)
+            ITypeCompletionContext completionContext,
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
         {
         }
 
         public virtual void OnAfterCompleteType(
-            ICompletionContext context,
-            DefinitionBase definition,
-            IDictionary<string, object> contextData)
+            ITypeCompletionContext completionContext,
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
+        {
+        }
+
+        public virtual void OnTypesCompleted(
+            IReadOnlyCollection<ITypeCompletionContext> completionContext)
         {
         }
     }

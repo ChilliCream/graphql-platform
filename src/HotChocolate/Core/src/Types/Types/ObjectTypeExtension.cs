@@ -24,7 +24,7 @@ namespace HotChocolate.Types
         public override TypeKind Kind => TypeKind.Object;
 
         protected override ObjectTypeDefinition CreateDefinition(
-            IInitializationContext context)
+            ITypeDiscoveryContext context)
         {
             var descriptor = ObjectTypeDescriptor.New(
                 context.DescriptorContext);
@@ -35,7 +35,7 @@ namespace HotChocolate.Types
         protected virtual void Configure(IObjectTypeDescriptor descriptor) { }
 
         protected override void OnRegisterDependencies(
-            IInitializationContext context,
+            ITypeDiscoveryContext context,
             ObjectTypeDefinition definition)
         {
             base.OnRegisterDependencies(context, definition);
@@ -43,7 +43,7 @@ namespace HotChocolate.Types
         }
 
         internal override void Merge(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             INamedType type)
         {
             if (type is ObjectType objectType)
@@ -63,7 +63,7 @@ namespace HotChocolate.Types
 
                 TypeExtensionHelper.MergeObjectFields(
                     context,
-                    objectType.Definition.ClrType,
+                    objectType.Definition.RuntimeType,
                     Definition.Fields,
                     objectType.Definition.Fields);
 

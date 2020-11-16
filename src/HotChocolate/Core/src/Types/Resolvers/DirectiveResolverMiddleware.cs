@@ -14,7 +14,7 @@ namespace HotChocolate.Resolvers
                 throw new ArgumentNullException(nameof(directiveName));
             }
 
-            if (middleware == null)
+            if (middleware is null)
             {
                 throw new ArgumentNullException(nameof(middleware));
             }

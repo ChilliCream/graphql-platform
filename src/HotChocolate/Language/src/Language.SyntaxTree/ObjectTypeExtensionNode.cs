@@ -16,7 +16,7 @@ namespace HotChocolate.Language
             : base(location, name, directives, interfaces, fields)
         { }
 
-        public override NodeKind Kind { get; } = NodeKind.ObjectTypeExtension;
+        public override SyntaxKind Kind { get; } = SyntaxKind.ObjectTypeExtension;
 
         public override IEnumerable<ISyntaxNode> GetNodes()
         {

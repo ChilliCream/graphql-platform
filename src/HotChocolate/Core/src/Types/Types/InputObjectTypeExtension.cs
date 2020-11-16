@@ -25,7 +25,7 @@ namespace HotChocolate.Types
         public override TypeKind Kind { get; } = TypeKind.InputObject;
 
         protected override InputObjectTypeDefinition CreateDefinition(
-            IInitializationContext context)
+            ITypeDiscoveryContext context)
         {
             var descriptor = InputObjectTypeDescriptor.New(
                 context.DescriptorContext);
@@ -39,7 +39,7 @@ namespace HotChocolate.Types
         }
 
         protected override void OnRegisterDependencies(
-            IInitializationContext context,
+            ITypeDiscoveryContext context,
             InputObjectTypeDefinition definition)
         {
             base.OnRegisterDependencies(context, definition);
@@ -47,7 +47,7 @@ namespace HotChocolate.Types
         }
 
         internal override void Merge(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             INamedType type)
         {
             if (type is InputObjectType inputObjectType)

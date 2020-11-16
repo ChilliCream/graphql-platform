@@ -21,7 +21,7 @@ namespace HotChocolate.Types
 
         public static bool IsNonNullType(this IType type)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
@@ -31,7 +31,7 @@ namespace HotChocolate.Types
 
         public static bool IsCompositeType(this IType type)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
@@ -43,7 +43,7 @@ namespace HotChocolate.Types
 
         public static bool IsComplexType(this IType type)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
@@ -54,7 +54,7 @@ namespace HotChocolate.Types
 
         public static bool IsLeafType(this IType type)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
@@ -65,7 +65,7 @@ namespace HotChocolate.Types
 
         public static bool IsListType(this IType type)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
@@ -75,7 +75,7 @@ namespace HotChocolate.Types
 
         public static bool IsScalarType(this IType type)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
@@ -85,7 +85,7 @@ namespace HotChocolate.Types
 
         public static bool IsObjectType(this IType type)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
@@ -95,7 +95,7 @@ namespace HotChocolate.Types
 
         public static bool IsEnumType(this IType type)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
@@ -105,7 +105,7 @@ namespace HotChocolate.Types
 
         public static bool IsInterfaceType(this IType type)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
@@ -115,7 +115,7 @@ namespace HotChocolate.Types
 
         public static bool IsInputObjectType(this IType type)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
@@ -125,7 +125,7 @@ namespace HotChocolate.Types
 
         public static bool IsInputType(this IType type)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
@@ -135,7 +135,7 @@ namespace HotChocolate.Types
 
         public static bool IsOutputType(this IType type)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
@@ -145,7 +145,7 @@ namespace HotChocolate.Types
 
         public static bool IsUnionType(this IType type)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
@@ -155,7 +155,7 @@ namespace HotChocolate.Types
 
         public static bool IsAbstractType(this IType type)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
@@ -183,7 +183,7 @@ namespace HotChocolate.Types
         public static bool IsType<T>(this IType type)
             where T : IType
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
@@ -193,8 +193,7 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            if (type is NonNullType nnt
-                && nnt.Type is T t)
+            if (type is NonNullType nnt && nnt.Type is T)
             {
                 return true;
             }
@@ -204,7 +203,7 @@ namespace HotChocolate.Types
 
         public static IType InnerType(this IType type)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
@@ -224,7 +223,7 @@ namespace HotChocolate.Types
 
         public static IType NullableType(this IType type)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
@@ -238,7 +237,7 @@ namespace HotChocolate.Types
 
         public static NameString TypeName(this IType type)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
@@ -248,28 +247,18 @@ namespace HotChocolate.Types
 
         public static ListType ListType(this IType type)
         {
-            if (type == null)
+            return type switch
             {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            if (type is ListType lt)
-            {
-                return lt;
-            }
-
-            if (type is NonNullType nnt && nnt.Type is ListType nnlt)
-            {
-                return nnlt;
-            }
-
-            throw new ArgumentException(
-                TypeResources.TypeExtensions_InvalidStructure);
+                null => throw new ArgumentNullException(nameof(type)),
+                ListType lt => lt,
+                NonNullType nnt when nnt.Type is ListType nnlt => nnlt,
+                _ => throw new ArgumentException(TypeResources.TypeExtensions_InvalidStructure)
+            };
         }
 
         public static INamedType NamedType(this IType type)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
@@ -281,7 +270,7 @@ namespace HotChocolate.Types
                 return n1;
             }
 
-            for (int i = 0; i < 6; i++)
+            for (var i = 0; i < 6; i++)
             {
                 current = current.InnerType();
 
@@ -296,22 +285,19 @@ namespace HotChocolate.Types
 
         public static IType ElementType(this IType type)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
 
-            if (type.IsListType())
+            if (type is ListType l)
             {
-                if (type is ListType l)
-                {
-                    return l.ElementType;
-                }
-                else if (type is NonNullType n
-                    && n.Type is ListType nl)
-                {
-                    return nl.ElementType;
-                }
+                return l.ElementType;
+            }
+
+            if (type is NonNullType n && n.Type is ListType nl)
+            {
+                return nl.ElementType;
             }
 
             throw new ArgumentException(
@@ -326,33 +312,25 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            if (x is NonNullType xnn && y is NonNullType ynn)
+            return x switch
             {
-                return xnn.Type.IsEqualTo(ynn.Type);
-            }
-            else if (x is ListType xl && y is ListType yl)
-            {
-                return xl.ElementType.IsEqualTo(yl.ElementType);
-            }
-            else if (x is INamedType xnt && y is INamedType ynt)
-            {
-                return string.Equals(xnt.Name, ynt.Name,
-                    StringComparison.Ordinal);
-            }
-
-            return false;
+                NonNullType xnn when y is NonNullType ynn => xnn.Type.IsEqualTo(ynn.Type),
+                ListType xl when y is ListType yl => xl.ElementType.IsEqualTo(yl.ElementType),
+                INamedType xnt when y is INamedType ynt => xnt.Name.Equals(ynt.Name),
+                _ => false
+            };
         }
 
-        public static Type ToClrType(this IType type)
+        public static Type ToRuntimeType(this IType type)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
 
             if (type.IsListType())
             {
-                Type elementType = ToClrType(type.ElementType());
+                Type elementType = ToRuntimeType(type.ElementType());
                 return typeof(List<>).MakeGenericType(elementType);
             }
 
@@ -363,12 +341,12 @@ namespace HotChocolate.Types
 
             if (type.IsNonNullType())
             {
-                return ToClrType(type.InnerType());
+                return ToRuntimeType(type.InnerType());
             }
 
-            if (type is IHasClrType t && t.ClrType != null)
+            if (type is IHasRuntimeType t && t.RuntimeType != null)
             {
-                return t.ClrType;
+                return t.RuntimeType;
             }
 
             return typeof(object);
@@ -376,18 +354,18 @@ namespace HotChocolate.Types
 
         private static Type LeafTypeToClrType(IType type)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
 
-            if (type.IsLeafType() && type.NamedType() is IHasClrType t)
+            if (type.IsLeafType() && type.NamedType() is IHasRuntimeType t)
             {
-                if (!type.IsNonNullType() && t.ClrType.IsValueType)
+                if (!type.IsNonNullType() && t.RuntimeType.IsValueType)
                 {
-                    return typeof(Nullable<>).MakeGenericType(t.ClrType);
+                    return typeof(Nullable<>).MakeGenericType(t.RuntimeType);
                 }
-                return t.ClrType;
+                return t.RuntimeType;
             }
 
             throw new NotSupportedException();
@@ -395,7 +373,7 @@ namespace HotChocolate.Types
 
         public static ITypeNode ToTypeNode(this IType type)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }

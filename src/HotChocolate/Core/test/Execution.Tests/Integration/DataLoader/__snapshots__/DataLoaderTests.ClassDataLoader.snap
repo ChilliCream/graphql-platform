@@ -1,0 +1,59 @@
+﻿[
+  {
+    "Label": null,
+    "Path": null,
+    "Data": {
+      "a": "a",
+      "b": "b",
+      "bar": {
+        "c": "c"
+      }
+    },
+    "Errors": null,
+    "Extensions": {
+      "loads": [
+        [
+          "a",
+          "b",
+          "c"
+        ]
+      ]
+    },
+    "ContextData": null,
+    "HasNext": null
+  },
+  {
+    "Label": null,
+    "Path": null,
+    "Data": {
+      "a": "a"
+    },
+    "Errors": null,
+    "Extensions": {
+      "loads": [
+        [
+          "a"
+        ]
+      ]
+    },
+    "ContextData": null,
+    "HasNext": null
+  },
+  {
+    "Label": null,
+    "Path": null,
+    "Data": {
+      "c": "c"
+    },
+    "Errors": null,
+    "Extensions": {
+      "loads": [
+        [
+          "c"
+        ]
+      ]
+    },
+    "ContextData": null,
+    "HasNext": null
+  }
+]

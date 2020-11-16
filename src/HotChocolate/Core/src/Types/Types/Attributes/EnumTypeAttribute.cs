@@ -12,6 +12,11 @@ namespace HotChocolate.Types
     public sealed class EnumTypeAttribute
         : EnumTypeDescriptorAttribute
     {
+        public EnumTypeAttribute(string? name = null)
+        {
+            Name = name;
+        }
+
         public string? Name { get; set; }
 
         public override void OnConfigure(

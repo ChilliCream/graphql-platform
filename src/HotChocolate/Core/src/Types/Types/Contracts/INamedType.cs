@@ -5,6 +5,7 @@
         , IHasName
         , IHasDescription
         , IHasSyntaxNode
+        , IHasReadOnlyContextData
     {
         bool IsAssignableFrom(INamedType type);
     }

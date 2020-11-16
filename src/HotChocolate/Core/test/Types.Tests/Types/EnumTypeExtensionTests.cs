@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.Xml;
 using HotChocolate.Language;
 using Xunit;
 
@@ -21,7 +20,7 @@ namespace HotChocolate.Types
 
             // assert
             FooType type = schema.GetType<FooType>("Foo");
-            Assert.True(type.TryGetValue("_QUOX", out _));
+            Assert.True(type.TryGetRuntimeValue("_QUOX", out _));
         }
 
         [Fact]

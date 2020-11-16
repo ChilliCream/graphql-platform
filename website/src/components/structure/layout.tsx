@@ -36,23 +36,17 @@ export const Layout: FunctionComponent = ({ children }) => {
   );
 };
 
-const MainContentWrapper = styled.main`
+const MainContentWrapper = styled.div`
   display: flex;
   flex-direction: column;
   width: 100vw;
   background-color: #fff;
-
-  @media only screen and (min-width: 1500px) {
-    margin: 0 auto;
-    width: 1300px;
-    box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);
-  }
 `;
 
 const Content = styled.main`
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 60px;
+  margin-top: 60px;
   width: 100%;
 `;

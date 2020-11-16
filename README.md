@@ -1,245 +1,108 @@
-![HotChocolate](https://chillicream.com/img/projects/hotchocolate-banner.svg)
+![ChilliCream GraphQL Platform](https://chillicream.com/resources/chillicream-graphql-banner.svg)
 
-[![Financial Contributors on Open Collective](https://opencollective.com/chillicream/all/badge.svg?label=financial+contributors)](https://opencollective.com/chillicream) [![GitHub release](https://img.shields.io/github/release/chillicream/HotChocolate.svg)](https://github.com/ChilliCream/hotchocolate/releases) [![NuGet Package](https://img.shields.io/nuget/v/hotchocolate.svg)](https://www.nuget.org/packages/HotChocolate/) [![License](https://img.shields.io/github/license/ChilliCream/hotchocolate.svg)](https://github.com/ChilliCream/hotchocolate/releases) [![Azure DevOps builds](https://img.shields.io/azure-devops/build/chillicream/414ff59c-4852-4687-b04d-6973125e7de2/48.svg)](https://chillicream.visualstudio.com/HotChocolate/_build?definitionId=48) [![Azure DevOps tests](https://img.shields.io/azure-devops/tests/chillicream/HotChocolate/48.svg)](https://chillicream.visualstudio.com/HotChocolate/_build?definitionId=48) [![Coverage Status](https://sonarcloud.io/api/project_badges/measure?project=HotChocolate&metric=coverage)](https://sonarcloud.io/dashboard?id=HotChocolate) [![Quality](https://sonarcloud.io/api/project_badges/measure?project=HotChocolate&metric=alert_status)](https://sonarcloud.io/dashboard?id=HotChocolate)
+[![Financial Contributors on Open Collective](https://opencollective.com/chillicream/all/badge.svg?label=financial+contributors)](https://opencollective.com/chillicream) [![GitHub release](https://img.shields.io/github/release/chillicream/HotChocolate.svg)](https://github.com/ChilliCream/hotchocolate/releases) [![NuGet Package](https://img.shields.io/nuget/v/hotchocolate.svg)](https://www.nuget.org/packages/HotChocolate/) [![License](https://img.shields.io/github/license/ChilliCream/hotchocolate.svg)](https://github.com/ChilliCream/hotchocolate/blob/main/LICENSE) [![Azure DevOps builds](https://img.shields.io/azure-devops/build/chillicream/414ff59c-4852-4687-b04d-6973125e7de2/68.svg)](https://chillicream.visualstudio.com/HotChocolate/_build?definitionId=68) [![Azure DevOps tests](https://img.shields.io/azure-devops/tests/chillicream/HotChocolate/68.svg)](https://chillicream.visualstudio.com/HotChocolate/_build?definitionId=68) [![Coverage Status](https://sonarcloud.io/api/project_badges/measure?project=HotChocolate&metric=coverage)](https://sonarcloud.io/dashboard?id=HotChocolate) [![Quality](https://sonarcloud.io/api/project_badges/measure?project=HotChocolate&metric=alert_status)](https://sonarcloud.io/dashboard?id=HotChocolate)
 [![Slack channel](https://img.shields.io/badge/join%20the%20community-on%20slack-blue.svg)](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q) [![Twitter](https://img.shields.io/badge/join%20us-on%20twitter-green.svg)](https://twitter.com/chilli_cream)
 
 ---
 
-**Hot Chocolate is a GraphQL server for _.NET Core_ and _.NET Classic_**
+# ChilliCream GraphQL Platform
 
-_Hot Chocolate_ is a GraphQL server implementation based on the current GraphQL [June 2018 specification](https://graphql.github.io/graphql-spec/June2018/).
+The ChilliCream GraphQL Platform, at its core, is a new way to create powerful Backends. HotChocolate, our GraphQL server, connects any service or data source and creates a cohesive service to offer your consumers a unified API.
 
-## Getting Started
+![ChilliCream GraphQL Platform](https://chillicream.com/resources/chillicream-graphql-platform.svg)
 
-If you are just getting started with GraphQL a good way to learn is visiting [GraphQL.org](https://graphql.org).
-We have implemented the Star Wars example with the Hot Chocolate API and you can use our example implementation to follow along.
+## Product Overview
 
-To generate the example project, head over to your console and fire up the following commands:
+### Banana Cake Pop
 
-```bash
-mkdir starwars
-cd starwars
-dotnet new -i HotChocolate.Templates.StarWars
-dotnet new starwars
-```
+Our GraphQL IDE to explore, request and analyze any GraphQL endpoint.
 
-The GraphQL specification and more is available on the [Facebook GraphQL repository](https://github.com/graphql/graphql-spec).
+[Readme](src/BananaCakePop)
 
-If you want to get in touch with us you can do so by joining our [slack group](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q).
+### Green Donut
 
-> This readme only provides a simple quickstart, in order to learn more about advanced features like schema stitching head over to our [documentation](http://hotchocolate.io).
+Our DataLoader to solve the N+1 problem.
 
-### Using Hot Chocolate
+[Readme](src/GreenDonut)
 
-The easiest way to get a feel for the API is to walk through our README example. If you need additional information, you can also have a look at our [documentation](http://hotchocolate.io).
+### Hot Chocolate
 
-_Hot Chocolate_ can build a GraphQL schema, serve queries against that schema and host that schema for web requests.
+Our GraphQL server to create GraphQL endpoints and merge schemas.
 
-_For our examples we use .net core and the dotnet CLI which you can download [here](https://dot.net)._
+[Readme](src/HotChocolate)
 
-Let’s get started by setting up a new console application that we will use to showcase how to set up a GraphQL schema and execute queries against it.
+### Marshmellow Pie
 
-```bash
-mkdir graphql-demo
-cd graphql-demo
-dotnet new console -n graphql-console
-```
+Our schema registry for any GraphQL client and server.
 
-Now add the query engine package to your project with the following command.
+[Readme](src/MarshmallowPie)
 
-```bash
-dotnet add package HotChocolate
-```
+### Strawberry Shake
 
-The GraphQL schema describes the capabilities of a GraphQL API. _Hot Chocolate_ allows you to do that code-first by defining .net classes describing that schema or schema-first by defining the schema in the GraphQL syntax and binding resolvers to it. Our README walk through shows you the code-first approach.
+Our GraphQL client to fetch data from any GraphQL endpoint.
 
-The following example shows the code-first approach.
+[Readme](src/StrawberryShake)
 
-> Make sure to add the following usings to your code in order to get access to the extension methods used in the examples:
-> using HotChocolate;
-> using HotChocolate.Execution;
+## Official Examples
 
-```csharp
-public class Program
-{
-    public static void Main(string[] args)
-    {
-        var schema = SchemaBuilder.New()
-          .AddQueryType<Query>()
-          .Create();
-    }
-}
+Examples of things built on top of the ChilliCream GraphQL Platform that are open source and can be explored by others.
 
-public class Query
-{
-    public string Hello() => "world";
-}
-```
+- [GraphQL workshop](https://github.com/ChilliCream/graphql-workshop)
 
-The code above defines a simple schema with one type `Query` and one field `hello` that returns a string.
+## From our community
 
-If you would write that schema down in the GraphQL syntax it would look as follows:
+[Check out](COMMUNITY.md) what members of our awesome community have made!
 
-```graphql
-type Query {
-  hello: String
-}
-```
+## Financial Contributors
 
-Moreover, we bound a resolver to the field that returns a fixed value _world_. A resolver is basically a function that resolves the data for the specified field.
+[Become a financial contributor](https://opencollective.com/chillicream/contribute) and help us sustain our community.
 
-In order to serve up queries against our schema lets make it executable:
+### Sponsor
 
-```csharp
-var executor = schema.MakeExecutable();
-```
+[Become a sponsor](https://opencollective.com/chillicream#contribute) and get your logo on our README on Github with a link to your site.
 
-Now that the schema is setup and executable we can serve up a query against it.
+<a href="https://opencollective.com/chillicream/sponsor/0/website?requireActive=false" target="_blank" rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/sponsor/0/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/chillicream/sponsor/1/website?requireActive=false" target="_blank" rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/sponsor/1/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/chillicream/sponsor/2/website?requireActive=false" target="_blank" rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/sponsor/2/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/chillicream/sponsor/3/website?requireActive=false" target="_blank" rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/sponsor/3/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/chillicream/sponsor/4/website?requireActive=false" target="_blank" rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/sponsor/4/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/chillicream/sponsor/5/website?requireActive=false" target="_blank" rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/sponsor/5/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/chillicream/sponsor/6/website?requireActive=false" target="_blank" rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/sponsor/6/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/chillicream/sponsor/7/website?requireActive=false" target="_blank" rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/sponsor/7/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/chillicream/sponsor/8/website?requireActive=false" target="_blank" rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/sponsor/8/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/chillicream/sponsor/9/website?requireActive=false" target="_blank" rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/sponsor/9/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/chillicream/sponsor/10/website?requireActive=false" target="_blank" rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/sponsor/10/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/chillicream/sponsor/11/website?requireActive=false" target="_blank" rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/sponsor/11/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/chillicream/sponsor/12/website?requireActive=false" target="_blank" rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/sponsor/12/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/chillicream/sponsor/13/website?requireActive=false" target="_blank" rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/sponsor/13/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/chillicream/sponsor/14/website?requireActive=false" target="_blank" rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/sponsor/14/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/chillicream/sponsor/15/website?requireActive=false" target="_blank" rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/sponsor/15/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/chillicream/sponsor/16/website?requireActive=false" target="_blank" rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/sponsor/16/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/chillicream/sponsor/17/website?requireActive=false" target="_blank" rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/sponsor/17/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/chillicream/sponsor/18/website?requireActive=false" target="_blank" rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/sponsor/18/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/chillicream/sponsor/19/website?requireActive=false" target="_blank" rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/sponsor/19/avatar.svg?requireActive=false"></a>
 
-```graphql
-{
-  hello
-}
-```
+### Backer
 
-```csharp
-// Prints
-// {
-//   data: { hello: "world" }
-// }
-Console.WriteLine(executor.Execute("{ hello }").ToJson());
-```
-
-This runs a query fetching the one field defined. The graphql function will first ensure the query is syntactically and semantically valid before executing it, reporting errors otherwise.
-
-```csharp
-// {
-//   "errors": [
-//     {
-//       "FieldName": "foo",
-//       "Locations": [
-//         {
-//           "Line": 1,
-//           "Column": 3
-//         }
-//       ],
-//       "Message": "Could not resolve the specified field."
-//     }
-//   ]
-// }
-Console.WriteLine(executor.Execute("{ foo }").ToJson());
-```
+[Become a backer](https://opencollective.com/chillicream#contribute) and get your image on our README on Github with a link to your site.
 
-In order to set up a GraphQL HTTP endpoint, Hot Chocolate comes with an ASP .Net core middleware.
-
-Create a new project with the web template that comes with your dotnet CLI.
-
-```bash
-dotnet new web -n graphql-web
-```
-
-Now add our middleware package to the project with the following command.
-
-```bash
-dotnet add package HotChocolate.AspNetCore
-```
-
-Open the Startup.cs and add the following code.
-
-```csharp
-protected override void ConfigureServices(IServiceCollection services)
-{
-    services.AddGraphQL(sp => SchemaBuilder.New()
-        .AddQueryType<Query>()
-        .AddServices(sp)
-        .Create());
-}
-```
-
-The above example adds the GraphQL schema and the execution engine to the dependency injection.
-
-```csharp
-protected override void Configure(IApplicationBuilder app, IHostingEnvironment env)
-{
-    if (env.IsDevelopment())
-    {
-        app.UseDeveloperExceptionPage();
-    }
-    app.UseGraphQL();
-}
-```
-
-This will set up all the necessary endpoints to query the GraphQL schema via HTTP GET or HTTP POST. In order to run a query against your schema, start your web host and get [Banana Cake Pop](https://hotchocolate.io/docs/banana-cakepop).
-
-By default, the middleware will be configured to listen on the service root for GraphQL requests. If you want to use a different endpoint route you can pass the desired route into the UseGraphQL instruction.
-
-```csharp
-protected override void Configure(IApplicationBuilder app, IHostingEnvironment env)
-{
-    if (env.IsDevelopment())
-    {
-        app.UseDeveloperExceptionPage();
-    }
-    app.UseGraphQL("Foo/Bar");
-}
-```
-
-> We also have a ASP.Net Framework middleware available.
-
-### Templates
-
-Apart from the Star Wars template, we also have a GraphQL server template that generates a project with everything hooked up so that you can start building your API quickly.
-
-To install the GraphQL server template, run the following command:
-
-```bash
-dotnet new -i HotChocolate.Templates.Server
-```
-
-Now that you have implemented this you can generate a new server project by running the following commands.
-
-```bash
-mkdir myserver
-cd myserver
-dotnet new graphql
-```
-
-## Features and Roadmap
-
-We have moved the roadmap into the [ROADMAP.md](ROADMAP.md)
-
-## Documentation
-
-For more examples and detailed documentation, click [here](http://hotchocolate.io).
-
-For documentation about our _DataLoader_ implementation click [here](https://github.com/ChilliCream/hotchocolate/tree/master/src/DataLoader).
-
-## Contributors
-
-### Code Contributors
-
-This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
-<a href="https://github.com/ChilliCream/hotchocolate/graphs/contributors"><img src="https://opencollective.com/chillicream/contributors.svg?width=890&button=false" /></a>
-
-### Financial Contributors
-
-Become a financial contributor and help us sustain our community. [[Contribute](https://opencollective.com/chillicream/contribute)]
-
-#### Individuals
-
-<a href="https://opencollective.com/chillicream"><img src="https://opencollective.com/chillicream/individuals.svg?width=890"></a>
-
-#### Organizations
-
-Support this project with your organization. Your logo will show up here with a link to your website. [[Contribute](https://opencollective.com/chillicream/contribute)]
-
-<a href="https://opencollective.com/chillicream/organization/0/website"><img src="https://opencollective.com/chillicream/organization/0/avatar.svg"></a>
-<a href="https://opencollective.com/chillicream/organization/1/website"><img src="https://opencollective.com/chillicream/organization/1/avatar.svg"></a>
-<a href="https://opencollective.com/chillicream/organization/2/website"><img src="https://opencollective.com/chillicream/organization/2/avatar.svg"></a>
-<a href="https://opencollective.com/chillicream/organization/3/website"><img src="https://opencollective.com/chillicream/organization/3/avatar.svg"></a>
-<a href="https://opencollective.com/chillicream/organization/4/website"><img src="https://opencollective.com/chillicream/organization/4/avatar.svg"></a>
-<a href="https://opencollective.com/chillicream/organization/5/website"><img src="https://opencollective.com/chillicream/organization/5/avatar.svg"></a>
-<a href="https://opencollective.com/chillicream/organization/6/website"><img src="https://opencollective.com/chillicream/organization/6/avatar.svg"></a>
-<a href="https://opencollective.com/chillicream/organization/7/website"><img src="https://opencollective.com/chillicream/organization/7/avatar.svg"></a>
-<a href="https://opencollective.com/chillicream/organization/8/website"><img src="https://opencollective.com/chillicream/organization/8/avatar.svg"></a>
-<a href="https://opencollective.com/chillicream/organization/9/website"><img src="https://opencollective.com/chillicream/organization/9/avatar.svg"></a>
+<a href="https://opencollective.com/chillicream/backer/0/website?requireActive=false" target="_blank"  rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/backer/0/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/chillicream/backer/1/website?requireActive=false" target="_blank"  rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/backer/1/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/chillicream/backer/2/website?requireActive=false" target="_blank"  rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/backer/2/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/chillicream/backer/3/website?requireActive=false" target="_blank"  rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/backer/3/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/chillicream/backer/4/website?requireActive=false" target="_blank"  rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/backer/4/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/chillicream/backer/5/website?requireActive=false" target="_blank"  rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/backer/5/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/chillicream/backer/6/website?requireActive=false" target="_blank"  rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/backer/6/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/chillicream/backer/7/website?requireActive=false" target="_blank"  rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/backer/7/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/chillicream/backer/8/website?requireActive=false" target="_blank"  rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/backer/8/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/chillicream/backer/9/website?requireActive=false" target="_blank"  rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/backer/9/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/chillicream/backer/10/website?requireActive=false" target="_blank"  rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/backer/10/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/chillicream/backer/11/website?requireActive=false" target="_blank"  rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/backer/11/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/chillicream/backer/12/website?requireActive=false" target="_blank"  rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/backer/12/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/chillicream/backer/13/website?requireActive=false" target="_blank"  rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/backer/13/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/chillicream/backer/14/website?requireActive=false" target="_blank"  rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/backer/14/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/chillicream/backer/15/website?requireActive=false" target="_blank"  rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/backer/15/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/chillicream/backer/16/website?requireActive=false" target="_blank"  rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/backer/16/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/chillicream/backer/17/website?requireActive=false" target="_blank"  rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/backer/17/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/chillicream/backer/18/website?requireActive=false" target="_blank"  rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/backer/18/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/chillicream/backer/19/website?requireActive=false" target="_blank"  rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/backer/19/avatar.svg?requireActive=false"></a>

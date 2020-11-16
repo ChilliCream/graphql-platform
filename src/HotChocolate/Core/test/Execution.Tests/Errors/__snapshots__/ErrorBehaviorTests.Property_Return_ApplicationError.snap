@@ -1,0 +1,10 @@
+﻿{
+  "errors": [
+    {
+      "message": "query error 12"
+    }
+  ],
+  "data": {
+    "error12": null
+  }
+}

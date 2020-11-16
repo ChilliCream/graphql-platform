@@ -1,0 +1,20 @@
+﻿{
+  "ContentType": "application/json; charset=utf-8",
+  "StatusCode": "BadRequest",
+  "Data": null,
+  "Errors": [
+    {
+      "message": "Unexpected character `Ã` (195).",
+      "locations": [
+        {
+          "line": 1,
+          "column": 46
+        }
+      ],
+      "extensions": {
+        "code": "HC0011"
+      }
+    }
+  ],
+  "Extensions": null
+}
