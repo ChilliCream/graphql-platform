@@ -41,8 +41,8 @@ namespace HotChocolate.Data.Filters
                     if (field is FilterFieldDefinition filterFieldDefinition)
                     {
                         if (discoveryContext.TryPredictTypeKind(
-                            filterFieldDefinition.Type,
-                            out TypeKind kind) &&
+                                filterFieldDefinition.Type,
+                                out TypeKind kind) &&
                             kind != TypeKind.Scalar && kind != TypeKind.Enum)
                         {
                             field.Type = field.Type.With(scope: discoveryContext.Scope);
@@ -88,12 +88,12 @@ namespace HotChocolate.Data.Filters
             IDescriptorContext context,
             string? scope)
         {
-            scope ??= string.Empty;
-            
-            if (!_conventions.TryGetValue(scope, out IFilterConvention? convention))
+            if (!_conventions.TryGetValue(
+                scope ?? "",
+                out IFilterConvention? convention))
             {
                 convention = context.GetFilterConvention(scope);
-                _conventions[scope] = convention;
+                _conventions[scope ?? ""] = convention;
             }
 
             return convention;
