@@ -6,21 +6,66 @@ namespace HotChocolate.Execution.Processing
 {
     internal sealed partial class OperationContext : IOperationContext
     {
-        public IPreparedOperation Operation { get; private set; } = default!;
+        public IPreparedOperation Operation
+        {
+            get
+            {
+                AssertNotPooled();
+                return _operation;
+            }
+        }
 
-        public object? RootValue { get; private set; }
+        public object? RootValue
+        {
+            get
+            {
+                AssertNotPooled();
+                return _rootValue;
+            }
+        }
 
-        public IVariableValueCollection Variables { get; private set; } = default!;
+        public IVariableValueCollection Variables
+        {
+            get
+            {
+                AssertNotPooled();
+                return _variables;
+            }
+        }
 
-        public IServiceProvider Services { get; private set; } = default!;
+        public IServiceProvider Services
+        {
+            get
+            {
+                AssertNotPooled();
+                return _services;
+            }
+        }
 
-        public IResultHelper Result => _resultHelper;
+        public IResultHelper Result
+        {
+            get
+            {
+                AssertNotPooled();
+                return _resultHelper;
+            }
+        }
 
-        public IExecutionContext Execution => _executionContext;
+        public IExecutionContext Execution
+        {
+            get
+            {
+                AssertNotPooled();
+                return _executionContext;
+            }
+        }
 
         public ISelectionSet CollectFields(
             SelectionSetNode selectionSet,
-            ObjectType objectType) =>
-            Operation.GetSelectionSet(selectionSet, objectType);
+            ObjectType objectType)
+        {
+            AssertNotPooled();
+            return Operation.GetSelectionSet(selectionSet, objectType);
+        }
     }
 }

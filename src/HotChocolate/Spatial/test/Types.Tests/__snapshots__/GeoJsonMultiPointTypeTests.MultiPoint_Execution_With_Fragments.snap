@@ -26,7 +26,7 @@
   ],
   "Extensions": null,
   "ContextData": {
-    "ValidationErrors": true
+    "HotChocolate.Execution.ValidationErrors": true
   },
   "HasNext": null
 }

@@ -42,7 +42,10 @@ namespace HotChocolate.Validation.Rules
         {
             if (context.FieldSets.Count > 0)
             {
-                TryMergeFieldsInSet(context, context.FieldSets[node.SelectionSet]);
+                foreach (SelectionSetNode selectionSet in context.FieldSets.Keys)
+                {
+                    TryMergeFieldsInSet(context, context.FieldSets[selectionSet]);
+                }
             }
 
             if (node.SelectionSet.Selections.Count == 0)
@@ -75,7 +78,7 @@ namespace HotChocolate.Validation.Rules
             if (context.Types.TryPeek(out IType type) &&
                 type.NamedType() is IComplexOutputType ct)
             {
-                if (ct.Fields.TryGetField(node.Name.Value, out IOutputField of))
+                if (ct.Fields.TryGetField(node.Name.Value, out IOutputField? of))
                 {
                     fields.Add(new FieldInfo(context.Types.Peek(), of.Type, node));
 
@@ -155,6 +158,7 @@ namespace HotChocolate.Validation.Rules
                     context.SelectionSets.Pop();
                 }
             }
+
             return Continue;
         }
 
@@ -235,14 +239,14 @@ namespace HotChocolate.Validation.Rules
                                     {
                                         TryMergeFieldsInSet(context, fieldA, fieldB);
                                     }
-                                    else
+                                    else if(context.FieldTuples.Add((fieldA.Field, fieldB.Field)))
                                     {
                                         context.Errors.Add(
                                             context.FieldsAreNotMergable(fieldA, fieldB));
                                     }
                                 }
                             }
-                            else
+                            else if(context.FieldTuples.Add((fieldA.Field, fieldB.Field)))
                             {
                                 context.Errors.Add(context.FieldsAreNotMergable(fieldA, fieldB));
                             }

@@ -3,13 +3,14 @@
   <metadata>
     <id>HotChocolate.Templates.Server</id>
     <version>0.0.0</version>
-    <description>
-      Contains a Hot Chocolate GraphQL server template.
-    </description>
+    <description>Hot Chocolate GraphQL server templates.</description>
     <authors>Michael Staib</authors>
     <iconUrl>https://chillicream.com/resources/hotchocolate-signet.png</iconUrl>
     <packageTypes>
       <packageType name="Template" />
     </packageTypes>
   </metadata>
+    <files>
+    <file src="Content\**\*.*" exclude="content\.vs\**\*.*" target="Content" />
+  </files>  
 </package>

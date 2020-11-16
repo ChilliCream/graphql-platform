@@ -9,5 +9,6 @@
   "Extensions": null,
   "ContextData": null,
   "Services": {},
-  "InitialValue": null
+  "InitialValue": null,
+  "AllowedOperations": null
 }
