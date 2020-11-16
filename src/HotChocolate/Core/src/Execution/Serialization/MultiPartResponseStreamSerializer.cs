@@ -12,8 +12,7 @@ namespace HotChocolate.Execution.Serialization
     public sealed partial class MultiPartResponseStreamSerializer
         : IResponseStreamSerializer
     {
-        private readonly JsonQueryResultSerializer _payloadSerializer =
-            new JsonQueryResultSerializer();
+        private readonly JsonQueryResultSerializer _payloadSerializer = new();
 
         public Task SerializeAsync(
             IResponseStream responseStream,

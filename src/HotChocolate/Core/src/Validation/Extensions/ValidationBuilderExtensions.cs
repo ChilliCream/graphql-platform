@@ -148,5 +148,35 @@ namespace Microsoft.Extensions.DependencyInjection
                     }
                 }));
         }
+
+        public static IValidationBuilder TryAddValidationRule<T>(
+            this IValidationBuilder builder)
+            where T : class, IDocumentValidatorRule, new()
+        {
+            return builder.ConfigureValidation(m =>
+                m.Modifiers.Add(o =>
+                {
+                    if (o.Rules.All(t => t.GetType() != typeof(T)))
+                    {
+                        o.Rules.Add(new T());
+                    }
+                }));
+        }
+
+        public static IValidationBuilder TryAddValidationRule<T>(
+            this IValidationBuilder builder,
+            Func<IServiceProvider, ValidationOptions, T> factory)
+            where T : class, IDocumentValidatorRule
+        {
+            return builder.ConfigureValidation((s, m) =>
+                m.Modifiers.Add(o =>
+                {
+                    T instance = factory(s, o);
+                    if (o.Rules.All(t => t.GetType() != instance.GetType()))
+                    {
+                        o.Rules.Add(instance);
+                    }
+                }));
+        }
     }
 }

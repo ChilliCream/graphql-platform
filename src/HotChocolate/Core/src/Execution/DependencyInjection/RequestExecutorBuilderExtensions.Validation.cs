@@ -22,8 +22,15 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </returns>
         public static IRequestExecutorBuilder AddValidationVisitor<T>(
             this IRequestExecutorBuilder builder)
-            where T : DocumentValidatorVisitor, new() =>
-            ConfigureValidation(builder, b => b.TryAddValidationVisitor<T>());
+            where T : DocumentValidatorVisitor, new()
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return ConfigureValidation(builder, b => b.TryAddValidationVisitor<T>());
+        }
 
         /// <summary>
         /// Adds a query validation visitor to the schema.
@@ -44,8 +51,79 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IRequestExecutorBuilder AddValidationVisitor<T>(
             this IRequestExecutorBuilder builder,
             Func<IServiceProvider, ValidationOptions, T> factory)
-            where T : DocumentValidatorVisitor  =>
-            ConfigureValidation(builder, b => b.TryAddValidationVisitor(factory));
+            where T : DocumentValidatorVisitor
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (factory is null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
+            return ConfigureValidation(builder, b => b.TryAddValidationVisitor(factory));
+        }
+
+        /// <summary>
+        /// Adds a query validation visitor to the schema.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <typeparam name="T">
+        /// The type of the validator.
+        /// </typeparam>
+        /// <returns>
+        /// Returns an <see cref="IRequestExecutorBuilder"/> that can be used to chain
+        /// configuration.
+        /// </returns>
+        public static IRequestExecutorBuilder AddValidationRule<T>(
+            this IRequestExecutorBuilder builder)
+            where T : class, IDocumentValidatorRule, new()
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return ConfigureValidation(builder, b => b.TryAddValidationRule<T>());
+        }
+
+        /// <summary>
+        /// Adds a query validation rule to the schema.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <param name="factory">
+        /// The factory that creates the validator instance.
+        /// </param>
+        /// <typeparam name="T">
+        /// The type of the validator.
+        /// </typeparam>
+        /// <returns>
+        /// Returns an <see cref="IRequestExecutorBuilder"/> that can be used to chain
+        /// configuration.
+        /// </returns>
+        public static IRequestExecutorBuilder AddValidationRule<T>(
+            this IRequestExecutorBuilder builder,
+            Func<IServiceProvider, ValidationOptions, T> factory)
+            where T : class, IDocumentValidatorRule
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (factory is null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
+            return ConfigureValidation(builder, b => b.TryAddValidationRule(factory));
+        }
 
         public static IRequestExecutorBuilder AddMaxComplexityRule(
             this IRequestExecutorBuilder builder,

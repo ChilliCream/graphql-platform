@@ -16,12 +16,9 @@ namespace HotChocolate.AspNetCore.Utilities
         private const string _jsonContentType =
             "application/json; charset=utf-8";
 
-        private readonly JsonQueryResultSerializer _jsonSerializer =
-            new JsonQueryResultSerializer();
-        private readonly JsonArrayResponseStreamSerializer _jsonArraySerializer =
-            new JsonArrayResponseStreamSerializer();
-        private readonly MultiPartResponseStreamSerializer _multiPartSerializer =
-            new MultiPartResponseStreamSerializer();
+        private readonly JsonQueryResultSerializer _jsonSerializer = new();
+        private readonly JsonArrayResponseStreamSerializer _jsonArraySerializer = new();
+        private readonly MultiPartResponseStreamSerializer _multiPartSerializer = new();
 
         private readonly HttpResultSerialization _batchSerialization;
         private readonly HttpResultSerialization _deferSerialization;
