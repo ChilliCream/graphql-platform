@@ -1,6 +1,6 @@
-namespace HotChocolate.AspNetCore.Utilities
+namespace HotChocolate.AspNetCore
 {
-    public static class HttpHeaderKeys
+    internal static class HttpHeaderKeys
     {
         public const string Tracing = "GraphQL-Tracing";
 

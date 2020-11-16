@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using HotChocolate.AspNetCore.Utilities;
+using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;

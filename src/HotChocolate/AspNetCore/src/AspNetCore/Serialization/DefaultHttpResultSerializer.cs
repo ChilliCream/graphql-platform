@@ -5,9 +5,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Serialization;
-using static HotChocolate.AspNetCore.Utilities.ErrorHelper;
+using static HotChocolate.AspNetCore.ErrorHelper;
 
-namespace HotChocolate.AspNetCore.Utilities
+namespace HotChocolate.AspNetCore.Serialization
 {
     public class DefaultHttpResultSerializer : IHttpResultSerializer
     {

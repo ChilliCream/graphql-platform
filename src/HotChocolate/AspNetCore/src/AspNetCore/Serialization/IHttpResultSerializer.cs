@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 
-namespace HotChocolate.AspNetCore.Utilities
+namespace HotChocolate.AspNetCore.Serialization
 {
     public interface IHttpResultSerializer
     {

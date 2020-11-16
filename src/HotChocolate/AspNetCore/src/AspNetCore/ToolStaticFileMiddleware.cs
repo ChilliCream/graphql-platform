@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
-using HotChocolate.AspNetCore.Utilities;
 
 namespace HotChocolate.AspNetCore
 {

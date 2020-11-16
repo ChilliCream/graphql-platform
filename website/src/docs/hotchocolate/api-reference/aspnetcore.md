@@ -32,18 +32,24 @@ If no path is specified the GraphQL middleware will follow the spec recommendati
 
 The GraphQL HTTP POST request is the most commonly used variant for GraphQL requests over HTTP and is specified [here](https://github.com/graphql/graphql-over-http/blob/master/spec/GraphQLOverHTTP.md#post).
 
-For example if the `Content-Type` is `application/json` then the request body may be:
+**Request:**
 
-```json
+```
+POST /graphql
+HOST: foo.example
+Content-Type: application/json
+
 {
   "query": "query($id: ID!){user(id:$id){name}}",
   "variables": { "id": "QVBJcy5ndXJ1" }
 }
 ```
 
-The response is by default returned as a JSON result with `Content-Type` `application/json`:
+**Response:**
 
-```json
+```
+Content-Type: application/json
+
 {
   "data": {
     "user": {
@@ -77,13 +83,18 @@ With the following query variables:
 
 This request could be sent via an HTTP GET as follows:
 
-`http://example.com/graphql?query=query(%24id%3A%20ID!)%7Buser(id%3A%24id)%7Bname%7D%7D&variables=%7B%22id%22%3A%22QVBJcy5ndXJ1%22%7D`
+**Request:**
 
-> Note: {query} and {operationName} parameters are encoded as raw strings in the query component. Therefore if the query string contained operationName=null then it should be interpreted as the {operationName} being the string "null". If a literal null is desired, the parameter (e.g. {operationName}) should be omitted.
+```
+GET /graphql?query=query(%24id%3A%20ID!)%7Buser(id%3A%24id)%7Bname%7D%7D&variables=%7B%22id%22%3A%22QVBJcy5ndXJ1%22%7D`
+HOST: foo.example
+```
 
-The response is by default returned as a JSON result with `Content-Type` `application/json`:
+**Response:**
 
-```json
+```
+Content-Type: application/json
+
 {
   "data": {
     "user": {
@@ -92,6 +103,8 @@ The response is by default returned as a JSON result with `Content-Type` `applic
   }
 }
 ```
+
+> Note: {query} and {operationName} parameters are encoded as raw strings in the query component. Therefore if the query string contained operationName=null then it should be interpreted as the {operationName} being the string "null". If a literal null is desired, the parameter (e.g. {operationName}) should be omitted.
 
 The GraphQL HTTP GET request is specified [here](https://github.com/graphql/graphql-over-http/blob/master/spec/GraphQLOverHTTP.md#get).
 
@@ -135,27 +148,48 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 
 ## Incremental Delivery over HTTP
 
-The Hot Chocolate GraphQL server also supports incremental delivery over HTTP which essentially uses HTTP chunked transfer encoding in combination with [specification of multipart content defined by the W3 in rfc1341](https://www.w3.org/Protocols/rfc1341/7_2_Multipart.html).
+The Hot Chocolate GraphQL server supports incremental delivery over HTTP which essentially uses HTTP chunked transfer encoding in combination with [specification of multipart content defined by the W3 in rfc1341](https://www.w3.org/Protocols/rfc1341/7_2_Multipart.html).
 
-The incremental delivery is at the moment at the RFC stage and are specified [here](https://github.com/graphql/graphql-over-http/blob/master/rfcs/IncrementalDelivery.md).
+The incremental delivery is at the moment at the RFC stage and is specified [here](https://github.com/graphql/graphql-over-http/blob/master/rfcs/IncrementalDelivery.md).
 
-# Additional ....
+Incremental delivery is used with `@defer`, `@stream` and with request batching.
 
-Apart from the requests that are specified
+# Additional Requests
 
-# Grap Schema
+Apart from the requests that are defined by the GraphQL over HTTP spec Hot Chocolate allows you to batch requests, download the GraphQL SDL and many more things. Many of the requests stated in this sections are on their way into the GraphQL over HTTP spec and we will update this document as the spec and its RFCs change.
+
+## GraphQL Schema request
 
 Although you can access and query the schema definition through introspection, we support fetching the GraphQL schema SDL as a file. The GraphQL schema SDL is richer with more information and easier to read.
 
-`http://localhost/graphql?sdl`
+**Request:**
 
-# HTTP POST Batching
+```
+GET /graphql?sdl
+HOST: foo.example
+```
+
+**Response:**
+
+```
+Content-Type: application/graphql
+
+type Query {
+  hello: String!
+}
+```
+
+## GraphQL HTTP POST batching request
 
 We support two kinds of batching variants.
 
-The first variant to batch is on request base, you basically send in an array of GraphQL request and the query engine will issue the results in order.
+The first variant to batch is on request, you basically send in an array of GraphQL request and the query engine will issue the results in order.
 
-```json
+```
+POST /graphql
+HOST: foo.example
+Content-Type: application/json
+
 [
     {
         # The query document.
@@ -206,9 +240,11 @@ The first variant to batch is on request base, you basically send in an array of
 
 The second variant is called operation batching where you send in one request with multiple operations and specify the operations that shall be executed:
 
-`http://localhost/graphql?batchOperations=[a,b]`
+```
+POST /graphql?batchOperations=[a,b]
+HOST: foo.example
+Content-Type: application/json
 
-```json
 {
     # The query document.
     "query": "query a { hero { name } } query b { hero { name } }",
@@ -233,11 +269,11 @@ The second variant is called operation batching where you send in one request wi
 }
 ```
 
-The executer will write the results to the stream as soon as they are available. This means that depending on your client implementation you can start using the results as they appear in order.
+By default the GraphQL server will use the incremental delivery over HTTP specification to write the results to the stream as soon as they are available. This means that depending on your client implementation you can start using the results as they appear in order.
 
-By default, we are serializing the result as a JSON array, but you can change the format to make it work better with your client implementation.
+> More about batching can be found [here](batching).
 
-More about batching can be found [here](/docs/hotchocolate/v10/execution-engine/batching).
+You can change the btachin
 
 # WebSocket Support
 

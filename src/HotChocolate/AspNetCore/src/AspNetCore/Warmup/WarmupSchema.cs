@@ -1,4 +1,4 @@
-namespace HotChocolate.AspNetCore.Utilities
+namespace HotChocolate.AspNetCore.Warmup
 {
     internal class WarmupSchema
     {

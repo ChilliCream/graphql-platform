@@ -1,7 +1,7 @@
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using HotChocolate.AspNetCore.Utilities;
+using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Execution;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 

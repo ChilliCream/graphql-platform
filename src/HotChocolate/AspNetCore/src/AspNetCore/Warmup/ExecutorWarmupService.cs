@@ -3,21 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Execution;
 using Microsoft.Extensions.Hosting;
+using HotChocolate.Execution;
 
-namespace HotChocolate.AspNetCore.Utilities
+namespace HotChocolate.AspNetCore.Warmup
 {
-    internal class ExecutorWarmupTask : BackgroundService
+    internal class ExecutorWarmupService : BackgroundService
     {
         private readonly IRequestExecutorResolver _executorResolver;
         private readonly HashSet<NameString> _schemaNames;
 
-        public ExecutorWarmupTask(
+        public ExecutorWarmupService(
             IRequestExecutorResolver executorResolver,
             IEnumerable<WarmupSchema> schemas)
         {
-            if (executorResolver is null)
+            if (executorResolver is null!)
             {
                 throw new ArgumentNullException(nameof(executorResolver));
             }

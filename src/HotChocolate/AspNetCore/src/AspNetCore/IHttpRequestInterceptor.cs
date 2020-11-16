@@ -1,9 +1,9 @@
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Execution;
 using Microsoft.AspNetCore.Http;
+using HotChocolate.Execution;
 
-namespace HotChocolate.AspNetCore.Utilities
+namespace HotChocolate.AspNetCore
 {
     public interface IHttpRequestInterceptor
     {

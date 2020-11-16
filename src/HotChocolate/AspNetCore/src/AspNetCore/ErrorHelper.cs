@@ -1,6 +1,6 @@
 using HotChocolate.Execution;
 
-namespace HotChocolate.AspNetCore.Utilities
+namespace HotChocolate.AspNetCore
 {
     internal static class ErrorHelper
     {
