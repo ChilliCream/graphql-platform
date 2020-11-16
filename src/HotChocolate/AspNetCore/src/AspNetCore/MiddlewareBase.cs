@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Utilities;
 using Microsoft.AspNetCore.Http;
+using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using RequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
@@ -74,9 +74,11 @@ namespace HotChocolate.AspNetCore
             HttpContext context,
             IRequestExecutor requestExecutor,
             IHttpRequestInterceptor requestInterceptor,
-            GraphQLRequest request)
+            GraphQLRequest request,
+            OperationType[]? allowedOperations = null)
         {
             QueryRequestBuilder requestBuilder = QueryRequestBuilder.From(request);
+            requestBuilder.SetAllowedOperations(allowedOperations);
 
             await requestInterceptor.OnCreateAsync(
                 context, requestExecutor, requestBuilder, context.RequestAborted);

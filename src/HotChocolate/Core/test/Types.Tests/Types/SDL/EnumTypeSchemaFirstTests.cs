@@ -4,6 +4,7 @@ using HotChocolate.Tests;
 using Snapshooter.Xunit;
 using Xunit;
 using System.Threading.Tasks;
+using Snapshooter;
 
 namespace HotChocolate.Types.SDL
 {
@@ -178,6 +179,35 @@ namespace HotChocolate.Types.SDL
                     c.Value(Greetings.GoodEvening);
                 })
                 .ExecuteRequestAsync("{ hello(greetings: GOOD_EVENING) }")
+                .MatchSnapshotAsync();
+        }
+
+        // https://github.com/ChilliCream/hotchocolate/issues/833
+        [InlineData("GOOD_EVENING")]
+        [InlineData("GOODEVENING")]
+        [Theory]
+        public async Task Try_Using_A_Enum_Value_That_Is_Not_Bound(string value)
+        {
+            // arrange
+            Snapshot.FullName(new SnapshotNameExtension(value));
+
+            var sdl =
+                @"type Query {
+                    hello(greetings: Greetings): Greetings
+                }
+                
+                enum Greetings {
+                    GOOD_MORNING
+                }";
+
+            // act
+            // assert
+           await new ServiceCollection()
+                .AddGraphQL()
+                .AddDocumentFromString(sdl)
+                .BindComplexType<Query>()
+                .BindEnumType<Greetings>()
+                .ExecuteRequestAsync($"{{ hello(greetings: \"{value}\") }}")
                 .MatchSnapshotAsync();
         }
 

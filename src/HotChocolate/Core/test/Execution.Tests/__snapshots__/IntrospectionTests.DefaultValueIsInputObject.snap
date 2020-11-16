@@ -185,12 +185,6 @@
               "deprecationReason": null
             },
             {
-              "name": "VARIABLE_DEFINITION",
-              "description": "Location adjacent to a variable definition.",
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
               "name": "FRAGMENT_DEFINITION",
               "description": "Location adjacent to a fragment definition.",
               "isDeprecated": false,
@@ -205,6 +199,12 @@
             {
               "name": "INLINE_FRAGMENT",
               "description": "Location adjacent to an inline fragment.",
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "VARIABLE_DEFINITION",
+              "description": "Location adjacent to a variable definition.",
               "isDeprecated": false,
               "deprecationReason": null
             },
@@ -864,12 +864,6 @@
             {
               "name": "NON_NULL",
               "description": "Indicates this type is a non-null. \u0060ofType\u0060 is a valid field.",
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "DIRECTIVE",
-              "description": null,
               "isDeprecated": false,
               "deprecationReason": null
             }
