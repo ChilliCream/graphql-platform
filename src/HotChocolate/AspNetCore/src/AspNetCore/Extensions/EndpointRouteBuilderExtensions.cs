@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Builder
     /// <summary>
     /// Provides GraphQL extensions to the <see cref="IEndpointConventionBuilder"/>.
     /// </summary>
-    public static class HttpEndpointRouteBuilderExtensions
+    public static class EndpointRouteBuilderExtensions
     {
         /// <summary>
         /// Adds a GraphQL endpoint to the endpoint configurations.
