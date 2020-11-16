@@ -1317,7 +1317,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>application/json: the POST body will be parsed as a JSON object of parameters.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="45360345647972580000"
+              data-toaster-id="80079034165583170000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1343,7 +1343,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
         &quot;a&quot;: 1,
         &quot;b&quot;: &quot;abc&quot;
     }
-}`, `45360345647972580000`)"
+}`, `80079034165583170000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1377,7 +1377,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>application/graphql: The POST body will be parsed as GraphQL query string, which provides the query parameter.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="41980209906041880000"
+              data-toaster-id="20648105446720220000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1386,7 +1386,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
   hero {
     name
   }
-}`, `41980209906041880000`)"
+}`, `20648105446720220000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1403,7 +1403,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>The response in both cases will be JSON by default. The response serializers can be swapped out and you could for instance go protobuf.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="73465700608546824000"
+              data-toaster-id="86392726234273730000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1414,7 +1414,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
       &quot;name&quot;: &quot;R2-D2&quot;
     }
   }
-}`, `73465700608546824000`)"
+}`, `86392726234273730000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1435,12 +1435,14 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p><code class="language-text">http://localhost/graphql?query=query+getUser($id:ID){user(id:$id){name}}&amp;variables={&quot;id&quot;:&quot;4&quot;}</code></p>
 <h2 id="http-get-schema" style="position:relative;"><a href="#http-get-schema" aria-label="http get schema permalink" class="anchor before"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="16" height="16"><path d="M326.612 185.391c59.747 59.809 58.927 155.698.36 214.59-.11.12-.24.25-.36.37l-67.2 67.2c-59.27 59.27-155.699 59.262-214.96 0-59.27-59.26-59.27-155.7 0-214.96l37.106-37.106c9.84-9.84 26.786-3.3 27.294 10.606.648 17.722 3.826 35.527 9.69 52.721 1.986 5.822.567 12.262-3.783 16.612l-13.087 13.087c-28.026 28.026-28.905 73.66-1.155 101.96 28.024 28.579 74.086 28.749 102.325.51l67.2-67.19c28.191-28.191 28.073-73.757 0-101.83-3.701-3.694-7.429-6.564-10.341-8.569a16.037 16.037 0 0 1-6.947-12.606c-.396-10.567 3.348-21.456 11.698-29.806l21.054-21.055c5.521-5.521 14.182-6.199 20.584-1.731a152.482 152.482 0 0 1 20.522 17.197zM467.547 44.449c-59.261-59.262-155.69-59.27-214.96 0l-67.2 67.2c-.12.12-.25.25-.36.37-58.566 58.892-59.387 154.781.36 214.59a152.454 152.454 0 0 0 20.521 17.196c6.402 4.468 15.064 3.789 20.584-1.731l21.054-21.055c8.35-8.35 12.094-19.239 11.698-29.806a16.037 16.037 0 0 0-6.947-12.606c-2.912-2.005-6.64-4.875-10.341-8.569-28.073-28.073-28.191-73.639 0-101.83l67.2-67.19c28.239-28.239 74.3-28.069 102.325.51 27.75 28.3 26.872 73.934-1.155 101.96l-13.087 13.087c-4.35 4.35-5.769 10.79-3.783 16.612 5.864 17.194 9.042 34.999 9.69 52.721.509 13.906 17.454 20.446 27.294 10.606l37.106-37.106c59.271-59.259 59.271-155.699.001-214.959z"/></svg></a>HTTP GET Schema</h2>
 <p>Although you can get access to the schema metadata through introspection, we also support fetching the GraphQL schema SDL. The GraphQL schema SDL is richer with information and easier to read.</p>
+<p>SDL schema available in v10 under:
+<code class="language-text">https://yourserver/GraphQL/Schema</code></p>
 <h2 id="http-post-batching" style="position:relative;"><a href="#http-post-batching" aria-label="http post batching permalink" class="anchor before"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="16" height="16"><path d="M326.612 185.391c59.747 59.809 58.927 155.698.36 214.59-.11.12-.24.25-.36.37l-67.2 67.2c-59.27 59.27-155.699 59.262-214.96 0-59.27-59.26-59.27-155.7 0-214.96l37.106-37.106c9.84-9.84 26.786-3.3 27.294 10.606.648 17.722 3.826 35.527 9.69 52.721 1.986 5.822.567 12.262-3.783 16.612l-13.087 13.087c-28.026 28.026-28.905 73.66-1.155 101.96 28.024 28.579 74.086 28.749 102.325.51l67.2-67.19c28.191-28.191 28.073-73.757 0-101.83-3.701-3.694-7.429-6.564-10.341-8.569a16.037 16.037 0 0 1-6.947-12.606c-.396-10.567 3.348-21.456 11.698-29.806l21.054-21.055c5.521-5.521 14.182-6.199 20.584-1.731a152.482 152.482 0 0 1 20.522 17.197zM467.547 44.449c-59.261-59.262-155.69-59.27-214.96 0l-67.2 67.2c-.12.12-.25.25-.36.37-58.566 58.892-59.387 154.781.36 214.59a152.454 152.454 0 0 0 20.521 17.196c6.402 4.468 15.064 3.789 20.584-1.731l21.054-21.055c8.35-8.35 12.094-19.239 11.698-29.806a16.037 16.037 0 0 0-6.947-12.606c-2.912-2.005-6.64-4.875-10.341-8.569-28.073-28.073-28.191-73.639 0-101.83l67.2-67.19c28.239-28.239 74.3-28.069 102.325.51 27.75 28.3 26.872 73.934-1.155 101.96l-13.087 13.087c-4.35 4.35-5.769 10.79-3.783 16.612 5.864 17.194 9.042 34.999 9.69 52.721.509 13.906 17.454 20.446 27.294 10.606l37.106-37.106c59.271-59.259 59.271-155.699.001-214.959z"/></svg></a>HTTP POST Batching</h2>
 <p>We support two kinds of batching variants.</p>
 <p>The first variant to batch is on request base, you basically send in an array of GraphQL request and the query engine will issue the results in order.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="26245887035241490000"
+              data-toaster-id="81235088688829320000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1490,7 +1492,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
             &quot;b&quot;: &quot;abc&quot;
         }
     },
-]`, `26245887035241490000`)"
+]`, `81235088688829320000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1549,7 +1551,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p><code class="language-text">http://localhost/graphql?batchOperations=[a,b]</code></p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="97225666408364400000"
+              data-toaster-id="42147248667967330000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1575,7 +1577,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
         &quot;a&quot;: 1,
         &quot;b&quot;: &quot;abc&quot;
     }
-}`, `97225666408364400000`)"
+}`, `42147248667967330000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1621,7 +1623,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>Next add the schema and all needed services for the middleware components:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="52871182400238960000"
+              data-toaster-id="63405967050183156000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1629,7 +1631,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
               onClick="copyToClipboard(`services.AddGraphQL(
     SchemaBuilder.New()
         .AddQueryType<QueryType>()
-        .AddType<CharacterType>())`, `52871182400238960000`)"
+        .AddType<CharacterType>())`, `63405967050183156000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1648,12 +1650,12 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>After we have setup the schema and its services, we now have to configure the middleware components.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="64727984090932170000"
+              data-toaster-id="989935325291635500"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`app.UseGraphQL();`, `64727984090932170000`)"
+              onClick="copyToClipboard(`app.UseGraphQL();`, `989935325291635500`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1683,7 +1685,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>Next add the schema and all needed services for the middleware components:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="49255339660591460000"
+              data-toaster-id="14919692599672607000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1691,7 +1693,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
               onClick="copyToClipboard(`services.AddGraphQL(
     SchemaBuilder.New()
         .AddQueryType<QueryType>()
-        .AddType<CharacterType>())`, `49255339660591460000`)"
+        .AddType<CharacterType>())`, `14919692599672607000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1710,12 +1712,12 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>After we have setup the schema and its services, we now have to configure the middleware components.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="42828735244901605000"
+              data-toaster-id="46280197182776140000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`app.UseGraphQL(serviceProvider);`, `42828735244901605000`)"
+              onClick="copyToClipboard(`app.UseGraphQL(serviceProvider);`, `46280197182776140000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1744,12 +1746,12 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>We have a added some helper extension to swap the default serializer out:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="88293301393454680000"
+              data-toaster-id="87066561666174300000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`services.AddResponseStreamSerializer<CustomResponseStreamSerializer>();`, `88293301393454680000`)"
+              onClick="copyToClipboard(`services.AddResponseStreamSerializer<CustomResponseStreamSerializer>();`, `87066561666174300000`)"
             >
               <div
                 class="gatsby-code-button"
