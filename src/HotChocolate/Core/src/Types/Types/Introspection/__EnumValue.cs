@@ -40,7 +40,7 @@ namespace HotChocolate.Types.Introspection
             public const string Name = "name";
             public const string Description = "description";
             public const string IsDeprecated = "isDeprecated";
-            public const string DeprecationReason = "DeprecationReason";
+            public const string DeprecationReason = "deprecationReason";
         }
     }
 }
