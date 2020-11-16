@@ -1,10 +1,10 @@
 using System;
 using System.Threading.Tasks;
+using Microsoft.Extensions.ObjectPool;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
-using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Pipeline
@@ -51,102 +51,156 @@ namespace HotChocolate.Execution.Pipeline
                 throw OperationExecutionMiddleware_NoBatchDispatcher();
             }
 
-            if (context.Operation is { } && context.Variables is { })
+            if (context is { Operation: not null, Variables: not null })
             {
-                if (context.Operation.Definition.Operation == OperationType.Subscription)
+                if (IsOperationAllowed(context))
                 {
-                    context.Result = await _subscriptionExecutor
-                        .ExecuteAsync(context)
+                    await ExecuteOperationAsync(
+                        context, batchDispatcher, context.Operation)
                         .ConfigureAwait(false);
-
-                    await _next(context).ConfigureAwait(false);
                 }
                 else
                 {
-                    OperationContext? operationContext = _operationContextPool.Get();
-
-                    try
-                    {
-                        IQueryResult? result = null;
-
-                        if (context.Operation.Definition.Operation == OperationType.Query)
-                        {
-                            object? query = RootValueResolver.TryResolve(
-                                context,
-                                context.Services,
-                                context.Operation.RootType,
-                                ref _cachedQueryValue);
-
-                            operationContext.Initialize(
-                                context,
-                                context.Services,
-                                batchDispatcher,
-                                context.Operation,
-                                query,
-                                context.Variables);
-
-                            result = await _queryExecutor
-                                .ExecuteAsync(operationContext)
-                                .ConfigureAwait(false);
-                        }
-                        else if (context.Operation.Definition.Operation == OperationType.Mutation)
-                        {
-                            object? mutation = RootValueResolver.TryResolve(
-                                context,
-                                context.Services,
-                                context.Operation.RootType,
-                                ref _cachedMutation);
-
-                            operationContext.Initialize(
-                                context,
-                                context.Services,
-                                batchDispatcher,
-                                context.Operation,
-                                mutation,
-                                context.Variables);
-
-                            result = await _mutationExecutor
-                                .ExecuteAsync(operationContext)
-                                .ConfigureAwait(false);
-                        }
-
-                        if (operationContext.Execution.DeferredTaskBacklog.IsEmpty || 
-                            result is null)
-                        {
-                            context.Result = result;
-                        }
-                        else
-                        {
-                            // if we have deferred query task we will take ownership
-                            // of the life time handling and return the operation context
-                            // once we handled all deferred tasks.
-                            var operationContextOwner = new OperationContextOwner(
-                                operationContext, _operationContextPool);
-                            operationContext = null;
-
-                            context.Result = new DeferredQueryResult
-                            (
-                                result,
-                                new DeferredTaskExecutor(operationContextOwner),
-                                session: operationContextOwner
-                            );
-                        }
-
-                        await _next(context).ConfigureAwait(false);
-                    }
-                    finally
-                    {
-                        if (operationContext is not null)
-                        {
-                            _operationContextPool.Return(operationContext);
-                        }
-                    }
+                    context.Result = ErrorHelper.OperationKindNotAllowed();
                 }
             }
             else
             {
                 context.Result = ErrorHelper.StateInvalidForOperationExecution();
             }
+        }
+
+        private async Task ExecuteOperationAsync(
+            IRequestContext context,
+            IBatchDispatcher? batchDispatcher,
+            IPreparedOperation operation)
+        {
+            if (operation.Definition.Operation == OperationType.Subscription)
+            {
+                context.Result = await _subscriptionExecutor
+                    .ExecuteAsync(context)
+                    .ConfigureAwait(false);
+
+                await _next(context).ConfigureAwait(false);
+            }
+            else
+            {
+                OperationContext? operationContext = _operationContextPool.Get();
+
+                try
+                {
+                    IQueryResult? result = await ExecuteQueryOrMutationAsync(
+                        context, batchDispatcher, operation, operationContext)
+                        .ConfigureAwait(false);
+
+                    if (operationContext.Execution.DeferredTaskBacklog.IsEmpty ||
+                        result is null)
+                    {
+                        context.Result = result;
+                    }
+                    else
+                    {
+                        // if we have deferred query task we will take ownership
+                        // of the life time handling and return the operation context
+                        // once we handled all deferred tasks.
+                        var operationContextOwner = new OperationContextOwner(
+                            operationContext, _operationContextPool);
+                        operationContext = null;
+
+                        context.Result = new DeferredQueryResult
+                        (
+                            result,
+                            new DeferredTaskExecutor(operationContextOwner),
+                            session: operationContextOwner
+                        );
+                    }
+
+                    await _next(context).ConfigureAwait(false);
+                }
+                finally
+                {
+                    if (operationContext is not null)
+                    {
+                        _operationContextPool.Return(operationContext);
+                    }
+                }
+            }
+        }
+
+        private async Task<IQueryResult?> ExecuteQueryOrMutationAsync(
+            IRequestContext context,
+            IBatchDispatcher? batchDispatcher,
+            IPreparedOperation operation,
+            OperationContext operationContext)
+        {
+            IQueryResult? result = null;
+
+            if (operation.Definition.Operation == OperationType.Query)
+            {
+                object? query = RootValueResolver.TryResolve(
+                    context,
+                    context.Services,
+                    operation.RootType,
+                    ref _cachedQueryValue);
+
+                operationContext.Initialize(
+                    context,
+                    context.Services,
+                    batchDispatcher,
+                    operation,
+                    query,
+                    context.Variables);
+
+                result = await _queryExecutor
+                    .ExecuteAsync(operationContext)
+                    .ConfigureAwait(false);
+            }
+            else if (operation.Definition.Operation == OperationType.Mutation)
+            {
+                object? mutation = RootValueResolver.TryResolve(
+                    context,
+                    context.Services,
+                    operation.RootType,
+                    ref _cachedMutation);
+
+                operationContext.Initialize(
+                    context,
+                    context.Services,
+                    batchDispatcher,
+                    operation,
+                    mutation,
+                    context.Variables);
+
+                result = await _mutationExecutor
+                    .ExecuteAsync(operationContext)
+                    .ConfigureAwait(false);
+            }
+
+            return result;
+        }
+
+        private bool IsOperationAllowed(IRequestContext context)
+        {
+            if (context.Request.AllowedOperations is null or { Length: 0 })
+            {
+                return true;
+            }
+
+            if (context.Request.AllowedOperations is { Length: 1 } allowed &&
+                allowed[0] == context.Operation?.Type)
+            {
+                return true;
+            }
+
+            for (var i = 0; i < context.Request.AllowedOperations.Length; i++)
+            {
+                if (context.Request.AllowedOperations[i] == context.Operation?.Type)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

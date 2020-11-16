@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
@@ -346,6 +348,26 @@ namespace HotChocolate.Data.Filters
 
             var b = new Foo { Bar = "b" };
             Assert.False(func(b));
+        }
+
+        [Fact]
+        public void FilterProvider_Throws_Exception_When_NotInitializedByConvention()
+        {
+            // arrange
+            var provider = new QueryableFilterProvider(
+                descriptor => descriptor.AddFieldHandler<QueryableStringEqualsHandler>());
+            var context = ConventionContext.Create(
+                null,
+                new ServiceCollection().BuildServiceProvider(),
+                DescriptorContext.Create());
+
+            // act
+            provider.Initialize(context);
+
+            // assert
+            SchemaException exception =
+                Assert.Throws<SchemaException>(() => provider.Complete(context));
+            exception.Message.MatchSnapshot();
         }
 
         protected ISchema CreateSchemaWithTypes(

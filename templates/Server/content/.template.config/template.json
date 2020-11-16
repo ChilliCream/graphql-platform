@@ -1,37 +1,48 @@
 {
   "$schema": "http://json.schemastore.org/template",
   "author": "Michael Staib",
-  "classifications": [
-    "Web",
-    "GraphQL"
-  ],
+  "classifications": ["Web", "GraphQL"],
   "identity": "HotChocolate.Templates.Server",
+  "sourceName": "HotChocolate.Server.Template",
   "name": "HotChocolate GraphQL Server",
   "shortName": "graphql",
-  "generatorVersions": "[1.0.0.0-*)",
+  "defaultName": "GraphQL",
   "description": "",
-  "groupIdentity": "HotChocolate.Web.GraphQL",
-  "precedence": "5000",
+  "preferNameDirectory": true,
   "tags": {
     "language": "C#",
     "type": "project"
   },
-  "sourceName": "HotChocolate.Server.Template",
-  "preferNameDirectory": true,
-  "guids": [
-    "cda1e237-360b-4df0-a0c8-fde64fe62562"
-  ],
-  "primaryOutputs": [{
-    "path": "HotChocolate.Server.Template.csproj"
-  }],
-  "defaultName": "GraphQL1",
-  "postActions": [{
-    "condition": "(!skipRestore)",
-    "description": "Restore NuGet packages required by this project.",
-    "manualInstructions": [{
-      "text": "Run 'dotnet restore'"
-    }],
-    "actionId": "210D431B-A78B-4D2F-B762-4ED3E3EA9025",
-    "continueOnError": true
-  }]
+  "symbols": {
+    "Framework": {
+      "type": "parameter",
+      "description": "The target framework for the project.",
+      "datatype": "choice",
+      "choices": [
+        {
+          "choice": "net5.0",
+          "description": "Target .NET 5"
+        },
+        {
+          "choice": "netcoreapp3.1",
+          "description": "Target .NET Core 3.1"
+        }
+      ],
+      "replaces": "net5.0",
+      "defaultValue": "net5.0"
+    }
+  },
+  "postActions": [
+    {
+      "condition": "(!skipRestore)",
+      "description": "Restore NuGet packages required by this project.",
+      "manualInstructions": [
+        {
+          "text": "Run 'dotnet restore'"
+        }
+      ],
+      "actionId": "210D431B-A78B-4D2F-B762-4ED3E3EA9025",
+      "continueOnError": true
+    }
+  ]
 }

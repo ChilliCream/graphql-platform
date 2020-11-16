@@ -92,7 +92,7 @@ namespace HotChocolate.Execution.Processing
             switch (_context.Result)
             {
                 case IExecutable executable:
-                    _context.Result = await executable.ExecuteAsync(cancellationToken);
+                    _context.Result = await executable.ToListAsync(cancellationToken);
                     break;
 
                 case IQueryable queryable:

@@ -53,7 +53,8 @@ namespace HotChocolate.Data.Projections.Handlers
                 else
                 {
                     context.PushInstance(
-                        Expression.Constant(Array.CreateInstance(sortInputType.RuntimeType, 0)));
+                        Expression.Constant(
+                            Array.CreateInstance(sortInputType.EntityType.Source, 0)));
                     context.ReportError(
                         ProjectionProvider_CouldNotProjectSorting(valueNode));
                 }

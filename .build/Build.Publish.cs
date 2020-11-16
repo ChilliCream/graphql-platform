@@ -67,10 +67,10 @@ partial class Build : NukeBuild
                 .SetVersion(GitVersion.SemVer));
 
             var projFile = File.ReadAllText(StarWarsProj);
-            File.WriteAllText(StarWarsProj, projFile.Replace("11.0.0-dev.14", GitVersion.SemVer));
+            File.WriteAllText(StarWarsProj, projFile.Replace("11.0.0-rc.1", GitVersion.SemVer));
 
             projFile = File.ReadAllText(EmptyServerProj);
-            File.WriteAllText(EmptyServerProj, projFile.Replace("11.0.0-dev.14", GitVersion.SemVer));
+            File.WriteAllText(EmptyServerProj, projFile.Replace("11.0.0-rc.1", GitVersion.SemVer));
 
             NuGetPack(c => c
                 .SetVersion(GitVersion.SemVer)

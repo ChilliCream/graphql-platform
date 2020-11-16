@@ -19,17 +19,14 @@ namespace HotChocolate.Types.Pagination
             object source,
             CursorPagingArguments arguments)
         {
-            if (source is IQueryable<TEntity> queryable)
+            CancellationToken ct = context.RequestAborted;
+            return source switch
             {
-                return ResolveAsync(queryable, arguments, context.RequestAborted);
-            }
-
-            if (source is IEnumerable<TEntity> enumerable)
-            {
-                return ResolveAsync(enumerable.AsQueryable(), arguments, context.RequestAborted);
-            }
-
-            throw new GraphQLException("Cannot handle the specified data source.");
+                IQueryable<TEntity> q => ResolveAsync(q, arguments, ct),
+                IEnumerable<TEntity> e => ResolveAsync(e.AsQueryable(), arguments, ct),
+                IExecutable<TEntity> ex => SliceAsync(context, ex.Source, arguments),
+                _ => throw new GraphQLException("Cannot handle the specified data source.")
+            };
         }
 
         private async ValueTask<Connection> ResolveAsync(

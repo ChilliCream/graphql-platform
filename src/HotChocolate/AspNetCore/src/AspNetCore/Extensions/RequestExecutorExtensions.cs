@@ -1,6 +1,5 @@
-using HotChocolate.AspNetCore.Utilities;
-using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Execution;
 
 namespace HotChocolate.AspNetCore
 {

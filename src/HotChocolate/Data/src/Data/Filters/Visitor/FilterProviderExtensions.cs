@@ -23,14 +23,16 @@ namespace HotChocolate.Data.Filters
                 throw new ArgumentNullException(nameof(configure));
         }
 
-        void IFilterProviderConvention.Initialize(IConventionContext context)
+        void IFilterProviderConvention.Initialize(
+            IConventionContext context,
+            IFilterConvention convention)
         {
             base.Initialize(context);
         }
 
-        void IFilterProviderConvention.OnComplete(IConventionContext context)
+        void IFilterProviderConvention.Complete(IConventionContext context)
         {
-            OnComplete(context);
+            Complete(context);
         }
 
         protected override FilterProviderDefinition CreateDefinition(IConventionContext context)

@@ -2,6 +2,8 @@
 title: "Resolver"
 ---
 
+# Introduction
+
 When it comes to fetching data in a GraphQL server you will always end up with a resolver.
 **A resolver is a generic function that fetches data from an arbitrary data source for a particular field.**
 This means every field has it's own individual resolver function in order to fetch or select data. Even if there isn't a resolver defined for one field, Hot Chocolate will create a default resolver for this particular field behind the scenes.

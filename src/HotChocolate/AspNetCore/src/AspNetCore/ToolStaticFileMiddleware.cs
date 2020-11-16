@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
-using HotChocolate.AspNetCore.Utilities;
 
 namespace HotChocolate.AspNetCore
 {
@@ -59,7 +58,8 @@ namespace HotChocolate.AspNetCore
         {
             if (context.Request.IsGetOrHeadMethod() &&
                 context.Request.TryMatchPath(_matchUrl, false, out PathString subPath) &&
-                _contentTypeProvider.TryGetContentType(subPath.Value, out string contentType))
+                _contentTypeProvider.TryGetContentType(subPath.Value, out string contentType) &&
+                (context.GetGraphQLToolOptions()?.Enable ?? true))
             {
                 return TryServeStaticFile(context, contentType, subPath);
             }

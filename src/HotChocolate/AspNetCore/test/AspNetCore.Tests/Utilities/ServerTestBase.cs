@@ -5,6 +5,8 @@ using HotChocolate.StarWars;
 using HotChocolate.Types;
 using Xunit;
 using System;
+using HotChocolate.AspNetCore.Extensions;
+using HotChocolate.AspNetCore.Serialization;
 
 namespace HotChocolate.AspNetCore.Utilities
 {
@@ -19,12 +21,12 @@ namespace HotChocolate.AspNetCore.Utilities
 
         protected virtual TestServer CreateStarWarsServer(
             string pattern = "/graphql",
-            Action<IGraphQLEndpointConventionBuilder> configureConventions = default)
+            Action<GraphQLEndpointConventionBuilder> configureConventions = default)
         {
             return ServerFactory.Create(
                 services => services
                     .AddRouting()
-                    .AddHttpRequestSerializer(HttpResultSerialization.JsonArray)
+                    .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                     .AddGraphQLServer()
                         .AddStarWarsTypes()
                         .AddTypeExtension<QueryExtension>()
@@ -57,12 +59,8 @@ namespace HotChocolate.AspNetCore.Utilities
                     .UseRouting()
                     .UseEndpoints(endpoints =>
                     {
-                        IGraphQLEndpointConventionBuilder builder = endpoints.MapGraphQL(pattern);
-
-                        if (configureConventions is { })
-                        {
-                            configureConventions(builder);
-                        }
+                        GraphQLEndpointConventionBuilder builder = endpoints.MapGraphQL(pattern);
+                        configureConventions?.Invoke(builder);
 
                         endpoints.MapGraphQL("/evict", "evict");
                         endpoints.MapGraphQL("/arguments", "arguments");
