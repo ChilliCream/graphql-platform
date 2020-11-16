@@ -321,6 +321,10 @@
               {
                 "path": "visitors",
                 "title": "Visitors"
+              },
+              {
+                "path": "aspnetcore",
+                "title": "ASP.NET Core"
               }
             ]
           }
