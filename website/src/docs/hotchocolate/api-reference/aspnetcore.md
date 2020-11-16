@@ -32,7 +32,7 @@ If no path is specified, the GraphQL middleware will follow the spec recommendat
 
 The GraphQL HTTP POST request is the most commonly used variant for GraphQL requests over HTTP and is specified [here](https://github.com/graphql/graphql-over-http/blob/master/spec/GraphQLOverHTTP.md#post).
 
-** request:**
+**request:**
 
 ```
 POST /graphql
@@ -45,7 +45,7 @@ Content-Type: application/json
 }
 ```
 
-** response:**
+**response:**
 
 ```
 Content-Type: application/json
@@ -83,14 +83,14 @@ With the following query variables:
 
 This request could be sent via an HTTP GET as follows:
 
-** request:**
+**request:**
 
 ```
 GET /graphql?query=query(%24id%3A%20ID!)%7Buser(id%3A%24id)%7Bname%7D%7D&variables=%7B%22id%22%3A%22QVBJcy5ndXJ1%22%7D`
 HOST: foo.example
 ```
 
-** response:**
+**response:**
 
 ```
 Content-Type: application/json
@@ -164,14 +164,14 @@ Apart from the requests defined by the GraphQL over HTTP spec, Hot Chocolate all
 
 Although you can access and query the schema definition through introspection, we support fetching the GraphQL schema SDL as a file. The GraphQL schema SDL is richer with more information and easier to read.
 
-** request:**
+**request:**
 
 ```
 GET /graphql?sdl
 HOST: foo.example
 ```
 
-** response:**
+**response:**
 
 ```
 Content-Type: application/graphql
@@ -271,7 +271,7 @@ Content-Type: application/json
 }
 ```
 
-By default, the GraphQL server will use the **incremental delivery over HTTP** specification to write the stream results as soon as they are available. This means that depending on your client implementation; you can start using the results as they appear in order.
+By default, the GraphQL server will use the **incremental delivery over HTTP**specification to write the stream results as soon as they are available. This means that depending on your client implementation; you can start using the results as they appear in order.
 
 The serialization defaults can be changed like the following:
 
