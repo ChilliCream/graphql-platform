@@ -10,7 +10,7 @@ namespace HotChocolate.Utilities
 {
     public partial class DefaultTypeConverter : ITypeConverter
     {
-        private readonly ConcurrentDictionary<Type, ConcurrentDictionary<Type, ChangeType>> _converters = new();
+        private readonly ConcurrentDictionary<(Type, Type), ChangeType> _converters = new();
         private readonly List<IChangeTypeProvider> _changeTypeProvider = new();
 
         public DefaultTypeConverter(IEnumerable<IChangeTypeProvider>? providers = null)
@@ -129,11 +129,7 @@ namespace HotChocolate.Utilities
                     if (provider.TryCreateConverter(
                         source, target, TryGetOrCreateConverter, out converter))
                     {
-                        ConcurrentDictionary<Type, ChangeType> lookup =
-                            _converters.GetOrAdd(
-                                source,
-                                _ => new ConcurrentDictionary<Type, ChangeType>());
-                        lookup.TryAdd(target, converter);
+                        _converters.TryAdd((source, target), converter);
                         return true;
                     }
                 }
@@ -150,16 +146,12 @@ namespace HotChocolate.Utilities
         {
             if (source == target || target == typeof(object))
             {
-                converter = source => source;
+                converter = s => s;
                 return true;
             }
 
-            if (_converters.TryGetValue(source,
-                out ConcurrentDictionary<Type, ChangeType>? toLookUp)
-                && toLookUp.TryGetValue(target,
-                out ChangeType? changeType))
+            if (_converters.TryGetValue((source, target), out converter))
             {
-                converter = changeType;
                 return true;
             }
 
