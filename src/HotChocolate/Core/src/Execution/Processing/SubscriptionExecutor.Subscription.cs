@@ -103,7 +103,7 @@ namespace HotChocolate.Execution.Processing
                         ImmutableDictionary<string, object?>.Empty
                             .SetItem(WellKnownContextData.EventMessage, payload);
 
-                    object? rootValue = RootValueResolver.TryResolve(
+                    object? rootValue = RootValueResolver.Resolve(
                         _requestContext,
                         eventServices,
                         _subscriptionType,
@@ -133,7 +133,7 @@ namespace HotChocolate.Execution.Processing
 
                 try
                 {
-                    object? rootValue = RootValueResolver.TryResolve(
+                    object? rootValue = RootValueResolver.Resolve(
                         _requestContext,
                         _requestContext.Services,
                         _subscriptionType,

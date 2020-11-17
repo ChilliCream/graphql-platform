@@ -4,7 +4,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
+using HotChocolate.Tests;
 using HotChocolate.Types;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Snapshooter.Xunit;
 using Xunit;
@@ -263,6 +265,17 @@ namespace HotChocolate.Execution
             result.MatchSnapshot();
         }
 
+        [Fact]
+        public async Task CannotCreateRootValue()
+        {
+            IExecutionResult result =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<QueryPrivateConstructor>()
+                    .ExecuteRequestAsync("{ hello }")
+                    .MatchSnapshotAsync();
+        }
+
         private static Schema CreateSchema()
         {
             return Schema.Create(c =>
@@ -286,7 +299,7 @@ namespace HotChocolate.Execution
 
             public IExecutable<string> GetQuery()
             {
-                return new MockExecutable<string>(new []{ "foo", "bar" }.AsQueryable());
+                return new MockExecutable<string>(new[] { "foo", "bar" }.AsQueryable());
             }
 
             public string TestProp => "Hello World!";
@@ -471,7 +484,7 @@ namespace HotChocolate.Execution
                 _source = source;
             }
 
-            public object Source =>_source;
+            public object Source => _source;
 
             public ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
             {
@@ -492,6 +505,15 @@ namespace HotChocolate.Execution
             {
                 return _source.ToString();
             }
+        }
+
+        public class QueryPrivateConstructor
+        {
+            private QueryPrivateConstructor()
+            {
+            }
+
+            public string Hello() => "Hello";
         }
     }
 }

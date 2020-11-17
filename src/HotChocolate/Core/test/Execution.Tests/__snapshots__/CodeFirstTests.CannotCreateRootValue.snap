@@ -1,0 +1,12 @@
+﻿{
+  "errors": [
+    {
+      "message": "Unable to create the initial value for the execution from the specified operation type \u0060{0}\u0060 with the runtime type \u0060{1}\u0060. If this error happens consider registering \u0060{1}\u0060 with the dependency injection provider manually.",
+      "extensions": {
+        "code": "HCXXXX",
+        "operationType": "QueryPrivateConstructor",
+        "runtimeType": "HotChocolate.Execution.CodeFirstTests\u002BQueryPrivateConstructor"
+      }
+    }
+  ]
+}
