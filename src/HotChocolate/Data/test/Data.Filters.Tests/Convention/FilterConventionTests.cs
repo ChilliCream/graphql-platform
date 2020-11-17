@@ -418,7 +418,7 @@ namespace HotChocolate.Data.Filters
             return builder.Create();
         }
 
-        public class MockFilterProviderExtensionConvention : QueryableFilterProviderExtensions
+        public class MockFilterProviderExtensionConvention : QueryableFilterProviderExtension
         {
             protected override void Configure(
                 IFilterProviderDescriptor<QueryableFilterContext> descriptor)

@@ -9,8 +9,8 @@ namespace HotChocolate.Data.Filters
     public class FilterTypeInterceptor
         : TypeInterceptor
     {
-        private readonly Dictionary<string, IFilterConvention> _conventions
-            = new Dictionary<string, IFilterConvention>();
+        private readonly Dictionary<string, IFilterConvention> _conventions =
+            new Dictionary<string, IFilterConvention>();
 
         public override bool CanHandle(ITypeSystemObjectContext context) => true;
 
@@ -48,19 +48,22 @@ namespace HotChocolate.Data.Filters
                             field.Type = field.Type.With(scope: discoveryContext.Scope);
                         }
 
-                        if (convention.TryGetHandler(
-                            discoveryContext,
-                            def,
-                            filterFieldDefinition,
-                            out IFilterFieldHandler? handler))
+                        if (filterFieldDefinition.Handler is null)
                         {
-                            filterFieldDefinition.Handler = handler;
-                        }
-                        else
-                        {
-                            throw ThrowHelper.FilterInterceptor_NoHandlerFoundForField(
+                            if (convention.TryGetHandler(
+                                discoveryContext,
                                 def,
-                                filterFieldDefinition);
+                                filterFieldDefinition,
+                                out IFilterFieldHandler? handler))
+                            {
+                                filterFieldDefinition.Handler = handler;
+                            }
+                            else
+                            {
+                                throw ThrowHelper.FilterInterceptor_NoHandlerFoundForField(
+                                    def,
+                                    filterFieldDefinition);
+                            }
                         }
                     }
                 }
@@ -92,6 +95,7 @@ namespace HotChocolate.Data.Filters
                 convention = context.GetFilterConvention(scope);
                 _conventions[scope ?? ""] = convention;
             }
+
             return convention;
         }
     }
