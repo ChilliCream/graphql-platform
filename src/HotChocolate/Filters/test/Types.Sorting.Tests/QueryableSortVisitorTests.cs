@@ -75,6 +75,8 @@ namespace HotChocolate.Types.Sorting
                 foo => Assert.Equal("b", foo.Foo.Bar)
             );
         }
+
+        [Fact(Skip = "Disabled")]
         public void Sort_ComparableAsc_PrefilterInResolver()
         {
             // arrange
@@ -195,7 +197,7 @@ namespace HotChocolate.Types.Sorting
         [Fact]
         public void Sort_Nullable_ShouldSortNullableProperlyAsc()
         {
-            // arrange 
+            // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("nullableInt",
                     new EnumValueNode(SortOperationKind.Asc)));
@@ -214,7 +216,7 @@ namespace HotChocolate.Types.Sorting
             QueryableSortVisitor.Default.Visit(value, context);
             ICollection<Foo> aFiltered = context.Sort(a).ToList();
 
-            // assert 
+            // assert
             Assert.Collection(aFiltered,
                 foo => Assert.Equal("b", foo.Bar),
                 foo => Assert.Equal("a", foo.Bar),
@@ -225,7 +227,7 @@ namespace HotChocolate.Types.Sorting
         [Fact]
         public void Sort_Nullable_ShouldSortNullableProperlyDesc()
         {
-            // arrange 
+            // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("nullableInt",
                     new EnumValueNode(SortOperationKind.Desc)));
@@ -244,7 +246,7 @@ namespace HotChocolate.Types.Sorting
             QueryableSortVisitor.Default.Visit(value, context);
             ICollection<Foo> aFiltered = context.Sort(a).ToList();
 
-            // assert 
+            // assert
             Assert.Collection(aFiltered,
                 foo => Assert.Equal("c", foo.Bar),
                 foo => Assert.Equal("a", foo.Bar),

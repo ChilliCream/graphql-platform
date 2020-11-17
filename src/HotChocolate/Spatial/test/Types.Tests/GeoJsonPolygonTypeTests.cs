@@ -10,15 +10,14 @@ namespace HotChocolate.Types.Spatial
     public class GeoJsonPolygonTypeTests
     {
         private readonly Polygon _geom = new Polygon(
-            new LinearRing(
-                new[]
-                {
-                    new Coordinate(30, 10),
-                    new Coordinate(40, 40),
-                    new Coordinate(20, 40),
-                    new Coordinate(10, 20),
-                    new Coordinate(30, 10)
-                }));
+            new LinearRing(new[]
+            {
+                new Coordinate(30, 10),
+                new Coordinate(40, 40),
+                new Coordinate(20, 40),
+                new Coordinate(10, 20),
+                new Coordinate(30, 10)
+            }));
 
         [Fact]
         public async Task Polygon_Execution_Output()
@@ -77,11 +76,10 @@ namespace HotChocolate.Types.Spatial
                 .AddConvention<INamingConventions, MockNamingConvention>()
                 .BindClrType<Coordinate, GeoJsonPositionType>()
                 .AddType<GeoJsonPolygonType>()
-                .AddQueryType(
-                    d => d
-                        .Name("Query")
-                        .Field("test")
-                        .Resolver(_geom))
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("test")
+                    .Resolver(_geom))
                 .Create();
 
             // act

@@ -15,7 +15,7 @@ namespace HotChocolate.Execution
                     .SetMessage(
                         ThrowHelper_VariableIsNotAnInputType_Message,
                         variableDefinition.Variable.Name.Value)
-                    .SetCode(ErrorCodes.Execution.NonNullViolation)
+                    .SetCode(ErrorCodes.Execution.MustBeInputType)
                     .SetExtension("variable", variableDefinition.Variable.Name.Value)
                     .SetExtension("type", variableDefinition.Type.ToString()!)
                     .AddLocation(variableDefinition)
@@ -276,5 +276,18 @@ namespace HotChocolate.Execution
                 .SetMessage("The operation has no selections.")
                 .AddLocation(syntaxNode)
                 .Build());
+
+        public static SchemaException Convention_UnableToCreateConvention(
+            Type convention) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        "Unable to create a convention instance from {0}.",
+                        convention.FullName ?? convention.Name)
+                    .Build());
+
+        public static ObjectDisposedException Object_Returned_To_Pool() =>
+            new ObjectDisposedException(
+                "The specified object was returned to the pool and is no longer usable.");
     }
 }

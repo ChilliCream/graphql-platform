@@ -1,8 +1,8 @@
-query fetch($fields_bar: String) {
+﻿query fetch($__fields_bar: String) {
   a {
     b {
       c {
-        bar: d(a: $fields_bar) {
+        bar: d(a: $__fields_bar) {
           baz {
             ... on Baz {
               qux

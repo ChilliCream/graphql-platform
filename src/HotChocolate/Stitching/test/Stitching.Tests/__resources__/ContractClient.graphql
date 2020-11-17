@@ -1907,8 +1907,14 @@ enum FzPolicyPlanType {
 "The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
 scalar Long
 
+directive @translate(language: TranslatableLanguage = null) on FIELD | FIELD_DEFINITION
 
+directive @translatable(resourceKeyPrefix: String! = null toCodeLabelArray: Boolean! = null) on FIELD_DEFINITION
 
 directive @authorize("Defines when when the resolver shall be executed.By default the resolver is executed after the policy has determined that the current user is allowed to access the field." apply: ApplyPolicy! = BEFORE_RESOLVER "The name of the authorization policy that determines access to the annotated resource." policy: String = null "Roles that are allowed to access the annotated resource." roles: [String!] = null) repeatable on SCHEMA | OBJECT | FIELD_DEFINITION
 
+directive @trackable on FIELD_DEFINITION
 
+directive @track(if: Boolean = null) on FIELD
+
+directive @tracked on FIELD_DEFINITION

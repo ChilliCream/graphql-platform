@@ -1,7 +1,10 @@
+using System;
 using System.Threading.Tasks;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Snapshooter.Xunit;
 using Xunit;
 using static HotChocolate.Tests.TestHelper;
@@ -668,6 +671,51 @@ namespace HotChocolate.Execution.DependencyInjection
             // assert
             Assert.True(found);
             Assert.True(canHandleInvoked);
+        }
+
+        [Fact]
+        public async Task OnSchemaError()
+        {
+            // arrange
+            Snapshot.FullName();
+            Exception ex = null;
+
+            // act
+            try
+            {
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .OnSchemaError((_, exception) => ex = exception)
+                    .BuildSchemaAsync();
+            }
+            catch
+            {
+                // ignored
+            }
+
+            // assert
+            Assert.IsType<SchemaException>(ex);
+        }
+
+        [Fact]
+        public void OnSchemaError_Builder_IsNull()
+        {
+            void Action() =>
+                SchemaRequestExecutorBuilderExtensions
+                    .OnSchemaError(null!, (context, exception) => { });
+
+            Assert.Throws<ArgumentNullException>(Action);
+        }
+
+        [Fact]
+        public void OnSchemaError_OnError_IsNull()
+        {
+            var builder = new Mock<IRequestExecutorBuilder>();
+
+            void Action() =>
+                builder.Object.OnSchemaError(null!);
+
+            Assert.Throws<ArgumentNullException>(Action);
         }
     }
 }

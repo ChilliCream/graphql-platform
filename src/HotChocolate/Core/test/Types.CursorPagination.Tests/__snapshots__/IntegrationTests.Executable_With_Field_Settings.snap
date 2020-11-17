@@ -1,0 +1,35 @@
+﻿{
+  "data": {
+    "fooExecutable": {
+      "edges": [
+        {
+          "node": {
+            "bar": "a"
+          },
+          "cursor": "MA=="
+        },
+        {
+          "node": {
+            "bar": "b"
+          },
+          "cursor": "MQ=="
+        }
+      ],
+      "nodes": [
+        {
+          "bar": "a"
+        },
+        {
+          "bar": "b"
+        }
+      ],
+      "pageInfo": {
+        "hasNextPage": true,
+        "hasPreviousPage": false,
+        "startCursor": "MA==",
+        "endCursor": "MQ=="
+      },
+      "totalCount": 6
+    }
+  }
+}

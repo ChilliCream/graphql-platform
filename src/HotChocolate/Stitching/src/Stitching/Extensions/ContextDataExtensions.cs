@@ -173,9 +173,12 @@ namespace HotChocolate.Stitching
                 });
 
         public static IReadOnlyList<DocumentNode> GetTypeExtensions(
-            this IDescriptorContext hasContextData)
+            this IDescriptorContext hasContextData,
+            string? name = null)
         {
-            if (hasContextData.ContextData.TryGetValue(TypeExtensions, out object? o) &&
+            string key = name is not null ? $"{TypeExtensions}.{name}" : TypeExtensions;
+
+            if (hasContextData.ContextData.TryGetValue(key, out object? o) &&
                 o is IReadOnlyList<DocumentNode> rules)
             {
                 return rules;
@@ -186,9 +189,13 @@ namespace HotChocolate.Stitching
 
         public static ISchemaBuilder AddTypeExtensions(
             this ISchemaBuilder schemaBuilder,
-            DocumentNode document) =>
-            schemaBuilder.SetContextData(
-                TypeExtensions,
+            DocumentNode document,
+            string? name = null)
+        {
+            string key = name is not null ? $"{TypeExtensions}.{name}" : TypeExtensions;
+
+            return schemaBuilder.SetContextData(
+                key,
                 current =>
                 {
                     if (!(current is List<DocumentNode> list))
@@ -199,6 +206,7 @@ namespace HotChocolate.Stitching
                     list.Add(document);
                     return list;
                 });
+        }
 
         public static IReadOnlyList<Func<DocumentNode, DocumentNode>> GetMergedDocRewriter(
             this IDescriptorContext hasContextData)
@@ -322,20 +330,52 @@ namespace HotChocolate.Stitching
 
         public static ISchemaBuilder AddNameLookup(
             this ISchemaBuilder schemaBuilder,
-            NameString typeName, NameString sourceSchema, NameString sourceName)
+            NameString originalTypeName,
+            NameString newTypeName,
+            NameString schemaName)
         {
             return schemaBuilder.SetContextData(NameLookup, current =>
             {
                 if (current is IDictionary<(NameString, NameString), NameString> dict)
                 {
-                    dict[(typeName, sourceSchema)] = sourceName;
+                    dict[(newTypeName, schemaName)] = originalTypeName;
                 }
 
                 return new Dictionary<(NameString, NameString), NameString>
                 {
-                    { (typeName, sourceSchema), sourceName }
+                    { (newTypeName, schemaName), originalTypeName }
                 };
             });
+        }
+
+        public static IReadOnlyList<RemoteSchemaDefinition> GetSchemaDefinitions(
+            this IReadOnlyDictionary<string, object?> contextData)
+        {
+            if (contextData.TryGetValue(WellKnownContextData.SchemaDefinitions, out object? o) &&
+                o is IReadOnlyList<RemoteSchemaDefinition> schemaDefinitions)
+            {
+                return schemaDefinitions;
+            }
+
+            return Array.Empty<RemoteSchemaDefinition>();
+        }
+
+        public static List<RemoteSchemaDefinition> GetOrAddSchemaDefinitions(
+            this IDescriptorContext descriptorContext)
+        {
+            if (descriptorContext.ContextData.TryGetValue(
+                WellKnownContextData.SchemaDefinitions,
+                out object? o) &&
+                o is List<RemoteSchemaDefinition> schemaDefinitions)
+            {
+                return schemaDefinitions;
+            }
+
+            schemaDefinitions = new List<RemoteSchemaDefinition>();
+            descriptorContext.ContextData.Add(
+                WellKnownContextData.SchemaDefinitions,
+                schemaDefinitions);
+            return schemaDefinitions;
         }
     }
 }

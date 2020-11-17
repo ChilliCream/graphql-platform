@@ -1,14 +1,32 @@
 using System;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate;
-using HotChocolate.AspNetCore.Utilities;
+using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
+    /// <summary>
+    /// Provides DI extension methods to configure a GraphQL server.
+    /// </summary>
     public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     {
+        /// <summary>
+        /// Adds the GraphQL server core services to the DI.
+        /// </summary>
+        /// <param name="services">
+        /// The <see cref="IServiceCollection"/>.
+        /// </param>
+        /// <param name="maxAllowedRequestSize">
+        /// The max allowed GraphQL request size.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="IServiceCollection"/> so that configuration can be chained.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// The <see cref="IServiceCollection"/> is <c>null</c>.
+        /// </exception>
         public static IServiceCollection AddGraphQLServerCore(
             this IServiceCollection services,
             int maxAllowedRequestSize = 20 * 1000 * 1000)
@@ -30,6 +48,21 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
+        /// <summary>
+        /// Adds a GraphQL server configuration to the DI.
+        /// </summary>
+        /// <param name="services">
+        /// The <see cref="IServiceCollection"/>.
+        /// </param>
+        /// <param name="schemaName">
+        /// The name of the schema. Use explicit schema names if you host multiple schemas.
+        /// </param>
+        /// <param name="maxAllowedRequestSize">
+        /// The max allowed GraphQL request size.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="IServiceCollection"/> so that configuration can be chained.
+        /// </returns>
         public static IRequestExecutorBuilder AddGraphQLServer(
             this IServiceCollection services,
             NameString schemaName = default,
@@ -37,7 +70,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services
                 .AddGraphQLServerCore(maxAllowedRequestSize)
                 .AddGraphQL(schemaName)
-                .AddHttpRequestInterceptor()
+                .AddDefaultHttpRequestInterceptor()
                 .AddSubscriptionServices();
 
         public static IRequestExecutorBuilder AddGraphQLServer(
@@ -56,7 +89,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 services
                     .AddGraphQLServerCore(maxAllowedRequestSize)
                     .AddGraphQL()
-                    .AddHttpRequestInterceptor()
+                    .AddDefaultHttpRequestInterceptor()
                     .AddSubscriptionServices(),
                 schema)
                 .Services;
@@ -72,7 +105,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     services
                         .AddGraphQLServerCore(maxAllowedRequestSize)
                         .AddGraphQL()
-                        .AddHttpRequestInterceptor()
+                        .AddDefaultHttpRequestInterceptor()
                         .AddSubscriptionServices(),
                     schemaFactory)
                 .Services;
@@ -88,7 +121,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 services
                     .AddGraphQLServerCore(maxAllowedRequestSize)
                     .AddGraphQL()
-                    .AddHttpRequestInterceptor()
+                    .AddDefaultHttpRequestInterceptor()
                     .AddSubscriptionServices(),
                 schemaBuilder)
                 .Services;
