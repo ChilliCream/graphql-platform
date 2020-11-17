@@ -1,10 +1,30 @@
 using System;
+using HotChocolate.Data.Filters.Expressions;
 using NetTopologySuite.Geometries;
 
 namespace HotChocolate.Data.Filters.Spatial
 {
     public static class SpatialFilterConventionDescriptorExtensions
     {
+        /// <summary>
+        /// Adds the spatial filter defaults
+        /// </summary>
+        public static IFilterConventionDescriptor AddSpatialDefaults(
+            this IFilterConventionDescriptor descriptor)
+        {
+            if (descriptor is null)
+            {
+                throw new ArgumentNullException(nameof(descriptor));
+            }
+
+            descriptor.AddSpatialOperations();
+            descriptor.BindSpatialTypes();
+            descriptor.AddProviderExtension(
+                new QueryableFilterProviderExtension(p => p.AddSpatialHandlers()));
+
+            return descriptor;
+        }
+
         /// <summary>
         /// The default names of the spatial filter operations
         /// </summary>
