@@ -1,5 +1,7 @@
 using System;
+using HotChocolate.Execution.Properties;
 using HotChocolate.Types;
+using static HotChocolate.Execution.Properties.Resources;
 
 namespace HotChocolate.Execution.Processing
 {
@@ -21,7 +23,7 @@ namespace HotChocolate.Execution.Processing
                 return context.Request.InitialValue;
             }
 
-            // if the initial value is a singleton and was already resolved, 
+            // if the initial value is a singleton and was already resolved,
             // we will use this instance.
             if (cachedValue is not null)
             {
@@ -34,7 +36,7 @@ namespace HotChocolate.Execution.Processing
             {
                 object? rootValue = services.GetService(rootType.RuntimeType);
 
-                // if the request services did not provide a rootValue and the runtime 
+                // if the request services did not provide a rootValue and the runtime
                 // representation is a instantiatable class we will create a singleton ourselfs
                 // and store it as cached value in order to reuse it.
                 if (rootValue is null &&
@@ -50,7 +52,10 @@ namespace HotChocolate.Execution.Processing
                     {
                         throw new GraphQLException(
                             ErrorBuilder.New()
-                                .SetMessage("Unable to create the initial value for the execution from the specified operation type `{0}` with the runtime type `{1}`. If this error happens consider registering `{1}` with the dependency injection provider manually.")
+                                .SetMessage(
+                                    RootValueResolver_Resolve_CannotCreateInstance,
+                                    rootType.Name.Value,
+                                    rootType.RuntimeType.FullName ?? rootType.RuntimeType.Name)
                                 .SetCode(ErrorCodes.Execution.CannotCreateRootValue)
                                 .SetExtension("operationType", rootType.Name)
                                 .SetExtension("runtimeType", rootType.RuntimeType.FullName)

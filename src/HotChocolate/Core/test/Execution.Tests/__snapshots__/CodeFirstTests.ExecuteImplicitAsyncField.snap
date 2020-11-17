@@ -1,13 +1,7 @@
 ﻿{
-  "Label": null,
-  "Path": null,
-  "Data": {
+  "data": {
     "dog": {
       "name2": "b"
     }
-  },
-  "Errors": null,
-  "Extensions": null,
-  "ContextData": null,
-  "HasNext": null
+  }
 }
