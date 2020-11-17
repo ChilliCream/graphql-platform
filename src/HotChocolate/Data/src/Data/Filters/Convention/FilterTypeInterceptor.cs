@@ -41,8 +41,8 @@ namespace HotChocolate.Data.Filters
                     if (field is FilterFieldDefinition filterFieldDefinition)
                     {
                         if (discoveryContext.TryPredictTypeKind(
-                                filterFieldDefinition.Type,
-                                out TypeKind kind) &&
+                            filterFieldDefinition.Type,
+                            out TypeKind kind) &&
                             kind != TypeKind.Scalar && kind != TypeKind.Enum)
                         {
                             field.Type = field.Type.With(scope: discoveryContext.Scope);
