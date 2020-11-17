@@ -12,6 +12,7 @@
     <PackageId>StrawberryShake.Tools</PackageId>
     <AssemblyName>dotnet-chilli</AssemblyName>
     <RootNamespace>StrawberryShake.Tools</RootNamespace>
+    <LangVersion>9</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>

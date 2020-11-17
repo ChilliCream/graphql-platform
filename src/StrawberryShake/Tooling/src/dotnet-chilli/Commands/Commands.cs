@@ -1,7 +1,9 @@
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake.Tools.Abstractions;
 using StrawberryShake.Tools.Commands.Compile;
+using StrawberryShake.Tools.Commands.Download;
 using StrawberryShake.Tools.Config;
 using StrawberryShake.Tools.Console;
 using StrawberryShake.Tools.FileSystem;
@@ -13,12 +15,14 @@ namespace StrawberryShake.Tools.Commands
     public static class Command
     {
         public static async ValueTask<int> Compile(Options.Compile compile) =>
-            await GetService<CompileCommandHandler>(compile).ExecuteAsync(compile);
+            await GetService<CompileCommandHandler>(compile)
+                .ExecuteAsync(compile)
+                .ConfigureAwait(false);
 
-        public static async ValueTask<int> Download(Download download)
-        {
-            return 0;
-        }
+        public static async ValueTask<int> Download(Options.Download download) =>
+            await GetService<DownloadCommandHandler>(download)
+                .ExecuteAsync(download)
+                .ConfigureAwait(false);
 
         public static async ValueTask<int> Generate(Generate generate)
         {

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using StrawberryShake.Generators;
@@ -11,6 +10,7 @@ using StrawberryShake.Tools.Abstractions;
 using StrawberryShake.Tools.Config;
 using HCError = HotChocolate.IError;
 using HCErrorBuilder = HotChocolate.ErrorBuilder;
+using IHttpClientFactory = StrawberryShake.Tools.Abstractions.IHttpClientFactory;
 
 namespace StrawberryShake.Tools.Commands.Compile
 {

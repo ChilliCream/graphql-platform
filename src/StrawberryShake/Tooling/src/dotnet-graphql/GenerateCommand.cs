@@ -17,7 +17,7 @@ namespace StrawberryShake.Tools
 
             CommandOption languageArg = generate.Option(
                 "-l|--LanguageVersion",
-                "The C# Language Version (7.3 or 8.0).",
+                "The C# Language Version (7.3, 8.0 or 9.0).",
                 CommandOptionType.SingleValue);
 
             CommandOption diSupportArg = generate.Option(
