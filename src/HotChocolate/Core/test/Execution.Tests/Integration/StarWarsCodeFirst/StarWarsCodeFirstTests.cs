@@ -1,8 +1,9 @@
-﻿using System.Threading;
+﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
 using HotChocolate.Tests;
-using Microsoft.Extensions.DependencyInjection;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
@@ -558,6 +559,7 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
                     }");
 
             IReadOnlyQueryResult eventResult = null;
+
             using (var cts = new CancellationTokenSource(2000))
             {
                 await foreach (IQueryResult queryResult in
@@ -569,7 +571,51 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
                 }
             }
 
-            eventResult.MatchSnapshot();
+            eventResult?.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SubscribeToReview_With_Variables()
+        {
+            // arrange
+            IRequestExecutor executor = await CreateExecutorAsync();
+
+            // act
+            var subscriptionResult =
+                (ISubscriptionResult)await executor.ExecuteAsync(
+                    @"subscription ($ep: Episode!) {
+                        onReview(episode: $ep) {
+                            stars
+                        }
+                    }",
+                    new Dictionary<string, object> { { "ep", "NEW_HOPE" } },
+                    CancellationToken.None);
+
+            // assert
+            IExecutionResult result =
+                await executor.ExecuteAsync(@"
+                    mutation {
+                        createReview(episode: NEW_HOPE,
+                            review: { stars: 5 commentary: ""foo"" }) {
+                            stars
+                            commentary
+                        }
+                    }");
+
+            IReadOnlyQueryResult eventResult = null;
+
+            using (var cts = new CancellationTokenSource(2000))
+            {
+                await foreach (IQueryResult queryResult in
+                    subscriptionResult.ReadResultsAsync().WithCancellation(cts.Token))
+                {
+                    var item = (IReadOnlyQueryResult) queryResult;
+                    eventResult = item;
+                    break;
+                }
+            }
+
+            eventResult?.MatchSnapshot();
         }
 
         /// <summary>
