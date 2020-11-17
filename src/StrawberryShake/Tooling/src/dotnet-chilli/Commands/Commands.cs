@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake.Tools.Abstractions;
 using StrawberryShake.Tools.Commands.Compile;
 using StrawberryShake.Tools.Commands.Download;
+using StrawberryShake.Tools.Commands.GenerateCommand;
 using StrawberryShake.Tools.Config;
 using StrawberryShake.Tools.Console;
 using StrawberryShake.Tools.FileSystem;
@@ -24,10 +25,10 @@ namespace StrawberryShake.Tools.Commands
                 .ExecuteAsync(download)
                 .ConfigureAwait(false);
 
-        public static async ValueTask<int> Generate(Generate generate)
-        {
-            return 0;
-        }
+        public static async ValueTask<int> Generate(Generate generate) =>
+            await GetService<GenerateCommandHandler>(generate)
+                .ExecuteAsync(generate)
+                .ConfigureAwait(false);
 
         public static async ValueTask<int> Init(Init init)
         {
