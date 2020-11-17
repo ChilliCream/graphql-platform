@@ -89,7 +89,9 @@ app.UseRouting();
 app.UseEndpoints(x => x.MapGraphQL());
 ```
 
-# DataLoaders
+# Schema / Resolvers
+
+## DataLoaders
 
 With Hot Chocolate server 11, we have embraced the new DataLoader spec version 2. With that, we have decoupled the scheduler from the DataLoader itself, meaning you now have to pass on the `IBatchScheduler` to the base implementation of the DataLoader.
 Apart from that, DataLoader now uses `ValueTask` instead of `Task` when doing async work.
@@ -145,7 +147,7 @@ public class FooDataLoader : DataLoaderBase<Guid, Foo>
 }
 ```
 
-# Node Resolver
+## Node Resolver
 
 With version 11, we have reworked how Relay node types are defined. Furthermore, we added pure code-first (annotation-based) support.
 
@@ -217,7 +219,7 @@ public class MyEntityResolver
 
 There are more variants possible, but to give an impression of the new convenience and flexibility around nodes. As a side note, if you do not want the node attribute on the domain objects, you can also now add your very own attribute or interface to mark this and rewrite that in the schema building process to the `NodeAttribute`.
 
-# Pagination
+## Pagination
 
 The first thing to note around pagination is that we listened to a lot of feedback and have removed the `PaginationAmountType`.
 
@@ -243,7 +245,7 @@ Further, you can override the paging option on the resolver level.
 descriptor.Field(...).UsePaging(maxPageSize = 100)...
 ```
 
-# Enums
+## Enum Type
 
 HotChocolate server 11 now follows the spec recommendation with the new enum name conventions and formats the enum values by default as UPPER_SNAIL_CASE.
 
@@ -274,7 +276,7 @@ To avoid breaking changes to your schema, you will have to override the naming c
     }
 ```
 
-# IResolverContext.Source
+## IResolverContext.Source
 
 The source result stack was removed from the resolver context for performance reasons. If you need such a functionality, you can write a middleware that aggregates the resulting path on the scoped context.
 
@@ -658,4 +660,12 @@ New
         fooRepoMock.Object);
 ```
 
-A AA
+// TODO : services.AddQueryRequestInterceptor((context, builder, ct)
+
+// TODO : Testing
+
+// TODO : Type Converter
+
+// TODO : Serial Execution
+
+// TODO : services.AddQueryResultSerializer<CustomQueryResultSerializer>();
