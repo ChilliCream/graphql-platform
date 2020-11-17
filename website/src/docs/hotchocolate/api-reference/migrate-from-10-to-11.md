@@ -20,7 +20,7 @@ We have now added the most common packages to the Hot Chocolate core. But there 
 | HotChocolate.PersistedQueries.FileSystem | This package provides a persisted query storage for the file system.                                                                                                 |
 | HotChocolate.PersistedQueries.Redis      | This package provides a persisted query storage for Redis.                                                                                                           |
 
-# Startup
+# ASP.NET Core
 
 One of the main focuses of version 11 was to create a new configuration API that brings all our builders together into one unified API. This also means that we had to introduce breaking changes to the way we
 configure schemas.
@@ -67,7 +67,7 @@ services
     .ModifyRequestOptions(o => o.ExecutionTimeout = TimeSpan.FromSeconds(180));
 ```
 
-# Configure
+## Configure
 
 After migrating the schema configuration, the next area that has fundamentally changed is the schema middleware.
 
