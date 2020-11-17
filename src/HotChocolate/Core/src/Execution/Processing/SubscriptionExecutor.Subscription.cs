@@ -127,18 +127,26 @@ namespace HotChocolate.Execution.Processing
                 }
             }
 
+            // subscribe will use the subscribe resolver to create a source stream that yields
+            // the event messages from the underlying pub/sub-system.
             private async ValueTask<ISourceStream> SubscribeAsync()
             {
                 OperationContext operationContext = _operationContextPool.Get();
 
                 try
                 {
+                    // first we will create the root value which essentially
+                    // is the subscription object. In some cases this object is null.
                     object? rootValue = RootValueResolver.Resolve(
                         _requestContext,
                         _requestContext.Services,
                         _subscriptionType,
                         ref _cachedRootValue);
 
+                    // next we need to initialize our operation context so that we have access to
+                    // variables services and other things.
+                    // The subscribe resolver will use a noop dispatcher and all DataLoader are 
+                    // dispatched immediately.
                     operationContext.Initialize(
                         _requestContext,
                         _requestContext.Services,
@@ -147,25 +155,49 @@ namespace HotChocolate.Execution.Processing
                         rootValue,
                         _requestContext.Variables!);
 
+                    // next we need a result map so that we can store the subscribe temporarily
+                    // while executing the subscribe pipeline.
                     ResultMap resultMap = operationContext.Result.RentResultMap(1);
                     ISelection rootSelection = _rootSelections.Selections[0];
 
+                    // we create a temporary middleware context so that we can use the standard
+                    // resolver pipeline.
                     var middlewareContext = new MiddlewareContext();
                     middlewareContext.Initialize(
                         operationContext,
-                        _rootSelections.Selections[0],
+                        rootSelection,
                         resultMap,
                         1,
                         rootValue,
-                        Path.New(_rootSelections.Selections[0].ResponseName),
+                        Path.New(rootSelection.ResponseName),
                         ImmutableDictionary<string, object?>.Empty);
 
+                    // it is important that we correctly coerce the arguments before
+                    // invoking subscribe.
+                    if (!rootSelection.Arguments.TryCoerceArguments(
+                        middlewareContext.Variables,
+                        middlewareContext.ReportError,
+                        out IReadOnlyDictionary<NameString, ArgumentValue>? coercedArgs))
+                    {
+                        // the middleware context reports errors to the operation context,
+                        // this means if we failed, we need to grab the coercion errors from there
+                        // and just throw a GraphQLException.
+                        throw new GraphQLException(operationContext.Result.Errors);
+                    }
+
+                    // if everything is fine with the arguments we still need to assign them.
+                    middlewareContext.Arguments = coercedArgs;
+
+                    // last but not least we can invoke the subscribe resolver which will subscribe
+                    // to the underlying pub/sub-system yielding the source stream.
                     ISourceStream sourceStream =
                         await rootSelection.Field.SubscribeResolver!.Invoke(middlewareContext)
                             .ConfigureAwait(false);
 
                     if (operationContext.Result.Errors.Count > 0)
                     {
+                        // again if we have any errors we will just throw them and not opening
+                        // any subscription context.
                         throw new GraphQLException(operationContext.Result.Errors);
                     }
 
