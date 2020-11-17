@@ -11,6 +11,6 @@
     </packageTypes>
   </metadata>
     <files>
-    <file src="Content\**\*.*" exclude="content\.vs\**\*.*" target="Content" />
+    <file src="content\**\*.*" exclude="content\.vs\**\*.*" target="Content" />
   </files>  
 </package>

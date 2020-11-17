@@ -16,3 +16,4 @@ namespace HotChocolate.Data.Filters
         public string? Scope { get; set; }
     }
 }
+
