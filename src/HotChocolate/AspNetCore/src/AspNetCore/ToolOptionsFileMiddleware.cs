@@ -40,33 +40,15 @@ namespace HotChocolate.AspNetCore
                 (context.GetGraphQLToolOptions()?.Enable ?? true))
             {
                 GraphQLToolOptions? options = context.GetGraphQLToolOptions();
-                string endpointPath = context.Request.Path.Value!.Replace(_configFile, "");
-                string schemaEndpoint = CreateEndpointUri(
-                    context.Request.Host.Value,
-                    endpointPath,
-                    context.Request.IsHttps,
-                    false);
-                var config = new BananaCakePopConfiguration(schemaEndpoint)
-                {
-                    EndpointEditable = true,
-                };
+                var config = new BananaCakePopConfiguration();
                 ISchema schema = await ExecutorProxy.GetSchemaAsync(context.RequestAborted);
 
-                if (options is { })
+                if (options is not null)
                 {
                     config.Document = options.Document;
                     config.Credentials = ConvertCredentialsToString(options.Credentials);
                     config.HttpHeaders = ConvertHttpHeadersToDictionary(options.HttpHeaders);
                     config.HttpMethod = ConvertHttpMethodToString(options.HttpMethod);
-                }
-
-                if (schema.SubscriptionType is { })
-                {
-                    config.SubscriptionEndpoint = CreateEndpointUri(
-                        context.Request.Host.Value,
-                        endpointPath,
-                        context.Request.IsHttps,
-                        true);
                 }
 
                 await context.Response.WriteAsJsonAsync(config, context.RequestAborted);
@@ -129,25 +111,9 @@ namespace HotChocolate.AspNetCore
             return null;
         }
 
-        private string CreateEndpointUri(string host, string path, bool isSecure, bool isWebSocket)
-        {
-            string scheme = isWebSocket ? "ws" : "http";
-
-            scheme = isSecure ? $"{scheme}s" : scheme;
-
-            return $"{scheme}://{host}{path}";
-        }
-
         private class BananaCakePopConfiguration
         {
-            public BananaCakePopConfiguration(string schemaEndpoint)
-            {
-                SchemaEndpoint = schemaEndpoint;
-            }
-
-            public string SchemaEndpoint { get; }
-
-            public string? SubscriptionEndpoint { get; set; }
+            public bool UseBrowserUrlAsEndpoint { get; } = true;
 
             public bool? EndpointEditable { get; set; }
 
