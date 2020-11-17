@@ -4,20 +4,28 @@ title: Migrate from Hot Chocolate GraphQL server 10 to 11
 
 This guide will walk you through the manual migration steps to get you Hot Chocolate GraphQL server to version 11.
 
-As a general preparation, we recommend first to remove all package references to your project. Then start by adding the `HotChocolate.AspNetCore` package. The server package now contains most of the needed packages.
+As a general preparation, we recommend removing all HotChocolate.\* package references from your project. Then start by adding the `HotChocolate.AspNetCore` package. The server package now contains most of the needed packages.
 
 When do I need to add other Hot Chocolate packages explicitly?
 
 We have now added the most common packages to the Hot Chocolate core. But there are certain areas where we still need to add some additional packages.
 
-TABLE
+| Package                                  | Topic                                                                                                                                                                |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| HotChocolate.AspNetCore.Authorization    | The authorization package adds the authorization directive and integrates with Microsoft Authorization Policies                                                      |
+| HotChocolate.Data                        | The new data package represents our integration with all kinds of data sources. This package provides the fundamentals for filtering, sorting, and projection logic. |
+| HotChocolate.Types.Spatial               | This package provides GeoJson spatial types.                                                                                                                         |
+| HotChocolate.Data.Spatial                | The package integrates the spatial types with the data package to allow for spatial filtering, sorting, and projections.                                             |
+| HotChocolate.Subscriptions.Redis         | The in-memory subscription provider, is now integrated by default. To have an integration with Redis, you need to add this package.                                  |
+| HotChocolate.PersistedQueries.FileSystem | This package provides a persisted query storage for the file system.                                                                                                 |
+| HotChocolate.PersistedQueries.Redis      | This package provides a persisted query storage for Redis.                                                                                                           |
 
 # Startup
 
-One of the main focuses of version 11 was to create a new configuration API that brings all our builders together in one unified API. This also means that we had to introduce breaking changes to the way we
+One of the main focuses of version 11 was to create a new configuration API that brings all our builders together into one unified API. This also means that we had to introduce breaking changes to the way we
 configure schemas.
 
-After you have cleaned up your packages, head over to the `Startup.cs` to start with your migration.
+After you have cleaned up your packages, head over to the `Startup.cs` to start with the new configuration API migration.
 
 ## ConfigureServices
 
@@ -29,168 +37,226 @@ We now start with `AddGraphQLServer` to define a new GraphQL server, `AddGraphQL
 **Old:**
 
 ```csharp
-    services.AddGraphQL(sp  =>
-        SchemaBuilder.New()
-            .AddServices(sp)
-            .AddQueryType<QueryType>()
-            .AddMutationType<MutationType>()
-            ...
-            .Create());
+services.AddGraphQL(sp  =>
+    SchemaBuilder.New()
+        .AddServices(sp)
+        .AddQueryType<QueryType>()
+        .AddMutationType<MutationType>()
+        ...
+        .Create());
 ```
 
 **New:**
 
 ```csharp
-    services
-        .AddGraphQLServer()
-        .AddQueryType<QueryType>()
-        .AddMutationType<MutationType>()
-        ...
+services
+    .AddGraphQLServer()
+    .AddQueryType<QueryType>()
+    .AddMutationType<MutationType>()
+    ...
 ```
 
-If you were using the `QueryRequestBuilder` to configure request options or change the request pipeline, the you can add those things now also to the configuration chain.
+If you were using the `QueryRequestBuilder` to configure request options or change the request pipeline, you need to add those things to the configuration chain of the ```IRequestExecutorBuilder`.
 
 ```csharp
-    services
-        .AddGraphQLServer()
-        .AddQueryType<QueryType>()
-        .AddMutationType<MutationType>()
-        ...
-        .ModifyRequestOptions(o => o.ExecutionTimeout = TimeSpan.FromSeconds(180));
+services
+    .AddGraphQLServer()
+    .AddQueryType<QueryType>()
+    .AddMutationType<MutationType>()
+    ...
+    .ModifyRequestOptions(o => o.ExecutionTimeout = TimeSpan.FromSeconds(180));
 ```
 
 # Configure
 
 After migrating the schema configuration, the next area that has fundamentally changed is the schema middleware.
 
-Hot Chocolate server now embraces the new endpoint routing API from ASP.NET core and with that brings a lot of new features. Head over [here]() to read more about the ASP.NET Core integration.
+Hot Chocolate server now embraces the new endpoint routing API from ASP.NET core and with that brings a lot of new features. Head over [here](aspnetcore) to read more about the ASP.NET Core integration.
 
 **Old:**
 
 ```csharp
-    app.UseGraphQL();
+app.UseGraphQL();
 ```
 
 **New:**
 
 ```csharp
 app.UseRouting();
-    app.UseEndpoints(x => x.MapGraphQL());
+
+// routing area
+
+app.UseEndpoints(x => x.MapGraphQL());
 ```
 
 # DataLoaders
 
 With Hot Chocolate server 11, we have embraced the new DataLoader spec version 2. With that, we have decoupled the scheduler from the DataLoader itself, meaning you now have to pass on the `IBatchScheduler` to the base implementation of the DataLoader.
-Apart from that DataLoader now uses `ValueTask` instead of `Task` when doing async work.
+Apart from that, DataLoader now uses `ValueTask` instead of `Task` when doing async work.
 
-If you were adding the `DataLoaderRegistry` to the services, you could remove that code since `service.AddDataLoaderRegistry` is no longer needed.
+If you were adding the `DataLoaderRegistry` to the services, remove that code since `service.AddDataLoaderRegistry` is no longer needed.
 
 **Old:**
 
 ```csharp
-    public class FooDataLoader : DataLoaderBase<Guid, Foo>
+public class FooDataLoader : DataLoaderBase<Guid, Foo>
+{
+    private readonly IFooRepository _fooRepository;
+
+    public FooDataLoader(IFooRepository fooRepository)
     {
-        private readonly IFooRepository _fooRepository;
-
-        public FooDataLoader(IFooRepository fooRepository)
-        {
-            _fooRepository = fooRepository;
-        }
-
-
-        protected override async Task<IReadOnlyList<Result<Foo>>> FetchAsync(
-            IReadOnlyList<Guid> keys,
-            CancellationToken cancellationToken)
-        {
-
-       ....
+        _fooRepository = fooRepository;
     }
 
+
+    protected override async Task<IReadOnlyList<Result<Foo>>> FetchAsync(
+        IReadOnlyList<Guid> keys,
+        CancellationToken cancellationToken)
+    {
+        ....
+    }
+}
 ```
 
 **New:**
 
 ```csharp
-    public class FooDataLoader : DataLoaderBase<Guid, Foo>
+public class FooDataLoader : DataLoaderBase<Guid, Foo>
+{
+    private readonly IFooRepository _fooRepository;
+
+    public FooDataLoader(
+        //    ▼
+        IBatchScheduler scheduler,
+        IFooRepository fooRepository)
+        : base(scheduler)
     {
-        private readonly IFooRepository _fooRepository;
-
-        public FooDataLoader(
-            //    ▼
-            IBatchScheduler scheduler,
-            IFooRepository fooRepository)
-            : base(scheduler)
-        {
-            _fooRepository = fooRepository;
-        }
-
-
-        //                          ▼
-        protected override async ValueTask<IReadOnlyList<Result<Foo>>> FetchAsync(
-            IReadOnlyList<Guid> keys,
-            CancellationToken cancellationToken)
-        {
-
-       ....
+        _fooRepository = fooRepository;
     }
+
+
+    //                          ▼
+    protected override async ValueTask<IReadOnlyList<Result<Foo>>> FetchAsync(
+        IReadOnlyList<Guid> keys,
+        CancellationToken cancellationToken)
+    {
+
+    ....
+}
 ```
 
 # Node Resolver
 
-There are new APIs to specify Nodes.
+With version 11, we have reworked how Relay node types are defined. Furthermore, we added pure code-first (annotation-based) support.
 
-Old
-
-```csharp
-    descriptor
-        .AsNode()
-        .IdField(d => d.Id)
-        .NodeResolver(async (ctx, id) => await ctx
-            .DataLoader<FooDataLoader>()
-            .LoadAsync(id, ctx.RequestAborted))
-        .Authorize(AuthorizationPolicies.Names.EmployeeAccess, ApplyPolicy.AfterResolver);
-```
-
-New
+**Old:**
 
 ```csharp
-    descriptor
-        .ImplementsNode()
-        .IdField(d => d.Id)
-        .ResolveNode(async (ctx, id) => await ctx
-            .DataLoader<FooDataLoader>()
-            .LoadAsync(id, ctx.RequestAborted))
-        .Authorize(AuthorizationPolicies.Names.EmployeeAccess, ApplyPolicy.AfterResolver);
+descriptor
+    .AsNode()
+    .IdField(d => d.Id)
+    .NodeResolver(async (ctx, id) => await ctx
+        .DataLoader<FooDataLoader>()
+        .LoadAsync(id, ctx.RequestAborted))
 ```
+
+**New:**
+
+The following example essentially aligns very closely to the old variant.
+
+```csharp
+descriptor
+    .ImplementsNode()
+    .IdField(d => d.Id)
+    .ResolveNode(async (ctx, id) => await ctx
+        .DataLoader<FooDataLoader>()
+        .LoadAsync(id, ctx.RequestAborted))
+```
+
+But, we can now also use an external resolver like with standard resolvers. This allows us to write better testable code that takes advantage of the method parameter injection we use in everyday resolvers.
+
+```csharp
+descriptor
+    .ImplementsNode()
+    .IdField(d => d.Id)
+    .ResolveNodeWith<NodeResolver>(t => t.GetNodeAsync(default, default));
+```
+
+But we can go even further now with pure code-first (annotation-based) support. By just annotating the entity with the `NodeAttribute`, we essentially told the schema builder that this is a node. The type initialization can then try to infer the node resolver directly from the type.
+
+```csharp
+[Node]
+public class MyEntity
+{
+    public string Id { get; set; }
+
+    public async Task<MyEntity> GetAsync(....)
+    {
+        ....
+    }
+}
+```
+
+Often, however, we want the repository logic decoupled from our domain object/entity. In this case, we can specify the entity resolver type.
+
+```csharp
+[Node(NodeResolverType = typeof(MyEntityResolver))]
+public class MyEntity
+{
+    public string Id { get; set; }
+}
+
+public class MyEntityResolver
+{
+    public async Task<MyEntity> GetAsync(....)
+    {
+        ....
+    }
+}
+```
+
+There are more variants possible, but to give an impression of the new convenience and flexibility around nodes. As a side note, if you do not want the node attribute on the domain objects, you can also now add your very own attribute or interface to mark this and rewrite that in the schema building process to the `NodeAttribute`.
 
 # Pagination
 
-You can configure paging options `MaxPageSize`, `DefaultPageSize` and `IncludeTotalCount` on the
-builder globally
+The first thing to note around pagination is that we listened to a lot of feedback and have removed the `PaginationAmountType`.
+
+Moreover, we have introduced new PagingOptions, which can be set with the new configuration API on the schema level. With the new options, you can configure the `MaxPageSize`, `DefaultPageSize` and whether the total count shall be included `IncludeTotalCount`.
 
 ```csharp
-    builder.SetPagingOptions(
-        new PagingOptions()
-        {
-            MaxPageSize = searchOptions.PaginationAmount,
-            DefaultPageSize = searchOptions.PaginationAmount,
-            IncludeTotalCount = true
-        });
+builder.SetPagingOptions(
+    new PagingOptions()
+    {
+        MaxPageSize = searchOptions.PaginationAmount,
+        DefaultPageSize = searchOptions.PaginationAmount,
+        IncludeTotalCount = true
+    });
 ```
 
-## ENUM_VALUES
+Further, you can override the paging option on the resolver level.
 
-HotChocolate 11 now follows the by the spec recommended way of formatting enums.
-To avoid breaking changes you will have to override the naming convetion:
+```csharp
+[UsePaging(MaxPageSize = 100)]
+```
 
-Configuration:
+```csharp
+descriptor.Field(...).UsePaging(maxPageSize = 100)...
+```
+
+# Enums
+
+HotChocolate server 11 now follows the spec recommendation with the new enum name conventions and formats the enum values by default as UPPER_SNAIL_CASE.
+
+To avoid breaking changes to your schema, you will have to override the naming convention:
+
+**Configuration:**
 
 ```csharp
     builder
         .AddConvention<INamingConventions>(new CompatibilityNamingConvention())
 ```
 
-Convention:
+**Convention:**
 
 ```csharp
     public class CompatibilityNamingConvention
@@ -210,11 +276,9 @@ Convention:
 
 # IResolverContext.Source
 
-This API was removed. The reason for this is that it violates the concept of a tree.
-A GraphQL Type should never look up in a tree. All the data that is needed has to be pushed down
-from the previous type.
+The source result stack was removed from the resolver context for performance reasons. If you need such a functionality, you can write a middleware that aggregates the resulting path on the scoped context.
 
-Old
+**Old:**
 
 ```csharp
     public class FooType : ObjectType<Foo>
@@ -247,7 +311,7 @@ Old
 
 ```
 
-New
+**New:**
 
 ```csharp
     public class FooType : ObjectType<Foo>
@@ -295,12 +359,11 @@ New
                     });
         }
     }
-
 ```
 
 ## Autorization
 
-If you use authorization you need to add a package reference to `HotChocolate.AspNetCore.Authorization`.
+If you use authorization, you need to add a package reference to `HotChocolate.AspNetCore.Authorization`.
 
 Old
 
