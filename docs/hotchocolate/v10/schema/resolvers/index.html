@@ -1322,7 +1322,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>With the schema-first approach the simplest way to declare a resolver is binding a delegate that resolves the data to a field in your schema like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="48488185173846030000"
+              data-toaster-id="39128377717420700000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1330,7 +1330,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
               onClick="copyToClipboard(`c.BindResolver(ctx =>
 {
     // my resolver code goes here ...
-}).To(&quot;Query&quot;, &quot;foo&quot;);`, `48488185173846030000`)"
+}).To(&quot;Query&quot;, &quot;foo&quot;);`, `39128377717420700000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1346,7 +1346,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>Furthermore, we could bind a class as a resolver type. Each of the members of the resolver type can be bound to fields in the schema.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="9759407855146529000"
+              data-toaster-id="21521847855871324000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1358,7 +1358,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
             .To(&quot;Query&quot;)
             .Field(t => t.GetGreetings())
             .Name(&quot;greetings&quot;))
-        .Create());`, `9759407855146529000`)"
+        .Create());`, `21521847855871324000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1380,7 +1380,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>Sometimes, we do not want to explicitly declare resolvers since we have already modeled our entities very well and just want to map those to our schema. In this case we can just bind our type like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="8508472939676826000"
+              data-toaster-id="85638434070195100000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1389,7 +1389,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
     SchemaBuilder.New()
         .AddDocumentFromFile(&quot;schema.graphql&quot;)
         .BindComplexType<Query>(b => b.To(&quot;Query&quot;))
-        .Create());`, `8508472939676826000`)"
+        .Create());`, `85638434070195100000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1411,7 +1411,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>Moreover, we can combine our approach in order to provide specific resolver logic for our entity or in order to extend on our entity. In many cases our entity may just represent part of the data structure that we want to expose in our schema. In this case we can just provide resolver logic to fill the gaps.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="70933636680439260000"
+              data-toaster-id="48620695637685390000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1424,7 +1424,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
             .To(&quot;Query&quot;)
             .Resolve(&quot;greetings&quot;)
             .With(t => t.GetGreetings(default)))
-        .Create());`, `70933636680439260000`)"
+        .Create());`, `48620695637685390000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1445,12 +1445,12 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>In the above case the <code class="language-text">GetGreetings</code> method has an argument <code class="language-text">Query</code> which is our bound entity. Resolver methods can specify the original field arguments as specified by the field definition as well as context arguments.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="31216108040567493000"
+              data-toaster-id="31423973627964850000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`public string GetGreetings([Parent]Query query) => query.Greetings;`, `31216108040567493000`)"
+              onClick="copyToClipboard(`public string GetGreetings([Parent]Query query) => query.Greetings;`, `31423973627964850000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1466,12 +1466,12 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>In order to keep our resolver clean and easy to test we can also just let the query engine inject the parts of the resolver context that we really need for our resolver like the <code class="language-text">ObjectType</code> to which our current field belongs etc.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="12511919181527409000"
+              data-toaster-id="80122791281495930000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`public string GetGreetings(ObjectType type) => type.Name;`, `12511919181527409000`)"
+              onClick="copyToClipboard(`public string GetGreetings(ObjectType type) => type.Name;`, `80122791281495930000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1485,7 +1485,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>Code-first is the second approach with which we can be describe a GraphQL schema. In Code-first, field definition and resolver logic are more closely bound together.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="94678611939641150000"
+              data-toaster-id="22713919323498910000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1498,7 +1498,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
         descriptor.Name(&quot;Query&quot;);
         descriptor.Field(&quot;greetings&quot;).Resolver(ctx => &quot;foo&quot;);
     }
-}`, `94678611939641150000`)"
+}`, `22713919323498910000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1519,7 +1519,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>The above example declares a schema type named <code class="language-text">Query</code> with one field called <code class="language-text">greetings</code> of the type <code class="language-text">String</code> that always returns <code class="language-text">foo</code>. Like with the schema-first approach we can create types that are not explicitly bound to a specific .NET type like in the above example.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="44134993972598660000"
+              data-toaster-id="46902603617287750000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1528,7 +1528,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
     : ObjectType<Person>
 {
 // Types inferred
-}`, `44134993972598660000`)"
+}`, `46902603617287750000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1546,7 +1546,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>We can always overwrite the defaults or define everything explicitly.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="36920593497207620000"
+              data-toaster-id="80088490955169990000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1562,7 +1562,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
             .Name(&quot;friend&quot;)
             .Resolver(ctx => ctx.Service<IRepository>().GetPerson(ctx.Parent<Person>().FriendId));
     }
-}`, `36920593497207620000`)"
+}`, `80088490955169990000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1588,12 +1588,12 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>We can explicitly include resolvers from a resolver type the same way we are specifying our fields.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="26270311196388030000"
+              data-toaster-id="35697018283624526000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`descriptor.Field<PersonResolvers>(t => t.GetFriend(defaults)).Type<PersonType>();`, `26270311196388030000`)"
+              onClick="copyToClipboard(`descriptor.Field<PersonResolvers>(t => t.GetFriend(defaults)).Type<PersonType>();`, `35697018283624526000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1607,12 +1607,12 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>Furthermore, we can also include all fields of a resolver type implicitly like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="88584193936579660000"
+              data-toaster-id="75977174101971350000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`descriptor.Include<PersonResolvers>();`, `88584193936579660000`)"
+              onClick="copyToClipboard(`descriptor.Include<PersonResolvers>();`, `75977174101971350000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1625,7 +1625,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>We can also reverse the relationship between the type and its resolvers by annotating the resolver type with the entity or schema type name for which the resolver type provides resolvers.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="49090767769718880000"
+              data-toaster-id="96960733842637000000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1644,7 +1644,7 @@ public class SomeResolvers
     {
         // resolver code
     }
-}`, `49090767769718880000`)"
+}`, `96960733842637000000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1671,7 +1671,7 @@ public class SomeResolvers
 <p>The above example class <code class="language-text">SomeResolvers</code> provides resolvers for multiple types. The types can be declared with the <code class="language-text">GraphQLResolverOfAttribute</code> either by providing the .NET entity type or by providing the schema type name. This resolver can be registered with the schema builder via <code class="language-text">BindResolver&lt;SomeResolvers&gt;()</code> as shown here:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="49714671084058000000"
+              data-toaster-id="47801438016076300000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1681,7 +1681,7 @@ public class SomeResolvers
         // ...
         .BindResolver<SomeResolvers>()
         // ...
-        .Create());`, `49714671084058000000`)"
+        .Create());`, `47801438016076300000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1702,7 +1702,7 @@ public class SomeResolvers
 <p>Let us have a look at an example:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="90066229015233460000"
+              data-toaster-id="89911799332879120000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1710,7 +1710,7 @@ public class SomeResolvers
               onClick="copyToClipboard(`public Person GetFriend([Parent]Person person, IObjectField field)
 {
     // resolver code
-}`, `90066229015233460000`)"
+}`, `89911799332879120000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1781,7 +1781,7 @@ public class SomeResolvers
 <h2 id="parent" style="position:relative;"><a href="#parent" aria-label="parent permalink" class="anchor before"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="16" height="16"><path d="M326.612 185.391c59.747 59.809 58.927 155.698.36 214.59-.11.12-.24.25-.36.37l-67.2 67.2c-59.27 59.27-155.699 59.262-214.96 0-59.27-59.26-59.27-155.7 0-214.96l37.106-37.106c9.84-9.84 26.786-3.3 27.294 10.606.648 17.722 3.826 35.527 9.69 52.721 1.986 5.822.567 12.262-3.783 16.612l-13.087 13.087c-28.026 28.026-28.905 73.66-1.155 101.96 28.024 28.579 74.086 28.749 102.325.51l67.2-67.19c28.191-28.191 28.073-73.757 0-101.83-3.701-3.694-7.429-6.564-10.341-8.569a16.037 16.037 0 0 1-6.947-12.606c-.396-10.567 3.348-21.456 11.698-29.806l21.054-21.055c5.521-5.521 14.182-6.199 20.584-1.731a152.482 152.482 0 0 1 20.522 17.197zM467.547 44.449c-59.261-59.262-155.69-59.27-214.96 0l-67.2 67.2c-.12.12-.25.25-.36.37-58.566 58.892-59.387 154.781.36 214.59a152.454 152.454 0 0 0 20.521 17.196c6.402 4.468 15.064 3.789 20.584-1.731l21.054-21.055c8.35-8.35 12.094-19.239 11.698-29.806a16.037 16.037 0 0 0-6.947-12.606c-2.912-2.005-6.64-4.875-10.341-8.569-28.073-28.073-28.191-73.639 0-101.83l67.2-67.19c28.239-28.239 74.3-28.069 102.325.51 27.75 28.3 26.872 73.934-1.155 101.96l-13.087 13.087c-4.35 4.35-5.769 10.79-3.783 16.612 5.864 17.194 9.042 34.999 9.69 52.721.509 13.906 17.454 20.446 27.294 10.606l37.106-37.106c59.271-59.259 59.271-155.699.001-214.959z"/></svg></a> Parent</h2>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="1140625553493568300"
+              data-toaster-id="11294668940879604000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1789,7 +1789,7 @@ public class SomeResolvers
               onClick="copyToClipboard(`public Person GetFriend([Parent]Person person)
 {
     // resolver code
-}`, `1140625553493568300`)"
+}`, `11294668940879604000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1805,7 +1805,7 @@ public class SomeResolvers
 <h2 id="services" style="position:relative;"><a href="#services" aria-label="services permalink" class="anchor before"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="16" height="16"><path d="M326.612 185.391c59.747 59.809 58.927 155.698.36 214.59-.11.12-.24.25-.36.37l-67.2 67.2c-59.27 59.27-155.699 59.262-214.96 0-59.27-59.26-59.27-155.7 0-214.96l37.106-37.106c9.84-9.84 26.786-3.3 27.294 10.606.648 17.722 3.826 35.527 9.69 52.721 1.986 5.822.567 12.262-3.783 16.612l-13.087 13.087c-28.026 28.026-28.905 73.66-1.155 101.96 28.024 28.579 74.086 28.749 102.325.51l67.2-67.19c28.191-28.191 28.073-73.757 0-101.83-3.701-3.694-7.429-6.564-10.341-8.569a16.037 16.037 0 0 1-6.947-12.606c-.396-10.567 3.348-21.456 11.698-29.806l21.054-21.055c5.521-5.521 14.182-6.199 20.584-1.731a152.482 152.482 0 0 1 20.522 17.197zM467.547 44.449c-59.261-59.262-155.69-59.27-214.96 0l-67.2 67.2c-.12.12-.25.25-.36.37-58.566 58.892-59.387 154.781.36 214.59a152.454 152.454 0 0 0 20.521 17.196c6.402 4.468 15.064 3.789 20.584-1.731l21.054-21.055c8.35-8.35 12.094-19.239 11.698-29.806a16.037 16.037 0 0 0-6.947-12.606c-2.912-2.005-6.64-4.875-10.341-8.569-28.073-28.073-28.191-73.639 0-101.83l67.2-67.19c28.239-28.239 74.3-28.069 102.325.51 27.75 28.3 26.872 73.934-1.155 101.96l-13.087 13.087c-4.35 4.35-5.769 10.79-3.783 16.612 5.864 17.194 9.042 34.999 9.69 52.721.509 13.906 17.454 20.446 27.294 10.606l37.106-37.106c59.271-59.259 59.271-155.699.001-214.959z"/></svg></a>Services</h2>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="89999497035052480000"
+              data-toaster-id="83948399693800690000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1813,7 +1813,7 @@ public class SomeResolvers
               onClick="copyToClipboard(`public Person GetFriend([Service]IPersonRepository repository)
 {
     // resolver code
-}`, `89999497035052480000`)"
+}`, `83948399693800690000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1829,7 +1829,7 @@ public class SomeResolvers
 <h2 id="dataloader" style="position:relative;"><a href="#dataloader" aria-label="dataloader permalink" class="anchor before"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="16" height="16"><path d="M326.612 185.391c59.747 59.809 58.927 155.698.36 214.59-.11.12-.24.25-.36.37l-67.2 67.2c-59.27 59.27-155.699 59.262-214.96 0-59.27-59.26-59.27-155.7 0-214.96l37.106-37.106c9.84-9.84 26.786-3.3 27.294 10.606.648 17.722 3.826 35.527 9.69 52.721 1.986 5.822.567 12.262-3.783 16.612l-13.087 13.087c-28.026 28.026-28.905 73.66-1.155 101.96 28.024 28.579 74.086 28.749 102.325.51l67.2-67.19c28.191-28.191 28.073-73.757 0-101.83-3.701-3.694-7.429-6.564-10.341-8.569a16.037 16.037 0 0 1-6.947-12.606c-.396-10.567 3.348-21.456 11.698-29.806l21.054-21.055c5.521-5.521 14.182-6.199 20.584-1.731a152.482 152.482 0 0 1 20.522 17.197zM467.547 44.449c-59.261-59.262-155.69-59.27-214.96 0l-67.2 67.2c-.12.12-.25.25-.36.37-58.566 58.892-59.387 154.781.36 214.59a152.454 152.454 0 0 0 20.521 17.196c6.402 4.468 15.064 3.789 20.584-1.731l21.054-21.055c8.35-8.35 12.094-19.239 11.698-29.806a16.037 16.037 0 0 0-6.947-12.606c-2.912-2.005-6.64-4.875-10.341-8.569-28.073-28.073-28.191-73.639 0-101.83l67.2-67.19c28.239-28.239 74.3-28.069 102.325.51 27.75 28.3 26.872 73.934-1.155 101.96l-13.087 13.087c-4.35 4.35-5.769 10.79-3.783 16.612 5.864 17.194 9.042 34.999 9.69 52.721.509 13.906 17.454 20.446 27.294 10.606l37.106-37.106c59.271-59.259 59.271-155.699.001-214.959z"/></svg></a> DataLoader</h2>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="32381972223854040000"
+              data-toaster-id="36133510922524615000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1837,7 +1837,7 @@ public class SomeResolvers
               onClick="copyToClipboard(`public Person GetFriend([DataLoader]IPersonDataLoader dataLoader)
 {
     // resolver code
-}`, `32381972223854040000`)"
+}`, `36133510922524615000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1853,7 +1853,7 @@ public class SomeResolvers
 <p>Or</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="48750219136014050000"
+              data-toaster-id="89005582486230500000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1861,7 +1861,7 @@ public class SomeResolvers
               onClick="copyToClipboard(`public Person GetFriend([DataLoader(&quot;ById&quot;)]IPersonDataLoader dataLoader)
 {
     // resolver code
-}`, `48750219136014050000`)"
+}`, `89005582486230500000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1877,7 +1877,7 @@ public class SomeResolvers
 <h2 id="state" style="position:relative;"><a href="#state" aria-label="state permalink" class="anchor before"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="16" height="16"><path d="M326.612 185.391c59.747 59.809 58.927 155.698.36 214.59-.11.12-.24.25-.36.37l-67.2 67.2c-59.27 59.27-155.699 59.262-214.96 0-59.27-59.26-59.27-155.7 0-214.96l37.106-37.106c9.84-9.84 26.786-3.3 27.294 10.606.648 17.722 3.826 35.527 9.69 52.721 1.986 5.822.567 12.262-3.783 16.612l-13.087 13.087c-28.026 28.026-28.905 73.66-1.155 101.96 28.024 28.579 74.086 28.749 102.325.51l67.2-67.19c28.191-28.191 28.073-73.757 0-101.83-3.701-3.694-7.429-6.564-10.341-8.569a16.037 16.037 0 0 1-6.947-12.606c-.396-10.567 3.348-21.456 11.698-29.806l21.054-21.055c5.521-5.521 14.182-6.199 20.584-1.731a152.482 152.482 0 0 1 20.522 17.197zM467.547 44.449c-59.261-59.262-155.69-59.27-214.96 0l-67.2 67.2c-.12.12-.25.25-.36.37-58.566 58.892-59.387 154.781.36 214.59a152.454 152.454 0 0 0 20.521 17.196c6.402 4.468 15.064 3.789 20.584-1.731l21.054-21.055c8.35-8.35 12.094-19.239 11.698-29.806a16.037 16.037 0 0 0-6.947-12.606c-2.912-2.005-6.64-4.875-10.341-8.569-28.073-28.073-28.191-73.639 0-101.83l67.2-67.19c28.239-28.239 74.3-28.069 102.325.51 27.75 28.3 26.872 73.934-1.155 101.96l-13.087 13.087c-4.35 4.35-5.769 10.79-3.783 16.612 5.864 17.194 9.042 34.999 9.69 52.721.509 13.906 17.454 20.446 27.294 10.606l37.106-37.106c59.271-59.259 59.271-155.699.001-214.959z"/></svg></a>State</h2>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="46440128646326610000"
+              data-toaster-id="24227649037366493000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1885,7 +1885,7 @@ public class SomeResolvers
               onClick="copyToClipboard(`public Person GetFriend([State(&quot;foo&quot;)]Bar bar)
 {
     // resolver code
-}`, `46440128646326610000`)"
+}`, `24227649037366493000`)"
             >
               <div
                 class="gatsby-code-button"
