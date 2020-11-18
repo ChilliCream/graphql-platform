@@ -460,6 +460,24 @@ New
         .AddType<FooType>();
 ```
 
+## IgnoreField
+
+The order of the parameters in ignore field has changed. The schema name is now optional and was moved to the end.
+
+Old
+
+```csharp
+    services.AddStitchedSchema(x => x.IgnoreField("SchemaName", "TypeName, "FieldName"));
+```
+
+New
+
+```csharp
+    services
+        .AddGraphQLServer()
+        .IgnoreField("TypeName, "FieldName", "SchemaName")
+```
+
 ## SetExecutionOptions
 
 Execution options can now be configured on the root schema directly:
