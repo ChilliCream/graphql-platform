@@ -1,20 +1,20 @@
 ﻿schema {
   query: abc
-  mutation: def
-  subscription: ghi
 }
 
-type abc {
+interface def {
   field: String
 }
 
-type def {
-  field: Int
+type abc {
+  field: def
 }
 
-type ghi {
-  field: Boolean
+type ghi implements def {
+  field: String
 }
+
+directive @_abc on QUERY
 
 "The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`."
 directive @defer("If this argument label has a value other than null, it will be passed on to the result of this defer directive. This label is intended to give client applications a way to identify to which fragment a deferred result belongs to." label: String "Deferred when true." if: Boolean) on FRAGMENT_SPREAD | INLINE_FRAGMENT

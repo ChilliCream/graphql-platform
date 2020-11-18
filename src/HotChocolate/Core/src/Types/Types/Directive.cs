@@ -41,8 +41,6 @@ namespace HotChocolate.Types
         public IReadOnlyList<DirectiveMiddleware> MiddlewareComponents =>
             Type.MiddlewareComponents;
 
-        public bool IsExecutable => Type.IsExecutable;
-
         public T ToObject<T>()
         {
             if (_customDirective is T d)
