@@ -163,17 +163,17 @@ The old filtering was bundling a field and operation together. With the new filt
 In most cases, a filter type either only contains fields or only operations, but it is in no way restricted to that. A filter type can contain both. This can be useful to provide the necessary metadata. Let's continue the example `Distance(Geometry g)` from above. This function has a parameter `g`. To calculate the distance between to points, the consumer needs to provide one point. The function then returns the distance between these two points. In GraphQL, this now can be combined into one input type:
 
 ```graphql
-input HouseFilterInputType {
-    position: PointFilterInputType
+input HouseFilterInput {
+    position: PointFilterInput
 }
 
-input PointFilterInputType {
-    distanceTo: DistanceToFilterInputType;
+input PointFilterInput {
+    distanceTo: DistanceToFilterInput;
 }
 
-input DistanceToFilterInputType {
+input DistanceToFilterInput {
     """The other point where the distance is calculated to"""
-    other: GeometryInputType!
+    other: GeometryFilterInput!
     eq: Float
     neq: Float
     gt: Float
@@ -301,10 +301,8 @@ public class Query : ObjectType {
 ```
 
 ## What's next?
-
-We are in the final phase of version 11 development.
-In the coming weeks, we will add support for sorting and projections.
-The data package is designed for extensibility. There are a few extensions that we will work on. e.g. Filtering for spatial data and a MongoDB provider.
+ 
+The data package is designed for extensibility. There are a few extensions that we will work on. e.g. filtering for spatial data and a MongoDB provider.
 We will as well invest time into documentation and have examples on how to create your own extensions.
 There are too many databases to create providers for all of them out of the box. We encourage you, the community, to contribute the extensions you need.
 If you are interested, reach out to us in slack in the #contributors channel. We will help you along!
