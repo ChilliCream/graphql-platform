@@ -55,43 +55,53 @@ namespace HotChocolate.Stitching.Requests
             IQueryResult mergedResult,
             IEnumerable<BufferedRequest> requests)
         {
-            var handledErrors = new HashSet<IError>();
-            BufferedRequest? current = null;
-            QueryResultBuilder? resultBuilder = null;
-
-            foreach (BufferedRequest request in requests)
+            try
             {
-                if (current is not null && resultBuilder is not null)
-                {
-                    current.Promise.SetResult(resultBuilder.Create());
-                }
+                var handledErrors = new HashSet<IError>();
+                BufferedRequest? current = null;
+                QueryResultBuilder? resultBuilder = null;
 
-                try
+                foreach (BufferedRequest request in requests)
                 {
-                    current = request;
-                    resultBuilder = ExtractResult(request.Aliases!, mergedResult, handledErrors);
-                }
-                catch (Exception ex)
-                {
-                    current = null;
-                    resultBuilder = null;
-                    request.Promise.SetException(ex);
-                }
-            }
-
-            if (current is not null && resultBuilder is not null)
-            {
-                if (mergedResult.Errors is not null &&
-                    handledErrors.Count < mergedResult.Errors.Count)
-                {
-                    foreach (IError error in mergedResult.Errors.Except(handledErrors))
+                    if (current is not null && resultBuilder is not null)
                     {
-                        resultBuilder.AddError(error);
+                        current.Promise.SetResult(resultBuilder.Create());
+                    }
+
+                    try
+                    {
+                        current = request;
+                        resultBuilder = ExtractResult(request.Aliases!, mergedResult, handledErrors);
+                    }
+                    catch (Exception ex)
+                    {
+                        current = null;
+                        resultBuilder = null;
+                        request.Promise.SetException(ex);
                     }
                 }
 
-                handledErrors.Clear();
-                current.Promise.SetResult(resultBuilder.Create());
+                if (current is not null && resultBuilder is not null)
+                {
+                    if (mergedResult.Errors is not null &&
+                        handledErrors.Count < mergedResult.Errors.Count)
+                    {
+                        foreach (IError error in mergedResult.Errors.Except(handledErrors))
+                        {
+                            resultBuilder.AddError(error);
+                        }
+                    }
+
+                    handledErrors.Clear();
+                    current.Promise.SetResult(resultBuilder.Create());
+                }
+            }
+            catch (Exception ex)
+            {
+                foreach (BufferedRequest request in requests)
+                {
+                    request.Promise.TrySetException(ex);
+                }
             }
         }
 
@@ -130,6 +140,7 @@ namespace HotChocolate.Stitching.Requests
             }
         }
 
+        // This method extracts the relevant data from a merged result for a specific result.
         private static QueryResultBuilder ExtractResult(
             IDictionary<string, string> aliases,
             IQueryResult mergedResult,
@@ -137,35 +148,14 @@ namespace HotChocolate.Stitching.Requests
         {
             var result = QueryResultBuilder.New();
 
-            if (mergedResult.Data is not null)
-            {
-                var data = new ResultMap();
-                data.EnsureCapacity(aliases.Count);
-                var i = 0;
+            // We first try to identify and copy data segments that belong to our specific result.
+            ExtractData(aliases, mergedResult, result);
 
-                foreach (KeyValuePair<string, string> alias in aliases)
-                {
-                    if (mergedResult.Data.TryGetValue(alias.Key, out object? o))
-                    {
-                        data.SetValue(i++, alias.Value, o);
-                    }
-                }
+            // After extracting the data, we will try to find errors that can be associated with 
+            // our specific request for which we are trying to branch out the result.
+            ExtractErrors(aliases, mergedResult, handledErrors, result);
 
-                result.SetData(data);
-            }
-
-            if (mergedResult.Errors is not null)
-            {
-                foreach (IError error in mergedResult.Errors)
-                {
-                    if (TryResolveField(error, aliases, out var responseName))
-                    {
-                        handledErrors.Add(error);
-                        result.AddError(RewriteError(error, responseName));
-                    }
-                }
-            }
-
+            // l
             if (mergedResult.Extensions is not null)
             {
                 result.SetExtensions(mergedResult.Extensions);
@@ -180,6 +170,55 @@ namespace HotChocolate.Stitching.Requests
             }
 
             return result;
+        }
+
+        private static void ExtractData(
+            IDictionary<string, string> aliases,
+            IQueryResult mergedResult,
+            QueryResultBuilder result)
+        {
+            var data = new ResultMap();
+            data.EnsureCapacity(aliases.Count);
+            var i = 0;
+
+            if (mergedResult.Data is not null)
+            {
+                foreach (KeyValuePair<string, string> alias in aliases)
+                {
+                    if (mergedResult.Data.TryGetValue(alias.Key, out object? o))
+                    {
+                        data.SetValue(i++, alias.Value, o);
+                    }
+                }
+            }
+            else
+            {
+                foreach (KeyValuePair<string, string> alias in aliases)
+                {
+                    data.SetValue(i++, alias.Value, null);
+                }
+            }
+
+            result.SetData(data);
+        }
+
+        private static void ExtractErrors(
+            IDictionary<string, string> aliases,
+            IQueryResult mergedResult,
+            ICollection<IError> handledErrors,
+            QueryResultBuilder result)
+        {
+            if (mergedResult.Errors is not null)
+            {
+                foreach (IError error in mergedResult.Errors)
+                {
+                    if (TryResolveField(error, aliases, out var responseName))
+                    {
+                        handledErrors.Add(error);
+                        result.AddError(RewriteError(error, responseName));
+                    }
+                }
+            }
         }
 
         private static IError RewriteError(IError error, string responseName)
