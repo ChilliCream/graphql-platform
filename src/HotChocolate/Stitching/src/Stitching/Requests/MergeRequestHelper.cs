@@ -155,7 +155,8 @@ namespace HotChocolate.Stitching.Requests
             // our specific request for which we are trying to branch out the result.
             ExtractErrors(aliases, mergedResult, handledErrors, result);
 
-            // l
+            // Last but not least we will copy all extensions and contextData over
+            // to the specific responses.
             if (mergedResult.Extensions is not null)
             {
                 result.SetExtensions(mergedResult.Extensions);
