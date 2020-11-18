@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
@@ -6,8 +7,7 @@ using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
-    public sealed class UrlType
-        : ScalarType<Uri, StringValueNode>
+    public sealed class UrlType : ScalarType<Uri, StringValueNode>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="UrlType"/> class.
@@ -41,7 +41,7 @@ namespace HotChocolate.Types
 
         protected override Uri ParseLiteral(StringValueNode valueSyntax)
         {
-            if (TryParseUri(valueSyntax.Value, out Uri uri))
+            if (TryParseUri(valueSyntax.Value, out Uri? uri))
             {
                 return uri;
             }
@@ -53,7 +53,7 @@ namespace HotChocolate.Types
 
         protected override StringValueNode ParseValue(Uri runtimeValue)
         {
-            return new StringValueNode(runtimeValue.AbsoluteUri);
+            return new(runtimeValue.AbsoluteUri);
         }
 
         public override IValueNode ParseResult(object? resultValue)
@@ -104,7 +104,7 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            if (resultValue is string s && TryParseUri(s, out Uri uri))
+            if (resultValue is string s && TryParseUri(s, out Uri? uri))
             {
                 runtimeValue = uri;
                 return true;
@@ -120,7 +120,7 @@ namespace HotChocolate.Types
             return false;
         }
 
-        private bool TryParseUri(string value, out Uri uri) =>
+        private bool TryParseUri(string value, [NotNullWhen(true)] out Uri? uri) =>
             Uri.TryCreate(value, UriKind.Absolute, out uri);
     }
 }

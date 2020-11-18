@@ -19,7 +19,7 @@ namespace HotChocolate.Configuration
         /// Defines if fields shall be sorted by name.
         /// Default: <c>false</c>
         /// </summary>
-        bool SortFieldsByName { get; set; }
+        new bool SortFieldsByName { get; set; }
 
         /// <summary>
         /// Defines if types shall be removed from the schema that are
