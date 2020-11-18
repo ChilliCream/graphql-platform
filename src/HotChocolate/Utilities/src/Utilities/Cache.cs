@@ -7,7 +7,7 @@ namespace HotChocolate.Utilities
 {
     public class Cache<TValue>
     {
-        private const int _defaultCacheSize = 10;
+        private const int _minimumSize = 10;
         private readonly object _sync = new();
         private readonly LinkedList<string> _ranking = new();
         private readonly ConcurrentDictionary<string, CacheEntry> _cache = new();
@@ -17,7 +17,7 @@ namespace HotChocolate.Utilities
 
         public Cache(int size)
         {
-            Size = size < _defaultCacheSize ? _defaultCacheSize : size;
+            Size = size < _minimumSize ? _minimumSize : size;
         }
 
         public int Size { get; }
@@ -93,7 +93,7 @@ namespace HotChocolate.Utilities
 
         private void ClearSpaceForNewEntry()
         {
-            if (_cache.Count >= Size)
+            if (_cache.Count > Size)
             {
                 LinkedListNode<string>? rank = _ranking.Last;
                 if (rank is { } && _cache.TryRemove(rank.Value, out CacheEntry? entry))
