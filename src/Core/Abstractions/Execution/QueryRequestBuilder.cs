@@ -313,7 +313,7 @@ namespace HotChocolate.Execution
             {
                 return _extensions;
             }
-            return _readOnlyProperties ?? _empty;
+            return _readOnlyExtensions ?? _empty;
         }
 
         private void InitializeExtensions()
