@@ -4,7 +4,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
-using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
@@ -176,7 +175,7 @@ namespace HotChocolate.Types.Descriptors
             if (typeof(TInterface) == typeof(InterfaceType))
             {
                 throw new ArgumentException(
-                    TypeResources.ObjectTypeDescriptor_InterfaceBaseClass);
+                    ObjectTypeDescriptor_InterfaceBaseClass);
             }
 
             Definition.Interfaces.Add(
@@ -269,7 +268,7 @@ namespace HotChocolate.Types.Descriptors
             {
                 ObjectFieldDescriptor fieldDescriptor =
                     Fields.FirstOrDefault(t => t.Definition.Member == propertyOrMethod);
-                if (fieldDescriptor is { })
+                if (fieldDescriptor is not null)
                 {
                     return fieldDescriptor;
                 }

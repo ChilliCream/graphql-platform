@@ -51,7 +51,7 @@ namespace HotChocolate.Types.Filters.Expressions
 
             object ParseValue()
             {
-                var parsedValue = type.ParseLiteral(value);
+                object? parsedValue = type.ParseLiteral(value);
                 Type elementType = type.ElementType().ToRuntimeType();
 
                 if (operation.Property.PropertyType != elementType)

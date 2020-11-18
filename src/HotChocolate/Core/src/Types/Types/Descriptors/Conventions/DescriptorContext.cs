@@ -10,11 +10,8 @@ namespace HotChocolate.Types.Descriptors
 {
     public sealed class DescriptorContext : IDescriptorContext
     {
-        private readonly Dictionary<(Type, string?), IConvention> _conventions =
-            new Dictionary<(Type, string?), IConvention>();
-
-        private readonly IReadOnlyDictionary<(Type, string?), List<CreateConvention>>
-            _convFactories;
+        private readonly Dictionary<(Type, string?), IConvention> _conventions = new();
+        private readonly IReadOnlyDictionary<(Type, string?), List<CreateConvention>> _cFactories;
 
         private readonly IServiceProvider _services;
 
@@ -25,7 +22,7 @@ namespace HotChocolate.Types.Descriptors
 
         private DescriptorContext(
             IReadOnlySchemaOptions options,
-            IReadOnlyDictionary<(Type, string?), List<CreateConvention>> convFactories,
+            IReadOnlyDictionary<(Type, string?), List<CreateConvention>> conventionFactories,
             IServiceProvider services,
             IDictionary<string, object?> contextData,
             SchemaBuilder.LazySchema schema,
@@ -33,7 +30,7 @@ namespace HotChocolate.Types.Descriptors
             ITypeInterceptor typeInterceptor)
         {
             Options = options;
-            _convFactories = convFactories;
+            _cFactories = conventionFactories;
             _services = services;
             ContextData = contextData;
             SchemaInterceptor = schemaInterceptor;
@@ -137,7 +134,7 @@ namespace HotChocolate.Types.Descriptors
             createdConvention = null;
             extensions = new List<IConventionExtension>();
 
-            if (_convFactories.TryGetValue(
+            if (_cFactories.TryGetValue(
                 (typeof(T), scope),
                 out List<CreateConvention>? factories))
             {
@@ -190,7 +187,7 @@ namespace HotChocolate.Types.Descriptors
             ISchemaInterceptor? schemaInterceptor = null,
             ITypeInterceptor? typeInterceptor = null)
         {
-            return new DescriptorContext(
+            return new(
                 options ?? new SchemaOptions(),
                 conventions ?? new Dictionary<(Type, string?), List<CreateConvention>>(),
                 services ?? new EmptyServiceProvider(),
