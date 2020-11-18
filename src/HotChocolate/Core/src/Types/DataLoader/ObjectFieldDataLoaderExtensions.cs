@@ -45,15 +45,9 @@ namespace HotChocolate.Types
                             IExtendedType resolverType =
                                 c.TypeInspector.GetType(definition.ResultType);
 
-                            if (resolverType.IsArrayOrList)
-                            {
-                                schemaType = c.TypeInspector.GetType(
-                                    typeof(IEnumerable<>).MakeGenericType(valueType));
-                            }
-                            else
-                            {
-                                schemaType = c.TypeInspector.GetType(valueType);
-                            }
+                            schemaType = c.TypeInspector.GetType(resolverType.IsArrayOrList
+                                ? typeof(IEnumerable<>).MakeGenericType(valueType)
+                                : valueType);
                         }
                         else
                         {
