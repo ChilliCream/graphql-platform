@@ -1,7 +1,7 @@
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using HotChocolate.AspNetCore.Utilities;
+using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Execution;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
@@ -22,7 +22,8 @@ namespace HotChocolate.AspNetCore
         public async Task InvokeAsync(HttpContext context)
         {
             if (HttpMethods.IsGet(context.Request.Method) &&
-                context.Request.Query.ContainsKey("SDL"))
+                context.Request.Query.ContainsKey("SDL") &&
+                (context.GetGraphQLServerOptions()?.EnableSchemaRequests ?? true))
             {
                 await HandleRequestAsync(context);
             }

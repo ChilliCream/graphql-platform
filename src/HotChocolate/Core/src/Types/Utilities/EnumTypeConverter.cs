@@ -6,9 +6,9 @@ namespace HotChocolate.Utilities
     internal sealed class EnumTypeConverter : IChangeTypeProvider
     {
         public bool TryCreateConverter(
-            Type source, 
-            Type target, 
-            ChangeTypeProvider root, 
+            Type source,
+            Type target,
+            ChangeTypeProvider root,
             [NotNullWhen(true)] out ChangeType converter)
         {
             if (source == typeof(string) && target.IsEnum)
@@ -19,7 +19,7 @@ namespace HotChocolate.Utilities
 
             if (source.IsEnum && target == typeof(string))
             {
-                converter = input => input.ToString();
+                converter = input => input?.ToString();
                 return true;
             }
 

@@ -71,6 +71,7 @@ namespace HotChocolate.Execution.Processing
                 {
                     await subscription.DisposeAsync().ConfigureAwait(false);
                 }
+
                 return new SubscriptionResult(null, ex.Errors);
             }
             catch (Exception ex)

@@ -2,6 +2,8 @@ using System;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Execution;
+using HotChocolate.Types.Introspection;
+using Microsoft.VisualBasic.CompilerServices;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -24,6 +26,8 @@ namespace HotChocolate
                     c.Options.StrictValidation = false;
                     c.Use(next => context => next(context));
                 });
+
+            var foo = schema.GetType<__Type>("__Type");
 
             // assert
             IRequestExecutor executor = schema.MakeExecutable();
@@ -111,7 +115,7 @@ namespace HotChocolate
                 await executor.ExecuteAsync("{ hello }");
             result.ToJson().MatchSnapshot();
         }
-        
+
         [Fact]
         public async Task SchemaBuilder_AddResolver()
         {

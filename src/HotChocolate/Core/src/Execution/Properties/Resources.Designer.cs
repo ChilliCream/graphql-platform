@@ -296,5 +296,11 @@ namespace HotChocolate.Execution.Properties {
                 return ResourceManager.GetString("RequestExecutorBuilder_Convention_NotSuppported", resourceCulture);
             }
         }
+        
+        internal static string RootValueResolver_Resolve_CannotCreateInstance {
+            get {
+                return ResourceManager.GetString("RootValueResolver_Resolve_CannotCreateInstance", resourceCulture);
+            }
+        }
     }
 }
