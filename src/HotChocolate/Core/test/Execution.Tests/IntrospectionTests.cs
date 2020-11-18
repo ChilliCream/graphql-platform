@@ -106,7 +106,7 @@ namespace HotChocolate.Execution
         public async Task FieldMiddlewareDoesNotHaveAnEffectOnIntrospection()
         {
             // arrange
-            string query = "{ __typename a }";
+            var query = "{ __typename a }";
 
             var schema = Schema.Create(c =>
             {
@@ -137,7 +137,7 @@ namespace HotChocolate.Execution
         public async Task FieldMiddlewareHasAnEffectOnIntrospectIfSwitchedOn()
         {
             // arrange
-            string query = "{ __typename a }";
+            var query = "{ __typename a }";
 
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType<Query>()
@@ -168,7 +168,7 @@ namespace HotChocolate.Execution
         public async Task DirectiveMiddlewareDoesWorkOnIntrospection()
         {
             // arrange
-            string query = "{ __typename @upper a }";
+            var query = "{ __typename @upper a }";
 
             var schema = Schema.Create(c =>
             {
@@ -191,9 +191,11 @@ namespace HotChocolate.Execution
         public async Task DefaultValueIsInputObject()
         {
             // arrange
-            string query = FileResource.Open("IntrospectionQuery.graphql");
-            IRequestExecutor executor = Schema.Create(t =>
-                t.RegisterQueryType<BarType>())
+            var query = FileResource.Open("IntrospectionQuery.graphql");
+            IRequestExecutor executor = SchemaBuilder.New()
+                .AddQueryType<BarType>()
+                .ModifyOptions(o => o.RemoveUnreachableTypes = false)
+                .Create()
                 .MakeExecutable();
 
             // act
@@ -204,17 +206,15 @@ namespace HotChocolate.Execution
             result.MatchSnapshot();
         }
 
-        private static Schema CreateSchema()
+        private static ISchema CreateSchema()
         {
-            return Schema.Create(c =>
-            {
-                c.RegisterExtendedScalarTypes();
-                c.RegisterType<Query>();
-            });
+            return SchemaBuilder.New()
+                .AddQueryType<Query>()
+                .ModifyOptions(o => o.RemoveUnreachableTypes = false)
+                .Create();
         }
 
-        private class Query
-            : ObjectType
+        private class Query : ObjectType
         {
             protected override void Configure(IObjectTypeDescriptor descriptor)
             {
@@ -230,8 +230,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private class Foo
-            : ObjectType
+        private class Foo : ObjectType
         {
             protected override void Configure(IObjectTypeDescriptor descriptor)
             {
@@ -243,8 +242,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private class BarType
-            : ObjectType
+        private class BarType : ObjectType
         {
             protected override void Configure(IObjectTypeDescriptor descriptor)
             {
@@ -257,8 +255,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        public class BazType
-            : InputObjectType<Baz>
+        public class BazType : InputObjectType<Baz>
         {
             protected override void Configure(
                 IInputObjectTypeDescriptor<Baz> descriptor)
