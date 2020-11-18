@@ -169,5 +169,37 @@ namespace HotChocolate.Configuration
             // assert
             schema.ToString().MatchSnapshot();
         }
+
+        [Fact]
+        private void Executable_Directives_Are_Never_Removed_2()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("abc")
+                    .Field("field")
+                    .Type(new NamedTypeNode("def"))
+                    .Resolver("test"))
+                .AddInterfaceType(c => c
+                    .Name("def")
+                    .Field("field")
+                    .Type<StringType>())
+                .AddObjectType(c => c
+                    .Name("ghi")
+                    .Implements(new NamedTypeNode("def"))
+                    .Field("field")
+                    .Type<StringType>()
+                    .Resolver("test"))
+                .AddDirectiveType(new DirectiveType(d => d
+                    .Name("_abc")
+                    .Location(DirectiveLocation.Object| DirectiveLocation.Query)))
+                .AddType<FloatType>()
+                .ModifyOptions(o => o.RemoveUnreachableTypes = true)
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
     }
 }
