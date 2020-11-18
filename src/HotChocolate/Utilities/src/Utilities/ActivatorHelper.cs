@@ -10,7 +10,7 @@ using HotChocolate.Utilities.Properties;
 namespace HotChocolate.Utilities
 {
     /// <summary>
-    /// The activator helper compiles a factory delegate for types to resolver their 
+    /// The activator helper compiles a factory delegate for types to resolver their
     /// dependencies against a <see cref="IServiceProvider" />.
     /// </summary>
     internal static class ActivatorHelper
@@ -65,9 +65,9 @@ namespace HotChocolate.Utilities
             {
                 throw new InvalidOperationException(
                     string.Format(
+                        CultureInfo.InvariantCulture,
                         UtilityResources.ActivatorHelper_AbstractTypeError,
-                        type.FullName,
-                        CultureInfo.InvariantCulture));
+                        type.FullName));
             }
 
             ConstructorInfo[] constructors = type
