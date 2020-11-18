@@ -9,5 +9,7 @@
   "InitialValue": null,
   "Properties": {},
   "Services": null,
-  "Extensions": {}
+  "Extensions": {
+    "three": "baz"
+  }
 }
