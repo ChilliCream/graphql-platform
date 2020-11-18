@@ -8,10 +8,9 @@ namespace HotChocolate.Utilities
     public class Cache<TValue>
     {
         private const int _defaultCacheSize = 10;
-        private readonly object _sync = new object();
-        private readonly LinkedList<string> _ranking = new LinkedList<string>();
-        private readonly ConcurrentDictionary<string, CacheEntry> _cache =
-            new ConcurrentDictionary<string, CacheEntry>();
+        private readonly object _sync = new();
+        private readonly LinkedList<string> _ranking = new();
+        private readonly ConcurrentDictionary<string, CacheEntry> _cache = new();
         private LinkedListNode<string>? _first;
 
         public event EventHandler<CacheEntryEventArgs<TValue>>? RemovedEntry;
@@ -22,9 +21,10 @@ namespace HotChocolate.Utilities
         }
 
         public int Size { get; }
+
         public int Usage => _cache.Count;
 
-        public bool TryGet(string key, [MaybeNull]out TValue value)
+        public bool TryGet(string key, [MaybeNull] out TValue value)
         {
             if (_cache.TryGetValue(key, out CacheEntry? entry))
             {
@@ -39,6 +39,16 @@ namespace HotChocolate.Utilities
 
         public TValue GetOrCreate(string key, Func<TValue> create)
         {
+            if (key is null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
+            if (create is null)
+            {
+                throw new ArgumentNullException(nameof(create));
+            }
+
             if (_cache.TryGetValue(key, out CacheEntry? entry))
             {
                 TouchEntry(entry.Rank);
@@ -48,6 +58,7 @@ namespace HotChocolate.Utilities
                 entry = new CacheEntry(key, create());
                 AddNewEntry(entry);
             }
+
             return entry.Value;
         }
 
@@ -69,17 +80,13 @@ namespace HotChocolate.Utilities
 
         private void AddNewEntry(CacheEntry entry)
         {
-            if (!_cache.ContainsKey(entry.Key))
+            if (_cache.TryAdd(entry.Key, entry))
             {
                 lock (_sync)
                 {
-                    if (!_cache.ContainsKey(entry.Key))
-                    {
-                        ClearSpaceForNewEntry();
-                        _ranking.AddFirst(entry.Rank);
-                        _cache[entry.Key] = entry;
-                        _first = entry.Rank;
-                    }
+                    ClearSpaceForNewEntry();
+                    _ranking.AddFirst(entry.Rank);
+                    _first = entry.Rank;
                 }
             }
         }
