@@ -17,8 +17,13 @@ namespace HotChocolate.Execution.Processing
 
         public bool Return(OperationContext obj)
         {
-            obj.Clean();
-            return true;
+            if (obj.Execution.TaskStats.IsCompleted)
+            {
+                obj.Clean();
+                return true;
+            }
+
+            return false;
         }
     }
 }
