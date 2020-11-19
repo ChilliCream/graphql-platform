@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Configuration;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
@@ -40,6 +41,17 @@ namespace HotChocolate.Types
         internal sealed override void Initialize(ITypeDiscoveryContext context)
         {
             context.TypeInterceptor.OnBeforeRegisterDependencies(context, null, _contextData);
+
+            if (_specifiedBy is not null)
+            {
+                context.RegisterDependency(
+                    new TypeDependency(
+                        context.TypeInspector.GetTypeRef(typeof(SpecifiedByDirectiveType)),
+                        TypeDependencyKind.Completed));
+                context.RegisterDependency(
+                    new ClrTypeDirectiveReference(typeof(SpecifiedByDirective)));
+            }
+
             OnRegisterDependencies(context, _contextData);
             context.TypeInterceptor.OnAfterRegisterDependencies(context, null, _contextData);
             base.Initialize(context);
@@ -78,8 +90,19 @@ namespace HotChocolate.Types
             IDictionary<string, object?> contextData)
         {
             _converter = context.Services.GetTypeConverter();
+
+            DirectiveDefinition[] directiveDefinitions =
+                _specifiedBy is null
+                    ? Array.Empty<DirectiveDefinition>()
+                    : new[]
+                    {
+                        new DirectiveDefinition(
+                            new SpecifiedByDirective(_specifiedBy!),
+                            context.TypeInspector.GetTypeRef(typeof(SpecifiedByDirectiveType)))
+                    };
+
             Directives = DirectiveCollection.CreateAndComplete(
-                context, this, Array.Empty<DirectiveDefinition>());
+                context, this, directiveDefinitions);
         }
     }
 }

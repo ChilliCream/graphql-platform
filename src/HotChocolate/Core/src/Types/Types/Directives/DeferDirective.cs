@@ -17,7 +17,7 @@ namespace HotChocolate.Types
         /// <summary>
         /// Initializes a new instance of <see cref="DeferDirective"/>
         /// </summary>
-        public DeferDirective(bool @if, string? label)
+        public DeferDirective(bool @if, string? label = null)
         {
             If = @if;
             Label = label;
