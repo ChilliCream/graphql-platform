@@ -1,16 +1,14 @@
-using System;
-
 #nullable enable
 
 namespace HotChocolate.Types
 {
     public sealed class SpecifiedByDirective
     {
-        public SpecifiedByDirective(Uri url)
+        public SpecifiedByDirective(string url)
         {
             Url = url;
         }
 
-        public Uri Url { get; }
+        public string Url { get; }
     }
 }

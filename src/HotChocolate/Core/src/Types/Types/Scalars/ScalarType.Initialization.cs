@@ -97,7 +97,7 @@ namespace HotChocolate.Types
                     : new[]
                     {
                         new DirectiveDefinition(
-                            new SpecifiedByDirective(_specifiedBy!),
+                            new SpecifiedByDirective(_specifiedBy.ToString()),
                             context.TypeInspector.GetTypeRef(typeof(SpecifiedByDirectiveType)))
                     };
 
