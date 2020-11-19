@@ -1124,5 +1124,17 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("SkipDirectiveType_IfDescription", resourceCulture);
             }
         }
+        
+        internal static string SpecifiedByDirectiveType_TypeDescription {
+            get {
+                return ResourceManager.GetString("SpecifiedByDirectiveType_TypeDescription", resourceCulture);
+            }
+        }
+        
+        internal static string SpecifiedByDirectiveType_UrlDescription {
+            get {
+                return ResourceManager.GetString("SpecifiedByDirectiveType_UrlDescription", resourceCulture);
+            }
+        }
     }
 }

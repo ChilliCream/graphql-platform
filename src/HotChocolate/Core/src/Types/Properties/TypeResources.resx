@@ -662,4 +662,10 @@ Type: `{0}`</value>
   <data name="SkipDirectiveType_IfDescription" xml:space="preserve">
     <value>Skipped when true.</value>
   </data>
+  <data name="SpecifiedByDirectiveType_TypeDescription" xml:space="preserve">
+    <value>The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions.</value>
+  </data>
+  <data name="SpecifiedByDirectiveType_UrlDescription" xml:space="preserve">
+    <value>The URL points to a human-readable specification of scalars.</value>
+  </data>
 </root>

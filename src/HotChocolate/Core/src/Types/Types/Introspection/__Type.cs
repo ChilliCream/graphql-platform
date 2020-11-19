@@ -68,7 +68,7 @@ namespace HotChocolate.Types.Introspection
 
             descriptor
                 .Field(Names.SpecifiedBy)
-                .Type<__Type>()
+                .Type<StringType>()
                 .ResolveWith<Resolvers>(t => t.GetSpecifiedBy(default!));
         }
 

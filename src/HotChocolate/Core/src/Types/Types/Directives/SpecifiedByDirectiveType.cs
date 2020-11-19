@@ -1,3 +1,5 @@
+using HotChocolate.Properties;
+
 namespace HotChocolate.Types
 {
     /// <summary>
@@ -18,11 +20,13 @@ namespace HotChocolate.Types
         {
             descriptor
                 .Name(Names.SpecifiedBy)
+                .Description(TypeResources.SpecifiedByDirectiveType_TypeDescription)
                 .Location(DirectiveLocation.Scalar);
 
             descriptor
                 .Argument(t => t.Url)
                 .Name(Names.Url)
+                .Description(TypeResources.SpecifiedByDirectiveType_UrlDescription)
                 .Type<NonNullType<StringType>>();
         }
 
