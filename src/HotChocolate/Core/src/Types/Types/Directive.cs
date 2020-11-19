@@ -325,7 +325,7 @@ namespace HotChocolate.Types
             foreach (Argument argument in directiveType.Arguments)
             {
                 PropertyInfo property = properties[argument.Name].FirstOrDefault();
-                var propertyValue = property?.GetValue(directive);
+                object? propertyValue = property?.GetValue(directive);
 
                 IValueNode valueNode = argument.Type.ParseValue(propertyValue);
                 arguments.Add(new ArgumentNode(argument.Name, valueNode));

@@ -1088,5 +1088,53 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("NodeDescriptor_IdField_MustBePropertyOrMethod", resourceCulture);
             }
         }
+        
+        internal static string DeprecatedDirectiveType_TypeDescription {
+            get {
+                return ResourceManager.GetString("DeprecatedDirectiveType_TypeDescription", resourceCulture);
+            }
+        }
+        
+        internal static string DeprecatedDirectiveType_ReasonDescription {
+            get {
+                return ResourceManager.GetString("DeprecatedDirectiveType_ReasonDescription", resourceCulture);
+            }
+        }
+        
+        internal static string IncludeDirectiveType_TypeDescription {
+            get {
+                return ResourceManager.GetString("IncludeDirectiveType_TypeDescription", resourceCulture);
+            }
+        }
+        
+        internal static string IncludeDirectiveType_IfDescription {
+            get {
+                return ResourceManager.GetString("IncludeDirectiveType_IfDescription", resourceCulture);
+            }
+        }
+        
+        internal static string SkipDirectiveType_TypeDescription {
+            get {
+                return ResourceManager.GetString("SkipDirectiveType_TypeDescription", resourceCulture);
+            }
+        }
+        
+        internal static string SkipDirectiveType_IfDescription {
+            get {
+                return ResourceManager.GetString("SkipDirectiveType_IfDescription", resourceCulture);
+            }
+        }
+        
+        internal static string SpecifiedByDirectiveType_TypeDescription {
+            get {
+                return ResourceManager.GetString("SpecifiedByDirectiveType_TypeDescription", resourceCulture);
+            }
+        }
+        
+        internal static string SpecifiedByDirectiveType_UrlDescription {
+            get {
+                return ResourceManager.GetString("SpecifiedByDirectiveType_UrlDescription", resourceCulture);
+            }
+        }
     }
 }

@@ -241,6 +241,5 @@ namespace HotChocolate.Language
 
         public StringValueNode WithValue(string value, bool block) =>
             new(Location, value, block);
-
     }
 }
