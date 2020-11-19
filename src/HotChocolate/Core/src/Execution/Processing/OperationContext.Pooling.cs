@@ -24,6 +24,8 @@ namespace HotChocolate.Execution.Processing
             _resultHelper = new ResultHelper(resultPool);
         }
 
+        public bool IsPooled => _isPooled;
+
         public void Initialize(
             IRequestContext requestContext,
             IServiceProvider scopedServices,
