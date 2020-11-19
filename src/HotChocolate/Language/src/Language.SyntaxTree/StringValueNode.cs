@@ -235,17 +235,17 @@ namespace HotChocolate.Language
 
         public StringValueNode WithLocation(Location? location)
         {
-            return new StringValueNode(location, Value, Block);
+            return new(location, Value, Block);
         }
 
         public StringValueNode WithValue(string value)
         {
-            return new StringValueNode(Location, value, false);
+            return new(Location, value, false);
         }
 
         public StringValueNode WithValue(string value, bool block)
         {
-            return new StringValueNode(Location, value, block);
+            return new(Location, value, block);
         }
     }
 }

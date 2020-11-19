@@ -22,9 +22,8 @@ namespace HotChocolate.Execution
         , IInternalRequestExecutorResolver
         , IDisposable
     {
-        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
-        private readonly ConcurrentDictionary<string, RegisteredExecutor> _executors =
-            new ConcurrentDictionary<string, RegisteredExecutor>();
+        private readonly SemaphoreSlim _semaphore = new(1, 1);
+        private readonly ConcurrentDictionary<string, RegisteredExecutor> _executors = new();
         private readonly IRequestExecutorOptionsMonitor _optionsMonitor;
         private readonly IServiceProvider _applicationServices;
         private bool _disposed;

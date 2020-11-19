@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Configuration;
@@ -31,6 +32,30 @@ namespace HotChocolate.Execution
             // arrange
             var query = "{ b { __typename } }";
             IRequestExecutor executor = CreateSchema().MakeExecutable();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(query);
+
+            // assert
+            Assert.Null(result.Errors);
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Query_Specified_By()
+        {
+            // arrange
+            var query = "{ __type (name: \"DateTime\") { specifiedBy } }";
+
+            IRequestExecutor executor =
+                SchemaBuilder.New()
+                    .AddQueryType(d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<DateTimeType>()
+                        .Resolve(default(DateTime)))
+                    .Create()
+                    .MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(query);

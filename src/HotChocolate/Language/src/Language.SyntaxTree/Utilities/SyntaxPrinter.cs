@@ -3,9 +3,9 @@ namespace HotChocolate.Language.Utilities
     internal static class SyntaxPrinter
     {
         private static readonly SyntaxSerializer _serializer =
-            new SyntaxSerializer(new SyntaxSerializerOptions { Indented = true });
+            new(new SyntaxSerializerOptions { Indented = true });
         private static readonly SyntaxSerializer _serializerNoIndent =
-            new SyntaxSerializer(new SyntaxSerializerOptions { Indented = false });
+            new(new SyntaxSerializerOptions { Indented = false });
 
         public static string Print(this ISyntaxNode node, bool indented)
         {
