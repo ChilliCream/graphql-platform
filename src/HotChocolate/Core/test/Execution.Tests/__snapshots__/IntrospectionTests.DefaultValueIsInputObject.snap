@@ -810,8 +810,8 @@
               "description": null,
               "args": [],
               "type": {
-                "kind": "OBJECT",
-                "name": "__Type",
+                "kind": "SCALAR",
+                "name": "String",
                 "ofType": null
               },
               "isDeprecated": false,

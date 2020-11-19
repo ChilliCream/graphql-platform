@@ -2,11 +2,6 @@
   query: Query
 }
 
-type InventoryInfo @source(name: "InventoryInfo", schema: "inventory") {
-  upc: Int!
-  isInStock: Boolean!
-}
-
 type Product @source(name: "Product", schema: "products") {
   upc: Int!
   name: String
@@ -38,8 +33,6 @@ type User @source(name: "User", schema: "accounts") {
   username: String
   reviews: [Review] @delegate(path: "reviewsByAuthor(authorId: $fields:id)", schema: "reviews")
 }
-
-directive @computed("Specifies the fields on which a computed field is dependent on." dependantOn: [Name!]) on FIELD_DEFINITION
 
 "The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`."
 directive @defer("If this argument label has a value other than null, it will be passed on to the result of this defer directive. This label is intended to give client applications a way to identify to which fragment a deferred result belongs to." label: String "Deferred when true." if: Boolean) on FRAGMENT_SPREAD | INLINE_FRAGMENT
