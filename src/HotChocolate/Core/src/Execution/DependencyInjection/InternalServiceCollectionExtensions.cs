@@ -99,9 +99,9 @@ namespace Microsoft.Extensions.DependencyInjection
             this IServiceCollection services)
         {
             services.TryAddSingleton<IDocumentCache>(
-                sp => new DefaultDocumentCache());
+                _ => new DefaultDocumentCache());
             services.TryAddSingleton<IPreparedOperationCache>(
-                sp => new DefaultPreparedOperationCache());
+                _ => new DefaultPreparedOperationCache());
             return services;
         }
 
@@ -109,7 +109,7 @@ namespace Microsoft.Extensions.DependencyInjection
             this IServiceCollection services)
         {
             services.TryAddSingleton<IDocumentHashProvider>(
-                sp => new MD5DocumentHashProvider());
+                _ => new MD5DocumentHashProvider());
             return services;
         }
 
