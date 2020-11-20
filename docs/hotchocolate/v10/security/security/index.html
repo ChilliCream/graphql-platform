@@ -1317,7 +1317,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>The first an most simple way to protect your api is to define how many items a page can have when you are using pagination. We added for this the scalar type <code class="language-text">PaginationAmount</code>.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="92015078934705770000"
+              data-toaster-id="50145475976329350000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1325,7 +1325,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
               onClick="copyToClipboard(`SchemaBuilder.New()
   .AddType(new PaginationAmountType(50))
   ...
-  .Create();`, `92015078934705770000`)"
+  .Create();`, `50145475976329350000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1341,12 +1341,12 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>After doing this, you'll want to "bind back" <code class="language-text">IntType</code> as the default <code class="language-text">int</code> representation by doing:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="41342925838172900000"
+              data-toaster-id="66836715053987450000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`  .BindClrType<int, IntType>`, `41342925838172900000`)"
+              onClick="copyToClipboard(`  .BindClrType<int, IntType>`, `66836715053987450000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1363,7 +1363,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>Many GraphQL schemas expose cyclic graphs allowing for recursive queries like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="52939677511985120000"
+              data-toaster-id="31650799245828140000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1390,7 +1390,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
       }
     }
   }
-}`, `52939677511985120000`)"
+}`, `31650799245828140000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1433,14 +1433,14 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>The complexity of a field is annotated with the cost directive.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="96751929540162080000"
+              data-toaster-id="64897720341029230000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`type Foo {
   bar: [Bar] @cost(complexity: 5)
-}`, `96751929540162080000`)"
+}`, `64897720341029230000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1456,14 +1456,14 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>Take a paging field for instance in which you can pass the amount of items that you want to load, than you could define that field as a multiplier of your complexity:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="57645689124775720000"
+              data-toaster-id="42310674277034900000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`type Foo {
   bar(take:Int): [Bar] @cost(complexity: 5 multipliers:[take])
-}`, `57645689124775720000`)"
+}`, `42310674277034900000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1480,7 +1480,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>On the <code class="language-text">QueryExecutionBuilder</code> you can call the extension function <code class="language-text">AddComplexityCalculation</code> in order to add you own custom execution function.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="2682475879597512000"
+              data-toaster-id="29051762827452633000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1508,7 +1508,7 @@ public readonly struct ComplexityContext
     public ICollection<IOutputField> Path { get; }
     public IVariableCollection Variables { get; }
     public CostDirective Cost { get; }
-}`, `2682475879597512000`)"
+}`, `29051762827452633000`)"
             >
               <div
                 class="gatsby-code-button"
