@@ -166,7 +166,7 @@ namespace HotChocolate.Validation
                 fragment booleanArgFrag on Arguments {
                     booleanArgField(booleanArg: $booleanArg)
                 }
-                
+
                 query Query($booleanArg: Boolean)
                 {
                     arguments {
@@ -196,7 +196,7 @@ namespace HotChocolate.Validation
                 fragment booleanArgFrag on Arguments {
                     booleanArgField(booleanArg: $nonNullBooleanArg)
                 }
-                
+
                 query Query($nonNullBooleanArg: Boolean!)
                 {
                     arguments {
@@ -262,7 +262,7 @@ namespace HotChocolate.Validation
         public void ComplexInputToComplexInput()
         {
             ExpectValid(@"
-                query Query($complexVar: ComplexInput3TypeInput)
+                query Query($complexVar: Complex3Input)
                 {
                     arguments {
                         complexArgField(complexArg: $complexVar)
@@ -314,7 +314,7 @@ namespace HotChocolate.Validation
                 fragment nonNullIntArgFieldFrag on Arguments {
                     nonNullIntArgField(intArg: $intArg)
                 }
-                
+
                 query Query($intArg: Int) {
                     arguments {
                         ...nonNullIntArgFieldFrag
@@ -330,11 +330,11 @@ namespace HotChocolate.Validation
                 fragment outerFrag on Arguments {
                     ...nonNullIntArgFieldFrag
                 }
-                
+
                 fragment nonNullIntArgFieldFrag on Arguments {
                     nonNullIntArgField(intArg: $intArg)
                 }
-                
+
                 query Query($intArg: Int) {
                     arguments {
                         ...outerFrag
