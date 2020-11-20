@@ -13,7 +13,7 @@ namespace HotChocolate.Data.Filters
         /// <param name="fieldDefinition">The definition of the field</param>
         /// <returns>Returns true if the field can be handled</returns>
         bool CanHandle(
-            ITypeDiscoveryContext context,
+            ITypeCompletionContext context,
             IFilterInputTypeDefinition typeDefinition,
             IFilterFieldDefinition fieldDefinition);
     }

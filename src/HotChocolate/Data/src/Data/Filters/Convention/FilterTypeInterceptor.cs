@@ -14,44 +14,49 @@ namespace HotChocolate.Data.Filters
 
         public override bool CanHandle(ITypeSystemObjectContext context) => true;
 
-        public override void OnBeforeRegisterDependencies(
-            ITypeDiscoveryContext discoveryContext,
+        public override void OnBeforeCompleteName(
+            ITypeCompletionContext completionContext,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData)
         {
             if (definition is FilterInputTypeDefinition def)
             {
                 IFilterConvention convention = GetConvention(
-                    discoveryContext.DescriptorContext,
+                    completionContext.DescriptorContext,
                     def.Scope);
 
-                var descriptor = FilterInputTypeDescriptor.From(
-                    discoveryContext.DescriptorContext,
-                    def,
+                var descriptor = FilterInputTypeDescriptor.New(
+                    completionContext.DescriptorContext,
+                    def.EntityType,
                     def.Scope);
 
                 var typeReference = TypeReference.Create(
-                    discoveryContext.Type,
+                    completionContext.Type,
                     def.Scope);
 
                 convention.ApplyConfigurations(typeReference, descriptor);
+
+                FilterTypeExtensionHelper.MergeFilterInputTypeDefinitions(
+                    completionContext,
+                    descriptor.CreateDefinition(),
+                    def);
 
                 foreach (InputFieldDefinition field in def.Fields)
                 {
                     if (field is FilterFieldDefinition filterFieldDefinition)
                     {
-                        if (discoveryContext.TryPredictTypeKind(
-                            filterFieldDefinition.Type,
-                            out TypeKind kind) &&
+                        if (completionContext.TryPredictTypeKind(
+                                filterFieldDefinition.Type,
+                                out TypeKind kind) &&
                             kind != TypeKind.Scalar && kind != TypeKind.Enum)
                         {
-                            field.Type = field.Type.With(scope: discoveryContext.Scope);
+                            field.Type = field.Type.With(scope: completionContext.Scope);
                         }
 
                         if (filterFieldDefinition.Handler is null)
                         {
                             if (convention.TryGetHandler(
-                                discoveryContext,
+                                completionContext,
                                 def,
                                 filterFieldDefinition,
                                 out IFilterFieldHandler? handler))
@@ -67,20 +72,14 @@ namespace HotChocolate.Data.Filters
                         }
                     }
                 }
-            }
-        }
 
-        public override void OnBeforeCompleteName(
-            ITypeCompletionContext completionContext,
-            DefinitionBase? definition,
-            IDictionary<string, object?> contextData)
-        {
-            if (definition is FilterInputTypeDefinition def &&
-                def.Scope != null)
-            {
-                definition.Name = completionContext.Scope +
-                    "_" +
-                    definition.Name;
+
+                if (def.Scope is not null)
+                {
+                    definition.Name = completionContext.Scope +
+                        "_" +
+                        definition.Name;
+                }
             }
         }
 
