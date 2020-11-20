@@ -22,15 +22,18 @@ partial class Build : NukeBuild
 {
     HashSet<string> ProtectedVersions = new HashSet<string>
     {
-        "11.0.0-rc.0",
-        "11.0.0-rc.1",
-        "11.0.0-rc.2",
-        "11.0.0-rc.3",
-        "11.0.0-rc.4",
-        "11.0.0-rc.5",
-        "11.0.0-rc.6",
-        "11.0.0-rc.7",
-        "11.0.0-rc.8"
+        "11.1.0-preview.1",
+        "11.1.0-preview.2",
+        "11.1.0-preview.3",
+        "11.1.0-preview.4",
+        "11.1.0-preview.5",
+        "11.1.0-preview.6",
+        "11.1.0-preview.7",
+        "11.1.0-preview.8",
+        "11.1.0-preview.9",
+        "11.1.0-preview.10",
+        "11.1.0-preview.11",
+        "11.1.0-preview.12",
     };
 
     List<string> Keys = new List<string>
