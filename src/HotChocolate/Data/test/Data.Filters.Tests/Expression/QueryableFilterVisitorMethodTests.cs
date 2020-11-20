@@ -94,7 +94,7 @@ namespace HotChocolate.Data.Filters.Expressions
             }
 
             public override bool CanHandle(
-                ITypeDiscoveryContext context,
+                ITypeCompletionContext context,
                 IFilterInputTypeDefinition typeDefinition,
                 IFilterFieldDefinition fieldDefinition)
             {
@@ -139,7 +139,7 @@ namespace HotChocolate.Data.Filters.Expressions
             private IExtendedType _extendedType = null!;
 
             public override bool CanHandle(
-                ITypeDiscoveryContext context,
+                ITypeCompletionContext context,
                 IFilterInputTypeDefinition typeDefinition,
                 IFilterFieldDefinition fieldDefinition)
             {

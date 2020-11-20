@@ -21,7 +21,7 @@ namespace HotChocolate.Data.Filters.Expressions
         protected ITypeConverter TypeConverter { get; }
 
         public override bool CanHandle(
-            ITypeDiscoveryContext context,
+            ITypeCompletionContext context,
             IFilterInputTypeDefinition typeDefinition,
             IFilterFieldDefinition fieldDefinition)
         {

@@ -249,11 +249,6 @@ namespace HotChocolate.Data.Filters
                 {
                     configure(descriptor);
                 }
-
-                if (descriptor is FilterInputTypeDescriptor inputTypeDescriptor)
-                {
-                    inputTypeDescriptor.CreateDefinition();
-                }
             }
         }
 
@@ -264,7 +259,7 @@ namespace HotChocolate.Data.Filters
             _provider.ConfigureField(_argumentName, descriptor);
 
         public bool TryGetHandler(
-            ITypeDiscoveryContext context,
+            ITypeCompletionContext context,
             IFilterInputTypeDefinition typeDefinition,
             IFilterFieldDefinition fieldDefinition,
             [NotNullWhen(true)] out IFilterFieldHandler? handler)

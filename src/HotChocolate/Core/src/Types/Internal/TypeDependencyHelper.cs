@@ -5,9 +5,9 @@ using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Internal
 {
-    internal static class TypeDependencyHelper
+    public static class TypeDependencyHelper
     {
         public static void RegisterDependencies(
             this ITypeDiscoveryContext context,

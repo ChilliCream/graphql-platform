@@ -143,67 +143,60 @@ input GeometryWithinOperationFilterInput {
 input MultiPolygonFilterInput {
   and: [MultiPolygonFilterInput!]
   or: [MultiPolygonFilterInput!]
-  area: ComparableDoubleOperationFilterInput
+  area: ComparableOperationFilterInputOfDoubleFilterInput
   boundary: GeometryFilterInput
   centroid: PointFilterInput
-  dimension: DimensionOperationFilterInput
+  dimension: EnumOperationFilterInputOfDimensionFilterInput
   envelope: GeometryFilterInput
   "Returns the name of this object's interface.\n\n\n**Returns:**\n\"MultiPolygon\""
   geometryType: StringOperationFilterInput
   interiorPoint: PointFilterInput
   isSimple: BooleanOperationFilterInput
   isValid: BooleanOperationFilterInput
-  length: ComparableDoubleOperationFilterInput
-  numPoints: ComparableInt32OperationFilterInput
-  ogcGeometryType: OgcGeometryTypeOperationFilterInput
+  length: ComparableOperationFilterInputOfDoubleFilterInput
+  numPoints: ComparableOperationFilterInputOfInt32FilterInput
+  ogcGeometryType: EnumOperationFilterInputOfOgcGeometryTypeFilterInput
   pointOnSurface: PointFilterInput
-  srid: ComparableInt32OperationFilterInput
-  contains: GeometryContainsOperationFilterInput
-  distance: GeometryDistanceOperationFilterInput
-  intersects: GeometryIntersectsOperationFilterInput
-  overlaps: GeometryOverlapsOperationFilterInput
-  touches: GeometryTouchesOperationFilterInput
-  within: GeometryWithinOperationFilterInput
-}
-
-input OgcGeometryTypeOperationFilterInput {
-  eq: OgcGeometryType
-  neq: OgcGeometryType
-  in: [OgcGeometryType!]
-  nin: [OgcGeometryType!]
+  sRID: ComparableOperationFilterInputOfInt32FilterInput
+  contains: GeometryContainsOperationTypeFilterInput
+  distance: GeometryDistanceOperationTypeFilterInput
+  intersects: GeometryIntersectsOperationTypeFilterInput
+  overlaps: GeometryOverlapsOperationTypeFilterInput
+  touches: GeometryTouchesOperationTypeFilterInput
+  within: GeometryWithinOperationTypeFilterInput
 }
 
 "Represents a single point.\n\nA Point is topologically valid if and only if:\n\nThe coordinate which defines it if any) is a valid coordinate\n(i.e. does not have an NaN X- or Y-ordinate"
 input PointFilterInput {
   and: [PointFilterInput!]
   or: [PointFilterInput!]
-  m: ComparableDoubleOperationFilterInput
-  x: ComparableDoubleOperationFilterInput
-  y: ComparableDoubleOperationFilterInput
-  z: ComparableDoubleOperationFilterInput
-  area: ComparableDoubleOperationFilterInput
+  m: ComparableOperationFilterInputOfDoubleFilterInput
+  x: ComparableOperationFilterInputOfDoubleFilterInput
+  y: ComparableOperationFilterInputOfDoubleFilterInput
+  z: ComparableOperationFilterInputOfDoubleFilterInput
+  area: ComparableOperationFilterInputOfDoubleFilterInput
   "Gets the boundary of this geometry.\nZero-dimensional geometries have no boundary by definition,\nso an empty GeometryCollection is returned."
   boundary: GeometryFilterInput
   centroid: PointFilterInput
-  dimension: DimensionOperationFilterInput
+  dimension: EnumOperationFilterInputOfDimensionFilterInput
   envelope: GeometryFilterInput
   "Returns the name of this object's interface.\n\n\n**Returns:**\n\"Point\""
   geometryType: StringOperationFilterInput
   interiorPoint: PointFilterInput
   isSimple: BooleanOperationFilterInput
   isValid: BooleanOperationFilterInput
-  length: ComparableDoubleOperationFilterInput
-  numPoints: ComparableInt32OperationFilterInput
+  length: ComparableOperationFilterInputOfDoubleFilterInput
+  numPoints: ComparableOperationFilterInputOfInt32FilterInput
   "Gets the OGC geometry type"
   ogcGeometryType: OgcGeometryTypeOperationFilterInput
   pointOnSurface: PointFilterInput
-  srid: ComparableInt32OperationFilterInput
-  contains: GeometryContainsOperationFilterInput
-  distance: GeometryDistanceOperationFilterInput
-  intersects: GeometryIntersectsOperationFilterInput
-  overlaps: GeometryOverlapsOperationFilterInput
-  touches: GeometryTouchesOperationFilterInput
-  within: GeometryWithinOperationFilterInput
+  sRID: ComparableOperationFilterInputOfInt32FilterInput
+  contains: GeometryContainsOperationTypeFilterInput
+  distance: GeometryDistanceOperationTypeFilterInput
+  intersects: GeometryIntersectsOperationTypeFilterInput
+  overlaps: GeometryOverlapsOperationTypeFilterInput
+  touches: GeometryTouchesOperationTypeFilterInput
+  within: GeometryWithinOperationTypeFilterInput
 }
 
 input StringOperationFilterInput {

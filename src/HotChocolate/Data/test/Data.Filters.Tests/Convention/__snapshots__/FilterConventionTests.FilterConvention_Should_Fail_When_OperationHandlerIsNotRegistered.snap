@@ -1,3 +1,1 @@
-﻿For more details look at the `Errors` property.
-
-1. For the field eq of type TestOperationFilterInput was no handler found.
+﻿For the field eq of type TestOperationFilterTypeFilterInput was no handler found.
