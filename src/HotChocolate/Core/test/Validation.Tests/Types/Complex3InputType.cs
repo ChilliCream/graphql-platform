@@ -2,7 +2,7 @@
 
 namespace HotChocolate.Validation.Types
 {
-    public class ComplexInput3Type
+    public class Complex3InputType
         : InputObjectType
     {
         protected override void Configure(
@@ -43,7 +43,7 @@ namespace HotChocolate.Validation.Types
                 .Type<IntType>();
 
             descriptor.Field("deep")
-                .Type<ComplexInput3Type>();
+                .Type<Complex3InputType>();
         }
     }
 }

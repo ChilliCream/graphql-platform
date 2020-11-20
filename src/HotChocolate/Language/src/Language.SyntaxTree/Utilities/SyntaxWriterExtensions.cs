@@ -56,7 +56,7 @@ namespace HotChocolate.Language.Utilities
 
         public static void WriteValue(
             this ISyntaxWriter writer,
-            IValueNode node)
+            IValueNode? node)
         {
             if (node is null)
             {

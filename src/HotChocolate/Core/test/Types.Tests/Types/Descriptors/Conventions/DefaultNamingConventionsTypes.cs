@@ -1,3 +1,4 @@
+using System;
 using Xunit;
 
 namespace HotChocolate.Types.Descriptors
@@ -67,12 +68,54 @@ namespace HotChocolate.Types.Descriptors
             Assert.Equal("Baz Desc", result);
         }
 
+        [InlineData(typeof(MyInputType), "MyInput")]
+        [InlineData(typeof(MyType), "MyTypeInput")]
+        [InlineData(typeof(MyInput), "MyInput")]
+        [InlineData(typeof(YourInputType), "YourInputTypeInput")]
+        [InlineData(typeof(YourInput), "YourInput")]
+        [InlineData(typeof(Your), "YourInput")]
+        [Theory]
+        public void Input_Naming_Convention(Type type, string expectedName)
+        {
+            // arrange
+            var conventions = new DefaultNamingConventions();
+
+            // act
+            NameString typeName = conventions.GetTypeName(type, TypeKind.InputObject);
+
+            // assert
+            Assert.Equal(expectedName, typeName.Value);
+        }
+
         private enum Foo
         {
             Bar,
 
-            [GraphQLDescription("Baz Desc")]
-            Baz
+            [GraphQLDescription("Baz Desc")] Baz
+        }
+
+        private class MyInputType : InputObjectType
+        {
+        }
+
+        private class MyType : InputObjectType
+        {
+        }
+
+        private class MyInput : InputObjectType
+        {
+        }
+
+        public class YourInputType
+        {
+        }
+
+        public class YourInput
+        {
+        }
+
+        public class Your
+        {
         }
     }
 }

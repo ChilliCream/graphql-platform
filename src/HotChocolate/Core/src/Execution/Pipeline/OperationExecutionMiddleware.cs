@@ -72,7 +72,7 @@ namespace HotChocolate.Execution.Pipeline
 
         private async Task ExecuteOperationAsync(
             IRequestContext context,
-            IBatchDispatcher? batchDispatcher,
+            IBatchDispatcher batchDispatcher,
             IPreparedOperation operation)
         {
             if (operation.Definition.Operation == OperationType.Subscription)
@@ -129,7 +129,7 @@ namespace HotChocolate.Execution.Pipeline
 
         private async Task<IQueryResult?> ExecuteQueryOrMutationAsync(
             IRequestContext context,
-            IBatchDispatcher? batchDispatcher,
+            IBatchDispatcher batchDispatcher,
             IPreparedOperation operation,
             OperationContext operationContext)
         {
@@ -137,7 +137,7 @@ namespace HotChocolate.Execution.Pipeline
 
             if (operation.Definition.Operation == OperationType.Query)
             {
-                object? query = RootValueResolver.TryResolve(
+                object? query = RootValueResolver.Resolve(
                     context,
                     context.Services,
                     operation.RootType,
@@ -149,7 +149,7 @@ namespace HotChocolate.Execution.Pipeline
                     batchDispatcher,
                     operation,
                     query,
-                    context.Variables);
+                    context.Variables!);
 
                 result = await _queryExecutor
                     .ExecuteAsync(operationContext)
@@ -157,7 +157,7 @@ namespace HotChocolate.Execution.Pipeline
             }
             else if (operation.Definition.Operation == OperationType.Mutation)
             {
-                object? mutation = RootValueResolver.TryResolve(
+                object? mutation = RootValueResolver.Resolve(
                     context,
                     context.Services,
                     operation.RootType,
@@ -169,7 +169,7 @@ namespace HotChocolate.Execution.Pipeline
                     batchDispatcher,
                     operation,
                     mutation,
-                    context.Variables);
+                    context.Variables!);
 
                 result = await _mutationExecutor
                     .ExecuteAsync(operationContext)

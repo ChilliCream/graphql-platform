@@ -48,7 +48,7 @@ namespace HotChocolate.Stitching.Integration
             IHttpClientFactory httpClientFactory = CreateDefaultRemoteSchemas(configurationName);
 
             IDatabase database = _connection.GetDatabase();
-            for (int i = 0; i < 10; i++)
+            for (var i = 0; i < 10; i++)
             {
                 if (await database.SetLengthAsync(configurationName.Value) == 4)
                 {
@@ -142,7 +142,7 @@ namespace HotChocolate.Stitching.Integration
             IHttpClientFactory httpClientFactory = CreateDefaultRemoteSchemas(configurationName);
 
             IDatabase database = _connection.GetDatabase();
-            for (int i = 0; i < 10; i++)
+            for (var i = 0; i < 10; i++)
             {
                 if (await database.SetLengthAsync(configurationName.Value) == 4)
                 {
@@ -187,7 +187,7 @@ namespace HotChocolate.Stitching.Integration
             IHttpClientFactory httpClientFactory = CreateDefaultRemoteSchemas(configurationName);
 
             IDatabase database = _connection.GetDatabase();
-            for (int i = 0; i < 10; i++)
+            for (var i = 0; i < 10; i++)
             {
                 if (await database.SetLengthAsync(configurationName.Value) == 4)
                 {

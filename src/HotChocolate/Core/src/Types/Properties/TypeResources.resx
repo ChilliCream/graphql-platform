@@ -644,4 +644,28 @@ Type: `{0}`</value>
   <data name="NodeDescriptor_IdField_MustBePropertyOrMethod" xml:space="preserve">
     <value>The ID field must be a property or a method.</value>
   </data>
+  <data name="DeprecatedDirectiveType_TypeDescription" xml:space="preserve">
+    <value>The @deprecated directive is used within the type system definition language to indicate deprecated portions of a GraphQL service’s schema,such as deprecated fields on a type or deprecated enum values.</value>
+  </data>
+  <data name="DeprecatedDirectiveType_ReasonDescription" xml:space="preserve">
+    <value>Deprecations include a reason for why it is deprecated, which is formatted using Markdown syntax (as specified by CommonMark).</value>
+  </data>
+  <data name="IncludeDirectiveType_TypeDescription" xml:space="preserve">
+    <value>Directs the executor to include this field or fragment only when the `if` argument is true.</value>
+  </data>
+  <data name="IncludeDirectiveType_IfDescription" xml:space="preserve">
+    <value>Included when true.</value>
+  </data>
+  <data name="SkipDirectiveType_TypeDescription" xml:space="preserve">
+    <value>Directs the executor to skip this field or fragment when the `if` argument is true.</value>
+  </data>
+  <data name="SkipDirectiveType_IfDescription" xml:space="preserve">
+    <value>Skipped when true.</value>
+  </data>
+  <data name="SpecifiedByDirectiveType_TypeDescription" xml:space="preserve">
+    <value>The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions.</value>
+  </data>
+  <data name="SpecifiedByDirectiveType_UrlDescription" xml:space="preserve">
+    <value>The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types.</value>
+  </data>
 </root>
