@@ -53,6 +53,9 @@
   <data name="SortField_SortField_TypeUnknown" xml:space="preserve">
     <value>Unable to resolve the field runtime type for `{0}.{1}`.</value>
   </data>
+  <data name="Sorting_TypeOfInvalidFormat" xml:space="preserve">
+    <value>Unable to resolve sorting type. {0} is of invalid format.</value>
+  </data>
   <data name="SortConventionDescriptor_MustInheritFromSortInputOrEnumType" xml:space="preserve">
     <value>The sorting type must inherit from `SortInputType` or `SortEnumType`.</value>
   </data>

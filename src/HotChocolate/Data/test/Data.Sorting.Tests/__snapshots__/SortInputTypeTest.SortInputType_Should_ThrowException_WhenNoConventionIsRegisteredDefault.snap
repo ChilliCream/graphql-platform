@@ -3,4 +3,4 @@
 1. For more details look at the `Errors` property.
 
 1. No default sorting convention found. Call `AddSorting()` on the schema builder.
- (HotChocolate.Data.Sorting.SortInputType<HotChocolate.Data.Tests.SortInputTypeTest.Foo>)
+ (HotChocolate.Types.ObjectType)

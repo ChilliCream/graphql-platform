@@ -8,14 +8,14 @@ type Bar {
 }
 
 type Query4 {
-  bars(order: [ItWorks]): [Bar!]!
+  bars(order: [ItWorks!]): [Bar!]!
 }
 
 input ItWorks {
-  baz: DefaultSortEnumType
+  baz: SortEnumType
 }
 
-enum DefaultSortEnumType {
+enum SortEnumType {
   ASC
   DESC
 }

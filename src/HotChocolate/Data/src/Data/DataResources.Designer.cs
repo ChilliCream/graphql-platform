@@ -105,6 +105,12 @@ namespace HotChocolate.Data {
             }
         }
         
+        internal static string Sorting_TypeOfInvalidFormat {
+            get {
+                return ResourceManager.GetString("Sorting_TypeOfInvalidFormat", resourceCulture);
+            }
+        }
+        
         internal static string SortConventionDescriptor_MustInheritFromSortInputOrEnumType {
             get {
                 return ResourceManager.GetString("SortConventionDescriptor_MustInheritFromSortInputOrEnumType", resourceCulture);
