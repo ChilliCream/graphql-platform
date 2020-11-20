@@ -1397,7 +1397,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>For our built-in types we also have added automatic .NET type inference. This means that we will automatically translate for instance a <code class="language-text">System.String</code> to a GraphQL <code class="language-text">StringType</code>. We can override these default mappings by explicitly specifying type bindings with the schema builder.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="36903845756967840000"
+              data-toaster-id="39257797634552170000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1405,7 +1405,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
               onClick="copyToClipboard(`SchemaBuilder.New()
     .BindClrType<string, MyCustomStringType>()
     ...
-    .Create();`, `36903845756967840000`)"
+    .Create();`, `39257797634552170000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1421,7 +1421,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>Furthermore, we can also bind scalars to arrays or type structures:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="98025452176665940000"
+              data-toaster-id="94433012728781880000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1429,7 +1429,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
               onClick="copyToClipboard(`SchemaBuilder.New()
     .BindClrType<byte[], ByteArrayType>()
     ...
-    .Create();`, `98025452176665940000`)"
+    .Create();`, `94433012728781880000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1446,7 +1446,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>Specifying such a bindings explicitly can also be important when we have two types that bind to the same .NET Type like with <code class="language-text">DateTimeType</code> and <code class="language-text">DateType</code>.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="81456082503408300000"
+              data-toaster-id="88999801412638520000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1454,7 +1454,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
               onClick="copyToClipboard(`SchemaBuilder.New()
     .BindClrType<DateTime, DateTimeType>()
     ...
-    .Create();`, `81456082503408300000`)"
+    .Create();`, `88999801412638520000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1474,14 +1474,14 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>Consider the following type:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="9757783382555617000"
+              data-toaster-id="46888976282269600000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`type Query {
   foo(bar: Any): String
-}`, `9757783382555617000`)"
+}`, `46888976282269600000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1496,7 +1496,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>Since our field <code class="language-text">foo</code> specifies an argument <code class="language-text">bar</code> of type <code class="language-text">Any</code> all of the following queries would be valid:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="58514158321190760000"
+              data-toaster-id="58416057300202210000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1508,7 +1508,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
   a: foo(bar: true)
   a: foo(bar: { a: &quot;foo&quot;, b: { c: 1 } })
   a: foo(bar: [{ a: &quot;foo&quot;, b: { c: 1 } }, { a: &quot;foo&quot;, b: { c: 1 } }])
-}`, `58514158321190760000`)"
+}`, `58416057300202210000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1529,12 +1529,12 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>If we want to access the data we can either fetch data as object or we can ask the context to provide it as a specific object.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="53679633343233780000"
+              data-toaster-id="51629250201481350000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`Foo foo = context.Argument<Foo>(&quot;bar&quot;);`, `53679633343233780000`)"
+              onClick="copyToClipboard(`Foo foo = context.Argument<Foo>(&quot;bar&quot;);`, `51629250201481350000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1547,12 +1547,12 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>We can also ask the context which kind the current argument is:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="70332976089741490000"
+              data-toaster-id="66844078653745440000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`ValueKind kind = context.ArgumentKind(&quot;bar&quot;);`, `70332976089741490000`)"
+              onClick="copyToClipboard(`ValueKind kind = context.ArgumentKind(&quot;bar&quot;);`, `66844078653745440000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1568,7 +1568,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 </blockquote>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="41895548540676520000"
+              data-toaster-id="75170373141533110000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1582,7 +1582,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
     Enum,
     Object,
     Null
-}`, `41895548540676520000`)"
+}`, `75170373141533110000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1608,7 +1608,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>The following example shows you how a Custom String type could be implemented.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="4169509833657447400"
+              data-toaster-id="66885313404879290000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1723,7 +1723,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
         value = null;
         return false;
     }
-}`, `4169509833657447400`)"
+}`, `66885313404879290000`)"
             >
               <div
                 class="gatsby-code-button"
