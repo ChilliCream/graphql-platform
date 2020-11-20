@@ -6,6 +6,7 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Types.FieldInitHelper;
 using static HotChocolate.Utilities.ErrorHelper;
 
 #nullable enable
@@ -93,6 +94,7 @@ namespace HotChocolate.Types
                 _isOfType = definition.IsOfType;
                 SyntaxNode = definition.SyntaxNode;
 
+                // create fields with the specified sorting settings ...
                 var sortByName = context.DescriptorContext.Options.SortFieldsByName;
                 var fields = definition.Fields.Select(t => new ObjectField(t, sortByName)).ToList();
                 Fields = new FieldCollection<ObjectField>(fields, sortByName);
@@ -100,12 +102,13 @@ namespace HotChocolate.Types
                 CompleteInterfacesHelper.Complete(
                     context, definition, RuntimeType, _implements, this, SyntaxNode);
 
-                CompleteIsOfType(context);
-                FieldInitHelper.CompleteFields(context, definition, Fields);
+                // complete the type resolver and fields
+                CompleteTypeResolver(context);
+                CompleteFields(context, definition, Fields);
             }
         }
 
-        private void CompleteIsOfType(ITypeCompletionContext context)
+        private void CompleteTypeResolver(ITypeCompletionContext context)
         {
             if (_isOfType is null)
             {
