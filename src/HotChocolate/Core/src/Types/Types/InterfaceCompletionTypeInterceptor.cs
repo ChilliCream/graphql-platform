@@ -11,10 +11,9 @@ namespace HotChocolate.Types
 {
     internal class InterfaceCompletionTypeInterceptor : TypeInterceptor
     {
-        private readonly Dictionary<IComplexOutputType, TypeInfo> _typeInfos = new();
+        private readonly Dictionary<ITypeSystemObject, TypeInfo> _typeInfos = new();
         private readonly HashSet<Type> _allInterfaceRuntimeTypes = new();
         private readonly HashSet<Type> _interfaceRuntimeTypes = new();
-
         private readonly HashSet<NameString> _completed = new();
         private readonly HashSet<NameString> _completedFields = new();
         private readonly Queue<InterfaceType> _backlog = new();
@@ -28,10 +27,9 @@ namespace HotChocolate.Types
         {
             // we need to preserve the initialization context of all
             // interface types and object types.
-            if (discoveryContext.Type is IComplexOutputType type &&
-                definition is IComplexOutputTypeDefinition typeDefinition)
+            if (definition is IComplexOutputTypeDefinition typeDefinition)
             {
-                _typeInfos.Add(type, new(discoveryContext, type, typeDefinition));
+                _typeInfos.Add(discoveryContext.Type, new(discoveryContext, typeDefinition));
             }
         }
 
@@ -49,13 +47,12 @@ namespace HotChocolate.Types
             }
 
             // we now will use the runtime types to infer interface usage ...
-            foreach (TypeInfo typeInfo in _typeInfos.Values
-                .Where(t => t.Definition.RuntimeType is { } rt && rt != typeof(object)))
+            foreach (TypeInfo typeInfo in _typeInfos.Values.Where(IsRelevant))
             {
                 _interfaceRuntimeTypes.Clear();
 
                 TryInferInterfaceFromRuntimeType(
-                    typeInfo.Definition.RuntimeType,
+                    GetRuntimeType(typeInfo),
                     _allInterfaceRuntimeTypes,
                     _interfaceRuntimeTypes);
 
@@ -77,6 +74,28 @@ namespace HotChocolate.Types
             }
         }
 
+        // defines if this type has a concrete runtime type.
+        private bool IsRelevant(TypeInfo typeInfo)
+        {
+            if (typeInfo.Definition is ObjectTypeDefinition {IsExtension: true} objectDef &&
+                objectDef.FieldBindingType != typeof(object))
+            {
+                return true;
+            }
+
+            Type? runtimeType = typeInfo.Definition.RuntimeType;
+            return runtimeType is not null!  && runtimeType != typeof(object);
+        }
+
+        private Type GetRuntimeType(TypeInfo typeInfo)
+        {
+            if (typeInfo.Definition is ObjectTypeDefinition {IsExtension: true} objectDef)
+            {
+                return objectDef.FieldBindingType;
+            }
+
+            return typeInfo.Definition.RuntimeType;
+        }
 
         public override void OnBeforeCompleteType(
             ITypeCompletionContext completionContext,
@@ -177,20 +196,17 @@ namespace HotChocolate.Types
         {
             public TypeInfo(
                 ITypeDiscoveryContext context,
-                IComplexOutputType type,
                 IComplexOutputTypeDefinition definition)
             {
                 Context = context;
-                Type = type;
                 Definition = definition;
             }
 
             public ITypeDiscoveryContext Context { get; }
 
-            public  IComplexOutputType Type { get; }
-
             public IComplexOutputTypeDefinition  Definition { get; }
-        }
 
+            public override string? ToString() => Definition.Name;
+        }
     }
 }

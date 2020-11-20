@@ -1672,9 +1672,16 @@ namespace HotChocolate.Types
         public void Inferred_Interfaces_From_Type_Extensions_Are_Merged()
         {
             SchemaBuilder.New()
-                .AddDocumentFromString("type Query { some: Some } type Some { foo: String }")
+                .AddDocumentFromString(
+                    @"type Query {
+                        some: Some
+                    }
+
+                    type Some {
+                        foo: String
+                    }")
                 .AddType<SomeTypeExtensionWithInterface>()
-                .Use(next => context => default(ValueTask))
+                .Use(_ => _ => default)
                 .EnableRelaySupport()
                 .Create()
                 .ToString()
@@ -1903,8 +1910,7 @@ namespace HotChocolate.Types
         }
 
         [ExtendObjectType(Name = "Some")]
-        public class SomeTypeExtensionWithInterface
-            : INode
+        public class SomeTypeExtensionWithInterface : INode
         {
             [GraphQLType(typeof(NonNullType<IdType>))]
             public string Id { get; }
@@ -1913,13 +1919,7 @@ namespace HotChocolate.Types
         public class QueryWithNestedList
         {
             public List<List<FooIgnore>> FooMatrix =>
-                new List<List<FooIgnore>>
-                {
-                    new List<FooIgnore>
-                    {
-                        new FooIgnore()
-                    }
-                };
+                new() { new() { new() } };
         }
 
         public class ResolveWithQuery
