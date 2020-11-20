@@ -18,7 +18,7 @@ namespace HotChocolate.Data.Filters
                         .Field("foo")
                         .Type<StringType>()
                         .Resolver("foo")
-                        .Argument("test", a => a.Type<EnumOperationFilterInput<FooBar>>()))
+                        .Argument("test", a => a.Type<EnumOperationFilterInputType<FooBar>>()))
                 .AddFiltering()
                 .Create();
 
@@ -72,7 +72,7 @@ namespace HotChocolate.Data.Filters
         {
             protected override void Configure(IFilterInputTypeDescriptor descriptor)
             {
-                descriptor.Field("comparable").Type<EnumOperationFilterInput<FooBar>>();
+                descriptor.Field("comparable").Type<EnumOperationFilterInputType<FooBar>>();
             }
         }
 

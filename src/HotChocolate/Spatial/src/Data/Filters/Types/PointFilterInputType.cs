@@ -2,8 +2,8 @@ using NetTopologySuite.Geometries;
 
 namespace HotChocolate.Data.Filters.Spatial
 {
-    public class PointFilterInput
-        : GeometryFilterInput<Point>
+    public class PointFilterInputType
+        : GeometryFilterInputType<Point>
     {
         protected override void Configure(IFilterInputTypeDescriptor<Point> descriptor)
         {

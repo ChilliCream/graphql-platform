@@ -9,7 +9,7 @@ using Xunit;
 
 namespace HotChocolate.Data.Filters.Spatial.Tests
 {
-    public class FilterInputTypeTest
+    public class GeometryFilterInputTypeTest
         : FilterTestBase
     {
         [Fact]
@@ -17,7 +17,7 @@ namespace HotChocolate.Data.Filters.Spatial.Tests
         {
             // arrange
             // act
-            ISchema schema = CreateSchema(s => s.AddType<GeometryFilterInput>());
+            ISchema schema = CreateSchema(s => s.AddType<GeometryFilterInputType>());
 
             // assert
 #if NETCOREAPP2_1
@@ -32,7 +32,7 @@ namespace HotChocolate.Data.Filters.Spatial.Tests
         {
             // arrange
             // act
-            ISchema schema = CreateSchema(s => s.AddType<LineStringFilterInput>());
+            ISchema schema = CreateSchema(s => s.AddType<LineStringFilterInputType>());
 
             // assert
 #if NETCOREAPP2_1
@@ -47,7 +47,7 @@ namespace HotChocolate.Data.Filters.Spatial.Tests
         {
             // arrange
             // act
-            ISchema schema = CreateSchema(s => s.AddType<MultiLineStringFilterInput>());
+            ISchema schema = CreateSchema(s => s.AddType<MultiLineStringFilterInputType>());
 
             // assert
 #if NETCOREAPP2_1
@@ -62,7 +62,7 @@ namespace HotChocolate.Data.Filters.Spatial.Tests
         {
             // arrange
             // act
-            ISchema schema = CreateSchema(s => s.AddType<PointFilterInput>());
+            ISchema schema = CreateSchema(s => s.AddType<PointFilterInputType>());
 
             // assert
 #if NETCOREAPP2_1
@@ -77,7 +77,7 @@ namespace HotChocolate.Data.Filters.Spatial.Tests
         {
             // arrange
             // act
-            ISchema schema = CreateSchema(s => s.AddType<MultiPointFilterInput>());
+            ISchema schema = CreateSchema(s => s.AddType<MultiPointFilterInputType>());
 
             // assert
 #if NETCOREAPP2_1
@@ -92,7 +92,7 @@ namespace HotChocolate.Data.Filters.Spatial.Tests
         {
             // arrange
             // act
-            ISchema schema = CreateSchema(s => s.AddType<PolygonFilterInput>());
+            ISchema schema = CreateSchema(s => s.AddType<PolygonFilterInputType>());
 
             // assert
 #if NETCOREAPP2_1
@@ -107,7 +107,7 @@ namespace HotChocolate.Data.Filters.Spatial.Tests
         {
             // arrange
             // act
-            ISchema schema = CreateSchema(s => s.AddType<MultiPolygonFilterInput>());
+            ISchema schema = CreateSchema(s => s.AddType<MultiPolygonFilterInputType>());
 
             // assert
 #if NETCOREAPP2_1

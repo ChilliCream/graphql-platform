@@ -16,7 +16,7 @@ namespace HotChocolate.Data.Tests
             // act
             var convention = new FilterConvention(
                 x => x.UseMock()
-                    .Configure<StringOperationFilterInput>(
+                    .Configure<StringOperationFilterInputType>(
                         y => y.Operation(DefaultFilterOperations.Like).Type<StringType>())
                     .Operation(DefaultFilterOperations.Like)
                     .Name("like"));
@@ -146,7 +146,7 @@ namespace HotChocolate.Data.Tests
         {
             protected override void Configure(IFilterInputTypeDescriptor descriptor)
             {
-                descriptor.Field("test").Type<StringOperationFilterInput>();
+                descriptor.Field("test").Type<StringOperationFilterInputType>();
             }
         }
 

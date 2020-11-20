@@ -3,9 +3,9 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters
 {
-    public class ComparableOperationFilterInput<T>
+    public class ComparableOperationFilterInputType<T>
         : FilterInputType
-        , IComparableOperationFilterInput
+        , IComparableOperationFilterInputType
     {
         protected override void Configure(IFilterInputTypeDescriptor descriptor)
         {

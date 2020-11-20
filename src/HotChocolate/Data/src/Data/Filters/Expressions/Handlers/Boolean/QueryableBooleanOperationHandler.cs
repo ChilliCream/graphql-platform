@@ -12,7 +12,7 @@ namespace HotChocolate.Data.Filters.Expressions
             IFilterInputTypeDefinition typeDefinition,
             IFilterFieldDefinition fieldDefinition)
         {
-            return context.Type is BooleanOperationFilterInput &&
+            return context.Type is BooleanOperationFilterInputType &&
                 fieldDefinition is FilterOperationFieldDefinition operationField &&
                 operationField.Id == Operation;
         }

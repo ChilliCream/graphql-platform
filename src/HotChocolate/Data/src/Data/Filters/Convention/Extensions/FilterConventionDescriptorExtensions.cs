@@ -54,31 +54,33 @@ namespace HotChocolate.Data.Filters
             }
 
             descriptor
-                .BindRuntimeType<string, StringOperationFilterInput>()
-                .BindRuntimeType<bool, BooleanOperationFilterInput>()
-                .BindRuntimeType<byte, ComparableOperationFilterInput<byte>>()
-                .BindRuntimeType<short, ComparableOperationFilterInput<short>>()
-                .BindRuntimeType<int, ComparableOperationFilterInput<int>>()
-                .BindRuntimeType<long, ComparableOperationFilterInput<long>>()
-                .BindRuntimeType<float, ComparableOperationFilterInput<float>>()
-                .BindRuntimeType<double, ComparableOperationFilterInput<double>>()
-                .BindRuntimeType<decimal, ComparableOperationFilterInput<decimal>>()
-                .BindRuntimeType<Guid, ComparableOperationFilterInput<Guid>>()
-                .BindRuntimeType<DateTime, ComparableOperationFilterInput<DateTime>>()
-                .BindRuntimeType<DateTimeOffset, ComparableOperationFilterInput<DateTimeOffset>>()
-                .BindRuntimeType<TimeSpan, ComparableOperationFilterInput<TimeSpan>>()
-                .BindRuntimeType<bool?, BooleanOperationFilterInput>()
-                .BindRuntimeType<byte?, ComparableOperationFilterInput<byte?>>()
-                .BindRuntimeType<short?, ComparableOperationFilterInput<short?>>()
-                .BindRuntimeType<int?, ComparableOperationFilterInput<int?>>()
-                .BindRuntimeType<long?, ComparableOperationFilterInput<long?>>()
-                .BindRuntimeType<float?, ComparableOperationFilterInput<float?>>()
-                .BindRuntimeType<double?, ComparableOperationFilterInput<double?>>()
-                .BindRuntimeType<decimal?, ComparableOperationFilterInput<decimal?>>()
-                .BindRuntimeType<Guid?, ComparableOperationFilterInput<Guid?>>()
-                .BindRuntimeType<DateTime?, ComparableOperationFilterInput<DateTime?>>()
-                .BindRuntimeType<DateTimeOffset?, ComparableOperationFilterInput<DateTimeOffset?>>()
-                .BindRuntimeType<TimeSpan?, ComparableOperationFilterInput<TimeSpan?>>();
+                .BindRuntimeType<string, StringOperationFilterInputType>()
+                .BindRuntimeType<bool, BooleanOperationFilterInputType>()
+                .BindRuntimeType<byte, ComparableOperationFilterInputType<byte>>()
+                .BindRuntimeType<short, ComparableOperationFilterInputType<short>>()
+                .BindRuntimeType<int, ComparableOperationFilterInputType<int>>()
+                .BindRuntimeType<long, ComparableOperationFilterInputType<long>>()
+                .BindRuntimeType<float, ComparableOperationFilterInputType<float>>()
+                .BindRuntimeType<double, ComparableOperationFilterInputType<double>>()
+                .BindRuntimeType<decimal, ComparableOperationFilterInputType<decimal>>()
+                .BindRuntimeType<Guid, ComparableOperationFilterInputType<Guid>>()
+                .BindRuntimeType<DateTime, ComparableOperationFilterInputType<DateTime>>()
+                .BindRuntimeType<DateTimeOffset,
+                    ComparableOperationFilterInputType<DateTimeOffset>>()
+                .BindRuntimeType<TimeSpan, ComparableOperationFilterInputType<TimeSpan>>()
+                .BindRuntimeType<bool?, BooleanOperationFilterInputType>()
+                .BindRuntimeType<byte?, ComparableOperationFilterInputType<byte?>>()
+                .BindRuntimeType<short?, ComparableOperationFilterInputType<short?>>()
+                .BindRuntimeType<int?, ComparableOperationFilterInputType<int?>>()
+                .BindRuntimeType<long?, ComparableOperationFilterInputType<long?>>()
+                .BindRuntimeType<float?, ComparableOperationFilterInputType<float?>>()
+                .BindRuntimeType<double?, ComparableOperationFilterInputType<double?>>()
+                .BindRuntimeType<decimal?, ComparableOperationFilterInputType<decimal?>>()
+                .BindRuntimeType<Guid?, ComparableOperationFilterInputType<Guid?>>()
+                .BindRuntimeType<DateTime?, ComparableOperationFilterInputType<DateTime?>>()
+                .BindRuntimeType<DateTimeOffset?,
+                    ComparableOperationFilterInputType<DateTimeOffset?>>()
+                .BindRuntimeType<TimeSpan?, ComparableOperationFilterInputType<TimeSpan?>>();
 
             return descriptor;
         }

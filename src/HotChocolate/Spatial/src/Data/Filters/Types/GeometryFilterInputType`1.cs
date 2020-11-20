@@ -3,7 +3,7 @@ using static HotChocolate.Data.Filters.Spatial.SpatialFilterOperations;
 
 namespace HotChocolate.Data.Filters.Spatial
 {
-    public class GeometryFilterInput<T> : FilterInputType<T>
+    public class GeometryFilterInputType<T> : FilterInputType<T>
         where T : Geometry
     {
         protected override void Configure(IFilterInputTypeDescriptor<T> descriptor)
@@ -25,12 +25,12 @@ namespace HotChocolate.Data.Filters.Spatial
             descriptor.Field(x => x.PointOnSurface);
             descriptor.Field(x => x.SRID).Name("srid");
 
-            descriptor.Operation(Contains).Type<GeometryContainsOperationFilterInput>();
-            descriptor.Operation(Distance).Type<GeometryDistanceOperationFilterInput>();
-            descriptor.Operation(Intersects).Type<GeometryIntersectsOperationFilterInput>();
-            descriptor.Operation(Overlaps).Type<GeometryOverlapsOperationFilterInput>();
-            descriptor.Operation(Touches).Type<GeometryTouchesOperationFilterInput>();
-            descriptor.Operation(Within).Type<GeometryWithinOperationFilterInput>();
+            descriptor.Operation(Contains).Type<GeometryContainsOperationFilterInputType>();
+            descriptor.Operation(Distance).Type<GeometryDistanceOperationFilterInputType>();
+            descriptor.Operation(Intersects).Type<GeometryIntersectsOperationFilterInputType>();
+            descriptor.Operation(Overlaps).Type<GeometryOverlapsOperationFilterInputType>();
+            descriptor.Operation(Touches).Type<GeometryTouchesOperationFilterInputType>();
+            descriptor.Operation(Within).Type<GeometryWithinOperationFilterInputType>();
         }
     }
 }

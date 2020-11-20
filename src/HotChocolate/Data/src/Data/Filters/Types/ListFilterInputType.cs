@@ -2,9 +2,9 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters
 {
-    public class ListFilterInput<T>
+    public class ListFilterInputType<T>
         : FilterInputType
-        , IListFilterInput
+        , IListFilterInputType
         where T : FilterInputType
     {
         protected override void Configure(IFilterInputTypeDescriptor descriptor)

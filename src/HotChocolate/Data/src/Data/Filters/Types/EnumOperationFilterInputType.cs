@@ -3,7 +3,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters
 {
-    public class EnumOperationFilterInput<T> : FilterInputType, IEnumOperationFilterInput
+    public class EnumOperationFilterInputType<T> : FilterInputType, IEnumOperationFilterInputType
     {
         protected override void Configure(IFilterInputTypeDescriptor descriptor)
         {

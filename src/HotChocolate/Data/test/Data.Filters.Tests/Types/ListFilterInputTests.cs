@@ -18,7 +18,9 @@ namespace HotChocolate.Data.Filters
                         .Field("foo")
                         .Type<StringType>()
                         .Resolver("foo")
-                        .Argument("test", a => a.Type<ListFilterInput<StringOperationFilterInput>>()))
+                        .Argument(
+                            "test",
+                            a => a.Type<ListFilterInputType<StringOperationFilterInputType>>()))
                 .AddFiltering()
                 .Create();
 
@@ -72,7 +74,9 @@ namespace HotChocolate.Data.Filters
         {
             protected override void Configure(IFilterInputTypeDescriptor descriptor)
             {
-                descriptor.Field("string").Type<ListFilterInput<StringOperationFilterInput>>();
+                descriptor
+                    .Field("string")
+                    .Type<ListFilterInputType<StringOperationFilterInputType>>();
             }
         }
 

@@ -2,8 +2,8 @@ using NetTopologySuite.Geometries;
 
 namespace HotChocolate.Data.Filters.Spatial
 {
-    public class LineStringFilterInput
-        : GeometryFilterInput<LineString>
+    public class MultiPolygonFilterInputType
+        : GeometryFilterInputType<MultiPolygon>
     {
     }
 }

@@ -31,7 +31,7 @@ namespace HotChocolate.Data.Filters
                 descriptor =>
                 {
                     descriptor.Operation(DefaultFilterOperations.Equals).Name("eq");
-                    descriptor.BindRuntimeType<string, TestOperationFilterInput>();
+                    descriptor.BindRuntimeType<string, TestOperationFilterInputType>();
                     descriptor.Provider(provider);
                 });
 
@@ -66,7 +66,7 @@ namespace HotChocolate.Data.Filters
                 descriptor =>
                 {
                     descriptor.Operation(DefaultFilterOperations.Equals).Name("eq");
-                    descriptor.BindRuntimeType<string, TestOperationFilterInput>();
+                    descriptor.BindRuntimeType<string, TestOperationFilterInputType>();
                     descriptor.Provider(provider);
                 });
 
@@ -94,7 +94,7 @@ namespace HotChocolate.Data.Filters
                 descriptor =>
                 {
                     descriptor.Operation(DefaultFilterOperations.Equals).Name("eq");
-                    descriptor.BindRuntimeType<string, TestOperationFilterInput>();
+                    descriptor.BindRuntimeType<string, TestOperationFilterInputType>();
                     descriptor.Provider(provider);
                 });
 
@@ -122,7 +122,7 @@ namespace HotChocolate.Data.Filters
             var convention = new FilterConvention(
                 descriptor =>
                 {
-                    descriptor.BindRuntimeType<string, TestOperationFilterInput>();
+                    descriptor.BindRuntimeType<string, TestOperationFilterInputType>();
                     descriptor.Provider(provider);
                 });
 
@@ -151,7 +151,7 @@ namespace HotChocolate.Data.Filters
                 descriptor =>
                 {
                     descriptor.Operation(DefaultFilterOperations.Equals).Description("eq");
-                    descriptor.BindRuntimeType<string, TestOperationFilterInput>();
+                    descriptor.BindRuntimeType<string, TestOperationFilterInputType>();
                     descriptor.Provider(provider);
                 });
 
@@ -183,7 +183,7 @@ namespace HotChocolate.Data.Filters
                 descriptor =>
                 {
                     descriptor.Operation(DefaultFilterOperations.Equals).Name("eq");
-                    descriptor.BindRuntimeType<string, TestOperationFilterInput>();
+                    descriptor.BindRuntimeType<string, TestOperationFilterInputType>();
                 });
 
             var type = new FooFilterInput();
@@ -247,7 +247,7 @@ namespace HotChocolate.Data.Filters
             var extension1 = new FilterConventionExtension(
                 descriptor =>
                 {
-                    descriptor.BindRuntimeType<string, TestOperationFilterInput>();
+                    descriptor.BindRuntimeType<string, TestOperationFilterInputType>();
                     descriptor.Provider(provider);
                 });
 
@@ -288,7 +288,7 @@ namespace HotChocolate.Data.Filters
             var convention = new FilterConvention(
                 descriptor =>
                 {
-                    descriptor.BindRuntimeType<string, TestOperationFilterInput>();
+                    descriptor.BindRuntimeType<string, TestOperationFilterInputType>();
                     descriptor.Provider(provider);
                 });
 
@@ -325,7 +325,7 @@ namespace HotChocolate.Data.Filters
             var convention = new FilterConvention(
                 descriptor =>
                 {
-                    descriptor.BindRuntimeType<string, TestOperationFilterInput>();
+                    descriptor.BindRuntimeType<string, TestOperationFilterInputType>();
                     descriptor.Provider(provider);
                 });
 
@@ -361,7 +361,7 @@ namespace HotChocolate.Data.Filters
                 descriptor =>
                 {
                     descriptor.AddDefaults();
-                    descriptor.BindRuntimeType<string, TestOperationFilterInput>();
+                    descriptor.BindRuntimeType<string, TestOperationFilterInputType>();
                     descriptor.BindRuntimeType<Foo, CustomFooFilterInput>();
                 });
 
@@ -464,7 +464,7 @@ namespace HotChocolate.Data.Filters
             }
         }
 
-        public class TestOperationFilterInput : StringOperationFilterInput
+        public class TestOperationFilterInputType : StringOperationFilterInputType
         {
             protected override void Configure(IFilterInputTypeDescriptor descriptor)
             {

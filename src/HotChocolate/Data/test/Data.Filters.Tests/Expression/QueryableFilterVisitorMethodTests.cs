@@ -169,7 +169,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     return true;
                 }
 
-                if (field.Type is StringOperationFilterInput operationType &&
+                if (field.Type is StringOperationFilterInputType operationType &&
                     node.Value is ObjectValueNode objectValue)
                 {
                     IValueNode parameterNode = null!;
@@ -222,12 +222,12 @@ namespace HotChocolate.Data.Filters.Expressions
                 IFilterInputTypeDescriptor<Foo> descriptor)
             {
                 descriptor.Field(t => t.Bar).Ignore();
-                descriptor.Operation(156).Type<TestComplexFilterInput>();
-                descriptor.Operation(155).Type<StringOperationFilterInput>();
+                descriptor.Operation(156).Type<TestComplexFilterInputType>();
+                descriptor.Operation(155).Type<StringOperationFilterInputType>();
             }
         }
 
-        private class TestComplexFilterInput : StringOperationFilterInput
+        private class TestComplexFilterInputType : StringOperationFilterInputType
         {
             protected override void Configure(IFilterInputTypeDescriptor descriptor)
             {
