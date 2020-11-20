@@ -146,7 +146,7 @@ public class Query {
 public class Query : ObjectType {
     protected override void Configure(IObjectTypeDescriptor descriptor) {
         descriptor
-            .Field<Reslover>(x => x.Foos(default!))
+            .Field<Resolver>(x => x.Foos(default!))
             .UseFiltering();
     }
 
@@ -160,7 +160,7 @@ public class Query : ObjectType {
 
 The old filtering was bundling a field and operation together. With the new filtering, this is now separated. The concept of field and operation still exists, though a little different. A field is always used for navigation. You can think of it as a selector. In code first, a field represents a property of a class. An operation is always an action in the context of a field. Semantically you can look at it as a function. This is often a compare operation, like equals or greater than, but it can also be more arbitrary. In spatial data, many functions can be translated to database queries, like `ConvexHull()` or `Distance(Geometry g)`. Filtering on spatial data is something we plan to support soon. Operations are identified by an integer, which is called the operation ID.
 
-In most cases, a filter type either only contains fields or only operations, but it is in no way restricted to that. A filter type can contain both. This can be useful to provide the necessary metadata. Let's continue the example `Distance(Geometry g)` from above. This function has a parameter `g`. To calculate the distance between to points, the consumer needs to provide one point. The function then returns the distance between these two points. In GraphQL, this now can be combined into one input type:
+In most cases, a filter type either only contains fields or only operations, but it is in no way restricted to that. A filter type can contain both. This can be useful to provide the necessary metadata. Let's continue the example `Distance(Geometry g)` from above. This function has a parameter `g`. To calculate the distance between two points, the consumer needs to provide one point. The function then returns the distance between these two points. In GraphQL, this now can be combined into one input type:
 
 ```graphql
 input HouseFilterInput {
@@ -290,7 +290,7 @@ public class Query {
 public class Query : ObjectType {
     protected override void Configure(IObjectTypeDescriptor descriptor) {
         descriptor
-            .Field<Reslover>(x => x.Foos(default!))
+            .Field<Resolver>(x => x.Foos(default!))
             .UseFiltering("SqlServer");
     }
 
