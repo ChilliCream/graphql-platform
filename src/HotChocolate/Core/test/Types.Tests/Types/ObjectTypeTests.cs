@@ -634,7 +634,7 @@ namespace HotChocolate.Types
 
             // assert
             ObjectType type = schema.GetType<ObjectType>("C");
-            Assert.Equal(2, type.Interfaces.Count);
+            Assert.Equal(2, type.Implements.Count);
         }
 
         [Fact]
@@ -667,7 +667,7 @@ namespace HotChocolate.Types
 
             // assert
             ObjectType type = schema.GetType<ObjectType>("C");
-            Assert.Equal(2, type.Interfaces.Count);
+            Assert.Equal(2, type.Implements.Count);
         }
 
         [Fact]
@@ -1190,7 +1190,7 @@ namespace HotChocolate.Types
 
             // assert
             Assert.IsType<InterfaceType<IFoo>>(
-                fooType.Interfaces[0]);
+                fooType.Implements[0]);
         }
 
         [Fact]

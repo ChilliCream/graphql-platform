@@ -196,7 +196,7 @@ namespace HotChocolate
                 .Select(SerializeDirective)
                 .ToList();
 
-            var interfaces = objectType.Interfaces
+            var interfaces = objectType.Implements
                 .Select(SerializeNamedType)
                 .ToList();
 
