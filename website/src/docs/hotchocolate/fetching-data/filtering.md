@@ -506,27 +506,6 @@ input UserFilterInput {
 }
 ```
 
-
-# Custom&nbsp;FilterInputType
-
-```sdl
-input UserFilter {
-  name: String
-  name_contains: String
-  name_ends_with: String
-  name_in: [String]
-  name_not: String
-  name_not_contains: String
-  name_not_ends_with: String
-  name_not_in: [String]
-  name_not_starts_with: String
-  name_starts_with: String
-  AND: [UserFilter!]
-  OR: [UserFilter!]
-}
-```
-
-
 # Filter Conventions
 
 If you want to change the behavior filtering globally, you want to create a convention for your filters. The filter convention comes with a fluent interface that is close to a type descriptor.
@@ -650,7 +629,7 @@ in ones.
 You can use `Configure<TFilterType>()` to alter the configuration of a type. 
 
 ```csharp
-  .Configure<StringOperationFilterInput>(
+  descriptor.Configure<StringOperationFilterInput>(
     x => x.Operation(DefaultFilterOperations.Equals).Description("Equals"))
 ```
 
