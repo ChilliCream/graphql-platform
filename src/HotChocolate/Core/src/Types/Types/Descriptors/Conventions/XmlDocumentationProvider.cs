@@ -209,7 +209,7 @@ namespace HotChocolate.Types.Descriptors
                     out XDocument document))
                 {
                     MemberName name = GetMemberElementName(member);
-                    XElement element = document.XPathSelectElements(name.Path)
+                    XElement? element = document.XPathSelectElements(name.Path)
                         .FirstOrDefault();
 
                     ReplaceInheritdocElements(member, element);
@@ -268,7 +268,7 @@ namespace HotChocolate.Types.Descriptors
 
         private void ReplaceInheritdocElements(
             MemberInfo member,
-            XElement element)
+            XElement? element)
         {
             if (element is null)
             {
@@ -357,12 +357,11 @@ namespace HotChocolate.Types.Descriptors
             char prefixCode;
 
             string memberName =
-                member is Type memberType
-                    && !string.IsNullOrEmpty(memberType.FullName)
+                member is Type { FullName: { Length: > 0 } } memberType
                 ? memberType.FullName
-                : member.DeclaringType is null
+                : member.ReflectedType is null
                     ? member.Name
-                    : member.DeclaringType.FullName + "." + member.Name;
+                    : member.ReflectedType.FullName! + "." + member.Name;
 
             switch (member.MemberType)
             {
@@ -376,7 +375,7 @@ namespace HotChocolate.Types.Descriptors
                     var paramTypesList = string.Join(",",
                         ((MethodBase)member).GetParameters()
                         .Select(x => Regex
-                            .Replace(x.ParameterType.FullName,
+                            .Replace(x.ParameterType.FullName!,
                                 "(`[0-9]+)|(, .*?PublicKeyToken=[0-9a-z]*)",
                                 string.Empty)
                             .Replace("[[", "{")

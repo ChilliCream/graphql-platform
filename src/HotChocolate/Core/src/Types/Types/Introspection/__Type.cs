@@ -125,7 +125,7 @@ namespace HotChocolate.Types.Introspection
 
             public string? GetSpecifiedBy([Parent] IType type) =>
                 type is ScalarType scalar
-                    ? scalar.SpecifiedBy.ToString()
+                    ? scalar.SpecifiedBy?.ToString()
                     : null;
         }
 
