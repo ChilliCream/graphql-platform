@@ -15,28 +15,35 @@ namespace HotChocolate.Types
     public class StreamDirectiveType
         : DirectiveType
     {
-        protected override void Configure(
-            IDirectiveTypeDescriptor descriptor)
+        protected override void Configure(IDirectiveTypeDescriptor descriptor)
         {
             descriptor
-                .Name("stream")
+                .Name(Names.Stream)
                 .Description(TypeResources.StreamDirectiveType_Description)
                 .Location(DirectiveLocation.Field);
 
             descriptor
-                .Argument("label")
+                .Argument(Names.Label)
                 .Description(TypeResources.StreamDirectiveType_Label_Description)
                 .Type<StringType>();
 
             descriptor
-                .Argument("initialCount")
+                .Argument(Names.InitialCount)
                 .Description(TypeResources.StreamDirectiveType_InitialCount_Description)
                 .Type<NonNullType<IntType>>();
 
             descriptor
-                .Argument(WellKnownDirectives.IfArgument)
+                .Argument(Names.If)
                 .Description(TypeResources.StreamDirectiveType_If_Description)
                 .Type<NonNullType<BooleanType>>();
+        }
+
+        public static class Names
+        {
+            public const string Stream = "stream";
+            public const string Label = "label";
+            public const string InitialCount = "initialCount";
+            public const string If = "if";
         }
     }
 }

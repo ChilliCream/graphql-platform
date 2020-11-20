@@ -82,7 +82,7 @@ namespace HotChocolate.Types.Filters.Expressions
             return Expression.Call(
                 typeof(Enumerable),
                 nameof(Enumerable.Contains),
-                new Type[] { genericType },
+                new[] { genericType },
                 Expression.Constant(parsedValue),
                 property);
         }

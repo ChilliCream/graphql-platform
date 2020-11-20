@@ -1,6 +1,9 @@
 using System;
 using System.Reflection;
+using System.Threading.Tasks;
+using HotChocolate.Execution;
 using HotChocolate.Types.Descriptors;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -101,6 +104,22 @@ namespace HotChocolate.Types
                 .AddType<StructQueryExtension>()
                 .ModifyOptions(o => o.RemoveUnreachableTypes = true)
                 .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task ExtendObjectTypeAttribute_Extend_Query_Type_2()
+        {
+            // act
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddType<StructQuery>()
+                    .AddType<StructQueryExtension>()
+                    .TrimTypes()
+                    .BuildSchemaAsync();
 
             // assert
             schema.ToString().MatchSnapshot();

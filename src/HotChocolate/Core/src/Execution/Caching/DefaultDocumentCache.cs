@@ -6,7 +6,7 @@ namespace HotChocolate.Execution.Caching
 {
     internal sealed class DefaultDocumentCache : IDocumentCache
     {
-        private Cache<DocumentNode> _cache;
+        private readonly Cache<DocumentNode> _cache;
 
         public DefaultDocumentCache(int capacity = 100)
         {

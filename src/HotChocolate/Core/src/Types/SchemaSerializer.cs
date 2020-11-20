@@ -59,9 +59,9 @@ namespace HotChocolate
                 .OfType<IDefinitionNode>()
                 .ToList();
 
-            if (schema.QueryType != null
-                || schema.MutationType != null
-                || schema.SubscriptionType != null)
+            if (schema.QueryType is not null
+                || schema.MutationType is not null
+                || schema.SubscriptionType is not null)
             {
                 typeDefinitions.Insert(0, SerializeSchemaTypeDefinition(schema));
             }
@@ -133,21 +133,21 @@ namespace HotChocolate
         {
             var operations = new List<OperationTypeDefinitionNode>();
 
-            if (schema.QueryType != null)
+            if (schema.QueryType is not null)
             {
                 operations.Add(SerializeOperationType(
                     schema.QueryType,
                     OperationType.Query));
             }
 
-            if (schema.MutationType != null)
+            if (schema.MutationType is not null)
             {
                 operations.Add(SerializeOperationType(
                     schema.MutationType,
                     OperationType.Mutation));
             }
 
-            if (schema.SubscriptionType != null)
+            if (schema.SubscriptionType is not null)
             {
                 operations.Add(SerializeOperationType(
                     schema.SubscriptionType,
@@ -171,12 +171,10 @@ namespace HotChocolate
            ObjectType type,
            OperationType operation)
         {
-            return new OperationTypeDefinitionNode
-            (
+            return new(
                 null,
                 operation,
-                SerializeNamedType(type)
-            );
+                SerializeNamedType(type));
         }
 
         private static ITypeDefinitionNode SerializeNonScalarTypeDefinition(
@@ -320,13 +318,15 @@ namespace HotChocolate
         private static ScalarTypeDefinitionNode SerializeScalarType(
             ScalarType scalarType)
         {
-            return new ScalarTypeDefinitionNode
-            (
+            var directives = scalarType.Directives
+                .Select(SerializeDirective)
+                .ToList();
+
+            return new(
                 null,
                 new NameNode(scalarType.Name),
                 SerializeDescription(scalarType.Description),
-                Array.Empty<DirectiveNode>()
-            );
+                directives);
         }
 
         private static FieldDefinitionNode SerializeObjectField(IOutputField field)
@@ -351,18 +351,14 @@ namespace HotChocolate
         }
 
         private static InputValueDefinitionNode SerializeInputField(
-            IInputField inputValue)
-        {
-            return new InputValueDefinitionNode
-            (
+            IInputField inputValue) =>
+            new(
                 null,
                 new NameNode(inputValue.Name),
                 SerializeDescription(inputValue.Description),
                 SerializeType(inputValue.Type),
                 inputValue.DefaultValue,
-                inputValue.Directives.Select(SerializeDirective).ToList()
-            );
-        }
+                inputValue.Directives.Select(SerializeDirective).ToList());
 
         private static ITypeNode SerializeType(IType type)
         {
@@ -384,21 +380,15 @@ namespace HotChocolate
             throw new NotSupportedException();
         }
 
-        private static NamedTypeNode SerializeNamedType(INamedType namedType)
-        {
-            return new NamedTypeNode(null, new NameNode(namedType.Name));
-        }
+        private static NamedTypeNode SerializeNamedType(INamedType namedType) =>
+            new(null, new NameNode(namedType.Name));
 
-        private static DirectiveNode SerializeDirective(IDirective directiveType)
-        {
-            return directiveType.ToNode(true);
-        }
+        private static DirectiveNode SerializeDirective(IDirective directiveType) =>
+            directiveType.ToNode(true);
 
-        private static StringValueNode SerializeDescription(string description)
-        {
-            return string.IsNullOrEmpty(description)
+        private static StringValueNode SerializeDescription(string description) =>
+            string.IsNullOrEmpty(description)
                 ? null
                 : new StringValueNode(description);
-        }
     }
 }

@@ -291,7 +291,7 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public IObjectFieldDescriptor ResolveWith<TResolver>(
-            Expression<Func<TResolver, object>> propertyOrMethod)
+            Expression<Func<TResolver, object?>> propertyOrMethod)
         {
             if (propertyOrMethod is null)
             {
