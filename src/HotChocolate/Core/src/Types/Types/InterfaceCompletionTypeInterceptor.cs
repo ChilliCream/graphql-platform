@@ -11,15 +11,15 @@ namespace HotChocolate.Types
 {
     internal class InterfaceCompletionTypeInterceptor : TypeInterceptor
     {
-        private readonly List<TypeInfo> _typeInfos = new();
+        private readonly Dictionary<IComplexOutputType, TypeInfo> _typeInfos = new();
         private readonly HashSet<Type> _allInterfaceRuntimeTypes = new();
         private readonly HashSet<Type> _interfaceRuntimeTypes = new();
 
-        private readonly Dictionary<NameString, InterfaceType> _interfaceLookup = new();
         private readonly HashSet<NameString> _completed = new();
         private readonly HashSet<NameString> _completedFields = new();
-        private readonly HashSet<InterfaceType> _interfaces = new();
-        private readonly Queue<IComplexOutputType> _backlog = new();
+        private readonly Queue<InterfaceType> _backlog = new();
+
+        public override bool TriggerAggregations => true;
 
         public override void OnAfterInitialize(
             ITypeDiscoveryContext discoveryContext,
@@ -31,7 +31,7 @@ namespace HotChocolate.Types
             if (discoveryContext.Type is IComplexOutputType type &&
                 definition is IComplexOutputTypeDefinition typeDefinition)
             {
-                _typeInfos.Add(new(discoveryContext, type, typeDefinition));
+                _typeInfos.Add(type, new(discoveryContext, type, typeDefinition));
             }
         }
 
@@ -40,7 +40,7 @@ namespace HotChocolate.Types
         {
             // after all types have been initialized we will index the runtime
             // types of all interfaces.
-            foreach (TypeInfo interfaceTypeInfo in _typeInfos
+            foreach (TypeInfo interfaceTypeInfo in _typeInfos.Values
                 .Where(t => t.Definition.RuntimeType is { } rt &&
                     rt != typeof(object) &&
                     t.Definition is InterfaceTypeDefinition))
@@ -48,10 +48,12 @@ namespace HotChocolate.Types
                 _allInterfaceRuntimeTypes.Add(interfaceTypeInfo.Definition.RuntimeType);
             }
 
-            // we now will use the runtime types to infer
-            foreach (TypeInfo typeInfo in _typeInfos
+            // we now will use the runtime types to infer interface usage ...
+            foreach (TypeInfo typeInfo in _typeInfos.Values
                 .Where(t => t.Definition.RuntimeType is { } rt && rt != typeof(object)))
             {
+                _interfaceRuntimeTypes.Clear();
+
                 TryInferInterfaceFromRuntimeType(
                     typeInfo.Definition.RuntimeType,
                     _allInterfaceRuntimeTypes,
@@ -59,13 +61,18 @@ namespace HotChocolate.Types
 
                 if (_interfaceRuntimeTypes.Count > 0)
                 {
-                    typeInfo.Context.RegisterDependencyRange(
-                        _interfaceRuntimeTypes.Select(
-                            t => new TypeDependency(
-                                TypeReference.Create(
-                                    typeInfo.Context.TypeInspector.GetType(t),
-                                    TypeContext.Output),
-                                TypeDependencyKind.Completed)));
+                    // if we detect that this type implements an interface,
+                    // we will register it as a dependency.
+                    foreach (var typeDependency in _interfaceRuntimeTypes.Select(
+                        t => new TypeDependency(
+                            TypeReference.Create(
+                                typeInfo.Context.TypeInspector.GetType(t),
+                                TypeContext.Output),
+                            TypeDependencyKind.Completed)))
+                    {
+                        typeInfo.Context.RegisterDependency(typeDependency);
+                        typeInfo.Definition.Interfaces.Add(typeDependency.TypeReference);
+                    }
                 }
             }
         }
@@ -76,38 +83,70 @@ namespace HotChocolate.Types
             DefinitionBase? definition,
             IDictionary<string, object?> contextData)
         {
-            if (completionContext.Type is InterfaceType { Implements: { Count: > 0 } } type &&
-                definition is InterfaceTypeDefinition typeDef)
+            if (definition is InterfaceTypeDefinition { Interfaces: { Count: > 0 } } typeDef)
             {
                 _completed.Clear();
                 _completedFields.Clear();
-                _interfaces.Clear();
                 _backlog.Clear();
 
-                CompleteInterfacesHelper.Complete(
-                    completionContext,
-                    typeDef,
-                    typeDef.RuntimeType ?? typeof(object),
-                    _interfaces,
-                    completionContext.Type,
-                    typeDef.SyntaxNode);
-
-                foreach (var interfaceType in _interfaces)
+                foreach (var interfaceRef in typeDef.Interfaces)
                 {
-                    _backlog.Enqueue(interfaceType);
+                    if (completionContext.TryGetType(interfaceRef, out InterfaceType interfaceType))
+                    {
+                        _completed.Add(interfaceType.Name);
+                        _backlog.Enqueue(interfaceType);
+                    }
                 }
+
+                foreach (var field in typeDef.Fields)
+                {
+                    _completedFields.Add(field.Name);
+                }
+
+                CompleteInterfacesAndFields(typeDef);
+            }
+
+            if (definition is ObjectTypeDefinition { Interfaces: { Count: > 0 } }  objectTypeDef)
+            {
+                _completed.Clear();
+                _completedFields.Clear();
+                _backlog.Clear();
+
+                foreach (var interfaceRef in objectTypeDef.Interfaces)
+                {
+                    if (completionContext.TryGetType(interfaceRef, out InterfaceType interfaceType))
+                    {
+                        _completed.Add(interfaceType.Name);
+                        _backlog.Enqueue(interfaceType);
+                    }
+                }
+
+                foreach (var field in objectTypeDef.Fields)
+                {
+                    _completedFields.Add(field.Name);
+                }
+
+                CompleteInterfacesAndFields(objectTypeDef);
             }
         }
 
-        private void CollectInterfaces(IComplexOutputTypeDefinition definition)
+        private void CompleteInterfacesAndFields(IComplexOutputTypeDefinition definition)
         {
             while(_backlog.Count > 0)
             {
-                IComplexOutputType current = _backlog.Dequeue();
+                InterfaceType current = _backlog.Dequeue();
+                TypeInfo typeInfo = _typeInfos[current];
+                definition.Interfaces.Add(TypeReference.Create(current));
 
-                foreach (var VARIABLE in _backlog)
+                if (definition is InterfaceTypeDefinition interfaceDef)
                 {
-
+                    foreach (var field in ((InterfaceTypeDefinition)typeInfo.Definition).Fields)
+                    {
+                        if (_completedFields.Add(field.Name))
+                        {
+                            interfaceDef.Fields.Add(field);
+                        }
+                    }
                 }
 
                 foreach (var interfaceType in current.Implements)
@@ -127,7 +166,7 @@ namespace HotChocolate.Types
         {
             foreach (Type interfaceType in runtimeType.GetInterfaces())
             {
-                if (knownInterfaces.Contains(interfaceType))
+                if (allInterfaces.Contains(interfaceType))
                 {
                     interfaces.Add(interfaceType);
                 }

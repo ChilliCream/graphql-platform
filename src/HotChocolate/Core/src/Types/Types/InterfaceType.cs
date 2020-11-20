@@ -6,6 +6,7 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Types.CompleteInterfacesHelper;
 
 #nullable enable
 
@@ -123,12 +124,8 @@ namespace HotChocolate.Types
                 definition.Fields.Select(t => new InterfaceField(t, sortFieldsByName)),
                 sortFieldsByName);
 
-            CompleteAbstractTypeResolver(
-                context,
-                definition.ResolveAbstractType);
-
-            CompleteInterfacesHelper.Complete(
-                context, definition, RuntimeType, _implements, this, SyntaxNode);
+            CompleteAbstractTypeResolver(context, definition.ResolveAbstractType);
+            CompleteInterfaces(context, definition, RuntimeType, _implements, this, SyntaxNode);
 
             FieldInitHelper.CompleteFields(context, definition, Fields);
         }

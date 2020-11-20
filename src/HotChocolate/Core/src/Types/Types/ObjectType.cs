@@ -7,6 +7,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Types.FieldInitHelper;
+using static HotChocolate.Types.CompleteInterfacesHelper;
 using static HotChocolate.Utilities.ErrorHelper;
 
 #nullable enable
@@ -99,8 +100,8 @@ namespace HotChocolate.Types
                 var fields = definition.Fields.Select(t => new ObjectField(t, sortByName)).ToList();
                 Fields = new FieldCollection<ObjectField>(fields, sortByName);
 
-                CompleteInterfacesHelper.Complete(
-                    context, definition, RuntimeType, _implements, this, SyntaxNode);
+                // resolve interface references
+                CompleteInterfaces(context, definition, RuntimeType, _implements, this, SyntaxNode);
 
                 // complete the type resolver and fields
                 CompleteTypeResolver(context);
@@ -151,6 +152,7 @@ namespace HotChocolate.Types
             {
                 return true;
             }
+
             return RuntimeType.IsInstanceOfType(result);
         }
 
