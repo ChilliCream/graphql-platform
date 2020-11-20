@@ -450,7 +450,7 @@ namespace HotChocolate.Data.Tests
         public class CustomHandler : IFilterFieldHandler
         {
             public bool CanHandle(
-                ITypeDiscoveryContext context,
+                ITypeCompletionContext context,
                 IFilterInputTypeDefinition typeDefinition,
                 IFilterFieldDefinition fieldDefinition)
             {
