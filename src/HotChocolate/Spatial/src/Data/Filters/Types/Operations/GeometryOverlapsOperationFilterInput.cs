@@ -4,7 +4,7 @@ using static HotChocolate.Data.Filters.Spatial.SpatialFilterOperations;
 
 namespace HotChocolate.Data.Filters.Spatial
 {
-    public class GeometryIntersectsOperationType : BooleanOperationFilterInput
+    public class GeometryOverlapsOperationFilterInput : BooleanOperationFilterInput
     {
         protected override void Configure(IFilterInputTypeDescriptor descriptor)
         {

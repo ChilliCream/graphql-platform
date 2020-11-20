@@ -21,7 +21,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode value = Syntax.ParseValueLiteral("{ simple: { eq:\"a\" }}");
             ExecutorBuilder tester = CreateProviderTester(
-                new FooFilterType(),
+                new FooFilterInput(),
                 new FilterConvention(
                     x =>
                     {
@@ -51,7 +51,7 @@ namespace HotChocolate.Data.Filters.Expressions
         {
             // arrange
             ExecutorBuilder tester = CreateProviderTester(
-                new FooFilterType(),
+                new FooFilterInput(),
                 new FilterConvention(
                     x =>
                     {
@@ -215,7 +215,7 @@ namespace HotChocolate.Data.Filters.Expressions
             public string Complex(string parameter) => parameter;
         }
 
-        private class FooFilterType
+        private class FooFilterInput
             : FilterInputType<Foo>
         {
             protected override void Configure(
@@ -233,7 +233,7 @@ namespace HotChocolate.Data.Filters.Expressions
             {
                 base.Configure(descriptor);
 
-                descriptor.Operation(DefaultOperations.Data)
+                descriptor.Operation(DefaultFilterOperations.Data)
                     .Name("parameter")
                     .Type<NonNullType<StringType>>();
             }

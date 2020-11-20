@@ -9,7 +9,6 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
-using static HotChocolate.Data.DataResources;
 using static HotChocolate.Data.ThrowHelper;
 
 namespace HotChocolate.Data.Filters
@@ -51,7 +50,8 @@ namespace HotChocolate.Data.Filters
         {
             if (_configure is null)
             {
-                throw new InvalidOperationException(FilterConvention_NoConfigurationSpecified);
+                throw new InvalidOperationException(
+                    DataResources.FilterConvention_NoConfigurationSpecified);
             }
 
             var descriptor = FilterConventionDescriptor.New(
@@ -117,6 +117,44 @@ namespace HotChocolate.Data.Filters
             if (runtimeType is null)
             {
                 throw new ArgumentNullException(nameof(runtimeType));
+            }
+
+            if (typeof(IEnumOperationFilterInput).IsAssignableFrom(runtimeType) &&
+                runtimeType.GenericTypeArguments.Length == 1 &&
+                runtimeType.GetGenericTypeDefinition() == typeof(EnumOperationFilterInput<>))
+            {
+                NameString genericName =
+                    _namingConventions.GetTypeName(runtimeType.GenericTypeArguments[0]);
+
+                return genericName.Value + "OperationFilterInput";
+            }
+
+            if (typeof(IComparableOperationFilterInput).IsAssignableFrom(runtimeType) &&
+                runtimeType.GenericTypeArguments.Length == 1 &&
+                runtimeType.GetGenericTypeDefinition() == typeof(ComparableOperationFilterInput<>))
+            {
+                NameString genericName =
+                    _namingConventions.GetTypeName(runtimeType.GenericTypeArguments[0]);
+
+                return $"Comparable{genericName.Value}OperationFilterInput";
+            }
+
+            if (typeof(IListFilterInput).IsAssignableFrom(runtimeType) &&
+                runtimeType.GenericTypeArguments.Length == 1 &&
+                runtimeType.GetGenericTypeDefinition() == typeof(ListFilterInput<>))
+            {
+                Type genericType = runtimeType.GenericTypeArguments[0];
+                NameString genericName;
+                if (typeof(FilterInputType).IsAssignableFrom(genericType))
+                {
+                    genericName = GetTypeName(genericType);
+                }
+                else
+                {
+                    genericName = _namingConventions.GetTypeName(genericType);
+                }
+
+                return "List" + genericName.Value;
             }
 
             string name = _namingConventions.GetTypeName(runtimeType);
@@ -239,7 +277,7 @@ namespace HotChocolate.Data.Filters
 
             if (runtimeType.IsArrayOrList)
             {
-                if (runtimeType.ElementType is {} &&
+                if (runtimeType.ElementType is { } &&
                     TryCreateFilterType(runtimeType.ElementType, out Type? elementType))
                 {
                     type = typeof(ListFilterInput<>).MakeGenericType(elementType);

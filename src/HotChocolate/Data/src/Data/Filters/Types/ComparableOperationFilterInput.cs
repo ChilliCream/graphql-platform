@@ -9,40 +9,40 @@ namespace HotChocolate.Data.Filters
     {
         protected override void Configure(IFilterInputTypeDescriptor descriptor)
         {
-            descriptor.Operation(DefaultOperations.Equals)
+            descriptor.Operation(DefaultFilterOperations.Equals)
                 .Type(typeof(T))
                 .MakeNullable();
-            descriptor.Operation(DefaultOperations.NotEquals)
+            descriptor.Operation(DefaultFilterOperations.NotEquals)
                 .Type(typeof(T))
                 .MakeNullable();
-            descriptor.Operation(DefaultOperations.In)
+            descriptor.Operation(DefaultFilterOperations.In)
                 .Type(typeof(IEnumerable<T>))
                 .MakeNullable();
-            descriptor.Operation(DefaultOperations.NotIn)
+            descriptor.Operation(DefaultFilterOperations.NotIn)
                 .Type(typeof(IEnumerable<T>))
                 .MakeNullable();
-            descriptor.Operation(DefaultOperations.GreaterThan)
+            descriptor.Operation(DefaultFilterOperations.GreaterThan)
                 .Type(typeof(T))
                 .MakeNullable();
-            descriptor.Operation(DefaultOperations.NotGreaterThan)
+            descriptor.Operation(DefaultFilterOperations.NotGreaterThan)
                 .Type(typeof(T))
                 .MakeNullable();
-            descriptor.Operation(DefaultOperations.GreaterThanOrEquals)
+            descriptor.Operation(DefaultFilterOperations.GreaterThanOrEquals)
                 .Type(typeof(T))
                 .MakeNullable();
-            descriptor.Operation(DefaultOperations.NotGreaterThanOrEquals)
+            descriptor.Operation(DefaultFilterOperations.NotGreaterThanOrEquals)
                 .Type(typeof(T))
                 .MakeNullable();
-            descriptor.Operation(DefaultOperations.LowerThan)
+            descriptor.Operation(DefaultFilterOperations.LowerThan)
                 .Type(typeof(T))
                 .MakeNullable();
-            descriptor.Operation(DefaultOperations.NotLowerThan)
+            descriptor.Operation(DefaultFilterOperations.NotLowerThan)
                 .Type(typeof(T))
                 .MakeNullable();
-            descriptor.Operation(DefaultOperations.LowerThanOrEquals)
+            descriptor.Operation(DefaultFilterOperations.LowerThanOrEquals)
                 .Type(typeof(T))
                 .MakeNullable();
-            descriptor.Operation(DefaultOperations.NotLowerThanOrEquals)
+            descriptor.Operation(DefaultFilterOperations.NotLowerThanOrEquals)
                 .Type(typeof(T))
                 .MakeNullable();
             descriptor.AllowAnd(false).AllowOr(false);

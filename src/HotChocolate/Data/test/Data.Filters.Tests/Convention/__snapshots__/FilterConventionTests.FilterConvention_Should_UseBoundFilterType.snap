@@ -2,29 +2,22 @@
   query: Query
 }
 
-type Query {
-  foo(test: FooFilterInput): String
+type Foo {
+  bar: String!
 }
 
-input ComparableInt32OperationFilterInput {
-  eq: Int
-  neq: Int
-  in: [Int!]
-  nin: [Int!]
-  gt: Int
-  ngt: Int
-  gte: Int
-  ngte: Int
-  lt: Int
-  nlt: Int
-  lte: Int
-  nlte: Int
+type Query {
+  foos(where: FooFilterInput): [Foo]
 }
 
 input FooFilterInput {
   and: [FooFilterInput!]
   or: [FooFilterInput!]
-  comparable: ComparableInt32OperationFilterInput
+  bar: TestOperationFilterInput
+}
+
+input TestOperationFilterInput {
+  eq: String
 }
 
 "The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`."

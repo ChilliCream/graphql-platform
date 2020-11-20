@@ -114,7 +114,7 @@ namespace HotChocolate.Data.Filters
             IFilterInputTypeDescriptor descriptor);
 
         bool TryGetHandler(
-            ITypeDiscoveryContext context,
+            ITypeCompletionContext context,
             IFilterInputTypeDefinition typeDefinition,
             IFilterFieldDefinition fieldDefinition,
             [NotNullWhen(true)] out IFilterFieldHandler? handler);

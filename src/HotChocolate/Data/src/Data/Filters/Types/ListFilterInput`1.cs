@@ -9,10 +9,10 @@ namespace HotChocolate.Data.Filters
     {
         protected override void Configure(IFilterInputTypeDescriptor descriptor)
         {
-            descriptor.Operation(DefaultOperations.All).Type(typeof(T));
-            descriptor.Operation(DefaultOperations.None).Type(typeof(T));
-            descriptor.Operation(DefaultOperations.Some).Type(typeof(T));
-            descriptor.Operation(DefaultOperations.Any).Type<BooleanType>();
+            descriptor.Operation(DefaultFilterOperations.All).Type(typeof(T));
+            descriptor.Operation(DefaultFilterOperations.None).Type(typeof(T));
+            descriptor.Operation(DefaultFilterOperations.Some).Type(typeof(T));
+            descriptor.Operation(DefaultFilterOperations.Any).Type<BooleanType>();
             descriptor.AllowAnd(false).AllowOr(false);
         }
     }

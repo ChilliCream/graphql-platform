@@ -11,7 +11,7 @@ input BooleanOperationFilterInput {
   neq: Boolean
 }
 
-input ComparableOperationFilterInputOfDoubleFilterInput {
+input ComparableDoubleOperationFilterInput {
   eq: Float
   neq: Float
   in: [Float!]
@@ -26,7 +26,7 @@ input ComparableOperationFilterInputOfDoubleFilterInput {
   nlte: Float
 }
 
-input ComparableOperationFilterInputOfInt32FilterInput {
+input ComparableInt32OperationFilterInput {
   eq: Int
   neq: Int
   in: [Int!]
@@ -41,28 +41,21 @@ input ComparableOperationFilterInputOfInt32FilterInput {
   nlte: Int
 }
 
-input EnumOperationFilterInputOfDimensionFilterInput {
+input DimensionOperationFilterInput {
   eq: Dimension
   neq: Dimension
   in: [Dimension!]
   nin: [Dimension!]
 }
 
-input EnumOperationFilterInputOfOgcGeometryTypeFilterInput {
-  eq: OgcGeometryType
-  neq: OgcGeometryType
-  in: [OgcGeometryType!]
-  nin: [OgcGeometryType!]
-}
-
-input GeometryContainsOperationTypeFilterInput {
+input GeometryContainsOperationFilterInput {
   geometry: Geometry!
   buffer: Float
   eq: Boolean
   neq: Boolean
 }
 
-input GeometryDistanceOperationTypeFilterInput {
+input GeometryDistanceOperationFilterInput {
   geometry: Geometry!
   buffer: Float
   eq: Float
@@ -82,50 +75,50 @@ input GeometryDistanceOperationTypeFilterInput {
 input GeometryFilterInput {
   and: [GeometryFilterInput!]
   or: [GeometryFilterInput!]
-  area: ComparableOperationFilterInputOfDoubleFilterInput
+  area: ComparableDoubleOperationFilterInput
   boundary: GeometryFilterInput
   centroid: PointFilterInput
-  dimension: EnumOperationFilterInputOfDimensionFilterInput
+  dimension: DimensionOperationFilterInput
   envelope: GeometryFilterInput
   geometryType: StringOperationFilterInput
   interiorPoint: PointFilterInput
   isSimple: BooleanOperationFilterInput
   isValid: BooleanOperationFilterInput
-  length: ComparableOperationFilterInputOfDoubleFilterInput
-  numPoints: ComparableOperationFilterInputOfInt32FilterInput
-  ogcGeometryType: EnumOperationFilterInputOfOgcGeometryTypeFilterInput
+  length: ComparableDoubleOperationFilterInput
+  numPoints: ComparableInt32OperationFilterInput
+  ogcGeometryType: OgcGeometryTypeOperationFilterInput
   pointOnSurface: PointFilterInput
-  sRID: ComparableOperationFilterInputOfInt32FilterInput
-  contains: GeometryContainsOperationTypeFilterInput
-  distance: GeometryDistanceOperationTypeFilterInput
-  intersects: GeometryIntersectsOperationTypeFilterInput
-  overlaps: GeometryOverlapsOperationTypeFilterInput
-  touches: GeometryTouchesOperationTypeFilterInput
-  within: GeometryWithinOperationTypeFilterInput
+  srid: ComparableInt32OperationFilterInput
+  contains: GeometryContainsOperationFilterInput
+  distance: GeometryDistanceOperationFilterInput
+  intersects: GeometryIntersectsOperationFilterInput
+  overlaps: GeometryOverlapsOperationFilterInput
+  touches: GeometryTouchesOperationFilterInput
+  within: GeometryWithinOperationFilterInput
 }
 
-input GeometryIntersectsOperationTypeFilterInput {
+input GeometryIntersectsOperationFilterInput {
   geometry: Geometry!
   buffer: Float
   eq: Boolean
   neq: Boolean
 }
 
-input GeometryOverlapsOperationTypeFilterInput {
+input GeometryOverlapsOperationFilterInput {
   geometry: Geometry!
   buffer: Float
   eq: Boolean
   neq: Boolean
 }
 
-input GeometryTouchesOperationTypeFilterInput {
+input GeometryTouchesOperationFilterInput {
   geometry: Geometry!
   buffer: Float
   eq: Boolean
   neq: Boolean
 }
 
-input GeometryWithinOperationTypeFilterInput {
+input GeometryWithinOperationFilterInput {
   geometry: Geometry!
   buffer: Float
   eq: Boolean
@@ -135,55 +128,62 @@ input GeometryWithinOperationTypeFilterInput {
 input MultiLineStringFilterInput {
   and: [MultiLineStringFilterInput!]
   or: [MultiLineStringFilterInput!]
-  area: ComparableOperationFilterInputOfDoubleFilterInput
+  area: ComparableDoubleOperationFilterInput
   boundary: GeometryFilterInput
   centroid: PointFilterInput
-  dimension: EnumOperationFilterInputOfDimensionFilterInput
+  dimension: DimensionOperationFilterInput
   envelope: GeometryFilterInput
   geometryType: StringOperationFilterInput
   interiorPoint: PointFilterInput
   isSimple: BooleanOperationFilterInput
   isValid: BooleanOperationFilterInput
-  length: ComparableOperationFilterInputOfDoubleFilterInput
-  numPoints: ComparableOperationFilterInputOfInt32FilterInput
-  ogcGeometryType: EnumOperationFilterInputOfOgcGeometryTypeFilterInput
+  length: ComparableDoubleOperationFilterInput
+  numPoints: ComparableInt32OperationFilterInput
+  ogcGeometryType: OgcGeometryTypeOperationFilterInput
   pointOnSurface: PointFilterInput
-  sRID: ComparableOperationFilterInputOfInt32FilterInput
-  contains: GeometryContainsOperationTypeFilterInput
-  distance: GeometryDistanceOperationTypeFilterInput
-  intersects: GeometryIntersectsOperationTypeFilterInput
-  overlaps: GeometryOverlapsOperationTypeFilterInput
-  touches: GeometryTouchesOperationTypeFilterInput
-  within: GeometryWithinOperationTypeFilterInput
+  srid: ComparableInt32OperationFilterInput
+  contains: GeometryContainsOperationFilterInput
+  distance: GeometryDistanceOperationFilterInput
+  intersects: GeometryIntersectsOperationFilterInput
+  overlaps: GeometryOverlapsOperationFilterInput
+  touches: GeometryTouchesOperationFilterInput
+  within: GeometryWithinOperationFilterInput
+}
+
+input OgcGeometryTypeOperationFilterInput {
+  eq: OgcGeometryType
+  neq: OgcGeometryType
+  in: [OgcGeometryType!]
+  nin: [OgcGeometryType!]
 }
 
 input PointFilterInput {
   and: [PointFilterInput!]
   or: [PointFilterInput!]
-  m: ComparableOperationFilterInputOfDoubleFilterInput
-  x: ComparableOperationFilterInputOfDoubleFilterInput
-  y: ComparableOperationFilterInputOfDoubleFilterInput
-  z: ComparableOperationFilterInputOfDoubleFilterInput
-  area: ComparableOperationFilterInputOfDoubleFilterInput
+  m: ComparableDoubleOperationFilterInput
+  x: ComparableDoubleOperationFilterInput
+  y: ComparableDoubleOperationFilterInput
+  z: ComparableDoubleOperationFilterInput
+  area: ComparableDoubleOperationFilterInput
   boundary: GeometryFilterInput
   centroid: PointFilterInput
-  dimension: EnumOperationFilterInputOfDimensionFilterInput
+  dimension: DimensionOperationFilterInput
   envelope: GeometryFilterInput
   geometryType: StringOperationFilterInput
   interiorPoint: PointFilterInput
   isSimple: BooleanOperationFilterInput
   isValid: BooleanOperationFilterInput
-  length: ComparableOperationFilterInputOfDoubleFilterInput
-  numPoints: ComparableOperationFilterInputOfInt32FilterInput
-  ogcGeometryType: EnumOperationFilterInputOfOgcGeometryTypeFilterInput
+  length: ComparableDoubleOperationFilterInput
+  numPoints: ComparableInt32OperationFilterInput
+  ogcGeometryType: OgcGeometryTypeOperationFilterInput
   pointOnSurface: PointFilterInput
-  sRID: ComparableOperationFilterInputOfInt32FilterInput
-  contains: GeometryContainsOperationTypeFilterInput
-  distance: GeometryDistanceOperationTypeFilterInput
-  intersects: GeometryIntersectsOperationTypeFilterInput
-  overlaps: GeometryOverlapsOperationTypeFilterInput
-  touches: GeometryTouchesOperationTypeFilterInput
-  within: GeometryWithinOperationTypeFilterInput
+  srid: ComparableInt32OperationFilterInput
+  contains: GeometryContainsOperationFilterInput
+  distance: GeometryDistanceOperationFilterInput
+  intersects: GeometryIntersectsOperationFilterInput
+  overlaps: GeometryOverlapsOperationFilterInput
+  touches: GeometryTouchesOperationFilterInput
+  within: GeometryWithinOperationFilterInput
 }
 
 input StringOperationFilterInput {

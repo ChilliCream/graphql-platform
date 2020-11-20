@@ -11,7 +11,7 @@ input BooleanOperationFilterInput {
   neq: Boolean
 }
 
-input ComparableOperationFilterInputOfDoubleFilterInput {
+input ComparableDoubleOperationFilterInput {
   eq: Float
   neq: Float
   in: [Float!]
@@ -26,7 +26,7 @@ input ComparableOperationFilterInputOfDoubleFilterInput {
   nlte: Float
 }
 
-input ComparableOperationFilterInputOfInt32FilterInput {
+input ComparableInt32OperationFilterInput {
   eq: Int
   neq: Int
   in: [Int!]
@@ -41,28 +41,21 @@ input ComparableOperationFilterInputOfInt32FilterInput {
   nlte: Int
 }
 
-input EnumOperationFilterInputOfDimensionFilterInput {
+input DimensionOperationFilterInput {
   eq: Dimension
   neq: Dimension
   in: [Dimension!]
   nin: [Dimension!]
 }
 
-input EnumOperationFilterInputOfOgcGeometryTypeFilterInput {
-  eq: OgcGeometryType
-  neq: OgcGeometryType
-  in: [OgcGeometryType!]
-  nin: [OgcGeometryType!]
-}
-
-input GeometryContainsOperationTypeFilterInput {
+input GeometryContainsOperationFilterInput {
   geometry: Geometry!
   buffer: Float
   eq: Boolean
   neq: Boolean
 }
 
-input GeometryDistanceOperationTypeFilterInput {
+input GeometryDistanceOperationFilterInput {
   geometry: Geometry!
   buffer: Float
   eq: Float
@@ -84,13 +77,13 @@ input GeometryFilterInput {
   and: [GeometryFilterInput!]
   or: [GeometryFilterInput!]
   "Returns the area of this Geometry.\nAreal Geometries have a non-zero area.\nThey override this function to compute the area.\nOthers return 0.0\n\n\n**Returns:**\nThe area of the Geometry."
-  area: ComparableOperationFilterInputOfDoubleFilterInput
+  area: ComparableDoubleOperationFilterInput
   "Returns the boundary, or an empty geometry of appropriate dimension\nif this Geometry is empty.\nFor a discussion of this function, see the OpenGIS Simple\nFeatures Specification. As stated in SFS Section 2.1.13.1, \"the boundary\nof a Geometry is a set of Geometries of the next lower dimension.\"\n\n\n**Returns:**\nThe closure of the combinatorial boundary of this Geometry."
   boundary: GeometryFilterInput
   "Computes the centroid of this Geometry.\nThe centroid\nis equal to the centroid of the set of component Geometries of highest\ndimension (since the lower-dimension geometries contribute zero\n\"weight\" to the centroid).\n\nThe centroid of an empty geometry is POINT EMPTY.\n\n\n**Returns:**\nA Point which is the centroid of this Geometry."
   centroid: PointFilterInput
   "Returns the dimension of this geometry.\n\n\n**Returns:**\n\nThe topological dimensions of this geometry"
-  dimension: EnumOperationFilterInputOfDimensionFilterInput
+  dimension: DimensionOperationFilterInput
   "Gets a geometry representing the envelope (bounding box) of this Geometry.\n\n\n**Returns:**\n\nA Geometry representing the envelope of this Geometry"
   envelope: GeometryFilterInput
   "Returns the name of this Geometry's actual class.\n\n\n**Returns:**\nThe name of this Geometrys actual class."
@@ -102,65 +95,72 @@ input GeometryFilterInput {
   "Tests whether this Geometry is topologically\nvalid, according to the OGC SFS specification.\nFor validity rules see the documentation for the specific geometry subclass.\n\n\n**Returns:**\ntrue if this Geometry is valid."
   isValid: BooleanOperationFilterInput
   "Returns the length of this Geometry.\nLinear geometries return their length.\nAreal geometries return their perimeter.\nThey override this function to compute the length.\nOthers return 0.0\n\n\n**Returns:**\nThe length of the Geometry."
-  length: ComparableOperationFilterInputOfDoubleFilterInput
+  length: ComparableDoubleOperationFilterInput
   "Returns the count of this Geometrys vertices. The Geometry\ns contained by composite Geometrys must be\nGeometry's; that is, they must implement NumPoints.\n\n\n**Returns:**\nThe number of vertices in this Geometry."
-  numPoints: ComparableOperationFilterInputOfInt32FilterInput
+  numPoints: ComparableInt32OperationFilterInput
   "Gets the OGC geometry type"
-  ogcGeometryType: EnumOperationFilterInputOfOgcGeometryTypeFilterInput
+  ogcGeometryType: OgcGeometryTypeOperationFilterInput
   pointOnSurface: PointFilterInput
   "Sets the ID of the Spatial Reference System used by the Geometry."
-  sRID: ComparableOperationFilterInputOfInt32FilterInput
-  contains: GeometryContainsOperationTypeFilterInput
-  distance: GeometryDistanceOperationTypeFilterInput
-  intersects: GeometryIntersectsOperationTypeFilterInput
-  overlaps: GeometryOverlapsOperationTypeFilterInput
-  touches: GeometryTouchesOperationTypeFilterInput
-  within: GeometryWithinOperationTypeFilterInput
+  srid: ComparableInt32OperationFilterInput
+  contains: GeometryContainsOperationFilterInput
+  distance: GeometryDistanceOperationFilterInput
+  intersects: GeometryIntersectsOperationFilterInput
+  overlaps: GeometryOverlapsOperationFilterInput
+  touches: GeometryTouchesOperationFilterInput
+  within: GeometryWithinOperationFilterInput
 }
 
-input GeometryIntersectsOperationTypeFilterInput {
+input GeometryIntersectsOperationFilterInput {
   geometry: Geometry!
   buffer: Float
   eq: Boolean
   neq: Boolean
 }
 
-input GeometryOverlapsOperationTypeFilterInput {
+input GeometryOverlapsOperationFilterInput {
   geometry: Geometry!
   buffer: Float
   eq: Boolean
   neq: Boolean
 }
 
-input GeometryTouchesOperationTypeFilterInput {
+input GeometryTouchesOperationFilterInput {
   geometry: Geometry!
   buffer: Float
   eq: Boolean
   neq: Boolean
 }
 
-input GeometryWithinOperationTypeFilterInput {
+input GeometryWithinOperationFilterInput {
   geometry: Geometry!
   buffer: Float
   eq: Boolean
   neq: Boolean
+}
+
+input OgcGeometryTypeOperationFilterInput {
+  eq: OgcGeometryType
+  neq: OgcGeometryType
+  in: [OgcGeometryType!]
+  nin: [OgcGeometryType!]
 }
 
 "Represents a single point.\n\nA Point is topologically valid if and only if:\n\nThe coordinate which defines it if any) is a valid coordinate\n(i.e. does not have an NaN X- or Y-ordinate"
 input PointFilterInput {
   and: [PointFilterInput!]
   or: [PointFilterInput!]
-  m: ComparableOperationFilterInputOfDoubleFilterInput
-  x: ComparableOperationFilterInputOfDoubleFilterInput
-  y: ComparableOperationFilterInputOfDoubleFilterInput
-  z: ComparableOperationFilterInputOfDoubleFilterInput
+  m: ComparableDoubleOperationFilterInput
+  x: ComparableDoubleOperationFilterInput
+  y: ComparableDoubleOperationFilterInput
+  z: ComparableDoubleOperationFilterInput
   "Returns the area of this Geometry.\nAreal Geometries have a non-zero area.\nThey override this function to compute the area.\nOthers return 0.0\n\n\n**Returns:**\nThe area of the Geometry."
-  area: ComparableOperationFilterInputOfDoubleFilterInput
+  area: ComparableDoubleOperationFilterInput
   "Gets the boundary of this geometry.\nZero-dimensional geometries have no boundary by definition,\nso an empty GeometryCollection is returned."
   boundary: GeometryFilterInput
   "Computes the centroid of this Geometry.\nThe centroid\nis equal to the centroid of the set of component Geometries of highest\ndimension (since the lower-dimension geometries contribute zero\n\"weight\" to the centroid).\n\nThe centroid of an empty geometry is POINT EMPTY.\n\n\n**Returns:**\nA Point which is the centroid of this Geometry."
   centroid: PointFilterInput
-  dimension: EnumOperationFilterInputOfDimensionFilterInput
+  dimension: DimensionOperationFilterInput
   "Gets a geometry representing the envelope (bounding box) of this Geometry.\n\n\n**Returns:**\n\nA Geometry representing the envelope of this Geometry"
   envelope: GeometryFilterInput
   "Returns the name of this object's interface.\n\n\n**Returns:**\n\"Point\""
@@ -172,19 +172,19 @@ input PointFilterInput {
   "Tests whether this Geometry is topologically\nvalid, according to the OGC SFS specification.\nFor validity rules see the documentation for the specific geometry subclass.\n\n\n**Returns:**\ntrue if this Geometry is valid."
   isValid: BooleanOperationFilterInput
   "Returns the length of this Geometry.\nLinear geometries return their length.\nAreal geometries return their perimeter.\nThey override this function to compute the length.\nOthers return 0.0\n\n\n**Returns:**\nThe length of the Geometry."
-  length: ComparableOperationFilterInputOfDoubleFilterInput
-  numPoints: ComparableOperationFilterInputOfInt32FilterInput
+  length: ComparableDoubleOperationFilterInput
+  numPoints: ComparableInt32OperationFilterInput
   "Gets the OGC geometry type"
-  ogcGeometryType: EnumOperationFilterInputOfOgcGeometryTypeFilterInput
+  ogcGeometryType: OgcGeometryTypeOperationFilterInput
   pointOnSurface: PointFilterInput
   "Sets the ID of the Spatial Reference System used by the Geometry."
-  sRID: ComparableOperationFilterInputOfInt32FilterInput
-  contains: GeometryContainsOperationTypeFilterInput
-  distance: GeometryDistanceOperationTypeFilterInput
-  intersects: GeometryIntersectsOperationTypeFilterInput
-  overlaps: GeometryOverlapsOperationTypeFilterInput
-  touches: GeometryTouchesOperationTypeFilterInput
-  within: GeometryWithinOperationTypeFilterInput
+  srid: ComparableInt32OperationFilterInput
+  contains: GeometryContainsOperationFilterInput
+  distance: GeometryDistanceOperationFilterInput
+  intersects: GeometryIntersectsOperationFilterInput
+  overlaps: GeometryOverlapsOperationFilterInput
+  touches: GeometryTouchesOperationFilterInput
+  within: GeometryWithinOperationFilterInput
 }
 
 "Represents a polygon with linear edges, which may include holes.\nThe outer boundary (shell)\nand inner boundaries (holes) of the polygon are represented by {@link LinearRing}s.\nThe boundary rings of the polygon may have any orientation.\nPolygons are closed, simple geometries by definition.\n\nThe polygon model conforms to the assertions specified in the\nOpenGIS Simple Features\nSpecification for SQL.\n\nA Polygon is topologically valid if and only if:\n\nthe coordinates which define it are valid coordinates\nthe linear rings for the shell and holes are valid\n(i.e. are closed and do not self-intersect)\nholes touch the shell or another hole at at most one point\n(which implies that the rings of the shell and holes must not cross)\nthe interior of the polygon is connected,\nor equivalently no sequence of touching holes\nmakes the interior of the polygon disconnected\n(i.e. effectively split the polygon into two pieces)."
@@ -192,12 +192,12 @@ input PolygonFilterInput {
   and: [PolygonFilterInput!]
   or: [PolygonFilterInput!]
   "Returns the area of this Polygon"
-  area: ComparableOperationFilterInputOfDoubleFilterInput
+  area: ComparableDoubleOperationFilterInput
   boundary: GeometryFilterInput
   "Computes the centroid of this Geometry.\nThe centroid\nis equal to the centroid of the set of component Geometries of highest\ndimension (since the lower-dimension geometries contribute zero\n\"weight\" to the centroid).\n\nThe centroid of an empty geometry is POINT EMPTY.\n\n\n**Returns:**\nA Point which is the centroid of this Geometry."
   centroid: PointFilterInput
   "Returns the dimension of this geometry.\n\n\n**Returns:**\n\nThe topological dimensions of this geometry"
-  dimension: EnumOperationFilterInputOfDimensionFilterInput
+  dimension: DimensionOperationFilterInput
   "Gets a geometry representing the envelope (bounding box) of this Geometry.\n\n\n**Returns:**\n\nA Geometry representing the envelope of this Geometry"
   envelope: GeometryFilterInput
   "Returns the name of this object's interface.\n\n\n**Returns:**\n\"Polygon\""
@@ -209,19 +209,19 @@ input PolygonFilterInput {
   "Tests whether this Geometry is topologically\nvalid, according to the OGC SFS specification.\nFor validity rules see the documentation for the specific geometry subclass.\n\n\n**Returns:**\ntrue if this Geometry is valid."
   isValid: BooleanOperationFilterInput
   "Returns the perimeter of this Polygon."
-  length: ComparableOperationFilterInputOfDoubleFilterInput
+  length: ComparableDoubleOperationFilterInput
   "Returns the count of this Geometrys vertices. The Geometry\ns contained by composite Geometrys must be\nGeometry's; that is, they must implement NumPoints.\n\n\n**Returns:**\nThe number of vertices in this Geometry."
-  numPoints: ComparableOperationFilterInputOfInt32FilterInput
-  ogcGeometryType: EnumOperationFilterInputOfOgcGeometryTypeFilterInput
+  numPoints: ComparableInt32OperationFilterInput
+  ogcGeometryType: OgcGeometryTypeOperationFilterInput
   pointOnSurface: PointFilterInput
   "Sets the ID of the Spatial Reference System used by the Geometry."
-  sRID: ComparableOperationFilterInputOfInt32FilterInput
-  contains: GeometryContainsOperationTypeFilterInput
-  distance: GeometryDistanceOperationTypeFilterInput
-  intersects: GeometryIntersectsOperationTypeFilterInput
-  overlaps: GeometryOverlapsOperationTypeFilterInput
-  touches: GeometryTouchesOperationTypeFilterInput
-  within: GeometryWithinOperationTypeFilterInput
+  srid: ComparableInt32OperationFilterInput
+  contains: GeometryContainsOperationFilterInput
+  distance: GeometryDistanceOperationFilterInput
+  intersects: GeometryIntersectsOperationFilterInput
+  overlaps: GeometryOverlapsOperationFilterInput
+  touches: GeometryTouchesOperationFilterInput
+  within: GeometryWithinOperationFilterInput
 }
 
 input StringOperationFilterInput {

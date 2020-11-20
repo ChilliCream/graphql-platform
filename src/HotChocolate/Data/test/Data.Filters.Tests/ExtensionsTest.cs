@@ -17,8 +17,8 @@ namespace HotChocolate.Data.Tests
             var convention = new FilterConvention(
                 x => x.UseMock()
                     .Configure<StringOperationFilterInput>(
-                        y => y.Operation(DefaultOperations.Like).Type<StringType>())
-                    .Operation(DefaultOperations.Like)
+                        y => y.Operation(DefaultFilterOperations.Like).Type<StringType>())
+                    .Operation(DefaultFilterOperations.Like)
                     .Name("like"));
 
             ISchemaBuilder builder = SchemaBuilder.New()
@@ -81,7 +81,7 @@ namespace HotChocolate.Data.Tests
                 .AddFiltering()
                 .AddQueryType<Query>(
                     c =>
-                        c.Field(x => x.GetFoos()).UseFiltering<BarFilterType>());
+                        c.Field(x => x.GetFoos()).UseFiltering<BarFilterInput>());
 
             ISchema schema = builder.Create();
 
@@ -115,7 +115,7 @@ namespace HotChocolate.Data.Tests
                 .AddFiltering()
                 .AddQueryType<Query>(
                     c =>
-                        c.Field(x => x.GetFoos()).UseFiltering(typeof(BarFilterType)));
+                        c.Field(x => x.GetFoos()).UseFiltering(typeof(BarFilterInput)));
 
             ISchema schema = builder.Create();
 
@@ -150,7 +150,7 @@ namespace HotChocolate.Data.Tests
             }
         }
 
-        public class BarFilterType : FilterInputType<Bar>
+        public class BarFilterInput : FilterInputType<Bar>
         {
             protected override void Configure(IFilterInputTypeDescriptor<Bar> descriptor)
             {
