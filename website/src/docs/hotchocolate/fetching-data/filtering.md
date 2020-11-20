@@ -182,8 +182,6 @@ public class Query
 }
 ```
 
-# Filter Conventions
-
 # Filter Types
 ## Boolean Filter
 
