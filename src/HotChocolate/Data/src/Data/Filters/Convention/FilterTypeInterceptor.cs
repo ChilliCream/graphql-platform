@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -13,6 +15,34 @@ namespace HotChocolate.Data.Filters
             new Dictionary<string, IFilterConvention>();
 
         public override bool CanHandle(ITypeSystemObjectContext context) => true;
+
+        public override void OnBeforeRegisterDependencies(
+            ITypeDiscoveryContext discoveryContext,
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
+        {
+            if (definition is FilterInputTypeDefinition def)
+            {
+                IFilterConvention convention = GetConvention(
+                    discoveryContext.DescriptorContext,
+                    def.Scope);
+
+                SchemaTypeReference typeReference = TypeReference.Create(
+                    discoveryContext.Type,
+                    def.Scope);
+
+                var descriptor = FilterInputTypeDescriptor.New(
+                    discoveryContext.DescriptorContext,
+                    def.EntityType,
+                    def.Scope);
+
+                convention.ApplyConfigurations(typeReference, descriptor);
+
+                FilterInputTypeDefinition extensionDefinition = descriptor.CreateDefinition();
+
+                discoveryContext.RegisterDependencies(extensionDefinition);
+            }
+        }
 
         public override void OnBeforeCompleteName(
             ITypeCompletionContext completionContext,
@@ -30,7 +60,7 @@ namespace HotChocolate.Data.Filters
                     def.EntityType,
                     def.Scope);
 
-                var typeReference = TypeReference.Create(
+                SchemaTypeReference typeReference = TypeReference.Create(
                     completionContext.Type,
                     def.Scope);
 
@@ -40,6 +70,26 @@ namespace HotChocolate.Data.Filters
                     completionContext,
                     descriptor.CreateDefinition(),
                     def);
+
+                if (def.Scope is not null)
+                {
+                    definition.Name = completionContext.Scope +
+                        "_" +
+                        definition.Name;
+                }
+            }
+        }
+
+        public override void OnBeforeCompleteType(
+            ITypeCompletionContext completionContext,
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
+        {
+            if (definition is FilterInputTypeDefinition def)
+            {
+                IFilterConvention convention = GetConvention(
+                    completionContext.DescriptorContext,
+                    def.Scope);
 
                 foreach (InputFieldDefinition field in def.Fields)
                 {
@@ -71,14 +121,6 @@ namespace HotChocolate.Data.Filters
                             }
                         }
                     }
-                }
-
-
-                if (def.Scope is not null)
-                {
-                    definition.Name = completionContext.Scope +
-                        "_" +
-                        definition.Name;
                 }
             }
         }
