@@ -67,15 +67,21 @@ namespace HotChocolate.Types.Descriptors
             {
                 var isInputObjectType = typeof(InputObjectType).IsAssignableFrom(type);
                 var isEndingInput = name.EndsWith(_inputPostfix, StringComparison.Ordinal);
-                var isEndingInputType = !name.EndsWith(_inputTypePostfix, StringComparison.Ordinal);
+                var isEndingInputType = name.EndsWith(_inputTypePostfix, StringComparison.Ordinal);
+
+                if (isInputObjectType && isEndingInputType)
+                {
+                    return name.Substring(0, name.Length - 4);
+                }
 
                 if (isInputObjectType && !isEndingInput && !isEndingInputType)
                 {
-                    name += _inputPostfix;
+                    return name + _inputPostfix;
                 }
-                else if(!isInputObjectType && !isEndingInput)
+
+                if(!isInputObjectType && !isEndingInput)
                 {
-                    name += _inputPostfix;
+                    return name + _inputPostfix;
                 }
             }
 

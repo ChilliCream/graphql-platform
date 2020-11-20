@@ -3,7 +3,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Validation.Types
 {
-    public class ComplexInput2Type
+    public class Complex2InputType
         : InputObjectType<ComplexInput2>
     {
         protected override void Configure(
