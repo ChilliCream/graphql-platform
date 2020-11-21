@@ -36,6 +36,32 @@ namespace HotChocolate.Data.Tests
         }
 
         [Fact]
+        public void Convention_DefaultScope_Extensions_Enum_Merge()
+        {
+            // arrange
+            // act
+            var convention = new SortConvention(
+                x => x.UseMock()
+                    .ConfigureEnum<DefaultSortEnumType>(
+                        y => y.Operation(DefaultSortOperations.Ascending).Description("asc")));
+
+            ISchemaBuilder builder = SchemaBuilder.New()
+                .AddConvention<ISortConvention>(convention)
+                .TryAddTypeInterceptor<SortTypeInterceptor>()
+                .AddQueryType(c =>
+                    c.Name("Query")
+                        .Field("foo")
+                        .Type<StringType>()
+                        .Resolver("bar")
+                        .Argument("test", x => x.Type<TestSort>()));
+
+            ISchema schema = builder.Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
         public void Convention_DefaultScope_Extensions()
         {
             // arrange
@@ -44,6 +70,33 @@ namespace HotChocolate.Data.Tests
                 x => x.UseMock()
                     .Configure<TestSort>(
                         y => y.Field("foo").Type<DefaultSortEnumType>())
+                    .Operation(123).Name("test"));
+
+            ISchemaBuilder builder = SchemaBuilder.New()
+                .AddConvention<ISortConvention>(convention)
+                .TryAddTypeInterceptor<SortTypeInterceptor>()
+                .AddQueryType(c =>
+                    c.Name("Query")
+                        .Field("foo")
+                        .Type<StringType>()
+                        .Resolver("bar")
+                        .Argument("test", x => x.Type<TestSort>()));
+
+            ISchema schema = builder.Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Convention_DefaultScope_Extensions_Merge()
+        {
+            // arrange
+            // act
+            var convention = new SortConvention(
+                x => x.UseMock()
+                    .Configure<TestSort>(
+                        y => y.Field("test").Description("test"))
                     .Operation(123).Name("test"));
 
             ISchemaBuilder builder = SchemaBuilder.New()
