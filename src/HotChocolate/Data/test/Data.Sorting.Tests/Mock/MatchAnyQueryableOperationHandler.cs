@@ -8,7 +8,7 @@ namespace HotChocolate.Data.Sorting
         : SortOperationHandler<QueryableSortContext, QueryableSortOperation>
     {
         public override bool CanHandle(
-            ITypeDiscoveryContext context,
+            ITypeCompletionContext context,
             EnumTypeDefinition typeDefinition,
             SortEnumValueDefinition valueDefinition) => true;
     }

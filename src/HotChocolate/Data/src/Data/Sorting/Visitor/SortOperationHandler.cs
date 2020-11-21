@@ -23,7 +23,7 @@ namespace HotChocolate.Data.Sorting
 
         /// <inheritdoc />
         public abstract bool CanHandle(
-            ITypeDiscoveryContext context,
+            ITypeCompletionContext context,
             EnumTypeDefinition typeDefinition,
             SortEnumValueDefinition valueDefinition);
     }
