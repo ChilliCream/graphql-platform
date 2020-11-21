@@ -55,9 +55,9 @@ namespace HotChocolate.Configuration.Validation
             IComplexOutputType type,
             ICollection<ISchemaError> errors)
         {
-            if (type.Interfaces.Count > 0)
+            if (type.Implements.Count > 0)
             {
-                foreach (IInterfaceType implementedType in type.Interfaces)
+                foreach (IInterfaceType implementedType in type.Implements)
                 {
                     ValidateImplementation(type, implementedType, errors);
                 }
@@ -131,7 +131,7 @@ namespace HotChocolate.Configuration.Validation
             IComplexOutputType type,
             IInterfaceType implementedType)
         {
-            foreach (var interfaceType in implementedType.Interfaces)
+            foreach (var interfaceType in implementedType.Implements)
             {
                 if (!type.IsImplementing(interfaceType))
                 {
