@@ -5,7 +5,7 @@ namespace HotChocolate.Data.Filters.Expressions
 {
     public class QueryableStringEqualsHandler : QueryableStringOperationHandler
     {
-        protected override int Operation => DefaultOperations.Equals;
+        protected override int Operation => DefaultFilterOperations.Equals;
 
         public override Expression HandleOperation(
             QueryableFilterContext context,

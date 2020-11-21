@@ -37,7 +37,7 @@ namespace HotChocolate.Data.Filters.Expressions
         [Fact]
         public async Task Create_EnumEqual_Expression()
         {
-            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
             // act
             // assert
@@ -66,7 +66,7 @@ namespace HotChocolate.Data.Filters.Expressions
         [Fact]
         public async Task Create_EnumNotEqual_Expression()
         {
-            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
             // act
             // assert
@@ -95,7 +95,7 @@ namespace HotChocolate.Data.Filters.Expressions
         [Fact]
         public async Task Create_EnumIn_Expression()
         {
-            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
             // act
             // assert
@@ -124,7 +124,7 @@ namespace HotChocolate.Data.Filters.Expressions
         [Fact]
         public async Task Create_EnumNotIn_Expression()
         {
-            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
             // act
             // assert
@@ -153,7 +153,7 @@ namespace HotChocolate.Data.Filters.Expressions
         [Fact]
         public async Task Create_NullableEnumEqual_Expression()
         {
-            IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterType>(
+            IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
                 _fooNullableEntities);
 
             // act
@@ -183,7 +183,7 @@ namespace HotChocolate.Data.Filters.Expressions
         [Fact]
         public async Task Create_NullableEnumNotEqual_Expression()
         {
-            IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterType>(
+            IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
                 _fooNullableEntities);
 
             // act
@@ -213,7 +213,7 @@ namespace HotChocolate.Data.Filters.Expressions
         [Fact]
         public async Task Create_NullableEnumIn_Expression()
         {
-            IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterType>(
+            IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
                 _fooNullableEntities);
 
             // act
@@ -243,7 +243,7 @@ namespace HotChocolate.Data.Filters.Expressions
         [Fact]
         public async Task Create_NullableEnumNotIn_Expression()
         {
-            IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterType>(
+            IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
                 _fooNullableEntities);
 
             // act
@@ -294,12 +294,12 @@ namespace HotChocolate.Data.Filters.Expressions
             QUX
         }
 
-        public class FooFilterType
+        public class FooFilterInput
             : FilterInputType<Foo>
         {
         }
 
-        public class FooNullableFilterType
+        public class FooNullableFilterInput
             : FilterInputType<FooNullable>
         {
         }

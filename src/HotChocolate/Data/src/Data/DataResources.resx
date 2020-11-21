@@ -128,6 +128,9 @@
   <data name="FilterConvention_TypeOfMemberIsUnknown" xml:space="preserve">
     <value>The type of the member {0} of the declaring type {1} is unknown</value>
   </data>
+  <data name="FilterConvention_TypeIsUnknown" xml:space="preserve">
+    <value>The type {0} is unknown. No `FilterType` could be created</value>
+  </data>
   <data name="SortConvention_OperationNameNotFound" xml:space="preserve">
     <value>Operation with identifier {0} has no name defined. Add a name to the sort convention</value>
   </data>
@@ -142,6 +145,9 @@
   </data>
   <data name="FilterInterceptor_NoHandlerFoundForField" xml:space="preserve">
     <value>For the field {0} of type {1} was no handler found.</value>
+  </data>
+  <data name="FilterInterceptor_OperationHasNoTypeSpecified" xml:space="preserve">
+    <value>For the operation {0} of type {1} was no type specified found.</value>
   </data>
   <data name="ErrorHelper_CreateNonNullError" xml:space="preserve">
     <value>The provided value for filter `{0}` of type {1} is invalid. Null values are not supported.</value>
