@@ -14,9 +14,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{4EE990B2-C
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "demo", "demo", "{82DFB0FB-FE6E-45FD-86B4-3EAD8CED837A}"
-	ProjectSection(SolutionItems) = preProject
-		demo\Directory.Build.props = demo\Directory.Build.props
-	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data", "src\Data\HotChocolate.Data.csproj", "{D68A0AB9-871A-487B-8D12-1A7544D81B9E}"
 EndProject
