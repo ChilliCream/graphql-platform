@@ -147,26 +147,6 @@ namespace HotChocolate.Data.Tests
             schema.ToString().MatchSnapshot();
         }
 
-        [Fact]
-        public void ObjectField_UseSorting_Descriptor()
-        {
-            // arrange
-            // act
-            ISchemaBuilder builder = SchemaBuilder.New()
-                .AddSorting()
-                .AddQueryType<Query>(
-                    c =>
-                        c.Field(x => x.GetFoos())
-                            .UseSorting<Bar>(
-                                x => x.Name("foo").Field(x => x.Foo)));
-
-            ISchema schema = builder.Create();
-
-            // assert
-            schema.ToString().MatchSnapshot();
-                    IObjectFieldDescriptor f = default;
-        }
-
         private class TestSort : SortInputType
         {
             protected override void Configure(ISortInputTypeDescriptor descriptor)
