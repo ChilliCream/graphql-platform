@@ -11,6 +11,8 @@ input TestSortSortInput {
 }
 
 enum DefaultSortEnumType {
+  ASC
+  DESC
   test
 }
 

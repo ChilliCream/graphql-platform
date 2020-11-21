@@ -25,7 +25,7 @@ namespace HotChocolate.Data.Filters.Expressions
             IFilterInputTypeDefinition typeDefinition,
             IFilterFieldDefinition fieldDefinition)
         {
-            return context.Type is IComparableOperationFilterInput &&
+            return context.Type is IComparableOperationFilterInputType &&
                 fieldDefinition is FilterOperationFieldDefinition operationField &&
                 operationField.Id == Operation;
         }

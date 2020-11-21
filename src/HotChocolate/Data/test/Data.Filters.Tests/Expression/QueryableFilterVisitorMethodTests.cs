@@ -21,7 +21,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode value = Syntax.ParseValueLiteral("{ simple: { eq:\"a\" }}");
             ExecutorBuilder tester = CreateProviderTester(
-                new FooFilterType(),
+                new FooFilterInput(),
                 new FilterConvention(
                     x =>
                     {
@@ -51,7 +51,7 @@ namespace HotChocolate.Data.Filters.Expressions
         {
             // arrange
             ExecutorBuilder tester = CreateProviderTester(
-                new FooFilterType(),
+                new FooFilterInput(),
                 new FilterConvention(
                     x =>
                     {
@@ -169,7 +169,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     return true;
                 }
 
-                if (field.Type is StringOperationFilterInput operationType &&
+                if (field.Type is StringOperationFilterInputType operationType &&
                     node.Value is ObjectValueNode objectValue)
                 {
                     IValueNode parameterNode = null!;
@@ -215,25 +215,25 @@ namespace HotChocolate.Data.Filters.Expressions
             public string Complex(string parameter) => parameter;
         }
 
-        private class FooFilterType
+        private class FooFilterInput
             : FilterInputType<Foo>
         {
             protected override void Configure(
                 IFilterInputTypeDescriptor<Foo> descriptor)
             {
                 descriptor.Field(t => t.Bar).Ignore();
-                descriptor.Operation(156).Type<TestComplexFilterInput>();
-                descriptor.Operation(155).Type<StringOperationFilterInput>();
+                descriptor.Operation(156).Type<TestComplexFilterInputType>();
+                descriptor.Operation(155).Type<StringOperationFilterInputType>();
             }
         }
 
-        private class TestComplexFilterInput : StringOperationFilterInput
+        private class TestComplexFilterInputType : StringOperationFilterInputType
         {
             protected override void Configure(IFilterInputTypeDescriptor descriptor)
             {
                 base.Configure(descriptor);
 
-                descriptor.Operation(DefaultOperations.Data)
+                descriptor.Operation(DefaultFilterOperations.Data)
                     .Name("parameter")
                     .Type<NonNullType<StringType>>();
             }
