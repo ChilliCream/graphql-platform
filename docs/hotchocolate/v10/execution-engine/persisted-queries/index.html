@@ -1321,7 +1321,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>In order to enable this, we will use the query execution builder to opt into a different execution pipeline.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="84430847389578630000"
+              data-toaster-id="64151345947695380000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1332,7 +1332,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
         ...
         .Create(),
     b =>  b.UsePersistedQueryPipeline()
-        .AddSha256DocumentHashProvider());`, `84430847389578630000`)"
+        .AddSha256DocumentHashProvider());`, `64151345947695380000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1352,12 +1352,12 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>OK, Next, we need to add our query storage, since we only need to read from our query storage, we can opt to use a read-only query storage like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="16311639112756748000"
+              data-toaster-id="18265273310852925000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`services.AddReadOnlyRedisQueryStorage(s => s.GetRequiredService<ConnectionMultiplexer>().GetDatabase());`, `16311639112756748000`)"
+              onClick="copyToClipboard(`services.AddReadOnlyRedisQueryStorage(s => s.GetRequiredService<ConnectionMultiplexer>().GetDatabase());`, `18265273310852925000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1370,12 +1370,12 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>Alternatively, to <em>Redis</em> we can also use the local file system to load queries:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="98066127808398300000"
+              data-toaster-id="95490223101717350000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`services.AddReadOnlyFileSystemQueryStorage(&quot;/usr/temp/queries&quot;);`, `98066127808398300000`)"
+              onClick="copyToClipboard(`services.AddReadOnlyFileSystemQueryStorage(&quot;/usr/temp/queries&quot;);`, `95490223101717350000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1389,14 +1389,14 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>In your requests to the server you usually send the query wrapped in the JSON request like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="73625545888755160000"
+              data-toaster-id="56681612677605605000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`{
   &quot;query&quot;: &quot;{ foo { bar } }&quot;
-}`, `73625545888755160000`)"
+}`, `56681612677605605000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1411,14 +1411,14 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>Instead of doing that we can now just specify the request like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="78060561448049510000"
+              data-toaster-id="29061879918191825000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`{
   &quot;id&quot;: &quot;W5vrrAIypCbniaIYeroNnw==&quot;
-}`, `78060561448049510000`)"
+}`, `29061879918191825000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1441,7 +1441,7 @@ Read more about how to do persisted queries with <a href="https://blog.apollogra
 <p>If the server can find the query in the query storage the server will execute it and return the result just like the <em>ahead of time persistence</em> and if the server could not find the query then again like the <em>ahead of time persistence</em> the server would return a GraphQL error that the query was not found.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="94263858114941830000"
+              data-toaster-id="97872711808772640000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1455,7 +1455,7 @@ Read more about how to do persisted queries with <a href="https://blog.apollogra
       }
     }
   ]
-}`, `94263858114941830000`)"
+}`, `97872711808772640000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1480,7 +1480,7 @@ Read more about how to do persisted queries with <a href="https://blog.apollogra
 <p>When the client receives this error message, the client will issue a full JSON request with the GraphQL query and the query hash.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="27967243693548150000"
+              data-toaster-id="44804284086164480000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1492,7 +1492,7 @@ Read more about how to do persisted queries with <a href="https://blog.apollogra
       &quot;sha256Hash&quot;: &quot;W5vrrAIypCbniaIYeroNnw==&quot;
     }
   }
-}`, `27967243693548150000`)"
+}`, `44804284086164480000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1512,7 +1512,7 @@ Read more about how to do persisted queries with <a href="https://blog.apollogra
 <p>If the query matches the server query hash the server will store the query in the query persistence storage and execute it. The server response would look like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="18008716070145913000"
+              data-toaster-id="37737070426403865000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1529,7 +1529,7 @@ Read more about how to do persisted queries with <a href="https://blog.apollogra
       &quot;persisted&quot;: true
     }
   }
-}`, `18008716070145913000`)"
+}`, `37737070426403865000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1556,7 +1556,7 @@ Read more about how to do persisted queries with <a href="https://blog.apollogra
 <p>Again, we have to divert from the default query pipeline, this time we will use the <code class="language-text">UseActivePersistedQueryPipeline</code> that can also handle storing queries into our query storage.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="75562175034966310000"
+              data-toaster-id="62532767012591400000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1567,7 +1567,7 @@ Read more about how to do persisted queries with <a href="https://blog.apollogra
         ...
         .Create(),
     b =>  b.UseActivePersistedQueryPipeline()
-        .AddSha256DocumentHashProvider());`, `75562175034966310000`)"
+        .AddSha256DocumentHashProvider());`, `62532767012591400000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1587,12 +1587,12 @@ Read more about how to do persisted queries with <a href="https://blog.apollogra
 <p>Next, we need to add our query storage, this time we need a storage to which we can write to.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="57969468601542260000"
+              data-toaster-id="42637189368714350000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`services.AddRedisQueryStorage(s => s.GetRequiredService<ConnectionMultiplexer>().GetDatabase());`, `57969468601542260000`)"
+              onClick="copyToClipboard(`services.AddRedisQueryStorage(s => s.GetRequiredService<ConnectionMultiplexer>().GetDatabase());`, `42637189368714350000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1605,12 +1605,12 @@ Read more about how to do persisted queries with <a href="https://blog.apollogra
 <p>Alternatively, to <em>Redis</em> we can also use the local file system to load queries:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="64973461034896410000"
+              data-toaster-id="68289379956248175000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`services.AddFileSystemQueryStorage(&quot;/usr/temp/queries&quot;);`, `64973461034896410000`)"
+              onClick="copyToClipboard(`services.AddFileSystemQueryStorage(&quot;/usr/temp/queries&quot;);`, `68289379956248175000`)"
             >
               <div
                 class="gatsby-code-button"
