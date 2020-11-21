@@ -13,12 +13,12 @@ namespace HotChocolate.Data.Filters.Expressions
         public void Create_ArraySomeStringEqual_Expression()
         {
             // arrange
-            IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ bar: {some: { eq: \"a\" }}}");
             ExecutorBuilder? tester = CreateProviderTester(new FooSimpleFilterInput());
 
             // act
-            Func<FooSimple, bool>? func = tester.Build<FooSimple>(value);
+            Func<FooSimple, bool> func = tester.Build<FooSimple>(value);
 
             // assert
             var a = new FooSimple { Bar = new[] { "c", "d", "a" } };
@@ -32,12 +32,12 @@ namespace HotChocolate.Data.Filters.Expressions
         public void Create_ArrayAnyStringEqual_Expression()
         {
             // arrange
-            IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ bar: {any: true}}");
             ExecutorBuilder? tester = CreateProviderTester(new FooSimpleFilterInput());
 
             // act
-            Func<FooSimple, bool>? func = tester.Build<FooSimple>(value);
+            Func<FooSimple, bool> func = tester.Build<FooSimple>(value);
 
             // assert
             var a = new FooSimple { Bar = new[] { "c", "d", "a" } };
@@ -54,12 +54,12 @@ namespace HotChocolate.Data.Filters.Expressions
         public void Create_ArraySomeStringEqualWithNull_Expression()
         {
             // arrange
-            IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ bar: {some: { eq: \"a\" }}}");
             ExecutorBuilder? tester = CreateProviderTester(new FooSimpleFilterInput());
-
+            
             // act
-            Func<FooSimple, bool>? func = tester.Build<FooSimple>(value);
+            Func<FooSimple, bool> func = tester.Build<FooSimple>(value);
 
             // assert
             var a = new FooSimple { Bar = new[] { "c", null, "a" } };
@@ -76,7 +76,7 @@ namespace HotChocolate.Data.Filters.Expressions
         public void Create_ArraySomeObjectStringEqualWithNull_Expression()
         {
             // arrange
-            IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ fooNested: {some: {bar: { eq: \"a\" }}}}");
             ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
 
@@ -109,7 +109,7 @@ namespace HotChocolate.Data.Filters.Expressions
         [Fact]
         public void Create_ArraySomeObjectStringEqual_Expression()
         {
-            IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ fooNested: {some: {bar: { eq: \"a\" }}}}");
             ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
 
@@ -155,7 +155,7 @@ namespace HotChocolate.Data.Filters.Expressions
         [Fact]
         public void Create_ArrayNoneObjectStringEqual_Expression()
         {
-            IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ fooNested: {none: {bar: { eq: \"a\" }}}}");
             ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
 
@@ -201,7 +201,7 @@ namespace HotChocolate.Data.Filters.Expressions
         public void Create_ArrayAllObjectStringEqual_Expression()
         {
             // arrange
-            IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ fooNested: {all: { bar: {eq: \"a\" }}}}");
             ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
 
@@ -270,7 +270,7 @@ namespace HotChocolate.Data.Filters.Expressions
         public void Create_ArrayAnyObjectStringEqual_Expression()
         {
             // arrange
-            IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ fooNested: {any: true}}");
             ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
 
@@ -301,7 +301,7 @@ namespace HotChocolate.Data.Filters.Expressions
         public void Create_ArrayNotAnyObjectStringEqual_Expression()
         {
             // arrange
-            IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ fooNested: {any: false}}");
             ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
 
@@ -334,12 +334,12 @@ namespace HotChocolate.Data.Filters.Expressions
         public void Create_ArraySomeStringEqual_Expression_Null()
         {
             // arrange
-            IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ bar: {some: { eq: null }}}");
             ExecutorBuilder? tester = CreateProviderTester(new FooSimpleFilterInput());
 
             // act
-            Func<FooSimple, bool>? func = tester.Build<FooSimple>(value);
+            Func<FooSimple, bool> func = tester.Build<FooSimple>(value);
 
             // assert
             var a = new FooSimple { Bar = new[] { "c", null, "a" } };
@@ -353,12 +353,12 @@ namespace HotChocolate.Data.Filters.Expressions
         public void Create_ArrayNoneStringEqual_Expression_Null()
         {
             // arrange
-            IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ bar: {none: { eq: null }}}");
             ExecutorBuilder? tester = CreateProviderTester(new FooSimpleFilterInput());
 
             // act
-            Func<FooSimple, bool>? func = tester.Build<FooSimple>(value);
+            Func<FooSimple, bool> func = tester.Build<FooSimple>(value);
 
             // assert
             var a = new FooSimple { Bar = new[] { "c", "d", "a" } };
@@ -372,12 +372,12 @@ namespace HotChocolate.Data.Filters.Expressions
         public void Create_ArrayAllStringEqual_Expression_Null()
         {
             // arrange
-            IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ bar: {all: { eq: null }}}");
             ExecutorBuilder? tester = CreateProviderTester(new FooSimpleFilterInput());
-
+            
             // act
-            Func<FooSimple, bool>? func = tester.Build<FooSimple>(value);
+            Func<FooSimple, bool> func = tester.Build<FooSimple>(value);
 
             // assert
             var a = new FooSimple { Bar = new string[] { null, null, null } };
@@ -385,17 +385,120 @@ namespace HotChocolate.Data.Filters.Expressions
 
             var b = new FooSimple { Bar = new[] { "c", "d", "b" } };
             Assert.False(func(b));
+        }
 
+        [Fact]
+        public void Create_ArraySomeStringEqual_Multiple()
+        {
+            // arrange
+            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+                "{ bar: {some: { eq: \"a\" }} otherProperty: {eq:null}}");
+            ExecutorBuilder tester = CreateProviderTester(new FooSimpleFilterType());
+
+            // act
+            Func<FooSimple, bool> func = tester.Build<FooSimple>(value);
+
+            // assert
+            var a = new FooSimple { Bar = new[] { "c", "d", "a" } };
+            Assert.True(func(a));
+
+            var b = new FooSimple { Bar = new[] { "c", "d", "b" } };
+            Assert.False(func(b));
+        }
+
+        [Fact]
+        public void Create_ArraySomeObjectEqual_Multiple()
+        {
+            // arrange
+            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+                "{ fooNested: {some: {bar: { eq: \"a\" }}} otherProperty: {eq:null}}");
+            ExecutorBuilder tester = CreateProviderTester(new FooFilterType());
+
+            // act
+            Func<Foo, bool>? func = tester.Build<Foo>(value);
+
+            // assert
+            var a = new Foo
+            {
+                FooNested = new[]
+                {
+                    new FooNested { Bar = "a" },
+                    new FooNested { Bar = "a" },
+                    new FooNested { Bar = "a" }
+                }
+            };
+            Assert.True(func(a));
+
+            var b = new Foo
+            {
+                FooNested = new[]
+                {
+                    new FooNested { Bar = "c" },
+                    new FooNested { Bar = "a" },
+                    new FooNested { Bar = "a" }
+                }
+            };
+            Assert.True(func(b));
+
+            var c = new Foo
+            {
+                FooNested = new[]
+                {
+                    new FooNested { Bar = "a" },
+                    new FooNested { Bar = "d" },
+                    new FooNested { Bar = "b" }
+                }
+            };
+            Assert.True(func(c));
+
+            var d = new Foo
+            {
+                FooNested = new[]
+                {
+                    new FooNested { Bar = "c" },
+                    new FooNested { Bar = "d" },
+                    new FooNested { Bar = "b" }
+                }
+            };
+            Assert.False(func(d));
+
+            var e = new Foo
+            {
+                FooNested = new[]
+                {
+                    null,
+                    new FooNested { Bar = null },
+                    new FooNested { Bar = "d" },
+                    new FooNested { Bar = "b" }
+                }
+            };
+            Assert.False(func(e));
+
+            var f = new Foo
+            {
+                OtherProperty =  "ShouldBeNull",
+                FooNested = new[]
+                {
+                    new FooNested { Bar = "c" },
+                    new FooNested { Bar = "a" },
+                    new FooNested { Bar = "a" }
+                }
+            };
+            Assert.False(func(f));
         }
 
         public class Foo
         {
             public IEnumerable<FooNested?>? FooNested { get; set; }
+
+            public string? OtherProperty { get; set; }
         }
 
         public class FooSimple
         {
             public IEnumerable<string?>? Bar { get; set; }
+
+            public string? OtherProperty { get; set; }
         }
 
         public class FooNested

@@ -67,6 +67,7 @@ namespace HotChocolate.Data.Filters.Expressions
             if (context.TryCreateLambda(out LambdaExpression? lambda))
             {
                 context.Scopes.Pop();
+                Expression instance = context.PopInstance();
                 Expression expression = HandleListOperation(
                     context,
                     field,
@@ -77,7 +78,7 @@ namespace HotChocolate.Data.Filters.Expressions
                 if (context.InMemory)
                 {
                     expression = FilterExpressionBuilder.NotNullAndAlso(
-                        context.GetInstance(), expression);
+                        instance, expression);
                 }
                 context.GetLevel().Enqueue(expression);
             }

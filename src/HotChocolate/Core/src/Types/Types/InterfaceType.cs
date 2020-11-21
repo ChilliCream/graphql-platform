@@ -7,6 +7,7 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Types.CompleteInterfacesHelper;
 
 #nullable enable
 
@@ -15,9 +16,8 @@ namespace HotChocolate.Types
     public class InterfaceType
         : NamedTypeBase<InterfaceTypeDefinition>
         , IInterfaceType
-        , IHasRuntimeType
     {
-        private readonly List<InterfaceType> _interfaces = new List<InterfaceType>();
+        private readonly List<InterfaceType> _implements = new();
         private Action<IInterfaceTypeDescriptor>? _configure;
         private ResolveAbstractType? _resolveAbstractType;
 
@@ -37,9 +37,9 @@ namespace HotChocolate.Types
 
         ISyntaxNode? IHasSyntaxNode.SyntaxNode => SyntaxNode;
 
-        public IReadOnlyList<InterfaceType> Interfaces => _interfaces;
+        public IReadOnlyList<InterfaceType> Implements => _implements;
 
-        IReadOnlyList<IInterfaceType> IComplexOutputType.Interfaces => _interfaces;
+        IReadOnlyList<IInterfaceType> IComplexOutputType.Implements => _implements;
 
         public InterfaceTypeDefinitionNode? SyntaxNode { get; private set; }
 
@@ -48,13 +48,13 @@ namespace HotChocolate.Types
         IFieldCollection<IOutputField> IComplexOutputType.Fields => Fields;
 
         public bool IsImplementing(NameString interfaceTypeName) =>
-            _interfaces.Any(t => t.Name.Equals(interfaceTypeName));
+            _implements.Any(t => t.Name.Equals(interfaceTypeName));
 
         public bool IsImplementing(InterfaceType interfaceType) =>
-            _interfaces.IndexOf(interfaceType) != -1;
+            _implements.IndexOf(interfaceType) != -1;
 
         public bool IsImplementing(IInterfaceType interfaceType) =>
-            interfaceType is InterfaceType i && _interfaces.IndexOf(i) != -1;
+            interfaceType is InterfaceType i && _implements.IndexOf(i) != -1;
 
         public override bool IsAssignableFrom(INamedType namedType)
         {
@@ -125,12 +125,8 @@ namespace HotChocolate.Types
                 definition.Fields.Select(t => new InterfaceField(t, sortFieldsByName)),
                 sortFieldsByName);
 
-            CompleteAbstractTypeResolver(
-                context,
-                definition.ResolveAbstractType);
-
-            CompleteInterfacesHelper.Complete(
-                context, definition, RuntimeType, _interfaces, this, SyntaxNode);
+            CompleteAbstractTypeResolver(context, definition.ResolveAbstractType);
+            CompleteInterfaces(context, definition, RuntimeType, _implements, this, SyntaxNode);
 
             FieldInitHelper.CompleteFields(context, definition, Fields);
         }
