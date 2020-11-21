@@ -268,12 +268,22 @@ namespace HotChocolate.Execution
         [Fact]
         public async Task CannotCreateRootValue()
         {
-            IExecutionResult result =
-                await new ServiceCollection()
-                    .AddGraphQL()
-                    .AddQueryType<QueryPrivateConstructor>()
-                    .ExecuteRequestAsync("{ hello }")
-                    .MatchSnapshotAsync();
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryPrivateConstructor>()
+                .ExecuteRequestAsync("{ hello }")
+                .MatchSnapshotAsync();
+        }
+
+        // https://github.com/ChilliCream/hotchocolate/issues/2617
+        [Fact]
+        public async Task EnsureThatFieldsWithDifferentCasingAreNotMerged()
+        {
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryFieldCasing>()
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
         }
 
         private static Schema CreateSchema()
@@ -514,6 +524,14 @@ namespace HotChocolate.Execution
             }
 
             public string Hello() => "Hello";
+        }
+
+        public class QueryFieldCasing
+        {
+            public string YourFieldName { get; set; }
+
+            [GraphQLDeprecated("This is deprecated")]
+            public string YourFieldname { get; set; }
         }
     }
 }

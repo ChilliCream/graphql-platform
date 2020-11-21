@@ -283,7 +283,7 @@ namespace HotChocolate.Data.Tests
         }
 
         [Fact]
-        public void FilterInputType_Should_UseCustomFilterType_When_Nested()
+        public void FilterInputType_Should_UseCustomFilterInput_When_Nested()
         {
             // arrange
             ISchemaBuilder builder = SchemaBuilder.New()
@@ -320,7 +320,7 @@ namespace HotChocolate.Data.Tests
             // arrange
             ISchema builder = SchemaBuilder.New()
                 .AddFiltering()
-                .AddQueryType<CustomHandlerQueryType >()
+                .AddQueryType<CustomHandlerQueryType>()
                 .Create();
 
             // act
@@ -400,7 +400,7 @@ namespace HotChocolate.Data.Tests
             public List<User> Friends { get; set; } = default!;
         }
 
-        public class UserFilterInputType : FilterInputType<User>
+        public class UserFilterInput : FilterInputType<User>
         {
             protected override void Configure(IFilterInputTypeDescriptor<User> descriptor)
             {
@@ -416,7 +416,7 @@ namespace HotChocolate.Data.Tests
                 descriptor
                     .Field("foo")
                     .Resolve(new List<User>())
-                    .UseFiltering<UserFilterInputType>();
+                    .UseFiltering<UserFilterInput>();
             }
         }
 
@@ -450,7 +450,7 @@ namespace HotChocolate.Data.Tests
         public class CustomHandler : IFilterFieldHandler
         {
             public bool CanHandle(
-                ITypeDiscoveryContext context,
+                ITypeCompletionContext context,
                 IFilterInputTypeDefinition typeDefinition,
                 IFilterFieldDefinition fieldDefinition)
             {
