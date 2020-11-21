@@ -49,16 +49,11 @@ namespace HotChocolate.Data.Filters.Spatial
             Func<IResolverContext, IEnumerable<TEntity>> resolver =
                 await BuildResolverAsync(entities);
 
-            ISchemaBuilder builder = SchemaBuilder.New()
+            return await new ServiceCollection()
+                .AddGraphQL()
+                .AddFiltering()
                 .AddSpatialTypes()
-                .AddFiltering(
-                    x => x
-                        .AddDefaults()
-                        .AddSpatialOperations()
-                        .BindSpatialTypes()
-                        .Provider(
-                            new QueryableFilterProvider(
-                                p => p.AddSpatialHandlers().AddDefaultFieldHandlers())))
+                .AddSpatialFiltering()
                 .AddQueryType(
                     c => c
                         .Name("Query")
@@ -82,14 +77,7 @@ namespace HotChocolate.Data.Filters.Spatial
                                     }
                                 }
                             })
-                        .UseFiltering<T>());
-
-            ISchema schema = builder.Create();
-            return new ServiceCollection()
-                .Configure<RequestExecutorSetup>(
-                    Schema.DefaultName,
-                    o => o.Schema = schema)
-                .AddGraphQL()
+                        .UseFiltering<T>())
                 .UseRequest(
                     next => async context =>
                     {
@@ -105,11 +93,7 @@ namespace HotChocolate.Data.Filters.Spatial
                         }
                     })
                 .UseDefaultPipeline()
-                .Services
-                .BuildServiceProvider()
-                .GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync()
-                .Result;
+                .BuildRequestExecutorAsync();
         }
     }
 }

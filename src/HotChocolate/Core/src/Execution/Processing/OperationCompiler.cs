@@ -575,7 +575,7 @@ namespace HotChocolate.Execution.Processing
                 DirectiveNode directive = selection.Directives[i];
                 if (_schema.TryGetDirectiveType(directive.Name.Value,
                     out DirectiveType? directiveType)
-                    && directiveType.IsExecutable)
+                    && directiveType.HasMiddleware)
                 {
                     yield return Directive.FromDescription(
                         directiveType,
@@ -711,7 +711,7 @@ namespace HotChocolate.Execution.Processing
 
             for (var i = directives.Count - 1; i >= 0; i--)
             {
-                if (directives[i] is { IsExecutable: true } directive)
+                if (directives[i] is { Type: { HasMiddleware: true } } directive)
                 {
                     next = BuildComponent(directive, next);
                 }

@@ -204,7 +204,7 @@ namespace HotChocolate.Types.Relay
 
                 Span<byte> decoded = serialized.Slice(0, bytesWritten);
 
-                NameString schemaName;
+                NameString schemaName = null;
 
                 if (decoded[0] == _schema)
                 {

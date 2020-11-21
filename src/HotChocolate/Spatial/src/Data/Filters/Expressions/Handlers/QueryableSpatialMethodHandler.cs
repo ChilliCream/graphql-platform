@@ -31,7 +31,7 @@ namespace HotChocolate.Data.Filters.Spatial
         }
 
         public override bool CanHandle(
-            ITypeDiscoveryContext context,
+            ITypeCompletionContext context,
             IFilterInputTypeDefinition typeDefinition,
             IFilterFieldDefinition fieldDefinition) =>
             fieldDefinition is FilterOperationFieldDefinition op &&

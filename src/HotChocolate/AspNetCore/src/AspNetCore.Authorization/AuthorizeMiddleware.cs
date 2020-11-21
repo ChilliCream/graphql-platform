@@ -144,7 +144,7 @@ namespace HotChocolate.AspNetCore.Authorization
                 principal = p;
                 return true;
             }
-  
+
             principal = null;
             return false;
         }
@@ -220,7 +220,7 @@ namespace HotChocolate.AspNetCore.Authorization
                 }
             }
 
-            if (policy is { })
+            if (policy is not null)
             {
                 AuthorizationResult result =
                     await authorizeService.AuthorizeAsync(

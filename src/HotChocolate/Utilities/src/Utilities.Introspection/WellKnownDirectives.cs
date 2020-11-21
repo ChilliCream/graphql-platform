@@ -7,6 +7,7 @@ namespace HotChocolate.Utilities.Introspection
         public const string Defer = "defer";
         public const string Stream = "stream";
         public const string Deprecated = "deprecated";
+        public const string SpecifiedBy = "specifiedBy";
         public const string DeprecationReasonArgument = "reason";
     }
 }

@@ -26,7 +26,7 @@ namespace HotChocolate.Types
             this IObjectFieldDescriptor descriptor,
             Type dataLoaderType)
         {
-            FieldMiddleware placeholder = next => context => default;
+            FieldMiddleware placeholder = _ => _ => default;
 
             if (!TryGetDataLoaderTypes(dataLoaderType, out Type? keyType, out Type? valueType))
             {
@@ -43,17 +43,11 @@ namespace HotChocolate.Types
                         if (!valueType.IsArray)
                         {
                             IExtendedType resolverType =
-                                c.TypeInspector.GetType(definition.ResultType);
+                                c.TypeInspector.GetType(definition.ResultType!);
 
-                            if (resolverType.IsArrayOrList)
-                            {
-                                schemaType = c.TypeInspector.GetType(
-                                    typeof(IEnumerable<>).MakeGenericType(valueType));
-                            }
-                            else
-                            {
-                                schemaType = c.TypeInspector.GetType(valueType);
-                            }
+                            schemaType = c.TypeInspector.GetType(resolverType.IsArrayOrList
+                                ? typeof(IEnumerable<>).MakeGenericType(valueType)
+                                : valueType);
                         }
                         else
                         {
@@ -66,7 +60,7 @@ namespace HotChocolate.Types
                                 .New<ObjectFieldDefinition>()
                                 .Definition(definition)
                                 .Configure(
-                                    (context, def) =>
+                                    (_, def) =>
                                     {
                                         CompileMiddleware(
                                             def,
@@ -94,7 +88,7 @@ namespace HotChocolate.Types
             {
                 middlewareType =
                     typeof(GroupedDataLoaderMiddleware<,,>)
-                        .MakeGenericType(dataLoaderType, keyType, valueType.GetElementType());
+                        .MakeGenericType(dataLoaderType, keyType, valueType.GetElementType()!);
             }
             else
             {
@@ -145,7 +139,7 @@ namespace HotChocolate.Types
 
             public async Task InvokeAsync(IMiddlewareContext context)
             {
-                var dataloader = context.DataLoader<TDataLoader>();
+                TDataLoader dataloader = context.DataLoader<TDataLoader>();
 
                 await _next(context).ConfigureAwait(false);
 
@@ -159,7 +153,7 @@ namespace HotChocolate.Types
                     {
                         for (var n = 0; n < data[m].Length; n++)
                         {
-                            result.Add(data[m][n]);
+                            result.Add(data[m][n]!);
                         }
                     }
 
@@ -185,7 +179,7 @@ namespace HotChocolate.Types
 
             public async Task InvokeAsync(IMiddlewareContext context)
             {
-                var dataloader = context.DataLoader<TDataLoader>();
+                TDataLoader dataloader = context.DataLoader<TDataLoader>();
 
                 await _next(context).ConfigureAwait(false);
 
