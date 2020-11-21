@@ -95,6 +95,8 @@ namespace HotChocolate.Types
                     }
                     else
                     {
+                        TypeExtensionHelper.MergeContextData(enumValue, existingValue);
+
                         TypeExtensionHelper.MergeDirectives(
                             context,
                             enumValue.Directives,
