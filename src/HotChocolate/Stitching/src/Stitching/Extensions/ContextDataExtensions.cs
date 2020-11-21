@@ -339,6 +339,8 @@ namespace HotChocolate.Stitching
                 if (current is IDictionary<(NameString, NameString), NameString> dict)
                 {
                     dict[(newTypeName, schemaName)] = originalTypeName;
+
+                    return dict;
                 }
 
                 return new Dictionary<(NameString, NameString), NameString>

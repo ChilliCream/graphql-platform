@@ -35,7 +35,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            return UseSorting(descriptor, null, null, scope);
+            return UseSortingInternal(descriptor, null,  scope);
         }
 
         /// <summary>
@@ -60,35 +60,7 @@ namespace HotChocolate.Types
                     ? typeof(T)
                     : typeof(SortInputType<>).MakeGenericType(typeof(T));
 
-            return UseSorting(descriptor, sortType, null, scope);
-        }
-
-        /// <summary>
-        /// Registers the middleware and adds the arguments for sorting
-        /// </summary>
-        /// <param name="descriptor">The field descriptor where the arguments and middleware are
-        /// applied to</param>
-        /// <param name="configure">Configures the filter input types that is used by the field
-        /// </param>
-        /// <param name="scope">Specifies what scope should be used for the
-        /// <see cref="SortConvention" /></param>
-        public static IObjectFieldDescriptor UseSorting<T>(
-            this IObjectFieldDescriptor descriptor,
-            Action<ISortInputTypeDescriptor<T>> configure,
-            string? scope = null)
-        {
-            if (descriptor is null)
-            {
-                throw new ArgumentNullException(nameof(descriptor));
-            }
-
-            if (configure is null)
-            {
-                throw new ArgumentNullException(nameof(configure));
-            }
-
-            var sortType = new SortInputType<T>(configure);
-            return UseSorting(descriptor, sortType.GetType(), sortType, scope);
+            return UseSorting(descriptor, sortType, scope);
         }
 
         /// <summary>
@@ -119,13 +91,12 @@ namespace HotChocolate.Types
                     ? type
                     : typeof(SortInputType<>).MakeGenericType(type);
 
-            return UseSorting(descriptor, sortType, null, scope);
+            return UseSortingInternal(descriptor, sortType, scope);
         }
 
-        private static IObjectFieldDescriptor UseSorting(
+        private static IObjectFieldDescriptor UseSortingInternal(
             IObjectFieldDescriptor descriptor,
             Type? sortType,
-            ITypeSystemMember? sortTypeInstance,
             string? scope)
         {
             FieldMiddleware placeholder = next => context => default;
@@ -138,9 +109,9 @@ namespace HotChocolate.Types
                 .OnBeforeCreate(
                     (c, definition) =>
                     {
-                        Type? argumentType = sortType;
-
-                        if (argumentType is null)
+                        ISortConvention convention = c.GetSortConvention(scope);
+                        Type argumentType;
+                        if (sortType is null)
                         {
                             if (definition.ResultType is null ||
                                 definition.ResultType == typeof(object) ||
@@ -153,32 +124,28 @@ namespace HotChocolate.Types
                                     nameof(descriptor));
                             }
 
-                            argumentType = typeof(SortInputType<>)
-                                .MakeGenericType(typeInfo.NamedType);
+
+                            ExtendedTypeReference fieldType = convention
+                                .GetFieldType(typeInfo.NamedType);
+                            argumentType = fieldType.Type.Type;
                         }
-
-                        ITypeReference argumentTypeReference = sortTypeInstance is null
-                            ? (ITypeReference)c.TypeInspector.GetTypeRef(
-                                argumentType,
-                                TypeContext.Input,
-                                scope)
-                            : TypeReference.Create(sortTypeInstance, scope);
-
-                        if (argumentType == typeof(object))
+                        else
                         {
-                            throw SortObjectFieldDescriptorExtensions_CannotInfer();
+                            argumentType = sortType;
                         }
 
-                        argumentType = typeof(ListType<>).MakeGenericType(argumentType);
+                        ExtendedTypeReference argumentTypeReference = c.TypeInspector.GetTypeRef(
+                            typeof(ListType<>).MakeGenericType(
+                                typeof(NonNullType<>).MakeGenericType(argumentType)),
+                            TypeContext.Input,
+                            scope);
+
 
                         var argumentDefinition = new ArgumentDefinition
                         {
-                            Name = argumentPlaceholder,
-                            Type = c.TypeInspector.GetTypeRef(
-                                argumentType,
-                                TypeContext.Input,
-                                scope)
+                            Name = argumentPlaceholder, Type = argumentTypeReference
                         };
+
                         definition.Arguments.Add(argumentDefinition);
 
                         definition.Configurations.Add(
@@ -219,7 +186,12 @@ namespace HotChocolate.Types
             FieldMiddleware placeholder,
             string? scope)
         {
-            ISortInputType type = context.GetType<ISortInputType>(argumentTypeReference);
+            IType resolvedType = context.GetType<IType>(argumentTypeReference);
+            if (!(resolvedType.ElementType().NamedType() is ISortInputType type))
+            {
+                throw Sorting_TypeOfInvalidFormat(resolvedType);
+            }
+
             ISortConvention convention = context.DescriptorContext.GetSortConvention(scope);
 
             var fieldDescriptor = ObjectFieldDescriptor.From(context.DescriptorContext, definition);

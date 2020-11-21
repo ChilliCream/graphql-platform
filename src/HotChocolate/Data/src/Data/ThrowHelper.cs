@@ -4,6 +4,7 @@ using HotChocolate.Data.Filters;
 using HotChocolate.Data.Projections;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Data
@@ -255,6 +256,15 @@ namespace HotChocolate.Data
                         sortConvention.Scope ?? "Default")
                     .SetExtension(nameof(sortConvention), sortConvention)
                     .SetExtension(nameof(sortOperation), sortOperation)
+                    .Build());
+
+        public static SchemaException Sorting_TypeOfInvalidFormat(
+            IType type) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        DataResources.Sorting_TypeOfInvalidFormat,
+                        type.Print())
                     .Build());
 
         public static SchemaException ProjectionProvider_NoHandlersConfigured(
