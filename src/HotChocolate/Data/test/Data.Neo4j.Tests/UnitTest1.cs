@@ -1,7 +1,7 @@
 using System;
 using Xunit;
 
-namespace HotChocolate.Data.Neo4j.Tests
+namespace HotChocolate.Data.Neo4J.Tests
 {
     public class UnitTest1
     {
