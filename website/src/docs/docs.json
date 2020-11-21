@@ -311,6 +311,16 @@
             ]
           },
           {
+            "path": "integrations",
+            "title": "Integrations",
+            "items": [
+              {
+                "path": "entity-framework",
+                "title": "Entity Framework"
+              }
+            ]
+          },
+          {
             "path": "api-reference",
             "title": "API Reference",
             "items": [
