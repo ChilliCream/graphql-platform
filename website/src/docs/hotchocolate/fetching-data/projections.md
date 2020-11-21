@@ -83,6 +83,37 @@ public class Query
     }
 }
 ```
+# FirstOrDefault / SingleOrDefault
+If you want to limit the response to a single result, you would have to declare a resolver. 
+Without returning an `IQueryable<>` you lose the ability to use filtering. 
+
+There are two extensions you can use to leverage `collection.FirstOrDefault()` and `.collection.SingleOrDefault()` to
+the GraphQL layer. The extensions will rewrite the response type to the element type of the collection apply the behavior.
+
+```csharp
+    public class Query
+    {
+        [UseFirstOrDefault]
+        [UseProjection]
+        [UseFiltering]
+        public IQueryable<User> GetUsers([ScopedService] SomeDbContext someDbContext)
+        {
+            return someDbContext.Users;
+        }
+    }
+```
+```sdl
+type Query {
+  users(where: UserFilterInput): User
+}
+
+type User {
+  id: Int!
+  name: String!
+  email: String!
+}
+```
+
 
 # Sorting Filtering and Paging
 Projections can be used together with sorting, filtering and paging. The order of the middlewares must be correct. 
@@ -93,7 +124,6 @@ Filtering and sorting can be projected over relations. Projections **cannot** pr
 ```csharp
 public class Query
 {
-    [UseDbContext(typeof(SomeDbContext))]
     [UsePaging]
     [UseProjection]
     [UseFiltering]
