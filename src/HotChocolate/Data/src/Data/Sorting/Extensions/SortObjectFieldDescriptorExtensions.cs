@@ -2,6 +2,7 @@ using System;
 using System.Globalization;
 using System.Reflection;
 using HotChocolate.Configuration;
+using HotChocolate.Data;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
