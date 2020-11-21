@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Data.Projections.Spatial.SqlServer</AssemblyName>
+    <RootNamespace>HotChocolate.Data.Projections</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Data\src\Data\HotChocolate.Data.csproj"/>
+    <ProjectReference Include="..\..\..\Spatial\src\Types\HotChocolate.Types.Spatial.csproj"/>
+    <ProjectReference Include="..\..\..\Spatial\src\Data\HotChocolate.Data.Spatial.csproj"/>
+    <ProjectReference Include="..\..\..\Core\test\Types.Tests\HotChocolate.Types.Tests.csproj"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="3.1.0"/>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="3.1.0"/>
+    <PackageReference Include="Squadron.PostgreSql" Version="0.8.1"/>
+  </ItemGroup>
+
+    <!--For Visual Studio for Mac Test Explorer we need this reference here-->
+  <ItemGroup>
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+  </ItemGroup>
+
+</Project>
