@@ -1,6 +1,6 @@
 namespace HotChocolate.Data.Neo4J
 {
-    public interface INeo4jClient
+    public interface IDbClient
     {
         bool IsConnected { get; }
     }

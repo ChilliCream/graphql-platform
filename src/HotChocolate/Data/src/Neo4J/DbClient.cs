@@ -1,6 +1,6 @@
 namespace HotChocolate.Data.Neo4J
 {
-    public class Neo4jClient : INeo4jClient
+    public class DbClient : IDbClient
     {
         public bool IsConnected =>
             throw new System.NotImplementedException();

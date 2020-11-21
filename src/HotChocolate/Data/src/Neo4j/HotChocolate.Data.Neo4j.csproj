@@ -1,9 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <PackageId>HotChocolate.Data.Neo4j</PackageId>
-    <AssemblyName>HotChocolate.Data.Neo4j</AssemblyName>
-    <RootNamespace>HotChocolate.Data.Neo4j</RootNamespace>
+    <PackageId>HotChocolate.Data.Neo4J</PackageId>
+    <AssemblyName>HotChocolate.Data.Neo4J</AssemblyName>
+    <RootNamespace>HotChocolate.Data.Neo4J</RootNamespace>
     <NoWarn>$(NoWarn);CA1062</NoWarn>
   </PropertyGroup>
 
