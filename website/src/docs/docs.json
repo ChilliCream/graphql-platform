@@ -303,6 +303,10 @@
               {
                 "path": "sorting",
                 "title": "Sorting"
+              },
+              {
+                "path": "projections",
+                "title": "Projections"
               }
             ]
           },
