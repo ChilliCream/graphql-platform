@@ -3,19 +3,19 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Data.Projections
 {
-    public abstract class ProjectionProviderExtensions
-        : ConventionExtension<ProjectionProviderDefinition>,
-          IProjectionProviderExtension,
-          IProjectionProviderConvention
+    public class ProjectionProviderExtension
+        : ConventionExtension<ProjectionProviderDefinition>
+        , IProjectionProviderExtension
+        , IProjectionProviderConvention
     {
         private Action<IProjectionProviderDescriptor>? _configure;
 
-        protected ProjectionProviderExtensions()
+        protected ProjectionProviderExtension()
         {
             _configure = Configure;
         }
 
-        public ProjectionProviderExtensions(Action<IProjectionProviderDescriptor> configure)
+        public ProjectionProviderExtension(Action<IProjectionProviderDescriptor> configure)
         {
             _configure = configure ??
                 throw new ArgumentNullException(nameof(configure));
