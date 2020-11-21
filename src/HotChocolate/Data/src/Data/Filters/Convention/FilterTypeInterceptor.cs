@@ -66,7 +66,7 @@ namespace HotChocolate.Data.Filters
 
                 convention.ApplyConfigurations(typeReference, descriptor);
 
-                FilterTypeExtensionHelper.MergeFilterInputTypeDefinitions(
+                DataTypeExtensionHelper.MergeFilterInputTypeDefinitions(
                     completionContext,
                     descriptor.CreateDefinition(),
                     def);

@@ -12,7 +12,7 @@ namespace HotChocolate.Data.Sorting.Expressions
         : SortFieldHandler<QueryableSortContext, QueryableSortOperation>
     {
         public override bool CanHandle(
-            ITypeDiscoveryContext context,
+            ITypeCompletionContext context,
             ISortInputTypeDefinition typeDefinition,
             ISortFieldDefinition fieldDefinition) =>
             fieldDefinition.Member is not null;
