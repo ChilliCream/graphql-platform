@@ -1,7 +1,7 @@
 using StrawberryShake.Generators;
 using StrawberryShake.Tools.Abstractions;
 
-namespace StrawberryShake.Tools.Commands.GenerateCommand
+namespace StrawberryShake.Tools.Commands.Generate
 {
     public class GenerateCommandContext : ICompileContext
     {

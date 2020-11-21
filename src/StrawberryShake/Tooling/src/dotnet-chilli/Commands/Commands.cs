@@ -1,71 +1,30 @@
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake.Tools.Abstractions;
 using StrawberryShake.Tools.Commands.Compile;
 using StrawberryShake.Tools.Commands.Download;
-using StrawberryShake.Tools.Commands.GenerateCommand;
-using StrawberryShake.Tools.Config;
-using StrawberryShake.Tools.Console;
-using StrawberryShake.Tools.FileSystem;
-using StrawberryShake.Tools.Http;
+using StrawberryShake.Tools.Commands.Export;
+using StrawberryShake.Tools.Commands.Generate;
 using StrawberryShake.Tools.Options;
 
 namespace StrawberryShake.Tools.Commands
 {
-    public static class Command
+    public static class Commands
     {
-        public static async ValueTask<int> Compile(Options.Compile compile) =>
-            await GetService<CompileCommandHandler>(compile)
-                .ExecuteAsync(compile)
-                .ConfigureAwait(false);
 
-        public static async ValueTask<int> Download(Options.Download download) =>
-            await GetService<DownloadCommandHandler>(download)
-                .ExecuteAsync(download)
-                .ConfigureAwait(false);
+        public static ValueTask<int> Compile(Options.Compile compile) => Execute<CompileCommandHandler, Options.Compile>(compile);
+        public static ValueTask<int> Download(Options.Download download) => Execute<DownloadCommandHandler, Options.Download>(download);
+        public static ValueTask<int> Export(Options.Export export) => Execute<ExportCommandHandler, Options.Export>(export);
+        public static ValueTask<int> Generate(Options.Generate generate) => Execute<GenerateCommandHandler, Options.Generate>(generate);
+        public static ValueTask<int> Init(Options.Init init) => Execute<InitCommandHandler, Options.Init>(init);
+        public static ValueTask<int> Publish(Options.PublishSchema publishSchema) => Execute<PublishSchemaCommandHandler, Options.PublishSchema>(publishSchema);
+        public static ValueTask<int> Update(Options.Update update) => Execute<UpdateCommandHandler, Options.Update>(update);
 
-        public static async ValueTask<int> Generate(Generate generate) =>
-            await GetService<GenerateCommandHandler>(generate)
-                .ExecuteAsync(generate)
-                .ConfigureAwait(false);
-
-        public static async ValueTask<int> Init(Init init)
+        private static async ValueTask<int> Execute<TCommand, TOptions>(TOptions options)
+            where TOptions : BaseOptions
+            where TCommand : class, ICommandHandler<TOptions>
         {
-            return 0;
-        }
-
-        public static async ValueTask<int> Publish(Publish publish)
-        {
-            return 0;
-        }
-
-        public static async ValueTask<int> Update(Update update)
-        {
-            return 0;
-        }
-
-        private static T GetService<T>(BaseOptions options) where T : class
-        {
-            var services = new ServiceCollection();
-
-            services.AddSingleton<IHttpClientFactory, DefaultHttpClientFactory>();
-            services.AddSingleton<IFileSystem, DefaultFileSystem>();
-            services.AddSingleton<IConfigurationStore, DefaultConfigurationStore>();
-
-            if (options.Json)
-            {
-                services.AddSingleton<IConsoleOutput, JsonConsoleOutput>();
-            }
-            else
-            {
-                services.AddSingleton<IConsoleOutput, DefaultConsoleOutput>();
-            }
-
-            services.AddSingleton<T>();
-
-            return services.BuildServiceProvider().GetRequiredService<T>();
-
+            await using var provider = new CommandProvider<TCommand>(options);
+            return await provider.GetCommand().ExecuteAsync(options).ConfigureAwait(false);
         }
     }
 }

@@ -5,23 +5,25 @@ using StrawberryShake.Tools.Commands;
 
 namespace StrawberryShake.Tools
 {
-    class Program
+    public class Program
     {
-        static async Task<int> Main(string[] args) =>
+        public static async Task<int> Main(string[] args) =>
             await Parser.Default.ParseArguments<
                 Compile,
                 Download,
+                Export,
                 Generate,
                 Init,
-                Publish,
+                PublishSchema,
                 Update
             >(args).MapResult(
-                (Compile z) => Command.Compile(z),
-                (Download z) => Command.Download(z),
-                (Generate z) => Command.Generate(z),
-                (Init z) => Command.Init(z),
-                (Publish z) => Command.Publish(z),
-                (Update z) => Command.Update(z),
+                (Compile z) => Commands.Commands.Compile(z),
+                (Download z) => Commands.Commands.Download(z),
+                (Generate z) => Commands.Commands.Generate(z),
+                (Export z) => Commands.Commands.Export(z),
+                (Init z) => Commands.Commands.Init(z),
+                (PublishSchema z) => Commands.Commands.Publish(z),
+                (Update z) => Commands.Commands.Update(z),
                 errors => new ValueTask<int>(1)
             );
     }

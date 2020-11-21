@@ -20,12 +20,12 @@ namespace StrawberryShake.Tools.Commands.Compile
 
         protected override CompileCommandContext CreateContext(Options.Compile arguments)
         {
-            return new CompileCommandContext(
+            return new(
                 arguments.Path?.Trim() ?? FileSystem.CurrentDirectory,
                 string.IsNullOrWhiteSpace(arguments.Search));
         }
 
-        protected override Task<bool> Compile(
+        protected override async ValueTask<bool> Compile(
             CompileCommandContext context,
             string path,
             Config.Configuration config,
@@ -41,10 +41,11 @@ namespace StrawberryShake.Tools.Commands.Compile
                 {
                     errors.Add(error);
                 }
-                return Task.FromResult(false);
+
+                return false;
             }
 
-            return Task.FromResult(true);
+            return true;
         }
     }
 }

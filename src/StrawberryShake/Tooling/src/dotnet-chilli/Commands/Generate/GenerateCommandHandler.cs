@@ -10,7 +10,7 @@ using StrawberryShake.Tools.Config;
 using HCError = HotChocolate.IError;
 using IHttpClientFactory = StrawberryShake.Tools.Abstractions.IHttpClientFactory;
 
-namespace StrawberryShake.Tools.Commands.GenerateCommand
+namespace StrawberryShake.Tools.Commands.Generate
 {
     public class GenerateCommandHandler : CompileCommandHandlerBase<Options.Generate, GenerateCommandContext>
     {
@@ -53,7 +53,7 @@ namespace StrawberryShake.Tools.Commands.GenerateCommand
         }
 
 
-        protected override async Task<bool> Compile(
+        protected override async AsyncTask<bool> Compile(
             GenerateCommandContext context,
             string path,
             Config.Configuration config,

@@ -14,7 +14,9 @@ using IHttpClientFactory = StrawberryShake.Tools.Abstractions.IHttpClientFactory
 
 namespace StrawberryShake.Tools.Commands.Compile
 {
-    public abstract class CompileCommandHandlerBase<TArg, TCtx> where TCtx : ICompileContext
+    public abstract class CompileCommandHandlerBase<TArg, TCtx> : ICommandHandler<TArg>
+        where TArg : Options.BaseOptions
+        where TCtx : ICompileContext
     {
         protected CompileCommandHandlerBase(
             IFileSystem fileSystem,
@@ -38,7 +40,7 @@ namespace StrawberryShake.Tools.Commands.Compile
 
         protected virtual string ActivityName => "Compile";
 
-        public Task<int> ExecuteAsync(TArg arguments)
+        public ValueTask<int> ExecuteAsync(TArg arguments)
         {
             TCtx context = CreateContext(arguments);
             return ExecuteAsync(context);
@@ -46,7 +48,7 @@ namespace StrawberryShake.Tools.Commands.Compile
 
         protected abstract TCtx CreateContext(TArg arguments);
 
-        protected abstract Task<bool> Compile(
+        protected abstract ValueTask<bool> Compile(
             TCtx context,
             string path,
             Config.Configuration config,
@@ -54,7 +56,7 @@ namespace StrawberryShake.Tools.Commands.Compile
             IReadOnlyList<DocumentInfo> documents,
             ICollection<HCError> errors);
 
-        private async Task<int> ExecuteAsync(TCtx context)
+        private async ValueTask<int> ExecuteAsync(TCtx context)
         {
             string path = FileSystem.ResolvePath(context.Path);
 
@@ -96,7 +98,7 @@ namespace StrawberryShake.Tools.Commands.Compile
             using IActivity activity = Output.WriteActivity(ActivityName);
             try
             {
-                var schemaFiles = new HashSet<string>();
+                var unused = new HashSet<string>();
                 ClientGenerator generator = ClientGenerator.New();
                 generator.SetOutput(FileSystem.CombinePath(
                     path, WellKnownDirectories.Generated));

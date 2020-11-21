@@ -8,7 +8,7 @@ using IHttpClientFactory = StrawberryShake.Tools.Abstractions.IHttpClientFactory
 
 namespace StrawberryShake.Tools.Commands.Download
 {
-    public class DownloadCommandHandler
+    public class DownloadCommandHandler : ICommandHandler<Options.Download>
     {
         public DownloadCommandHandler(
             IFileSystem fileSystem,
@@ -30,7 +30,7 @@ namespace StrawberryShake.Tools.Commands.Download
 
         public IConsoleOutput Output { get; }
 
-        public async Task<int> ExecuteAsync(Options.Download arguments)
+        public async ValueTask<int> ExecuteAsync(Options.Download arguments)
         {
             using IDisposable command = Output.WriteCommand();
 
