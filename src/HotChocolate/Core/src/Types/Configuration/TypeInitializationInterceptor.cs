@@ -5,8 +5,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Configuration
 {
-    public class TypeInterceptor
-        : ITypeInitializationInterceptor
+    public class TypeInterceptor : ITypeInitializationInterceptor
     {
         public virtual bool TriggerAggregations => false;
 
@@ -23,7 +22,7 @@ namespace HotChocolate.Configuration
             IDictionary<string, object?> contextData)
         {
         }
-        
+
         public virtual void OnTypesInitialized(
             IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
         {
