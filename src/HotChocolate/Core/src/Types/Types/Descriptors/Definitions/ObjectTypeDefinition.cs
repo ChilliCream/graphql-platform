@@ -24,6 +24,8 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
         public IsOfType IsOfType { get; set; }
 
+        public bool IsExtension { get; set; }
+
         public IList<ITypeReference> Interfaces { get; } =
             new List<ITypeReference>();
 

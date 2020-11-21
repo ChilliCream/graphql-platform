@@ -668,4 +668,7 @@ Type: `{0}`</value>
   <data name="SpecifiedByDirectiveType_UrlDescription" xml:space="preserve">
     <value>The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types.</value>
   </data>
+  <data name="NodeType_TypeDescription" xml:space="preserve">
+    <value>The node interface is implemented by entities that have a global unique identifier.</value>
+  </data>
 </root>

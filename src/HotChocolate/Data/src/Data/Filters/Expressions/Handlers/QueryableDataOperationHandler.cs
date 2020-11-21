@@ -9,7 +9,7 @@ namespace HotChocolate.Data.Filters.Expressions
         protected virtual int Operation => DefaultOperations.Data;
 
         public override bool CanHandle(
-            ITypeDiscoveryContext context,
+            ITypeCompletionContext context,
             IFilterInputTypeDefinition typeDefinition,
             IFilterFieldDefinition fieldDefinition)
         {

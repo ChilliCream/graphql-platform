@@ -5,7 +5,8 @@ title: Filtering
 # What is filtering
 
 With _Hot Chocolate_ filters, you can expose complex filter objects through your GraphQL API that translates to native database queries. The default filter implementation translates filters to expression trees that are applied to `IQueryable`. 
-Filters by default work on `IQueryable` but you can also easily customize them to use other interfaces. Hot Chocolate by default will inspect your .NET model and infer the possible filter operations from it.
+Hot Chocolate by default will inspect your .NET model and infer the possible filter operations from it.
+Filters use `IQueryable` (`IEnumerable`) by default, but you can also easily customize them to use other interfaces. 
 
 The following type would yield the following filter operations:
 
@@ -98,7 +99,7 @@ public class Query
 
 # Customization 
 
-Under the hood, filtering is based on top of normal Hot Chocolate input types. You can easily customize them with a very familiar fluent interface. The filter input types follow the same `descriptor` scheme as you are used to from the normal filter input types. Just extend the base class `FilterInputType<T>` and override the descriptor method.
+Under the hood, filtering is based on top of normal Hot Chocolate input types. You can easily customize them with a very familiar fluent interface. The filter input types follow the same `descriptor` scheme as you are used to from the normal input types. Just extend the base class `FilterInputType<T>` and override the descriptor method.
 
 `IFilterInputTypeDescriptor<T>` supports most of the methods of `IInputTypeDescriptor<T>`. By default filters for all fields of the type are generated.
 If you do want to specify the filters by yourself you can change this behavior with `BindFields`, `BindFieldsExplicitly` or `BindFieldsImplicitly`.
@@ -525,7 +526,7 @@ public class CustomConvention
 }
 
 services.AddGraphQLServer()
-  .AddConvention<CustomConvention>();
+  .AddConvention<IFilterConvention, CustomConvention>();
 // or
 services.AddGraphQLServer()
   .AddConvention<IFilterConvention>(new FilterConvention(x => x.AddDefaults()))
@@ -543,7 +544,7 @@ public class CustomConventionExtension
 }
 
 services.AddGraphQLServer()
-  .AddConvention<CustomConventionExtension>();
+  .AddConvention<IFilterConvention, CustomConventionExtension>();
 // or
 services.AddGraphQLServer()
   .AddConvention<IFilterConvention>(new FilterConventionExtension(x => /*config*/))

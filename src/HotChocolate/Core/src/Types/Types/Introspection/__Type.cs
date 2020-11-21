@@ -95,7 +95,7 @@ namespace HotChocolate.Types.Introspection
             }
 
             public IEnumerable<IInterfaceType>? GetInterfaces([Parent] IType type) =>
-                type is IComplexOutputType complexType ? complexType.Interfaces : null;
+                type is IComplexOutputType complexType ? complexType.Implements : null;
 
             public IEnumerable<IType>? GetPossibleTypes(ISchema schema, [Parent]INamedType type) =>
                 type.IsAbstractType() ? schema.GetPossibleTypes(type) : null;

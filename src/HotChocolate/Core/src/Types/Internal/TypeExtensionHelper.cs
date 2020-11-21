@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
+using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Internal
 {
-    internal static class TypeExtensionHelper
+    public static class TypeExtensionHelper
     {
         public static void MergeObjectFields(
             ITypeCompletionContext context,

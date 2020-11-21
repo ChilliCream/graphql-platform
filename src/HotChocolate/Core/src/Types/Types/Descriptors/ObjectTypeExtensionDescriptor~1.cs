@@ -12,6 +12,7 @@ namespace HotChocolate.Types.Descriptors
             Definition.Description = context.Naming.GetTypeDescription(typeof(T), TypeKind.Object);
             Definition.Fields.BindingBehavior = context.Options.DefaultBindingBehavior;
             Definition.FieldBindingType = typeof(T);
+            Definition.IsExtension = true;
         }
     }
 }

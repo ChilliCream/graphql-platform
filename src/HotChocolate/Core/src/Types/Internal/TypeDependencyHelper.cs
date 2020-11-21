@@ -5,9 +5,9 @@ using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Internal
 {
-    internal static class TypeDependencyHelper
+    public static class TypeDependencyHelper
     {
         public static void RegisterDependencies(
             this ITypeDiscoveryContext context,
@@ -25,7 +25,7 @@ namespace HotChocolate.Types
 
             context.RegisterDependencyRange(
                 definition.Interfaces,
-                TypeDependencyKind.Default);
+                TypeDependencyKind.Completed);
 
             RegisterAdditionalDependencies(context, definition);
             RegisterDirectiveDependencies(context, definition);
@@ -79,7 +79,7 @@ namespace HotChocolate.Types
 
             context.RegisterDependencyRange(
                 definition.Interfaces,
-                TypeDependencyKind.Default);
+                TypeDependencyKind.Completed);
 
             RegisterAdditionalDependencies(context, definition);
             RegisterDirectiveDependencies(context, definition);
