@@ -1,8 +1,9 @@
 using System;
+using HotChocolate.Data.Projections;
 using HotChocolate.Data.Projections.Expressions.Handlers;
 using HotChocolate.Data.Projections.Handlers;
 
-namespace HotChocolate.Data.Projections
+namespace HotChocolate.Data
 {
     public static class ProjectionProviderDescriptorExtensions
     {

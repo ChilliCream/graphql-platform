@@ -1,6 +1,7 @@
 using System;
+using HotChocolate.Data.Filters;
 
-namespace HotChocolate.Data.Filters
+namespace HotChocolate.Data
 {
     public static class FilterConventionDescriptorExtensions
     {
