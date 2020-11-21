@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using HotChocolate.Data.Filters.Expressions;
+using HotChocolate.Execution;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -27,13 +30,13 @@ namespace HotChocolate.Data.Filters
             var convention = new FilterConvention(
                 descriptor =>
                 {
-                    descriptor.Operation(DefaultOperations.Equals).Name("eq");
-                    descriptor.BindRuntimeType<string, TestOperationFilterType>();
+                    descriptor.Operation(DefaultFilterOperations.Equals).Name("eq");
+                    descriptor.BindRuntimeType<string, TestOperationFilterInputType>();
                     descriptor.Provider(provider);
                 });
 
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: { eq:\"a\" }}");
-            var type = new FooFilterType();
+            var type = new FooFilterInput();
 
             //act
             ISchema? schema = CreateSchemaWith(type, convention);
@@ -62,12 +65,12 @@ namespace HotChocolate.Data.Filters
             var convention = new FilterConvention(
                 descriptor =>
                 {
-                    descriptor.Operation(DefaultOperations.Equals).Name("eq");
-                    descriptor.BindRuntimeType<string, TestOperationFilterType>();
+                    descriptor.Operation(DefaultFilterOperations.Equals).Name("eq");
+                    descriptor.BindRuntimeType<string, TestOperationFilterInputType>();
                     descriptor.Provider(provider);
                 });
 
-            var type = new FooFilterType();
+            var type = new FooFilterInput();
 
             //act
             SchemaException? error =
@@ -90,12 +93,12 @@ namespace HotChocolate.Data.Filters
             var convention = new FilterConvention(
                 descriptor =>
                 {
-                    descriptor.Operation(DefaultOperations.Equals).Name("eq");
-                    descriptor.BindRuntimeType<string, TestOperationFilterType>();
+                    descriptor.Operation(DefaultFilterOperations.Equals).Name("eq");
+                    descriptor.BindRuntimeType<string, TestOperationFilterInputType>();
                     descriptor.Provider(provider);
                 });
 
-            var type = new FooFilterType();
+            var type = new FooFilterInput();
 
             //act
             SchemaException? error =
@@ -119,11 +122,11 @@ namespace HotChocolate.Data.Filters
             var convention = new FilterConvention(
                 descriptor =>
                 {
-                    descriptor.BindRuntimeType<string, TestOperationFilterType>();
+                    descriptor.BindRuntimeType<string, TestOperationFilterInputType>();
                     descriptor.Provider(provider);
                 });
 
-            var type = new FooFilterType();
+            var type = new FooFilterInput();
 
             //act
             SchemaException error =
@@ -147,12 +150,12 @@ namespace HotChocolate.Data.Filters
             var convention = new FilterConvention(
                 descriptor =>
                 {
-                    descriptor.Operation(DefaultOperations.Equals).Description("eq");
-                    descriptor.BindRuntimeType<string, TestOperationFilterType>();
+                    descriptor.Operation(DefaultFilterOperations.Equals).Description("eq");
+                    descriptor.BindRuntimeType<string, TestOperationFilterInputType>();
                     descriptor.Provider(provider);
                 });
 
-            var type = new FooFilterType();
+            var type = new FooFilterInput();
 
             //act
             ArgumentException error =
@@ -179,11 +182,11 @@ namespace HotChocolate.Data.Filters
             var convention = new FilterConvention(
                 descriptor =>
                 {
-                    descriptor.Operation(DefaultOperations.Equals).Name("eq");
-                    descriptor.BindRuntimeType<string, TestOperationFilterType>();
+                    descriptor.Operation(DefaultFilterOperations.Equals).Name("eq");
+                    descriptor.BindRuntimeType<string, TestOperationFilterInputType>();
                 });
 
-            var type = new FooFilterType();
+            var type = new FooFilterInput();
 
             //act
             SchemaException? error =
@@ -207,11 +210,11 @@ namespace HotChocolate.Data.Filters
             var convention = new FilterConvention(
                 descriptor =>
                 {
-                    descriptor.Operation(DefaultOperations.Equals).Name("eq");
+                    descriptor.Operation(DefaultFilterOperations.Equals).Name("eq");
                     descriptor.Provider(provider);
                 });
 
-            var type = new FooFilterType();
+            var type = new FooFilterInput();
 
             //act
             SchemaException? error =
@@ -244,18 +247,18 @@ namespace HotChocolate.Data.Filters
             var extension1 = new FilterConventionExtension(
                 descriptor =>
                 {
-                    descriptor.BindRuntimeType<string, TestOperationFilterType>();
+                    descriptor.BindRuntimeType<string, TestOperationFilterInputType>();
                     descriptor.Provider(provider);
                 });
 
             var extension2 = new FilterConventionExtension(
                 descriptor =>
                 {
-                    descriptor.Operation(DefaultOperations.Equals).Name("eq");
+                    descriptor.Operation(DefaultFilterOperations.Equals).Name("eq");
                 });
 
             IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: { eq:\"a\" }}");
-            var type = new FooFilterType();
+            var type = new FooFilterInput();
 
             //act
             CreateSchemaWith(type, convention, extension1, extension2);
@@ -285,12 +288,12 @@ namespace HotChocolate.Data.Filters
             var convention = new FilterConvention(
                 descriptor =>
                 {
-                    descriptor.BindRuntimeType<string, TestOperationFilterType>();
+                    descriptor.BindRuntimeType<string, TestOperationFilterInputType>();
                     descriptor.Provider(provider);
                 });
 
             IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: { eq:\"a\" }}");
-            var type = new FooFilterType();
+            var type = new FooFilterInput();
 
             //act
             CreateSchemaWithTypes(
@@ -322,19 +325,19 @@ namespace HotChocolate.Data.Filters
             var convention = new FilterConvention(
                 descriptor =>
                 {
-                    descriptor.BindRuntimeType<string, TestOperationFilterType>();
+                    descriptor.BindRuntimeType<string, TestOperationFilterInputType>();
                     descriptor.Provider(provider);
                 });
 
             var extension1 = new FilterConventionExtension(
                 descriptor =>
                 {
-                    descriptor.Operation(DefaultOperations.Equals).Name("eq");
+                    descriptor.Operation(DefaultFilterOperations.Equals).Name("eq");
                     descriptor.AddProviderExtension<MockFilterProviderExtensionConvention>();
                 });
 
             IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: { eq:\"a\" }}");
-            var type = new FooFilterType();
+            var type = new FooFilterInput();
 
             //act
             CreateSchemaWith(type, convention, extension1);
@@ -348,6 +351,32 @@ namespace HotChocolate.Data.Filters
 
             var b = new Foo { Bar = "b" };
             Assert.False(func(b));
+        }
+
+        [Fact]
+        public async Task FilterConvention_Should_UseBoundFilterType()
+        {
+            // arrange
+            var convention = new FilterConvention(
+                descriptor =>
+                {
+                    descriptor.AddDefaults();
+                    descriptor.BindRuntimeType<string, TestOperationFilterInputType>();
+                    descriptor.BindRuntimeType<Foo, CustomFooFilterInput>();
+                });
+
+            IRequestExecutorBuilder builder = new ServiceCollection()
+                .AddGraphQL()
+                .AddConvention<IFilterConvention>(convention)
+                .AddFiltering()
+                .AddQueryType(
+                    x => x.Name("Query").Field("foos").UseFiltering().Resolve(new List<Foo>()));
+
+            //act
+            ISchema schema = await builder.BuildSchemaAsync();
+
+            // assert
+            schema.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -431,15 +460,15 @@ namespace HotChocolate.Data.Filters
         {
             protected override void Configure(IFilterConventionDescriptor descriptor)
             {
-                descriptor.Operation(DefaultOperations.Equals).Name("eq");
+                descriptor.Operation(DefaultFilterOperations.Equals).Name("eq");
             }
         }
 
-        public class TestOperationFilterType : StringOperationFilterInput
+        public class TestOperationFilterInputType : StringOperationFilterInputType
         {
             protected override void Configure(IFilterInputTypeDescriptor descriptor)
             {
-                descriptor.Operation(DefaultOperations.Equals).Type<StringType>();
+                descriptor.Operation(DefaultFilterOperations.Equals).Type<StringType>();
                 descriptor.AllowAnd(false).AllowOr(false);
             }
         }
@@ -462,7 +491,7 @@ namespace HotChocolate.Data.Filters
             public string Bar { get; set; }
         }
 
-        public class FooFilterType
+        public class FooFilterInput
             : FilterInputType<Foo>
         {
             protected override void Configure(
@@ -471,6 +500,11 @@ namespace HotChocolate.Data.Filters
                 descriptor.Field(t => t.Bar);
                 descriptor.AllowAnd(false).AllowOr(false);
             }
+        }
+
+        public class CustomFooFilterInput : FilterInputType<Foo>
+        {
+
         }
     }
 }

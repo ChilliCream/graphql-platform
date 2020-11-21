@@ -3,12 +3,12 @@
 }
 
 type Query {
-  foo(test: FooFilterTypeFilterInput): String
+  foo(test: FooFilterInput): String
 }
 
-input FooFilterTypeFilterInput {
-  and: [FooFilterTypeFilterInput!]
-  or: [FooFilterTypeFilterInput!]
+input FooFilterInput {
+  and: [FooFilterInput!]
+  or: [FooFilterInput!]
   string: StringOperationFilterInput
 }
 

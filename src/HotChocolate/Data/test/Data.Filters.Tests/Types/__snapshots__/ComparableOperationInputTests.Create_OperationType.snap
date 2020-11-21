@@ -3,10 +3,10 @@
 }
 
 type Query {
-  foo(test: ComparableOperationFilterInputOfInt32FilterInput): String
+  foo(test: ComparableInt32OperationFilterInput): String
 }
 
-input ComparableOperationFilterInputOfInt32FilterInput {
+input ComparableInt32OperationFilterInput {
   eq: Int
   neq: Int
   in: [Int!]
