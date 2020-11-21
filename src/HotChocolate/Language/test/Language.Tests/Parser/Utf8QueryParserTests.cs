@@ -476,5 +476,23 @@ namespace HotChocolate.Language
             // assert
             document.MatchSnapshot();
         }
+
+        [Fact(Skip = "Implement Parse Variable Directives")]
+        public void ParseVariablesWithDirective()
+        {
+            // arrange
+            byte[] sourceText = Encoding.UTF8.GetBytes(
+                @"query ($a: String! @foo)
+                    a(a: $a)
+                ");
+
+            // act
+            var parser = new Utf8GraphQLParser(
+                sourceText, ParserOptions.Default);
+            DocumentNode document = parser.Parse();
+
+            // assert
+            document.MatchSnapshot();
+        }
     }
 }

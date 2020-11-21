@@ -2,7 +2,7 @@
   query: Query
 }
 
-interface Contract {
+interface Contract implements Node {
   id: ID!
   customerId: ID!
 }

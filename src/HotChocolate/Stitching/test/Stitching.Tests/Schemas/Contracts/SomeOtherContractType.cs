@@ -4,8 +4,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Stitching.Schemas.Contracts
 {
-    public class SomeOtherContractType
-        : ObjectType<SomeOtherContract>
+    public class SomeOtherContractType : ObjectType<SomeOtherContract>
     {
         protected override void Configure(
             IObjectTypeDescriptor<SomeOtherContract> descriptor)
