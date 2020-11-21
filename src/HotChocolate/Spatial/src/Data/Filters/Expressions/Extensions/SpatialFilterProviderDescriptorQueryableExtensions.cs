@@ -1,6 +1,8 @@
+using HotChocolate.Data.Filters;
 using HotChocolate.Data.Filters.Expressions;
+using HotChocolate.Data.Filters.Spatial;
 
-namespace HotChocolate.Data.Filters.Spatial
+namespace HotChocolate.Data
 {
     public static class SpatialFilterProviderDescriptorQueryableExtensions
     {

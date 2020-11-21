@@ -1,8 +1,9 @@
 using HotChocolate.Configuration;
+using HotChocolate.Data.Filters;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.Data.ThrowHelper;
 
-namespace HotChocolate.Data.Filters
+namespace HotChocolate.Data
 {
     public static class FilterDescriptorContextExtensions
     {

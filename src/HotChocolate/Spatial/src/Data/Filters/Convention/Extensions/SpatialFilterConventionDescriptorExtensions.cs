@@ -1,8 +1,10 @@
 using System;
+using HotChocolate.Data.Filters;
 using HotChocolate.Data.Filters.Expressions;
+using HotChocolate.Data.Filters.Spatial;
 using NetTopologySuite.Geometries;
 
-namespace HotChocolate.Data.Filters.Spatial
+namespace HotChocolate.Data
 {
     public static class SpatialFilterConventionDescriptorExtensions
     {
