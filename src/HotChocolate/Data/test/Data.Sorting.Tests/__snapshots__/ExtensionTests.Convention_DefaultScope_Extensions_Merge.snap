@@ -8,10 +8,10 @@ type Query {
 
 input TestSortSortInput {
   "test"
-  test: DefaultSortEnumType
+  test: SortEnumType
 }
 
-enum DefaultSortEnumType {
+enum SortEnumType {
   ASC
   DESC
 }

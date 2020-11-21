@@ -7,24 +7,24 @@ type Foo {
 }
 
 type QueryType {
-  foos(order: [FooSortInput]): [Foo]
-  foosBar(order: [Bar_FooSortInput]): [Foo]
+  foos(order: [FooSortInput!]): [Foo]
+  foosBar(order: [Bar_FooSortInput!]): [Foo]
 }
 
 input Bar_FooSortInput {
-  bar: Bar_DefaultSortEnumType
+  bar: Bar_SortEnumType
 }
 
 input FooSortInput {
-  bar: DefaultSortEnumType
+  bar: SortEnumType
 }
 
-enum Bar_DefaultSortEnumType {
+enum Bar_SortEnumType {
   Different
   DESC
 }
 
-enum DefaultSortEnumType {
+enum SortEnumType {
   ASC
   DESC
 }
