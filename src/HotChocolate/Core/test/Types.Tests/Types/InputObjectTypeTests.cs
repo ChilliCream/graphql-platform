@@ -1097,6 +1097,23 @@ namespace HotChocolate.Types
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void Input_Similar_Field_name()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("abc")
+                    .Argument("def", a => a.Type<InputObjectType<FooSimilarNaming>>())
+                    .Resolver("ghi"))
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         public class SimpleInput
         {
             public int Id { get; set; }
@@ -1244,6 +1261,14 @@ namespace HotChocolate.Types
             public string WithNullDefault { get; set; }
 
             public string WithoutDefault { get; set; }
+        }
+
+        public class FooSimilarNaming
+        {
+            public string YourFieldName { get; set; }
+
+            [GraphQLDeprecated("This is deprecated")]
+            public string YourFieldname { get; set; }
         }
     }
 }

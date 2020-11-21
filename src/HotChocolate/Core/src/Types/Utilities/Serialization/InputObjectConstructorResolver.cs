@@ -13,9 +13,8 @@ namespace HotChocolate.Utilities.Serialization
             Type type,
             IEnumerable<PropertyInfo> properties)
         {
-            Dictionary<string, PropertyInfo> propertyMap = properties.ToDictionary(
-                t => t.Name,
-                StringComparer.OrdinalIgnoreCase);
+            Dictionary<string, PropertyInfo> propertyMap =
+                properties.ToDictionary(t => t.Name);
             return GetCompatibleConstructor(type, propertyMap);
         }
 
