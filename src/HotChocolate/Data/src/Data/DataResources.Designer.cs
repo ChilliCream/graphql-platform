@@ -255,6 +255,12 @@ namespace HotChocolate.Data {
             }
         }
         
+        internal static string FilterConvention_TypeIsUnknown {
+            get {
+                return ResourceManager.GetString("FilterConvention_TypeIsUnknown", resourceCulture);
+            }
+        }
+        
         internal static string SortConvention_OperationNameNotFound {
             get {
                 return ResourceManager.GetString("SortConvention_OperationNameNotFound", resourceCulture);
@@ -282,6 +288,12 @@ namespace HotChocolate.Data {
         internal static string FilterInterceptor_NoHandlerFoundForField {
             get {
                 return ResourceManager.GetString("FilterInterceptor_NoHandlerFoundForField", resourceCulture);
+            }
+        }
+        
+        internal static string FilterInterceptor_OperationHasNoTypeSpecified {
+            get {
+                return ResourceManager.GetString("FilterInterceptor_OperationHasNoTypeSpecified", resourceCulture);
             }
         }
         

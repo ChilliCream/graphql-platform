@@ -95,6 +95,13 @@ namespace HotChocolate.Data.Filters
                 {
                     if (field is FilterFieldDefinition filterFieldDefinition)
                     {
+                        if (filterFieldDefinition.Type is null)
+                        {
+                            throw ThrowHelper.FilterInterceptor_OperationHasNoTypeSpecified(
+                                def,
+                                filterFieldDefinition);
+                        }
+
                         if (completionContext.TryPredictTypeKind(
                             filterFieldDefinition.Type,
                             out TypeKind kind) &&

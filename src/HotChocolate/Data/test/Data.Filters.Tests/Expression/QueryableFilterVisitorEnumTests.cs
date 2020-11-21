@@ -16,7 +16,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ barEnum: { eq: BAR }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
 
             // act
             Func<Foo, bool>? func = tester.Build<Foo>(value);
@@ -35,7 +35,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ barEnum: { neq: BAR }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
 
             // act
             Func<Foo, bool>? func = tester.Build<Foo>(value);
@@ -55,7 +55,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ barEnum: { in: [BAZ, QUX] }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
 
             // act
             Func<Foo, bool>? func = tester.Build<Foo>(value);
@@ -74,7 +74,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ barEnum: { nin: [BAZ, QUX] }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
 
             // act
             Func<Foo, bool>? func = tester.Build<Foo>(value);
@@ -93,7 +93,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ barEnum: { eq: BAR }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterInput());
 
             // act
             Func<FooNullable, bool>? func = tester.Build<FooNullable>(value);
@@ -116,7 +116,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ barEnum: { neq: BAR }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterInput());
 
             // act
             Func<FooNullable, bool>? func = tester.Build<FooNullable>(value);
@@ -138,7 +138,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ barEnum: { in: [BAZ, QUX] }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterInput());
 
             // act
             Func<FooNullable, bool>? func = tester.Build<FooNullable>(value);
@@ -160,7 +160,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ barEnum: { nin: [BAZ, QUX] }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterInput());
 
             // act
             Func<FooNullable, bool>? func = tester.Build<FooNullable>(value);
@@ -205,12 +205,12 @@ namespace HotChocolate.Data.Filters.Expressions
             QUX
         }
 
-        public class FooFilterType
+        public class FooFilterInput
             : FilterInputType<Foo>
         {
         }
 
-        public class FooNullableFilterType
+        public class FooNullableFilterInput
             : FilterInputType<FooNullable>
         {
         }

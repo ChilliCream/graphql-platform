@@ -3,16 +3,16 @@
 }
 
 type Query {
-  foo(test: FooFilterTypeFilterInput): String
+  foo(test: FooFilterInput): String
 }
 
-input FooFilterTypeFilterInput {
-  and: [FooFilterTypeFilterInput!]
-  or: [FooFilterTypeFilterInput!]
-  string: ListFilterInputOfStringOperationFilterInput
+input FooFilterInput {
+  and: [FooFilterInput!]
+  or: [FooFilterInput!]
+  string: ListStringOperationFilterInput
 }
 
-input ListFilterInputOfStringOperationFilterInput {
+input ListStringOperationFilterInput {
   all: StringOperationFilterInput
   none: StringOperationFilterInput
   some: StringOperationFilterInput
