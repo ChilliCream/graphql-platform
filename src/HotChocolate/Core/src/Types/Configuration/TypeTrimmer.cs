@@ -110,7 +110,7 @@ namespace HotChocolate.Configuration
         {
             VisitDirectives(type);
 
-            foreach (InterfaceType interfaceType in type.Interfaces)
+            foreach (InterfaceType interfaceType in type.Implements)
             {
                 VisitInterface(interfaceType);
             }

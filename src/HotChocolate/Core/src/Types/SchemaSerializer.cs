@@ -196,7 +196,7 @@ namespace HotChocolate
                 .Select(SerializeDirective)
                 .ToList();
 
-            var interfaces = objectType.Interfaces
+            var interfaces = objectType.Implements
                 .Select(SerializeNamedType)
                 .ToList();
 
@@ -223,6 +223,10 @@ namespace HotChocolate
                 .Select(SerializeDirective)
                 .ToList();
 
+            var interfaces = interfaceType.Implements
+                .Select(SerializeNamedType)
+                .ToList();
+
             var fields = interfaceType.Fields
                 .Select(SerializeObjectField)
                 .ToList();
@@ -233,7 +237,7 @@ namespace HotChocolate
                 new NameNode(interfaceType.Name),
                 SerializeDescription(interfaceType.Description),
                 directives,
-                Array.Empty<NamedTypeNode>(),
+                interfaces,
                 fields
             );
         }

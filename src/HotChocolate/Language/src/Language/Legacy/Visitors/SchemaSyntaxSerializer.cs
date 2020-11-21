@@ -122,6 +122,16 @@ namespace HotChocolate.Language
             writer.WriteSpace();
             writer.WriteName(node.Name);
 
+            if (node.Interfaces.Count > 0)
+            {
+                writer.WriteSpace();
+                writer.Write(Keywords.Implements);
+                writer.WriteSpace();
+                writer.WriteMany(node.Interfaces,
+                    (n, w) => writer.WriteNamedType(n),
+                    " & ");
+            }
+
             WriteDirectives(node.Directives, writer);
 
             WriteLeftBrace(writer);
