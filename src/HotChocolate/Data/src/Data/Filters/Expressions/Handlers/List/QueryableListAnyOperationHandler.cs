@@ -23,9 +23,9 @@ namespace HotChocolate.Data.Filters.Expressions
             IFilterInputTypeDefinition typeDefinition,
             IFilterFieldDefinition fieldDefinition)
         {
-            return context.Type is IListFilterInput &&
+            return context.Type is IListFilterInputType &&
                 fieldDefinition is FilterOperationFieldDefinition operationField &&
-                operationField.Id == DefaultOperations.Any;
+                operationField.Id == DefaultFilterOperations.Any;
         }
 
         public override Expression HandleOperation(

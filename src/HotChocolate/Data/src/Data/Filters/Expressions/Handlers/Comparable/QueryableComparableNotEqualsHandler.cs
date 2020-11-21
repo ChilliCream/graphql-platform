@@ -13,7 +13,7 @@ namespace HotChocolate.Data.Filters.Expressions
         {
         }
 
-        protected override int Operation => DefaultOperations.NotEquals;
+        protected override int Operation => DefaultFilterOperations.NotEquals;
 
         public override Expression HandleOperation(
             QueryableFilterContext context,

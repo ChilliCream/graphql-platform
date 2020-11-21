@@ -20,6 +20,12 @@ namespace HotChocolate.Data
                         member.DeclaringType?.Name)
                     .Build());
 
+        public static SchemaException FilterConvention_TypeIsUnknown(Type type) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(DataResources.FilterConvention_TypeIsUnknown, type.Name)
+                    .Build());
+
         public static SchemaException FilterConvention_OperationNameNotFound(int operation) =>
             new SchemaException(
                 SchemaErrorBuilder.New()
@@ -68,6 +74,17 @@ namespace HotChocolate.Data
                 SchemaErrorBuilder.New()
                     .SetMessage(
                         DataResources.FilterInterceptor_NoHandlerFoundForField,
+                        field.Name,
+                        type.Name)
+                    .Build());
+
+        public static SchemaException FilterInterceptor_OperationHasNoTypeSpecified(
+            FilterInputTypeDefinition type,
+            FilterFieldDefinition field) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        DataResources.FilterInterceptor_OperationHasNoTypeSpecified,
                         field.Name,
                         type.Name)
                     .Build());

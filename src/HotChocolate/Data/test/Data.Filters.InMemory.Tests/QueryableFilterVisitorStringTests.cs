@@ -28,7 +28,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_StringEqual_Expression()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
             // act
             // assert
@@ -58,7 +58,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_StringNotEqual_Expression()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
             // act
             // assert
@@ -88,7 +88,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_StringIn_Expression()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
             // act
             // assert
@@ -118,7 +118,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_StringNotIn_Expression()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
             // act
             // assert
@@ -148,7 +148,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_StringContains_Expression()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
             // act
             // assert
@@ -178,7 +178,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_StringNoContains_Expression()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
             // act
             // assert
@@ -208,7 +208,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_StringStartsWith_Expression()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
             // act
             // assert
@@ -238,7 +238,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_StringNotStartsWith_Expression()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
             // act
             // assert
@@ -268,7 +268,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_StringEndsWith_Expression()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
             // act
             // assert
@@ -298,7 +298,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_StringNotEndsWith_Expression()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
             // act
             // assert
@@ -328,7 +328,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_NullableStringEqual_Expression()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterType>(
+            IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
                 _fooNullableEntities);
 
             // act
@@ -359,7 +359,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_NullableStringNotEqual_Expression()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterType>(
+            IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
                 _fooNullableEntities);
 
             // act
@@ -390,7 +390,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_NullableStringIn_Expression()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterType>(
+            IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
                 _fooNullableEntities);
 
             // act
@@ -421,7 +421,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_NullableStringNotIn_Expression()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterType>(
+            IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
                 _fooNullableEntities);
 
             // act
@@ -452,7 +452,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_NullableStringContains_Expression()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterType>(
+            IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
                 _fooNullableEntities);
 
             // act
@@ -483,7 +483,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_NullableStringNoContains_Expression()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterType>(
+            IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
                 _fooNullableEntities);
 
             // act
@@ -514,7 +514,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_NullableStringStartsWith_Expression()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterType>(
+            IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
                 _fooNullableEntities);
 
             // act
@@ -545,7 +545,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_NullableStringNotStartsWith_Expression()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterType>(
+            IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
                 _fooNullableEntities);
 
             // act
@@ -576,7 +576,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_NullableStringEndsWith_Expression()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterType>(
+            IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
                 _fooNullableEntities);
 
             // act
@@ -607,7 +607,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_NullableStringNotEndsWith_Expression()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterType>(
+            IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
                 _fooNullableEntities);
 
             // act
@@ -648,7 +648,7 @@ namespace HotChocolate.Data.Filters
             public string? Bar { get; set; }
         }
 
-        public class FooFilterType
+        public class FooFilterInput
             : FilterInputType<Foo>
         {
             protected override void Configure(
@@ -657,7 +657,7 @@ namespace HotChocolate.Data.Filters
                 descriptor.Field(t => t.Bar);
             }
         }
-        public class FooNullableFilterType
+        public class FooNullableFilterInput
             : FilterInputType<FooNullable>
         {
             protected override void Configure(
