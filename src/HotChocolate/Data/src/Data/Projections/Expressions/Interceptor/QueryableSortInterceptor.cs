@@ -6,6 +6,7 @@ using HotChocolate.Data.Projections.Expressions.Handlers;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Data.Sorting.Expressions;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Language;
 using HotChocolate.Types;
 using static HotChocolate.Data.ErrorHelper;
 using static HotChocolate.Data.Sorting.Expressions.QueryableSortProvider;
@@ -41,7 +42,8 @@ namespace HotChocolate.Data.Projections.Handlers
                 argumentValue.Argument.Type is ListType lt &&
                 lt.ElementType is NonNullType nn &&
                 nn.NamedType() is ISortInputType sortInputType &&
-                argumentValue.ValueLiteral is {} valueNode)
+                argumentValue.ValueLiteral is {} valueNode &&
+                valueNode is not NullValueNode)
             {
                 QueryableSortContext sortContext =
                     argumentVisitor(valueNode, sortInputType, false);
