@@ -25,7 +25,7 @@ namespace HotChocolate.Internal
 
             context.RegisterDependencyRange(
                 definition.Interfaces,
-                TypeDependencyKind.Default);
+                TypeDependencyKind.Completed);
 
             RegisterAdditionalDependencies(context, definition);
             RegisterDirectiveDependencies(context, definition);
@@ -79,7 +79,7 @@ namespace HotChocolate.Internal
 
             context.RegisterDependencyRange(
                 definition.Interfaces,
-                TypeDependencyKind.Default);
+                TypeDependencyKind.Completed);
 
             RegisterAdditionalDependencies(context, definition);
             RegisterDirectiveDependencies(context, definition);

@@ -2,8 +2,7 @@ using System;
 
 namespace HotChocolate.Stitching.Schemas.Contracts
 {
-    public class SomeOtherContract
-        : IContract
+    public class SomeOtherContract : IContract
     {
         public string Id { get; set; }
 
