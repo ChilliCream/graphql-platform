@@ -20,7 +20,9 @@ authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 - new validation (graphQL-js)
 - new batching / DataLoader
 
+- type system improvements
 - relay nodes
+- resolver improvements
 
 - SPEC
 - interfaces implement interfaces
