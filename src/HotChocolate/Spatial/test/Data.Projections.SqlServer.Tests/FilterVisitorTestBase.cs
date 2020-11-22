@@ -56,6 +56,7 @@ namespace HotChocolate.Data.Projections.Spatial
                         .Name("Query")
                         .Field("root")
                         .Resolver(resolver)
+                        .UseProjection()
                         .Use(next => async context =>
                         {
                             await next(context);

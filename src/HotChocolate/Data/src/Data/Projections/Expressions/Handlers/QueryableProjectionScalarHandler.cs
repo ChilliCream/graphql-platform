@@ -14,6 +14,15 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers
             selection.Field.Member is {} &&
             selection.SelectionSet is null;
 
+        public override bool TryHandleEnter(
+            QueryableProjectionContext context,
+            ISelection selection,
+            out ISelectionVisitorAction? action)
+        {
+            action = SelectionVisitor.SkipAndLeave;
+            return true;
+        }
+
         public override bool TryHandleLeave(
             QueryableProjectionContext context,
             ISelection selection,
