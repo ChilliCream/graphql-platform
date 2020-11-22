@@ -9,20 +9,18 @@ using static HotChocolate.Data.Filters.Spatial.SpatialOperationHandlerHelper;
 
 namespace HotChocolate.Data.Filters.Spatial
 {
-    public class QueryableSpatialDistanceOperationHandler
-        : QueryableSpatialMethodHandler
+    public abstract class QueryableSpatialTouchesOperationHandlerBase
+        : QueryableSpatialBooleanMethodHandler
     {
-        private static readonly MethodInfo _distance =
-            typeof(Geometry).GetMethod(nameof(Geometry.Distance))!;
+        private static readonly MethodInfo _touches =
+            typeof(Geometry).GetMethod(nameof(Geometry.Touches))!;
 
-        public QueryableSpatialDistanceOperationHandler(
+        public QueryableSpatialTouchesOperationHandlerBase(
             IFilterConvention convention,
             ITypeInspector inspector)
-            : base(convention, inspector, _distance)
+            : base(convention, inspector, _touches)
         {
         }
-
-        protected override int Operation => SpatialFilterOperations.Distance;
 
         protected override bool TryHandleOperation(
             QueryableFilterContext context,
@@ -34,14 +32,14 @@ namespace HotChocolate.Data.Filters.Spatial
             {
                 if (TryGetParameter(field, node.Value, BufferFieldName, out double buffer))
                 {
-                    result = ExpressionBuilder.Distance(
+                    result = ExpressionBuilder.Touches(
                         context.GetInstance(),
                         ExpressionBuilder.Buffer(g, buffer));
 
                     return true;
                 }
 
-                result = ExpressionBuilder.Distance(context.GetInstance(), g);
+                result = ExpressionBuilder.Touches(context.GetInstance(), g);
                 return true;
             }
 
