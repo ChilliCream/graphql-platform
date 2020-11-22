@@ -23,7 +23,6 @@ namespace HotChocolate.Data.Filters.Spatial.Expressions
                                     type: Point
                                     coordinates: [20, 20]
                                 }
-                                eq: true
                             }
                         }
                     }");
@@ -69,7 +68,6 @@ namespace HotChocolate.Data.Filters.Spatial.Expressions
                                     coordinates: [3, 3]
                                 }
                                 buffer: 2
-                                eq: true
                             }
                         }
                     }");
@@ -204,7 +202,6 @@ namespace HotChocolate.Data.Filters.Spatial.Expressions
                                     type: Point
                                     coordinates: [1, 1]
                                 }
-                                eq: true
                             }
                         }
                     }");
@@ -250,7 +247,6 @@ namespace HotChocolate.Data.Filters.Spatial.Expressions
                                     type: LineString
                                     coordinates: [[1, 1], [3, 1]]
                                 }
-                                eq: true
                             }
                         }
                     }");
@@ -296,7 +292,6 @@ namespace HotChocolate.Data.Filters.Spatial.Expressions
                                     type: Polygon
                                     coordinates: [[1, 1], [3, 1], [2, 0], [1, 1]]
                                 }
-                                eq: true
                             }
                         }
                     }");
@@ -345,7 +340,6 @@ namespace HotChocolate.Data.Filters.Spatial.Expressions
                                     type: LineString
                                     coordinates: [[0, 0], [1, 2], [3, 1]]
                                 }
-                                eq: true
                             }
                         }
                     }");
@@ -389,7 +383,6 @@ namespace HotChocolate.Data.Filters.Spatial.Expressions
                                     type: Polygon
                                     coordinates: [[1, 1], [3, 1], [2, 0], [1, 1]]
                                 }
-                                eq: true
                             }
                         }
                     }");
@@ -439,7 +432,6 @@ namespace HotChocolate.Data.Filters.Spatial.Expressions
                                     type: LineString
                                     coordinates: [[10, 20], [20, 20], [30, 20]]
                                 }
-                                eq: true
                             }
                         }
                     }");
@@ -475,7 +467,6 @@ namespace HotChocolate.Data.Filters.Spatial.Expressions
                                     coordinates: [3, 3]
                                 }
                                 buffer: 5
-                                eq: true
                             }
                         }
                     }");
