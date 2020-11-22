@@ -95,7 +95,7 @@ namespace HotChocolate.Data.Filters.Spatial
             // Dequeue last
             Expression instance = context.PopInstance();
             context.RuntimeTypes.Pop();
-            Expression condition = FilterExpressionBuilder.Equals(instance, IsTrue);
+            Expression condition = IsTrue ? instance : FilterExpressionBuilder.Not(instance);
 
             if (context.InMemory)
             {
