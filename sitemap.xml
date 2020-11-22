@@ -61,9 +61,9 @@
 <url> <loc>https://chillicream.com/docs/hotchocolate/api-reference</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/hotchocolate/api-reference/language</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/hotchocolate/api-reference/migrate-from-10-to-11</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
+<url> <loc>https://chillicream.com/docs/hotchocolate/api-reference/visitors</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/hotchocolate/defining-a-schema/directives</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/hotchocolate/defining-a-schema</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
-<url> <loc>https://chillicream.com/docs/hotchocolate/api-reference/visitors</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/hotchocolate/defining-a-schema/scalars</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/hotchocolate/defining-a-schema/unions-and-interfaces</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/hotchocolate/defining-a-schema/versioning</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
@@ -76,6 +76,7 @@
 <url> <loc>https://chillicream.com/docs/hotchocolate/fetching-data/projections</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/hotchocolate/fetching-data/sorting</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/hotchocolate/integrations/entity-framework</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
+<url> <loc>https://chillicream.com/docs/hotchocolate/integrations/spatial-data</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/hotchocolate/v10/code-first</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/hotchocolate/v10</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/hotchocolate/v10/schema-first</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
