@@ -13,22 +13,33 @@ authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 - records
 
 - new configuration API
+- ASP.NET Core Routing
+- bcp
+
+- new execution engine
+- new validation (graphQL-js)
+- new batching / DataLoader
 
 - relay nodes
 
+- SPEC
 - interfaces implement interfaces
-
--
+- Specified by on scalars
+- defer
 
 - extension API
 - type interceptor
 - schema interceptor
+- conventions
 
 - Data Integration
-- Spatial Filtering
+- Spatial Filtering (experimental)
 - spatial types
+- Outlook: MongoDB
+- Outlook: Neo4J
 
 - Schema Stitching
 - hot reload
+- outlook: support for af
 
 - Strawberry Shake
