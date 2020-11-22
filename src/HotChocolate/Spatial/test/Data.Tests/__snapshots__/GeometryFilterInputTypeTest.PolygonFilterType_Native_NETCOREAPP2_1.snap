@@ -51,8 +51,6 @@ input DimensionOperationFilterInput {
 input GeometryContainsOperationFilterInput {
   geometry: Geometry!
   buffer: Float
-  eq: Boolean
-  neq: Boolean
 }
 
 input GeometryDistanceOperationFilterInput {
@@ -104,39 +102,36 @@ input GeometryFilterInput {
   "Sets the ID of the Spatial Reference System used by the Geometry."
   srid: ComparableInt32OperationFilterInput
   contains: GeometryContainsOperationFilterInput
+  ncontains: GeometryContainsOperationFilterInput
   distance: GeometryDistanceOperationFilterInput
   intersects: GeometryIntersectsOperationFilterInput
+  nintersects: GeometryIntersectsOperationFilterInput
   overlaps: GeometryOverlapsOperationFilterInput
+  noverlaps: GeometryOverlapsOperationFilterInput
   touches: GeometryTouchesOperationFilterInput
+  ntouches: GeometryTouchesOperationFilterInput
   within: GeometryWithinOperationFilterInput
+  nwithin: GeometryWithinOperationFilterInput
 }
 
 input GeometryIntersectsOperationFilterInput {
   geometry: Geometry!
   buffer: Float
-  eq: Boolean
-  neq: Boolean
 }
 
 input GeometryOverlapsOperationFilterInput {
   geometry: Geometry!
   buffer: Float
-  eq: Boolean
-  neq: Boolean
 }
 
 input GeometryTouchesOperationFilterInput {
   geometry: Geometry!
   buffer: Float
-  eq: Boolean
-  neq: Boolean
 }
 
 input GeometryWithinOperationFilterInput {
   geometry: Geometry!
   buffer: Float
-  eq: Boolean
-  neq: Boolean
 }
 
 input OgcGeometryTypeOperationFilterInput {
@@ -172,11 +167,16 @@ input PointFilterInput {
   pointOnSurface: PointFilterInput
   srid: ComparableInt32OperationFilterInput
   contains: GeometryContainsOperationFilterInput
+  ncontains: GeometryContainsOperationFilterInput
   distance: GeometryDistanceOperationFilterInput
   intersects: GeometryIntersectsOperationFilterInput
+  nintersects: GeometryIntersectsOperationFilterInput
   overlaps: GeometryOverlapsOperationFilterInput
+  noverlaps: GeometryOverlapsOperationFilterInput
   touches: GeometryTouchesOperationFilterInput
+  ntouches: GeometryTouchesOperationFilterInput
   within: GeometryWithinOperationFilterInput
+  nwithin: GeometryWithinOperationFilterInput
 }
 
 "Represents a polygon with linear edges, which may include holes.\nThe outer boundary (shell)\nand inner boundaries (holes) of the polygon are represented by {@link LinearRing}s.\nThe boundary rings of the polygon may have any orientation.\nPolygons are closed, simple geometries by definition.\n\nThe polygon model conforms to the assertions specified in the\nOpenGIS Simple Features\nSpecification for SQL.\n\nA Polygon is topologically valid if and only if:\n\nthe coordinates which define it are valid coordinates\nthe linear rings for the shell and holes are valid\n(i.e. are closed and do not self-intersect)\nholes touch the shell or another hole at at most one point\n(which implies that the rings of the shell and holes must not cross)\nthe interior of the polygon is connected,\nor equivalently no sequence of touching holes\nmakes the interior of the polygon disconnected\n(i.e. effectively split the polygon into two pieces)."
@@ -203,11 +203,16 @@ input PolygonFilterInput {
   pointOnSurface: PointFilterInput
   srid: ComparableInt32OperationFilterInput
   contains: GeometryContainsOperationFilterInput
+  ncontains: GeometryContainsOperationFilterInput
   distance: GeometryDistanceOperationFilterInput
   intersects: GeometryIntersectsOperationFilterInput
+  nintersects: GeometryIntersectsOperationFilterInput
   overlaps: GeometryOverlapsOperationFilterInput
+  noverlaps: GeometryOverlapsOperationFilterInput
   touches: GeometryTouchesOperationFilterInput
+  ntouches: GeometryTouchesOperationFilterInput
   within: GeometryWithinOperationFilterInput
+  nwithin: GeometryWithinOperationFilterInput
 }
 
 input StringOperationFilterInput {

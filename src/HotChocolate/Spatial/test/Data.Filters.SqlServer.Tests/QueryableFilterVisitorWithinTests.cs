@@ -65,8 +65,7 @@ namespace HotChocolate.Data.Filters.Spatial
                                                 [20 100 ],
                                                 [20 20]
                                             ]
-                                        },
-                                        eq: true
+                                        }
                                     }
                                 }
                             }){
@@ -83,7 +82,7 @@ namespace HotChocolate.Data.Filters.Spatial
                         @"{
                             root(where: {
                                 bar: {
-                                    within: {
+                                    nwithin: {
                                         geometry: {
                                             type: Polygon,
                                             coordinates: [
@@ -93,8 +92,7 @@ namespace HotChocolate.Data.Filters.Spatial
                                                 [20 100 ],
                                                 [20 20]
                                             ]
-                                        },
-                                        eq: false
+                                        }
                                     }
                                 }
                             }){
