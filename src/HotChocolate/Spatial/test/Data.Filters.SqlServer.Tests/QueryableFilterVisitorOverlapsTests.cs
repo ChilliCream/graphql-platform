@@ -10,7 +10,7 @@ namespace HotChocolate.Data.Filters.Spatial
         : SchemaCache
         , IClassFixture<PostgreSqlResource<PostgisConfig>>
     {
-        private static readonly Polygon _truePolygon = 
+        private static readonly Polygon _truePolygon =
             new Polygon(new LinearRing(new[]
             {
                 new Coordinate(150, 150),
@@ -22,7 +22,7 @@ namespace HotChocolate.Data.Filters.Spatial
                 new Coordinate(150, 150)
             }));
 
-        private static readonly Polygon _falsePolygon = 
+        private static readonly Polygon _falsePolygon =
             new Polygon(new LinearRing(new[]
             {
                 new Coordinate(1000, 1000),
@@ -69,8 +69,7 @@ namespace HotChocolate.Data.Filters.Spatial
                                                 [70 70],
                                                 [150 150]
                                             ]
-                                        },
-                                        eq: true
+                                        }
                                     }
                                 }
                             }){
@@ -87,7 +86,7 @@ namespace HotChocolate.Data.Filters.Spatial
                         @"{
                             root(where: {
                                 bar: {
-                                    overlaps: {
+                                    noverlaps: {
                                         geometry: {
                                             type: Polygon,
                                             coordinates: [
@@ -99,8 +98,7 @@ namespace HotChocolate.Data.Filters.Spatial
                                                 [70 70],
                                                 [150 150]
                                             ]
-                                        },
-                                        eq: false
+                                        }
                                     }
                                 }
                             }){

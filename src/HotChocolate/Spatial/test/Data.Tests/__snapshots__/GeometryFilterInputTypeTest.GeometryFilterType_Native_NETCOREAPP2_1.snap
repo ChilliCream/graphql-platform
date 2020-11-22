@@ -51,8 +51,6 @@ input DimensionOperationFilterInput {
 input GeometryContainsOperationFilterInput {
   geometry: Geometry!
   buffer: Float
-  eq: Boolean
-  neq: Boolean
 }
 
 input GeometryDistanceOperationFilterInput {
@@ -104,39 +102,36 @@ input GeometryFilterInput {
   "Sets the ID of the Spatial Reference System used by the Geometry."
   srid: ComparableInt32OperationFilterInput
   contains: GeometryContainsOperationFilterInput
+  ncontains: GeometryContainsOperationFilterInput
   distance: GeometryDistanceOperationFilterInput
   intersects: GeometryIntersectsOperationFilterInput
+  nintersects: GeometryIntersectsOperationFilterInput
   overlaps: GeometryOverlapsOperationFilterInput
+  noverlaps: GeometryOverlapsOperationFilterInput
   touches: GeometryTouchesOperationFilterInput
+  ntouches: GeometryTouchesOperationFilterInput
   within: GeometryWithinOperationFilterInput
+  nwithin: GeometryWithinOperationFilterInput
 }
 
 input GeometryIntersectsOperationFilterInput {
   geometry: Geometry!
   buffer: Float
-  eq: Boolean
-  neq: Boolean
 }
 
 input GeometryOverlapsOperationFilterInput {
   geometry: Geometry!
   buffer: Float
-  eq: Boolean
-  neq: Boolean
 }
 
 input GeometryTouchesOperationFilterInput {
   geometry: Geometry!
   buffer: Float
-  eq: Boolean
-  neq: Boolean
 }
 
 input GeometryWithinOperationFilterInput {
   geometry: Geometry!
   buffer: Float
-  eq: Boolean
-  neq: Boolean
 }
 
 input OgcGeometryTypeOperationFilterInput {
@@ -172,11 +167,16 @@ input PointFilterInput {
   pointOnSurface: PointFilterInput
   srid: ComparableInt32OperationFilterInput
   contains: GeometryContainsOperationFilterInput
+  ncontains: GeometryContainsOperationFilterInput
   distance: GeometryDistanceOperationFilterInput
   intersects: GeometryIntersectsOperationFilterInput
+  nintersects: GeometryIntersectsOperationFilterInput
   overlaps: GeometryOverlapsOperationFilterInput
+  noverlaps: GeometryOverlapsOperationFilterInput
   touches: GeometryTouchesOperationFilterInput
+  ntouches: GeometryTouchesOperationFilterInput
   within: GeometryWithinOperationFilterInput
+  nwithin: GeometryWithinOperationFilterInput
 }
 
 input StringOperationFilterInput {

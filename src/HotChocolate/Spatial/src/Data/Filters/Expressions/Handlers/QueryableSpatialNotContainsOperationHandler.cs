@@ -2,18 +2,18 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Data.Filters.Spatial
 {
-    public class QueryableSpatialContainsOperationHandler
+    public class QueryableSpatialNotContainsOperationHandler
         : QueryableSpatialContainsOperationHandlerBase
     {
-        public QueryableSpatialContainsOperationHandler(
+        public QueryableSpatialNotContainsOperationHandler(
             IFilterConvention convention,
             ITypeInspector inspector)
             : base(convention, inspector)
         {
         }
 
-        protected override int Operation => SpatialFilterOperations.Contains;
+        protected override int Operation => SpatialFilterOperations.NotContains;
 
-        protected override bool IsTrue => true;
+        protected override bool IsTrue => false;
     }
 }

@@ -10,7 +10,7 @@ namespace HotChocolate.Data.Filters.Spatial
         : SchemaCache
         , IClassFixture<PostgreSqlResource<PostgisConfig>>
     {
-        private static readonly Polygon _truePolygon = 
+        private static readonly Polygon _truePolygon =
             new Polygon(new LinearRing(new[]
             {
                 new Coordinate(0, 0),
@@ -20,7 +20,7 @@ namespace HotChocolate.Data.Filters.Spatial
                 new Coordinate(0, 0),
             }));
 
-        private static readonly Polygon _falsePolygon = 
+        private static readonly Polygon _falsePolygon =
             new Polygon(new LinearRing(new[]
             {
                 new Coordinate(1000, 1000),
@@ -59,8 +59,7 @@ namespace HotChocolate.Data.Filters.Spatial
                                         geometry: {
                                             type: Polygon,
                                             coordinates: [[10 10], [10 90], [90 90], [90 10], [10 10]]
-                                        },
-                                        eq: true
+                                        }
                                     }
                                 }
                             }){
@@ -77,12 +76,11 @@ namespace HotChocolate.Data.Filters.Spatial
                         @"{
                             root(where: {
                                 bar: {
-                                    intersects: {
+                                    nintersects: {
                                         geometry: {
                                             type: Polygon,
                                             coordinates: [[10 10], [10 90], [90 90], [90 10], [10 10]]
-                                        },
-                                        eq: false
+                                        }
                                     }
                                 }
                             }){
