@@ -4,13 +4,13 @@ using static HotChocolate.Data.Filters.Spatial.SpatialFilterOperations;
 
 namespace HotChocolate.Data.Filters.Spatial
 {
-    public class GeometryOverlapsOperationFilterInputType : BooleanOperationFilterInputType
+    public class GeometryOverlapsOperationFilterInputType : FilterInputType
     {
         protected override void Configure(IFilterInputTypeDescriptor descriptor)
         {
             descriptor.Operation(Geometry).Type<NonNullType<GeometryType>>();
             descriptor.Operation(Buffer).Type<FloatType>();
-            base.Configure(descriptor);
+            descriptor.AllowAnd(false).AllowOr(false);
         }
     }
 }

@@ -12,10 +12,15 @@ namespace HotChocolate.Data
                 .AddFieldHandler<QueryableSpatialGeometryDataHandler>()
                 .AddFieldHandler<QueryableSpatialBufferDataHandler>()
                 .AddFieldHandler<QueryableSpatialContainsOperationHandler>()
+                .AddFieldHandler<QueryableSpatialNotContainsOperationHandler>()
                 .AddFieldHandler<QueryableSpatialDistanceOperationHandler>()
                 .AddFieldHandler<QueryableSpatialIntersectsOperationHandler>()
+                .AddFieldHandler<QueryableSpatialNotIntersectsOperationHandler>()
                 .AddFieldHandler<QueryableSpatialOverlapsOperationHandler>()
+                .AddFieldHandler<QueryableSpatialNotOverlapsOperationHandler>()
                 .AddFieldHandler<QueryableSpatialTouchesOperationHandler>()
-                .AddFieldHandler<QueryableSpatialWithinOperationHandler>();
+                .AddFieldHandler<QueryableSpatialNotTouchesOperationHandler>()
+                .AddFieldHandler<QueryableSpatialWithinOperationHandler>()
+                .AddFieldHandler<QueryableSpatialNotWithinOperationHandler>();
     }
 }

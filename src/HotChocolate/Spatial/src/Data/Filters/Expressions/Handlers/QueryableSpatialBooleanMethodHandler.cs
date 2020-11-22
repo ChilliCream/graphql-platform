@@ -6,22 +6,22 @@ using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
-using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using static HotChocolate.Data.Filters.Spatial.SpatialOperationHandlerHelper;
 
 namespace HotChocolate.Data.Filters.Spatial
 {
-    public abstract class QueryableSpatialMethodHandler
+    public abstract class QueryableSpatialBooleanMethodHandler
         : FilterFieldHandler<QueryableFilterContext, Expression>
     {
         private readonly IExtendedType _runtimeType;
 
         protected abstract int Operation { get; }
+
+        protected abstract bool IsTrue { get; }
         protected string GeometryFieldName { get; }
         protected string BufferFieldName { get; }
 
-        protected QueryableSpatialMethodHandler(
+        protected QueryableSpatialBooleanMethodHandler(
             IFilterConvention convention,
             ITypeInspector inspector,
             MethodInfo method)
@@ -69,8 +69,8 @@ namespace HotChocolate.Data.Filters.Spatial
                 }
 
                 context.RuntimeTypes.Push(_runtimeType);
-                context.PushInstance(nestedProperty);
-                action = SyntaxVisitor.Continue;
+                context.PushInstance(nestedProperty );
+                action = SyntaxVisitor.SkipAndLeave;
             }
             else
             {
@@ -93,10 +93,9 @@ namespace HotChocolate.Data.Filters.Spatial
             [NotNullWhen(true)] out ISyntaxVisitorAction? action)
         {
             // Dequeue last
-            Expression condition = context.GetLevel().Dequeue();
-
-            context.PopInstance();
+            Expression instance = context.PopInstance();
             context.RuntimeTypes.Pop();
+            Expression condition = IsTrue ? instance : FilterExpressionBuilder.Not(instance);
 
             if (context.InMemory)
             {

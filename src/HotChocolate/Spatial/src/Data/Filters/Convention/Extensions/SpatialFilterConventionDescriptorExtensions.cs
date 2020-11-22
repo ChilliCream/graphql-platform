@@ -46,6 +46,11 @@ namespace HotChocolate.Data
             descriptor.Operation(SpatialFilterOperations.Within).Name("within");
             descriptor.Operation(SpatialFilterOperations.Buffer).Name("buffer");
             descriptor.Operation(SpatialFilterOperations.Geometry).Name("geometry");
+            descriptor.Operation(SpatialFilterOperations.NotContains).Name("ncontains");
+            descriptor.Operation(SpatialFilterOperations.NotIntersects).Name("nintersects");
+            descriptor.Operation(SpatialFilterOperations.NotOverlaps).Name("noverlaps");
+            descriptor.Operation(SpatialFilterOperations.NotTouches).Name("ntouches");
+            descriptor.Operation(SpatialFilterOperations.NotWithin).Name("nwithin");
 
             return descriptor;
         }

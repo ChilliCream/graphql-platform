@@ -2,18 +2,18 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Data.Filters.Spatial
 {
-    public class QueryableSpatialIntersectsOperationHandler
+    public class QueryableSpatialNotIntersectsOperationHandler
         : QueryableSpatialIntersectsOperationHandlerBase
     {
-        public QueryableSpatialIntersectsOperationHandler(
+        public QueryableSpatialNotIntersectsOperationHandler(
             IFilterConvention convention,
             ITypeInspector inspector)
             : base(convention, inspector)
         {
         }
 
-        protected override int Operation => SpatialFilterOperations.Intersects;
+        protected override int Operation => SpatialFilterOperations.NotIntersects;
 
-        protected override bool IsTrue => true;
+        protected override bool IsTrue => false;
     }
 }
