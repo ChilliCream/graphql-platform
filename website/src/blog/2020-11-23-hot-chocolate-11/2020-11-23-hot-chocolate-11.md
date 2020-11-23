@@ -227,11 +227,60 @@ The GraphQL spec states that you have to reimplement an interface on every level
 
 We will help you that this does not feel cumbersome and automatically add the missing re-implementations with code-first.
 
-EXAMPLE
+```csharp
+public interface INode
+{
+    string Id { get; }
+}
+
+public interface IPerson : INode
+{
+    string Name { get; }
+}
+
+public class Person : IPerson
+{
+    public string Id { get; }
+
+    public string Name { get; }
+}
+
+public class Query
+{
+    public IPerson GetPerson() => new Person();
+}
+
+services
+    .AddGraphQLServer()
+    .AddQueryType<Query>()
+    .AddInterfaceType<INode>()
+```
 
 This schema will translate to the following GraphQL SDL.
 
-EXAMPLE
+```sdl
+schema {
+  query: Query
+}
+
+interface INode {
+  id: String
+}
+
+interface IPerson implements INode {
+  id: String
+  name: String
+}
+
+type Person implements IPerson & INode {
+  id: String
+  name: String
+}
+
+type Query {
+  person: IPerson
+}
+```
 
 ## Custom Scalar Specification URLs
 
@@ -239,9 +288,20 @@ EXAMPLE
 
 Another feature that we think will make tooling better over time is the ability to state the scalar specification. Andi Marek from graphql-java has created a new scalar specification website that, at the moment, only hosts one scalar specification for `DateTime`. Hopefully, this will grow over time. Scalars that have a specification can point to an URL of a human-readable spec. This will allow tooling to use the spec URLs as identifiers and apply then IntelliSense or other means of validation to a GraphQL IDE.
 
-When you implement a scalar type, you can now pass on this `specifiedBy`` URL.
+When you implement a scalar type, you can now pass on this `specifiedBy` URL.
 
-EXAMPLE
+```csharp
+public class MyScalar : ScalarType
+{
+    public MyScalar()
+        : base("MyScalar")
+    {
+        SpecifiedBy = new Uri("URL");
+    }
+
+    // ...
+}
+```
 
 ## Defer and Stream
 
@@ -249,20 +309,57 @@ EXAMPLE
 
 We also invested a lot of time in a very early feature called defer and stream. Defer, and stream allow you to deprioritize parts of your request. This means that you essentially can tell the server to give you all the data in one go, but you mark the data that can arrive a little later.
 
-EXAMPLE
+```graphql
+{
+  sessions {
+    nodes {
+      title
+      abstract
+      startTime
+      endTime
+      ... @defer {
+        speakers {
+          name
+        }
+      }
+    }
+  }
+}
+```
 
 Hot Chocolate Server 11 supports defer. This feature is experimental since the spec still changes, and we will keep it up to date. We have not yet included stream, which will follow with 11.1, probably at the end of January. You do not need to specify anything in your server to use defer; it will just work. You can try out defer with Banana Cake Pop, which will show you exactly how the patches come in.
 
-SCREEN
+![Banana Cake Pop](banana-cake-pop-defer.png)
 
 # Data Integration
 
 I know a lot of you love the data integration API, aka filtering. We completely reinvented this API and created a new package called `HotChocolate.Data`. This new package contains the base for automatic database mapping, filtering, sorting, and projections.
 
-EXAMPLE CONVENTION
-
 We actually started out in 11 to make the filtering introduced in version 10 better. But people soon chimed in and wanted to do more and wanted to **NOT** be dependant on `IQueryable`. So we create a new API that lets you fully control how filters, sorting, and projects are handled. You can integrate new providers like NeoJ4, MongoDB, or even spatial filter
 support.
+
+```csharp
+public static class FilterConventionDescriptorMongoDbExtensions
+{
+    public static IFilterConventionDescriptor UseMongoDbProvider(
+        this IFilterConventionDescriptor descriptor) =>
+        descriptor.Provider(new MongoDbFilterProvider(x => x.AddDefaultMongoHandler()));
+
+    public static IFilterProviderDescriptor<MongoDbFilterVisitorContext> AddDefaultMongoHandler(
+        this IFilterProviderDescriptor<MongoDbFilterVisitorContext> descriptor)
+    {
+        descriptor.AddFieldHandler<MongoDbEqualsOperationHandler>();
+        descriptor.AddFieldHandler<MongoDbNotEqualsOperationHandler>();
+
+        descriptor.AddFieldHandler<MongoDbInOperationHandler>();
+        descriptor.AddFieldHandler<MongoDbNotInOperationHandler>();
+
+        // shortened for brevity
+
+        return descriptor;
+    }
+}
+```
 
 What does this actually mean?
 
@@ -280,17 +377,37 @@ With Hot Chocolate 11, we now create a new package, `HotChocolate.Data.EntityFra
 
 We have a great example with Entity Framework right here:
 
-GRAPHQL WORKSHOP LINK
+[GraphQL Workshop](https://github.com/ChilliCream/graphql-workshop)
 
 ## Spatial Filtering
 
 Apart from the refactoring of the data integration API, we introduced our new GeoJSON based spatial types. These spatial types are not just simple types but can also be used to add spatial filter capabilities to our data integration API.
 
-EXAMPLE QUERY
+```graphql
+{
+  pubs(
+    where: {
+      location: {
+        within: { geometry: { type: Point, coordinates: [1, 1] }, lt: 120 }
+      }
+    }
+  ) {
+    id
+    name
+    location
+  }
+}
+```
+
+Which translates to:
+
+```sql
+ SELECT c."Id", c."Name", c."Area"
+ FROM "Counties" AS c
+ WHERE ST_Within(c."Area", @__p_0)
+```
 
 This use-case was one that has driven us to reinvent the data integration API in the first place. This now very easily allows you to expose complex spatial filters to the consumer.
-
-EXAMPLE CONFIG
 
 Let me thank Steve and Pascal for all their work on this feature.
 
@@ -310,11 +427,29 @@ Schema got a nice upgrade for version 11, although a lot of features were moved 
 
 The first thing to note with schema stitching is that it completely integrates with a standard schema. No more is there a separate stitching builder that makes it challenging to add customizations.
 
-EXAMPLE
+```graphql
+services
+    .AddGraphQLServer()
+    .AddQueryType(d => d.Name("Query"))
+    .AddRemoteSchema(Accounts)
+    .AddRemoteSchema(Inventory)
+    .AddRemoteSchema(Products)
+    .AddRemoteSchema(Reviews);
+```
 
 Essentially now you just merge in types into your schema from anywhere, and you are still able to create local types that are merged with remote types. This gives a lot of control and flexibility to you. With that, any schema could also be a gateway.
 
-EXAMPLE
+```graphql
+services
+    .AddGraphQLServer()
+    // adds a local query type
+    .AddQueryType<Query>()
+    // and merges that with the incoming schemas
+    .AddRemoteSchema(Accounts)
+    .AddRemoteSchema(Inventory)
+    .AddRemoteSchema(Products)
+    .AddRemoteSchema(Reviews);
+```
 
 ## Federated Schemas
 
@@ -324,7 +459,14 @@ While there are various ways now to do federated schemas, we internally use one 
 
 The gateway will further store schema configurations on Redis so that even if there are downstream services offline, we can always create a schema, and only on execution might there be errors for affected parts of the schema. This really makes a federated schema more resilient.
 
-We have created some examples that show the various ways to set up schema stitching, which can be found [here]().
+```csharp
+services
+    .AddGraphQLServer()
+    .AddQueryType(d => d.Name("Query"))
+    .AddRemoteSchemasFromRedis("Demo", sp => sp.GetRequiredService<ConnectionMultiplexer>());
+```
+
+We have created some examples that show the various ways to set up schema stitching, which can be found [here](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/Stitching).
 
 But as I said in the beginning, there is a lot more coming with the next dot updates. Like GraphQL over gRPC to improve efficiency between the gateway and the downstream services. Moreover, we are bringing in subscription stitching and full integration with the new execution engine. Further, we will introduce a new fetch directive that will bring much more flexibility to integrating GraphQL schemas and other data sources.
 
@@ -336,9 +478,35 @@ We essentially created a new interception API that can hook into the type initia
 
 Also, it allows you to modify the underlying type definitions rather than being constrained by the fluent API. These extension APIs are not meant for the standard developer creating a schema but for people who want to write powerful, reusable components like `HotChocolate.Data`. We also rewrote a lot of our core components to use this new API, like the introspection.
 
-Essentially there are now three important components that can add cross-cutting concerns.
+```csharp
+server
+    .AddGraphQLServer()
+    ...
+    .AddTypeInterceptor<IntrospectionTypeInterceptor>();
 
-EXAMPLE
+internal sealed class IntrospectionTypeInterceptor : TypeInterceptor
+{
+    public override void OnBeforeCompleteType(
+        ITypeCompletionContext completionContext,
+        DefinitionBase definition,
+        IDictionary<string, object> contextData)
+    {
+        if (definition is ObjectTypeDefinition objectTypeDefinition)
+        {
+            var position = 0;
+            IDescriptorContext context = completionContext.DescriptorContext;
+
+            if (completionContext.IsQueryType ?? false)
+            {
+                objectTypeDefinition.Fields.Insert(position++, CreateSchemaField(context));
+                objectTypeDefinition.Fields.Insert(position++, CreateTypeField(context));
+            }
+
+            objectTypeDefinition.Fields.Insert(position, CreateTypeNameField(context));
+        }
+    }
+}
+```
 
 We will soon have a follow-up post on writing extensions for Hot Chocolate to drill into what you can do.
 
