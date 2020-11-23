@@ -367,7 +367,7 @@ We have ported the old filtering to 11, so you can use that and essentially have
 
 This means that you essentially will need to upgrade to the new `HotChocolate.Data` package. The issue with that is that your graph filter structure will change. Meaning a breaking change to your schema. You can, however, upgrade slowly and use both APIs side by side.
 
-You can read more about the journey on our data integration API in Pascal's blog post here.
+You can read more about the journey on our data integration API in Pascal's blog post [here](/blog/2020/11/18/new-filtering-api).
 
 ## Entity Framework
 
