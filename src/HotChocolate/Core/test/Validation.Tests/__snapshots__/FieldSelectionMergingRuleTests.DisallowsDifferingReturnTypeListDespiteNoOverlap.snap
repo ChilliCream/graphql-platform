@@ -1,0 +1,29 @@
+﻿[
+  {
+    "Message": "Encountered fields for the same object that cannot be merged.",
+    "Code": null,
+    "Path": null,
+    "Locations": [
+      {
+        "Line": 5,
+        "Column": 29
+      },
+      {
+        "Line": 10,
+        "Column": 29
+      }
+    ],
+    "Extensions": {
+      "declaringTypeA": "IntBox",
+      "declaringTypeB": "StringBox",
+      "fieldA": "listStringBox",
+      "fieldB": "stringBox",
+      "typeA": "[StringBox]",
+      "typeB": "StringBox",
+      "responseNameA": "box",
+      "responseNameB": "box",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selection-Merging"
+    },
+    "Exception": null
+  }
+]

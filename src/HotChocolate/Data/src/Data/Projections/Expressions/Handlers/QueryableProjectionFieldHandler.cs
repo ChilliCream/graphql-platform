@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
+using static HotChocolate.Data.Projections.Expressions.ProjectionExpressionBuilder;
 
 namespace HotChocolate.Data.Projections.Expressions.Handlers
 {
@@ -81,16 +83,30 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers
 
             Queue<MemberAssignment> members = queryableScope.Level.Pop();
             MemberInitExpression memberInit =
-                ProjectionExpressionBuilder.CreateMemberInit(queryableScope.RuntimeType, members);
+                CreateMemberInit(queryableScope.RuntimeType, members);
 
             if (!context.TryGetQueryableScope(out QueryableProjectionScope? parentScope))
             {
                 throw new InvalidOperationException();
             }
 
+            Expression nestedProperty;
+            if (field.Member is PropertyInfo propertyInfo)
+            {
+                nestedProperty = Expression.Property(context.GetInstance(), propertyInfo);
+            }
+            else if (field.Member is MethodInfo methodInfo)
+            {
+                nestedProperty = Expression.Call(context.GetInstance(), methodInfo);
+            }
+            else
+            {
+                throw new InvalidOperationException();
+            }
+
             parentScope.Level.Peek()
                 .Enqueue(
-                    Expression.Bind(field.Member, memberInit));
+                    Expression.Bind(field.Member, NotNullAndAlso(nestedProperty, memberInit)));
 
             action = SelectionVisitor.Continue;
             return true;

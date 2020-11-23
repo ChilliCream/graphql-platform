@@ -296,9 +296,8 @@ namespace HotChocolate.Configuration.Validation
                     abc(a: String): String
                 }
 
-                type Foo implements A {
+                type Foo implements A & B {
                     abc(a: String): String
-                    cde: String
                 }
             ");
         }

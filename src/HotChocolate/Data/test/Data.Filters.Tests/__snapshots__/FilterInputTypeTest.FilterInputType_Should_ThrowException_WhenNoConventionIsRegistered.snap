@@ -3,4 +3,4 @@
 1. For more details look at the `Errors` property.
 
 1. No filter convention found for scope `Foo`. Register a convention with `AddConvention<IFilterConvention, TYourConvention>("Foo")` on the schema builder.
- (HotChocolate.Data.Filters.FilterInputType<HotChocolate.Data.Tests.FilterInputTypeTest.Foo>)
+ (HotChocolate.Types.ObjectType)

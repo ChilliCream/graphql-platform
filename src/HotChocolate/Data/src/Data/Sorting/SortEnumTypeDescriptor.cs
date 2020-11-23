@@ -19,6 +19,7 @@ namespace HotChocolate.Data.Sorting
         {
             Definition.Name = context.Naming.GetTypeName(clrType, TypeKind.Enum);
             Definition.Description = context.Naming.GetTypeDescription(clrType, TypeKind.Enum);
+            Definition.EntityType = clrType;
             Definition.RuntimeType = typeof(object);
             Definition.Values.BindingBehavior = context.Options.DefaultBindingBehavior;
             Definition.Scope = scope;

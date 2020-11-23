@@ -53,8 +53,9 @@ namespace HotChocolate.Execution.Processing
                 else
                 {
                     _operationContext.Execution.TaskStats.TaskCompleted();
-                    _operationContext.Execution.TaskPool.Return(this);
                 }
+
+                _operationContext.Execution.TaskPool.Return(this);
             }
         }
 

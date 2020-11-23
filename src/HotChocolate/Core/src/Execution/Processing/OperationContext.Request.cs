@@ -7,18 +7,67 @@ namespace HotChocolate.Execution.Processing
 {
     internal sealed partial class OperationContext
     {
-        public ISchema Schema => _requestContext.Schema;
+        public ISchema Schema
+        {
+            get
+            {
+                AssertNotPooled();
+                return _requestContext.Schema;
+            }
+        }
 
-        public IErrorHandler ErrorHandler => _requestContext.ErrorHandler;
+        public IErrorHandler ErrorHandler
+        {
+            get
+            {
+                AssertNotPooled();
+                return _requestContext.ErrorHandler;
+            }
+        }
 
-        public ITypeConverter Converter => _requestContext.Converter;
+        public ITypeConverter Converter
+        {
+            get
+            {
+                AssertNotPooled();
+                return _requestContext.Converter;
+            }
+        }
 
-        public IActivator Activator => _requestContext.Activator;
+        public IActivator Activator
+        {
+            get
+            {
+                AssertNotPooled();
+                return _requestContext.Activator;
+            }
+        }
 
-        public IDiagnosticEvents DiagnosticEvents => _requestContext.DiagnosticEvents;
+        public IDiagnosticEvents DiagnosticEvents
+        {
+            get
+            {
+                AssertNotPooled();
+                return _requestContext.DiagnosticEvents;
+            }
+        }
 
-        public IDictionary<string, object?> ContextData => _requestContext.ContextData;
+        public IDictionary<string, object?> ContextData
+        {
+            get
+            {
+                AssertNotPooled();
+                return _requestContext.ContextData;
+            }
+        }
 
-        public CancellationToken RequestAborted => _requestContext.RequestAborted;
+        public CancellationToken RequestAborted
+        {
+            get
+            {
+                AssertNotPooled();
+                return _requestContext.RequestAborted;
+            }
+        }
     }
 }

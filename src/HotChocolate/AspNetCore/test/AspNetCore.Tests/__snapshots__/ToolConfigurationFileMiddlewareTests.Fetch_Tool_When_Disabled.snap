@@ -1,0 +1,14 @@
+﻿{
+  "Content": "{\"errors\":[{\"message\":\"Either the parameter query or the parameter id has to be set.\",\"extensions\":{\"code\":\"HC0013\"}}]}",
+  "ContentType": {
+    "CharSet": "utf-8",
+    "Parameters": [
+      {
+        "Name": "charset",
+        "Value": "utf-8"
+      }
+    ],
+    "MediaType": "application/json"
+  },
+  "StatusCode": "BadRequest"
+}

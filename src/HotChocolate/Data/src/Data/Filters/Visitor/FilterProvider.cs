@@ -20,6 +20,8 @@ namespace HotChocolate.Data.Filters
 
         private Action<IFilterProviderDescriptor<TContext>>? _configure;
 
+        private IFilterConvention? _filterConvention;
+
         protected FilterProvider()
         {
             _configure = Configure;
@@ -50,27 +52,38 @@ namespace HotChocolate.Data.Filters
             return descriptor.CreateDefinition();
         }
 
-        void IFilterProviderConvention.Initialize(IConventionContext context)
+        void IFilterProviderConvention.Initialize(
+            IConventionContext context,
+            IFilterConvention convention)
         {
+            _filterConvention = convention;
             base.Initialize(context);
         }
 
-        void IFilterProviderConvention.OnComplete(IConventionContext context)
+        void IFilterProviderConvention.Complete(IConventionContext context)
         {
-            OnComplete(context);
+            Complete(context);
         }
 
-        protected override void OnComplete(IConventionContext context)
+        protected override void Complete(IConventionContext context)
         {
             if (Definition.Handlers.Count == 0)
             {
                 throw FilterProvider_NoHandlersConfigured(this);
             }
 
+            if (_filterConvention is null)
+            {
+                throw FilterConvention_ProviderHasToBeInitializedByConvention(
+                    GetType(),
+                    context.Scope);
+            }
+
             IServiceProvider services = new DictionaryServiceProvider(
                 (typeof(IFilterProvider), this),
                 (typeof(IConventionContext), context),
                 (typeof(IDescriptorContext), context.DescriptorContext),
+                (typeof(IFilterConvention), _filterConvention),
                 (typeof(ITypeInspector), context.DescriptorContext.TypeInspector))
                 .Include(context.Services);
 
@@ -96,7 +109,8 @@ namespace HotChocolate.Data.Filters
 
         protected virtual void Configure(IFilterProviderDescriptor<TContext> descriptor) { }
 
-        public abstract FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName);
+        public abstract FieldMiddleware CreateExecutor<TEntityType>(
+            NameString argumentName);
 
         public virtual void ConfigureField(
             NameString argumentName,

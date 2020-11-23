@@ -24,15 +24,25 @@ namespace HotChocolate
             {
                 var lazySchema = new LazySchema();
                 DescriptorContext context = CreateContext(builder, lazySchema);
-                IBindingLookup bindingLookup = builder._bindingCompiler.Compile(context);
 
-                IReadOnlyList<ITypeReference> typeReferences =
-                    CreateTypeReferences(builder, context, bindingLookup);
+                try
+                {
+                    IBindingLookup bindingLookup = builder._bindingCompiler.Compile(context);
 
-                TypeRegistry typeRegistry =
-                    InitializeTypes(builder, context, bindingLookup, typeReferences, lazySchema);
+                    IReadOnlyList<ITypeReference> typeReferences =
+                        CreateTypeReferences(builder, context, bindingLookup);
 
-                return CompleteSchema(builder, context, lazySchema, typeRegistry);
+                    TypeRegistry typeRegistry =
+                        InitializeTypes(builder, context, bindingLookup, typeReferences,
+                            lazySchema);
+
+                    return CompleteSchema(builder, context, lazySchema, typeRegistry);
+                }
+                catch (Exception ex)
+                {
+                    context.SchemaInterceptor.OnError(context, ex);
+                    throw;
+                }
             }
 
             private static DescriptorContext CreateContext(
@@ -402,24 +412,11 @@ namespace HotChocolate
             {
                 if (builder._options.RemoveUnreachableTypes)
                 {
-                    var trimmer = new TypeTrimmer(typeRegistry);
-
-                    if (definition.QueryType is { })
-                    {
-                        trimmer.VisitRoot(definition.QueryType);
-                    }
-
-                    if (definition.MutationType is { })
-                    {
-                        trimmer.VisitRoot(definition.MutationType);
-                    }
-
-                    if (definition.SubscriptionType is { })
-                    {
-                        trimmer.VisitRoot(definition.SubscriptionType);
-                    }
-
-                    return trimmer.Types;
+                    var trimmer = new TypeTrimmer(typeRegistry.Types.Select(t => t.Type));
+                    trimmer.AddOperationType(definition.QueryType);
+                    trimmer.AddOperationType(definition.MutationType);
+                    trimmer.AddOperationType(definition.SubscriptionType);
+                    return trimmer.Trim();
                 }
 
                 return typeRegistry.Types.Select(t => t.Type).ToList();

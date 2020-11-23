@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
+using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
@@ -281,7 +283,7 @@ namespace HotChocolate.Data.Tests
         }
 
         [Fact]
-        public void FilterInputType_Should_UseCustomFilterType_When_Nested()
+        public void FilterInputType_Should_UseCustomFilterInput_When_Nested()
         {
             // arrange
             ISchemaBuilder builder = SchemaBuilder.New()
@@ -291,6 +293,45 @@ namespace HotChocolate.Data.Tests
             // act
             // assert
             builder.Create().Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public void FilterInputType_Should_NotOverrideHandler_OnBeforeCreate()
+        {
+            // arrange
+            ISchema builder = SchemaBuilder.New()
+                .AddFiltering()
+                .AddQueryType<CustomHandlerQueryType >()
+                .Create();
+
+            // act
+            builder.TryGetType<CustomHandlerFilterInputType>(
+                "TestName",
+                out CustomHandlerFilterInputType? type);
+
+            // assert
+            Assert.NotNull(type);
+            Assert.IsType<CustomHandler>(Assert.IsType<FilterField>(type.Fields["id"]).Handler);
+        }
+
+        [Fact]
+        public void FilterInputType_Should_NotOverrideHandler_OnBeforeCompletion()
+        {
+            // arrange
+            ISchema builder = SchemaBuilder.New()
+                .AddFiltering()
+                .AddQueryType<CustomHandlerQueryType>()
+                .Create();
+
+            // act
+            builder.TryGetType<CustomHandlerFilterInputType>(
+                "TestName",
+                out CustomHandlerFilterInputType? type);
+
+            // assert
+            Assert.NotNull(type);
+            Assert.IsType<CustomHandler>(Assert.IsType<FilterField>(type.Fields["friends"]).Handler);
+            Assert.IsType<QueryableDefaultFieldHandler>(Assert.IsType<FilterField>(type.Fields["name"]).Handler);
         }
 
         public class FooDirectiveType
@@ -359,7 +400,7 @@ namespace HotChocolate.Data.Tests
             public List<User> Friends { get; set; } = default!;
         }
 
-        public class UserFilterInputType : FilterInputType<User>
+        public class UserFilterInput : FilterInputType<User>
         {
             protected override void Configure(IFilterInputTypeDescriptor<User> descriptor)
             {
@@ -375,7 +416,45 @@ namespace HotChocolate.Data.Tests
                 descriptor
                     .Field("foo")
                     .Resolve(new List<User>())
-                    .UseFiltering<UserFilterInputType>();
+                    .UseFiltering<UserFilterInput>();
+            }
+        }
+
+        public class CustomHandlerFilterInputType : FilterInputType<User>
+        {
+            protected override void Configure(IFilterInputTypeDescriptor<User> descriptor)
+            {
+                descriptor.Name("TestName");
+                descriptor.Field(x => x.Id)
+                    .Extend()
+                    .OnBeforeCreate(x => x.Handler = new CustomHandler());
+
+                descriptor.Field(x => x.Friends)
+                    .Extend()
+                    .OnBeforeCompletion((ctx, x) => x.Handler = new CustomHandler());
+            }
+        }
+
+        public class CustomHandlerQueryType : ObjectType<User>
+        {
+            protected override void Configure(IObjectTypeDescriptor<User> descriptor)
+            {
+                descriptor.Name(nameof(Query));
+                descriptor
+                    .Field("foo")
+                    .Resolve(new List<User>())
+                    .UseFiltering<CustomHandlerFilterInputType>();
+            }
+        }
+
+        public class CustomHandler : IFilterFieldHandler
+        {
+            public bool CanHandle(
+                ITypeCompletionContext context,
+                IFilterInputTypeDefinition typeDefinition,
+                IFilterFieldDefinition fieldDefinition)
+            {
+                throw new NotImplementedException();
             }
         }
     }

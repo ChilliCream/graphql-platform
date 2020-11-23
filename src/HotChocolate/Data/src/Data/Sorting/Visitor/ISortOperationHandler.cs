@@ -14,7 +14,7 @@ namespace HotChocolate.Data.Sorting
         /// <param name="valueDefinition">The definition of the field</param>
         /// <returns>Returns true if the field can be handled</returns>
         bool CanHandle(
-            ITypeDiscoveryContext context,
+            ITypeCompletionContext context,
             EnumTypeDefinition typeDefinition,
             SortEnumValueDefinition valueDefinition);
     }

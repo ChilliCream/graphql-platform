@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using ChilliCream.Testing;
+using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.Stitching.Schemas.Accounts;
@@ -47,7 +48,7 @@ namespace HotChocolate.Stitching.Integration
             IHttpClientFactory httpClientFactory = CreateDefaultRemoteSchemas(configurationName);
 
             IDatabase database = _connection.GetDatabase();
-            for (int i = 0; i < 10; i++)
+            for (var i = 0; i < 10; i++)
             {
                 if (await database.SetLengthAsync(configurationName.Value) == 4)
                 {
@@ -141,7 +142,7 @@ namespace HotChocolate.Stitching.Integration
             IHttpClientFactory httpClientFactory = CreateDefaultRemoteSchemas(configurationName);
 
             IDatabase database = _connection.GetDatabase();
-            for (int i = 0; i < 10; i++)
+            for (var i = 0; i < 10; i++)
             {
                 if (await database.SetLengthAsync(configurationName.Value) == 4)
                 {
@@ -186,7 +187,7 @@ namespace HotChocolate.Stitching.Integration
             IHttpClientFactory httpClientFactory = CreateDefaultRemoteSchemas(configurationName);
 
             IDatabase database = _connection.GetDatabase();
-            for (int i = 0; i < 10; i++)
+            for (var i = 0; i < 10; i++)
             {
                 if (await database.SetLengthAsync(configurationName.Value) == 4)
                 {
@@ -228,7 +229,7 @@ namespace HotChocolate.Stitching.Integration
             Context.ServerFactory.Create(
                 services => services
                     .AddRouting()
-                    .AddHttpRequestSerializer(HttpResultSerialization.JsonArray)
+                    .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                     .AddGraphQLServer()
                     .AddAccountsSchema()
                     .InitializeOnStartup()
@@ -253,7 +254,7 @@ namespace HotChocolate.Stitching.Integration
             Context.ServerFactory.Create(
                 services => services
                     .AddRouting()
-                    .AddHttpRequestSerializer(HttpResultSerialization.JsonArray)
+                    .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                     .AddGraphQLServer()
                     .AddInventorySchema()
                     .InitializeOnStartup()
@@ -278,7 +279,7 @@ namespace HotChocolate.Stitching.Integration
             Context.ServerFactory.Create(
                 services => services
                     .AddRouting()
-                    .AddHttpRequestSerializer(HttpResultSerialization.JsonArray)
+                    .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                     .AddGraphQLServer()
                     .AddProductsSchema()
                     .InitializeOnStartup()
@@ -303,7 +304,7 @@ namespace HotChocolate.Stitching.Integration
             Context.ServerFactory.Create(
                 services => services
                     .AddRouting()
-                    .AddHttpRequestSerializer(HttpResultSerialization.JsonArray)
+                    .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                     .AddGraphQLServer()
                     .AddReviewSchema()
                     .InitializeOnStartup()

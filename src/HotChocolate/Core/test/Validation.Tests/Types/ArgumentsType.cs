@@ -93,6 +93,13 @@ namespace HotChocolate.Validation.Types
                 .Type<NonNullType<BooleanType>>()
                 .Resolver(() => null);
 
+            // optionalNonNullBooleanArgField2(optionalBooleanArg: Boolean = true) : Boolean!
+            descriptor.Field("optionalNonNullBooleanArgField2")
+                .Argument("optionalBooleanArg",
+                    t => t.Type<BooleanType>().DefaultValue(true))
+                .Type<BooleanType>()
+                .Resolver(() => null);
+
             // booleanListArgField(booleanListArg: [Boolean]!) : [Boolean]
             descriptor.Field("nonNullBooleanListField")
                 .Argument("nonNullBooleanListArg",
@@ -141,11 +148,11 @@ namespace HotChocolate.Validation.Types
                 .Resolver(() => null);
 
             descriptor.Field("complexArgField")
-                .Argument("complexArg", t => t.Type<ComplexInput3Type>())
+                .Argument("complexArg", t => t.Type<Complex3InputType>())
                 .Type<NonNullType<StringType>>()
-                .Argument("complexArg1", t => t.Type<ComplexInput3Type>())
+                .Argument("complexArg1", t => t.Type<Complex3InputType>())
                 .Type<NonNullType<StringType>>()
-                .Argument("complexArg2", t => t.Type<ComplexInput3Type>())
+                .Argument("complexArg2", t => t.Type<Complex3InputType>())
                 .Type<NonNullType<StringType>>()
                 .Resolver(() => null);
 

@@ -74,7 +74,7 @@ namespace HotChocolate.Data.Filters
                     nameof(filterType));
             }
 
-            Definition.Bindings.Add(runtimeType, filterType);
+            Definition.Bindings[runtimeType] = filterType;
             return this;
         }
 

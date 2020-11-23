@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
+using HotChocolate.AspNetCore.Serialization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -125,11 +126,55 @@ namespace HotChocolate.Stitching.Integration
             result.ToJson().MatchSnapshot();
         }
 
+        [Fact]
+        public async Task Directive_Variables_Are_Correctly_Rewritten()
+        {
+            // arrange
+            IHttpClientFactory httpClientFactory = CreateDefaultRemoteSchemas();
+
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddSingleton(httpClientFactory)
+                    .AddGraphQL()
+                    .AddQueryType(d => d.Name("Query").Field("local").Resolve("I am local."))
+                    .AddRemoteSchema(_accounts)
+                    .AddRemoteSchema(_inventory)
+                    .AddRemoteSchema(_products)
+                    .AddRemoteSchema(_reviews)
+                    .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"query ($if1: Boolean! $if2: Boolean! $if3: Boolean! $if4: Boolean!) {
+                    me {
+                        id
+                        alias1: name @include(if: $if1)
+                        alias2: reviews @include(if: $if2) {
+                            alias3: body @include(if: $if3)
+                            alias4: product @include(if: $if4) {
+                                upc
+                            }
+                        }
+                    }
+                    local
+                }",
+                new Dictionary<string, object>
+                {
+                    { "if1", true },
+                    { "if2", true },
+                    { "if3", true },
+                    { "if4", true },
+                });
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
         public TestServer CreateAccountsService() =>
             Context.ServerFactory.Create(
                 services => services
                     .AddRouting()
-                    .AddHttpRequestSerializer(HttpResultSerialization.JsonArray)
+                    .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                     .AddGraphQLServer()
                     .AddAccountsSchema()
                     .PublishSchemaDefinition(c => c
@@ -152,7 +197,7 @@ namespace HotChocolate.Stitching.Integration
             Context.ServerFactory.Create(
                 services => services
                     .AddRouting()
-                    .AddHttpRequestSerializer(HttpResultSerialization.JsonArray)
+                    .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                     .AddGraphQLServer()
                     .AddInventorySchema()
                     .PublishSchemaDefinition(c => c
@@ -174,7 +219,7 @@ namespace HotChocolate.Stitching.Integration
             Context.ServerFactory.Create(
                 services => services
                     .AddRouting()
-                    .AddHttpRequestSerializer(HttpResultSerialization.JsonArray)
+                    .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                     .AddGraphQLServer()
                     .AddProductsSchema()
                     .PublishSchemaDefinition(c => c
@@ -197,7 +242,7 @@ namespace HotChocolate.Stitching.Integration
             Context.ServerFactory.Create(
                 services => services
                     .AddRouting()
-                    .AddHttpRequestSerializer(HttpResultSerialization.JsonArray)
+                    .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                     .AddGraphQLServer()
                     .AddReviewSchema()
                     .PublishSchemaDefinition(c => c

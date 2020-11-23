@@ -11,7 +11,7 @@ type Query4 {
   bars(where: ItWorks): [Bar!]!
 }
 
-input ComparableOperationFilterInputOfInt64FilterInput {
+input ComparableInt64OperationFilterInput {
   eq: Long
   neq: Long
   in: [Long!]
@@ -29,7 +29,7 @@ input ComparableOperationFilterInputOfInt64FilterInput {
 input ItWorks {
   and: [ItWorks!]
   or: [ItWorks!]
-  baz: ComparableOperationFilterInputOfInt64FilterInput
+  baz: ComparableInt64OperationFilterInput
 }
 
 "The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`."

@@ -80,6 +80,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.Tests", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.StarWars", "..\Core\test\StarWars\HotChocolate.StarWars.csproj", "{6B8B8B28-EE74-49A9-BC68-C42CB217BB54}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.Projections.Tests", "test\Data.Projections.Tests\HotChocolate.Data.Projections.Tests.csproj", "{5B36B9E9-BC55-4A4D-B58F-9311581C008B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -123,6 +125,7 @@ Global
 		{16FB6511-AE94-46C4-9652-2665C6816546} = {4EE990B2-C327-46DA-8FE8-F95AC228E47F}
 		{256DC401-40F1-4632-BB68-A336D1C518D9} = {4EE990B2-C327-46DA-8FE8-F95AC228E47F}
 		{6B8B8B28-EE74-49A9-BC68-C42CB217BB54} = {882EC02D-5E1D-41F5-AD9F-AA06E31D133A}
+		{5B36B9E9-BC55-4A4D-B58F-9311581C008B} = {4EE990B2-C327-46DA-8FE8-F95AC228E47F}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{D68A0AB9-871A-487B-8D12-1A7544D81B9E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -475,5 +478,17 @@ Global
 		{6B8B8B28-EE74-49A9-BC68-C42CB217BB54}.Release|x64.Build.0 = Release|Any CPU
 		{6B8B8B28-EE74-49A9-BC68-C42CB217BB54}.Release|x86.ActiveCfg = Release|Any CPU
 		{6B8B8B28-EE74-49A9-BC68-C42CB217BB54}.Release|x86.Build.0 = Release|Any CPU
+		{5B36B9E9-BC55-4A4D-B58F-9311581C008B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B36B9E9-BC55-4A4D-B58F-9311581C008B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B36B9E9-BC55-4A4D-B58F-9311581C008B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{5B36B9E9-BC55-4A4D-B58F-9311581C008B}.Debug|x64.Build.0 = Debug|Any CPU
+		{5B36B9E9-BC55-4A4D-B58F-9311581C008B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{5B36B9E9-BC55-4A4D-B58F-9311581C008B}.Debug|x86.Build.0 = Debug|Any CPU
+		{5B36B9E9-BC55-4A4D-B58F-9311581C008B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5B36B9E9-BC55-4A4D-B58F-9311581C008B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5B36B9E9-BC55-4A4D-B58F-9311581C008B}.Release|x64.ActiveCfg = Release|Any CPU
+		{5B36B9E9-BC55-4A4D-B58F-9311581C008B}.Release|x64.Build.0 = Release|Any CPU
+		{5B36B9E9-BC55-4A4D-B58F-9311581C008B}.Release|x86.ActiveCfg = Release|Any CPU
+		{5B36B9E9-BC55-4A4D-B58F-9311581C008B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

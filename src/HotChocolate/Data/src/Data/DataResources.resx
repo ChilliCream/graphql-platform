@@ -53,6 +53,9 @@
   <data name="SortField_SortField_TypeUnknown" xml:space="preserve">
     <value>Unable to resolve the field runtime type for `{0}.{1}`.</value>
   </data>
+  <data name="Sorting_TypeOfInvalidFormat" xml:space="preserve">
+    <value>Unable to resolve sorting type. {0} is of invalid format.</value>
+  </data>
   <data name="SortConventionDescriptor_MustInheritFromSortInputOrEnumType" xml:space="preserve">
     <value>The sorting type must inherit from `SortInputType` or `SortEnumType`.</value>
   </data>
@@ -128,6 +131,9 @@
   <data name="FilterConvention_TypeOfMemberIsUnknown" xml:space="preserve">
     <value>The type of the member {0} of the declaring type {1} is unknown</value>
   </data>
+  <data name="FilterConvention_TypeIsUnknown" xml:space="preserve">
+    <value>The type {0} is unknown. No `FilterType` could be created</value>
+  </data>
   <data name="SortConvention_OperationNameNotFound" xml:space="preserve">
     <value>Operation with identifier {0} has no name defined. Add a name to the sort convention</value>
   </data>
@@ -142,6 +148,9 @@
   </data>
   <data name="FilterInterceptor_NoHandlerFoundForField" xml:space="preserve">
     <value>For the field {0} of type {1} was no handler found.</value>
+  </data>
+  <data name="FilterInterceptor_OperationHasNoTypeSpecified" xml:space="preserve">
+    <value>For the operation {0} of type {1} was no type specified found.</value>
   </data>
   <data name="ErrorHelper_CreateNonNullError" xml:space="preserve">
     <value>The provided value for filter `{0}` of type {1} is invalid. Null values are not supported.</value>
@@ -199,5 +208,8 @@
   </data>
   <data name="ProjectionConvention_CouldNotProject" xml:space="preserve">
     <value>Projection Visitor is in invalid state. Projection failed!</value>
+  </data>
+  <data name="FilterConvention_ProviderHasToBeInitializedByConvention" xml:space="preserve">
+    <value>The filter provider {0} {1}was not initialized by a convention. It is only valid to register a provider over a FilterConvention</value>
   </data>
 </root>

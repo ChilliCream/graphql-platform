@@ -5,8 +5,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Stitching.Schemas.Contracts
 {
-    public class LifeInsuranceContractType
-        : ObjectType<LifeInsuranceContract>
+    public class LifeInsuranceContractType : ObjectType<LifeInsuranceContract>
     {
         protected override void Configure(
             IObjectTypeDescriptor<LifeInsuranceContract> descriptor)

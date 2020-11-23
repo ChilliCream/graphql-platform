@@ -12,10 +12,10 @@ input BarSortInput {
 }
 
 input FooSortInput {
-  barShort: DefaultSortEnumType
+  barShort: SortEnumType
 }
 
-enum DefaultSortEnumType {
+enum SortEnumType {
   ASC
   DESC
 }

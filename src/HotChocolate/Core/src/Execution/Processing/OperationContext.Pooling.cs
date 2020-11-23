@@ -1,6 +1,7 @@
 using System;
 using HotChocolate.Fetching;
 using Microsoft.Extensions.ObjectPool;
+using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Processing
 {
@@ -9,6 +10,11 @@ namespace HotChocolate.Execution.Processing
         private readonly ExecutionContext _executionContext;
         private readonly ResultHelper _resultHelper;
         private IRequestContext _requestContext = default!;
+        private IPreparedOperation _operation = default!;
+        private IVariableValueCollection _variables = default!;
+        private IServiceProvider _services = default!;
+        private object? _rootValue;
+        private bool _isPooled = true;
 
         public OperationContext(
             ObjectPool<ResolverTask> resolverTaskPool,
@@ -17,6 +23,8 @@ namespace HotChocolate.Execution.Processing
             _executionContext = new ExecutionContext(this, resolverTaskPool);
             _resultHelper = new ResultHelper(resultPool);
         }
+
+        public bool IsPooled => _isPooled;
 
         public void Initialize(
             IRequestContext requestContext,
@@ -30,10 +38,11 @@ namespace HotChocolate.Execution.Processing
             _executionContext.Initialize(
                 batchDispatcher,
                 requestContext.RequestAborted);
-            Operation = operation;
-            RootValue = rootValue;
-            Variables = variables;
-            Services = scopedServices;
+            _operation = operation;
+            _variables = variables;
+            _services = scopedServices;
+            _rootValue = rootValue;
+            _isPooled = false;
         }
 
         public void Clean()
@@ -41,10 +50,19 @@ namespace HotChocolate.Execution.Processing
             _executionContext.Clean();
             _resultHelper.Clear();
             _requestContext = default!;
-            Operation = default!;
-            RootValue = null;
-            Variables = default!;
-            Services = default!;
+            _operation = default!;
+            _variables = default!;
+            _services = default!;
+            _rootValue = null;
+            _isPooled = true;
+        }
+
+        private void AssertNotPooled()
+        {
+            if (_isPooled)
+            {
+                throw Object_Returned_To_Pool();
+            }
         }
     }
 }
