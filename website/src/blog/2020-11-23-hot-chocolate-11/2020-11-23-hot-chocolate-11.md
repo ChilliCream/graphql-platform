@@ -307,7 +307,7 @@ public class MyScalar : ScalarType
 
 [GraphQL Spec PR 742](https://github.com/graphql/graphql-spec/pull/742)
 
-We also invested a lot of time in a very early feature called defer and stream. Defer, and stream allow you to deprioritize parts of your request. This means that you essentially can tell the server to give you all the data in one go, but you mark the data that can arrive a little later.
+We also invested a lot of time in a very early feature called defer and stream. Defer, and stream allow you to de-prioritize parts of your request. This means that you essentially can tell the server to give you all the data in one go, but you mark the data that can arrive a little later.
 
 ```graphql
 {
@@ -335,7 +335,7 @@ Hot Chocolate Server 11 supports defer. This feature is experimental since the s
 
 I know a lot of you love the data integration API, aka filtering. We completely reinvented this API and created a new package called `HotChocolate.Data`. This new package contains the base for automatic database mapping, filtering, sorting, and projections.
 
-We actually started out in 11 to make the filtering introduced in version 10 better. But people soon chimed in and wanted to do more and wanted to **NOT** be dependant on `IQueryable`. So we create a new API that lets you fully control how filters, sorting, and projects are handled. You can integrate new providers like NeoJ4, MongoDB, or even spatial filter
+We actually started out in 11 to make the filtering introduced in version 10 better. But people soon chimed in and wanted to do more and wanted to **NOT** be dependant on `IQueryable`. So we create a new API that lets you fully control how filters, sorting, and projections are handled. You can integrate new providers like NeoJ4, MongoDB, or even spatial filter
 support.
 
 ```csharp
@@ -367,7 +367,7 @@ We have ported the old filtering to 11, so you can use that and essentially have
 
 This means that you essentially will need to upgrade to the new `HotChocolate.Data` package. The issue with that is that your graph filter structure will change. Meaning a breaking change to your schema. You can, however, upgrade slowly and use both APIs side by side.
 
-You can read more about the journey on our data integration API in Pascal's blog post here.
+You can read more about the journey on our data integration API in Pascal's blog post [here](/blog/2020/11/18/new-filtering-api).
 
 ## Entity Framework
 
@@ -516,7 +516,7 @@ The one thing missing from this launch is Strawberry Shake, our GraphQL client. 
 
 # General Outlook
 
-Where are we going from here? We now essentially are a team of four people, Rafael, Pascal, Ferd, and myself. We plan to start focusing for the next three months on three components.
+Where are we going from here? We now essentially are a team of four people, Rafael, Pascal, Fred, and myself. We plan to start focusing for the next three months on three components.
 
 Strawberry Shake will become Freds and my immediate focus, so expect our GraphQL client to get real attention and expect it to get the same attention for detail that made Hot Chocolate your beloved GraphQL server. We think that the client space at the moment does not exist in .NET, and we want to change that. There are a lot of opportunities to bring something unique. We have done a lot of research into things like Relay and Apollo client and think that we can reinvent how you interact with data in Xamarin and Blazor applications.
 
