@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -102,12 +102,16 @@ namespace HotChocolate.Language
             OperationDefinitionNode node,
             DocumentWriter writer)
         {
-            if (node.Name != null)
+            if (node.Name != null || node.VariableDefinitions.Count > 0)
             {
                 writer.Write(node.Operation.ToString().ToLowerInvariant());
                 writer.WriteSpace();
 
-                writer.WriteName(node.Name);
+                if (node.Name != null)
+                {
+                    writer.WriteName(node.Name);
+                }
+
                 if (node.VariableDefinitions.Any())
                 {
                     writer.Write('(');
