@@ -39,7 +39,7 @@ services
     .AddQueryType<Query>();
 ```
 
-The builder API lets you chain in new extension methods that can add new capabilities without the need to change the actual builder API. The actual builder interface is nothing more than a named access to the service collection, which lets you add named configurations to the DI that are consecutively used to create a GraphQL server.
+The builder API lets you chain in new extension methods that can add new capabilities without the need to change the actual builder API. The builder interface is nothing more than a named access to the service collection, which lets you add named configurations to the DI that are consecutively used to create a GraphQL server.
 
 ```csharp
 public interface IRequestExecutorBuilder
@@ -532,3 +532,5 @@ The great thing about Hot Chocolate is the people. Every day, I think the best t
 We internally talked about this great family and how we can push this further and help this community to grow. We will soon start with our ChilliCream user group user can present solutions to their issues or present components that they have build around Hot Chocolate. But we think that we will even go beyond that and ask people from the greater GraphQL community to talk to us and give us fresh ideas and new takes on GraphQL.
 
 Last but not least, let me invite you to our launch party on Thursday and celebrate with us the community and the next chapter of Hot Chocolate.
+
+[Hot Chocolate 11 Launch Party](https://www.meetup.com/ChilliCream-User-Group/events/274656703/)
