@@ -519,11 +519,11 @@ Where are we going from here? We now essentially are a team of four people, Rafa
 
 Strawberry Shake will become Freds and my immediate focus, so expect our GraphQL client to get real attention and expect it to get the same attention for detail that made Hot Chocolate your beloved GraphQL server. We think that the client space at the moment does not exist in .NET, and we want to change that. There are a lot of opportunities to bring something unique. We have done a lot of research into things like Relay and Apollo client and think that we can reinvent how you interact with data in Xamarin and Blazor applications.
 
-Apart from Strawberry Shake, we will also take up our original schema stitching engine branch. The new stitching engine can not only do subscription stitching but also is able to merge the Hot Chocolate stitching approach with the Apollo Stitching approach. You will be able to have Apollo federation protocol downstream services as well as Hot Chocolate stitching protocol downstream servers. The gateway can mix and match them. As you have seen with the general execution engine, stitching will become very fast, and we will publish benchmarks soon.
+Apart from Strawberry Shake, we will start moving in the missing schema stitching features. The new stitching engine can not only do subscription stitching but also is able to merge the Hot Chocolate stitching approach with the Apollo Federation approach. You will be able to have Apollo Federation protocol downstream services as well as Hot Chocolate Stitching protocol downstream servers. The gateway can mix and match them, not forcing you to choose. As you have seen with the general execution engine, stitching will become very fast, and we will publish benchmarks soon.
 
-In general, expect a lot more performance improvements to integrate our source generators into the core library.
+In general, expect a lot more performance improvements to trickle in over the next dot releases.
 
-These changes are more iterative, where we complete and get better. We will also start on a new component that will become a big leap for the whole platform. Rafael and Pascal will focus on this new component that we will start talking about soon.
+These changes are more iterative, where we complete components and get better. We will also start on a new component that will become a big leap for the whole platform. Rafael and Pascal will focus on this new chapter of ChilliCream and we will start talking about this soon.
 
 # Community
 
