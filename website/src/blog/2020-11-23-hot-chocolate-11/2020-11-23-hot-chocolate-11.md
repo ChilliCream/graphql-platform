@@ -372,7 +372,7 @@ You can read more about the journey on our data integration API in Pascal's blog
 
 ## Entity Framework
 
-We know that many of you love Entity Framework and that it was quite painful to use Entity Framework with Hot Chocolate. We refined usage of Entity Framework with 10.5 but had to use internal APIs of EF to make it efficient. In Hot Chocolate 11 we introduce a new package `HotChocolate.Data.EntityFramework`, which integrates seamlessly with the data integration API.
+We know that many of you love Entity Framework and that it was quite painful to use Entity Framework with Hot Chocolate. We refined usage of Entity Framework with 10.5 but had to use internal APIs of EF to make it efficient. Hot Chocolate 11 introduces a new package `HotChocolate.Data.EntityFramework`, which integrates seamlessly with the data integration API.
 
 We have a great example with Entity Framework right here:
 
