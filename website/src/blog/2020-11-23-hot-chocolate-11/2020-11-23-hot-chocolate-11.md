@@ -416,7 +416,7 @@ However, we are still developing spatial further, and this feature essentially i
 
 We are currently working on more providers for the data integration API like MongoDB native, Neo4J, and Elastic Search, which we will drop with the next dot releases.
 
-The furthest along is our new MongoDB integration. I mean, MongoDB works already through `IQueryable`, but with `IQueryable` performance is sometimes an issue since the translation from `IQueryable` to the native Mongo query is not optimal in all cases. With the new Mongo provider, we use the BSON API to craft a native query that you can also intercept and further modify before it is sent to the database.
+The furthest along is our new MongoDB integration. Of course, MongoDB works already through `IQueryable`, but with `IQueryable` performance is sometimes an issue since the translation from `IQueryable` to the native Mongo query is not optimal in all cases. With the new Mongo provider, we use the BSON API to craft a native query that you can also intercept and further modify before it is sent to the database.
 
 We expect to release the MongoDB provider with 11.1 in January.
 
