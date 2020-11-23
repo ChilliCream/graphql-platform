@@ -247,7 +247,7 @@ EXAMPLE
 
 [GraphQL Spec PR 742](https://github.com/graphql/graphql-spec/pull/742)
 
-We also invested a lot of time in a very early feature called defer and stream. Defer, and stream allow you to deprioritize parts of your request. This means that ysou essentially can tell the server to give you all the data in one go, but you mark the data that can arrive a little later.
+We also invested a lot of time in a very early feature called defer and stream. Defer, and stream allow you to de-prioritize parts of your request. This means that you essentially can tell the server to give you all the data in one go, but you mark the data that can arrive a little later.
 
 EXAMPLE
 
@@ -261,7 +261,7 @@ I know a lot of you love the data integration API, aka filtering. We completely 
 
 EXAMPLE CONVENTION
 
-We actually started out in 11 to make the filtering introduced in version 10 better. But people soon chimed in and wanted to do more and wanted to **NOT** be dependant on `IQueryable`. So we create a new API that lets you fully control how filters, sorting, and projects are handled. You can integrate new providers like NeoJ4, MongoDB, or even spatial filter
+We actually started out in 11 to make the filtering introduced in version 10 better. But people soon chimed in and wanted to do more and wanted to **NOT** be dependant on `sIQueryable`. So we create a new API that lets you fully control how filters, sorting, and projects are handled. You can integrate new providers like NeoJ4, MongoDB, or even spatial filter
 support.
 
 What does this actually mean?
