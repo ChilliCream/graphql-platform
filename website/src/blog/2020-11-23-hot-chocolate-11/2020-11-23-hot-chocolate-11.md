@@ -175,7 +175,7 @@ For instance, we ran tests against the Apollo GraphQL server and other nodejs Gr
 | apollo-fastify-graphql-jit |            4046.2 |
 | apollo                     |            2697.1 |
 
-In our throughput tests, we can see that Hot Chocolate outperforms any node-based GraphQL server. Hot Chocolate is optimized for parallel requests meaning the more core your system has, the better Hot Chocolate server performs. This also means that if you have, for instance, only one CPU core graphyne will actually perform better. But even with less parallelization, Hot Chocolate turned up in the top 3 ahead of Express GraphQL and Apollo GraphQL.
+In our throughput tests, we can see that Hot Chocolate outperforms any node-based GraphQL server. Hot Chocolate is optimized for parallel requests meaning the more CPU cores your system has, the better Hot Chocolate server performs. This also means that if you have, for instance, only one CPU core graphyne will actually perform better. But even with less parallelization, Hot Chocolate turned up in the top 3 ahead of Express GraphQL and Apollo GraphQL.
 
 This said, we are not done on performance and pulled the two biggest performance features on the execution side since we could not get them done in time for the 11 release. We already have seen huge potential in improving the overall performance of the server by using source generators. Source generators let us move a lot of logic into build time instead of executing resolver compilation, for instance, at runtime. Also, we pulled a lot of our execution plan optimizers that would rewrite the execution tree to optimize data fetching. These performance improvements will trickle in with the next dot releases and should push Hot Chocolate further.
 
