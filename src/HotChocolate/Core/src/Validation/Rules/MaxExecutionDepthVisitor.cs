@@ -30,7 +30,7 @@ namespace HotChocolate.Validation.Rules
             if (_options.MaxAllowedExecutionDepth.HasValue &&
                 _options.MaxAllowedExecutionDepth < context.Max)
             {
-                context.Errors.Add(context.MaxOperationComplexity(
+                context.Errors.Add(context.MaxExecutionDepth(
                     node, _options.MaxAllowedExecutionDepth.Value, context.Max));
                 return Break;
             }

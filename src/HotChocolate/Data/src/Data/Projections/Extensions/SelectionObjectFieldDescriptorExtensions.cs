@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration;
+using HotChocolate.Data;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;

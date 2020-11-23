@@ -22,7 +22,7 @@ export const SEO: FunctionComponent<SEOProperties> = ({
   meta,
   title,
 }) => {
-  const { site } = useStaticQuery(
+  const { site, image } = useStaticQuery(
     graphql`
       query {
         site {
@@ -30,6 +30,16 @@ export const SEO: FunctionComponent<SEOProperties> = ({
             title
             description
             author
+          }
+        }
+        image: file(
+          relativePath: { eq: "chillicream-graphql-banner.png" }
+          sourceInstanceName: { eq: "images" }
+        ) {
+          childImageSharp {
+            fixed(width: 1200, pngQuality: 90) {
+              src
+            }
           }
         }
       }
@@ -63,20 +73,16 @@ export const SEO: FunctionComponent<SEOProperties> = ({
           content: `website`,
         },
         {
+          property: `og:image`,
+          content: `${image?.childImageSharp!.fixed!.src}`,
+        },
+        {
           name: `twitter:card`,
-          content: `summary`,
+          content: `summary_large_image`,
         },
         {
           name: `twitter:creator`,
           content: `@${site.siteMetadata.author}`,
-        },
-        {
-          name: `twitter:title`,
-          content: title,
-        },
-        {
-          name: `twitter:description`,
-          content: metaDescription,
         },
         ...meta!,
       ]}

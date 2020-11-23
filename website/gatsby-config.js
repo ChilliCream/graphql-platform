@@ -126,6 +126,7 @@ module.exports = {
             resolve: `gatsby-remark-images`,
             options: {
               maxWidth: 800,
+              quality: 90,
             },
           },
         ],
@@ -231,7 +232,7 @@ module.exports = {
                       path
                       featuredImage {
                         childImageSharp {
-                          fluid(maxWidth: 800) {
+                          fluid(maxWidth: 800, pngQuality: 90) {
                             src
                           }
                         }

@@ -303,6 +303,20 @@
               {
                 "path": "sorting",
                 "title": "Sorting"
+              },
+              {
+                "path": "projections",
+                "title": "Projections"
+              }
+            ]
+          },
+          {
+            "path": "integrations",
+            "title": "Integrations",
+            "items": [
+              {
+                "path": "entity-framework",
+                "title": "Entity Framework"
               }
             ]
           },

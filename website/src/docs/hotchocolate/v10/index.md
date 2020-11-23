@@ -63,7 +63,7 @@ var executor = schema.MakeExecutable();
 Console.WriteLine(executor.Execute("{ hello }").ToJson());
 ```
 
-[Learn more](/docs/hotchocolate/v10/schema/schema-first)
+[Learn more](/docs/hotchocolate/v10/schema-first)
 
 ## Mix it all together
 
@@ -128,7 +128,7 @@ public class PersonResolvers
 }
 ```
 
-[Learn more](/docs/hotchocolate/v10/data-fetching/dataloaders)
+[Learn more](/docs/hotchocolate/v10/data-fetching)
 
 ## Support for Custom Directives
 
@@ -174,7 +174,7 @@ public class QueryType : ObjectType<Query>
 }
 ```
 
-[Learn more](/docs/hotchocolate/v10/security/authorization)
+[Learn more](/docs/hotchocolate/v10/security#authorization)
 
 ## Built-in Support for Filters
 
