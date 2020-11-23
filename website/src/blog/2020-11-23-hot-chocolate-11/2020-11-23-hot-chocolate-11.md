@@ -145,7 +145,7 @@ While the new Configuration API is the first change, you will notice we changed 
 
 With the new execution engine, we also introduced a new batching mechanism that is now much more efficient and abstracts the batching mechanism from DataLoader, meaning you can write your own batching functionality and integrate it. The stitching layer, for instance, does this to batch requests to the downstream services.
 
-Apart from this, the new DataLoader API now follows the DataLoader spec version 2 and lets you inject the batch scheduler into the DataLoader. This makes it now easy to use GreenDonut in your business logic. The beauty of this is that you do not need to expose any GraphQL libraries into your business layer and are able to layer your application nicely.
+Apart from this, the new DataLoader API now follows the DataLoader spec version 2 and lets you inject the batch scheduler into the DataLoader. This makes it now easy to use Green Donut in your business logic. The beauty of this is that you do not need to expose any GraphQL libraries into your business layer and are able to layer your application nicely.
 
 We also rewrote the validation layer for Hot Chocolate to make it much more correct and much faster on execution. To make the query validation more correct and ensure quality, we have ported all the `graphql-js` tests regarding validation to Hot Chocolate. While porting and integrating these tests, we found countless little issues with our implementation of field merging, for instance.
 
