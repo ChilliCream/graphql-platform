@@ -1322,14 +1322,14 @@ can return NetTopologySuite shapes and they will be transformed into GeoJSON.</p
 <p>To make the schema aware of the spatial types you need to register them on the schema builder.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="164253622622401180"
+              data-toaster-id="10205266861067907000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`services
     .AddGraphQLServer()
-    .AddSpatialTypes();`, `164253622622401180`)"
+    .AddSpatialTypes();`, `10205266861067907000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1344,7 +1344,7 @@ can return NetTopologySuite shapes and they will be transformed into GeoJSON.</p
 <p>All NetToplogySuite runtime types are now bound to the corresponding GeoJSON type.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="73977229311193430000"
+              data-toaster-id="14086582347740762000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1366,7 +1366,7 @@ public class Query
     {
         return someDbContext.Pubs;
     }
-}`, `73977229311193430000`)"
+}`, `14086582347740762000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1395,7 +1395,7 @@ public class Query
 <span class="token punctuation">}</span></code></pre></div>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="91024879554672560000"
+              data-toaster-id="15920401687310991000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1408,7 +1408,7 @@ public class Query
 
 type Query {
   pubs: [Pub!]!
-}`, `91024879554672560000`)"
+}`, `15920401687310991000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1428,7 +1428,7 @@ type Query {
 <span class="token punctuation">}</span></code></pre></div>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="57232019626120675000"
+              data-toaster-id="28506663637465522000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1445,7 +1445,7 @@ type Query {
     }
     name
   }
-}`, `57232019626120675000`)"
+}`, `28506663637465522000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1469,7 +1469,7 @@ type Query {
 <span class="token punctuation">}</span></code></pre></div>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="34317006746323810000"
+              data-toaster-id="36159899675528217000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1521,7 +1521,7 @@ type Query {
       }
     ]
   }
-}`, `34317006746323810000`)"
+}`, `36159899675528217000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1623,7 +1623,7 @@ type Query {
 <p>All GeoJSON output types implement the following interface.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="23114335465330217000"
+              data-toaster-id="14851143324485382000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1635,7 +1635,7 @@ type Query {
   bbox: [Float]
   &quot;The coordinate reference system integer identifier&quot;
   crs: Int
-}`, `23114335465330217000`)"
+}`, `14851143324485382000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1697,12 +1697,12 @@ When a resolver expects any <code class="language-text">Geometry</code> type as 
 This scalar should be used with caution. Input and output types are much more expressive than a custom scalar.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="82063230819955400000"
+              data-toaster-id="69795725132364890000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`scalar Geometry`, `82063230819955400000`)"
+              onClick="copyToClipboard(`scalar Geometry`, `69795725132364890000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1716,7 +1716,7 @@ This scalar should be used with caution. Input and output types are much more ex
 <p>To project spatial types, a special handler is needed. This handler can be registered on the schema with <code class="language-text">.AddSpatialProjections()</code></p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="54032246927481900000"
+              data-toaster-id="79520110750227380000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1725,7 +1725,7 @@ This scalar should be used with caution. Input and output types are much more ex
         .AddGraphQLServer()
         .AddProjections()
         .AddSpatialTypes()
-        .AddSpatialProjections()`, `54032246927481900000`)"
+        .AddSpatialProjections()`, `79520110750227380000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1742,7 +1742,7 @@ This scalar should be used with caution. Input and output types are much more ex
 <p>The projection middleware will use this handler to project the spatial data directly to the database</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="86277920221859500000"
+              data-toaster-id="88684756784518500000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1752,7 +1752,7 @@ This scalar should be used with caution. Input and output types are much more ex
 public IQueryable<Pub> GetPubs([ScopedService] SomeDbContext someDbContext)
 {
     return someDbContext.Pubs;
-}`, `86277920221859500000`)"
+}`, `88684756784518500000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1769,7 +1769,7 @@ public IQueryable<Pub> GetPubs([ScopedService] SomeDbContext someDbContext)
 <span class="token punctuation">}</span></code></pre></div>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="46643592505638035000"
+              data-toaster-id="99645660424345060000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1786,7 +1786,7 @@ public IQueryable<Pub> GetPubs([ScopedService] SomeDbContext someDbContext)
     }
     name
   }
-}`, `46643592505638035000`)"
+}`, `99645660424345060000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1810,13 +1810,13 @@ public IQueryable<Pub> GetPubs([ScopedService] SomeDbContext someDbContext)
 <span class="token punctuation">}</span></code></pre></div>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="85864394176862220000"
+              data-toaster-id="17638530638975269000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`SELECT p.&quot;Id&quot;, p.&quot;Location&quot;, p.&quot;Name&quot;
-FROM &quot;Pubs&quot; AS p`, `85864394176862220000`)"
+FROM &quot;Pubs&quot; AS p`, `17638530638975269000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1833,7 +1833,7 @@ FROM &quot;Pubs&quot; AS p`, `85864394176862220000`)"
 These handlers can be registered on the schema with <code class="language-text">.AddSpatialFiltering()</code></p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="81711310035878300000"
+              data-toaster-id="31319409707297894000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1842,7 +1842,7 @@ These handlers can be registered on the schema with <code class="language-text">
         .AddGraphQLServer()
         .AddProjections()
         .AddSpatialTypes()
-        .AddSpatialFiltering()`, `81711310035878300000`)"
+        .AddSpatialFiltering()`, `31319409707297894000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1860,7 +1860,7 @@ These handlers can be registered on the schema with <code class="language-text">
 for all <code class="language-text">Geometry</code> based types.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="70078798830324820000"
+              data-toaster-id="22751883007817830000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1870,7 +1870,7 @@ for all <code class="language-text">Geometry</code> based types.</p>
 public IQueryable<Pub> GetPubs([ScopedService] SomeDbContext someDbContext)
 {
     return someDbContext.Pubs;
-}`, `70078798830324820000`)"
+}`, `22751883007817830000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1887,7 +1887,7 @@ public IQueryable<Pub> GetPubs([ScopedService] SomeDbContext someDbContext)
 <span class="token punctuation">}</span></code></pre></div>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="30581392906861170000"
+              data-toaster-id="6328862631979226000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1931,7 +1931,7 @@ input PointFilterInput {
   overlaps: GeometryOverlapsOperationFilterInput
   touches: GeometryTouchesOperationFilterInput
   within: GeometryWithinOperationFilterInput
-}`, `30581392906861170000`)"
+}`, `6328862631979226000`)"
             >
               <div
                 class="gatsby-code-button"
