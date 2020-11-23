@@ -1,5 +1,5 @@
 ---
-title: Spatial Data _(Experimental)_
+title: Spatial Data
 ---
 > **Experimental** With version 11 we release support for spatial data. This feature is not totally finished
 > and polished yet. Spatial types is a community-driven feature. As the core team has little experience
