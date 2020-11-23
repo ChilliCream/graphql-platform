@@ -58,21 +58,86 @@ public interface IRequestExecutorBuilder
 
 Significant here is our switch to allow multiple named schemas that can be hot-reloaded during runtime. This allows us to improve a lot of workloads like schema stitching. But we will have more on that later.
 
-With the new configuration API, you now can chain in various configurations without the need to remember ....
+With the new configuration API, you now can chain in various configurations without the need to remember where these things were hidden.
 
-EXAMPLE
+```csharp
+services
+    .AddGraphQLServer()
+    .AddQueryType(d => d.Name("Query"))
+        .AddType<AttendeeQueries>()
+        .AddType<SessionQueries>()
+        .AddType<SpeakerQueries>()
+        .AddType<TrackQueries>()
+    .AddMutationType(d => d.Name("Mutation"))
+        .AddType<AttendeeMutations>()
+        .AddType<SessionMutations>()
+        .AddType<SpeakerMutations>()
+        .AddType<TrackMutations>()
+    .AddSubscriptionType(d => d.Name("Subscription"))
+        .AddType<AttendeeSubscriptions>()
+        .AddType<SessionSubscriptions>()
+    .AddType<AttendeeType>()
+    .AddType<SessionType>()
+    .AddType<SpeakerType>()
+    .AddType<TrackType>()
+    .AddFiltering()
+    .AddSorting()
+    .EnableRelaySupport()
+    .AddDataLoader<AttendeeByIdDataLoader>()
+    .AddDataLoader<SessionByIdDataLoader>()
+    .AddDataLoader<SpeakerByIdDataLoader>()
+    .AddDataLoader<TrackByIdDataLoader>()
+    .EnsureDatabaseIsCreated()
+    .AddInMemorySubscriptions()
+    .AddFileSystemQueryStorage("./persisted_queries")
+    .UsePersistedQueryPipeline();
+```
 
 With the new configuration API, we also reworked the ASP.NET Core integration to use the endpoints API. It now is very easy to just apply the Hot Chocolate server to a routing configuration.
 
-EXAMPLE
+```csharp
+public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+{
+    if (env.IsDevelopment())
+    {
+        app.UseDeveloperExceptionPage();
+    }
+
+    app.UseWebSockets();
+    app.UseRouting();
+
+    app.UseEndpoints(endpoints =>
+    {
+        endpoints.MapGraphQL();
+    });
+}
+```
 
 With the new middleware, we dropped support for Playground and GraphiQL and have added our own GraphQL IDE Banana Cake Pop, which will be automatically added to a GraphQL route.
 
-IMAGE
+![Banana Cake Pop](banana-cake-pop.png)
 
 In order to configure Banana Cake Pop or other middleware settings you can chain in the server options with the GraphQLEndpointBuilder.
 
-EXAMPLE
+```csharp
+public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+{
+    if (env.IsDevelopment())
+    {
+        app.UseDeveloperExceptionPage();
+    }
+
+    app.UseWebSockets();
+    app.UseRouting();
+
+    app.UseEndpoints(
+        e => e.MapGraphQL().WithOptions(
+            new GraphQLServerOptions
+            {
+                Tool = { Enable = false }
+            }));
+}
+```
 
 # Execution Engine
 
@@ -127,17 +192,32 @@ public class Person
 
     public string Name { get; set; }
 
-    public static async Task<Person> GetPersonAsync(MyDbContext context, int id) 
+    public static async Task<Person> GetPersonAsync(MyDbContext context, int id)
     {
         // ...
     }
 }
 ```
 
+But you can also split the re ....
+
+```csharp
+[Node(NodeResolverType = typeof(IPersonResolver))]
+public class Person
+{
+    public int Id { get; set; }
+
+    public string Name { get; set; }
+}
+```
+
 The the above example the node resolver is embedded into the `Person` class
 
-
 - relay nodes
+
+# Spec
+
+We also invested time to add more features from the
 
 - SPEC
 - interfaces implement interfaces
