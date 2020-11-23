@@ -1,6 +1,7 @@
+using HotChocolate.Data.Filters;
 using HotChocolate.Data.Filters.Expressions;
 
-namespace HotChocolate.Data.Filters
+namespace HotChocolate.Data
 {
     public static class FilterConventionDescriptorQueryableExtensions
     {

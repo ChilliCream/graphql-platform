@@ -1,6 +1,7 @@
 using System;
+using HotChocolate.Data.Sorting;
 
-namespace HotChocolate.Data.Sorting
+namespace HotChocolate.Data
 {
     public static class SortConventionDescriptorExtensions
     {

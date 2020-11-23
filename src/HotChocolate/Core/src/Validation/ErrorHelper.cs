@@ -590,5 +590,21 @@ namespace HotChocolate.Validation
                 .SetExtension("detectedComplexity", detectedComplexity)
                 .Build();
         }
+
+        public static IError MaxExecutionDepth(
+            this IDocumentValidatorContext context,
+            OperationDefinitionNode operation,
+            int allowedExecutionDepth,
+            int detectedExecutionDepth)
+        {
+            return ErrorBuilder.New()
+                .SetMessage(
+                    Resources.ErrorHelper_MaxExecutionDepth,
+                    detectedExecutionDepth, allowedExecutionDepth)
+                .AddLocation(operation)
+                .SetExtension("allowedExecutionDepth", allowedExecutionDepth)
+                .SetExtension("detectedExecutionDepth", detectedExecutionDepth)
+                .Build();
+        }
     }
 }

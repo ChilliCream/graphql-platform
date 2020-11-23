@@ -51,8 +51,6 @@ input DimensionOperationFilterInput {
 input GeometryContainsOperationFilterInput {
   geometry: Geometry!
   buffer: Float
-  eq: Boolean
-  neq: Boolean
 }
 
 input GeometryDistanceOperationFilterInput {
@@ -104,39 +102,36 @@ input GeometryFilterInput {
   "Sets the ID of the Spatial Reference System used by the Geometry."
   srid: ComparableInt32OperationFilterInput
   contains: GeometryContainsOperationFilterInput
+  ncontains: GeometryContainsOperationFilterInput
   distance: GeometryDistanceOperationFilterInput
   intersects: GeometryIntersectsOperationFilterInput
+  nintersects: GeometryIntersectsOperationFilterInput
   overlaps: GeometryOverlapsOperationFilterInput
+  noverlaps: GeometryOverlapsOperationFilterInput
   touches: GeometryTouchesOperationFilterInput
+  ntouches: GeometryTouchesOperationFilterInput
   within: GeometryWithinOperationFilterInput
+  nwithin: GeometryWithinOperationFilterInput
 }
 
 input GeometryIntersectsOperationFilterInput {
   geometry: Geometry!
   buffer: Float
-  eq: Boolean
-  neq: Boolean
 }
 
 input GeometryOverlapsOperationFilterInput {
   geometry: Geometry!
   buffer: Float
-  eq: Boolean
-  neq: Boolean
 }
 
 input GeometryTouchesOperationFilterInput {
   geometry: Geometry!
   buffer: Float
-  eq: Boolean
-  neq: Boolean
 }
 
 input GeometryWithinOperationFilterInput {
   geometry: Geometry!
   buffer: Float
-  eq: Boolean
-  neq: Boolean
 }
 
 input OgcGeometryTypeOperationFilterInput {
@@ -154,29 +149,42 @@ input PointFilterInput {
   x: ComparableDoubleOperationFilterInput
   y: ComparableDoubleOperationFilterInput
   z: ComparableDoubleOperationFilterInput
+  "Returns the area of this Geometry.\nAreal Geometries have a non-zero area.\nThey override this function to compute the area.\nOthers return 0.0\n\n\n**Returns:**\nThe area of the Geometry."
   area: ComparableDoubleOperationFilterInput
   "Gets the boundary of this geometry.\nZero-dimensional geometries have no boundary by definition,\nso an empty GeometryCollection is returned."
   boundary: GeometryFilterInput
+  "Computes the centroid of this Geometry.\nThe centroid\nis equal to the centroid of the set of component Geometries of highest\ndimension (since the lower-dimension geometries contribute zero\n\"weight\" to the centroid).\n\nThe centroid of an empty geometry is POINT EMPTY.\n\n\n**Returns:**\nA Point which is the centroid of this Geometry."
   centroid: PointFilterInput
   dimension: DimensionOperationFilterInput
+  "Gets a geometry representing the envelope (bounding box) of this Geometry.\n\n\n**Returns:**\n\nA Geometry representing the envelope of this Geometry"
   envelope: GeometryFilterInput
   "Returns the name of this object's interface.\n\n\n**Returns:**\n\"Point\""
   geometryType: StringOperationFilterInput
+  "Computes an interior point of this Geometry.\n\n\n**Returns:**\nA Point which is in the interior of this Geometry."
   interiorPoint: PointFilterInput
+  "Tests whether this Geometry is simple.\n\nThe SFS definition of simplicity\nfollows the general rule that a Geometry is simple if it has no points of\nself-tangency, self-intersection or other anomalous points.\n\nSimplicity is defined for each Geometry subclass as follows:\n\nValid polygonal geometries are simple, since their rings\nmust not self-intersect. IsSimple\ntests for this condition and reports false if it is not met.\n(This is a looser test than checking for validity).\nLinear rings have the same semantics.\nLinear geometries are simple iff they do not self-intersect at points\nother than boundary points.\nZero-dimensional geometries (points) are simple iff they have no\nrepeated points.\nEmpty Geometrys are always simple.\n\n\n\n**Returns:**\ntrue if this Geometry is simple"
   isSimple: BooleanOperationFilterInput
+  "Tests whether this Geometry is topologically\nvalid, according to the OGC SFS specification.\nFor validity rules see the documentation for the specific geometry subclass.\n\n\n**Returns:**\ntrue if this Geometry is valid."
   isValid: BooleanOperationFilterInput
+  "Returns the length of this Geometry.\nLinear geometries return their length.\nAreal geometries return their perimeter.\nThey override this function to compute the length.\nOthers return 0.0\n\n\n**Returns:**\nThe length of the Geometry."
   length: ComparableDoubleOperationFilterInput
   numPoints: ComparableInt32OperationFilterInput
   "Gets the OGC geometry type"
   ogcGeometryType: OgcGeometryTypeOperationFilterInput
   pointOnSurface: PointFilterInput
+  "Sets the ID of the Spatial Reference System used by the Geometry."
   srid: ComparableInt32OperationFilterInput
   contains: GeometryContainsOperationFilterInput
+  ncontains: GeometryContainsOperationFilterInput
   distance: GeometryDistanceOperationFilterInput
   intersects: GeometryIntersectsOperationFilterInput
+  nintersects: GeometryIntersectsOperationFilterInput
   overlaps: GeometryOverlapsOperationFilterInput
+  noverlaps: GeometryOverlapsOperationFilterInput
   touches: GeometryTouchesOperationFilterInput
+  ntouches: GeometryTouchesOperationFilterInput
   within: GeometryWithinOperationFilterInput
+  nwithin: GeometryWithinOperationFilterInput
 }
 
 "Represents a polygon with linear edges, which may include holes.\nThe outer boundary (shell)\nand inner boundaries (holes) of the polygon are represented by {@link LinearRing}s.\nThe boundary rings of the polygon may have any orientation.\nPolygons are closed, simple geometries by definition.\n\nThe polygon model conforms to the assertions specified in the\nOpenGIS Simple Features\nSpecification for SQL.\n\nA Polygon is topologically valid if and only if:\n\nthe coordinates which define it are valid coordinates\nthe linear rings for the shell and holes are valid\n(i.e. are closed and do not self-intersect)\nholes touch the shell or another hole at at most one point\n(which implies that the rings of the shell and holes must not cross)\nthe interior of the polygon is connected,\nor equivalently no sequence of touching holes\nmakes the interior of the polygon disconnected\n(i.e. effectively split the polygon into two pieces)."
@@ -186,14 +194,19 @@ input PolygonFilterInput {
   "Returns the area of this Polygon"
   area: ComparableDoubleOperationFilterInput
   boundary: GeometryFilterInput
+  "Computes the centroid of this Geometry.\nThe centroid\nis equal to the centroid of the set of component Geometries of highest\ndimension (since the lower-dimension geometries contribute zero\n\"weight\" to the centroid).\n\nThe centroid of an empty geometry is POINT EMPTY.\n\n\n**Returns:**\nA Point which is the centroid of this Geometry."
   centroid: PointFilterInput
   "Returns the dimension of this geometry.\n\n\n**Returns:**\n\nThe topological dimensions of this geometry"
   dimension: DimensionOperationFilterInput
+  "Gets a geometry representing the envelope (bounding box) of this Geometry.\n\n\n**Returns:**\n\nA Geometry representing the envelope of this Geometry"
   envelope: GeometryFilterInput
   "Returns the name of this object's interface.\n\n\n**Returns:**\n\"Polygon\""
   geometryType: StringOperationFilterInput
+  "Computes an interior point of this Geometry.\n\n\n**Returns:**\nA Point which is in the interior of this Geometry."
   interiorPoint: PointFilterInput
+  "Tests whether this Geometry is simple.\n\nThe SFS definition of simplicity\nfollows the general rule that a Geometry is simple if it has no points of\nself-tangency, self-intersection or other anomalous points.\n\nSimplicity is defined for each Geometry subclass as follows:\n\nValid polygonal geometries are simple, since their rings\nmust not self-intersect. IsSimple\ntests for this condition and reports false if it is not met.\n(This is a looser test than checking for validity).\nLinear rings have the same semantics.\nLinear geometries are simple iff they do not self-intersect at points\nother than boundary points.\nZero-dimensional geometries (points) are simple iff they have no\nrepeated points.\nEmpty Geometrys are always simple.\n\n\n\n**Returns:**\ntrue if this Geometry is simple"
   isSimple: BooleanOperationFilterInput
+  "Tests whether this Geometry is topologically\nvalid, according to the OGC SFS specification.\nFor validity rules see the documentation for the specific geometry subclass.\n\n\n**Returns:**\ntrue if this Geometry is valid."
   isValid: BooleanOperationFilterInput
   "Returns the perimeter of this Polygon."
   length: ComparableDoubleOperationFilterInput
@@ -201,13 +214,19 @@ input PolygonFilterInput {
   numPoints: ComparableInt32OperationFilterInput
   ogcGeometryType: OgcGeometryTypeOperationFilterInput
   pointOnSurface: PointFilterInput
+  "Sets the ID of the Spatial Reference System used by the Geometry."
   srid: ComparableInt32OperationFilterInput
   contains: GeometryContainsOperationFilterInput
+  ncontains: GeometryContainsOperationFilterInput
   distance: GeometryDistanceOperationFilterInput
   intersects: GeometryIntersectsOperationFilterInput
+  nintersects: GeometryIntersectsOperationFilterInput
   overlaps: GeometryOverlapsOperationFilterInput
+  noverlaps: GeometryOverlapsOperationFilterInput
   touches: GeometryTouchesOperationFilterInput
+  ntouches: GeometryTouchesOperationFilterInput
   within: GeometryWithinOperationFilterInput
+  nwithin: GeometryWithinOperationFilterInput
 }
 
 input StringOperationFilterInput {

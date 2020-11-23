@@ -59,8 +59,7 @@ namespace HotChocolate.Data.Filters.Spatial
                                         geometry: {
                                             type: Point,
                                             coordinates: [1, 1]
-                                        },
-                                        eq: true
+                                        }
                                     }
                                 }
                             }){
@@ -81,8 +80,7 @@ namespace HotChocolate.Data.Filters.Spatial
                                         geometry: {
                                             type: Point,
                                             coordinates: [-1, -1]
-                                        },
-                                        eq: true
+                                        }
                                     }
                                 }
                             }){
@@ -108,12 +106,11 @@ namespace HotChocolate.Data.Filters.Spatial
                         @"{
                             root(where: {
                                 bar: {
-                                    contains: {
+                                    ncontains: {
                                         geometry: {
                                             type: Point,
                                             coordinates: [1, 1]
-                                        },
-                                        neq: true
+                                        }
                                     }
                                 }
                             }){
@@ -130,12 +127,11 @@ namespace HotChocolate.Data.Filters.Spatial
                         @"{
                             root(where: {
                                 bar: {
-                                    contains: {
+                                    ncontains: {
                                         geometry: {
                                             type: Point,
                                             coordinates: [-1, -1]
-                                        },
-                                        neq: true
+                                        }
                                     }
                                 }
                             }){
