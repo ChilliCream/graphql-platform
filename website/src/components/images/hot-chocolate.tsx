@@ -6,12 +6,12 @@ import { GetHotChocolateImageQuery } from "../../../graphql-types";
 export const HotChocolate: FunctionComponent = () => {
   const data = useStaticQuery<GetHotChocolateImageQuery>(graphql`
     query getHotChocolateImage {
-      placeholderImage: file(
+      file(
         relativePath: { eq: "hot-chocolate-console.png" }
         sourceInstanceName: { eq: "images" }
       ) {
         childImageSharp {
-          fluid(maxWidth: 1200) {
+          fluid(maxWidth: 1200, pngQuality: 90) {
             ...GatsbyImageSharpFluid
           }
         }
@@ -19,5 +19,5 @@ export const HotChocolate: FunctionComponent = () => {
     }
   `);
 
-  return <Img fluid={data.placeholderImage?.childImageSharp?.fluid as any} />;
+  return <Img fluid={data.file?.childImageSharp?.fluid as any} />;
 };
