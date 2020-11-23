@@ -239,7 +239,7 @@ EXAMPLE
 
 Another feature that we think will make tooling better over time is the ability to state the scalar specification. Andi Marek from graphql-java has created a new scalar specification website that, at the moment, only hosts one scalar specification for `DateTime`. Hopefully, this will grow over time. Scalars that have a specification can point to an URL of a human-readable spec. This will allow tooling to use the spec URLs as identifiers and apply then IntelliSense or other means of validation to a GraphQL IDE.
 
-When you implement a scalar type, you can now pass on this `specifiedBy`` URL.
+When you implement a scalar type, you can now pass on this `specifiedBy` URL.
 
 EXAMPLE
 
@@ -247,7 +247,7 @@ EXAMPLE
 
 [GraphQL Spec PR 742](https://github.com/graphql/graphql-spec/pull/742)
 
-We also invested a lot of time in a very early feature called defer and stream. Defer, and stream allow you to deprioritize parts of your request. This means that you essentially can tell the server to give you all the data in one go, but you mark the data that can arrive a little later.
+We also invested a lot of time in a very early feature called defer and stream. Defer, and stream allow you to deprioritize parts of your request. This means that ysou essentially can tell the server to give you all the data in one go, but you mark the data that can arrive a little later.
 
 EXAMPLE
 
