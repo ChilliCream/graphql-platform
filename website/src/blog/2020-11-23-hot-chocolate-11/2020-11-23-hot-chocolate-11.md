@@ -529,8 +529,8 @@ These changes are more iterative, where we complete and get better. We will also
 
 The great thing about Hot Chocolate is the people. Every day, I think the best thing we did was to create this slack channel where anybody could join. The slack channel has become the space where the community can congregate and help each other find a solution to a problem.
 
-We internally talked about this great family and how we can push this further and help this community to grow. We will soon start with our ChilliCream user group user can present solutions to their issues or present components that they have build around Hot Chocolate. But we think that we will even go beyond that and ask people from the greater GraphQL community to talk to us and give us fresh ideas and new takes on GraphQL.
+We internally talked about this great family and how to push this further and help this community grow. We will soon start with our ChilliCream user group, where users from the community can present solutions to their issues or present components that they have build around Hot Chocolate. But we think that we will even go beyond that and ask people from the greater GraphQL community to talk to us and give us fresh ideas and new takes on GraphQL.
 
-Last but not least, let me invite you to our launch party on Thursday and celebrate with us the community and the next chapter of Hot Chocolate.
+Last but not least, let me invite you to our launch party on Thursday and celebrate with us this amazing community and the next chapter of Hot Chocolate.
 
 [Hot Chocolate 11 Launch Party](https://www.meetup.com/ChilliCream-User-Group/events/274656703/)
