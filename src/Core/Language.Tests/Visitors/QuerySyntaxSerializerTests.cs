@@ -1,4 +1,4 @@
-﻿
+
 using System.IO;
 using System.Text;
 using ChilliCream.Testing;
@@ -201,6 +201,48 @@ namespace HotChocolate.Language
             Assert.Equal(
                 query,
                 content.ToString());
+        }
+
+        [Fact]
+        public void Serialize_WithNameAndVariable()
+        {
+            // arrange
+            var documentString = "query name($id: String!) { a }";
+            DocumentNode document = Utf8GraphQLParser.Parse(documentString);
+
+            // act
+            var serialized = QuerySyntaxSerializer.Serialize(document, false);
+
+            // assert
+            Assert.Equal(documentString, serialized);
+        }
+
+        [Fact]
+        public void Serialize_ShortHand()
+        {
+            // arrange
+            var documentString = "{ a }";
+            DocumentNode document = Utf8GraphQLParser.Parse(documentString);
+
+            // act
+            var serialized = QuerySyntaxSerializer.Serialize(document, false);
+
+            // assert
+            Assert.Equal(documentString, serialized);
+        }
+
+        [Fact]
+        public void Serialize_WithoutNameAndWithVariable()
+        {
+            // arrange
+            var documentString = "query ($id: String!) { a }";
+            DocumentNode document = Utf8GraphQLParser.Parse(documentString);
+
+            // act
+            var serialized = QuerySyntaxSerializer.Serialize(document, false);
+
+            // assert
+            Assert.Equal(documentString, serialized);
         }
     }
 }

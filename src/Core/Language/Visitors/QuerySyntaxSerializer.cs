@@ -102,7 +102,7 @@ namespace HotChocolate.Language
             OperationDefinitionNode node,
             DocumentWriter writer)
         {
-            if (node.Name != null || node.VariableDefinitions.Any())
+            if (node.Name != null || node.VariableDefinitions.Count > 0)
             {
                 writer.Write(node.Operation.ToString().ToLowerInvariant());
                 writer.WriteSpace();
