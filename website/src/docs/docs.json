@@ -317,6 +317,10 @@
               {
                 "path": "entity-framework",
                 "title": "Entity Framework"
+              },
+              {
+                "path": "spatial-data",
+                "title": "Spatial Data"
               }
             ]
           },
