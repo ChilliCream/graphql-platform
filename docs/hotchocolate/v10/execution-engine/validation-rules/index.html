@@ -1315,7 +1315,7 @@ Validation results are cached with the query so that validation rules are only r
 <p>The rule interface itself is simple, basically the validation middleware will call validate and pass in the schema and the parsed query.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="57938129740886810000"
+              data-toaster-id="18731510464714596000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1323,7 +1323,7 @@ Validation results are cached with the query so that validation rules are only r
               onClick="copyToClipboard(`public interface IQueryValidationRule
 {
     QueryValidationResult Validate(ISchema schema, DocumentNode query);
-}`, `57938129740886810000`)"
+}`, `18731510464714596000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1342,7 +1342,7 @@ Validation results are cached with the query so that validation rules are only r
 <p>Let us say we want to ensure a certain rule for every field selection in a query, then we could write the following <code class="language-text">QuerySyntaxWalker&lt;T&gt;</code>.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="29648244504374022000"
+              data-toaster-id="59208471853118000000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1358,7 +1358,7 @@ Validation results are cached with the query so that validation rules are only r
 
         base.VisitField(field, context
     }
-}`, `29648244504374022000`)"
+}`, `59208471853118000000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1384,7 +1384,7 @@ Validation results are cached with the query so that validation rules are only r
 <p>Validation rules can be added via the <code class="language-text">QueryExecutionBuilder</code> like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="3729186498009995300"
+              data-toaster-id="75449770376077770000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1393,7 +1393,7 @@ Validation results are cached with the query so that validation rules are only r
     .New()
     .AddValidationRule<MyCustomRule>()
     .UseDefaultPipeline()
-    .Build(schema);`, `3729186498009995300`)"
+    .Build(schema);`, `75449770376077770000`)"
             >
               <div
                 class="gatsby-code-button"
