@@ -13,7 +13,7 @@ Today we are releasing Hot Chocolate server 11. We started work on this version 
 
 With Hot Chocolate 11, we are now fully embracing .NET 5 while still supporting older .NET platforms. If you opt into .NET 5, you will get a much more refined experience to express a GraphQL schema in entirely different ways.
 
-Records are now fully supported and let you create full GraphQL types with a single line. I personally like to use records for input types when using the pure code-first (annotation based) approach.
+Records are now fully supported and let you create full GraphQL types with a single line of code. I personally like to use records for input types when using the pure code-first (annotation based) approach.
 
 ```csharp
 public record AddSessionInput(string Title, string SpeakerId);
@@ -27,11 +27,11 @@ public record AddSessionInput(string Title, [ID(nameof(Speaker))] string Speaker
 
 This allows you to write very slim input types and get rid of a lot of boilerplate code.
 
-We have also started exploring how we can use source generators to make Hot Chocolate faster and even less boilerplate. You will see this trickling in with the next dot releases.
+We have also started exploring how we can use source generators to make Hot Chocolate faster and reduce boilerplate even further. You will see this trickling in with the next dot releases.
 
 # New Configuration API
 
-While .NET 5 support is nice, the most significant change from an API perspective is the new configuration API, which now brings together all the different builders to set up a GraphQL server into one new API.
+While .NET 5 support is nice, the most significant change from an API perspective is the new configuration API, which now brings together all the different builders to set up a GraphQL server. This makes the server configuration now very accessible and straightforward to use.
 
 ```csharp
 services
@@ -93,7 +93,7 @@ services
     .UsePersistedQueryPipeline();
 ```
 
-With the new configuration API, we also reworked the ASP.NET Core integration to use the endpoints API. It now is very easy to just apply the Hot Chocolate server to a routing configuration.
+With the new configuration API, we also reworked the ASP.NET Core integration to use the endpoints API. It now is effortless to apply the Hot Chocolate server to a routing configuration.
 
 ```csharp
 public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -117,7 +117,7 @@ With the new middleware, we dropped support for Playground and GraphiQL and have
 
 ![Banana Cake Pop](banana-cake-pop.png)
 
-In order to configure Banana Cake Pop or other middleware settings you can chain in the server options with the GraphQLEndpointBuilder.
+To configure Banana Cake Pop or other middleware settings, you can chain in the server options with the GraphQLEndpointConventionBuilder.
 
 ```csharp
 public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -141,17 +141,17 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 
 # Execution Engine
 
-While the new Configuration API is the first change, you will notice we changed a whole lot underneath. One of the biggest investments we made was into our new execution engine. The new execution engine uses a new operation optimizer component to create execution plans and optimize executing requests. The first request now is a little slower since we need to essentially compile a query and then execute it. All consecutive requests can now simply execute and no longer need to interpret things like skip, include, defer, and other things.
+While the new Configuration API is the first change, you will notice we changed a whole lot more underneath. One of the most significant investments we made was into our new execution engine. The new execution engine uses a new operation optimizer component to create execution plans and optimize executing requests. The first request now is a little slower since we need to essentially compile a query and then execute it. All consecutive requests can now simply execute and no longer need to interpret things like skip, include, defer, and other things.
 
 With the new execution engine, we also introduced a new batching mechanism that is now much more efficient and abstracts the batching mechanism from DataLoader, meaning you can write your own batching functionality and integrate it. The stitching layer, for instance, does this to batch requests to the downstream services.
 
-Apart from this, the new DataLoader API now follows the DataLoader spec version 2 and now lets you inject the batch scheduler into the DataLoader. This makes it now easy to use GreenDonut in your business logic. The beauty of this is that you do not need to expose any GraphQL libraries into your business layer and are able to nicely layer your application.
+Apart from this, the new DataLoader API now follows the DataLoader spec version 2 and lets you inject the batch scheduler into the DataLoader. This makes it now easy to use GreenDonut in your business logic. The beauty of this is that you do not need to expose any GraphQL libraries into your business layer and are able to layer your application nicely.
 
-We also rewrote the validation layer for Hot Chocolate to make it much more correct and much faster. To make the query validation more correct and ensure quality, we have ported all the `graphql-js` tests to Hot Chocolate. While porting and integrating these tests, we found countless little issues with our implementation of field merging, for instance.
+We also rewrote the validation layer for Hot Chocolate to make it much more correct and much faster on execution. To make the query validation more correct and ensure quality, we have ported all the `graphql-js` tests regarding validation to Hot Chocolate. While porting and integrating these tests, we found countless little issues with our implementation of field merging, for instance.
 
-So, what do we mean with much faster? We put a lot of effort in reducing our footprint.
+So, what do we mean with much faster execution? We put a lot of effort into reducing our memory footprint to execute more in parallel.
 
-OK, let's have a look at this compared to GraphQL .NET Server 4.3.1.
+OK, let's have a look at Hot Chocolate 11 compared to GraphQL .NET Server 4.3.1.
 
 | Server           | Benchmark                  |    Time |  Allocated |
 | ---------------- | -------------------------- | ------: | ---------: |
@@ -162,9 +162,9 @@ OK, let's have a look at this compared to GraphQL .NET Server 4.3.1.
 | Hot Chocolate 11 | Introspection              |  750.96 |  392.31 KB |
 | GraphQL .NET     | Introspection              | 2277.24 | 2267.26 KB |
 
-Hot Chocolate 11 uses a lot less memory and on top of that uses a lot less time to execute queries. But we also looked at other GraphQL servers and added Hot Chocolate to a variety of benchmarks.
+Hot Chocolate 11 uses a lot less memory and, on top of that, uses a lot less time to execute queries. But we also looked at other GraphQL servers and added Hot Chocolate to a variety of benchmarks.
 
-For instance we ran tests against the Apollo GraphQL server.
+For instance, we ran tests against the Apollo GraphQL server and other nodejs GraphQL servers.
 
 | Server                     | Requests / second |
 | -------------------------- | ----------------: |
@@ -174,15 +174,15 @@ For instance we ran tests against the Apollo GraphQL server.
 | apollo-fastify-graphql-jit |            4046.2 |
 | apollo                     |            2697.1 |
 
-In our throughput tests, we can see that Hot Chocolate outperforms any node based GraphQL server. Hot Chocolate is optimized for parallel requests meaning the more core your system has, the better Hot Chocolate server performs. This also means that if you have, for instance, only one core graphyne will actually perform better.
+In our throughput tests, we can see that Hot Chocolate outperforms any node-based GraphQL server. Hot Chocolate is optimized for parallel requests meaning the more core your system has, the better Hot Chocolate server performs. This also means that if you have, for instance, only one CPU core graphyne will actually perform better. But even with less parallelization, Hot Chocolate turned up in the top 3 ahead of Express GraphQL and Apollo GraphQL.
 
-This said, we are not done on performance and pulled the two biggest performance features on the execution side since we could not get them done in time for 11. We already have seen hugh potential in making the overall performance of the server faster by using source generators in order to move the resolver compiler to the build time. Also we pulled a lot of our execution plan optimizers that would rewrite the execution tree in order to optimize data fetching. These performance improvements will trickle in with the next dot releases and should push Hot Chocolate further.
+This said, we are not done on performance and pulled the two biggest performance features on the execution side since we could not get them done in time for the 11 release. We already have seen huge potential in improving the overall performance of the server by using source generators. Source generators let us move a lot of logic into build time instead of executing resolver compilation, for instance, at runtime. Also, we pulled a lot of our execution plan optimizers that would rewrite the execution tree to optimize data fetching. These performance improvements will trickle in with the next dot releases and should push Hot Chocolate further.
 
 # Relay
 
-We have invested a lot of time to make it even easier to create relay schemas. One of the things I found often cumbersome was to create entities that implemented node. With Hot Chocolate 10.5 you could not do that pure code-first and always needed to use code-first with the fluent API or schema-first. This now has changed and it is much easier to write relay compliant schemas with any approach.
+We have invested a lot of time to make it even easier to create relay schemas. One of the things I often found cumbersome was to create entities that implemented the node interface. With Hot Chocolate 10.5, you could not do that with pure code-first (annotation based) and always needed to use code-first with the fluent API or schema-first. This now has changed, and it is much easier to write relay compliant schemas with any schema definition approach.
 
-In order to write a node type you can just put everything into one class.
+To write an entity that implements the node interface, you can now just put everything into one class.
 
 ```csharp
 [Node]
@@ -199,7 +199,7 @@ public class Person
 }
 ```
 
-But you can also split the re ....
+We often want to have the node resolver logic in a separate class that only deals with fetching the entity by ID. Or even have multiple node resolvers co-located in the same class. This can be done by specifying the node resolver type on the node attribute.
 
 ```csharp
 [Node(NodeResolverType = typeof(IPersonResolver))]
@@ -211,18 +211,55 @@ public class Person
 }
 ```
 
-The the above example the node resolver is embedded into the `Person` class
+There are more variations and options possible to define a node type; the essence here is that it has become more natural.
 
-- relay nodes
+# Draft Specification
 
-# Spec
+As always, we try to implement draft specifications early, and we added a couple more draft spec features with Hot Chocolate 11.
 
-We also invested time to add more features from the
+## Allow interfaces to implement other interfaces
 
-- SPEC
-- interfaces implement interfaces
-- Specified by on scalars
-- defer
+[GraphQL Spec PR 373](https://github.com/graphql/graphql-spec/pull/373)
+
+One thing that users often requested is that interfaces could implement interfaces. With GraphQL until now, this was not possible. With the new GraphQL draft spec, we now have this capability, and we have optimized Hot Chocolate to make it very simple to apply.
+
+The GraphQL spec states that you have to reimplement an interface on every level. This decision was made to optimize the GraphQL SDL for readability, and further show the impact of changes to an interface.
+
+We will help you that this does not feel cumbersome and automatically add the missing re-implementations with code-first.
+
+EXAMPLE
+
+This schema will translate to the following GraphQL SDL.
+
+EXAMPLE
+
+## Custom Scalar Specification URLs
+
+[GraphQL Spec PR 649](https://github.com/graphql/graphql-spec/pull/649)
+
+Another feature that we think will make tooling better over time is the ability to state the scalar specification. Andi Marek from graphql-java has created a new scalar specification website that, at the moment, only hosts one scalar specification for `DateTime`. Hopefully, this will grow over time. Scalars that have a specification can point to an URL of a human-readable spec. This will allow tooling to use the spec URLs as identifiers and apply then IntelliSense or other means of validation to a GraphQL IDE.
+
+When you implement a scalar type, you can now pass on this `specifiedBy`` URL.
+
+EXAMPLE
+
+## Defer and Stream
+
+[GraphQL Spec PR 742](https://github.com/graphql/graphql-spec/pull/742)
+
+We also invested a lot of time in a very early feature called defer and stream. Defer, and stream allow you to deprioritize parts of your request. This means that you essentially can tell the server to give you all the data in one go, but you mark the data that can arrive a little later.
+
+EXAMPLE
+
+Hot Chocolate Server 11 supports defer. This feature is experimental since the spec still changes, and we will keep it up to date. We have not yet included stream, which will follow with 11.1, probably at the end of January. You do not need to specify anything in your server to use defer; it will just work. You can try out defer with Banana Cake Pop, which will show you exactly how the patches come in.
+
+SCREEN
+
+# Data Integration
+
+I know a lot of you love the data integration API, aka filtering. We completely reinvented this API and created a new package called `HotChocolate.Data`. This new package contains the base for automatic database mapping, filtering, sorting, and projections.
+
+We actually started out in 11 to make the filtering introduced in version 10 better. But people soon chimed in and wanted to do more and wanted to **NOT** be dependant on `IQueryable`. So we create a new API that lets you fully control how filters, sorting, and projects are handled. You can integrate new providers like NeoJ4, MongoDB, or even spatial filter support.
 
 - extension API
 - type interceptor
