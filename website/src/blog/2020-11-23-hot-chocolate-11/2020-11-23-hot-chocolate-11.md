@@ -1,7 +1,7 @@
 ---
 path: "/blog/2020/11/23/hot-chocolate-11"
 date: "2020-11-23"
-title: "Welcome to the family"
+title: "Welcome Hot Chocolate 11"
 tags: ["hotchocolate", "graphql", "dotnet", "aspnetcore"]
 featuredImage: "hot-chocolate-11-banner.png"
 author: Michael Staib
@@ -528,8 +528,6 @@ These changes are more iterative, where we complete and get better. We will also
 
 The great thing about Hot Chocolate is the people. Every day, I think the best thing we did was to create this slack channel where anybody could join. The slack channel has become the space where the community can congregate and help each other find a solution to a problem.
 
-Also, having these community stand-ups where people can talk things through and bring their ideas without having to fear being looked down upon for saying something stupid made the community bigger.
-
-We internally talked about this great family and how we can bring this further and help this community to grow. We will soon start with our ChilliCream user group user can present solutions to their issues or present components that they have build around Hot Chocolate. But we think that we will even go beyond that and ask people from the greater GraphQL community to talk to us and give us fresh ideas and new takes on GraphQL.
+We internally talked about this great family and how we can push this further and help this community to grow. We will soon start with our ChilliCream user group user can present solutions to their issues or present components that they have build around Hot Chocolate. But we think that we will even go beyond that and ask people from the greater GraphQL community to talk to us and give us fresh ideas and new takes on GraphQL.
 
 Last but not least, let me invite you to our launch party on Thursday and celebrate with us the community and the next chapter of Hot Chocolate.
