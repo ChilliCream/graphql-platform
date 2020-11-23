@@ -82,6 +82,7 @@ services
     .AddType<TrackType>()
     .AddFiltering()
     .AddSorting()
+    .AddProjections()
     .EnableRelaySupport()
     .AddDataLoader<AttendeeByIdDataLoader>()
     .AddDataLoader<SessionByIdDataLoader>()
