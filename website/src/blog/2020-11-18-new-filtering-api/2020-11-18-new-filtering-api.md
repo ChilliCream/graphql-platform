@@ -3,7 +3,7 @@ path: "/blog/2020/11/18/new-filtering-api"
 date: "2020-11-18"
 title: "The new Filtering API"
 tags: ["hotchocolate", "graphql", "dotnet", "aspnetcore", "filtering"]
-featuredImage: "banner-new-filtering-api.png"
+featuredImage: "hotchocolate-new-filtering-api-banner.png"
 author: Pascal Senn
 authorUrl: https://github.com/pascal_senn
 authorImageUrl: https://avatars0.githubusercontent.com/u/14233220
@@ -301,7 +301,7 @@ public class Query : ObjectType {
 ```
 
 ## What's next?
- 
+
 The data package is designed for extensibility. There are a few extensions that we will work on. e.g. filtering for spatial data and a MongoDB provider.
 We will as well invest time into documentation and have examples on how to create your own extensions.
 There are too many databases to create providers for all of them out of the box. We encourage you, the community, to contribute the extensions you need.
