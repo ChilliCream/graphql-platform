@@ -152,7 +152,7 @@ We also rewrote the validation layer for Hot Chocolate to make it much more corr
 
 So, what do we mean with much faster execution? We put a lot of effort into reducing our memory footprint to execute more in parallel.
 
-OK, let's have a look at Hot Chocolate 11 compared to GraphQL .NET Server 4.3.1.
+Let's have a look at how Hot Chocolate 11 compares to GraphQL .NET Server 4.3.1.
 
 | Server           | Benchmark                  |    Time |  Allocated |
 | ---------------- | -------------------------- | ------: | ---------: |
