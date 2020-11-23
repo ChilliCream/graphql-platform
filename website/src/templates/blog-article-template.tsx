@@ -21,11 +21,15 @@ const BlogArticleTemplate: FunctionComponent<BlogArticleTemplateProperties> = ({
             property: "og:type",
             content: "article",
           },
-          {
-            property: "og:image",
-            content: data.markdownRemark!.frontmatter!.featuredImage!
-              .childImageSharp!.fluid!.src,
-          },
+          ...(data.markdownRemark!.frontmatter!.featuredImage
+            ? [
+                {
+                  property: "og:image",
+                  content: data.markdownRemark!.frontmatter!.featuredImage
+                    ?.childImageSharp!.fluid!.src,
+                },
+              ]
+            : []),
         ]}
       />
       <BlogArticle data={data} />
