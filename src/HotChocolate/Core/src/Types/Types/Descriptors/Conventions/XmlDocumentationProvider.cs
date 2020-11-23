@@ -356,17 +356,17 @@ namespace HotChocolate.Types.Descriptors
         {
             char prefixCode;
 
-            string memberName =
+            string? memberName =
                 member is Type { FullName: { Length: > 0 } } memberType
                 ? memberType.FullName
-                : member.ReflectedType is null
+                : member.DeclaringType is null
                     ? member.Name
-                    : member.ReflectedType.FullName! + "." + member.Name;
+                    : member.DeclaringType.FullName + "." + member.Name;
 
             switch (member.MemberType)
             {
                 case MemberTypes.Constructor:
-                    memberName = memberName.Replace(".ctor", "#ctor");
+                    memberName = memberName?.Replace(".ctor", "#ctor");
                     goto case MemberTypes.Method;
 
                 case MemberTypes.Method:
@@ -398,7 +398,7 @@ namespace HotChocolate.Types.Descriptors
                     break;
 
                 case MemberTypes.NestedType:
-                    memberName = memberName.Replace('+', '.');
+                    memberName = memberName?.Replace('+', '.');
                     goto case MemberTypes.TypeInfo;
 
                 case MemberTypes.TypeInfo:
@@ -416,7 +416,7 @@ namespace HotChocolate.Types.Descriptors
             }
 
             return new MemberName(
-                $"{prefixCode}:{memberName.Replace("+", ".")}");
+                $"{prefixCode}:{memberName?.Replace("+", ".")}");
         }
 
         private ref struct MemberName
