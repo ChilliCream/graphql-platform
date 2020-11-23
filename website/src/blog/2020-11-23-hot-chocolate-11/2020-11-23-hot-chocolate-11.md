@@ -406,7 +406,7 @@ Which translates to:
  WHERE ST_Within(c."Area", @__p_0)
 ```
 
-This use-case was one that has driven us to reinvent the data integration API in the first place. This now very easily allows you to expose complex spatial filters to the consumer.
+The spatial filters use-case has driven us to reinvent the data integration API in the first place. This now very easily allows you to expose complex spatial filters to your GraphQL consumers.
 
 Let me thank Steve and Pascal for all their work on this feature.
 
