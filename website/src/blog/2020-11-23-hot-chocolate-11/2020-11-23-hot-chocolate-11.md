@@ -39,7 +39,7 @@ services
     .AddQueryType<Query>();
 ```
 
-The builder API lets you chain in new extension methods that can add new capabilities without the need to change the actual builder API. The actual builder interface is nothing more than a named access to the service collection, which lets you add named configurations to the DI that are consecutively used to create a GraphQL server.
+The builder API lets you chain in new extension methods that can add new capabilities without the need to change the actual builder API. The builder interface is nothing more than a named access to the service collection, which lets you add named configurations to the DI that are consecutively used to create a GraphQL server.
 
 ```csharp
 public interface IRequestExecutorBuilder
