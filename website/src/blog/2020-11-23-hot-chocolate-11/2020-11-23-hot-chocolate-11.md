@@ -259,22 +259,111 @@ SCREEN
 
 I know a lot of you love the data integration API, aka filtering. We completely reinvented this API and created a new package called `HotChocolate.Data`. This new package contains the base for automatic database mapping, filtering, sorting, and projections.
 
-We actually started out in 11 to make the filtering introduced in version 10 better. But people soon chimed in and wanted to do more and wanted to **NOT** be dependant on `IQueryable`. So we create a new API that lets you fully control how filters, sorting, and projects are handled. You can integrate new providers like NeoJ4, MongoDB, or even spatial filter support.
+EXAMPLE CONVENTION
 
-- extension API
-- type interceptor
-- schema interceptor
-- conventions
+We actually started out in 11 to make the filtering introduced in version 10 better. But people soon chimed in and wanted to do more and wanted to **NOT** be dependant on `IQueryable`. So we create a new API that lets you fully control how filters, sorting, and projects are handled. You can integrate new providers like NeoJ4, MongoDB, or even spatial filter
+support.
 
-- Data Integration
-- Spatial Filtering (experimental)
-- spatial types
-- Outlook: MongoDB
-- Outlook: Neo4J
-- Entity Framework
+What does this actually mean?
 
-- Schema Stitching
-- hot reload
-- outlook: support for af
+We have ported the old filtering to 11, so you can use that and essentially have no breaking change. We are no longer developing this any further and are also no longer investing in this component's bug fixing.
 
-- Strawberry Shake
+This means that you essentially will need to upgrade to the new `HotChocolate.Data` package. The issue with that is that your graph filter structure will change. Meaning a breaking change to your schema. You can, however, upgrade slowly and use both APIs side by side.
+
+You can read more about the journey on our data integration API in Pascal's blog post here.
+
+## Entity Framework
+
+We know that many of you love Entity Framework and that it was quite painful to use Entity Framework with Hot Chocolate. We refined usage of Entity Framework with 10.5 but had to use internal APIs of EF to make it efficient.
+
+With Hot Chocolate 11, we now create a new package, `HotChocolate.Data.EntityFramework`, which nicely integrates with the data integration API.
+
+We have a great example with Entity Framework right here:
+
+GRAPHQL WORKSHOP LINK
+
+## Spatial Filtering
+
+Apart from the refactoring of the data integration API, we introduced our new GeoJSON based spatial types. These spatial types are not just simple types but can also be used to add spatial filter capabilities to our data integration API.
+
+EXAMPLE QUERY
+
+This use-case was one that has driven us to reinvent the data integration API in the first place. This now very easily allows you to expose complex spatial filters to the consumer.
+
+EXAMPLE CONFIG
+
+Let me thank Steve and Pascal for all their work on this feature.
+
+However, we are still developing spatial further, and this feature essentially is still experimental. Meaning, it might change in the next dot releases.
+
+## Support for more providers
+
+We are currently working on more providers for the data integration API like MongoDB native, Neo4J, and Elastic Search, which we will drop with the next dot releases.
+
+The furthest along is our new MongoDB integration. I mean, MongoDB works already through `IQueryable`, but with `IQueryable` performance is sometimes an issue since the translation from `IQueryable` to the native Mongo query is not optimal in all cases. With the new Mongo provider, we use the BSON API to craft a native query that you can also intercept and further modify before it is sent to the database.
+
+We expect to release the MongoDB provider with 11.1 in January.
+
+# Schema Stitching
+
+Schema got a nice upgrade for version 11, although a lot of features were moved to 11.1. We originally wanted to redo the whole stitching execution on top of the new execution engine. In the end, we essentially moved the old stitching engine on top of the new execution engine and integrated the old stitching engine into the new configuration API. This alone already will give you a big upgrade in functionality and usability.
+
+The first thing to note with schema stitching is that it completely integrates with a standard schema. No more is there a separate stitching builder that makes it challenging to add customizations.
+
+EXAMPLE
+
+Essentially now you just merge in types into your schema from anywhere, and you are still able to create local types that are merged with remote types. This gives a lot of control and flexibility to you. With that, any schema could also be a gateway.
+
+EXAMPLE
+
+## Federated Schemas
+
+I mentioned in the beginning that we can now hot-reload schemas, which we designed specifically for schema stitching so that you could distribute the schema configuration and use a federated approach to schema stitching.
+
+While there are various ways now to do federated schemas, we internally use one backed by Redis. Essentially, a downstream service can push to the gateway its local configuration, and the gateway will start phasing out the old schema and phasing in the new schema without any disruption every time a configuration changes.
+
+The gateway will further store schema configurations on Redis so that even if there are downstream services offline, we can always create a schema, and only on execution might there be errors for affected parts of the schema. This really makes a federated schema more resilient.
+
+We have created some examples that show the various ways to set up schema stitching, which can be found [here]().
+
+But as I said in the beginning, there is a lot more coming with the next dot updates. Like GraphQL over gRPC to improve efficiency between the gateway and the downstream services. Moreover, we are bringing in subscription stitching and full integration with the new execution engine. Further, we will introduce a new fetch directive that will bring much more flexibility to integrating GraphQL schemas and other data sources.
+
+# Extensibility
+
+With Hot Chocolate 11, we changed direction. Hot Chocolate, until now, was quite locked down to provide a refined experience and not expose any extension API that we might regret exposing; we kept a lot of stuff internal. During development, we decided that any new component like `HotChocolate.Data` and `HotChocolate.Stitching` is not allowed to use any internal API to ensure that anybody can build powerful integrations.
+
+We essentially created a new interception API that can hook into the type initialization to completely rewrite an inferred schema. It can create new types when it finds an attribute or branch of types and essentially creates versions of the same graph. It gives you a powerful API that visits each type during its various initialization stages and lets you change the APIs.
+
+Also, it allows you to modify the underlying type definitions rather than being constrained by the fluent API. These extension APIs are not meant for the standard developer creating a schema but for people who want to write powerful, reusable components like `HotChocolate.Data`. We also rewrote a lot of our core components to use this new API, like the introspection.
+
+Essentially there are now three important components that can add cross-cutting concerns.
+
+EXAMPLE
+
+We will soon have a follow-up post on writing extensions for Hot Chocolate to drill into what you can do.
+
+# Strawberry Shake
+
+The one thing missing from this launch is Strawberry Shake, our GraphQL client. We decided in August to pause development for Strawberry Shake in order to focus on the server. Many features in Strawberry Shake depended on Hot Chocolate to bring in new features like defer that really will make Strawberry Shake shine. With this decision, we were able to focus on the server and make it great. We essentially broke the 11 development into two parts. We will start next week to put resources again behind Strawberry Shake and hope to get it done by the end of January.
+
+# General Outlook
+
+Where are we going from here? We now essentially are a team of four people, Rafael, Pascal, Ferd, and myself. We plan to start focusing for the next three months on three components.
+
+Strawberry Shake will become Freds and my immediate focus, so expect our GraphQL client to get real attention and expect it to get the same attention for detail that made Hot Chocolate your beloved GraphQL server. We think that the client space at the moment does not exist in .NET, and we want to change that. There are a lot of opportunities to bring something unique. We have done a lot of research into things like Relay and Apollo client and think that we can reinvent how you interact with data in Xamarin and Blazor applications.
+
+Apart from Strawberry Shake, we will also take up our original schema stitching engine branch. The new stitching engine can not only do subscription stitching but also is able to merge the Hot Chocolate stitching approach with the Apollo Stitching approach. You will be able to have Apollo federation protocol downstream services as well as Hot Chocolate stitching protocol downstream servers. The gateway can mix and match them. As you have seen with the general execution engine, stitching will become very fast, and we will publish benchmarks soon.
+
+In general, expect a lot more performance improvements to integrate our source generators into the core library.
+
+These changes are more iterative, where we complete and get better. We will also start on a new component that will become a big leap for the whole platform. Rafael and Pascal will focus on this new component that we will start talking about soon.
+
+# Community
+
+The great thing about Hot Chocolate is the people. Every day, I think the best thing we did was to create this slack channel where anybody could join. The slack channel has become the space where the community can congregate and help each other find a solution to a problem.
+
+Also, having these community standups where people can talk things through and bring their ideas without having to fear being looked down upon for saying something stupid made the community bigger.
+
+We internally talked about this great family and how we can bring this further and help this community to grow. We will soon start with our ChilliCream user group user can present solutions to their issues or present components that they have build around Hot Chocolate. But we think that we will even go beyond that and ask people from the greater GraphQL community to talk to us and give us fresh ideas and new takes on GraphQL.
+
+Last but not least, let me invite you to our launch party on Thursday and celebrate with us the community and the next chapter of Hot Chocolate.
