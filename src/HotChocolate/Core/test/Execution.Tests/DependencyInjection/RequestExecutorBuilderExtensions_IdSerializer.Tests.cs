@@ -275,7 +275,7 @@ namespace HotChocolate.Execution.DependencyInjection
                 return "mock";
             }
 
-            public IdValue Deserialize(string serializedId, Type resultType = null)
+            public IdValue Deserialize(string serializedId)
             {
                 return new IdValue(null, null, "mock");
             }
