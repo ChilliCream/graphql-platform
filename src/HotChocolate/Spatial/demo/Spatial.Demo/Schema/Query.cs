@@ -8,6 +8,7 @@ namespace Spatial.Demo
     {
         [UseDbContext(typeof(ApplicationDbContext))]
         [UseFiltering]
+        [UseProjection]
         public IQueryable<County> GetCounties(
             [ScopedService] ApplicationDbContext context) =>
             context.Counties;
