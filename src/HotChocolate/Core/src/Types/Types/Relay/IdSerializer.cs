@@ -173,7 +173,7 @@ namespace HotChocolate.Types.Relay
             }
         }
 
-        public IdValue Deserialize(string serializedId) => 
+        public IdValue Deserialize(string serializedId) =>
             Deserialize(serializedId, resultType: null);
 
         public IdValue Deserialize(string serializedId, Type resultType = null)
