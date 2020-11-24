@@ -329,10 +329,6 @@
             "title": "API Reference",
             "items": [
               {
-                "path": "index",
-                "title": "Overview"
-              },
-              {
                 "path": "language",
                 "title": "Lanugage"
               },
@@ -343,6 +339,10 @@
               {
                 "path": "aspnetcore",
                 "title": "ASP.NET Core"
+              },
+              {
+                "path": "extending-filtering",
+                "title": "Extending Filtering"
               },
               {
                 "path": "migrate-from-10-to-11",
