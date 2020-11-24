@@ -16,6 +16,7 @@ namespace HotChocolate.Types.Relay
         private readonly NameString _typeName;
         private readonly IIdSerializer _idSerializer;
         private readonly bool _validateType;
+        private readonly Type _resultTypeSource;
         private readonly Func<IList> _createList;
 
         public GlobalIdInputValueFormatter(
@@ -27,6 +28,7 @@ namespace HotChocolate.Types.Relay
             _typeName = typeName;
             _idSerializer = idSerializer;
             _validateType = validateType;
+            _resultTypeSource = resultType.Source;
             _createList = CreateListFactory(resultType);
         }
 
@@ -41,7 +43,7 @@ namespace HotChocolate.Types.Relay
             {
                 try
                 {
-                    IdValue id = _idSerializer.Deserialize(s);
+                    IdValue id = _idSerializer.Deserialize(s, _resultTypeSource);
 
                     if (!_validateType || _typeName.Equals(id.TypeName))
                     {
@@ -70,7 +72,7 @@ namespace HotChocolate.Types.Relay
 
                     foreach (string sv in stringEnumerable)
                     {
-                        IdValue id = _idSerializer.Deserialize(sv);
+                        IdValue id = _idSerializer.Deserialize(sv, _resultTypeSource);
 
                         if (!_validateType || _typeName.Equals(id.TypeName))
                         {

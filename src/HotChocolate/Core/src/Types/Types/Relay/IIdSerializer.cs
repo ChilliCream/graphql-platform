@@ -1,3 +1,5 @@
+using System;
+
 namespace HotChocolate.Types.Relay
 {
     public interface IIdSerializer
@@ -25,6 +27,9 @@ namespace HotChocolate.Types.Relay
         /// <param name="serializedId">
         /// The schema unique ID string.
         /// </param>
+        /// <param name="resultType">
+        /// An optional hint about the CLR type of the <see cref="IdValue.Value"/>.
+        /// </param>
         /// <returns>
         /// Returns an <see cref="IdValue"/> containing the information
         /// encoded into the unique ID string.
@@ -32,6 +37,6 @@ namespace HotChocolate.Types.Relay
         /// <exception cref="IdSerializationException">
         /// Unable to deconstruct the schema unique ID string.
         /// </exception>
-        IdValue Deserialize(string serializedId);
+        IdValue Deserialize(string serializedId, Type resultType = null);
     }
 }
