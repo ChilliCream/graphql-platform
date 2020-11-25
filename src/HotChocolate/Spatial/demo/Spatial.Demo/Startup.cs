@@ -17,8 +17,8 @@ namespace Spatial.Demo
         {
             services.AddPooledDbContextFactory<ApplicationDbContext>(
                     options => options
-                            .UseNpgsql(CONNECTION_STRING, o => o.UseNetTopologySuite())
-                            .LogTo(Console.WriteLine))
+                        .UseNpgsql(CONNECTION_STRING, o => o.UseNetTopologySuite())
+                        .LogTo(Console.WriteLine))
                 .AddGraphQLServer()
                 .AddFiltering()
                 .AddProjections()
