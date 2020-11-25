@@ -1316,7 +1316,7 @@ Filters use <code class="language-text">IQueryable</code> (<code class="language
 <p>The following type would yield the following filter operations:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="17651721928274045000"
+              data-toaster-id="67164519416314585000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1324,7 +1324,7 @@ Filters use <code class="language-text">IQueryable</code> (<code class="language
               onClick="copyToClipboard(`public class Foo
 {
     public string Bar { get; set; }
-}`, `17651721928274045000`)"
+}`, `67164519416314585000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1339,7 +1339,7 @@ Filters use <code class="language-text">IQueryable</code> (<code class="language
 <span class="token punctuation">}</span></code></pre></div>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="49707463437940150000"
+              data-toaster-id="41020904443821250000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1363,7 +1363,7 @@ input StringOperationFilterInput {
   nstartsWith: String
   endsWith: String
   nendsWith: String
-}`, `49707463437940150000`)"
+}`, `41020904443821250000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1398,14 +1398,14 @@ input StringOperationFilterInput {
 <p>To use filtering you need to register it on the schema:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="81026930972726840000"
+              data-toaster-id="91939379725682310000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`services.AddGraphQLServer()
   // Your schmea configuration
-  .AddFiltering();`, `81026930972726840000`)"
+  .AddFiltering();`, `91939379725682310000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1424,7 +1424,7 @@ input StringOperationFilterInput {
 <p><strong>Code First</strong></p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="32321594775493410000"
+              data-toaster-id="29825375136723677000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1444,7 +1444,7 @@ public class Query
 {
     public IQueryable<Person> GetPersons([Service]IPersonRepository repository) => 
         repository.GetPersons();
-}`, `32321594775493410000`)"
+}`, `29825375136723677000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1473,7 +1473,7 @@ public class Query
 <p>The field descriptor attribute <code class="language-text">[UseFiltering]</code> does apply the extension method <code class="language-text">UseFiltering()</code> on the field descriptor.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="4418582777001600500"
+              data-toaster-id="1982469953571164400"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1485,7 +1485,7 @@ public class Query
     {
         repository.GetPersons();
     }
-}`, `4418582777001600500`)"
+}`, `1982469953571164400`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1510,7 +1510,7 @@ When fields are bound implicitly, meaning filters are added for all properties, 
 It is also possible to customize the GraphQL field of the operation further. You can change the name, add a description or directive.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="60443553482378980000"
+              data-toaster-id="26823616674372186000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1523,7 +1523,7 @@ It is also possible to customize the GraphQL field of the operation further. You
         descriptor.BindFieldsExplicitly();
         descriptor.Field(x => x.Name).Name(&quot;custom_name&quot;);
     }
-}`, `60443553482378980000`)"
+}`, `26823616674372186000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1545,7 +1545,7 @@ It is also possible to customize the GraphQL field of the operation further. You
 Given you want to only allow <code class="language-text">eq</code> and <code class="language-text">neq</code> on a string field, this could look like this</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="95174329091731160000"
+              data-toaster-id="42545749867522730000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1567,7 +1567,7 @@ public class CustomerOperationFilterInput : StringOperationFilterInput
         descriptor.Operation(DefaultFilterOperations.Equals);
         descriptor.Operation(DefaultFilterOperations.NotEquals);
     }
-}`, `95174329091731160000`)"
+}`, `42545749867522730000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1595,7 +1595,7 @@ public class CustomerOperationFilterInput : StringOperationFilterInput
 <span class="token punctuation">}</span></code></pre></div>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="39500117862146960000"
+              data-toaster-id="76217978192442130000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1611,7 +1611,7 @@ input CustomerOperationFilterInput {
   or: [CustomerOperationFilterInput!]
   eq: String
   neq: String
-}`, `39500117862146960000`)"
+}`, `76217978192442130000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1636,7 +1636,7 @@ input CustomerOperationFilterInput {
 <p><strong>Code First</strong></p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="21015127164637336000"
+              data-toaster-id="75256409111115610000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1650,7 +1650,7 @@ input CustomerOperationFilterInput {
             .Type<ListType<NonNullType<PersonType>>>();
             .UseFiltering<PersonFilterType>()
     }
-}`, `21015127164637336000`)"
+}`, `75256409111115610000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1672,7 +1672,7 @@ input CustomerOperationFilterInput {
 <p><strong>Pure Code First</strong></p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="59428140937290160000"
+              data-toaster-id="26105907623964650000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1684,7 +1684,7 @@ input CustomerOperationFilterInput {
     {
         repository.GetPersons();
     }
-}`, `59428140937290160000`)"
+}`, `26105907623964650000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1706,7 +1706,7 @@ input CustomerOperationFilterInput {
 <p>Defined the filter operations of a <code class="language-text">bool</code> field.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="38300547743410780000"
+              data-toaster-id="52798676739379790000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1721,7 +1721,7 @@ public class Query : ObjectType
     [UseFiltering]
     public IQueryable<User> GetUsers([Service]UserService users) =>
       users.AsQueryable();
-}`, `38300547743410780000`)"
+}`, `52798676739379790000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1743,7 +1743,7 @@ public class Query : ObjectType
 <span class="token punctuation">}</span></code></pre></div>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="55498939205020230000"
+              data-toaster-id="49786767109392200000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1761,7 +1761,7 @@ input UserFilterInput {
   and: [UserFilterInput!]
   or: [UserFilterInput!]
   isOnline: BooleanOperationFilterInput
-}`, `55498939205020230000`)"
+}`, `49786767109392200000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1788,7 +1788,7 @@ input UserFilterInput {
 <p>Defines filters for <code class="language-text">IComparables</code> like: <code class="language-text">bool</code>, <code class="language-text">byte</code>, <code class="language-text">shot</code>, <code class="language-text">int</code>, <code class="language-text">long</code>, <code class="language-text">float</code>, <code class="language-text">double</code> <code class="language-text">decimal</code>, <code class="language-text">Guid</code>, <code class="language-text">DateTime</code>, <code class="language-text">DateTimeOffset</code> and <code class="language-text">TimeSpan</code></p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="50678532460680620000"
+              data-toaster-id="75236382743778460000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1803,7 +1803,7 @@ public class Query : ObjectType
     [UseFiltering]
     public IQueryable<User> GetUsers([Service]UserService users) =>
       users.AsQueryable();
-}`, `50678532460680620000`)"
+}`, `75236382743778460000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1825,7 +1825,7 @@ public class Query : ObjectType
 <span class="token punctuation">}</span></code></pre></div>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="65860291161029160000"
+              data-toaster-id="6070574391308714000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1853,7 +1853,7 @@ input UserFilterInput {
   and: [UserFilterInput!]
   or: [UserFilterInput!]
   loggingCount: ComparableOperationInt32FilterInput
-}`, `65860291161029160000`)"
+}`, `6070574391308714000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1890,7 +1890,7 @@ input UserFilterInput {
 <p>Defines filters for <code class="language-text">string</code></p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="52784939763599280000"
+              data-toaster-id="197801718835677300"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1905,7 +1905,7 @@ public class Query : ObjectType
     [UseFiltering]
     public IQueryable<User> GetUsers([Service]UserService users) =>
       users.AsQueryable();
-}`, `52784939763599280000`)"
+}`, `197801718835677300`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1927,7 +1927,7 @@ public class Query : ObjectType
 <span class="token punctuation">}</span></code></pre></div>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="33498579006600760000"
+              data-toaster-id="73875411696862230000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1959,7 +1959,7 @@ input UserFilterInput {
   and: [UserFilterInput!]
   or: [UserFilterInput!]
   name: StringOperationFilterInput
-}`, `33498579006600760000`)"
+}`, `73875411696862230000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2000,7 +2000,7 @@ input UserFilterInput {
 <p>Defines filters for C# enums </p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="69530300941467280000"
+              data-toaster-id="57048680613739760000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2021,7 +2021,7 @@ public class Query : ObjectType
     [UseFiltering]
     public IQueryable<User> GetUsers([Service]UserService users) =>
       users.AsQueryable();
-}`, `69530300941467280000`)"
+}`, `57048680613739760000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2049,7 +2049,7 @@ public class Query : ObjectType
 <span class="token punctuation">}</span></code></pre></div>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="36607286032859630000"
+              data-toaster-id="14581025125213286000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2069,7 +2069,7 @@ input UserFilterInput {
   and: [UserFilterInput!]
   or: [UserFilterInput!]
   kind: UserKindOperationFilterInput
-}`, `36607286032859630000`)"
+}`, `14581025125213286000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2099,7 +2099,7 @@ input UserFilterInput {
 For each nested object, filters are generated.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="44780833968699140000"
+              data-toaster-id="82634537146756150000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2121,7 +2121,7 @@ public class Query : ObjectType
     [UseFiltering]
     public IQueryable<User> GetUsers([Service]UserService users) =>
       users.AsQueryable();
-}`, `44780833968699140000`)"
+}`, `82634537146756150000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2150,7 +2150,7 @@ public class Query : ObjectType
 <span class="token punctuation">}</span></code></pre></div>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="18217873653010375000"
+              data-toaster-id="74108616050060800000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2190,7 +2190,7 @@ input UserFilterInput {
   and: [UserFilterInput!]
   or: [UserFilterInput!]
   address: AddressFilterInput
-}`, `18217873653010375000`)"
+}`, `74108616050060800000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2239,7 +2239,7 @@ input UserFilterInput {
 <p>List filters are generated for all nested enumerations. </p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="60680935128607924000"
+              data-toaster-id="13865307590913245000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2263,7 +2263,7 @@ public class Query : ObjectType
     [UseFiltering]
     public IQueryable<User> GetUsers([Service]UserService users) =>
       users.AsQueryable();
-}`, `60680935128607924000`)"
+}`, `13865307590913245000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2294,7 +2294,7 @@ public class Query : ObjectType
 <span class="token punctuation">}</span></code></pre></div>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="23132295103867960000"
+              data-toaster-id="6866092204764462000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2349,7 +2349,7 @@ input UserFilterInput {
   or: [UserFilterInput!]
   roles: ListStringOperationFilterInput
   addresses: ListAddressFilterInput
-}`, `23132295103867960000`)"
+}`, `6866092204764462000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2417,7 +2417,7 @@ You then have to register your custom convention on the schema builder with <cod
 By default a new convention is empty. To add the default behaviour you have to add <code class="language-text">AddDefaults</code>.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="10595021936218352000"
+              data-toaster-id="39862052579497020000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2435,7 +2435,7 @@ services.AddGraphQLServer()
   .AddConvention<IFilterConvention, CustomConvention>();
 // or
 services.AddGraphQLServer()
-  .AddConvention<IFilterConvention>(new FilterConvention(x => x.AddDefaults()))`, `10595021936218352000`)"
+  .AddConvention<IFilterConvention>(new FilterConvention(x => x.AddDefaults()))`, `39862052579497020000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2461,7 +2461,7 @@ services<span class="token punctuation">.</span><span class="token function">Add
 <p>Often you just want to extend the default behaviour of filtering. If this is the case, you can also use <code class="language-text">FilterConventionExtension</code></p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="75616666759760870000"
+              data-toaster-id="88907785155354640000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2479,7 +2479,7 @@ services.AddGraphQLServer()
   .AddConvention<IFilterConvention, CustomConventionExtension>();
 // or
 services.AddGraphQLServer()
-  .AddConvention<IFilterConvention>(new FilterConventionExtension(x => /*config*/))`, `75616666759760870000`)"
+  .AddConvention<IFilterConvention>(new FilterConventionExtension(x => /*config*/))`, `88907785155354640000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2507,12 +2507,12 @@ services<span class="token punctuation">.</span><span class="token function">Add
 <p><strong>Configuration</strong></p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="32298845431907574000"
+              data-toaster-id="19736989917863990000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`descriptor.ArgumentName(&quot;example_argument_name&quot;);`, `32298845431907574000`)"
+              onClick="copyToClipboard(`descriptor.ArgumentName(&quot;example_argument_name&quot;);`, `19736989917863990000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2525,14 +2525,14 @@ services<span class="token punctuation">.</span><span class="token function">Add
 <p><strong>Result</strong></p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="30394159208691910000"
+              data-toaster-id="85944951190462040000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`type Query {
   users(example_argument_name: UserFilter): [User]
-}`, `30394159208691910000`)"
+}`, `85944951190462040000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2549,7 +2549,7 @@ services<span class="token punctuation">.</span><span class="token function">Add
 <p><strong>Configuration</strong></p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="90030061877465760000"
+              data-toaster-id="91128027802172110000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2572,7 +2572,7 @@ public class CustomStringOperationFilterInput : StringOperationFilterInput
 }
 
 descriptor.BindRuntimeType<string, CustomStringOperationFilterInput >();
-descriptor.BindRuntimeType<User, UserFilterInput>();`, `90030061877465760000`)"
+descriptor.BindRuntimeType<User, UserFilterInput>();`, `91128027802172110000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2603,7 +2603,7 @@ descriptor<span class="token punctuation">.</span><span class="token generic-met
 <p><strong>Result</strong></p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="32144200522330624000"
+              data-toaster-id="57501860264387800000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2628,7 +2628,7 @@ input UserFilterInput {
   or: [UserFilterInput!]
   &quot;This is the name&quot;
   name: CustomStringOperationFilterInput
-}`, `32144200522330624000`)"
+}`, `57501860264387800000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2664,13 +2664,13 @@ in ones.
 You can use <code class="language-text">Configure&lt;TFilterType&gt;()</code> to alter the configuration of a type. </p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="7484086188289929000"
+              data-toaster-id="17493371232837474000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`  descriptor.Configure<StringOperationFilterInput>(
-    x => x.Operation(DefaultFilterOperations.Equals).Description(&quot;Equals&quot;))`, `7484086188289929000`)"
+    x => x.Operation(DefaultFilterOperations.Equals).Description(&quot;Equals&quot;))`, `17493371232837474000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2683,7 +2683,7 @@ You can use <code class="language-text">Configure&lt;TFilterType&gt;()</code> to
     x <span class="token operator">=></span> x<span class="token punctuation">.</span><span class="token function">Operation</span><span class="token punctuation">(</span>DefaultFilterOperations<span class="token punctuation">.</span>Equals<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Description</span><span class="token punctuation">(</span><span class="token string">"Equals"</span><span class="token punctuation">)</span><span class="token punctuation">)</span></code></pre></div>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="56700406236232696000"
+              data-toaster-id="96400037836606950000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2702,7 +2702,7 @@ You can use <code class="language-text">Configure&lt;TFilterType&gt;()</code> to
   nstartsWith: String
   endsWith: String
   nendsWith: String
-}`, `56700406236232696000`)"
+}`, `96400037836606950000`)"
             >
               <div
                 class="gatsby-code-button"
