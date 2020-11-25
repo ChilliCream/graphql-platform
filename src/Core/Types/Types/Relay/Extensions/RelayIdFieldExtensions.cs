@@ -90,10 +90,6 @@ namespace HotChocolate.Types.Relay
             ArgumentDefinition definition,
             string? typeName)
         {
-            var innerSerializer =
-                (IIdSerializer)completionContext.Services.GetService(typeof(IIdSerializer)) ??
-                new IdSerializer();
-
             Type resultType = definition.Parameter?.ParameterType ??
                 ((ClrTypeReference)definition.Type).Type;
 
@@ -103,7 +99,7 @@ namespace HotChocolate.Types.Relay
                 resultType = inputFieldDefinition.Property.PropertyType;
             }
 
-            FieldValueSerializer serializer = CreateSerializer(
+            IdFieldValueSerializer serializer = CreateIdFieldValueSerializer(
                 completionContext,
                 resultType,
                 typeName);
@@ -150,7 +146,7 @@ namespace HotChocolate.Types.Relay
             FieldMiddleware placeholder,
             string? typeName)
         {
-            FieldValueSerializer serializer = CreateSerializer(
+            IdFieldValueSerializer serializer = CreateIdFieldValueSerializer(
                 completionContext,
                 definition.ResultType,
                 typeName);
@@ -176,16 +172,20 @@ namespace HotChocolate.Types.Relay
             };
         }
 
-        private static FieldValueSerializer CreateSerializer(
+        private static IdFieldValueSerializer CreateIdFieldValueSerializer(
             ICompletionContext completionContext,
             Type type,
             string? typeName)
         {
-            var innerSerializer =
+            IIdSerializer innerSerializer =
                 (IIdSerializer)completionContext.Services.GetService(typeof(IIdSerializer)) ??
                 new IdSerializer();
 
-            return new FieldValueSerializer(
+            IIdFieldValueSerializerFactory idFieldValueSerializerFactory =
+                (IIdFieldValueSerializerFactory)completionContext.Services.GetService(typeof(IIdFieldValueSerializerFactory)) ??
+                new IdFieldValueSerializerFactory();
+
+            return idFieldValueSerializerFactory.Create(
                 typeName is { } ? typeName : completionContext.Type.Name.Value,
                 innerSerializer,
                 typeName is { },

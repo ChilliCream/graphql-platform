@@ -9,41 +9,37 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Relay
 {
-    internal sealed class FieldValueSerializer : IFieldValueSerializer
+    public class IdFieldValueSerializer : IFieldValueSerializer
     {
-        private readonly NameString _typeName;
-        private readonly IIdSerializer _innerSerializer;
-        private readonly bool _validate;
-        private readonly bool _list;
-#if !NETSTANDARD2_0 && !NETFRAMEWORK
-        private readonly Type _valueType;
-#endif
-        private readonly Type _listType;
-        private NameString _schemaName;
+        protected readonly NameString TypeName;
+        protected readonly IIdSerializer InnerSerializer;
+        protected readonly bool Validate;
+        protected readonly bool IsListType;
+        protected readonly Type ListType;
+        protected readonly Type ValueType;
+        protected NameString SchemaName;
 
-        public FieldValueSerializer(
+        public IdFieldValueSerializer(
             NameString typeName,
             IIdSerializer innerSerializer,
             bool validateType,
             bool isListType,
             Type valueType)
         {
-            _typeName = typeName;
-            _innerSerializer = innerSerializer;
-            _validate = validateType;
-            _list = isListType;
-#if !NETSTANDARD2_0 && !NETFRAMEWORK
-            _valueType = valueType;
-#endif
-            _listType = CreateListType(valueType);
+            TypeName = typeName;
+            InnerSerializer = innerSerializer;
+            Validate = validateType;
+            IsListType = isListType;
+            ListType = CreateListType(valueType);
+            ValueType = valueType;
         }
 
         public void Initialize(NameString schemaName)
         {
-            _schemaName = schemaName;
+            SchemaName = schemaName;
         }
 
-        public object? Deserialize(object? value)
+        public virtual object? Deserialize(object? value)
         {
             if (value is null)
             {
@@ -53,13 +49,9 @@ namespace HotChocolate.Types.Relay
             {
                 try
                 {
-#if !NETSTANDARD2_0 && !NETFRAMEWORK
-                    IdValue id = _innerSerializer.Deserialize(s, _valueType);
-#else
-                    IdValue id = _innerSerializer.Deserialize(s);
-#endif
+                    IdValue id = InnerSerializer.Deserialize(s);
 
-                    if (!_validate || _typeName.Equals(id.TypeName))
+                    if (!Validate || TypeName.Equals(id.TypeName))
                     {
                         return id.Value;
                     }
@@ -74,24 +66,20 @@ namespace HotChocolate.Types.Relay
 
                 throw new QueryException(
                     ErrorBuilder.New()
-                        .SetMessage("The ID `{0}` is not an ID of `{1}`.", s, _typeName)
+                        .SetMessage("The ID `{0}` is not an ID of `{1}`.", s, TypeName)
                         .Build());
             }
             else if (value is IEnumerable<string> stringEnumerable)
             {
                 try
                 {
-                    var list = (IList)Activator.CreateInstance(_listType);
+                    var list = (IList)Activator.CreateInstance(ListType);
 
                     foreach (string sv in stringEnumerable)
                     {
-#if !NETSTANDARD2_0 && !NETFRAMEWORK
-                        IdValue id = _innerSerializer.Deserialize(sv, _valueType);
-#else
-                        IdValue id = _innerSerializer.Deserialize(sv);
-#endif
+                        IdValue id = InnerSerializer.Deserialize(sv);
 
-                        if (!_validate || _typeName.Equals(id.TypeName))
+                        if (!Validate || TypeName.Equals(id.TypeName))
                         {
                             list.Add(id.Value);
                         }
@@ -143,26 +131,26 @@ namespace HotChocolate.Types.Relay
             return listDefinition.MakeGenericType(typeof(string));
         }
 
-        public object? Serialize(object? value)
+        public virtual object? Serialize(object? value)
         {
             if (value is null)
             {
                 return null;
             }
 
-            if (_list && DotNetTypeInfoFactory.IsListType(value.GetType()))
+            if (IsListType && DotNetTypeInfoFactory.IsListType(value.GetType()))
             {
                 var list = new List<object>();
 
                 foreach (object item in (IEnumerable)value)
                 {
-                    list.Add(_innerSerializer.Serialize(_schemaName, _typeName, item));
+                    list.Add(InnerSerializer.Serialize(SchemaName, TypeName, item));
                 }
 
                 return list;
             }
 
-            return _innerSerializer.Serialize(_schemaName, _typeName, value);
+            return InnerSerializer.Serialize(SchemaName, TypeName, value);
         }
 
         public IValueNode Rewrite(IValueNode value)
@@ -188,13 +176,13 @@ namespace HotChocolate.Types.Relay
             {
                 case StringValueNode stringValue:
                     return stringValue.WithValue(
-                        _innerSerializer.Serialize(
-                            _schemaName, _typeName, stringValue.Value));
+                        InnerSerializer.Serialize(
+                            SchemaName, TypeName, stringValue.Value));
 
                 case IntValueNode intValue:
                     return new StringValueNode(
-                        _innerSerializer.Serialize(
-                            _schemaName, _typeName, long.Parse(intValue.Value)));
+                        InnerSerializer.Serialize(
+                            SchemaName, TypeName, long.Parse(intValue.Value)));
 
                 default:
                     throw new QueryException(
