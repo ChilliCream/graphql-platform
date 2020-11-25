@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net.WebSockets;
 using System.Threading;
@@ -172,7 +172,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     WebSocketClient client = CreateWebSocketClient(testServer);
                     WebSocket webSocket = await ConnectToServerAsync(client);
 
-                    var document = Utf8GraphQLParser.Parse(
+                    DocumentNode document = Utf8GraphQLParser.Parse(
                         "subscription { onReview(episode: NEWHOPE) { stars } }");
 
                     var request = new GraphQLRequest(document);
