@@ -88,9 +88,7 @@ namespace HotChocolate.Types
 
             if (runtimeValue is Uri uri)
             {
-                resultValue = uri.IsAbsoluteUri
-                    ? uri.AbsoluteUri
-                    : uri.ToString();
+                resultValue = uri.IsAbsoluteUri ? uri.AbsoluteUri : uri.ToString();
                 return true;
             }
 
