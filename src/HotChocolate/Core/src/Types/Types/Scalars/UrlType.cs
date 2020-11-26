@@ -123,7 +123,9 @@ namespace HotChocolate.Types
         private bool TryParseUri(string value, [NotNullWhen(true)] out Uri? uri)
         {
             if (!Uri.TryCreate(value, UriKind.RelativeOrAbsolute, out uri))
+            {
                 return false;
+            }
 
             // Don't accept a relative URI that does not start with '/'
             if (!uri.IsAbsoluteUri && !uri.OriginalString.StartsWith("/"))
