@@ -8,6 +8,8 @@ namespace HotChocolate.Types.Descriptors
         [InlineData("Foo", "FOO")]
         [InlineData("FooBar", "FOO_BAR")]
         [InlineData("FooBarBaz", "FOO_BAR_BAZ")]
+        [InlineData("StringGUID", "STRING_GUID")]
+        [InlineData("IPAddress", "IP_ADDRESS")]
         [InlineData("FOO_BAR_BAZ", "FOO_BAR_BAZ")]
         [InlineData("FOOBAR", "FOOBAR")]
         [InlineData("F", "F")]
