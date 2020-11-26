@@ -48,6 +48,22 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void ParseLiteral_RelativeUrl()
+        {
+            // arrange
+            var urlType = new UrlType();
+            var expected = new Uri("/relative/path", UriKind.Relative);
+            var literal = new StringValueNode($"{expected}");
+
+            // act
+            var actual = (Uri)urlType
+                .ParseLiteral(literal);
+
+            // Assert
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
         public void ParseLiteral_Invalid_Url_Throws()
         {
             // arrange
@@ -117,6 +133,20 @@ namespace HotChocolate.Types
 
             // assert
             Assert.Equal(uri.AbsoluteUri, Assert.IsType<string>(serializedValue));
+        }
+
+        [Fact]
+        public void Serialize_RelativeUrl()
+        {
+            // arrange
+            var urlType = new UrlType();
+            var uri = new Uri("/relative/path", UriKind.Relative);
+
+            // act
+            object serializedValue = urlType.Serialize(uri);
+
+            // assert
+            Assert.Equal(uri.ToString(), Assert.IsType<string>(serializedValue));
         }
 
         [Fact]

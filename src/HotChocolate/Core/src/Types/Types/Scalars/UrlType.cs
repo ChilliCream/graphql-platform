@@ -88,7 +88,9 @@ namespace HotChocolate.Types
 
             if (runtimeValue is Uri uri)
             {
-                resultValue = uri.AbsoluteUri;
+                resultValue = uri.IsAbsoluteUri
+                    ? uri.AbsoluteUri
+                    : uri.ToString();
                 return true;
             }
 
@@ -120,7 +122,16 @@ namespace HotChocolate.Types
             return false;
         }
 
-        private bool TryParseUri(string value, [NotNullWhen(true)] out Uri? uri) =>
-            Uri.TryCreate(value, UriKind.Absolute, out uri);
+        private bool TryParseUri(string value, [NotNullWhen(true)] out Uri? uri)
+        {
+            if (!Uri.TryCreate(value, UriKind.RelativeOrAbsolute, out uri))
+                return false;
+
+            // Don't accept a relative URI that does not start with '/'
+            if (!uri.IsAbsoluteUri && !uri.OriginalString.StartsWith("/"))
+                return false;
+
+            return true;
+        }
     }
 }
