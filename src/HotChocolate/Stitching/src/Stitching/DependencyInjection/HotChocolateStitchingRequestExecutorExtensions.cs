@@ -600,6 +600,11 @@ namespace Microsoft.Extensions.DependencyInjection
             Assembly assembly,
             string key)
         {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
             if (assembly is null)
             {
                 throw new ArgumentNullException(nameof(assembly));
@@ -628,7 +633,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     {
                         var buffer = new byte[stream.Length];
                         await stream.ReadAsync(buffer, 0, buffer.Length, ct).ConfigureAwait(false);
-                        s.AddTypeExtensions(Utf8GraphQLParser.Parse(buffer), key);
+                        s.AddTypeExtensions(Utf8GraphQLParser.Parse(buffer));
                     }
                 });
         }
