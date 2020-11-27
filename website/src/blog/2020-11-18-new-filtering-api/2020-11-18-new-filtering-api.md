@@ -69,7 +69,7 @@ where: {
 
 Object filters:
 
-```
+```graphql
 where: {
     foo: {
         bar {

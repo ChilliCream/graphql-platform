@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
@@ -33,6 +34,45 @@ namespace HotChocolate.Stitching.Configuration
                     .GetNameLookup();
             Assert.Equal("OriginalType1", lookup[("NewType1", "Schema1")]);
             Assert.Equal("OriginalType2", lookup[("NewType2", "Schema2")]);
+        }
+
+        [Fact]
+        public void AddTypeExtensionsFromResource_Builder_Is_Null()
+        {
+            // arrange
+            // act
+            void Configure() =>
+                HotChocolateStitchingRequestExecutorExtensions
+                    .AddTypeExtensionsFromResource(null!, GetType().Assembly, "abc");
+
+            // assert
+            Assert.Throws<ArgumentNullException>(Configure);
+        }
+
+        [Fact]
+        public void AddTypeExtensionsFromResource_Assembly_Is_Null()
+        {
+            // arrange
+            // act
+            void Configure() =>
+                new ServiceCollection().AddGraphQL()
+                    .AddTypeExtensionsFromResource(null!, "abc");
+
+            // assert
+            Assert.Throws<ArgumentNullException>(Configure);
+        }
+
+        [Fact]
+        public void AddTypeExtensionsFromResource_Key_Is_Null()
+        {
+            // arrange
+            // act
+            void Configure() =>
+                new ServiceCollection().AddGraphQL()
+                    .AddTypeExtensionsFromResource(GetType().Assembly, null!);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(Configure);
         }
     }
 
