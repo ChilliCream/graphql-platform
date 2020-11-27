@@ -114,7 +114,8 @@ namespace HotChocolate.Data.Sorting.Expressions
 
             // assert
             FooNullable<string>[] inputs =
-                data.Select(x => new FooNullable<string> {Bar = new BarNullable<string> {Baz = x}})
+                data.Select(
+                        x => new FooNullable<string> { Bar = new BarNullable<string> { Baz = x } })
                     .ToArray();
             FooNullable<string>[] sorted = func(inputs);
 
@@ -141,14 +142,40 @@ namespace HotChocolate.Data.Sorting.Expressions
             // assert
             FooNullable<string>[] inputs =
                 data
-                    .Select(x => new FooNullable<string> {Bar = new BarNullable<string> {Baz = x}})
-                    .Prepend(new FooNullable<string> {Bar = null})
+                    .Select(
+                        x => new FooNullable<string> { Bar = new BarNullable<string> { Baz = x } })
+                    .Prepend(new FooNullable<string> { Bar = null })
                     .ToArray();
             FooNullable<string>[] sorted = func(inputs);
 
             for (var i = 0; i < expected.Length; i++)
             {
                 Assert.Equal(expected[i], sorted[i].Bar?.Baz);
+            }
+        }
+
+        [Theory]
+        [InlineData(true, true, false, false)]
+        [InlineData(false, false, true, true)]
+        public void Sort_Interface_BooleanAsc(params bool[] dataObject)
+        {
+            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+                "{ test: { prop: ASC}}");
+            ExecutorBuilder tester = CreateProviderTester(new SortInputType<ITest>());
+            bool[] expected = dataObject.OrderBy(x => x).ToArray();
+
+            // act
+            Func<BarInterface[], BarInterface[]> func = tester.Build<BarInterface>(value);
+
+            // assert
+            BarInterface[] inputs = dataObject
+                .Select(x => new BarInterface { Test = new InterfaceImpl1 { Prop = x } })
+                .ToArray();
+            BarInterface[] sorted = func(inputs);
+
+            for (var i = 0; i < expected.Length; i++)
+            {
+                Assert.Equal(expected[i], sorted[i].Test.Prop);
             }
         }
 
@@ -171,6 +198,21 @@ namespace HotChocolate.Data.Sorting.Expressions
             {
                 Assert.Equal(expected[i], sorted[i].Bar.Baz);
             }
+        }
+
+        public interface ITest
+        {
+            public bool Prop { get; set; }
+        }
+
+        public class InterfaceImpl1 : ITest
+        {
+            public bool Prop { get; set; }
+        }
+
+        public class BarInterface
+        {
+            public ITest Test { get; set; }
         }
 
         public class Bar<T>

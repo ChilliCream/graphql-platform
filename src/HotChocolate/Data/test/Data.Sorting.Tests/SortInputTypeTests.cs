@@ -203,6 +203,39 @@ namespace HotChocolate.Data.Tests
             builder.Create().Print().MatchSnapshot();
         }
 
+        [Fact]
+        public void FilterInputType_Should_InfereType_When_ItIsAInterfaceType()
+        {
+            // arrange
+            ISchemaBuilder builder = SchemaBuilder.New()
+                .AddFiltering()
+                .AddQueryType<TestingType<ITest>>()
+                .AddObjectType<InterfaceImpl1>()
+                .AddObjectType<InterfaceImpl2>();
+
+            // act
+            ISchema schema = builder.Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void FilterInputType_Should_InfereType_When_ItIsAInterface()
+        {
+            // arrange
+            ISchemaBuilder builder = SchemaBuilder.New()
+                .AddFiltering()
+                .AddQueryType<TestingType<ITest<Foo>>>()
+                .AddObjectType<ObjectType<ITest<Foo>>>();
+
+            // act
+            ISchema schema = builder.Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         public class FooDirectiveType
             : DirectiveType<FooDirective>
         {
@@ -263,6 +296,31 @@ namespace HotChocolate.Data.Tests
             public List<User> Friends { get; set; } = default!;
         }
 
+        public interface ITest
+        {
+            public string Prop { get; set; }
+            public string Prop2 { get; set; }
+        }
+
+        public interface ITest<T>
+        {
+            public T Prop { get; set; }
+        }
+
+        public class InterfaceImpl1 : ITest
+        {
+            public string Prop { get; set; }
+
+            public string Prop2 { get; set; }
+        }
+
+        public class InterfaceImpl2 : ITest
+        {
+            public string Prop { get; set; }
+
+            public string Prop2 { get; set; }
+        }
+
         public class UserSortInputType : SortInputType<User>
         {
             protected override void Configure(ISortInputTypeDescriptor<User> descriptor)
@@ -282,5 +340,20 @@ namespace HotChocolate.Data.Tests
                     .UseSorting<UserSortInputType>();
             }
         }
+
+        public class TestObject<T>
+        {
+            public T Root { get; set; }
+        }
+
+        public class TestingType<T> : ObjectType<TestObject<T>>
+        {
+            protected override void Configure(IObjectTypeDescriptor<TestObject<T>> descriptor)
+            {
+                descriptor.Name(nameof(Query));
+                descriptor.Field(x => x.Root).UseFiltering();
+            }
+        }
+
     }
 }
