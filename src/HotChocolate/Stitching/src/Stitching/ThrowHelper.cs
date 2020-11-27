@@ -10,13 +10,13 @@ namespace HotChocolate.Stitching
     {
         public static InvalidOperationException BufferedRequest_VariableDoesNotExist(
             string name) =>
-            new InvalidOperationException(string.Format(
+            new(string.Format(
                 ThrowHelper_BufferedRequest_VariableDoesNotExist,
                 name));
 
         public static InvalidOperationException BufferedRequest_OperationNotFound(
             DocumentNode document) =>
-            new InvalidOperationException(string.Format(
+            new(string.Format(
                 ThrowHelper_BufferedRequest_OperationNotFound,
                 document));
 
@@ -24,7 +24,7 @@ namespace HotChocolate.Stitching
             string variableName,
             FieldNode fieldSelection,
             Path path) =>
-            new GraphQLException(ErrorBuilder.New()
+            new(ErrorBuilder.New()
                 .SetMessage(
                     StitchingResources.ArgumentScopedVariableResolver_InvalidArgumentName,
                     variableName)
@@ -37,7 +37,7 @@ namespace HotChocolate.Stitching
             string variableName,
             FieldNode fieldSelection,
             Path path) =>
-            new GraphQLException(ErrorBuilder.New()
+            new(ErrorBuilder.New()
                 .SetMessage(
                     StitchingResources.FieldScopedVariableResolver_InvalidFieldName,
                     variableName)
@@ -50,7 +50,7 @@ namespace HotChocolate.Stitching
             string scopeName,
             FieldNode fieldSelection,
             Path path) =>
-            new GraphQLException(ErrorBuilder.New()
+            new(ErrorBuilder.New()
                 .SetMessage(
                     StitchingResources.RootScopedVariableResolver_ScopeNotSupported,
                     scopeName)
@@ -61,7 +61,7 @@ namespace HotChocolate.Stitching
 
         public static SchemaException PublishSchemaDefinitionDescriptor_ResourceNotFound(
             string key) =>
-            new SchemaException(
+            new(
                 SchemaErrorBuilder.New()
                     .SetMessage(
                         "The resource `{0}` was not found!",
@@ -70,10 +70,19 @@ namespace HotChocolate.Stitching
 
         public static SchemaException IntrospectionHelper_UnableToFetchSchemaDefinition(
             IReadOnlyList<IError> errors) =>
-            new SchemaException(
+            new(
                 SchemaErrorBuilder.New()
                     .SetMessage("Unable to fetch schema definition.")
                     .SetExtension("errors", errors)
+                    .Build());
+
+        public static SchemaException RequestExecutorBuilder_ResourceNotFound(
+            string key) =>
+            new(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        "The resource `{0}` was not found!",
+                        key)
                     .Build());
     }
 }
