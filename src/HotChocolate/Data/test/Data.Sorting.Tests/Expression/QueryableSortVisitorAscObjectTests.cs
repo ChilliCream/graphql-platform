@@ -161,7 +161,7 @@ namespace HotChocolate.Data.Sorting.Expressions
         {
             IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ test: { prop: ASC}}");
-            ExecutorBuilder tester = CreateProviderTester(new SortInputType<ITest>());
+            ExecutorBuilder tester = CreateProviderTester(new SortInputType<BarInterface>());
             bool[] expected = dataObject.OrderBy(x => x).ToArray();
 
             // act
@@ -202,7 +202,7 @@ namespace HotChocolate.Data.Sorting.Expressions
 
         public interface ITest
         {
-            public bool Prop { get; set; }
+             bool Prop { get; set; }
         }
 
         public class InterfaceImpl1 : ITest

@@ -1,22 +1,16 @@
 ﻿{
-  "errors": [
-    {
-      "message": "The specified value type of field \u0060test\u0060 does not match the field type.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 23
+  "data": {
+    "root": [
+      {
+        "test": {
+          "prop": "b"
         }
-      ],
-      "path": [
-        "root"
-      ],
-      "extensions": {
-        "fieldName": "test",
-        "fieldType": "SortEnumType",
-        "locationType": "SortEnumType",
-        "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
+      },
+      {
+        "test": {
+          "prop": "a"
+        }
       }
-    }
-  ]
+    ]
+  }
 }

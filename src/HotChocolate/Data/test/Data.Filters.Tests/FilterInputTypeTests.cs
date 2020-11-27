@@ -360,7 +360,7 @@ namespace HotChocolate.Data.Tests
             ISchemaBuilder builder = SchemaBuilder.New()
                 .AddFiltering()
                 .AddQueryType<TestingType<ITest<Foo>>>()
-                .AddObjectType<ObjectType<ITest<Foo>>>();
+                .AddObjectType<ITest<Foo>>();
 
             // act
             ISchema schema = builder.Create();

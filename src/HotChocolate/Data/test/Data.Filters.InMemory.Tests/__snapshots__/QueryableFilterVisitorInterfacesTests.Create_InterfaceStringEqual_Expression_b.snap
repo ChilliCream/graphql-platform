@@ -3,11 +3,6 @@
     "root": [
       {
         "test": {
-          "prop": "a"
-        }
-      },
-      {
-        "test": {
           "prop": "b"
         }
       }
