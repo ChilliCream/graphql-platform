@@ -16,7 +16,6 @@ namespace HotChocolate.Data.Filters.Expressions
             new BarInterface { Test = new InterfaceImpl1 { Prop = "b" } }
         };
 
-
         private readonly SchemaCache _cache;
 
         public QueryableFilterVisitorInterfacesTests(
@@ -63,7 +62,7 @@ namespace HotChocolate.Data.Filters.Expressions
 
         public interface ITest
         {
-            public string Prop { get; set; }
+            string Prop { get; set; }
         }
 
         public class InterfaceImpl1 : ITest

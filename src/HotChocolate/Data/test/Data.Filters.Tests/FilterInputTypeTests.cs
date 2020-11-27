@@ -443,7 +443,7 @@ namespace HotChocolate.Data.Tests
 
         public interface ITest<T>
         {
-            public T Prop { get; set; }
+            T Prop { get; set; }
         }
 
         public class InterfaceImpl1 : ITest

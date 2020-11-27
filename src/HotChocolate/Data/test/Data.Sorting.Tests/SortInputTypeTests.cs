@@ -161,11 +161,12 @@ namespace HotChocolate.Data.Tests
         {
             // arrange
             ISchemaBuilder builder = SchemaBuilder.New()
-                .AddQueryType(c =>
-                    c.Name("Query")
-                        .Field("foo")
-                        .Resolve(new List<Foo>())
-                        .UseSorting("Foo"));
+                .AddQueryType(
+                    c =>
+                        c.Name("Query")
+                            .Field("foo")
+                            .Resolve(new List<Foo>())
+                            .UseSorting("Foo"));
 
             // act
             // assert
@@ -178,11 +179,12 @@ namespace HotChocolate.Data.Tests
         {
             // arrange
             ISchemaBuilder builder = SchemaBuilder.New()
-                .AddQueryType(c =>
-                    c.Name("Query")
-                        .Field("foo")
-                        .Resolve(new List<Foo>())
-                        .UseSorting());
+                .AddQueryType(
+                    c =>
+                        c.Name("Query")
+                            .Field("foo")
+                            .Resolve(new List<Foo>())
+                            .UseSorting());
 
             // act
             // assert
@@ -304,7 +306,7 @@ namespace HotChocolate.Data.Tests
 
         public interface ITest<T>
         {
-            public T Prop { get; set; }
+            T Prop { get; set; }
         }
 
         public class InterfaceImpl1 : ITest
@@ -354,6 +356,5 @@ namespace HotChocolate.Data.Tests
                 descriptor.Field(x => x.Root).UseFiltering();
             }
         }
-
     }
 }
