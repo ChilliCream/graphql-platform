@@ -1,0 +1,19 @@
+﻿{
+  "errors": [
+    {
+      "message": "The argument \u0060where\u0060 does not exist.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 8
+        }
+      ],
+      "extensions": {
+        "type": "Query",
+        "field": "root",
+        "argument": "where",
+        "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
+      }
+    }
+  ]
+}
