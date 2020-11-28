@@ -32,7 +32,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_BooleanEqual_Expression()
         {
             // arrange
-            IRequestExecutor tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
             // act
             // assert
@@ -55,7 +55,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_BooleanNotEqual_Expression()
         {
             // arrange
-            IRequestExecutor tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
             // act
             // assert
@@ -78,7 +78,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_NullableBooleanEqual_Expression()
         {
             // arrange
-            IRequestExecutor tester = _cache.CreateSchema<FooNullable, FooNullableFilterType>(
+            IRequestExecutor tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
                 _fooNullableEntities);
 
             // act
@@ -109,7 +109,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_NullableBooleanNotEqual_Expression()
         {
             // arrange
-            IRequestExecutor tester = _cache.CreateSchema<FooNullable, FooNullableFilterType>(
+            IRequestExecutor tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
                 _fooNullableEntities);
 
             // act
@@ -150,12 +150,12 @@ namespace HotChocolate.Data.Filters
             public bool? Bar { get; set; }
         }
 
-        public class FooFilterType
+        public class FooFilterInput
             : FilterInputType<Foo>
         {
         }
 
-        public class FooNullableFilterType
+        public class FooNullableFilterInput
             : FilterInputType<FooNullable>
         {
         }

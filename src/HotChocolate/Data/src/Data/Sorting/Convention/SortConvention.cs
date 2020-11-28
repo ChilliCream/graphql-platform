@@ -222,11 +222,6 @@ namespace HotChocolate.Data.Sorting
                 {
                     configure(descriptor);
                 }
-
-                if (descriptor is SortEnumTypeDescriptor inputTypeDescriptor)
-                {
-                    inputTypeDescriptor.CreateDefinition();
-                }
             }
         }
 
@@ -237,7 +232,7 @@ namespace HotChocolate.Data.Sorting
             _provider.ConfigureField(_argumentName, descriptor);
 
         public bool TryGetOperationHandler(
-            ITypeDiscoveryContext context,
+            ITypeCompletionContext context,
             EnumTypeDefinition typeDefinition,
             SortEnumValueDefinition fieldDefinition,
             [NotNullWhen(true)] out ISortOperationHandler? handler)
@@ -256,7 +251,7 @@ namespace HotChocolate.Data.Sorting
         }
 
         public bool TryGetFieldHandler(
-            ITypeDiscoveryContext context,
+            ITypeCompletionContext context,
             ISortInputTypeDefinition typeDefinition,
             ISortFieldDefinition fieldDefinition,
             [NotNullWhen(true)] out ISortFieldHandler? handler)

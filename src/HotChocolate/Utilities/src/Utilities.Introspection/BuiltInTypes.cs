@@ -8,7 +8,7 @@ namespace HotChocolate.Utilities.Introspection
     public static class BuiltInTypes
     {
         private static readonly HashSet<string> _typeNames =
-            new HashSet<string>
+            new()
             {
                 __Directive,
                 __DirectiveLocation,
@@ -26,13 +26,14 @@ namespace HotChocolate.Utilities.Introspection
             };
 
         private static readonly HashSet<string> _directiveNames =
-            new HashSet<string>
+            new()
             {
                 Skip,
                 Include,
                 Deprecated,
                 Defer,
-                Stream
+                Stream,
+                SpecifiedBy
             };
 
         public static bool IsBuiltInType(string name) => _typeNames.Contains(name);

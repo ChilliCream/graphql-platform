@@ -4,6 +4,7 @@ using HotChocolate.Data.Filters;
 using HotChocolate.Data.Projections;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Data
@@ -17,6 +18,12 @@ namespace HotChocolate.Data
                         DataResources.FilterConvention_TypeOfMemberIsUnknown,
                         member.Name,
                         member.DeclaringType?.Name)
+                    .Build());
+
+        public static SchemaException FilterConvention_TypeIsUnknown(Type type) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(DataResources.FilterConvention_TypeIsUnknown, type.Name)
                     .Build());
 
         public static SchemaException FilterConvention_OperationNameNotFound(int operation) =>
@@ -67,6 +74,17 @@ namespace HotChocolate.Data
                 SchemaErrorBuilder.New()
                     .SetMessage(
                         DataResources.FilterInterceptor_NoHandlerFoundForField,
+                        field.Name,
+                        type.Name)
+                    .Build());
+
+        public static SchemaException FilterInterceptor_OperationHasNoTypeSpecified(
+            FilterInputTypeDefinition type,
+            FilterFieldDefinition field) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        DataResources.FilterInterceptor_OperationHasNoTypeSpecified,
                         field.Name,
                         type.Name)
                     .Build());
@@ -238,6 +256,15 @@ namespace HotChocolate.Data
                         sortConvention.Scope ?? "Default")
                     .SetExtension(nameof(sortConvention), sortConvention)
                     .SetExtension(nameof(sortOperation), sortOperation)
+                    .Build());
+
+        public static SchemaException Sorting_TypeOfInvalidFormat(
+            IType type) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        DataResources.Sorting_TypeOfInvalidFormat,
+                        type.Print())
                     .Build());
 
         public static SchemaException ProjectionProvider_NoHandlersConfigured(

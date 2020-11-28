@@ -1,6 +1,6 @@
 using System;
+using HotChocolate.Data;
 using HotChocolate.Data.Filters;
-using HotChocolate.Data.Filters.Spatial;
 
 namespace HotChocolate
 {

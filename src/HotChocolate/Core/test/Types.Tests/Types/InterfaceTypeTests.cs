@@ -131,7 +131,7 @@ namespace HotChocolate.Types
 
             // assert
             ObjectType type = schema.GetType<ObjectType>("FooImpl");
-            Assert.Collection(type.Interfaces,
+            Assert.Collection(type.Implements,
                 t => Assert.Equal("IFoo", t.Name));
         }
 

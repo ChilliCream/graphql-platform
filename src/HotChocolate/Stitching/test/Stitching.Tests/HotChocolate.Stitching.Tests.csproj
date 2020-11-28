@@ -28,4 +28,11 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="__resources__\DummyDirective.graphql" />
+    <EmbeddedResource Include="__resources__\DummyDirective.graphql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>

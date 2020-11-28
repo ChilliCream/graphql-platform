@@ -6,10 +6,10 @@ namespace HotChocolate.Data.Filters.Expressions
     public class QueryableDataOperationHandler
         : FilterFieldHandler<QueryableFilterContext, Expression>
     {
-        protected virtual int Operation => DefaultOperations.Data;
+        protected virtual int Operation => DefaultFilterOperations.Data;
 
         public override bool CanHandle(
-            ITypeDiscoveryContext context,
+            ITypeCompletionContext context,
             IFilterInputTypeDefinition typeDefinition,
             IFilterFieldDefinition fieldDefinition)
         {

@@ -2,17 +2,34 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Configuration
 {
-    public class SchemaOptions
-        : ISchemaOptions
+    /// <summary>
+    /// Represents mutable schema options.
+    /// </summary>
+    public class SchemaOptions : ISchemaOptions
     {
+        /// <summary>
+        /// Gets or sets the name of the query type.
+        /// </summary>
         public string QueryTypeName { get; set; }
 
+        /// <summary>
+        /// Gets or sets the name of the mutation type.
+        /// </summary>
         public string MutationTypeName { get; set; }
 
+        /// <summary>
+        /// Gets or sets the name of the subscription type.
+        /// </summary>
         public string SubscriptionTypeName { get; set; }
 
+        /// <summary>
+        /// Defines if the schema allows the query type to be omitted.
+        /// </summary>
         public bool StrictValidation { get; set; } = true;
 
+        /// <summary>
+        /// Defines if the CSharp XML documentation shall be integrated.
+        /// </summary>
         public bool UseXmlDocumentation { get; set; } = true;
 
         /// <summary>
@@ -41,7 +58,7 @@ namespace HotChocolate.Configuration
 
         public static SchemaOptions FromOptions(IReadOnlySchemaOptions options)
         {
-            return new SchemaOptions
+            return new()
             {
                 QueryTypeName = options.QueryTypeName,
                 MutationTypeName = options.MutationTypeName,

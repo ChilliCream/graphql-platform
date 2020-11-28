@@ -102,6 +102,10 @@ namespace HotChocolate.Stitching.Requests
                 (p, c) => RewriteMany(p, c, RewriteArgument),
                 current.WithArguments);
 
+            current = Rewrite(current, node.Directives, first,
+                (p, c) => RewriteMany(p, c, RewriteDirective),
+                current.WithDirectives);
+
             if (node.SelectionSet != null)
             {
                 current = Rewrite(current, node.SelectionSet, false,
@@ -124,6 +128,23 @@ namespace HotChocolate.Stitching.Requests
                     node.WithName(node.Name.CreateNewName(_requestPrefix)),
                     false)
                 : base.RewriteFragmentDefinition(node, false);
+
+        protected override DirectiveNode RewriteDirective(
+            DirectiveNode node, bool first)
+        {
+            if (node.Arguments.Count == 0)
+            {
+                return node;
+            }
+
+            DirectiveNode current = node;
+
+            current = Rewrite(current, current.Arguments, first,
+                (p, c) => RewriteMany(p, c, RewriteArgument),
+                current.WithArguments);
+
+            return current;
+        }
 
         protected override VariableNode RewriteVariable(
             VariableNode node, bool first) =>

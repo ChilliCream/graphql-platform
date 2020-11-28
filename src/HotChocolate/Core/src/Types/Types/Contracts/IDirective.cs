@@ -15,8 +15,6 @@ namespace HotChocolate.Types
 
         IReadOnlyList<DirectiveMiddleware> MiddlewareComponents { get; }
 
-        bool IsExecutable { get; }
-
         T ToObject<T>();
 
         DirectiveNode ToNode();

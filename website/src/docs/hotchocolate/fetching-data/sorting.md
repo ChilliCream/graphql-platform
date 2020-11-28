@@ -1,85 +1,391 @@
 ---
-title: "Sorting"
+title: Sorting
 ---
 
-Use this section as an introduction to explain what a reader can expect of this document.
+# What is sorting
 
-# Headlines
+Ordering results of a query dynamically is a common case. With _Hot Chocolate_ sorting, you can expose a sorting argument, that abstracts the complexity of ordering logic.
+With little configuration your GraphQL API has sorting capabilities which translates to native database queries.
+The default sort implementation translates sorting statements to expression trees that are applied to `IQueryable`.
+Hot Chocolate by default will inspect your .NET model and infer the possible filter operations from it.
+Sorting uses `IQueryable` (`IEnumerable`) by default but you can also easily customize them to use other interfaces.
 
-Use headlines to separate a document into several sections. First level headlines will appear in the left hand navigation. This will help the reader to quickly skip sections or jump to a particular section.
-
-# Use Diagrams
-
-Use [mermaid diagrams](https://mermaid-js.github.io/mermaid) to help a reader understand complex problems. Jump over to the [mermaid playground](https://mermaid-js.github.io/mermaid-live-editor) to test your diagrams.
-
-```mermaid
-graph TD
-  A[Christmas] -->|Get money| B(Go shopping)
-  B --> C{Let me think}
-  C -->|One| D[Laptop]
-  C -->|Two| E[iPhone]
-  C -->|Three| F[fa:fa-car Car]
-```
-
-# Use Code Examples
-
-A code example is another tool to help readers following the document and understanding the problem. Here is an list of code blocks that are used often with the ChilliCream GraphQL platform.
-
-Use `sdl` to describe GraphQL schemas.
-
-```sdl
-type Author {
-  name: String!
-}
-```
-
-Use `graphql` to describe GraphQL operations.
-
-```graphql
-query {
-  author(id: 1) {
-    name
-  }
-}
-```
-
-Use `json` for everything JSON related for example a GraphQL result.
-
-```json
-{
-  "data": {
-    "author": {
-      "name": "ChilliCream"
-    }
-  }
-}
-```
-
-Use `sql` for SQL queries.
-
-```sql
-SELECT id FROM Authors WHERE id = 1
-```
-
-Use `csharp` for C# code.
+The following type would yield the following sorting operation
 
 ```csharp
-public interface Author
-{
-    int Id { get; }
+    public class User
+    {
+        public string Name { get; set; }
 
-    string Name { get; }
+        public Address Address { get; set; }
+    }
+
+    public class Address
+    {
+        public string Street { get; set; }
+    }
+
+```
+
+```sdl
+type Query {
+  users(order: [UserSortInput]): [User]
+}
+
+type User {
+  name: String!
+  address: Address!
+}
+
+input AddressSortInput {
+  street: SortEnumType
+}
+
+input UserSortInput {
+  name: SortEnumType
+  address: AddressSortInput
+}
+
+enum SortEnumType {
+  ASC
+  DESC
 }
 ```
 
-# Use Images
+# Getting started
 
-When using images make sure it's a PNG file which is at least 800 pixels wide.
+Sorting is part of the `HotChocolate.Data` package. You can add the dependency with the `dotnet` cli
 
-# Use Tables
+```bash
+  dotnet add package HotChocolate.Data
+```
 
-When using tables make sure you always use titles.
+To use sorting you need to register it on the schema:
 
-| Name        | Description        |
-| ----------- | ------------------ |
-| ChilliCream | A GraphQL platform |
+```csharp
+services.AddGraphQLServer()
+  // Your schmea configuration
+  .AddSorting();
+```
+
+Hot Chocolate will infer the sorting types directly from your .Net Model and then use a Middleware to apply the order to `IQueryable<T>` or `IEnumerable<T>` on execution.
+
+> ⚠️ **Note:** If you use more than middleware, keep in mind that **ORDER MATTERS**. The correct order is UsePaging > UseProjections > UseFiltering > UseSorting
+
+**Code First**
+
+```csharp
+public class QueryType
+    : ObjectType<Query>
+{
+    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
+    {
+        descriptor.Field(t => t.GetPersons(default)).UseSorting();
+    }
+}
+
+public class Query
+{
+    public IQueryable<Person> GetPersons([Service]IPersonRepository repository) =>
+        repository.GetPersons();
+}
+```
+
+**Pure Code First**
+
+The field descriptor attribute `[UseSorting]` does apply the extension method `UseSorting()` on the field descriptor.
+
+```csharp
+public class Query
+{
+    [UseSorting]
+    public IQueryable<Person> GetPersons([Service]IPersonRepository repository)
+    {
+        repository.GetPersons();
+    }
+}
+```
+
+# Customization
+
+Under the hood, sorting is based ontop of normal Hot Chocolate input types. You can easily customize them with a very familiar fluent interface. The sorting input types follow the same `descriptor` scheme as you are used to from the normal input types. Just extend the base class `SortInputType<T>` and override the descriptor method.
+
+`ISortInputTypeDescriptor<T>` supports most of the methods of `IInputTypeDescriptor<T>`. By default, operations are generated for all fields of the type.
+Members that are collections are skipped because you cannot order based on lists.
+If you do want to specify the sorting types by yourself you can change this behavior with `BindFields`, `BindFieldsExplicitly` or `BindFieldsImplicitly`.
+When fields are bound implicitly, meaning sorting is added for all valid properties, you may want to hide a few fields. You can do this with `Ignore(x => Bar)`.
+It is also possible to customize the GraphQL field of the operation further. You can change the name, add a description or directive.
+
+```csharp
+public class UserSortType
+    : SortInputType<User>
+{
+    protected override void Configure(ISortInputTypeDescriptor<User> descriptor)
+    {
+        descriptor.BindFieldsExplicitly();
+        descriptor.Field(x => x.Name).Name("custom_name");
+    }
+}
+```
+
+If you want to change the sorting operations on a field, you need to declare you own operation enum type.
+
+```csharp{7}
+public class UserSortType
+    : SortInputType<User>
+{
+    protected override void Configure(ISortInputTypeDescriptor<User> descriptor)
+    {
+        descriptor.BindFieldsExplicitly();
+        descriptor.Field(x => x.Name).Type<AscOnlySortEnumType>();
+    }
+}
+
+public class AscOnlySortEnumType
+    : DefaultSortEnumType
+{
+    protected override void Configure(ISortEnumTypeDescriptor descriptor)
+    {
+        descriptor.Operation(DefaultSortOperations.Ascending);
+    }
+}
+
+```
+
+```sdl
+type Query {
+  users(order: [UserSortInput]): [User]
+}
+
+type User {
+  name: String!
+  address: Address!
+}
+
+input UserSortInput {
+  name: AscOnlySortEnumType
+}
+
+enum AscOnlySortEnumType {
+  ASC
+}
+```
+
+To apply this sorting type we just have to provide it to the `UseSorting` extension method with as the generic type argument.
+
+**Code First**
+
+```csharp
+public class QueryType
+    : ObjectType<Query>
+{
+    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
+    {
+        descriptor
+          .Field(t => t.GetUser(default))
+          .UseSorting<UserSortType>()
+    }
+}
+```
+
+**Pure Code First**
+
+```csharp
+public class Query
+{
+    [UseSorting(typeof(UserSortType))]
+    public IQueryable<User> GetUsers([Service]IUserRepository repository)
+    {
+        repository.GetUsers();
+    }
+}
+```
+
+# Sorting Conventions
+
+If you want to change the behavior sorting globally, you want to create a convention for sorting. The sorting convention comes with a fluent interface that is close to a type descriptor.
+
+## Get Started
+
+To use a sort convention you have to extend `SortConvention` and override the `Configure` method. Alternatively, you can directly configure the convention over the constructor argument.
+You then have to register your custom convention on the schema builder with `AddConvention`.
+By default a new convention is empty. To add the default behaviour you have to add `AddDefaults`.
+
+```csharp
+public class CustomConvention
+    : SortConvention
+{
+    protected override void Configure(ISortConventionDescriptor descriptor)
+    {
+        descriptor.AddDefaults();
+    }
+}
+
+services.AddGraphQLServer()
+  .AddConvention<ISortConvention, CustomConvention>();
+// or
+services.AddGraphQLServer()
+  .AddConvention<ISortConvention>(new Convention(x => x.AddDefaults()))
+```
+
+Often you just want to extend the default behaviour of sorting. If this is the case, you can also use `SortConventionExtension`
+
+```csharp
+public class CustomConventionExtension
+    : SortConventionExtension
+{
+    protected override void Configure(ISortConventionDescriptor descriptor)
+    {
+      // config
+    }
+}
+
+services.AddGraphQLServer()
+  .AddConvention<ISortConvention, CustomConventionExtension>();
+// or
+services.AddGraphQLServer()
+  .AddConvention<IFilterConvention>(new FilterConventionExtension(x => /*config*/))
+```
+
+## Argument Name
+
+With the convention descriptor, you can easily change the argument name of the `FilterInputType`.
+
+**Configuration**
+
+```csharp
+descriptor.ArgumentName("example_argument_name");
+```
+
+**Result**
+
+```sdl
+type Query {
+  users(example_argument_name: [UserSortInput]): [User]
+}
+```
+
+## Binding of SortTypes
+
+`SortInputType`'s **cannot** just be registered on the schema. You have to bind them to the runtime type on the convention.
+
+### SortInputType bindings
+
+By default only the `string` type is bound explicitly. If you want to configure sorting globally you are free to bind additional types.
+
+**Configuration**
+
+```csharp
+public class CustomSortInputType
+    : SortInputType<User>
+{
+    protected override void Configure(ISortInputTypeDescriptor<User> descriptor)
+    {
+        descriptor.Name("CustomSortInputType");
+    }
+}
+public class CustomConvention
+    : SortConvention
+{
+    protected override void Configure(ISortConventionDescriptor descriptor)
+    {
+        descriptor.AddDefaults().BindRuntimeType<User, CustomSortInputType>();
+    }
+}
+```
+
+**Result**
+
+```sdl
+
+type Query {
+  users(order: [CustomSortInputType!]): [User]
+}
+
+type User {
+  name: String!
+}
+
+input CustomSortInputType {
+  name: SortEnumType
+}
+
+enum SortEnumType {
+  ASC
+  DESC
+}
+```
+
+### Default bindings
+
+For fields all fields where no explicit binding is found, a default is applied. This default is `DefaultSortEnumType`.
+This can be configured with the method `DefaultBinding`.
+
+**Configuration**
+
+```csharp
+public class CustomConvention
+    : SortConvention
+{
+    protected override void Configure(ISortConventionDescriptor descriptor)
+    {
+        descriptor.AddDefaults().DefaultBinding<AscOnlySortEnumType>();
+    }
+}
+```
+
+**Result**
+
+```sdl
+type Query {
+  users(order: [UserSortInput]): [User]
+}
+
+type User {
+  logonCount: Int!
+}
+
+input UserSortInput {
+  logonCount: AscOnlySortEnumType
+}
+
+enum AscOnlySortEnumType {
+  ASC
+}
+```
+
+## Extend Types
+
+### SortEnumType
+
+When you build extensions for sorting, you may want to modify or extend the `DefaultSortEnumType`.
+
+```csharp
+descriptor.ConfigureEnum<DefaultSortEnumType>(
+  x => x.Operaion(CustomOperations.NULL_FIRST).Name("NULL_FIRST));
+```
+
+```sdl
+enum SortEnumType {
+  ASC
+  DESC
+  NULL_FIRST
+}
+```
+
+### SortType
+
+In case you want to change a specific sort type you can do this too.
+You can use `Configure<TSortType>()` to alter the configuration of a type.
+
+```csharp
+descriptor.Configure<CustomSortInputType>(
+  x => x.Description("This is my custome description"));
+```
+
+```sdl
+"This is my customer description"
+input CustomSortInputType {
+  name: SortEnumType
+}
+```

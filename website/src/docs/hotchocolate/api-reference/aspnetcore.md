@@ -34,7 +34,7 @@ The GraphQL HTTP POST request is the most commonly used variant for GraphQL requ
 
 **request:**
 
-```
+```http
 POST /graphql
 HOST: foo.example
 Content-Type: application/json
@@ -47,7 +47,8 @@ Content-Type: application/json
 
 **response:**
 
-```
+```http
+HTTP/1.1 200 OK
 Content-Type: application/json
 
 {
@@ -85,14 +86,15 @@ This request could be sent via an HTTP GET as follows:
 
 **request:**
 
-```
+```http
 GET /graphql?query=query(%24id%3A%20ID!)%7Buser(id%3A%24id)%7Bname%7D%7D&variables=%7B%22id%22%3A%22QVBJcy5ndXJ1%22%7D`
 HOST: foo.example
 ```
 
 **response:**
 
-```
+```http
+HTTP/1.1 200 OK
 Content-Type: application/json
 
 {
@@ -166,14 +168,15 @@ Although you can access and query the schema definition through introspection, w
 
 **request:**
 
-```
+```http
 GET /graphql?sdl
 HOST: foo.example
 ```
 
 **response:**
 
-```
+```http
+HTTP/1.1 200 OK
 Content-Type: application/graphql
 
 type Query {
@@ -187,7 +190,7 @@ We support two kinds of batching variants.
 
 The first variant to batch GraphQL requests is by sending in an array of GraphQL requests. Hot Chocolate will execute them in order.
 
-```
+```http
 POST /graphql
 HOST: foo.example
 Content-Type: application/json
@@ -242,7 +245,7 @@ Content-Type: application/json
 
 The second GraphQL batching variant is called operation batching, where you send in one GraphQL request document with multiple operations. The operation execution order is then specified as a query param.
 
-```
+```http
 POST /graphql?batchOperations=[a,b]
 HOST: foo.example
 Content-Type: application/json

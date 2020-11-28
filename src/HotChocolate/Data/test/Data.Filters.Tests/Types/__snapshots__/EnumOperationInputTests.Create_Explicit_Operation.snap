@@ -3,20 +3,20 @@
 }
 
 type Query {
-  foo(test: FooFilterTypeFilterInput): String
+  foo(test: FooFilterInput): String
 }
 
-input EnumOperationFilterInputOfFooBarFilterInput {
+input FooBarOperationFilterInput {
   eq: FooBar
   neq: FooBar
   in: [FooBar!]
   nin: [FooBar!]
 }
 
-input FooFilterTypeFilterInput {
-  and: [FooFilterTypeFilterInput!]
-  or: [FooFilterTypeFilterInput!]
-  comparable: EnumOperationFilterInputOfFooBarFilterInput
+input FooFilterInput {
+  and: [FooFilterInput!]
+  or: [FooFilterInput!]
+  comparable: FooBarOperationFilterInput
 }
 
 enum FooBar {

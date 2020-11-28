@@ -1,6 +1,7 @@
+using HotChocolate.Data.Projections;
 using HotChocolate.Data.Projections.Expressions;
 
-namespace HotChocolate.Data.Projections
+namespace HotChocolate.Data
 {
     public static class ProjectionConventionDescriptorExtensions
     {

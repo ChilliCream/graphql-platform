@@ -301,7 +301,7 @@ namespace HotChocolate.Execution
 
         private IReadOnlyDictionary<string, object?> GetExtensions()
         {
-            return _extensions ?? _readOnlyProperties;
+            return _extensions ?? _readOnlyExtensions;
         }
 
         private void InitializeExtensions()

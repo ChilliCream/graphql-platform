@@ -3,4 +3,4 @@
 1. For more details look at the `Errors` property.
 
 1. No sorting convention found for scope `Foo`. Register a convention with `AddConvention<ISortConvention, TYourConvention>("Foo")` on the schema builder.
- (HotChocolate.Data.Sorting.SortInputType<HotChocolate.Data.Tests.SortInputTypeTest.Foo>)
+ (HotChocolate.Types.ObjectType)

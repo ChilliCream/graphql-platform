@@ -27,8 +27,6 @@ namespace HotChocolate
                     c.Use(next => context => next(context));
                 });
 
-            var foo = schema.GetType<__Type>("__Type");
-
             // assert
             IRequestExecutor executor = schema.MakeExecutable();
             IExecutionResult result = await executor.ExecuteAsync(query);

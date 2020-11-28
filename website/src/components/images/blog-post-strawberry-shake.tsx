@@ -7,12 +7,12 @@ import { GetBlogPostStrawberryShakeImageQuery } from "../../../graphql-types";
 export const BlogPostStrawberryShake: FunctionComponent = () => {
   const data = useStaticQuery<GetBlogPostStrawberryShakeImageQuery>(graphql`
     query getBlogPostStrawberryShakeImage {
-      placeholderImage: file(
+      file(
         relativePath: { eq: "shared/strawberry-shake-banner.png" }
         sourceInstanceName: { eq: "blog" }
       ) {
         childImageSharp {
-          fluid(maxWidth: 1200) {
+          fluid(maxWidth: 1200, pngQuality: 90) {
             ...GatsbyImageSharpFluid
           }
         }
@@ -22,7 +22,7 @@ export const BlogPostStrawberryShake: FunctionComponent = () => {
 
   return (
     <Container>
-      <Img fluid={data.placeholderImage?.childImageSharp?.fluid as any} />
+      <Img fluid={data.file?.childImageSharp?.fluid as any} />
     </Container>
   );
 };

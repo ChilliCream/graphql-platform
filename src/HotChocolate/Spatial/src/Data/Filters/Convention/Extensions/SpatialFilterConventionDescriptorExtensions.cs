@@ -1,8 +1,10 @@
 using System;
+using HotChocolate.Data.Filters;
 using HotChocolate.Data.Filters.Expressions;
+using HotChocolate.Data.Filters.Spatial;
 using NetTopologySuite.Geometries;
 
-namespace HotChocolate.Data.Filters.Spatial
+namespace HotChocolate.Data
 {
     public static class SpatialFilterConventionDescriptorExtensions
     {
@@ -44,6 +46,11 @@ namespace HotChocolate.Data.Filters.Spatial
             descriptor.Operation(SpatialFilterOperations.Within).Name("within");
             descriptor.Operation(SpatialFilterOperations.Buffer).Name("buffer");
             descriptor.Operation(SpatialFilterOperations.Geometry).Name("geometry");
+            descriptor.Operation(SpatialFilterOperations.NotContains).Name("ncontains");
+            descriptor.Operation(SpatialFilterOperations.NotIntersects).Name("nintersects");
+            descriptor.Operation(SpatialFilterOperations.NotOverlaps).Name("noverlaps");
+            descriptor.Operation(SpatialFilterOperations.NotTouches).Name("ntouches");
+            descriptor.Operation(SpatialFilterOperations.NotWithin).Name("nwithin");
 
             return descriptor;
         }
@@ -60,13 +67,13 @@ namespace HotChocolate.Data.Filters.Spatial
             }
 
             descriptor
-                .BindRuntimeType<Geometry, GeometryFilterType>()
-                .BindRuntimeType<Point, PointFilterType>()
-                .BindRuntimeType<MultiPoint, MultiPointFilterType>()
-                .BindRuntimeType<LineString, LineStringFilterType>()
-                .BindRuntimeType<MultiLineString, MultiLineStringFilterType>()
-                .BindRuntimeType<Polygon, PolygonFilterType>()
-                .BindRuntimeType<MultiPolygon, MultiPolygonFilterType>();
+                .BindRuntimeType<Geometry, GeometryFilterInputType>()
+                .BindRuntimeType<Point, PointFilterInputType>()
+                .BindRuntimeType<MultiPoint, MultiPointFilterInputType>()
+                .BindRuntimeType<LineString, LineStringFilterInputType>()
+                .BindRuntimeType<MultiLineString, MultiLineStringFilterInputType>()
+                .BindRuntimeType<Polygon, PolygonFilterInputType>()
+                .BindRuntimeType<MultiPolygon, MultiPolygonFilterInputType>();
 
             return descriptor;
         }
