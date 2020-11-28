@@ -9,7 +9,7 @@ authorUrl: https://github.com/michaelstaib
 authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
 
-When you think about how we build our GraphQL schemas with _Hot Chocolate_ we always need to fall back to either the schema types or the GraphQL SDL in order to get the typings right.
+When you think about how we build our GraphQL schemas with Hot Chocolate we always need to fall back to either the schema types or the GraphQL SDL in order to get the typings right.
 
 This brings with it a lot of boiler plate code that we actually could infer from our C# code. With version 10.3.0 we have decided to integrate some of the version 11 features to make it possible to have these capabilities now instead of next year.
 
@@ -51,7 +51,7 @@ In the beginning we decided that people should be free in their way of how they 
 
 ## Interfaces
 
-Since version 10.0.0 _Hot Chocolate_ is able to infer interface types from API usage. This means that we will correctly infer the interfaces that you use and the types that implement those interfaces.
+Since version 10.0.0 Hot Chocolate is able to infer interface types from API usage. This means that we will correctly infer the interfaces that you use and the types that implement those interfaces.
 
 ```csharp
 public class Query
@@ -154,7 +154,7 @@ This allows us to enable the full power of schema types with pure C# types. The 
 
 We will add attributes for each descriptor type. Moreover, you can apply input and output attributes on the same type, and we will create automatically an output- and an input-version of that type.
 
-We will also provide attributes for all our middleware like paging, filtering, sorting and authorization. So, you will have the full power of _Hot Chocolate_ even when you do not use our schema type directly.
+We will also provide attributes for all our middleware like paging, filtering, sorting and authorization. So, you will have the full power of Hot Chocolate even when you do not use our schema type directly.
 
 > I really love this feature :)
 
@@ -234,11 +234,11 @@ var foo = new Foo { Bar = "My String" };
 
 ## Wrapping it up
 
-_Hot Chocolate_ 10.3.0 will bring a lot new improvements to how we can create GraphQL schemas. All these changes are just additions and there are no breaking changes involved meaning we give you a lot of version 11 productivity improvements now.
+Hot Chocolate 10.3.0 will bring a lot new improvements to how we can create GraphQL schemas. All these changes are just additions and there are no breaking changes involved meaning we give you a lot of version 11 productivity improvements now.
 
 So, when can you expect 10.3.0. We will deliver nullable ref types with 10.3.0-preview.2 (tonight) and the attributes will come 10.3.0-preview.3. We think the final version should be ready end of next week. We initially planned end of this week but we still have some bug fixing to do.
 
-I hope you are as exited as I am about this. Happy Thanksgiving :) and get a super awesome _Hot Chocolate_ with marshmallows to get into your GraphQL groove.
+I hope you are as exited as I am about this. Happy Thanksgiving :) and get a super awesome Hot Chocolate with marshmallows to get into your GraphQL groove.
 
 If you want to get into contact with us head over to our [slack channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q) and join our community.
 

@@ -20,13 +20,13 @@ Schema stitching is the capability to merge multiple GraphQL schemas into one sc
 
 In our case we have lots of specialized services that serve data for specific problem domains. Some of these services are GraphQL services, some of them are REST services and yes sadly a little portion of those are still SOAP services.
 
-With _Hot Chocolate_ schema stitching we are able to create a gateway that bundles all those services into one GraphQL schema.
+With Hot Chocolate schema stitching we are able to create a gateway that bundles all those services into one GraphQL schema.
 
 **Is schema stitching basically just putting two schemas together?**
 
 Just putting two schemas into one and avoid name collisions is simple. But what we want to achieve with schema stitching is one consistent schema.
 
-_Hot Chocolate_ schema stitching allows us to really integrate services into one schema by folding types into one another and even renaming or removing parts.
+Hot Chocolate schema stitching allows us to really integrate services into one schema by folding types into one another and even renaming or removing parts.
 
 With this we can create a consistent GraphQL schema that hides the implementation details of our backend services and provides the consumer of our endpoint with the capability to fetch the data they need with one call, no under- or over-fetching and most importantly no repeated fetching because we first needed to fetch that special id with which we now can fetch this other thingy.
 
@@ -134,9 +134,9 @@ This is actually one of the very things GraphQL tries to solve.
 
 Before we start with stitching itself let`s get into how to setup our server.
 
-Every _Hot Chocolate_ server can be a stitching server. This means in order to get started we can just use the _Hot Chocolate_ GraphQL server template and modify it a little bit to make the server a stitching server.
+Every Hot Chocolate server can be a stitching server. This means in order to get started we can just use the Hot Chocolate GraphQL server template and modify it a little bit to make the server a stitching server.
 
-If you do not have the _Hot Chocolate_ GraphQL server template installed execute first the following command.
+If you do not have the Hot Chocolate GraphQL server template installed execute first the following command.
 
 ```bash
 dotnet new -i HotChocolate.Templates.Server
@@ -152,7 +152,7 @@ dotnet new graphql-server
 
 With this we have now a functioning GraphQL server with a simple hello world example.
 
-In order to make this server a stitching server we now have to add the _Hot Chocolate_ stitching engine.
+In order to make this server a stitching server we now have to add the Hot Chocolate stitching engine.
 
 ```bash
 dotnet add package HotChocolate.Stitching
@@ -160,7 +160,7 @@ dotnet add package HotChocolate.Stitching
 
 Now that our GraphQL server is ready we can start to configure the endpoints of our remote schemas.
 
-> Remote schemas are what we call the GraphQL schemas that we want to include into our merged schema. Remote schemas can be any GraphQL Spec compliant server (Apollo, Sangria, Hot Chocolate etc.) that serves its schema over HTTP. Also we can include local schemas that are created with the _Hot Chocolate_ .net API.
+> Remote schemas are what we call the GraphQL schemas that we want to include into our merged schema. Remote schemas can be any GraphQL Spec compliant server (Apollo, Sangria, Hot Chocolate etc.) that serves its schema over HTTP. Also we can include local schemas that are created with the Hot Chocolate .net API.
 
 The endpoints are declared by using a named `HttpClient` via the HttpClient factory that is included with ASP.net core.
 
@@ -203,11 +203,11 @@ services.AddStitchedSchema(builder => builder
   .AddSchemaFromHttp("analytics"));
 ```
 
-Since a stitched schema is essentially no different to any other GraphQL schema, we can configure custom types, add custom middleware or do any other thing that we could do with a _Hot Chocolate_ GraphQL schema.
+Since a stitched schema is essentially no different to any other GraphQL schema, we can configure custom types, add custom middleware or do any other thing that we could do with a Hot Chocolate GraphQL schema.
 
 In our example we are stitching together schemas that come with non-spec scalar types like `DateTime`. So, the stitching layer would report a schema error when stitching the above three schemas together since the `DateTime` scalar is unknown.
 
-In order to declare this custom scalar we can register the extended scalar set like with a regular _Hot Chocolate_ GraphQL schema through the `AddSchemaConfiguration`-method on the stitching builder.
+In order to declare this custom scalar we can register the extended scalar set like with a regular Hot Chocolate GraphQL schema through the `AddSchemaConfiguration`-method on the stitching builder.
 
 ```csharp
 services.AddStitchedSchema(builder => builder
@@ -321,7 +321,7 @@ extend type Query {
 
 extend type User {
   messages: [Message!]
-  @delegate(schema: "messages", path: "messages(userId: $fields:Id)")
+    @delegate(schema: "messages", path: "messages(userId: $fields:Id)")
 }
 ```
 
@@ -500,11 +500,11 @@ With that we have removed the types from our stitched schema. Now, let us move o
 ```graphql
 extend type Message {
   createdBy: User!
-  @delegate(schema: "users", path: "user(id: $fields:createdById)")
+    @delegate(schema: "users", path: "user(id: $fields:createdById)")
   views: Int! @delegate(schema: "analytics", path: "analytics(id: $fields:id)")
   likes: Int! @delegate(schema: "analytics", path: "analytics(id: $fields:id)")
   replies: Int!
-  @delegate(schema: "analytics", path: "analytics(id: $fields:id)")
+    @delegate(schema: "analytics", path: "analytics(id: $fields:id)")
 }
 ```
 
@@ -698,11 +698,11 @@ With all of this in place we can now rewrite our `Message` type extension and ac
 ```graphql
 extend type Message {
   createdBy: User!
-  @delegate(schema: "users", path: "user(id: $scopedContextData:createdById)")
+    @delegate(schema: "users", path: "user(id: $scopedContextData:createdById)")
   views: Int! @delegate(schema: "analytics", path: "analytics(id: $fields:id)")
   likes: Int! @delegate(schema: "analytics", path: "analytics(id: $fields:id)")
   replies: Int!
-  @delegate(schema: "analytics", path: "analytics(id: $fields:id)")
+    @delegate(schema: "analytics", path: "analytics(id: $fields:id)")
 }
 ```
 
@@ -792,7 +792,7 @@ extend type Message {
   views: Int! @delegate(schema: "analytics", path: "analytics(id: $fields:id)")
   likes: Int! @delegate(schema: "analytics", path: "analytics(id: $fields:id)")
   replies: Int!
-  @delegate(schema: "analytics", path: "analytics(id: $fields:id)")
+    @delegate(schema: "analytics", path: "analytics(id: $fields:id)")
 }
 ```
 
@@ -902,7 +902,7 @@ type User {
   id: ID!
   username: String!
   messages: [Message!]
-  @delegate(schema: "messages", path: "messages(userId: $fields:Id)")
+    @delegate(schema: "messages", path: "messages(userId: $fields:Id)")
 }
 ```
 

@@ -9,7 +9,7 @@ authorUrl: https://github.com/michaelstaib
 authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
 
-We are busy, busy, busy working on version 11 of _Hot Chocolate_ and _Strawberry Shake_.
+We are busy, busy, busy working on version 11 of Hot Chocolate and _Strawberry Shake_.
 
 In this post I want to explore the client side of GraphQL on .NET more with a special emphasis on subscriptions.
 
@@ -21,7 +21,7 @@ Let us have a look at how we want to tackle things with _Strawberry Shake_. For 
 
 If you want to follow along then install the [.NET Core 3 SDK](https://dotnet.microsoft.com/download/dotnet-core/3.0) . We are also supporting other .NET variants but for this example you will need the .NET Core 3 SDK.
 
-Before we can start let us clone the _Hot Chocolate_ repository and start our _Star Wars_ server.
+Before we can start let us clone the Hot Chocolate repository and start our _Star Wars_ server.
 
 ```bash
 git clone https://github.com/ChilliCream/hotchocolate.git
@@ -448,8 +448,8 @@ So, in order to give the generator a hint about these things we need to extend o
 
 ```graphql
 extend scalar ByteArray
-@runtimeType(name: "System.Byte[]")
-@serializationType(name: "System.String")
+  @runtimeType(name: "System.Byte[]")
+  @serializationType(name: "System.String")
 ```
 
 The above example declares that for the `ByteArray` scalar the runtime type (the type that is used in the C# models) shall be a `System.Byte[]` and that the serialization type (the type which client and server use to send the data) shall be a `System.String`. For the generator that is enough to generate everything accordingly.

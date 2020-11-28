@@ -9,7 +9,7 @@ authorUrl: https://github.com/michaelstaib
 authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
 
-Today we have released version 10 of _Hot Chocolate_. We originally started building version 9.1 which grew bigger and at one point became version 10. We have focused a lot on our server implementation. But let me walk you through our latest release.
+Today we have released version 10 of Hot Chocolate. We originally started building version 9.1 which grew bigger and at one point became version 10. We have focused a lot on our server implementation. But let me walk you through our latest release.
 
 ## Filters
 
@@ -116,7 +116,7 @@ public class QueryType
 
 The nice thing here is that the filter works out of the box on `IQueryable` and `IEnumerable` so you can use it for database queries as well as for in-memory lists.
 
-With version 10 of _Hot Chocolate_ we are supporting filters on scalar fields. But we are already working on support for object filters and enumerable filters.
+With version 10 of Hot Chocolate we are supporting filters on scalar fields. But we are already working on support for object filters and enumerable filters.
 
 Also, we are working on sorting which should be included in the first preview of version 11.
 
@@ -156,7 +156,7 @@ That\`s all you have to do to connect the query engine with `Redis`.
 
 **So why should we want to use `Redis` anyway.**
 
-The thing with in-memory subscriptions is that they will only work reliable if you have one instance of _Hot Chocolate_. When you have deployed multiple instance of _Hot Chcocolate_ or if you are scaling on demand with a massive amount of subscribers then you want to make sure that your pub/sub system scales and that mutations executed on one server raise an event on another one.
+The thing with in-memory subscriptions is that they will only work reliable if you have one instance of Hot Chocolate. When you have deployed multiple instance of _Hot Chcocolate_ or if you are scaling on demand with a massive amount of subscribers then you want to make sure that your pub/sub system scales and that mutations executed on one server raise an event on another one.
 
 But there is more, sometimes you want to raise an event without triggering a mutation, maybe there was an event somewhere in your infrastructure that you want to relay as a GraphQL subscription, this can also be done through an external pub/sub system like Redis.
 

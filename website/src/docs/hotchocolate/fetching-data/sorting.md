@@ -4,7 +4,7 @@ title: Sorting
 
 # What is sorting
 
-Ordering results of a query dynamically is a common case. With _Hot Chocolate_ sorting, you can expose a sorting argument, that abstracts the complexity of ordering logic.
+Ordering results of a query dynamically is a common case. With Hot Chocolate sorting, you can expose a sorting argument, that abstracts the complexity of ordering logic.
 With little configuration your GraphQL API has sorting capabilities which translates to native database queries.
 The default sort implementation translates sorting statements to expression trees that are applied to `IQueryable`.
 Hot Chocolate by default will inspect your .NET model and infer the possible filter operations from it.
