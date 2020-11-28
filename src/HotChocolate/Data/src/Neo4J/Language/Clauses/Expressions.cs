@@ -23,8 +23,5 @@ namespace HotChocolate.Data.Neo4J.Language
         public static Expression[] CreateSymbolicNames(string[] variables) =>
             Array.ConvertAll(variables, item => SymbolicName.Of(item));
 
-        public static Expression[] CreateSymbolicNames(Named[] variables) =>
-            //Array.ConvertAll(variables, item => Named.
-
     }
 }

@@ -2,16 +2,16 @@
 {
     public class Skip : Visitable
     {
-        private readonly NumberLiteral _skipAmount;
+        private readonly IntegerLiteral _skipAmount;
 
-        private Skip(NumberLiteral skipAmount)
+        private Skip(IntegerLiteral skipAmount)
         {
             _skipAmount = skipAmount;
         }
 
         public static Skip Create(int value)
         {
-            return new Skip(new NumberLiteral(value));
+            return new Skip(new IntegerLiteral(value));
         }
 
         public new void Visit(CypherVisitor visitor)

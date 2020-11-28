@@ -4,9 +4,9 @@
     /// Match = [(O,P,T,I,O,N,A,L), SP], (M,A,T,C,H), [SP], Pattern, [[SP], Where] ;
     /// https://s3.amazonaws.com/artifacts.opencypher.org/M15/railroad/Match.html
     /// </summary>
-    public class Match : Visitable, IReadingClause
+    public class Match : Visitable
     {
-        public new ClauseKind Kind => ClauseKind.Match;
+        public new ClauseKind Kind { get; } = ClauseKind.Match;
         private readonly bool _optional;
         private readonly Pattern _pattern;
         private readonly Where _optionalWhere;

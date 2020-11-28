@@ -1,8 +1,10 @@
-﻿namespace HotChocolate.Data.Neo4J
+﻿using HotChocolate.Data.Neo4J.Language;
+
+namespace HotChocolate.Data.Neo4J
 {
     public partial class CypherVisitor
     {
-        public void Enter(Match match)
+        public void EnterVisitable(Match match)
         {
             if (match.IsOptional())
             {
@@ -11,22 +13,22 @@
             _builder.Write("MATCH ");
         }
 
-        public void Leave(Match match)
+        public void LeaveVistable(Match match)
         {
             _builder.Write(" ");
         }
 
-        public void Enter(Where where)
+        public void EnterVisitable(Where where)
         {
             _builder.Write(" WHERE ");
         }
 
-        public void Enter(Create create)
+        public void EnterVisitable(Create create)
         {
             _builder.Write("CREATE ");
         }
 
-        public void Leave(Create create)
+        public void LeaveVistable(Create create)
         {
             _builder.Write(" ");
         }

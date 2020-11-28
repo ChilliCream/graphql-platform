@@ -25,7 +25,7 @@ namespace HotChocolate.Data.Neo4J.Language
             }
             catch (Exception e)
             {
-                throw new ArgumentException("A property derived from a node or a relationship needs a parent with a symbolic name.")
+                throw new ArgumentException("A property derived from a node or a relationship needs a parent with a symbolic name.");
             }
             return new Property(requiredSymbolicName, new PropertyLookup(name));
         }

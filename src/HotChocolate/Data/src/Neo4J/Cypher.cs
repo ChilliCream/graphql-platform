@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using HotChocolate.Data.Neo4J.Language;
 
 namespace HotChocolate.Data.Neo4J
 {
@@ -9,25 +10,6 @@ namespace HotChocolate.Data.Neo4J
     /// </summary>
     public class Cypher
     {
-        List<Clause> Clauses = new List<Clause>();
 
-        public static Literal<object> LiteralOf(object obj)
-        {
-            if (obj == null)
-            {
-                return NullLiteral.INSTANCE;
-            }
-            throw new ArgumentException("Unsupported literal type.");
-        }
-
-        public static Literal<int> LiteralOf(int obj) => new IntegerLiteral(obj);
-        public static Literal<bool> LiteralTrue() => BooleanLiteral.TRUE;
-        public static Literal<bool> LiteralFalse() => BooleanLiteral.FALSE;
-
-        public string Print() =>
-            throw new NotImplementedException();
-
-        public static CypherQuery ToCypherQuery() =>
-            throw new NotImplementedException();
     }
 }

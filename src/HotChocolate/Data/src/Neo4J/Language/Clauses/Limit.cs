@@ -2,10 +2,9 @@
 
 namespace HotChocolate.Data.Neo4J.Language
 {
-    public class Limit : IVisitable
+    public class Limit : Visitable
     {
-        public Limit()
-        { }
+        public Limit() { }
 
         public ClauseKind Kind =>
             throw new NotImplementedException();

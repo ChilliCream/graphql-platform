@@ -9,6 +9,7 @@
         TypedSubtree,
         ExcludePattern,
         Operator,
+        StatementPrefix,
 
         Node,
         Relationship,

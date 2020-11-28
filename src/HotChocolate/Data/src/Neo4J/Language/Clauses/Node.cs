@@ -5,11 +5,11 @@ namespace HotChocolate.Data.Neo4J.Language
     /// <summary>
     /// https://s3.amazonaws.com/artifacts.opencypher.org/railroad/NodePattern.html
     /// </summary>
-    public class Node : PatternElement, PropertyContainer, ExposeRelationship<Relationship>, ExposesProperties<Node>
+    public class Node : Visitable
     {
-        private readonly SymbolicName _symbolicName;
-        private readonly List<NodeLabel> _labels;
-        private readonly Properties _properties;
+        private readonly SymbolicName? _symbolicName;
+        private readonly List<NodeLabel>? _labels;
+        private readonly Properties? _properties;
 
         private Node(string primaryLabel, Properties properties, string[] additionalLabels)
         {
@@ -23,14 +23,16 @@ namespace HotChocolate.Data.Neo4J.Language
 
             if (!(additionalLabels?.Length != 0))
             {
-                foreach (string nodeLabel in additionalLabels)
+                foreach (var nodeLabel in additionalLabels)
                 {
                     _labels.Add(new NodeLabel(nodeLabel));
                 }
             }
+
+            _properties = properties;
         }
 
-        private Node(SymbolicName symbolicName, Properties properties, List<NodeLabel> labels)
+        private Node(SymbolicName? symbolicName, Properties? properties, List<NodeLabel>? labels)
         {
             _symbolicName = symbolicName;
             _properties = properties;
@@ -52,6 +54,11 @@ namespace HotChocolate.Data.Neo4J.Language
         public Node Named(SymbolicName newSymbolicName) => new Node(newSymbolicName, _properties, _labels);
 
         public Node WithProperties(MapExpression newProperties) => new Node(_symbolicName, newProperties == null ? null : new Properties(newProperties), _labels);
+
+        public Property property(string name)
+        {
+            return Property.Create(this, name);
+        }
 
     }
 }

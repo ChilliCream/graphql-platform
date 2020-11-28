@@ -1,11 +1,6 @@
 ﻿namespace HotChocolate.Data.Neo4J.Language
 {
-    public interface ILiteral<out T> : IExpression { }
-    /// <summary>
-    /// Represents a literal with an optional content.
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public abstract class Literal<T> : Expression, ILiteral<T>
+    public abstract class Literal<T> : Expression
     {
         /// <summary>
         /// The content of this literal.
@@ -21,7 +16,6 @@
             _content = content;
         }
 
-        /// <returns>The content of this literal, may be null</returns>
         public T GetContent() => _content;
 
         /// <summary>
@@ -32,6 +26,4 @@
         /// <returns>A string representation to be used literally in a cypher statement.</returns>
         public abstract string AsString();
     }
-
-    public abstract class Literal { }
 }

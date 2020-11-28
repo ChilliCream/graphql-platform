@@ -23,7 +23,7 @@ namespace HotChocolate.Data.Neo4J
 
         /// <summary>
         /// Appends text.
-        /// </summary>
+        /// /// </summary>
         /// <param name="text">The text.</param>
         public void Write(string text)
         {

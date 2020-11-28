@@ -2,7 +2,7 @@
 {
     public abstract class Visitable : IVisitable
     {
-        public ClauseKind Kind => ClauseKind.Default;
+        public ClauseKind Kind { get; } = ClauseKind.Default;
         /// <summary>
         /// Visits a Visitor visiting this Visitable and its nested Visitables if applicable.
         /// </summary>

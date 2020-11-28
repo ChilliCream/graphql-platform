@@ -2,7 +2,7 @@
 {
     public class Distinct : Visitable
     {
-        public new ClauseKind Kind => ClauseKind.Distinct;
+        public new ClauseKind Kind { get; } = ClauseKind.Distinct;
 
         private readonly bool _value;
 

@@ -7,7 +7,7 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class AliasedExpression : Expression, IAliased
     {
-        public new ClauseKind Kind => ClauseKind.AliasedExpression;
+        public new static ClauseKind Kind => ClauseKind.AliasedExpression;
         private readonly Expression _expression;
         private readonly string _alias;
 

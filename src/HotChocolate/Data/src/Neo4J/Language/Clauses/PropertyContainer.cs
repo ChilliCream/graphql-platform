@@ -1,7 +1,7 @@
 namespace HotChocolate.Data.Neo4J.Language
 {
-    public interface IPropertyContainer : INamed
+    public abstract class PropertyContainer : Named
     {
-        public abstract Property Property(string name);
+        public abstract Property Prop(string name);
     }
 }

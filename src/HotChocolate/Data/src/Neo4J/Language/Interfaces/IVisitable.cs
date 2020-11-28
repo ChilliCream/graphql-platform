@@ -2,12 +2,15 @@
 {
     public interface IVisitable
     {
-        public ClauseKind Kind { get; }
+        /// <summary>
+        /// Returns the <see cref="ClauseKind"/> of the vistable.
+        /// </summary>
+        ClauseKind Kind { get; }
 
         /// <summary>
         /// Visits a visitor
         /// </summary>
         /// <param name="visitor">The visitor to notify, must not be null.</param>
-        public void Visit(CypherVisitor visitor);
+        void Visit(CypherVisitor visitor);
     }
 }

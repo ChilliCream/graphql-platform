@@ -5,7 +5,7 @@
     /// </summary>
     public class With : Visitable
     {
-        public new ClauseKind Kind => ClauseKind.With;
+        public new static ClauseKind Kind => ClauseKind.With;
 
         private readonly Distinct _distinct;
         private readonly ProjectionBody _projectionBody;
