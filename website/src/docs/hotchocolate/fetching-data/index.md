@@ -80,6 +80,108 @@ Nice, now that we know what resolvers are and how they work in a bigger picture,
 
 # Defining a resolver
 
+A resolver in Hot Chocolate is basically a function that takes 0 or many arguments and returns one value. The simplest resolver to write is a resolver that takes 0 arguments and returns just a value type (e.g. a string).
+
+> **Note:** Every single code examples is always shown in three different coding approaches with the same outcome. Annotation based (previously known as pure code first), code first and schema first. If you would like to learn more about the different coding approaches Hot Chocolate offers, click on [Coding Approaches](/docs/hotchocolate/api-reference/coding-approaches).
+
+## Annotation based example
+
+```csharp
+// Query.cs
+public class Query
+{
+    public string Say() => "Hello World!";
+}
+
+// Startup.cs
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddRouting()
+            .AddGraphQLServer()
+            .AddQueryType<Query>();
+    }
+
+    // Omitted code for brevity
+}
+```
+
+## Code first example
+
+```csharp
+// Query.cs
+public class Query
+{
+    public string Say() => "Hello World!";
+}
+
+// QueryType.cs
+public class QueryType
+    : ObjectType<Query>
+{
+    protected override void Configure(
+        IObjectTypeDescriptor<Query> descriptor)
+    {
+        descriptor
+            .Field(f => f.Say())
+            .Type<NonNullType<StringType>>();
+    }
+}
+
+// Startup.cs
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddRouting()
+            .AddGraphQLServer()
+            .AddQueryType<QueryType>();
+    }
+
+    // Omitted code for brevity
+}
+```
+
+## Schema first example
+
+```csharp
+// Query.cs
+public class Query
+{
+    public string Say() => "Hello World!";
+}
+
+// Startup.cs
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddRouting()
+            .AddGraphQLServer()
+            .AddDocumentFromString(@"
+                type Query {
+                    say: String!
+                }
+            ")
+            .BindComplexType<Query>();
+    }
+
+    // Omitted code for brevity
+}
+```
+
+All three approaches result into the same `SDL` representation.
+
+```sdl
+type Query {
+  say: String!
+}
+```
+
 # Resolver chains
 
 # Resolver Arguments
