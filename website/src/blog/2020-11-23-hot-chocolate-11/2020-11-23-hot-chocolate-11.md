@@ -387,7 +387,7 @@ Apart from the refactoring of the data integration API, we introduced our new Ge
   pubs(
     where: {
       location: {
-        within: { geometry: { type: Point, coordinates: [1, 1] }, lt: 120 }
+        within: { geometry: { type: Point, coordinates: [1, 1] } }
       }
     }
   ) {
