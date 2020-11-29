@@ -1806,7 +1806,7 @@ A _GraphQL_ query might look like this.
 
 _GraphQL_ input fields cannot have arguments. To work around this issue a data structure is needed that combines the filter payload and the operation. The input type for this example has the following structure.
 
-````csharp
+```csharp
 public class FilterDistance
 {
 
@@ -1820,6 +1820,7 @@ public class FilterDistance
 
     public double Is { get; set; }
 }
+```
 
 ```graphql
 input FilterDistanceInput {
@@ -1837,7 +1838,7 @@ input FilterDistanceInput {
   is_not_lte: Float
   is_not_in: Float
 }
-````
+```
 
 //TODO: Add skip / inopfield!
 
