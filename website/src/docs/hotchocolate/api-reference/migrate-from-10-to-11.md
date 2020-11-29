@@ -415,13 +415,13 @@ In Version 11 there is no stiching builder anymore. Stiching can be configured o
 builder.
 Old:
 
-```
+```csharp
     services.AddStitchedSchema(x => ....);
 ```
 
 New:
 
-```
+```csharp
     services.AddGraphQLServer()....
 ```
 
@@ -635,7 +635,7 @@ Hot Chocolate 11 follows the spec and returns the fields in the order they were 
 makes migrations harder because the schema snapshot looks different.
 You can change this behavior with the following setting
 
-```
+```csharp
     builder.ModifyOptions(x => x.SortFieldsByName = true)
 ```
 

@@ -320,6 +320,12 @@ export const GlobalStyle = createGlobalStyle`
       background: #e535ab;
     }
 
+    > pre[class="language-http"]::before {
+      content: "HTTP";
+      color: #efeaff;
+      background: #8b76cc;
+    }
+
     > pre[class="language-json"]::before {
       content: "JSON";
       color: #fff;

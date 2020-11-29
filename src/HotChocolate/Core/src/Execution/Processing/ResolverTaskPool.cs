@@ -43,7 +43,7 @@ namespace HotChocolate.Execution.Processing
                     break;
                 }
 
-#if NETSTANDARD2_0
+#if NETSTANDARD2_0 || NETSTANDARD2_1
                 spin.SpinOnce();
 #else
                 spin.SpinOnce(sleep1Threshold: -1);
@@ -77,7 +77,7 @@ namespace HotChocolate.Execution.Processing
                         break;
                     }
 
-#if NETSTANDARD2_0
+#if NETSTANDARD2_0 || NETSTANDARD2_1
                     spin.SpinOnce();
 #else
                     spin.SpinOnce(sleep1Threshold: -1);

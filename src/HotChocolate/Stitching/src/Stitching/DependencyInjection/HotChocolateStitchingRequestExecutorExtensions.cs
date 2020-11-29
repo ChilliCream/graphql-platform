@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -20,6 +21,7 @@ using HotChocolate.Stitching.SchemaDefinitions;
 using HotChocolate.Stitching.Utilities;
 using HotChocolate.Utilities;
 using HotChocolate.Utilities.Introspection;
+using ThrowHelper = HotChocolate.Stitching.ThrowHelper;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -568,6 +570,71 @@ namespace Microsoft.Extensions.DependencyInjection
 #endif
 
                     s.AddTypeExtensions(Utf8GraphQLParser.Parse(content));
+                });
+        }
+
+        /// <summary>
+        /// Adds a schema SDL that contains type extensions.
+        /// Extension documents can be used to extend merged types
+        /// or even replace them.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <param name="assembly">
+        /// The assembly from which the type extension file shall be resolved.
+        /// </param>
+        /// <param name="key">
+        /// The resource key of the type extension file
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="IRequestExecutorBuilder"/>.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="builder"/> is <c>null</c>, or
+        /// <paramref name="assembly"/> is <c>null</c>.
+        /// <paramref name="key"/> is <c>null</c>.
+        /// </exception>
+        public static IRequestExecutorBuilder AddTypeExtensionsFromResource(
+            this IRequestExecutorBuilder builder,
+            Assembly assembly,
+            string key)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (assembly is null)
+            {
+                throw new ArgumentNullException(nameof(assembly));
+            }
+
+            if (key is null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
+            return builder.ConfigureSchemaAsync(
+                async (s, ct) =>
+                {
+                    Stream? stream = assembly.GetManifestResourceStream(key);
+
+                    if (stream is null)
+                    {
+                        throw ThrowHelper.RequestExecutorBuilder_ResourceNotFound(key);
+                    }
+
+#if NET5_0
+                    await using (stream)
+#else
+                    using (stream)
+#endif
+                    {
+                        var buffer = new byte[stream.Length];
+                        await stream.ReadAsync(buffer, 0, buffer.Length, ct).ConfigureAwait(false);
+                        s.AddTypeExtensions(Utf8GraphQLParser.Parse(buffer));
+                    }
                 });
         }
 
