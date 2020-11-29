@@ -531,6 +531,6 @@ The great thing about Hot Chocolate is the people. Every day, I think the best t
 
 We internally talked about this great family and how to push this further and help this community grow. We will soon start with our ChilliCream user group, where users from the community can present solutions to their issues or present components that they have build around Hot Chocolate. But we think that we will even go beyond that and ask people from the greater GraphQL community to talk to us and give us fresh ideas and new takes on GraphQL.
 
-Last but not least, let me invite you to our launch party on Thursday and celebrate with us this amazing community and the next chapter of Hot Chocolate.
+Last but not least, let me invite you to our launch party on Wednesday and celebrate with us this amazing community and the next chapter of Hot Chocolate.
 
 [Hot Chocolate 11 Launch Party](https://www.meetup.com/ChilliCream-User-Group/events/274656703/)

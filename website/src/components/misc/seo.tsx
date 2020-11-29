@@ -11,6 +11,8 @@ import { Helmet } from "react-helmet";
 
 interface SEOProperties {
   description?: string;
+  imageUrl?: string;
+  isArticle?: boolean;
   lang?: string;
   meta?: JSX.IntrinsicElements["meta"][];
   title: string;
@@ -18,6 +20,8 @@ interface SEOProperties {
 
 export const SEO: FunctionComponent<SEOProperties> = ({
   description,
+  imageUrl,
+  isArticle,
   lang,
   meta,
   title,
@@ -30,6 +34,7 @@ export const SEO: FunctionComponent<SEOProperties> = ({
             title
             description
             author
+            siteUrl
           }
         }
         image: file(
@@ -46,7 +51,9 @@ export const SEO: FunctionComponent<SEOProperties> = ({
     `
   );
 
+  const metaAuthor = `@${site.siteMetadata.author}`;
   const metaDescription = description || site.siteMetadata.description;
+  const metaImageUrl = `${site.siteMetadata.siteUrl}${imageUrl || image?.childImageSharp!.fixed!.src}`;
 
   return (
     <Helmet
@@ -61,6 +68,10 @@ export const SEO: FunctionComponent<SEOProperties> = ({
           content: metaDescription,
         },
         {
+          property: `og:url`,
+          content: site.siteMetadata.siteUrl,
+        },
+        {
           property: `og:title`,
           content: title,
         },
@@ -70,19 +81,31 @@ export const SEO: FunctionComponent<SEOProperties> = ({
         },
         {
           property: `og:type`,
-          content: `website`,
+          content: !!isArticle ? `article` : `website`,
         },
         {
           property: `og:image`,
-          content: `${image?.childImageSharp!.fixed!.src}`,
+          content: metaImageUrl,
+        },
+        {
+          property: `twitter:title`,
+          content: title,
         },
         {
           name: `twitter:card`,
           content: `summary_large_image`,
         },
         {
+          property: `twitter:site`,
+          content: metaAuthor,
+        },
+        {
           name: `twitter:creator`,
-          content: `@${site.siteMetadata.author}`,
+          content: metaAuthor,
+        },
+        {
+          property: `twitter:image:src`,
+          content: metaImageUrl,
         },
         ...meta!,
       ]}

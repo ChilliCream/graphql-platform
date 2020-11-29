@@ -95,6 +95,11 @@ const IndexPage: FunctionComponent = () => {
           showThumbs={false}
         >
           <Slide>
+            <Link to="/blog/2020/11/23/hot-chocolate-11">
+              <BlogPostVersion11 />
+            </Link>
+          </Slide>
+          <Slide>
             <Link to="/docs/bananacakepop">
               <BananaCakePop />
               <SlideContent>
@@ -115,11 +120,6 @@ const IndexPage: FunctionComponent = () => {
                   Get started with Hot Chocolate and Entity Framework
                 </SlideDescription>
               </SlideContent>
-            </Link>
-          </Slide>
-          <Slide>
-            <Link to="/blog/2020/07/16/version-11">
-              <BlogPostVersion11 />
             </Link>
           </Slide>
           <Slide>
