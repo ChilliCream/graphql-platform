@@ -26,8 +26,7 @@ namespace HotChocolate.Types
             var literal = new StringValueNode(expected.AbsoluteUri);
 
             // act
-            var actual = (Uri)urlType
-                .ParseLiteral(literal);
+            var actual = (Uri)urlType.ParseLiteral(literal);
 
             // assert
             Assert.Equal(expected, actual);
@@ -45,6 +44,21 @@ namespace HotChocolate.Types
 
             // assert
             Assert.Null(value);
+        }
+
+        [Fact]
+        public void ParseLiteral_RelativeUrl()
+        {
+            // arrange
+            var urlType = new UrlType();
+            var expected = new Uri("/relative/path", UriKind.Relative);
+            var literal = new StringValueNode($"{expected}");
+
+            // act
+            var actual = (Uri)urlType.ParseLiteral(literal);
+
+            // Assert
+            Assert.Equal(expected, actual);
         }
 
         [Fact]
@@ -117,6 +131,20 @@ namespace HotChocolate.Types
 
             // assert
             Assert.Equal(uri.AbsoluteUri, Assert.IsType<string>(serializedValue));
+        }
+
+        [Fact]
+        public void Serialize_RelativeUrl()
+        {
+            // arrange
+            var urlType = new UrlType();
+            var uri = new Uri("/relative/path", UriKind.Relative);
+
+            // act
+            object serializedValue = urlType.Serialize(uri);
+
+            // assert
+            Assert.Equal(uri.ToString(), Assert.IsType<string>(serializedValue));
         }
 
         [Fact]
