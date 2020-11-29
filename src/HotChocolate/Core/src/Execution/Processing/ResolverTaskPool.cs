@@ -15,7 +15,7 @@ namespace HotChocolate.Execution.Processing
 
         public ResolverTaskPool(int maximumRetained = 256)
         {
-            _buffer = new ResolverTask?[256];
+            _buffer = new ResolverTask?[maximumRetained];
             _capacity = maximumRetained - 1;
         }
 
