@@ -467,6 +467,38 @@ namespace HotChocolate.Data.Filters.Expressions
             Assert.False(func(b));
         }
 
+        [Fact]
+        public void Create_Struct_FilterExpression()
+        {
+            // arrange
+            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+                "{ test: {prop: { eq: \"a\"}}}");
+            ExecutorBuilder tester = CreateProviderTester(new FilterInputType<BarStruct>());
+
+            // act
+            Func<BarStruct, bool> func = tester.Build<BarStruct>(value);
+
+            // assert
+            var a = new BarStruct
+            {
+                Test = new TestStruct
+                {
+                     Prop = "a"
+                }
+            };
+
+            Assert.True(func(a));
+
+            var b = new BarStruct
+            {
+                Test = new TestStruct
+                {
+                     Prop = "b"
+                }
+            };
+            Assert.False(func(b));
+        }
+
         public class Foo
         {
             public short BarShort { get; set; }
@@ -521,8 +553,18 @@ namespace HotChocolate.Data.Filters.Expressions
         public class BarInterface
         {
             public ITest Test { get; set; }
-
         }
+
+        public class BarStruct
+        {
+            public TestStruct Test { get; set; }
+        }
+
+        public class TestStruct
+        {
+            public string Prop { get; set; }
+        }
+
         public class Bar
         {
             public Foo Foo { get; set; }

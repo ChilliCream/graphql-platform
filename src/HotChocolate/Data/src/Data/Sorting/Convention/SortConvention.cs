@@ -283,7 +283,11 @@ namespace HotChocolate.Data.Sorting
                 return false;
             }
 
-            if (runtimeType.Type.IsClass || runtimeType.Type.IsInterface)
+            if (runtimeType.Type.IsClass ||
+                runtimeType.Type.IsInterface ||
+                (runtimeType.Type.IsValueType &&
+                    !runtimeType.Type.IsEnum &&
+                    !runtimeType.Type.IsPrimitive))
             {
                 type = typeof(SortInputType<>).MakeGenericType(runtimeType.Source);
                 return true;

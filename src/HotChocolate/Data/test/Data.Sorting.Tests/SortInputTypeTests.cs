@@ -238,6 +238,21 @@ namespace HotChocolate.Data.Tests
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void FilterInputType_Should_InfereType_When_ItIsAStruct()
+        {
+            // arrange
+            ISchemaBuilder builder = SchemaBuilder.New()
+                .AddFiltering()
+                .AddQueryType<TestingType<UserStruct>>();
+
+            // act
+            ISchema schema = builder.Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         public class FooDirectiveType
             : DirectiveType<FooDirective>
         {
@@ -296,6 +311,15 @@ namespace HotChocolate.Data.Tests
             public string Name { get; set; } = default!;
 
             public List<User> Friends { get; set; } = default!;
+        }
+
+        public class UserStruct
+        {
+            public int Id { get; set; }
+
+            public string Name { get; set; } = default!;
+
+            public List<UserStruct> Friends { get; set; } = default!;
         }
 
         public interface ITest
