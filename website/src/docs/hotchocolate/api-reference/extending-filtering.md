@@ -61,8 +61,8 @@ With this in mind, we can have a deeper dive into filtering. Buckle up, this mig
 
 # How everything fits together
 At the core of the configuration API of filtering there sits a convention. The convention holds the whole
-configuration that filtering needs to create filter types and to translate it to the database. 
-During schema creation, the schema builder asks, the convention how the schema should look like. 
+configuration that filtering needs to create filter types and to translate them to the database. 
+During schema creation, the schema builder asks the convention how the schema should look like. 
 The convention defines the names and descriptions of types and fields and also what the type should be used for properties
 The convention also defines what provider should be used to translate a GraphQL query to a database query. 
 The provider is the only thing that is used after the schema is built. 
@@ -80,7 +80,7 @@ This convention is also configurable with a fluent interface, so in most cases y
 Most of the capabilities of the descriptor are already documented under `Fetching Data -> Filtering`.
 If you have not done this already, it is now the right time to head over to [Filtering](https://chillicream.com/docs/hotchocolate/fetching-data/filtering) and read the parts about the `FilterConventions`
 
-There are two things on this descriptor that are not documented in `Fetching Data`. 
+There are two things on this descriptor that are not documented in `Fetching Data`: 
 
 ### Operation
 ```csharp
@@ -120,8 +120,6 @@ public static class CustomerFilterConventionExtensions
             .Name("like");
 }
 ```
-
-You know have defined you very own operation.
 
 To apply this configuration to operations types, you can use the Configure method
 ```csharp
@@ -167,4 +165,241 @@ public class CustomConvention : FilterConventio
 ```
 
 # Providers
+Like the convention, a provider can be configured over a fluent interface. 
+Every filter field or operation has a specific handler defined. The handler translates the operation to the database.
+These handlers are stored on the provider. After the schema is initialized, an interceptor visits the filter types and requests a handler from the provider.
+The handler is annotated directly on the field.
+The provider translates an incoming query into a database query by traversing an input object and executing the handlers on the fields. 
+
+The output of a translation is always some kind of _filter definition_. In case, of `IQueryable` this is an expression.
+In case, of MongoDB this is a `FilterDefinition`. Provider, visitor context and handler, operate on and produce this _filter definition_.
+
+To inspect and analyze the input object, the provider uses a visitor.
+What a visitor is and how you can write you own visitor, you can find here: [Visitor Documentation]()
+Visitors are a powerful yet complex concept, we tried our best to abstract it away. 
+For most cases, you will not need to create a custom visitor.
+
+## Provider Descriptor
+The descriptor of a provider is simple. It only has one method:
+```csharp
+    IFilterProviderDescriptor<TContext> AddFieldHandler<TFieldHandler>()
+        where TFieldHandler : IFilterFieldHandler<TContext>;
+```
+With this method you can register field handlers on the provider.
+
+## Field Handler
+Every field or operation is annotated with an instance of a `FilterFieldHandler<TContext, T>`. When the provider is asked for a handler for a field, it iterates sequentially through the list of existing field handlers and calls the `CanHandle` method.
+The first field handler that can handle the field, is annotated on the field.
+As the visitor traverses the input object, it calls `TryHandleEnter` as it enters the input field and `TryHandleLeave` as it leaves it.
+
+> A field handler supports constructor injection and is a singleton. Do not store data on the field handler. use the `context` of the visitor for state management.
+
+### CanHandle
+```csharp
+    bool CanHandle(
+        ITypeCompletionContext context,
+        IFilterInputTypeDefinition typeDefinition,
+        IFilterFieldDefinition fieldDefinition);
+```
+Tests if this field handler can handle a field. If it can handle the field it will be attached to it.
+
+
+### TryHandleEnter
+```csharp
+bool TryHandleEnter(
+    TContext context,
+    IFilterField field,
+    ObjectFieldNode node,
+    [NotNullWhen(true)] out ISyntaxVisitorAction? action);
+```
+This method is called when the visitor encounters a field. 
+- `context` is the context of the visitor
+- `field` is the instance of the field that is currently visited
+- `node` is the field node of the input object. `node.Value` contains the value of the field.
+- `action` If `TryHandleEnter` returns true, the action is used for further processing by the visitor.
+
+### TryHandleLeave
+```csharp
+bool TryHandleLeave(
+    TContext context,
+    IFilterField field,
+    ObjectFieldNode node,
+    [NotNullWhen(true)] out ISyntaxVisitorAction? action);
+```
+This method is called when the visitor leave the field it previously entered.
+- `context` is the context of the visitor
+- `field` is the instance of the field that is currently visited
+- `node` is the field node of the input object. `node.Value` contains the value of the field.
+- `action` If `TryHandleLeave` returns true, the action is used for further processing by the visitor.
+
+## Filter Operation Handlers
+There is only one kind of field handler. To make it easier to handle operations, there also exists `FilterOperationHandler<TContext, T>`, a more specific abstraction. 
+You can override `TryHandleOperation` to handle operations.
+
+## The Context
+As the visitor and the field handlers are singletons, a context object is passed along with the traversation of input objects. 
+Field handlers can push data on this context, to make it available for other handlers further down in the tree.
+
+The context contains `Types`, `Operations`, `Errors` and `Scopes`. It is very provider-specific what data you need to store in the context.
+In the case of the `IQueryable` provider, it also contains `RuntimeTypes` and knows if the source is `InMemory` or a database call.
+
+With `Scopes` it is possible to add multiple logical layers to a context. In the case of `IQuerable` this is needed, whenever a new closure starts
+```csharp
+//          /----------------- SCOPE 1 ------------------------\
+//                                        /----------- SCOPE 2 -------------\
+users.Where(x => x.Company.Addresses.Any(y => y.Street == "221B Baker Street"))
+```  
+A filter statement that produces the expression above would look like this
+```graphql
+{
+    users(
+        where: {
+            company: {
+                addresses: {
+                   any: {
+                       street: {
+                           eq: "221B Baker Street" 
+                       }
+                   }
+               }
+            }
+    }){
+        name
+    }
+}
+```
+A little simplified this is what happens during visitation:
+```graphql
+{
+    users(
+        where: 
+        # Create SCOPE 1 with parameter x of type User 
+        # instance[0] = x
+        # level[0] = []
+        {
+            # Push property User.Company onto the scope 
+            # instance[1] =  x.Company
+            # level[1] = []
+            company: {
+                # Push property Company.Addresses onto the scope 
+                # instance[2] x.Company.Addresses
+                # level[2] = []
+                addresses: {
+                    # Create SCOPE 2 with parameter y of type Address 
+                    # instance[0] = y
+                    # level[0] = []
+                    any: {
+                        # Push poperty Address.Street onto the scope 
+                        # instance[1] = y.Street
+                        # level[1] = []
+                        street: {
+                            # Create and push the operation onto the scope  
+                            # instance[2] = y.Street
+                            # level[2] = [y.Street == "221B Baker Street"]
+                            eq: "221B Baker Street" 
+                        }
+                        # Combine everything of the current level and pop the porperty street from the instance
+                        # instance[1] = y.Street
+                        # level[1] = [y.Street == "221B Baker Street"]
+                    }
+                    # Combine everything of the current level, create the any operation and exit SCOPE 2
+                    # instance[2] = x.Company.Addresses
+                    # level[2] = [x.Company.Addresses.Any(y => y.Street == "221B Baker Street")]
+                }
+                # Combine everything of the current level and pop the porperty street from the instance
+                # instance[1] = x.Company
+                # level[1] = [x.Company.Addresses.Any(y => y.Street == "221B Baker Street")]
+            }
+            # Combine everything of the current level and pop the porperty street from the instance
+            # instance[0] = x
+            # level[0] = [x.Company.Addresses.Any(y => y.Street == "221B Baker Street")]
+    }
+){
+        name
+    }
+}
+```
+
+# Extending IQueryable
+The default filtering implementation uses `IQueryable` under the hood. You can customize the translation of queries by registering handlers on the `QueryableFilterProvider`. 
+
+The following example creates a `StringOperationHandler` that supports case insensitive filtering:
+
+```csharp
+// The QueryableStringOperationHandler already has an implemenation of CanHandle
+// It checks if the field is declared in a string operation type and also checks if 
+// the operation of this field uses the `Operation` specified in the override property further 
+// below
+public class QueryableStringInvariantEqualsHandler : QueryableStringOperationHandler
+{
+    // For creating a expression tree we need the `MethodInfo` of the `ToLower` method of string
+    private static readonly MethodInfo _toLower = typeof(string)
+        .GetMethods()
+        .Single(
+            x => x.Name == nameof(string.ToLower) &&
+            x.GetParameters().Length == 0);
+
+    // This is used to match the handler to all `eq` fields
+    protected override int Operation => DefaultFilterOperations.Equals;
+
+    public override Expression HandleOperation(
+        QueryableFilterContext context,
+        IFilterOperationField field,
+        IValueNode value,
+        object parsedValue)
+    {
+        // We get the instance of the context. This is the expression path to the propert
+        // e.g. ~> y.Street
+        Expression property = context.GetInstance();
+        
+        // the parsed value is what was specified in the query
+        // e.g. ~> eq: "221B Baker Street" 
+        if (parsedValue is string str)
+        {
+            // Creates and returnes the operation 
+            // e.g. ~> y.Street.ToLower() == "221b baker street"
+            return Expression.Equal(
+                Expression.Call(property, _toLower),
+                Expression.Constant(str.ToLower()));
+        }
+
+        // Something went wrong 😱
+        throw new InvalidOperationException();
+    }
+}
+```
+
+This operation handler can be registered on the convention 
+```csharp
+public class CustomFilteringConvention : FilterConvention
+{
+    protected override void Configure(IFilterConventionDescriptor descriptor)
+    {
+        descriptor.AddDefaults();
+        descriptor.AddProvider(
+            new QueryableFilterProvider(
+                x => x
+                    .AddDefaultHandlers()
+                    .AddFieldHandler<QueryableStringInvariantEqualsHandler>()));
+    }
+}
+
+// and then 
+services.AddGraphQLServer()
+    .AddFiltering<CustomFilteringConvention>();
+```
+
+To make this registration easier, HotChocolate also supports convention and provider extensions.
+Instead of creating a customer `FilterConvention`, you can also do the follwing:
+```csharp
+services.AddGraphQLServer()
+    .AddFiltering<CustomFilteringConvention>();
+    .AddConvention<IFilterConvention>(
+        new FilterConventionConvention(
+            x => x.AddProviderExtension(
+                new QueryableFilterProviderExtension(
+                    y => y.AddFieldHandler<QueryableStringInvariantEqualsHandler>()))));
+```
+
+
 
