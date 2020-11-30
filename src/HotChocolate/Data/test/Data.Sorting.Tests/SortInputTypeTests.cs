@@ -162,11 +162,12 @@ namespace HotChocolate.Data.Tests
         {
             // arrange
             ISchemaBuilder builder = SchemaBuilder.New()
-                .AddQueryType(c =>
-                    c.Name("Query")
-                        .Field("foo")
-                        .Resolve(new List<Foo>())
-                        .UseSorting("Foo"));
+                .AddQueryType(
+                    c =>
+                        c.Name("Query")
+                            .Field("foo")
+                            .Resolve(new List<Foo>())
+                            .UseSorting("Foo"));
 
             // act
             // assert
@@ -179,11 +180,12 @@ namespace HotChocolate.Data.Tests
         {
             // arrange
             ISchemaBuilder builder = SchemaBuilder.New()
-                .AddQueryType(c =>
-                    c.Name("Query")
-                        .Field("foo")
-                        .Resolve(new List<Foo>())
-                        .UseSorting());
+                .AddQueryType(
+                    c =>
+                        c.Name("Query")
+                            .Field("foo")
+                            .Resolve(new List<Foo>())
+                            .UseSorting());
 
             // act
             // assert
@@ -204,7 +206,6 @@ namespace HotChocolate.Data.Tests
             builder.Create().Print().MatchSnapshot();
         }
 
-        [Fact]
         public void SortInputType_Should_IgnoreFieldWithoutCallingConvention()
         {
             // arrange
@@ -225,6 +226,23 @@ namespace HotChocolate.Data.Tests
             ISchema schema = builder.Create();
 
             // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void FilterInputType_Should_InfereType_When_ItIsAInterface()
+        {
+            // arrange
+            ISchemaBuilder builder = SchemaBuilder.New()
+                .AddFiltering()
+                .AddQueryType<TestingType<ITest<Foo>>>()
+                .AddObjectType<ITest<Foo>>();
+
+            // act
+            ISchema schema = builder.Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
             schema.Print().MatchSnapshot();
         }
 
@@ -309,6 +327,31 @@ namespace HotChocolate.Data.Tests
             public List<User> Friends { get; set; } = default!;
         }
 
+        public interface ITest
+        {
+            public string Prop { get; set; }
+            public string Prop2 { get; set; }
+        }
+
+        public interface ITest<T>
+        {
+            T Prop { get; set; }
+        }
+
+        public class InterfaceImpl1 : ITest
+        {
+            public string Prop { get; set; }
+
+            public string Prop2 { get; set; }
+        }
+
+        public class InterfaceImpl2 : ITest
+        {
+            public string Prop { get; set; }
+
+            public string Prop2 { get; set; }
+        }
+
         public class UserSortInputType : SortInputType<User>
         {
             protected override void Configure(ISortInputTypeDescriptor<User> descriptor)
@@ -326,6 +369,20 @@ namespace HotChocolate.Data.Tests
                     .Field("foo")
                     .Resolve(new List<User>())
                     .UseSorting<UserSortInputType>();
+            }
+        }
+
+        public class TestObject<T>
+        {
+            public T Root { get; set; }
+        }
+
+        public class TestingType<T> : ObjectType<TestObject<T>>
+        {
+            protected override void Configure(IObjectTypeDescriptor<TestObject<T>> descriptor)
+            {
+                descriptor.Name(nameof(Query));
+                descriptor.Field(x => x.Root).UseFiltering();
             }
         }
     }
