@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Data.Sorting;
+using HotChocolate.Data.Sorting.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
@@ -201,6 +202,51 @@ namespace HotChocolate.Data.Tests
             // act
             // assert
             builder.Create().Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public void SortInputType_Should_IgnoreFieldWithoutCallingConvention()
+        {
+            // arrange
+            ISchemaBuilder builder = SchemaBuilder.New()
+                .AddSorting(
+                    x => x.AddDefaultOperations()
+                        .BindRuntimeType<int, DefaultSortEnumType>()
+                        //should fail when not ignore properly because string is no explicitly bound
+                        .Provider(new QueryableSortProvider(y => y.AddDefaultFieldHandlers())))
+                .AddQueryType(
+                    new ObjectType(
+                        x => x.Name("Query")
+                            .Field("foo")
+                            .Resolve(new List<IgnoreTest>())
+                            .UseSorting<IgnoreTestSortInputType>()));
+
+            // act
+            ISchema schema = builder.Create();
+
+            // assert
+            schema.Print().MatchSnapshot();
+        }
+
+        public class IgnoreTest
+        {
+            public int Id { get; set; }
+
+            public string Name { get; set; } = default!;
+        }
+
+        public class ShouldNotBeVisible : SortInputType
+        {
+
+        }
+
+        public class IgnoreTestSortInputType
+            : SortInputType<IgnoreTest>
+        {
+            protected override void Configure(ISortInputTypeDescriptor<IgnoreTest> descriptor)
+            {
+                descriptor.Ignore(x => x.Name);
+            }
         }
 
         public class FooDirectiveType
