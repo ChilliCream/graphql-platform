@@ -245,7 +245,7 @@ In the case of the `IQueryable` provider, it also contains `RuntimeTypes` and kn
 
 With `Scopes` it is possible to add multiple logical layers to a context. In the case of `IQuerable` this is needed, whenever a new closure starts
 ```csharp
-//          /----------------- SCOPE 1 ------------------------\
+//          /------------------------ SCOPE 1 -----------------------------\
 //                                        /----------- SCOPE 2 -------------\
 users.Where(x => x.Company.Addresses.Any(y => y.Street == "221B Baker Street"))
 ```  
