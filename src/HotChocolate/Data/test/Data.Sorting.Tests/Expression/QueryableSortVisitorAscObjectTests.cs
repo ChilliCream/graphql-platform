@@ -179,31 +179,6 @@ namespace HotChocolate.Data.Sorting.Expressions
             }
         }
 
-        [Theory]
-        [InlineData(true, true, false, false)]
-        [InlineData(false, false, true, true)]
-        public void Sort_Struct_BooleanAsc(params bool[] dataObject)
-        {
-            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
-                "{ test: { prop: ASC}}");
-            ExecutorBuilder tester = CreateProviderTester(new SortInputType<BarStruct>());
-            bool[] expected = dataObject.OrderBy(x => x).ToArray();
-
-            // act
-            Func<BarStruct[], BarStruct[]> func = tester.Build<BarStruct>(value);
-
-            // assert
-            BarStruct[] inputs = dataObject
-                .Select(x => new BarStruct { Test = new TestStruct { Prop = x } })
-                .ToArray();
-            BarStruct[] sorted = func(inputs);
-
-            for (var i = 0; i < expected.Length; i++)
-            {
-                Assert.Equal(expected[i], sorted[i].Test.Prop);
-            }
-        }
-
         protected void Test_Asc<T>(params T[] data)
         {
             // arrange
@@ -225,11 +200,6 @@ namespace HotChocolate.Data.Sorting.Expressions
             }
         }
 
-        public class TestStruct
-        {
-             public bool Prop { get; set; }
-        }
-
         public interface ITest
         {
              bool Prop { get; set; }
@@ -238,11 +208,6 @@ namespace HotChocolate.Data.Sorting.Expressions
         public class InterfaceImpl1 : ITest
         {
             public bool Prop { get; set; }
-        }
-
-        public class BarStruct
-        {
-            public TestStruct Test { get; set; }
         }
 
         public class BarInterface

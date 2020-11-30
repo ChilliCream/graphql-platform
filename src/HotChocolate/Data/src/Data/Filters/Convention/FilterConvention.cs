@@ -303,10 +303,7 @@ namespace HotChocolate.Data.Filters
             }
 
             if (runtimeType.Type.IsClass ||
-                runtimeType.Type.IsInterface ||
-                (runtimeType.Type.IsValueType &&
-                    !runtimeType.Type.IsEnum &&
-                    !runtimeType.Type.IsPrimitive))
+                runtimeType.Type.IsInterface)
             {
                 type = typeof(FilterInputType<>).MakeGenericType(runtimeType.Source);
                 return true;
