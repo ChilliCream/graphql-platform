@@ -336,15 +336,20 @@ namespace HotChocolate.Data.Tests
                 Assert.IsType<FilterField>(type.Fields["name"]).Handler);
         }
 
-        [Fact]
-        public void FilterInputType_Should_InfereType_When_ItIsAInterfaceType()
+        public void FilterInputType_Should_IgnoreFieldWithoutCallingConvention()
         {
             // arrange
             ISchemaBuilder builder = SchemaBuilder.New()
-                .AddFiltering()
-                .AddQueryType<TestingType<ITest>>()
-                .AddObjectType<InterfaceImpl1>()
-                .AddObjectType<InterfaceImpl2>();
+                .AddFiltering(
+                    x => x.AddDefaultOperations()
+                        .BindRuntimeType<string, StringOperationFilterInputType>()
+                        .Provider(new QueryableFilterProvider(y => y.AddDefaultFieldHandlers())))
+                .AddQueryType(
+                    new ObjectType(
+                        x => x.Name("Query")
+                            .Field("foo")
+                            .Resolve(new List<IgnoreTest>())
+                            .UseFiltering<IgnoreTestFilterInputType>()));
 
             // act
             ISchema schema = builder.Create();
@@ -367,6 +372,7 @@ namespace HotChocolate.Data.Tests
 
             // assert
             schema.ToString().MatchSnapshot();
+            schema.Print().MatchSnapshot();
         }
 
         public class FooDirectiveType
@@ -453,11 +459,20 @@ namespace HotChocolate.Data.Tests
             public string Prop2 { get; set; }
         }
 
-        public class InterfaceImpl2 : ITest
+        public class IgnoreTest
         {
-            public string Prop { get; set; }
+            public int Id { get; set; }
 
-            public string Prop2 { get; set; }
+            public string Name { get; set; } = default!;
+        }
+
+        public class IgnoreTestFilterInputType
+            : FilterInputType<IgnoreTest>
+        {
+            protected override void Configure(IFilterInputTypeDescriptor<IgnoreTest> descriptor)
+            {
+                descriptor.Ignore(x => x.Id);
+            }
         }
 
         public class UserFilterInput : FilterInputType<User>
