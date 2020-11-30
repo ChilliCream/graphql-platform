@@ -30,8 +30,18 @@ namespace HotChocolate.Data
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            // bind string as it is a class to avoid SortType<string>
-            descriptor.BindRuntimeType<string, DefaultSortEnumType>();
+            // bind string and structs as it is a class to avoid SortFilterInputType<string>,..
+            descriptor
+                .BindRuntimeType<Guid?, DefaultSortEnumType>()
+                .BindRuntimeType<DateTime?, DefaultSortEnumType>()
+                .BindRuntimeType<DateTimeOffset?, DefaultSortEnumType>()
+                .BindRuntimeType<TimeSpan?, DefaultSortEnumType>()
+                .BindRuntimeType<Guid, DefaultSortEnumType>()
+                .BindRuntimeType<DateTime, DefaultSortEnumType>()
+                .BindRuntimeType<DateTimeOffset, DefaultSortEnumType>()
+                .BindRuntimeType<TimeSpan?, DefaultSortEnumType>()
+                .BindRuntimeType<string, DefaultSortEnumType>();
+
             descriptor.DefaultBinding<DefaultSortEnumType>();
 
             return descriptor;
