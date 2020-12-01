@@ -34,7 +34,7 @@
     "gatsby-plugin-react-redux": "^1.1.0-0",
     "gatsby-plugin-react-svg": "^3.0.0",
     "gatsby-plugin-sharp": "^2.6.36",
-    "gatsby-plugin-sitemap": "^2.4.13",
+    "gatsby-plugin-sitemap": "^2.7.0",
     "gatsby-plugin-styled-components": "^3.3.11",
     "gatsby-plugin-ts": "^2.2.3",
     "gatsby-plugin-web-font-loader": "^1.0.4",
