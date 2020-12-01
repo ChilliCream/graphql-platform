@@ -1,7 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
 
   <PropertyGroup>
+    <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp3.0</TargetFramework>
     <AssemblyName>StrawberryShake.Abstractions.Tests</AssemblyName>
     <RootNamespace>StrawberryShake.Abstractions</RootNamespace>
     <IsPackable>false</IsPackable>

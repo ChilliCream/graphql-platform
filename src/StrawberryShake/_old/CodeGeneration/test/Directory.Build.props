@@ -2,7 +2,7 @@
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
 
   <PropertyGroup>
-    <TargetFrameworks>$(TestTargetFrameworks)</TargetFrameworks>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
@@ -22,7 +22,6 @@
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     <PackageReference Include="Snapshooter.Xunit" Version="0.5.4" />
-    <PackageReference Include="ChilliCream.Testing.Utilities" Version="0.2.0" />
   </ItemGroup>
 
 </Project>

@@ -1,10 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <PackageId>StrawberryShake.Abstractions</PackageId>
     <AssemblyName>StrawberryShake.Abstractions</AssemblyName>
     <RootNamespace>StrawberryShake</RootNamespace>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Text.Json" Version="4.7.0" />
+  </ItemGroup>
 
 </Project>
