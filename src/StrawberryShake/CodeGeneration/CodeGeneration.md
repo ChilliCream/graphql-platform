@@ -87,7 +87,7 @@ query search {
     ... on Character {
       name
     }
-    ... SomeStarship
+    ...SomeStarship
   }
 }
 
@@ -97,3 +97,155 @@ fragment SomeStarship on Starship {
 ```
 
 Although we did not explicitly filly exhaust all type cases we actually have covered all type cases since all types apart from Starship implement the interface `Character`.
+
+# Interfaces
+
+```graphql
+query getHero {
+  hero {
+    name
+    friends {
+      nodes {
+        name
+      }
+    }
+  }
+}
+```
+
+```graphql
+query getHero {
+  hero {
+    ...Hero
+  }
+}
+
+fragment Hero on Character {
+  ...HasName
+  ...HasFriends
+}
+
+fragment Friend on CharacterConnection {
+  nodes {
+    ...HasName
+  }
+}
+
+fragment HasName on Character {
+  name
+}
+
+fragment HasFriends on Character {
+  friends {
+    ...Friend
+  }
+}
+```
+
+```graphql
+query getHero {
+  hero {
+    ...Hero
+  }
+}
+
+fragment Hero on Character {
+  ...HasName
+  ...SomeDroid
+  ...SomeHuman
+}
+
+fragment SomeDroid on Droid {
+  primaryFunction
+}
+
+fragment SomeHuman on Human {
+  homePlanet
+}
+
+fragment HasName on Character {
+  name
+}
+```
+
+```graphql
+query getHero {
+  hero {
+    ...HasName
+    ...SomeDroid
+    ...SomeHuman
+  }
+}
+
+fragment SomeDroid on Droid {
+  primaryFunction
+}
+
+fragment SomeHuman on Human {
+  homePlanet
+}
+
+fragment HasName on Character {
+  name
+}
+```
+
+```graphql
+query getHero {
+  hero {
+    ...Hero
+  }
+}
+
+fragment Hero on Character {
+  ...HasName
+  ...SomeDroid
+  ...SomeHuman
+}
+
+fragment SomeDroid on Droid {
+  ...HasName
+  primaryFunction
+}
+
+fragment SomeHuman on Human {
+  ...HasName
+  homePlanet
+}
+
+fragment HasName on Character {
+  name
+}
+```
+
+# Objects
+
+```graphql
+query search {
+  droid(id: "foo") {
+    name
+  }
+}
+```
+
+```graphql
+query search {
+  droid(id: "foo") {
+    ...SomeDroid
+  }
+}
+
+fragment SomeDroid on Droid {
+  name
+}
+```
+
+```graphql
+query getBars {
+  foo {
+    bars {
+      baz
+    }
+  }
+}
+```
