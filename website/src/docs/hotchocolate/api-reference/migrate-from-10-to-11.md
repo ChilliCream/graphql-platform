@@ -89,7 +89,67 @@ app.UseRouting();
 app.UseEndpoints(x => x.MapGraphQL());
 ```
 
+## Request Interceptor
+
+The query request interceptor was reworked and we renamed it to `IHttpRequestInterceptor`.
+
+```csharp
+public interface IHttpRequestInterceptor
+{
+    ValueTask OnCreateAsync(
+        HttpContext context,
+        IRequestExecutor requestExecutor,
+        IQueryRequestBuilder requestBuilder,
+        CancellationToken cancellationToken);
+}
+```
+
+**Old:**
+
+```csharp
+services.AddQueryRequestInterceptor(
+    (context, builder, ct) =>
+    {
+        // your code
+    });
+```
+
+**New:**
+
+```csharp
+services.AddHttpRequestInterceptor(
+    (context, executor, builder, ct) =>
+    {
+        // your code
+    });
+```
+
+You can also extend `DefaultHttpRequestInterceptor` and inject it like the following.
+
+```csharp
+services.AddHttpRequestInterceptor<MyCustomExecutor>();
+```
+
+> A request interceptor is a service that is used by all hosted schemas.
+
+## Entity Framework Serial Execution
+
+The serial execution for Entity Framework compatibility is gone. If you use Entity Framework Core we recommend using version 5 and the new context factory in combination with context pooling. This allows the execution engine to execute in parallel and still be memory efficient since context objects are pooled.
+
+Another variant here is to use our scoped service feature that scopes services for the resolver pipeline. This is explained in our GraphQL Workshop project.
+
+https://github.com/ChilliCream/graphql-workshop
+
 # Schema / Resolvers
+
+### Field ordering
+
+Hot Chocolate 11 follows the spec and returns the fields in the order they were defined. This feature
+makes migrations harder because the schema snapshot looks different compared to version 11. You can change this behavior with the following setting.
+
+```csharp
+    builder.ModifyOptions(x => x.SortFieldsByName = true)
+```
 
 ## DataLoaders
 
@@ -327,8 +387,7 @@ The source result stack was removed from the resolver context for performance re
                     ctx =>
                     {
                         ctx.ScopedContextData =
-                          ctx.ScopedContextData.SetItem(n ameof(Foo), ctx.Parent<Foo>());
-
+                            ctx.ScopedContextData.SetItem(nameof(Foo), ctx.Parent<Foo>());
                         return new object();
                     });
         }
@@ -344,9 +403,7 @@ The source result stack was removed from the resolver context for performance re
                 .Resolve(
                     ctx =>
                     {
-                        if (ctx.ScopedContextData.TryGetValue(
-                                nameof(Foo),
-                                out object? potentialFoo) &&
+                        if (ctx.ScopedContextData.TryGetValue(nameof(Foo), out object? potentialFoo) &&
                             potentialFoo is Foo foo)
                         {
                             return foo.Baz;
@@ -367,13 +424,13 @@ The source result stack was removed from the resolver context for performance re
 
 If you use authorization, you need to add a package reference to `HotChocolate.AspNetCore.Authorization`.
 
-Old
+**Old:**
 
 ```csharp
     builder.AddAuthorizeDirectiveType()
 ```
 
-New
+**New:**
 
 ```csharp
     builder.AddAuthorization()
@@ -381,13 +438,15 @@ New
 
 ## TypeBinding
 
-Old
+We have renamed the binding method from `BindClrType` to `BindRuntimeType` to make it more clear what it does.
+
+**Old:**
 
 ```csharp
     builder.BindClrType<DateTime, DateTimeType>()
 ```
 
-New
+**New:**
 
 ```csharp
     builder.BindRuntimeType<DateTime, DateTimeType>()
@@ -395,13 +454,15 @@ New
 
 ## FieldMiddleware
 
-Old
+Since all configuration APIs were integrated into one, we needed to make it more specific for what a middleware is defined. `UseField` defines a middleware that is applied to the resolver pipeline / field pipeline whereas `UseRequest` defines a middleware that is defined for the request processing.
+
+**Old:**
 
 ```csharp
     builder.Use<CustomMiddleware>()
 ```
 
-New
+**New:**
 
 ```csharp
     builder.UseField<CustomMiddleware>()
@@ -409,17 +470,19 @@ New
 
 # Stitching
 
+The schema stitching configuration API has been completely integrated into the new configuration API. This means that a Gateway is nothing more than a GraphQL schema, which will make it easier for new users. However, you will need to completely rewire your stitching configuration.
+
 ## Configuration
 
-In Version 11 there is no stiching builder anymore. Stiching can be configured on the normal schema
-builder.
-Old:
+The stitching builder no longer exists in version 11 and you need to use the new configuration API to configure your gateway.
+
+**Old:**
 
 ```csharp
     services.AddStitchedSchema(x => ....);
 ```
 
-New:
+**New:**
 
 ```csharp
     services.AddGraphQLServer()....
@@ -427,15 +490,15 @@ New:
 
 ### AddSchemaFromHttp
 
-Registering a remote schema has slightly changed in V11. You can also remote the root types directly
-when you configure the remote schema:
-Old:
+Registering a remote schema has slightly changed in version 11 to make it more clear that we are adding a remote schema into the local gateway schema. Removing, root types and importing a remote schema can be done in one go now.
+
+**Old:**
 
 ```csharp
-    builder.AddSchemaFromHttp("SomeSchema").IngoreRootTypes("SomeSchema");
+    builder.AddSchemaFromHttp("SomeSchema").IgnoreRootTypes("SomeSchema");
 ```
 
-New:
+**New:**
 
 ```csharp
     builder.AddRemoteSchema("SomeSchema", ignoreRootTypes: true);
@@ -443,16 +506,15 @@ New:
 
 ## AddSchemaConfiguration
 
-As we do not have a dedicated schema builder for stitched schemas, you can just configure the schema
-directly on this builder:
+In version 11 it is now much easier to configure the gateway schema.
 
-Old
+**Old:**
 
 ```csharp
     services.AddStitchedSchema(x => x.AddSchemaConfiguration(y => y.RegisterType<FooType>()));
 ```
 
-New
+**New:**
 
 ```csharp
     services
@@ -462,15 +524,15 @@ New
 
 ## IgnoreField
 
-The order of the parameters in ignore field has changed. The schema name is now optional and was moved to the end.
+The order of the parameters in ignore field and ignore type has changed since we moved optional parameters to the end.
 
-Old
+**Old:**
 
 ```csharp
     services.AddStitchedSchema(x => x.IgnoreField("SchemaName", "TypeName, "FieldName"));
 ```
 
-New
+**New:**
 
 ```csharp
     services
@@ -480,9 +542,9 @@ New
 
 ## SetExecutionOptions
 
-Execution options can now be configured on the root schema directly:
+Execution options can now be configured on the root schema directly like for any other schema:
 
-Old
+**Old:**
 
 ```csharp
     services.AddStitchedSchema(
@@ -493,7 +555,7 @@ Old
                 }));
 ```
 
-New
+**New:**
 
 ```csharp
     services
@@ -503,26 +565,26 @@ New
 
 ## Configuring a downstream schema
 
-In case you want to configure a downstream schema, you can now just use the schema builder:
+In case you want to configure a downstream schema, you can now just use the new configuration API since all downstream schemas have an in-memory representation.
 
 ```csharp
     services
         .AddGraphQLServer()
         .AddRemoteSchema("SomeSchema");
+
     services
         .AddGraphQL("SomeSchema")
-        .AddType(new IntType());
+        .AddType(new IntType("SpecialIntegerType"));
 ```
 
 ## PaginationAmount
 
-The `PaginationAmount` scalar was removed in v11. `first` and `last` are now just normal `Int`.
-To avoid breaking schemas on the stitched schema, you can add a rewriter that rewrites all
+The `PaginationAmount` scalar was removed since it caused a lot of issues with clients and only provided limited benefit. The arguments `first` and `last` use now `Int` as a type. To avoid breaking schemas on a stitched schema, you can add a rewriter that rewrites all
 `first: Int` and `last: Int` on a connection to `first: PaginationAmount` and `last: PaginationAmount`.
-You also have to make sure that you register a new `IntType` on the root schema and all rewrittern
+You also have to make sure that you register a new `IntType` on the root schema and rewrite all
 downstream schemas.
 
-Configuration:
+**Configuration:**
 
 ```csharp
     services
@@ -539,7 +601,7 @@ Configuration:
         .AddType(new IntType("PaginationAmount"));
 ```
 
-PagingAmountRewriter:
+**PagingAmountRewriter:**
 
 ```csharp
     internal class PagingAmountRewriter : SchemaSyntaxRewriter<object?>
@@ -599,64 +661,69 @@ PagingAmountRewriter:
 
 # Testing
 
-## Building a schema
+We have added a couple of test helpers to make the transition to the new configuration API easier.
 
-There are new overloads on the `RequestExecutorBuilder`. Instead of creating the schema and
-make it executable, it is now possible to directly create a request executor.
-Be aware, the new overload is async
+## Schema Snapshot Tests
 
-Old
+**Old:**
 
 ```csharp
-    var queryExecutor = builder.New()......Create().MakeExecutable();
+    SchemaBuilder.New()
+        .AddQueryType<Query>()
+        .Create()
+        .ToString()
+        .MatchSnapshot();
 ```
 
-Old
+**New:**
 
 ```csharp
-    var schema = await builder.New()......BuildSchmeaAsync();
-    var queryExecutor = await builder.New()......BuildExecutorAsync();
+    ISchema schema =
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .BuildSchemaAsync();
 
-    // These overlads are also available on IServiceProvider
-    var schema = await serviceProvider.GetSchemaAsync();
-    var queryExecutor = await serviceProvider.GetRequestExecutorAsync();
+    schema.Print().MatchSnapshot();
 ```
 
-## Schema Snapshots Break
+## Request Tests
 
-Due to the new feature, `@defer` snapshots that have been taken directly on a result will fail.
-These have to be updated. As you are updating them anyway, you can also add `ToJson()` to the result.
-This will be more stable with upcoming releases than just snapshotting the result object
-`result.ToJson().MatchSnapshot()`
-
-### **Field ordering**
-
-Hot Chocolate 11 follows the spec and returns the fields in the order they were defined. This feature
-makes migrations harder because the schema snapshot looks different.
-You can change this behavior with the following setting
+**Old:**
 
 ```csharp
-    builder.ModifyOptions(x => x.SortFieldsByName = true)
+    IQueryExecutor executor =
+        SchemaBuilder.New()
+            .AddQueryType<Query>()
+            .Create()
+            .MakeExecutable();
 ```
 
-### **Types are ordered differently**
-
-Especially in stitching, it could be that the types are orderer differently when you export the schema.
-When you use schema snapshots to track changes, this makes the comparison much harder.
-To work around this issue you can parse the schemas and sort the types alphabetically.
-This way schema snapshots are easier to compare.
+**New:**
 
 ```csharp
-string schemaAsString = /* load your schema from somwhere */
-DocumentNode schema = Utf8GraphQLParser.Parse(schemaAsString);
-schema = schema.WithDefinitions(
-    schema.Definitions.OfType<IHasName>()
-      .OrderBy(x => x.Name.Value )
-      .Cast<IDefinitionNode>()
-      .Concat(schema.Definitions.Where(x => !(x is IHasName)))
-      .ToArray());
+    IRequestExecutor executor =
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .BuildRequestExecutorAsync();
 
-schemaAsString = schema.Print();
+    IExecutionResult result =
+        await executor.ExecuteAsync("{ __typename }");
+
+    result.ToJson().MatchSnapshot();
+```
+
+Or you can directly build and execute:
+
+```csharp
+    IExecutionResult result =
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .ExecuteRequestAsync("{ __typename }");
+
+    result.ToJson().MatchSnapshot();
 ```
 
 ## DataLoader Testing
@@ -678,12 +745,4 @@ New
         fooRepoMock.Object);
 ```
 
-// TODO : services.AddQueryRequestInterceptor((context, builder, ct)
-
-// TODO : Testing
-
 // TODO : Type Converter
-
-// TODO : Serial Execution
-
-// TODO : services.AddQueryResultSerializer<CustomQueryResultSerializer>();
