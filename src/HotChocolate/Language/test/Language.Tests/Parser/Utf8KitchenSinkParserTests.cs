@@ -1,6 +1,5 @@
 ﻿using System.Text;
 using ChilliCream.Testing;
-using HotChocolate.Language.Utilities;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
