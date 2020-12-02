@@ -22,6 +22,7 @@ import { Hero, Intro } from "../components/misc/page-elements";
 import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
 
+// Logos
 import AeiLogoSvg from "../images/companies/aei.svg";
 import AtminaLogoSvg from "../images/companies/atmina.svg";
 import AutoguruLogoSvg from "../images/companies/autoguru.svg";
@@ -31,8 +32,11 @@ import GiaLogoSvg from "../images/companies/gia.svg";
 import MotiviewLogoSvg from "../images/companies/motiview.svg";
 import PushpayLogoSvg from "../images/companies/pushpay.svg";
 import Seven2OneLogoSvg from "../images/companies/seven-2-one.svg";
+import SolyticLogoSvg from "../images/companies/solytic.svg";
 import SwissLifeLogoSvg from "../images/companies/swiss-life.svg";
 import ZioskLogoSvg from "../images/companies/ziosk.svg";
+
+// Images
 import ContactUsSvg from "../images/contact-us.svg";
 import DashboardSvg from "../images/dashboard.svg";
 import GetStartedSvg from "../images/get-started.svg";
@@ -239,6 +243,12 @@ const IndexPage: FunctionComponent = () => {
                   <Seven2OneLogoSvg />
                 </Link>
               </Logo>
+              <Logo width={150}>
+                <Link to="https://www.solytic.com">
+                  <SolyticLogoSvg />
+                </Link>
+              </Logo>
+
               <Logo width={110}>
                 <Link to="https://www.swisslife.ch">
                   <SwissLifeLogoSvg />
