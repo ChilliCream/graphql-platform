@@ -20,12 +20,7 @@ namespace HotChocolate.Language
                     new DirectiveNode("upper"));
 
             // assert
-            var content = new StringBuilder();
-            var stringWriter = new StringWriter(content);
-            var documentWriter = new DocumentWriter(stringWriter);
-            var serializer = new QuerySyntaxSerializer();
-            serializer.Visit(rewritten, documentWriter);
-            content.ToString().MatchSnapshot();
+            rewritten.ToString().MatchSnapshot();
         }
     }
 }

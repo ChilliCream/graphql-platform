@@ -15,10 +15,10 @@ namespace HotChocolate
         {
             // arrange
             // act
-            Action action = () => SchemaSerializer.Serialize(null);
+            void Action() => SchemaSerializer.Serialize(null);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -26,11 +26,10 @@ namespace HotChocolate
         {
             // arrange
             // act
-            Action action = () => SchemaSerializer.Serialize(
-                null, new StringWriter());
+            void Action() => SchemaSerializer.Serialize(null, new StringWriter());
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -44,10 +43,38 @@ namespace HotChocolate
                 .Create();
 
             // act
-            Action action = () => SchemaSerializer.Serialize(schema, null);
+            void Action() => SchemaSerializer.Serialize(schema, null);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
+        }
+
+        [Fact]
+        public void SerializeAsync_SchemaIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            void Action() => SchemaSerializer.SerializeAsync(null, new MemoryStream());
+
+            // assert
+            Assert.Throws<ArgumentNullException>(Action);
+        }
+
+        [Fact]
+        public void SerializeAsync_WriterIsNull_ArgumentNullException()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    "type Query { foo: String }")
+                .AddResolver("Query", "foo", "bar")
+                .Create();
+
+            // act
+            void Action() => SchemaSerializer.SerializeAsync(schema, null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -59,21 +86,38 @@ namespace HotChocolate
                     "type Query { foo: String }")
                 .AddResolver("Query", "foo", "bar")
                 .Create();
-            var stringBuiler = new StringBuilder();
+            var stringBuilder = new StringBuilder();
 
             // act
-            SchemaSerializer.Serialize(
-                schema, new StringWriter(stringBuiler));
+            SchemaSerializer.Serialize(schema, new StringWriter(stringBuilder));
 
             // assert
-            stringBuiler.ToString().MatchSnapshot();
+            stringBuilder.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void SerializeAsync_Serialize()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    "type Query { foo: String }")
+                .AddResolver("Query", "foo", "bar")
+                .Create();
+            using var stream = new MemoryStream();
+
+            // act
+            SchemaSerializer.SerializeAsync(schema, stream);
+
+            // assert
+            Encoding.UTF8.GetString(stream.ToArray()).MatchSnapshot();
         }
 
         [Fact]
         public void SerializeSchemaWithDirective()
         {
             // arrange
-            string source = FileResource.Open("serialize_schema.graphql");
+            var source = FileResource.Open("serialize_schema.graphql");
             ISchema schema = Schema.Create(
                 source,
                 c =>
@@ -87,7 +131,7 @@ namespace HotChocolate
 
 
             // act
-            string serializedSchema = schema.ToString();
+            var serializedSchema = schema.ToString();
 
             // assert
             serializedSchema.MatchSnapshot();
@@ -97,7 +141,7 @@ namespace HotChocolate
         public void SerializeSchemaWithMutationWithoutSubscription()
         {
             // arrange
-            string source = FileResource.Open(
+            var source = FileResource.Open(
                 "serialize_schema_with_mutation.graphql");
             ISchema schema = Schema.Create(
                 source,
@@ -110,7 +154,7 @@ namespace HotChocolate
             var s = new StringWriter(sb);
 
             // act
-            string serializedSchema = schema.ToString();
+            var serializedSchema = schema.ToString();
 
             // assert
             serializedSchema.MatchSnapshot();

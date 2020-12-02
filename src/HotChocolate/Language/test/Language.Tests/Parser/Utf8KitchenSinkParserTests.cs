@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using ChilliCream.Testing;
+using HotChocolate.Language.Utilities;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
@@ -12,7 +13,7 @@ namespace HotChocolate.Language
         public void ParseFacebookKitchenSinkSchema()
         {
             // arrange
-            string schemaSource = FileResource.Open(
+            var schemaSource = FileResource.Open(
                 "schema-kitchen-sink.graphql")
                 .NormalizeLineBreaks();
             var parser = new Utf8GraphQLParser(
@@ -22,8 +23,7 @@ namespace HotChocolate.Language
             DocumentNode document = parser.Parse();
 
             // assert
-            SchemaSyntaxSerializer.Serialize(document)
-                .MatchSnapshot(new SnapshotNameExtension("sdl"));
+            document.ToString().MatchSnapshot(new SnapshotNameExtension("sdl"));
             document.MatchSnapshot();
         }
 
@@ -31,7 +31,7 @@ namespace HotChocolate.Language
         public void ParseFacebookKitchenSinkQuery()
         {
             // arrange
-            string querySource =
+            var querySource =
                 FileResource.Open("kitchen-sink.graphql")
                     .NormalizeLineBreaks();
             var parser = new Utf8GraphQLParser(
@@ -41,8 +41,7 @@ namespace HotChocolate.Language
             DocumentNode document = parser.Parse();
 
             // assert
-            QuerySyntaxSerializer.Serialize(document)
-                .MatchSnapshot(new SnapshotNameExtension("sdl"));
+            document.ToString().MatchSnapshot(new SnapshotNameExtension("sdl"));
             document.MatchSnapshot();
         }
     }
