@@ -50,14 +50,12 @@ namespace HotChocolate.AspNetCore
                 "Content-Disposition",
                 new[] { $"attachment; filename=\"{fileName}\"" });
 
-            await using var memoryStream = new MemoryStream();
-            await using var streamWriter = new StreamWriter(memoryStream);
-
-            SchemaSerializer.Serialize(requestExecutor.Schema, streamWriter);
-            await streamWriter.FlushAsync().ConfigureAwait(false);
-
-            memoryStream.Seek(0, SeekOrigin.Begin);
-            await memoryStream.CopyToAsync(context.Response.Body).ConfigureAwait(false);
+            await SchemaSerializer.SerializeAsync(
+                requestExecutor.Schema,
+                context.Response.Body,
+                indented: true,
+                context.RequestAborted)
+                .ConfigureAwait(false);
         }
     }
 }

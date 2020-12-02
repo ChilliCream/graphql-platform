@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Language.Utilities;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
@@ -711,7 +712,7 @@ namespace HotChocolate.Types
             IValueNode valueNode = type.ParseValue((object)null);
 
             // assert
-            QuerySyntaxSerializer.Serialize(valueNode).MatchSnapshot();
+            valueNode.Print().MatchSnapshot();
         }
 
         [Fact]
@@ -740,7 +741,7 @@ namespace HotChocolate.Types
                 });
 
             // assert
-            QuerySyntaxSerializer.Serialize(valueNode).MatchSnapshot();
+            valueNode.Print().MatchSnapshot();
         }
 
         [Fact]
