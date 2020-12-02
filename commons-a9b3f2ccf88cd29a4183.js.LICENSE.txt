@@ -11,4 +11,4 @@
  * MIT Licensed
  */
 
-/*! algoliasearch-lite.umd.js | 4.6.0 | © Algolia, inc. | https://github.com/algolia/algoliasearch-client-javascript */
+/*! algoliasearch-lite.umd.js | 4.8.2 | © Algolia, inc. | https://github.com/algolia/algoliasearch-client-javascript */
