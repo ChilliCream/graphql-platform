@@ -199,12 +199,15 @@ namespace HotChocolate.Types.Descriptors
             }
 
             bool allUpper = true;
+            int lengthMinusOne = name.Length - 1;
 
             for (var i = 0; i < name.Length; i++)
             {
                 var c = name[i];
 
-                if (i > 0 && char.IsUpper(c))
+                if (i > 0 && char.IsUpper(c) && 
+                    (!char.IsUpper(name[i - 1]) || 
+                        (i < lengthMinusOne && char.IsLower(name[i + 1]))))
                 {
                     underscores++;
                 }
@@ -241,7 +244,9 @@ namespace HotChocolate.Types.Descriptors
 
                 for (var i = 1; i < name.Length; i++)
                 {
-                    if (char.IsUpper(name[i]))
+                    if (char.IsUpper(name[i]) && 
+                        (!char.IsUpper(name[i - 1]) || 
+                            (i < lengthMinusOne && char.IsLower(name[i + 1]))))
                     {
                         buffer[p++] = '_';
                     }

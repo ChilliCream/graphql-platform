@@ -4,9 +4,9 @@ title: Filtering
 
 # What is filtering
 
-With _Hot Chocolate_ filters, you can expose complex filter objects through your GraphQL API that translates to native database queries. The default filter implementation translates filters to expression trees that are applied to `IQueryable`. 
+With _Hot Chocolate_ filters, you can expose complex filter objects through your GraphQL API that translates to native database queries. The default filter implementation translates filters to expression trees that are applied to `IQueryable`.
 Hot Chocolate by default will inspect your .NET model and infer the possible filter operations from it.
-Filters use `IQueryable` (`IEnumerable`) by default, but you can also easily customize them to use other interfaces. 
+Filters use `IQueryable` (`IEnumerable`) by default, but you can also easily customize them to use other interfaces.
 
 The following type would yield the following filter operations:
 
@@ -40,11 +40,11 @@ input StringOperationFilterInput {
 }
 ```
 
-# Getting started 
+# Getting started
 
 Filtering is part of the `HotChocolate.Data` package. You can add the dependency with the `dotnet` cli
 
-```
+```bash
   dotnet add package HotChocolate.Data
 ```
 
@@ -59,7 +59,6 @@ services.AddGraphQLServer()
 Hot Chocolate will infer the filters directly from your .Net Model and then use a Middleware to apply filters to `IQueryable<T>` or `IEnumerable<T>` on execution.
 
 > ⚠️ **Note:** If you use more than middleware, keep in mind that **ORDER MATTERS**. The correct order is UsePaging > UseProjections > UseFiltering > UseSorting
-
 
 **Code First**
 
@@ -77,7 +76,7 @@ public class QueryType
 
 public class Query
 {
-    public IQueryable<Person> GetPersons([Service]IPersonRepository repository) => 
+    public IQueryable<Person> GetPersons([Service]IPersonRepository repository) =>
         repository.GetPersons();
 }
 ```
@@ -97,7 +96,7 @@ public class Query
 }
 ```
 
-# Customization 
+# Customization
 
 Under the hood, filtering is based on top of normal Hot Chocolate input types. You can easily customize them with a very familiar fluent interface. The filter input types follow the same `descriptor` scheme as you are used to from the normal input types. Just extend the base class `FilterInputType<T>` and override the descriptor method.
 
@@ -141,6 +140,7 @@ public class CustomerOperationFilterInput : StringOperationFilterInput
     }
 }
 ```
+
 ```sdl
 input PersonFilterInput {
   and: [PersonFilterInput!]
@@ -159,6 +159,7 @@ input CustomerOperationFilterInput {
 To apply this filter type we just have to provide it to the `UseFiltering` extension method with as the generic type argument.
 
 **Code First**
+
 ```csharp
 public class QueryType
     : ObjectType<Query>
@@ -171,7 +172,9 @@ public class QueryType
     }
 }
 ```
+
 **Pure Code First**
+
 ```csharp
 public class Query
 {
@@ -184,6 +187,7 @@ public class Query
 ```
 
 # Filter Types
+
 ## Boolean Filter
 
 Defined the filter operations of a `bool` field.
@@ -267,6 +271,7 @@ input UserFilterInput {
 ```
 
 ## String Filter
+
 Defines filters for `string`
 
 ```csharp
@@ -317,7 +322,7 @@ input UserFilterInput {
 
 ## Enum Filter
 
-Defines filters for C# enums 
+Defines filters for C# enums
 
 ```csharp
 public enum UserKind {
@@ -358,6 +363,7 @@ input UserFilterInput {
   kind: UserKindOperationFilterInput
 }
 ```
+
 ## Object Filter
 
 An object filter is generated for all nested objects. The object filter can also be used to filter over database relations.
@@ -426,7 +432,8 @@ input UserFilterInput {
 
 ## List Filter
 
-List filters are generated for all nested enumerations. 
+List filters are generated for all nested enumerations.
+
 ```csharp
 public class User
 {
@@ -519,8 +526,8 @@ By default a new convention is empty. To add the default behaviour you have to a
 public class CustomConvention
     : FilterConvention
 {
-    protected override void Configure(IFilterConventionDescriptor descriptor) 
-    { 
+    protected override void Configure(IFilterConventionDescriptor descriptor)
+    {
         descriptor.AddDefaults();
     }
 }
@@ -533,12 +540,13 @@ services.AddGraphQLServer()
 ```
 
 Often you just want to extend the default behaviour of filtering. If this is the case, you can also use `FilterConventionExtension`
+
 ```csharp
 public class CustomConventionExtension
     : FilterConventionExtension
 {
-    protected override void Configure(IFilterConventionDescriptor descriptor) 
-    { 
+    protected override void Configure(IFilterConventionDescriptor descriptor)
+    {
       // config
     }
 }
@@ -621,11 +629,12 @@ input UserFilterInput {
   name: CustomStringOperationFilterInput
 }
 ```
-## Extend FilterTypes 
+
+## Extend FilterTypes
 
 Instead of defining your own operation type, you can also just change the configuration of the built
 in ones.
-You can use `Configure<TFilterType>()` to alter the configuration of a type. 
+You can use `Configure<TFilterType>()` to alter the configuration of a type.
 
 ```csharp
   descriptor.Configure<StringOperationFilterInput>(

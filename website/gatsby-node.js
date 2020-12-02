@@ -53,7 +53,19 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
   });
   createRedirect({
     fromPath: "/docs/",
-    toPath: "/docs/hotchocolate/v10/",
+    toPath: "/docs/hotchocolate/",
+    redirectInBrowser: true,
+    isPermanent: true,
+  });
+  createRedirect({
+    fromPath: "/docs/marshmallowpie/",
+    toPath: "/docs/hotchocolate/",
+    redirectInBrowser: true,
+    isPermanent: true,
+  });
+  createRedirect({
+    fromPath: "/docs/strawberryshake/",
+    toPath: "/docs/hotchocolate/",
     redirectInBrowser: true,
     isPermanent: true,
   });

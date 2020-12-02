@@ -14,7 +14,13 @@ const BlogArticleTemplate: FunctionComponent<BlogArticleTemplateProperties> = ({
 }) => {
   return (
     <Layout>
-      <SEO title={data.markdownRemark!.frontmatter!.title!} />
+      <SEO
+        description={data.markdownRemark!.excerpt || undefined}
+        imageUrl={data.markdownRemark!.frontmatter!.featuredImage
+          ?.childImageSharp!.fluid!.src}
+        isArticle
+        title={data.markdownRemark!.frontmatter!.title!}
+      />
       <BlogArticle data={data} />
     </Layout>
   );
