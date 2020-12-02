@@ -1,31 +1,46 @@
 ﻿schema {
   query: Query
-  mutation: MyMutation
-  subscription: MySubscription
 }
 
-type MyMutation {
-  writeBoolean(userId: String! message: Boolean!): Boolean!
-  writeMessage(userId: String! message: String!): String!
-  writeSysMessage(message: String!): String!
-  writeFixedMessage(message: String!): String!
-  writeOnInferTopic(message: String!): String!
-  writeOnExplicit(message: String!): String!
+interface ITest {
+  prop: String!
+  prop2: String!
 }
 
-type MySubscription {
-  onMessage(userId: String!): String!
-  onSysMessage: String!
-  onFixedMessage: String!
-  onInferTopic: String!
-  onExplicit: String!
-  onExplicitNonGeneric: String!
-  onExplicitNonGenericSync: String!
-  onExplicitSync: String!
+type InterfaceImpl1 implements ITest {
+  prop: String!
+  prop2: String!
+}
+
+type InterfaceImpl2 implements ITest {
+  prop: String!
+  prop2: String!
 }
 
 type Query {
-  a: String
+  root(where: ITestFilterInput): ITest!
+}
+
+input ITestFilterInput {
+  and: [ITestFilterInput!]
+  or: [ITestFilterInput!]
+  prop: StringOperationFilterInput
+  prop2: StringOperationFilterInput
+}
+
+input StringOperationFilterInput {
+  and: [StringOperationFilterInput!]
+  or: [StringOperationFilterInput!]
+  eq: String
+  neq: String
+  contains: String
+  ncontains: String
+  in: [String]
+  nin: [String]
+  startsWith: String
+  nstartsWith: String
+  endsWith: String
+  nendsWith: String
 }
 
 "The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`."
