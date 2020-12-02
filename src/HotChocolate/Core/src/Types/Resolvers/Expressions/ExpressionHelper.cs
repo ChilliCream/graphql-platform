@@ -15,13 +15,11 @@ namespace HotChocolate.Resolvers.Expressions
             return await task.ConfigureAwait(false);
         }
 
-        public static async ValueTask<object> AwaitValueTaskHelper<T>(ValueTask<T> task)
-        {
-            return await task.ConfigureAwait(false);
-        }
+        public static async ValueTask<object> AwaitValueTaskHelper<T>(ValueTask<T> task) =>
+            await task.ConfigureAwait(false);
 
-        public static ValueTask<object> WrapResultHelper<T>(T result) =>
-            new ValueTask<object>(result);
+
+        public static ValueTask<object> WrapResultHelper<T>(T result) => new(result);
 
         [Obsolete]
         public static TContextData ResolveContextData<TContextData>(
@@ -86,23 +84,13 @@ namespace HotChocolate.Resolvers.Expressions
 
         public static SetState<TContextData> SetGlobalStateGeneric<TContextData>(
             IDictionary<string, object> contextData,
-            string key)
-        {
-            return new SetState<TContextData>(value =>
-            {
-                contextData[key] = value;
-            });
-        }
+            string key) =>
+            value => contextData[key] = value;
 
         public static SetState SetGlobalState(
             IDictionary<string, object> contextData,
-            string key)
-        {
-            return new SetState(value =>
-            {
-                contextData[key] = value;
-            });
-        }
+            string key) =>
+            value => contextData[key] = value;
 
         [Obsolete]
         public static TContextData ResolveScopedContextData<TContextData>(
@@ -167,42 +155,22 @@ namespace HotChocolate.Resolvers.Expressions
 
         public static SetState<TContextData> SetScopedStateGeneric<TContextData>(
             IResolverContext context,
-            string key)
-        {
-            return new SetState<TContextData>(value =>
-            {
-                context.ScopedContextData = context.ScopedContextData.SetItem(key, value);
-            });
-        }
+            string key) =>
+            value => context.ScopedContextData = context.ScopedContextData.SetItem(key, value);
 
         public static SetState SetScopedState(
             IResolverContext context,
-            string key)
-        {
-            return new SetState(value =>
-            {
-                context.ScopedContextData = context.ScopedContextData.SetItem(key, value);
-            });
-        }
+            string key) =>
+            value => context.ScopedContextData = context.ScopedContextData.SetItem(key, value);
 
         public static SetState<TContextData> SetLocalStateGeneric<TContextData>(
             IResolverContext context,
-            string key)
-        {
-            return new SetState<TContextData>(value =>
-            {
-                context.LocalContextData = context.LocalContextData.SetItem(key, value);
-            });
-        }
+            string key) =>
+            value => context.LocalContextData = context.LocalContextData.SetItem(key, value);
 
         public static SetState SetLocalState(
             IResolverContext context,
-            string key)
-        {
-            return new SetState(value =>
-            {
-                context.LocalContextData = context.LocalContextData.SetItem(key, value);
-            });
-        }
+            string key) =>
+            value => context.LocalContextData = context.LocalContextData.SetItem(key, value);
     }
 }
