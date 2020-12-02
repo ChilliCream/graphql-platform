@@ -29,6 +29,7 @@ import AutoguruLogoSvg from "../images/companies/autoguru.svg";
 import CarmmunityLogoSvg from "../images/companies/carmmunity.svg";
 import E2mLogoSvg from "../images/companies/e2m.svg";
 import GiaLogoSvg from "../images/companies/gia.svg";
+import IncloudLogoSvg from "../images/companies/incloud.svg";
 import MotiviewLogoSvg from "../images/companies/motiview.svg";
 import PushpayLogoSvg from "../images/companies/pushpay.svg";
 import Seven2OneLogoSvg from "../images/companies/seven-2-one.svg";
@@ -227,6 +228,11 @@ const IndexPage: FunctionComponent = () => {
               <Logo width={120}>
                 <Link to="https://gia.ch">
                   <GiaLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={160}>
+                <Link to="https://www.incloud.de/">
+                  <IncloudLogoSvg />
                 </Link>
               </Logo>
               <Logo width={160}>
