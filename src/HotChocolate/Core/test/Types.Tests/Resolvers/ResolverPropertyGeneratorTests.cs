@@ -1525,7 +1525,7 @@ namespace HotChocolate.Resolvers.Expressions
             }
 
             public string GetLocalStateWithKey(
-               [LocalState("foo")]
+                [LocalState("foo")]
                 string s) => s;
 
             public string GetLocalState(
