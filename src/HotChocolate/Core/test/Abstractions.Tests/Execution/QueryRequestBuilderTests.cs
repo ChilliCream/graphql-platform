@@ -5,7 +5,7 @@ using HotChocolate.Utilities;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Execution.Tests
+namespace HotChocolate.Execution
 {
     public class QueryRequestBuilderTests
     {

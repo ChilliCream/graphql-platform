@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Language.Utilities;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -37,7 +38,9 @@ namespace HotChocolate.Stitching.Merge.Handlers
             typeMerger.Merge(context, types);
 
             // assert
-            SchemaSyntaxSerializer.Serialize(context.CreateSchema())
+            context
+                .CreateSchema()
+                .Print()
                 .MatchSnapshot();
         }
 
@@ -163,7 +166,9 @@ namespace HotChocolate.Stitching.Merge.Handlers
             typeMerger.Merge(context, types);
 
             // assert
-            SchemaSyntaxSerializer.Serialize(context.CreateSchema())
+            context
+                .CreateSchema()
+                .Print()
                 .MatchSnapshot();
         }
     }

@@ -183,6 +183,7 @@ namespace HotChocolate.Configuration
                                 TypeResources.TypeRegistrar_TypesInconsistent,
                                 unresolvedReference)
                             .SetExtension(
+
                                 TypeErrorFields.Reference,
                                 unresolvedReference)
                             .SetCode(ErrorCodes.Schema.UnresolvedTypes);

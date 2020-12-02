@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Subscriptions.Messages;
 using HotChocolate.Language;
+using HotChocolate.Language.Utilities;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
@@ -100,7 +101,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
         {
             if (message is DataStartMessage dataStart)
             {
-                var query = QuerySyntaxSerializer.Serialize(dataStart.Payload.Query!);
+                var query = dataStart.Payload.Query!.Print();
 
                 var payload = new Dictionary<string, object>
                 {
