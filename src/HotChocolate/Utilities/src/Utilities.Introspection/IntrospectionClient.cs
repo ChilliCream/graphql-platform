@@ -8,6 +8,7 @@ using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
+using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Utilities.Introspection
 {
@@ -49,9 +50,8 @@ namespace HotChocolate.Utilities.Introspection
                 client, cancellationToken)
                 .ConfigureAwait(false);
 
-            await Task.Run(
-                () => SchemaSyntaxSerializer.Serialize(document, stream, true),
-                cancellationToken)
+            await document
+                .PrintToAsync(stream, true, cancellationToken)
                 .ConfigureAwait(false);
         }
 
