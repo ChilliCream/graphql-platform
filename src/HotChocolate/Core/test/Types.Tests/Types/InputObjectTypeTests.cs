@@ -940,9 +940,10 @@ namespace HotChocolate.Types
                 schema.GetType<InputObjectType>("SimpleInput");
 
             // act
-            bool result = type.TryDeserialize(null, out object value);
+            var result = type.TryDeserialize(null, out object value);
 
             // assert
+            Assert.False(result);
             Assert.Null(value);
         }
 
@@ -964,7 +965,7 @@ namespace HotChocolate.Types
                 schema.GetType<InputObjectType>("SimpleInput");
 
             // act
-            bool result = type.TryDeserialize(
+            var result = type.TryDeserialize(
                 new Dictionary<string, object>
                 {
                     { "name", "foo" }
@@ -972,6 +973,7 @@ namespace HotChocolate.Types
                 out object value);
 
             // assert
+            Assert.True(result);
             Assert.Equal("foo", Assert.IsType<SimpleInput>(value).Name);
         }
 
@@ -995,7 +997,7 @@ namespace HotChocolate.Types
                 schema.GetType<InputObjectType>("Bar");
 
             // act
-            bool result = type.TryDeserialize(
+            var result = type.TryDeserialize(
                 new Dictionary<string, object>
                 {
                     { "name", "foo" }
@@ -1003,6 +1005,7 @@ namespace HotChocolate.Types
                 out object value);
 
             // assert
+            Assert.True(result);
             Assert.IsType<Dictionary<string, object>>(value);
         }
 

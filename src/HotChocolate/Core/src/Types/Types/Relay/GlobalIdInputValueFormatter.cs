@@ -10,8 +10,7 @@ using HotChocolate.Internal;
 
 namespace HotChocolate.Types.Relay
 {
-    internal class GlobalIdInputValueFormatter
-        : IInputValueFormatter
+    internal class GlobalIdInputValueFormatter : IInputValueFormatter
     {
         private readonly NameString _typeName;
         private readonly IIdSerializer _idSerializer;
