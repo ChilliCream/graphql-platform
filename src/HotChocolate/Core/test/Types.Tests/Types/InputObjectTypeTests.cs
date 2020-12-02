@@ -943,7 +943,7 @@ namespace HotChocolate.Types
             var result = type.TryDeserialize(null, out object value);
 
             // assert
-            Assert.False(result);
+            Assert.True(result);
             Assert.Null(value);
         }
 
