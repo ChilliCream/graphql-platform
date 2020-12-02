@@ -67,7 +67,7 @@ Console.WriteLine(executor.Execute("{ hello }").ToJson());
 
 ## Mix it all together
 
-With the _Hot Chocolate_ `SchemaBuilder` you can declare types however you want. Define a type schema-first and extend that same type with code-first.
+With the Hot Chocolate `SchemaBuilder` you can declare types however you want. Define a type schema-first and extend that same type with code-first.
 
 > Make sure to add the following usings to your project in order to get the `Execute` extension method:
 > using HotChocolate;
