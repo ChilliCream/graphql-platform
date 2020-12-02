@@ -61,7 +61,7 @@ namespace HotChocolate.Language.Utilities
                     _serializerNoIndent.Serialize(node, syntaxWriter);
                 }
 
-#if NETSTANDARD2_0
+#if NETSTANDARD2_0 || NETSTANDARD2_1
                 await streamWriter
                     .WriteAsync(syntaxWriter.ToString())
                     .ConfigureAwait(false);
