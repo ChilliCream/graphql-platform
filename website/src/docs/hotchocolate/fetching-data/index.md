@@ -82,9 +82,9 @@ Nice, now that we know what resolvers are and how they work in a bigger picture,
 
 A resolver in Hot Chocolate is basically a function that takes 0 or many arguments and returns one value. The simplest resolver to write is a resolver that takes 0 arguments and returns just a value type (e.g. a string).
 
-> **Note:** Every single code examples is always shown in three different coding approaches with the same outcome. Annotation based (previously known as pure code first), code first and schema first. If you would like to learn more about the different coding approaches Hot Chocolate offers, click on [Coding Approaches](/docs/hotchocolate/api-reference/coding-approaches).
+> **Note:** Every single code examples is always shown in three different coding approaches with the same outcome. Annotation-based (previously known as pure code-first), code-first and schema-first. If you would like to learn more about the different coding approaches Hot Chocolate offers, click on [Coding Approaches](/docs/hotchocolate/api-reference/coding-approaches).
 
-## Annotation based example
+## Annotation-based example
 
 ```csharp
 // Query.cs
@@ -108,7 +108,7 @@ public class Startup
 }
 ```
 
-## Code first example
+## Code-first example
 
 ```csharp
 // Query.cs
@@ -145,7 +145,7 @@ public class Startup
 }
 ```
 
-## Schema first example
+## Schema-first example
 
 ```csharp
 // Query.cs
