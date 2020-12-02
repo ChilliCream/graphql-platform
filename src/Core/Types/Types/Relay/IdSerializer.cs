@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Text;
 using System.Buffers;
 using System.Buffers.Text;
@@ -171,10 +171,7 @@ namespace HotChocolate.Types.Relay
             }
         }
 
-        public IdValue Deserialize(string serializedId) =>
-            Deserialize(serializedId, resultType: null);
-
-        public IdValue Deserialize(string serializedId, Type resultType)
+        public IdValue Deserialize(string serializedId)
         {
             if (serializedId == null)
             {

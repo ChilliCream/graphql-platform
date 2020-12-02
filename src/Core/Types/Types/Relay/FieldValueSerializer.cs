@@ -15,9 +15,6 @@ namespace HotChocolate.Types.Relay
         private readonly IIdSerializer _innerSerializer;
         private readonly bool _validate;
         private readonly bool _list;
-#if !NETSTANDARD2_0
-        private readonly Type _valueType;
-#endif
         private readonly Type _listType;
         private NameString _schemaName;
 
@@ -32,9 +29,6 @@ namespace HotChocolate.Types.Relay
             _innerSerializer = innerSerializer;
             _validate = validateType;
             _list = isListType;
-#if !NETSTANDARD2_0
-            _valueType = valueType;
-#endif
             _listType = CreateListType(valueType);
         }
 
@@ -53,11 +47,7 @@ namespace HotChocolate.Types.Relay
             {
                 try
                 {
-#if !NETSTANDARD2_0
-                    IdValue id = _innerSerializer.Deserialize(s, _valueType);
-#else
                     IdValue id = _innerSerializer.Deserialize(s);
-#endif
 
                     if (!_validate || _typeName.Equals(id.TypeName))
                     {
@@ -85,11 +75,7 @@ namespace HotChocolate.Types.Relay
 
                     foreach (string sv in stringEnumerable)
                     {
-#if !NETSTANDARD2_0
-                        IdValue id = _innerSerializer.Deserialize(sv, _valueType);
-#else
                         IdValue id = _innerSerializer.Deserialize(sv);
-#endif
 
                         if (!_validate || _typeName.Equals(id.TypeName))
                         {
