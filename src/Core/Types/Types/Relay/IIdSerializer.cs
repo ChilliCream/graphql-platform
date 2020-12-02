@@ -1,4 +1,4 @@
-#if !NETSTANDARD2_0 && !NETFRAMEWORK
+#if !NETSTANDARD2_0
 using System;
 #endif
 
@@ -52,7 +52,7 @@ namespace HotChocolate.Types.Relay
         /// </exception>
         IdValue Deserialize(string serializedId);
 
-#if !NETSTANDARD2_0 && !NETFRAMEWORK
+#if !NETSTANDARD2_0
         /// <summary>
         /// Deserializes a schema unique identifier to reveal the source
         /// schema, internal ID and type name of an object.
