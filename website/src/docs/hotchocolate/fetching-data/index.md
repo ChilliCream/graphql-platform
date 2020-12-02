@@ -80,11 +80,13 @@ Nice, now that we know what resolvers are and how they work in a bigger picture,
 
 # Defining a resolver
 
-A resolver in Hot Chocolate is basically a function that takes 0 or many arguments and returns one value. The simplest resolver to write is a resolver that takes 0 arguments and returns just a value type (e.g. a string).
+A resolver in Hot Chocolate is basically a function that takes 0 or many arguments and returns one value. The simplest resolver to write is a resolver that takes 0 arguments and returns a simple value type (e.g. a string). For the purpose of simplicity we will do exactly that in our first example. Creating a resolver named `Say` with no arguments which will return just a static string value `Hello World!`.
 
-> **Note:** Every single code examples is always shown in three different coding approaches with the same outcome. Annotation-based (previously known as pure code-first), code-first and schema-first. If you would like to learn more about the different coding approaches Hot Chocolate offers, click on [Coding Approaches](/docs/hotchocolate/api-reference/coding-approaches).
+> **Note:** Every single code examples is always written in three different coding approaches which will always result to the same outcome. Annotation-based (previously known as pure code-first), code-first and schema-first. If you would like to learn more about the different coding approaches Hot Chocolate offers, click on [Coding Approaches](/docs/hotchocolate/api-reference/coding-approaches).
 
-## Annotation-based example
+## Basic resolver example
+
+**Annotation-based approach**
 
 ```csharp
 // Query.cs
@@ -108,7 +110,7 @@ public class Startup
 }
 ```
 
-## Code-first example
+**Code-first approach**
 
 ```csharp
 // Query.cs
@@ -145,7 +147,7 @@ public class Startup
 }
 ```
 
-## Schema-first example
+**Schema-first approach**
 
 ```csharp
 // Query.cs
@@ -174,7 +176,7 @@ public class Startup
 }
 ```
 
-When comparing all three code examples side by side we can see very quickly that all of them have the `Query` type in common. As a matter of fact the `Query` type is actually identical in all three examples. Regardless, the `Query` type contains a method named `Say` which is our resolver in fact, the most important bit here. The `Say` method will be translated into the `say` field on the schema side as soon as Hot Chocolate has been started and initialized. As a side note all three approaches will result into the same `SDL`.
+When comparing all three approaches side by side we can see very quickly that all of them look nearly the same. They all have the `Query` type in common for example. As a matter of fact the `Query` type is identical in all three approaches. Regardless, the `Query` type contains a method named `Say` which is our resolver in fact, the most important bit here. The `Say` method will be translated into the `say` field on the schema side as soon as Hot Chocolate has been started and initialized. As a small side note here all three approaches will result into the same `SDL`.
 
 ```sdl
 type Query {
@@ -182,7 +184,7 @@ type Query {
 }
 ```
 
-Let's get back to where our examples and the coding approaches differentiate respectively. The `Startup` class which contains the service configuration that slightly differs in each example. In the **annotation-based** example we just bind the `Query` type to our GraphQL schema. Easy, quick and without writing any GraphQL specific binding code. Hot Chocolate will do the hard part and infer everything from the type itself. In the **code-first** example we bind a meta type `QueryType`, which contains the GraphQL configuration for the `Query` type, to the GraphQL schema. Instead of inferring the GraphQL type Hot Chocolate will take our specific GraphQL configuration and creates the GraphQL schema out of it. In the **schema-first** example we provide Hot Chocolate the `SDL` directly and Hot Chocolate will match that to our resolver. Now that you know how to define a resolver in all three approaches it's time to learn how to pass arguments and stuff like that into a resolver. Let's head to the next section.
+Let's get back to where the approaches differentiate actually. The `Startup` class which contains the service configuration that slightly differs in each approach. In the **annotation-based** approach we just bind the `Query` type to the GraphQL schema. Easy, quick and without writing any GraphQL specific binding code. Hot Chocolate will do the hard part and infer everything from the type itself. In the **code-first** approach we bind a meta type `QueryType`, which contains the GraphQL configuration for the `Query` type, to the GraphQL schema. Instead of inferring the GraphQL type Hot Chocolate will take our specific GraphQL configuration and creates the GraphQL schema out of it. In the **schema-first** example we provide Hot Chocolate the `SDL` directly and Hot Chocolate will match that to our resolver. Now that you know how to define a resolver in all three approaches it's time to learn how to pass arguments and stuff like that into a resolver. Let's head to the next section.
 
 # Resolver Arguments
 
