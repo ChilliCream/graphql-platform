@@ -64,7 +64,7 @@ var parent = new User
 }
 ```
 
-Then the `name()` resolver can just access the `Name` property of the parent value and simply return it. As soon as all resolvers has been completed, the execution engine would then return the following GraphQL result provided that everything went successful.
+Then the `name()` resolver can just access the `Name` property of the parent value and simply return it. As soon as all resolvers have been completed, the execution engine would then return the following GraphQL result provided that everything went successful.
 
 ```json
 {
@@ -174,7 +174,7 @@ public class Startup
 }
 ```
 
-All three approaches result into the same `SDL` representation.
+When comparing all three code examples side by side we can see very quickly that all of them have the `Query` type in common. As a matter of fact the `Query` type is actually identical in all three examples. Regardless, the `Query` type contains a method named `Say` which is our resolver in fact, the most important bit here. The `Say` method will be translated into the `say` field on the schema side as soon as Hot Chocolate has been started and initialized. As a side note all three approaches will result into the same `SDL`.
 
 ```sdl
 type Query {
@@ -182,11 +182,18 @@ type Query {
 }
 ```
 
-# Resolver chains
+Let's get back to where our examples and the coding approaches differentiate respectively. The `Startup` class which contains the service configuration that slightly differs in each example. In the **annotation-based** example we just bind the `Query` type to our GraphQL schema. Easy, quick and without writing any GraphQL specific binding code. Hot Chocolate will do the hard part and infer everything from the type itself. In the **code-first** example we bind a meta type `QueryType`, which contains the GraphQL configuration for the `Query` type, to the GraphQL schema. Instead of inferring the GraphQL type Hot Chocolate will take our specific GraphQL configuration and creates the GraphQL schema out of it. In the **schema-first** example we provide Hot Chocolate the `SDL` directly and Hot Chocolate will match that to our resolver. Now that you know how to define a resolver in all three approaches it's time to learn how to pass arguments and stuff like that into a resolver. Let's head to the next section.
 
 # Resolver Arguments
 
-# DI and stuff
+A resolver argument, not to be confused with a field argument in GraphQL, can be a field argument value, a DI service, state or context.
+
+# Naming Rules
+
+- How should we name things
+- How is a method name translated
+
+# Best Practices
 
 # Resolver Pipeline
 
