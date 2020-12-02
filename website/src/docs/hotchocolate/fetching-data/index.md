@@ -80,7 +80,7 @@ Nice, now that we know what resolvers are and how they work in a bigger picture,
 
 # Defining a resolver
 
-A resolver in Hot Chocolate is basically a function that takes 0 or many arguments and returns one value. The simplest resolver to write is a resolver that takes 0 arguments and returns a simple value type (e.g. a string). For the purpose of simplicity we will do exactly that in our first example. Creating a resolver named `Say` with no arguments which will return just a static string value `Hello World!`.
+A resolver in Hot Chocolate is basically a function that takes zero or many arguments and returns one value. The simplest resolver to write is a resolver that takes 0 arguments and returns a simple value type (e.g. a string). For the purpose of simplicity we will do exactly that in our first example. Creating a resolver named `Say` with no arguments which will return just a static string value `Hello World!`.
 
 > **Note:** Every single code examples is always written in three different coding approaches which will always result to the same outcome. Annotation-based (previously known as pure code-first), code-first and schema-first. If you would like to learn more about the different coding approaches Hot Chocolate offers, click on [Coding Approaches](/docs/hotchocolate/api-reference/coding-approaches).
 
