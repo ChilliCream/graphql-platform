@@ -44,7 +44,7 @@ namespace HotChocolate.Execution
             var query = new QueryDocument(document);
 
             // assert
-            query.ToString().MatchSnapshot();
+            query.Document.ToString(false).MatchSnapshot();
         }
 
         [Fact]

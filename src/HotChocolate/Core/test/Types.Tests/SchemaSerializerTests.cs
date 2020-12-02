@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
@@ -54,10 +55,10 @@ namespace HotChocolate
         {
             // arrange
             // act
-            void Action() => SchemaSerializer.SerializeAsync(null, new MemoryStream());
+            async Task Action() => await SchemaSerializer.SerializeAsync(null, new MemoryStream());
 
             // assert
-            Assert.Throws<ArgumentNullException>(Action);
+            Assert.ThrowsAsync<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -65,16 +66,15 @@ namespace HotChocolate
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
-                .AddDocumentFromString(
-                    "type Query { foo: String }")
+                .AddDocumentFromString("type Query { foo: String }")
                 .AddResolver("Query", "foo", "bar")
                 .Create();
 
             // act
-            void Action() => SchemaSerializer.SerializeAsync(schema, null);
+            async Task Action() => await SchemaSerializer.SerializeAsync(schema, null);
 
             // assert
-            Assert.Throws<ArgumentNullException>(Action);
+            Assert.ThrowsAsync<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -82,8 +82,7 @@ namespace HotChocolate
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
-                .AddDocumentFromString(
-                    "type Query { foo: String }")
+                .AddDocumentFromString("type Query { foo: String }")
                 .AddResolver("Query", "foo", "bar")
                 .Create();
             var stringBuilder = new StringBuilder();
@@ -100,8 +99,7 @@ namespace HotChocolate
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
-                .AddDocumentFromString(
-                    "type Query { foo: String }")
+                .AddDocumentFromString("type Query { foo: String }")
                 .AddResolver("Query", "foo", "bar")
                 .Create();
             using var stream = new MemoryStream();
@@ -123,7 +121,7 @@ namespace HotChocolate
                 c =>
                 {
                     c.RegisterQueryType<Query>();
-                    c.Use(next => context => next(context));
+                    c.Use(next => next);
                     c.RegisterDirective(new DirectiveType(t =>
                         t.Name("upper")
                             .Location(DirectiveLocation.FieldDefinition)));
@@ -141,17 +139,13 @@ namespace HotChocolate
         public void SerializeSchemaWithMutationWithoutSubscription()
         {
             // arrange
-            var source = FileResource.Open(
-                "serialize_schema_with_mutation.graphql");
+            var source = FileResource.Open("serialize_schema_with_mutation.graphql");
             ISchema schema = Schema.Create(
                 source,
                 c =>
                 {
-                    c.Use(next => context => next(context));
+                    c.Use(next => next);
                 });
-
-            var sb = new StringBuilder();
-            var s = new StringWriter(sb);
 
             // act
             var serializedSchema = schema.ToString();

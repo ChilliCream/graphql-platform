@@ -1,4 +1,5 @@
 ﻿using ChilliCream.Testing;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Language.Utilities
@@ -25,10 +26,10 @@ namespace HotChocolate.Language.Utilities
             var query = "{ foo(s: \"String\") { bar @foo { baz @foo @bar } } }";
 
             // act
-            var printed = Utf8GraphQLParser.Parse(query).Print(false);
+            var printed = Utf8GraphQLParser.Parse(query).Print(true);
 
             // assert
-            Assert.Equal(query, printed);
+            printed.MatchSnapshot();
         }
 
         [Fact]
@@ -38,10 +39,10 @@ namespace HotChocolate.Language.Utilities
             var query = "{ foo { foo bar { foo @foo @bar bar @bar baz } } }";
 
             // act
-            var printed = Utf8GraphQLParser.Parse(query).Print(false);
+            var printed = Utf8GraphQLParser.Parse(query).Print(true);
 
             // assert
-            Assert.Equal(query, printed);
+            printed.MatchSnapshot();
         }
 
         [Fact]
@@ -51,10 +52,10 @@ namespace HotChocolate.Language.Utilities
             var query = FileResource.Open("kitchen-sink.graphql");
 
             // act
-            var printed = Utf8GraphQLParser.Parse(query).Print(false);
+            var printed = Utf8GraphQLParser.Parse(query).Print(true);
 
             // assert
-            Assert.Equal(query, printed);
+            printed.MatchSnapshot();
         }
 
         [Fact]
@@ -67,7 +68,7 @@ namespace HotChocolate.Language.Utilities
             var printed = Utf8GraphQLParser.Parse(query).Print(false);
 
             // assert
-            Assert.Equal(query, printed);
+            printed.MatchSnapshot();
         }
 
         [Fact]
@@ -111,14 +112,14 @@ namespace HotChocolate.Language.Utilities
             DocumentNode queryDocument = Utf8GraphQLParser.Parse(query);
 
             // act
-            var printed = queryDocument.Print(true);
+            var printed = queryDocument.Print(false);
 
             // assert
             Assert.Equal(query, printed);
         }
 
         [Fact]
-        public void Serialize_FargmentWithVariableDefs_InOutShouldBeTheSame()
+        public void Serialize_FragmentWithVariableDefs_InOutShouldBeTheSame()
         {
             // arrange
             var query = "fragment Foo ($bar: [String!]!) on Bar { baz }";

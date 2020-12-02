@@ -20,7 +20,7 @@ namespace HotChocolate.Language
                     new DirectiveNode("upper"));
 
             // assert
-            rewritten.ToString().MatchSnapshot();
+            rewritten.ToString(false).MatchSnapshot();
         }
     }
 }
