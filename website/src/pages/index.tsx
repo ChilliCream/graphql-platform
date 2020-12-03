@@ -34,6 +34,7 @@ import MotiviewLogoSvg from "../images/companies/motiview.svg";
 import PushpayLogoSvg from "../images/companies/pushpay.svg";
 import Seven2OneLogoSvg from "../images/companies/seven-2-one.svg";
 import SolyticLogoSvg from "../images/companies/solytic.svg";
+import SonikaLogoSvg from "../images/companies/sonika.svg";
 import SweetGeeksLogoSvg from "../images/companies/sweetgeeks.svg";
 import SwissLifeLogoSvg from "../images/companies/swiss-life.svg";
 import ZioskLogoSvg from "../images/companies/ziosk.svg";
@@ -253,6 +254,11 @@ const IndexPage: FunctionComponent = () => {
               <Logo width={150}>
                 <Link to="https://www.solytic.com">
                   <SolyticLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={140}>
+                <Link to="https://sonika.se">
+                  <SonikaLogoSvg />
                 </Link>
               </Logo>
               <Logo width={120}>
