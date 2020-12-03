@@ -34,8 +34,10 @@ import MotiviewLogoSvg from "../images/companies/motiview.svg";
 import PushpayLogoSvg from "../images/companies/pushpay.svg";
 import Seven2OneLogoSvg from "../images/companies/seven-2-one.svg";
 import SolyticLogoSvg from "../images/companies/solytic.svg";
+import SonikaLogoSvg from "../images/companies/sonika.svg";
 import SweetGeeksLogoSvg from "../images/companies/sweetgeeks.svg";
 import SwissLifeLogoSvg from "../images/companies/swiss-life.svg";
+import SytadelleLogoSvg from "../images/companies/sytadelle.svg";
 import ZioskLogoSvg from "../images/companies/ziosk.svg";
 
 // Images
@@ -255,6 +257,11 @@ const IndexPage: FunctionComponent = () => {
                   <SolyticLogoSvg />
                 </Link>
               </Logo>
+              <Logo width={130}>
+                <Link to="https://sonika.se">
+                  <SonikaLogoSvg />
+                </Link>
+              </Logo>
               <Logo width={120}>
                 <Link to="https://sweetgeeks.dk">
                   <SweetGeeksLogoSvg />
@@ -263,6 +270,11 @@ const IndexPage: FunctionComponent = () => {
               <Logo width={110}>
                 <Link to="https://www.swisslife.ch">
                   <SwissLifeLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={160}>
+                <Link to="https://www.sytadelle.fr">
+                  <SytadelleLogoSvg />
                 </Link>
               </Logo>
               <Logo width={120}>

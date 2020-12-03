@@ -85,6 +85,10 @@
             "title": "Integrations",
             "items": [
               {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
                 "path": "entity-framework",
                 "title": "Entity Framework"
               },
