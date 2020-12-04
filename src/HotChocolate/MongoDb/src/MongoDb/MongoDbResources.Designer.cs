@@ -56,5 +56,11 @@ namespace HotChocolate.MongoDb {
                 return ResourceManager.GetString("ErrorHelper_Sorting_CreateNonNullError", resourceCulture);
             }
         }
+        
+        internal static string Paging_SourceIsNotSupported {
+            get {
+                return ResourceManager.GetString("Paging_SourceIsNotSupported", resourceCulture);
+            }
+        }
     }
 }

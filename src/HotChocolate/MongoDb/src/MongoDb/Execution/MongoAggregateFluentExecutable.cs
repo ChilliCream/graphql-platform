@@ -33,7 +33,7 @@ namespace HotChocolate.MongoDb.Execution
 
         public override string Print() => BuildPipeline().ToString() ?? "";
 
-        private IAggregateFluent<T> BuildPipeline()
+        public IAggregateFluent<T> BuildPipeline()
         {
             IAggregateFluent<T> pipeline = _aggregate;
             if (Sorting is not null)

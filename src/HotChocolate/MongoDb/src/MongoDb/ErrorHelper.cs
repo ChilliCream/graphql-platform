@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using HotChocolate.Data;
 using HotChocolate.Data.Filters;
@@ -43,6 +44,20 @@ namespace HotChocolate.MongoDb
                 .SetExtension("expectedType", new NonNullType(field.Type).Visualize())
                 .SetExtension("sortType", sortType.Visualize())
                 .Build();
+        }
+    }
+
+    internal static class ThrowHelper
+    {
+        public static GraphQLException PagingTypeNotSupported(
+            Type type)
+        {
+            return new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage(
+                        MongoDbResources.Paging_SourceIsNotSupported,
+                        type.FullName ?? type.Name)
+                    .Build());
         }
     }
 }
