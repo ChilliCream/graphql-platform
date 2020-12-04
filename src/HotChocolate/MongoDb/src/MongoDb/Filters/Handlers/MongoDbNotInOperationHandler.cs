@@ -10,12 +10,12 @@ namespace HotChocolate.MongoDb.Data.Filters
         : MongoDbOperationHandlerBase
     {
         public override bool CanHandle(
-            ITypeDiscoveryContext context,
+            ITypeCompletionContext context,
             IFilterInputTypeDefinition typeDefinition,
             IFilterFieldDefinition fieldDefinition)
         {
             return fieldDefinition is FilterOperationFieldDefinition operationField &&
-                operationField.Id is DefaultOperations.NotIn;
+                operationField.Id is DefaultFilterOperations.NotIn;
         }
 
         public override MongoDbFilterDefinition HandleOperation(

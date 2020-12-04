@@ -10,7 +10,7 @@ namespace HotChocolate.MongoDb.Data.Filters
         : FilterFieldHandler<MongoDbFilterVisitorContext, MongoDbFilterDefinition>
     {
         public override bool CanHandle(
-            ITypeDiscoveryContext context,
+            ITypeCompletionContext context,
             IFilterInputTypeDefinition typeDefinition,
             IFilterFieldDefinition fieldDefinition) =>
             !(fieldDefinition is FilterOperationFieldDefinition) &&

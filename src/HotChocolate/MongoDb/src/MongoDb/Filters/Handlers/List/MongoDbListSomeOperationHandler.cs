@@ -8,7 +8,7 @@ namespace HotChocolate.MongoDb.Data.Filters
 {
     public class MongoDbListSomeOperationHandler : MongoDbListOperationHandlerBase
     {
-        protected override int Operation => DefaultOperations.Some;
+        protected override int Operation => DefaultFilterOperations.Some;
 
         protected override MongoDbFilterDefinition HandleListOperation(
             MongoDbFilterVisitorContext context,

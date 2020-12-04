@@ -14,7 +14,7 @@ namespace HotChocolate.MongoDb.Data.Filters
             CanBeNull = false;
         }
 
-        protected override int Operation => DefaultOperations.LowerThanOrEquals;
+        protected override int Operation => DefaultFilterOperations.LowerThanOrEquals;
 
         public override MongoDbFilterDefinition HandleOperation(
             MongoDbFilterVisitorContext context,

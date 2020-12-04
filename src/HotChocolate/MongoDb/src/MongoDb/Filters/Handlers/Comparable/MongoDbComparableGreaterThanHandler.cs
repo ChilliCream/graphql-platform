@@ -1,4 +1,5 @@
 using System;
+using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
 using HotChocolate.Language;
 using MongoDB.Bson;
@@ -14,7 +15,7 @@ namespace HotChocolate.MongoDb.Data.Filters
             CanBeNull = false;
         }
 
-        protected override int Operation => DefaultOperations.GreaterThan;
+        protected override int Operation => DefaultFilterOperations.GreaterThan;
 
         public override MongoDbFilterDefinition HandleOperation(
             MongoDbFilterVisitorContext context,

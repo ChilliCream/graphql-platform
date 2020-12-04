@@ -9,11 +9,11 @@ namespace HotChocolate.MongoDb.Data.Filters
         protected abstract int Operation { get; }
 
         public override bool CanHandle(
-            ITypeDiscoveryContext context,
+            ITypeCompletionContext context,
             IFilterInputTypeDefinition typeDefinition,
             IFilterFieldDefinition fieldDefinition)
         {
-            return context.Type is StringOperationFilterInput &&
+            return context.Type is StringOperationFilterInputType &&
                 fieldDefinition is FilterOperationFieldDefinition operationField &&
                 operationField.Id == Operation;
         }

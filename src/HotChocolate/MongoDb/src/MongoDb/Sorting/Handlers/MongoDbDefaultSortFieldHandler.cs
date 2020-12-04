@@ -14,7 +14,7 @@ namespace HotChocolate.MongoDb.Sorting.Handlers
         : SortFieldHandler<MongoDbSortVisitorContext, MongoDbSortDefinition>
     {
         public override bool CanHandle(
-            ITypeDiscoveryContext context,
+            ITypeCompletionContext context,
             ISortInputTypeDefinition typeDefinition,
             ISortFieldDefinition fieldDefinition) =>
             fieldDefinition.Member is not null;

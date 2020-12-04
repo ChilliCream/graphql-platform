@@ -7,7 +7,7 @@ namespace HotChocolate.MongoDb.Data.Filters
 {
     public class MongoDbListAllOperationHandler : MongoDbListOperationHandlerBase
     {
-        protected override int Operation => DefaultOperations.All;
+        protected override int Operation => DefaultFilterOperations.All;
 
         protected override MongoDbFilterDefinition HandleListOperation(
             MongoDbFilterVisitorContext context,
@@ -17,7 +17,7 @@ namespace HotChocolate.MongoDb.Data.Filters
             MongoDbFilterScope scope,
             string path,
             MongoDbFilterDefinition? bsonDocument) =>
-            field.Type is IComparableOperationFilterInput
+            field.Type is IComparableOperationFilterInputType
                 ? CreateArrayAllScalar(scope, path)
                 : CreateArrayAll(scope, path);
 
