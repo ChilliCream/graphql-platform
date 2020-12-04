@@ -1,31 +1,23 @@
 ﻿schema {
   query: Query
-  mutation: MyMutation
-  subscription: MySubscription
 }
 
-type MyMutation {
-  writeBoolean(userId: String! message: Boolean!): Boolean!
-  writeMessage(userId: String! message: String!): String!
-  writeSysMessage(message: String!): String!
-  writeFixedMessage(message: String!): String!
-  writeOnInferTopic(message: String!): String!
-  writeOnExplicit(message: String!): String!
-}
-
-type MySubscription {
-  onMessage(userId: String!): String!
-  onSysMessage: String!
-  onFixedMessage: String!
-  onInferTopic: String!
-  onExplicit: String!
-  onExplicitNonGeneric: String!
-  onExplicitNonGenericSync: String!
-  onExplicitSync: String!
+type IgnoreTest {
+  id: Int!
+  name: String!
 }
 
 type Query {
-  a: String
+  foo(order: [IgnoreTestSortInput!]): [IgnoreTest]
+}
+
+input IgnoreTestSortInput {
+  id: SortEnumType
+}
+
+enum SortEnumType {
+  ASC
+  DESC
 }
 
 "The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`."

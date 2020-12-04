@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using HotChocolate.Execution;
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
 
@@ -175,6 +176,7 @@ namespace HotChocolate.Internal
                         || typeDefinition == typeof(ImmutableQueue<>)
                         || typeDefinition == typeof(ImmutableStack<>)
                         || typeDefinition == typeof(ImmutableHashSet<>)
+                        || typeDefinition == typeof(ISourceStream<>)
                         || typeDefinition == typeof(IExecutable<>))
                     {
                         return true;
