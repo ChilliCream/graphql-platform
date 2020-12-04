@@ -2,9 +2,8 @@
 title: Projections
 ---
 
-
 Every GraphQL request specifies exactly what data should be returned. Over or under fetching can be reduced
-or even eliminated.  HotChocolate projections leverage this concept and directly projects incoming queries
+or even eliminated. HotChocolate projections leverage this concept and directly projects incoming queries
 to the database.
 
 Projections operate on `IQueryable` by default, but it is possible to create custom providers for projections
@@ -12,7 +11,7 @@ to support a specific database driver.
 
 ```graphql
 {
-  users{
+  users {
     email
     address {
       street
@@ -20,6 +19,7 @@ to support a specific database driver.
   }
 }
 ```
+
 ```sql
 SELECT "u"."Email", "a"."Id" IS NOT NULL, "a"."Street"
 FROM "Users" AS "u"
@@ -27,9 +27,10 @@ LEFT JOIN "Address" AS "a" ON "u"."AddressId" = "a"."Id"
 ```
 
 # Getting Started
+
 Filtering is part of the `HotChocolate.Data` package. You can add the dependency with the `dotnet` cli
 
-```
+```bash
   dotnet add package HotChocolate.Data
 ```
 
@@ -42,13 +43,12 @@ services.AddGraphQLServer()
 ```
 
 Projections can be registered on a field. A middleware will apply the selected fields on the result.
-Support for `IQueryable` comes out of the box. 
+Support for `IQueryable` comes out of the box.
 The projection middleware will create a projection for the whole subtree of its field. Only fields that
 are members of a type will be projected. Fields that define a customer resolver cannot be projected
-to the database. If the middleware encounters a field that specifies `UseProjections()` this field will be skipped. 
+to the database. If the middleware encounters a field that specifies `UseProjections()` this field will be skipped.
 
 > ⚠️ **Note:** If you use more than middleware, keep in mind that **ORDER MATTERS**. The correct order is UsePaging > UseProjections > UseFiltering > UseSorting
-
 
 **Code First**
 
@@ -64,7 +64,7 @@ public class QueryType
 
 public class Query
 {
-    public IQueryable<Person> GetPersons([Service]IPersonRepository repository) => 
+    public IQueryable<Person> GetPersons([Service]IPersonRepository repository) =>
         repository.GetPersons();
 }
 ```
@@ -83,9 +83,11 @@ public class Query
     }
 }
 ```
+
 # FirstOrDefault / SingleOrDefault
-If you want to limit the response to a single result, you would have to declare a resolver. 
-Without returning an `IQueryable<>` you lose the ability to use filtering. 
+
+If you want to limit the response to a single result, you would have to declare a resolver.
+Without returning an `IQueryable<>` you lose the ability to use filtering.
 
 There are two extensions you can use to leverage `collection.FirstOrDefault()` and `.collection.SingleOrDefault()` to
 the GraphQL layer. The extensions will rewrite the response type to the element type of the collection apply the behavior.
@@ -102,6 +104,7 @@ the GraphQL layer. The extensions will rewrite the response type to the element 
         }
     }
 ```
+
 ```sdl
 type Query {
   users(where: UserFilterInput): User
@@ -114,9 +117,9 @@ type User {
 }
 ```
 
-
 # Sorting Filtering and Paging
-Projections can be used together with sorting, filtering and paging. The order of the middlewares must be correct. 
+
+Projections can be used together with sorting, filtering and paging. The order of the middlewares must be correct.
 Make sure to have the following order: UsePaging > UseProjections > UseFiltering > UseSorting
 
 Filtering and sorting can be projected over relations. Projections **cannot** project paging over relations.
@@ -151,14 +154,12 @@ public class User
 ```graphql
 {
   users(
-    where: { name:{ eq:"ChilliCream" } }
-    order: [{ name: DESC },{ email: DESC }]
-    ) {
-    nodes{
+    where: { name: { eq: "ChilliCream" } }
+    order: [{ name: DESC }, { email: DESC }]
+  ) {
+    nodes {
       email
-      addresses(
-          where: {street:{eq:"Sesame Street"}}
-        ) {
+      addresses(where: { street: { eq: "Sesame Street" } }) {
         street
       }
     }
@@ -167,7 +168,7 @@ public class User
       hasNextPage
       hasPreviousPage
       startCursor
-    } 
+    }
   }
 }
 ```
@@ -186,10 +187,10 @@ ORDER BY "t"."Name" DESC, "t"."Email" DESC, "t"."Id", "a"."Id"
 ```
 
 # Always Project Fields
-Resolvers on types often access data of the parent. e.g. uses the `Email` member of the parent to fetch some 
-related data from another service. With projections, this resolver could only work when the user also queries
-for the `email` field. To ensure a field is always projected you have to use `IsProjected(true)`. 
 
+Resolvers on types often access data of the parent. e.g. uses the `Email` member of the parent to fetch some
+related data from another service. With projections, this resolver could only work when the user also queries
+for the `email` field. To ensure a field is always projected you have to use `IsProjected(true)`.
 
 **Code First**
 
@@ -230,7 +231,7 @@ public class User
 }
 
 [ExtendObjectType(nameof(User))]
-public class UserTypeExtension 
+public class UserTypeExtension
 {
     public Message GetMessagesAsync(
         [Parent] User user,
@@ -249,14 +250,15 @@ public class UserTypeExtension
   }
 }
 ```
+
 ```sql
 SELECT "u"."Email", "a"."Id" IS NOT NULL, "a"."Street"
 FROM "Users" AS "u"
 LEFT JOIN "Address" AS "a" ON "u"."AddressId" = "a"."Id"
 ```
 
-
 # Exclude fields
+
 If a projected field is requested, the whole subtree is processed. Sometimes you want to opt out of projections.
 The projections middleware skips a field in two cases. Either the visitor encounters a fields that is a `UseProjection` field
 itself, or it defines `IsProjected(false)`.
@@ -300,7 +302,7 @@ public class User
 
 ```graphql
 {
-  users{
+  users {
     email
     address {
       street
@@ -308,6 +310,7 @@ public class User
   }
 }
 ```
+
 ```sql
 SELECT "a"."Id" IS NOT NULL, "a"."Street"
 FROM "Users" AS "u"

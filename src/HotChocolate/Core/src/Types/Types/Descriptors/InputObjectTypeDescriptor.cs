@@ -43,10 +43,9 @@ namespace HotChocolate.Types.Descriptors
         }
 
         protected internal override InputObjectTypeDefinition Definition { get; protected set; } =
-            new InputObjectTypeDefinition();
+            new();
 
-        protected List<InputFieldDescriptor> Fields { get; } =
-            new List<InputFieldDescriptor>();
+        protected List<InputFieldDescriptor> Fields { get; } = new();
 
         protected override void OnCreateDefinition(
             InputObjectTypeDefinition definition)

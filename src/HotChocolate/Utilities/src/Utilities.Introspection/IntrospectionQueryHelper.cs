@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using HotChocolate.Language;
+using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Utilities.Introspection
 {
@@ -18,12 +19,12 @@ namespace HotChocolate.Utilities.Introspection
         private const string _directivesField = "directives";
 
         public static HttpQueryRequest CreateFeatureQuery() =>
-            new HttpQueryRequest(GetFeatureQuery(), "introspection_phase_1");
+            new(GetFeatureQuery(), "introspection_phase_1");
 
         public static HttpQueryRequest CreateIntrospectionQuery(ISchemaFeatures features)
         {
             DocumentNode document = CreateIntrospectionQueryDocument(features);
-            string sourceText = QuerySyntaxSerializer.Serialize(document, false);
+            string sourceText = document.Print(false);
             return new HttpQueryRequest(sourceText, "introspection_phase_2");
         }
 
@@ -116,7 +117,7 @@ namespace HotChocolate.Utilities.Introspection
         }
 
         private static FieldNode CreateField(string name) =>
-            new FieldNode(null, new NameNode(name), null,
+            new(null, new NameNode(name), null,
                 Array.Empty<DirectiveNode>(),
                 Array.Empty<ArgumentNode>(),
                 null);
@@ -128,11 +129,11 @@ namespace HotChocolate.Utilities.Introspection
         private static string GetQueryFile(string fileName)
         {
 #pragma warning disable CS8600
-            Stream stream = typeof(IntrospectionClient).Assembly
+            Stream? stream = typeof(IntrospectionClient).Assembly
                 .GetManifestResourceStream($"{_resourceNamespace}.{fileName}");
 #pragma warning restore CS8600
 
-            if (stream != null)
+            if (stream is not null)
             {
                 try
                 {

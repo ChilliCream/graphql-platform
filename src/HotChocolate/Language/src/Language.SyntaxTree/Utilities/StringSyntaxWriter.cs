@@ -18,6 +18,8 @@ namespace HotChocolate.Language.Utilities
             _pool.Return(writer);
         }
 
+        internal StringBuilder StringBuilder => _stringBuilder;
+
         public void Indent()
         {
             _indent++;

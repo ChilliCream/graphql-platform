@@ -13,6 +13,7 @@ namespace HotChocolate.Execution
         /// <summary>
         /// Writes the current query to the output stream.
         /// </summary>
+        [Obsolete("Use WriteToAsync")]
         void WriteTo(Stream output);
 
         /// <summary>

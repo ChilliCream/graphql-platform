@@ -5,8 +5,134 @@
     "description": "Build your own thin GraphQL API layer on top of any resource.",
     "versions": [
       {
+        "path": "",
+        "title": "v11 (latest)",
+        "items": [
+          {
+            "path": "index",
+            "title": "Introduction"
+          },
+          {
+            "path": "get-started",
+            "title": "Get Started"
+          },
+          {
+            "path": "defining-a-schema",
+            "title": "Defining a schema",
+            "items": [
+              {
+                "path": "index",
+                "title": "Schema basics"
+              },
+              {
+                "path": "versioning",
+                "title": "Versioning"
+              },
+              {
+                "path": "unions-and-interfaces",
+                "title": "Unions and Interfaces"
+              },
+              {
+                "path": "scalars",
+                "title": "Scalars"
+              },
+              {
+                "path": "directives",
+                "title": "Directives"
+              }
+            ]
+          },
+          {
+            "path": "fetching-data",
+            "title": "Fetching data",
+            "items": [
+              {
+                "path": "index",
+                "title": "Resolver"
+              },
+              {
+                "path": "fetching-from-databases",
+                "title": "Fetching from Databases"
+              },
+              {
+                "path": "fetching-from-rest",
+                "title": "Fetching from REST"
+              },
+              {
+                "path": "dataloader",
+                "title": "DataLoader"
+              },
+              {
+                "path": "pagination",
+                "title": "Pagination"
+              },
+              {
+                "path": "filtering",
+                "title": "Filtering"
+              },
+              {
+                "path": "sorting",
+                "title": "Sorting"
+              },
+              {
+                "path": "projections",
+                "title": "Projections"
+              }
+            ]
+          },
+          {
+            "path": "integrations",
+            "title": "Integrations",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "entity-framework",
+                "title": "Entity Framework"
+              },
+              {
+                "path": "spatial-data",
+                "title": "Spatial Data"
+              }
+            ]
+          },
+          {
+            "path": "api-reference",
+            "title": "API Reference",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "language",
+                "title": "Lanugage"
+              },
+              {
+                "path": "visitors",
+                "title": "Visitors"
+              },
+              {
+                "path": "aspnetcore",
+                "title": "ASP.NET Core"
+              },
+              {
+                "path": "executable",
+                "title": "Executable"
+              },
+              {
+                "path": "migrate-from-10-to-11",
+                "title": "Migrate from 10.5 to 11.0"
+              }
+            ]
+          }
+        ]
+      },
+      {
         "path": "v10",
-        "title": "v10 (stable)",
+        "title": "v10 (previous)",
         "items": [
           {
             "path": "index",
@@ -233,128 +359,6 @@
             ]
           }
         ]
-      },
-      {
-        "path": "",
-        "title": "v11 (preview)",
-        "items": [
-          {
-            "path": "index",
-            "title": "Introduction"
-          },
-          {
-            "path": "get-started",
-            "title": "Get Started"
-          },
-          {
-            "path": "defining-a-schema",
-            "title": "Defining a schema",
-            "items": [
-              {
-                "path": "index",
-                "title": "Schema basics"
-              },
-              {
-                "path": "versioning",
-                "title": "Versioning"
-              },
-              {
-                "path": "unions-and-interfaces",
-                "title": "Unions and Interfaces"
-              },
-              {
-                "path": "scalars",
-                "title": "Scalars"
-              },
-              {
-                "path": "directives",
-                "title": "Directives"
-              }
-            ]
-          },
-          {
-            "path": "fetching-data",
-            "title": "Fetching data",
-            "items": [
-              {
-                "path": "index",
-                "title": "Resolver"
-              },
-              {
-                "path": "fetching-from-databases",
-                "title": "Fetching from Databases"
-              },
-              {
-                "path": "fetching-from-rest",
-                "title": "Fetching from REST"
-              },
-              {
-                "path": "dataloader",
-                "title": "DataLoader"
-              },
-              {
-                "path": "pagination",
-                "title": "Pagination"
-              },
-              {
-                "path": "filtering",
-                "title": "Filtering"
-              },
-              {
-                "path": "sorting",
-                "title": "Sorting"
-              },
-              {
-                "path": "projections",
-                "title": "Projections"
-              }
-            ]
-          },
-          {
-            "path": "integrations",
-            "title": "Integrations",
-            "items": [
-              {
-                "path": "entity-framework",
-                "title": "Entity Framework"
-              },
-              {
-                "path": "spatial-data",
-                "title": "Spatial Data"
-              }
-            ]
-          },
-          {
-            "path": "api-reference",
-            "title": "API Reference",
-            "items": [
-              {
-                "path": "index",
-                "title": "Overview"
-              },
-              {
-                "path": "language",
-                "title": "Lanugage"
-              },
-              {
-                "path": "visitors",
-                "title": "Visitors"
-              },
-              {
-                "path": "aspnetcore",
-                "title": "ASP.NET Core"
-              },
-              {
-                "path": "executable",
-                "title": "Executable"
-              },
-              {
-                "path": "migrate-from-10-to-11",
-                "title": "Migrate from 10.5 to 11.0"
-              }
-            ]
-          }
-        ]
       }
     ]
   },
@@ -376,47 +380,23 @@
     ]
   },
   {
-    "path": "strawberryshake",
-    "title": "Strawberry Shake",
-    "description": "Generate a unique GraphQL client for .Net to fetch data from any GraphQL API.",
-    "versions": [
-      {
-        "path": "",
-        "title": "v11 (preview)",
-        "items": [
-          {
-            "path": "index",
-            "title": "Introduction"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "path": "marshmallowpie",
-    "title": "Marshmallow Pie",
-    "description": "Configure a GraphQL registry to keep track of any GraphQL server and client.",
-    "versions": [
-      {
-        "path": "",
-        "title": "v11 (preview)",
-        "items": [
-          {
-            "path": "index",
-            "title": "Introduction"
-          }
-        ]
-      }
-    ]
-  },
-  {
     "path": "greendonut",
     "title": "Green Donut",
     "description": "Configure data loaders and caching for GraphQL endpoints.",
     "versions": [
       {
+        "path": "",
+        "title": "v11 (latest)",
+        "items": [
+          {
+            "path": "index",
+            "title": "Introduction"
+          }
+        ]
+      },
+      {
         "path": "v10",
-        "title": "v10 (stable)",
+        "title": "v10 (previous)",
         "items": [
           {
             "path": "index",
@@ -447,16 +427,6 @@
                 "title": "Diagnostic Events"
               }
             ]
-          }
-        ]
-      },
-      {
-        "path": "",
-        "title": "v11 (preview)",
-        "items": [
-          {
-            "path": "index",
-            "title": "Introduction"
           }
         ]
       }
