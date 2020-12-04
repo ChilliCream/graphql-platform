@@ -1,3 +1,3 @@
 ﻿SELECT d."Id", d."Bar"
 FROM "Data" AS d
-WHERE (ST_Within(d."Bar", @__p_0) = @__p_1) OR ((ST_Within(d."Bar", @__p_0) IS NULL) AND (@__p_1 IS NULL))
+WHERE NOT (ST_Within(d."Bar", @__p_0))

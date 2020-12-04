@@ -105,7 +105,7 @@ namespace HotChocolate.Types
             ISet<string> processed,
             IEnumerable<IDirective> directives)
         {
-            foreach (IDirective directive in directives.Where(t => t.IsExecutable))
+            foreach (IDirective directive in directives.Where(t => t.Type.HasMiddleware))
             {
                 if (!processed.Add(directive.Name) && !directive.Type.IsRepeatable)
                 {
@@ -126,7 +126,7 @@ namespace HotChocolate.Types
 
             Resolver = definition.Resolver!;
 
-            if (!isIntrospectionField || Resolver is null)
+            if (!isIntrospectionField || Resolver is null!)
             {
                 // gets resolvers that were provided via type extensions,
                 // explicit resolver results or are provided through the

@@ -13,22 +13,21 @@ namespace HotChocolate.Types
     {
         private const string _utcFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffZ";
         private const string _localFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffzzz";
+        private const string _specifiedBy = "https://www.graphql-scalars.com/date-time";
 
         public DateTimeType()
-            : base(ScalarNames.DateTime, BindingBehavior.Implicit)
-        {
-            Description = TypeResources.DateTimeType_Description;
-        }
-
-        public DateTimeType(NameString name)
-            : base(name, BindingBehavior.Implicit)
+            : this(ScalarNames.DateTime, TypeResources.DateTimeType_Description)
         {
         }
 
-        public DateTimeType(NameString name, string description)
-            : base(name, BindingBehavior.Implicit)
+        public DateTimeType(
+            NameString name,
+            string? description = null,
+            BindingBehavior bindingBehavior = BindingBehavior.Implicit)
+            : base(name, bindingBehavior)
         {
             Description = description;
+            SpecifiedBy = new Uri(_specifiedBy);
         }
 
         protected override DateTimeOffset ParseLiteral(StringValueNode valueSyntax)
@@ -45,7 +44,7 @@ namespace HotChocolate.Types
 
         protected override StringValueNode ParseValue(DateTimeOffset runtimeValue)
         {
-            return new StringValueNode(Serialize(runtimeValue));
+            return new(Serialize(runtimeValue));
         }
 
         public override IValueNode ParseResult(object? resultValue)

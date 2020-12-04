@@ -1,17 +1,37 @@
 ﻿using HotChocolate.Types;
 
+#nullable enable
+
 namespace HotChocolate.Configuration
 {
+    /// <summary>
+    /// Represents read-only schema options.
+    /// </summary>
     public interface IReadOnlySchemaOptions
     {
-        string QueryTypeName { get; }
+        /// <summary>
+        /// Gets the name of the query type.
+        /// </summary>
+        string? QueryTypeName { get; }
 
-        string MutationTypeName { get; }
+        /// <summary>
+        /// Gets or sets the name of the mutation type.
+        /// </summary>
+        string? MutationTypeName { get; }
 
-        string SubscriptionTypeName { get; }
+        /// <summary>
+        /// Gets or sets the name of the subscription type.
+        /// </summary>
+        string? SubscriptionTypeName { get; }
 
+        /// <summary>
+        /// Defines if the schema allows the query type to be omitted.
+        /// </summary>
         bool StrictValidation { get; }
 
+        /// <summary>
+        /// Defines if the CSharp XML documentation shall be integrated.
+        /// </summary>
         bool UseXmlDocumentation { get; }
 
         /// <summary>

@@ -41,7 +41,7 @@ namespace HotChocolate.Configuration.Validation
         }
 
         [Fact]
-        public void Interface_Implements_Not_The_Interfaces_Of_Its_Interfaces()
+        public void Field_Is_Not_Implemented()
         {
             ExpectError(@"
                 type Query {
@@ -57,7 +57,7 @@ namespace HotChocolate.Configuration.Validation
                     def : String
                 }
 
-                interface A implements B {
+                interface A implements B & C {
                     abc(a: String): String
                     cde: String
                     def : String
@@ -65,7 +65,6 @@ namespace HotChocolate.Configuration.Validation
 
                 type Foo implements A & B & C {
                     abc(a: String): String
-                    def: String
                     cde: String
                 }
             ");

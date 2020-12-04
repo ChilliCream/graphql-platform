@@ -8,6 +8,7 @@ using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using static HotChocolate.Data.Filters.Spatial.SpatialOperationHandlerHelper;
 
 namespace HotChocolate.Data.Filters.Spatial
 {
@@ -31,7 +32,7 @@ namespace HotChocolate.Data.Filters.Spatial
         }
 
         public override bool CanHandle(
-            ITypeDiscoveryContext context,
+            ITypeCompletionContext context,
             IFilterInputTypeDefinition typeDefinition,
             IFilterFieldDefinition fieldDefinition) =>
             fieldDefinition is FilterOperationFieldDefinition op &&
@@ -107,36 +108,6 @@ namespace HotChocolate.Data.Filters.Spatial
             context.GetLevel().Enqueue(condition);
             action = SyntaxVisitor.Continue;
             return true;
-        }
-
-        protected static bool TryGetParameter<T>(
-            IFilterField parentField,
-            IValueNode node,
-            string fieldName,
-            [NotNullWhen(true)] out T fieldNode)
-        {
-            if (parentField.Type is InputObjectType inputType &&
-                node is ObjectValueNode objectValueNode)
-            {
-                for (var i = 0; i < objectValueNode.Fields.Count; i++)
-                {
-                    if (objectValueNode.Fields[i].Name.Value == fieldName)
-                    {
-                        ObjectFieldNode field = objectValueNode.Fields[i];
-                        if (inputType.Fields[fieldName].Type.ParseLiteral(field.Value) is T val)
-                        {
-                            fieldNode = val;
-                            return true;
-                        }
-
-                        fieldNode = default!;
-                        return false;
-                    }
-                }
-            }
-
-            fieldNode = default!;
-            return false;
         }
     }
 }

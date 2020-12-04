@@ -110,7 +110,7 @@ namespace HotChocolate.Data
                 x => Assert.Equal(provider2, x));
         }
 
-        private class MockProviderExtensions : ProjectionProviderExtensions
+        private class MockProviderExtensions : ProjectionProviderExtension
         {
         }
 

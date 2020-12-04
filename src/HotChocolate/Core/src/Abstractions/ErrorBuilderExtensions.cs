@@ -17,7 +17,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (syntaxNode is { Location: { } })
+            if (syntaxNode is { Location: not null })
             {
                 return builder.AddLocation(
                     syntaxNode.Location.Line,

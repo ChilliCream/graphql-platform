@@ -54,10 +54,11 @@ export const BlogArticle: FunctionComponent<BlogArticleProperties> = ({
 export const BlogArticleGraphQLFragment = graphql`
   fragment BlogArticle on Query {
     markdownRemark(frontmatter: { path: { eq: $path } }) {
+      excerpt
       frontmatter {
         featuredImage {
           childImageSharp {
-            fluid(maxWidth: 800) {
+            fluid(maxWidth: 800, pngQuality: 90) {
               ...GatsbyImageSharpFluid
             }
           }

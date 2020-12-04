@@ -46,7 +46,8 @@ namespace HotChocolate.Data.Sorting
         {
             base.Enter(node, context);
 
-            if (context.Fields.Peek() is ISortField field &&
+            if (node is not NullValueNode &&
+                context.Fields.Peek() is ISortField field &&
                 field.Type is SortEnumType sortType &&
                 node is EnumValueNode enumValueNode)
             {

@@ -624,10 +624,26 @@ namespace HotChocolate.Validation
                 t =>
                 {
                     Assert.Equal(
-                        "The GraphQL document has an operation complexity of 2 " +
-                        "which exceeds the max allowed operation complexity of 1.",
+                        "The GraphQL document has an execution depth of 2 " +
+                        "which exceeds the max allowed execution depth of 1.",
                         t.Message);
                 });
+        }
+
+        [Fact]
+        public void GoodBooleanArgDefault2()
+        {
+            ExpectValid(@"
+                query {
+                    arguments {
+                        ... goodBooleanArgDefault
+                    }
+                }
+
+                fragment goodBooleanArgDefault on Arguments {
+                    optionalNonNullBooleanArgField2
+                }
+            ");
         }
 
         [Fact]

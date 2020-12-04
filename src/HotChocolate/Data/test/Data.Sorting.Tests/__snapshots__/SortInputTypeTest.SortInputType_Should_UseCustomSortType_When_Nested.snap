@@ -3,17 +3,17 @@
 }
 
 type Query {
-  foo(order: [UserSortInput]): [Query]
+  foo(order: [UserSortInput!]): [Query]
   id: Int!
   name: String!
   friends: [Query!]!
 }
 
 input UserSortInput {
-  name: DefaultSortEnumType
+  name: SortEnumType
 }
 
-enum DefaultSortEnumType {
+enum SortEnumType {
   ASC
   DESC
 }

@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Utilities;
-using HotChocolate.Execution;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Primitives;
+using HotChocolate.AspNetCore.Serialization;
+using HotChocolate.Execution;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
-using Microsoft.AspNetCore.StaticFiles;
 
 namespace HotChocolate.AspNetCore
 {
@@ -15,7 +15,6 @@ namespace HotChocolate.AspNetCore
         : MiddlewareBase
     {
         private const string _configFile = "/bcp-config.json";
-        private readonly IContentTypeProvider _contentTypeProvider;
         private readonly PathString _matchUrl;
 
         public ToolOptionsFileMiddleware(
@@ -26,7 +25,6 @@ namespace HotChocolate.AspNetCore
             PathString matchUrl)
             : base(next, executorResolver, resultSerializer, schemaName)
         {
-            _contentTypeProvider = new FileExtensionContentTypeProvider();
             _matchUrl = matchUrl;
         }
 
@@ -38,36 +36,19 @@ namespace HotChocolate.AspNetCore
         {
             if (context.Request.IsGetOrHeadMethod() &&
                 context.Request.TryMatchPath(_matchUrl, false, out PathString subPath) &&
-                subPath.Value == _configFile)
+                subPath.Value == _configFile &&
+                (context.GetGraphQLToolOptions()?.Enable ?? true))
             {
-                ToolOptions? options = context.GetEndpoint()?.Metadata.GetMetadata<ToolOptions>();
-                string endpointPath = context.Request.Path.Value!.Replace(_configFile, "");
-                string schemaEndpoint = CreateEndpointUri(
-                    context.Request.Host.Value,
-                    endpointPath,
-                    context.Request.IsHttps,
-                    false);
-                var config = new BananaCakePopConfiguration(schemaEndpoint)
-                {
-                    EndpointEditable = true,
-                };
+                GraphQLToolOptions? options = context.GetGraphQLToolOptions();
+                var config = new BananaCakePopConfiguration();
                 ISchema schema = await ExecutorProxy.GetSchemaAsync(context.RequestAborted);
 
-                if (options is { })
+                if (options is not null)
                 {
                     config.Document = options.Document;
                     config.Credentials = ConvertCredentialsToString(options.Credentials);
                     config.HttpHeaders = ConvertHttpHeadersToDictionary(options.HttpHeaders);
                     config.HttpMethod = ConvertHttpMethodToString(options.HttpMethod);
-                }
-
-                if (schema.SubscriptionType is { })
-                {
-                    config.SubscriptionEndpoint = CreateEndpointUri(
-                        context.Request.Host.Value,
-                        endpointPath,
-                        context.Request.IsHttps,
-                        true);
                 }
 
                 await context.Response.WriteAsJsonAsync(config, context.RequestAborted);
@@ -78,9 +59,9 @@ namespace HotChocolate.AspNetCore
             }
         }
 
-        private string? ConvertCredentialsToString(DefaultCredentials? credentials)
+        private static string? ConvertCredentialsToString(DefaultCredentials? credentials)
         {
-            if (credentials is { })
+            if (credentials is not null)
             {
                 switch (credentials)
                 {
@@ -96,13 +77,14 @@ namespace HotChocolate.AspNetCore
             return null;
         }
 
-        private IDictionary<string, string>? ConvertHttpHeadersToDictionary(IHeaderDictionary? httpHeaders)
+        private static IDictionary<string, string>? ConvertHttpHeadersToDictionary(
+            IHeaderDictionary? httpHeaders)
         {
-            if (httpHeaders is { })
+            if (httpHeaders is not null)
             {
                 var result = new Dictionary<string, string>();
 
-                foreach (var (key, value) in httpHeaders)
+                foreach ((var key, StringValues value) in httpHeaders)
                 {
                     result.Add(key, value.ToString());
                 }
@@ -115,7 +97,7 @@ namespace HotChocolate.AspNetCore
 
         private string? ConvertHttpMethodToString(DefaultHttpMethod? httpMethod)
         {
-            if (httpMethod is { })
+            if (httpMethod is not null)
             {
                 switch (httpMethod)
                 {
@@ -129,25 +111,9 @@ namespace HotChocolate.AspNetCore
             return null;
         }
 
-        private string CreateEndpointUri(string host, string path, bool isSecure, bool isWebSocket)
-        {
-            string scheme = isWebSocket ? "ws" : "http";
-
-            scheme = isSecure ? $"{scheme}s" : scheme;
-
-            return $"{scheme}://{host}{path}";
-        }
-
         private class BananaCakePopConfiguration
         {
-            public BananaCakePopConfiguration(string schemaEndpoint)
-            {
-                SchemaEndpoint = schemaEndpoint;
-            }
-
-            public string SchemaEndpoint { get; }
-
-            public string? SubscriptionEndpoint { get; set; }
+            public bool UseBrowserUrlAsEndpoint { get; } = true;
 
             public bool? EndpointEditable { get; set; }
 

@@ -76,7 +76,8 @@ namespace HotChocolate.Data.Sorting
 
                 for (var i = 0; i < Definition.ProviderExtensions.Count; i++)
                 {
-                    sortConvention.Definition.ProviderExtensions.Add(Definition.ProviderExtensions[i]);
+                    sortConvention.Definition.ProviderExtensions.Add(
+                        Definition.ProviderExtensions[i]);
                 }
 
                 for (var i = 0; i < Definition.ProviderExtensionsTypes.Count; i++)

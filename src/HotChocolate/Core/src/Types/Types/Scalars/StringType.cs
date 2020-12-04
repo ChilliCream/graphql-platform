@@ -47,10 +47,8 @@ namespace HotChocolate.Types
             return valueSyntax.Value;
         }
 
-        protected override StringValueNode ParseValue(string runtimeValue)
-        {
-            return new StringValueNode(runtimeValue);
-        }
+        protected override StringValueNode ParseValue(string runtimeValue) =>
+            new(runtimeValue);
 
         public override IValueNode ParseResult(object? resultValue) =>
             ParseValue(resultValue);

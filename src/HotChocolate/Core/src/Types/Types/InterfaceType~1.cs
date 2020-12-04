@@ -8,7 +8,7 @@ namespace HotChocolate.Types
     public class InterfaceType<T>
         : InterfaceType
     {
-        private Action<IInterfaceTypeDescriptor<T>> _configure;
+        private readonly Action<IInterfaceTypeDescriptor<T>> _configure;
 
         public InterfaceType()
         {

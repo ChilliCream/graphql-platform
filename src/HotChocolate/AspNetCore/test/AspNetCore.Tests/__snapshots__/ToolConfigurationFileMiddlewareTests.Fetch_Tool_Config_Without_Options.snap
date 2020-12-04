@@ -1,5 +1,5 @@
 ﻿{
-  "Content": "{\"schemaEndpoint\":\"http://localhost:5000/graphql\",\"subscriptionEndpoint\":\"ws://localhost:5000/graphql\",\"endpointEditable\":true}",
+  "Content": "{\"useBrowserUrlAsEndpoint\":true}",
   "ContentType": {
     "CharSet": "utf-8",
     "Parameters": [
