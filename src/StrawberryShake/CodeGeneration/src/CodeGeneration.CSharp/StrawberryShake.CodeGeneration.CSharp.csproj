@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+
+  <PropertyGroup>
+    <PackageId>StrawberryShake.CodeGeneration.CSharp</PackageId>
+    <AssemblyName>StrawberryShake.CodeGeneration.CSharp</AssemblyName>
+    <RootNamespace>StrawberryShake.CodeGeneration.CSharp</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CodeGeneration\StrawberryShake.CodeGeneration.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--PackageReference Include="System.Collections.Immutable" Version="1.7.0" />
+    <PackageReference Include="System.Text.Json" Version="4.7.0" /-->
+  </ItemGroup>
+
+</Project>
