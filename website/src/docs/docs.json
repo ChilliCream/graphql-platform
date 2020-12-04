@@ -107,6 +107,10 @@
                 "title": "Overview"
               },
               {
+                "path": "object-type",
+                "title": "Object Type"
+              },
+              {
                 "path": "language",
                 "title": "Lanugage"
               },
