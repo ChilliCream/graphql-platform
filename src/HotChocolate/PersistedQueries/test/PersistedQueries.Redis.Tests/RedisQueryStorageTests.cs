@@ -3,6 +3,7 @@ using System.Text;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Language.Utilities;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Squadron;
@@ -14,7 +15,7 @@ namespace HotChocolate.PersistedQueries.Redis
     public class RedisQueryStorageTests
         : IClassFixture<RedisResource>
     {
-        private IDatabase _database;
+        private readonly IDatabase _database;
 
         public RedisQueryStorageTests(RedisResource redisResource)
         {
@@ -38,10 +39,7 @@ namespace HotChocolate.PersistedQueries.Redis
 
                 // assert
                 var buffer = (byte[])await _database.StringGetAsync(queryId);
-
-                string s = QuerySyntaxSerializer.Serialize(
-                    Utf8GraphQLParser.Parse(buffer));
-                Snapshot.Match(s, snapshotName);
+                Utf8GraphQLParser.Parse(buffer).Print().MatchSnapshot(snapshotName);
             },
             () => _database.KeyDeleteAsync(queryId));
         }
@@ -51,38 +49,32 @@ namespace HotChocolate.PersistedQueries.Redis
         [Theory]
         public Task Write_Query_QueryId_Invalid(string queryId)
         {
-            SnapshotFullName snapshotName = Snapshot.FullName();
-
             return TryTest(async () =>
             {
                 var storage = new RedisQueryStorage(_database);
                 var query = new QuerySourceText("{ foo }");
 
                 // act
-                Func<Task> action =
-                    () => storage.WriteQueryAsync(queryId, query);
+                Task Action() => storage.WriteQueryAsync(queryId, query);
 
                 // assert
-                await Assert.ThrowsAsync<ArgumentNullException>(action);
+                await Assert.ThrowsAsync<ArgumentNullException>(Action);
             });
         }
 
         [Fact]
         public Task Write_Query_Query_Is_Null()
         {
-            SnapshotFullName snapshotName = Snapshot.FullName();
-
             return TryTest(async () =>
             {
                 var storage = new RedisQueryStorage(_database);
                 var queryId = Guid.NewGuid().ToString("N");
 
                 // act
-                Func<Task> action =
-                    () => storage.WriteQueryAsync(queryId, null);
+                Task Action() => storage.WriteQueryAsync(queryId, null!);
 
                 // assert
-                await Assert.ThrowsAsync<ArgumentNullException>(action);
+                await Assert.ThrowsAsync<ArgumentNullException>(Action);
             });
         }
 
@@ -104,9 +96,7 @@ namespace HotChocolate.PersistedQueries.Redis
 
                 // assert
                 Assert.NotNull(query);
-                string s = QuerySyntaxSerializer.Serialize(
-                    query.Document);
-                Snapshot.Match(s, snapshotName);
+                query.Document.Print().MatchSnapshot(snapshotName);
             },
             () => _database.KeyDeleteAsync(queryId));
         }
@@ -116,18 +106,15 @@ namespace HotChocolate.PersistedQueries.Redis
         [Theory]
         public Task Read_Query_QueryId_Invalid(string queryId)
         {
-            SnapshotFullName snapshotName = Snapshot.FullName();
-
             return TryTest(async () =>
             {
                 var storage = new RedisQueryStorage(_database);
 
                 // act
-                Func<Task> action =
-                    () => storage.TryReadQueryAsync(queryId);
+                Task Action() => storage.TryReadQueryAsync(queryId);
 
                 // assert
-                await Assert.ThrowsAsync<ArgumentNullException>(action);
+                await Assert.ThrowsAsync<ArgumentNullException>(Action);
             });
         }
 
@@ -136,8 +123,8 @@ namespace HotChocolate.PersistedQueries.Redis
             Func<Task> cleanup = null)
         {
             // we will try four times ....
-            int count = 0;
-            int wait = 50;
+            var count = 0;
+            var wait = 50;
 
             while (true)
             {
@@ -177,7 +164,7 @@ namespace HotChocolate.PersistedQueries.Redis
                 }
 
                 await Task.Delay(wait).ConfigureAwait(false);
-                wait = wait * 2;
+                wait *= 2;
                 count++;
             }
         }

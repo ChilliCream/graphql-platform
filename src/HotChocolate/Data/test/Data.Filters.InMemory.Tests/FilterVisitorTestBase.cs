@@ -28,7 +28,8 @@ namespace HotChocolate.Data.Filters
         protected IRequestExecutor CreateSchema<TEntity, T>(
             TEntity[] entities,
             FilterConvention? convention = null,
-            bool withPaging = false)
+            bool withPaging = false,
+            Action<ISchemaBuilder>? configure = null)
             where TEntity : class
             where T : FilterInputType<TEntity>
         {
@@ -66,6 +67,8 @@ namespace HotChocolate.Data.Filters
 
                         field.UseFiltering<T>();
                     });
+
+            configure?.Invoke(builder);
 
             ISchema schema = builder.Create();
 

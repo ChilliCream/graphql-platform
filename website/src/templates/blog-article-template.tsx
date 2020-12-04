@@ -15,22 +15,11 @@ const BlogArticleTemplate: FunctionComponent<BlogArticleTemplateProperties> = ({
   return (
     <Layout>
       <SEO
+        description={data.markdownRemark!.excerpt || undefined}
+        imageUrl={data.markdownRemark!.frontmatter!.featuredImage
+          ?.childImageSharp!.fluid!.src}
+        isArticle
         title={data.markdownRemark!.frontmatter!.title!}
-        meta={[
-          {
-            property: "og:type",
-            content: "article",
-          },
-          ...(data.markdownRemark!.frontmatter!.featuredImage
-            ? [
-                {
-                  property: "og:image",
-                  content: data.markdownRemark!.frontmatter!.featuredImage
-                    ?.childImageSharp!.fluid!.src,
-                },
-              ]
-            : []),
-        ]}
       />
       <BlogArticle data={data} />
     </Layout>

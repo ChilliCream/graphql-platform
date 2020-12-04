@@ -8,7 +8,9 @@ export const BlogPostVersion11: FunctionComponent = () => {
   const data = useStaticQuery<GetBlogPostVersion11ImageQuery>(graphql`
     query getBlogPostVersion11Image {
       file(
-        relativePath: { eq: "2020-07-16-version-11/banner-v11.png" }
+        relativePath: {
+          eq: "2020-11-23-hot-chocolate-11/hot-chocolate-11-banner.png"
+        }
         sourceInstanceName: { eq: "blog" }
       ) {
         childImageSharp {
