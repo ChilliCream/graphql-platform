@@ -2,227 +2,159 @@
 title: "Schema basics"
 ---
 
-The schema in GraphQL specifies the capabilities of the API and defines how clients can request the data. It is often seen as a contract between the server and client. Generally, a schema is simply a collection of GraphQL types and GraphQL directives.
+The schema in GraphQL represents the type system and exposes your business model in a strong and rich way. The schema fully describes the shape of your data and how you can interact with it.
 
-Further, the schema specifies the root types that are available. Each root type in GraphQL represents a certain operation type. In GraphQL we have the following operations that you can specify.
+The most important type in GraphQL is the object type which lets you consume data. Every object type has to have at least one field which holds the data of an object. Fields can return simple scalars like String, Int, or again object types.
 
-| Operation    | Description                                                                                                                                       |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Query        | The query operation type represents side-effect free read operations.                                                                             |
-| Mutation     | The mutation operation type represents all the operations that have side-effect. So, essentially everything that changes something in your server |
-| Subscription | The subscription operation represent real-time events a consumer can subscribe to.                                                                |
-
-The mutation and subscription operation are optional; The query operation type on the other hand is obligatory.
-
-# Declaring a Schema
-
-In Hot Chocolate a schema is defined by adding a GraphQL server configuration to a `IServiceCollection` and adding types to it. The following example adds a GraphQL server and adds a
-
-```csharp
-public void ConfigureServices(IServiceCollection services)
-{
-    services
-        .AddGraphQLServer()
-        .AddQueryType<Query>();
-}
-
-public class Query
-{
-    public string Hello() => "World";
+```SDL
+type Book {
+  title: String
+  author: String
 }
 ```
 
-The above schema will result in the following GraphQL SDL.
+In GraphQL, we have three root types from which only the Query type has to be defined. Root types provide the entry points that let you fetch data, mutate data, or subscribe to events. Root types themself are object types.
 
-```sdl
+```SDL
 schema {
   query: Query
 }
 
 type Query {
-  hello: String
+  book: Book
+}
+
+type Book {
+  title: String
+  author: String
 }
 ```
 
-With the schema builder we can define what types our schema will have and how data is resolved.
+In Hot Chocolate, there are three ways to define an object type.
 
-There are basically two ways to define a schema, with code or with the GraphQL SDL. We can mix and match code and SDL and are not bound to stick just to one specific way to define our schema.
+> **Note:** Every single code example will be shown in three different approaches, annotation-based (previously known as pure code-first), code-first, and schema-first. However, they will always result in the same outcome on a GraphQL schema perspective and internally in Hot Chocolate. All three approaches have their pros and cons and can be combined when needed with each other. If you would like to learn more about the three approaches in Hot Chocolate, click on [Coding Approaches](/docs/hotchocolate/api-reference/coding-approaches).
 
-In schema-first we could create a simple hello world schema like the following:
-
-```csharp
-ISchema schema = SchemaBuilder.New()
-    .AddDocumentFromString("type Query { hello: String }")
-    .AddResolver("Query", "hello", "World")
-    .Create();
-```
-
-In code-first we can again choose two approaches and again we can mix and match them. The first approach is to define the GraphQL types via POCOs and infer the GraphQL schema type structure with conventions.
-
-With conventions we could create our above schema like the following:
+**Annotation-based approach**
 
 ```csharp
+// Query.cs
 public class Query
 {
-    public string Hello() => "World";
+    public Book GetBook() => new Book { Title  = "C# in depth", Author = "Jon Skeet" };
 }
 
-ISchema schema = SchemaBuilder.New()
-    .AddQueryType<Query>()
-    .Create();
-```
-
-Hot Chocolate provides a collection of conventions and attributes to express a schema with POCOs. In many cases the default conventions should be enough, but from version 9 on we have centralised these conventions into two classes. If you do not like our default conventions or if you want to bring your own set of custom attributes, then you can overwrite or extend the default conventions.
-
-> If you want to read more about conventions head over [here](/docs/hotchocolate/v10/schema/conventions).
-
-The second way to express a schema in code-first is to declare schema types. Schema types allow us to exactly express the structure and properties of our schema:
-
-```csharp
-public class QueryType
-    : ObjectType
+// Book.cs
+public class Book
 {
-    protected override void Configure(IObjectTypeDescriptor descriptor)
-    {
-        descriptor.Field("hello").Resolver("World");
-    }
+    public string Title { get; set; }
+
+    public string Author { get; set; }
 }
 
-ISchema schema = SchemaBuilder.New()
-    .AddQueryType<QueryType>()
-    .Create();
+// Startup.cs
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddRouting()
+            .AddGraphQLServer()
+            .AddQueryType<Query>();
+    }
+
+    // Omitted code for brevity
+}
 ```
 
-We could also use our generic variant in order to have the best of both worlds:
+**Code-first approach**
 
 ```csharp
-public class QueryType
-    : ObjectType<Query>
+// Query.cs
+public class Query
+{
+    public Book GetBook() => new Book { Title  = "C# in depth", Author = "Jon Skeet" };
+}
+
+// QueryType.cs
+public class QueryType : ObjectType<Query>
 {
     protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
     {
-        descriptor.Field("foo").Resolver("bar");
+        descriptor
+            .Field(f => f.GetBook())
+            .Type<BookType>();
     }
 }
 
+// Book.cs
+public class Book
+{
+    public string Title { get; set; }
+
+    public string Author { get; set; }
+}
+
+// BookType.cs
+public class BookType : ObjectType<Book>
+{
+    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
+    {
+        descriptor
+            .Field(f => f.Title)
+            .Type<StringType>();
+
+        descriptor
+            .Field(f => f.Author)
+            .Type<StringType>();
+    }
+}
+
+
+// Startup.cs
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddRouting()
+            .AddGraphQLServer()
+            .AddQueryType<QueryType>();
+    }
+
+    // Omitted code for brevity
+}
+```
+
+**Schema-first approach**
+
+```csharp
+// Query.cs
 public class Query
 {
-    public string Hello() => "World";
+    public string Say() => "Hello World!";
 }
 
-ISchema schema = SchemaBuilder.New()
-    .AddQueryType<QueryType>()
-    .Create();
-```
-
-The above example would yield the following schema:
-
-```sdl
-type Query {
-  hello: String
-  foo: String
-}
-```
-
-Hot Chocolate will always try to figure the provided schema out, that means that we will infer the fields from the provided types. Also, we can extend those types by declaring further fields. As with everything we can opt out of this behavior.
-
-> In order to see more about what capabilities our ObjectType has head over [here](/docs/hotchocolate/v10/schema/object-type).
-
-As I mentioned earlier, we can mix and match our approach and also extend schema-first fields with code-first:
-
-```csharp
-public class QueryTypeExtension
-    : ObjectTypeExtension
+// Startup.cs
+public class Startup
 {
-    protected override void Configure(IObjectTypeDescriptor descriptor)
+    public void ConfigureServices(IServiceCollection services)
     {
-        descriptor.Field("foo").Resolver("bar");
+        services
+            .AddRouting()
+            .AddGraphQLServer()
+            .AddDocumentFromString(@"
+                type Query {
+                  book: Book
+                }
+
+                type Book {
+                  title: String
+                  author: String
+                }
+            ")
+            .BindComplexType<Query>();
     }
-}
 
-ISchema schema = SchemaBuilder.New()
-    .AddDocumentFromString("type Query { hello: String }")
-    .AddResolver("Query", "hello", "World")
-    .AddType<QueryTypeExtension>()
-    .Create();
-```
-
-The above example would again yield the following schema:
-
-```sdl
-type Query {
-  hello: String
-  foo: String
+    // Omitted code for brevity
 }
 ```
-
-This is very useful with schema stitching, since this allows us to consume remote schemas and extend them with code-first.
-
-# Binding Types
-
-Types in a schema can be bound to a specific .NET type. When the schema builder infers schema types from .NET types it will basically lookup to which schema type a .NET type can be bound. For instance a `string` will be bound to a `StringType`.
-
-We can also bind additional types to a single schema type. For instance we can bind the `System.Guid` to our `StringType`.
-
-```csharp
-ISchema schema = SchemaBuilder.New()
-    ...
-    .BindClrType<Guid, StringType>()
-    .Create();
-```
-
-You can also rebind scalars with this, so instead of the default `int` to `IntType` binding we could bind that as well to our `StringType`.
-
-```csharp
-ISchema schema = SchemaBuilder.New()
-    ...
-    .BindClrType<int, StringType>()
-    .Create();
-```
-
-# Overwriting Schema Properties
-
-Like with any type in Hot Chocolate we can inherit from schema in order to provide further logic and details. If we for instance wanted to provide a schema description or decorate the schema with directives, we could do that like the following:
-
-```csharp
-public class MySchema
-    : Schema
-{
-    protected override void Configure(ISchemaDescriptor descriptor)
-    {
-        descriptor.Description("This is my schema description that can be accessed by introspection");
-    }
-}
-
-ISchema schema = SchemaBuilder.New()
-    .AddDocumentFromString("type Query { hello: String }")
-    .AddResolver("Query", "hello", "World")
-    .SetSchema<MySchema>()
-    .Create();
-```
-
-# Make it Executable
-
-The schema object that we create with the `SchemaBuilder` describes the set of possible data we can query. In order to actually query data of that schema we have to make it executable.
-
-```csharp
-IQueryExecutor executor = schema.MakeExecutable();
-```
-
-We can create multiple executors on a single schema and define different execution rules on the executor.
-
-In most cases we will not need to know about this fact since most of the time the schema is hosted in ASP.NET and the middleware will take care of making it executable. But it is worth knowing it in case we want to write a unit test, host a query executor in a different environment than ASP.NET, or change the behavior of the executor.
-
----
-
-Use this section as an introduction to explain what a reader can expect of this document.
-
-We're currently working on the version 11 documentation. Probably right now at this very moment. However, this is an open-source project, and we need any help we can get! You can jump in at any time and help us improve the documentation for hundreds or even thousands of developers!
-
-In case you might need help, check out our [Slack channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q) and get immediate help from the core contributors or the community itself.
-
-Sorry for any inconvenience, and thank you for being patient!
-
-The ChilliCream Team
-
-<br><br><br>
