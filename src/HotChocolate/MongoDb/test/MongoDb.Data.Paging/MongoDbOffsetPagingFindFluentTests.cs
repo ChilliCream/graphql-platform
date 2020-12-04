@@ -15,7 +15,7 @@ using Xunit;
 
 namespace HotChocolate.MongoDb.Data.Paging
 {
-    public class MongoDbCursorPagingAggregateFluentTests : IClassFixture<MongoResource>
+    public class MongoDbOffsetPagingFindFluentTests : IClassFixture<MongoResource>
     {
         private readonly List<Foo> foos = new List<Foo>
         {
@@ -28,7 +28,7 @@ namespace HotChocolate.MongoDb.Data.Paging
 
         private readonly MongoResource _resource;
 
-        public MongoDbCursorPagingAggregateFluentTests(MongoResource resource)
+        public MongoDbOffsetPagingFindFluentTests(MongoResource resource)
         {
             _resource = resource;
         }
@@ -45,28 +45,21 @@ namespace HotChocolate.MongoDb.Data.Paging
                     @"
                 {
                     foos {
-                        edges {
-                            node {
-                                bar
-                            }
-                            cursor
-                        }
-                        nodes {
+                        items {
                             bar
                         }
                         pageInfo {
                             hasNextPage
                             hasPreviousPage
-                            startCursor
-                            endCursor
                         }
+                        totalCount
                     }
                 }")
                 .MatchDocumentSnapshotAsync();
         }
 
         [Fact]
-        public async Task Simple_StringList_First_2()
+        public async Task Simple_StringList_Take_2()
         {
             Snapshot.FullName();
 
@@ -76,21 +69,13 @@ namespace HotChocolate.MongoDb.Data.Paging
                 .ExecuteAsync(
                     @"
                 {
-                    foos(first: 2) {
-                        edges {
-                            node {
-                                bar
-                            }
-                            cursor
-                        }
-                        nodes {
+                    foos(take: 2) {
+                        items {
                             bar
                         }
                         pageInfo {
                             hasNextPage
                             hasPreviousPage
-                            startCursor
-                            endCursor
                         }
                     }
                 }")
@@ -98,7 +83,7 @@ namespace HotChocolate.MongoDb.Data.Paging
         }
 
         [Fact]
-        public async Task Simple_StringList_First_2_After()
+        public async Task Simple_StringList_Take_2_After()
         {
             Snapshot.FullName();
 
@@ -108,21 +93,13 @@ namespace HotChocolate.MongoDb.Data.Paging
                 .ExecuteAsync(
                     @"
                 {
-                    foos(first: 2 after: ""MQ=="") {
-                        edges {
-                            node {
-                                bar
-                            }
-                            cursor
-                        }
-                        nodes {
+                    foos(take: 2 skip: 2) {
+                        items {
                             bar
                         }
                         pageInfo {
                             hasNextPage
                             hasPreviousPage
-                            startCursor
-                            endCursor
                         }
                     }
                 }")
@@ -142,20 +119,12 @@ namespace HotChocolate.MongoDb.Data.Paging
                     @"
                 {
                     foos {
-                        edges {
-                            node {
-                                bar
-                            }
-                            cursor
-                        }
-                        nodes {
+                        items {
                             bar
                         }
                         pageInfo {
                             hasNextPage
                             hasPreviousPage
-                            startCursor
-                            endCursor
                         }
                     }
                 }")
@@ -199,7 +168,7 @@ namespace HotChocolate.MongoDb.Data.Paging
 
             collection.InsertMany(results);
 
-            return ctx => collection.Aggregate().AsExecutable();
+            return ctx => collection.AsExecutable();
         }
 
         private ValueTask<IRequestExecutor> CreateSchemaAsync()
@@ -223,7 +192,7 @@ namespace HotChocolate.MongoDb.Data.Paging
                                         context.ContextData["query"] = executable.Print();
                                     }
                                 })
-                            .UseMongoPaging<ObjectType<Foo>>(
+                            .UseMongoOffsetPaging<ObjectType<Foo>>(
                                 options: new PagingOptions { IncludeTotalCount = true });
                     })
                 .UseRequest(
