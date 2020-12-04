@@ -4,7 +4,7 @@ title: Filtering
 
 # What is filtering
 
-With _Hot Chocolate_ filters, you can expose complex filter objects through your GraphQL API that translates to native database queries. The default filter implementation translates filters to expression trees that are applied to `IQueryable`.
+With Hot Chocolate filters, you can expose complex filter objects through your GraphQL API that translates to native database queries. The default filter implementation translates filters to expression trees that are applied to `IQueryable`.
 Hot Chocolate by default will inspect your .NET model and infer the possible filter operations from it.
 Filters use `IQueryable` (`IEnumerable`) by default, but you can also easily customize them to use other interfaces.
 

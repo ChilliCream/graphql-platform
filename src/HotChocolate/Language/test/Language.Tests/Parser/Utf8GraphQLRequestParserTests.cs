@@ -17,7 +17,7 @@ namespace HotChocolate.Language
         public void Utf8GraphQLRequestParser_Parse()
         {
             // arrange
-            byte[] source = Encoding.UTF8.GetBytes(
+            var source = Encoding.UTF8.GetBytes(
                 JsonConvert.SerializeObject(
                     new GraphQLRequestDto
                     {
@@ -38,8 +38,7 @@ namespace HotChocolate.Language
                     Assert.Null(r.Variables);
                     Assert.Null(r.Extensions);
 
-                    QuerySyntaxSerializer.Serialize(r.Query!, true)
-                        .MatchSnapshot();
+                    r.Query!.ToString(true).MatchSnapshot();
                 });
         }
 
@@ -47,7 +46,7 @@ namespace HotChocolate.Language
         public void Utf8GraphQLRequestParser_ParseJson()
         {
             // arrange
-            byte[] source = Encoding.UTF8.GetBytes(
+            var source = Encoding.UTF8.GetBytes(
                 JsonConvert.SerializeObject(
                     new GraphQLRequestDto
                     {
@@ -56,7 +55,7 @@ namespace HotChocolate.Language
                     }).NormalizeLineBreaks());
 
             // act
-            var obj = Utf8GraphQLRequestParser.ParseJson(source);
+            object obj = Utf8GraphQLRequestParser.ParseJson(source);
 
             // assert
             obj.MatchSnapshot();
@@ -66,15 +65,14 @@ namespace HotChocolate.Language
         public void Utf8GraphQLRequestParser_ParseJson_FromString()
         {
             // arrange
-            string json = JsonConvert.SerializeObject(
+            var json = JsonConvert.SerializeObject(
                 new GraphQLRequestDto
                 {
-                    Query = FileResource.Open("kitchen-sink.graphql")
-                        .NormalizeLineBreaks()
+                    Query = FileResource.Open("kitchen-sink.graphql").NormalizeLineBreaks()
                 }).NormalizeLineBreaks();
 
             // act
-            var obj = Utf8GraphQLRequestParser.ParseJson(json);
+            object obj = Utf8GraphQLRequestParser.ParseJson(json);
 
             // assert
             obj.MatchSnapshot();
@@ -84,7 +82,7 @@ namespace HotChocolate.Language
         public void Utf8GraphQLRequestParser_ParseJsonObject()
         {
             // arrange
-            byte[] source = Encoding.UTF8.GetBytes(
+            var source = Encoding.UTF8.GetBytes(
                 JsonConvert.SerializeObject(
                     new GraphQLRequestDto
                     {
@@ -93,7 +91,8 @@ namespace HotChocolate.Language
                     }).NormalizeLineBreaks());
 
             // act
-            var obj = Utf8GraphQLRequestParser.ParseJsonObject(source);
+            IReadOnlyDictionary<string, object> obj =
+                Utf8GraphQLRequestParser.ParseJsonObject(source);
 
             // assert
             obj.MatchSnapshot();
@@ -103,7 +102,7 @@ namespace HotChocolate.Language
         public void Utf8GraphQLRequestParser_ParseJsonObject_FromString()
         {
             // arrange
-            string json = JsonConvert.SerializeObject(
+            var json = JsonConvert.SerializeObject(
                 new GraphQLRequestDto
                 {
                     Query = FileResource.Open("kitchen-sink.graphql")
@@ -111,7 +110,8 @@ namespace HotChocolate.Language
                 }).NormalizeLineBreaks();
 
             // act
-            var obj = Utf8GraphQLRequestParser.ParseJsonObject(json);
+            IReadOnlyDictionary<string, object> obj =
+                Utf8GraphQLRequestParser.ParseJsonObject(json);
 
             // assert
             obj.MatchSnapshot();
@@ -121,7 +121,7 @@ namespace HotChocolate.Language
         public void Parse_Kitchen_Sink_Query_No_Cache()
         {
             // arrange
-            byte[] source = Encoding.UTF8.GetBytes(
+            var source = Encoding.UTF8.GetBytes(
                 JsonConvert.SerializeObject(
                     new GraphQLRequestDto
                     {
@@ -144,8 +144,7 @@ namespace HotChocolate.Language
                     Assert.Null(r.Variables);
                     Assert.Null(r.Extensions);
 
-                    QuerySyntaxSerializer.Serialize(r.Query!, true)
-                        .MatchSnapshot();
+                    r.Query!.ToString(true).MatchSnapshot();
                 });
         }
 
@@ -153,12 +152,11 @@ namespace HotChocolate.Language
         public void Parse_Kitchen_Sink_Query_With_Russian_Characters()
         {
             // arrange
-            byte[] source = Encoding.UTF8.GetBytes(
+            var source = Encoding.UTF8.GetBytes(
                 JsonConvert.SerializeObject(
                     new GraphQLRequestDto
                     {
-                        Query = FileResource.Open("russian-literals.graphql")
-                            .NormalizeLineBreaks()
+                        Query = FileResource.Open("russian-literals.graphql").NormalizeLineBreaks()
                     }).NormalizeLineBreaks());
 
             // act
@@ -176,8 +174,7 @@ namespace HotChocolate.Language
                     Assert.Null(r.Variables);
                     Assert.Null(r.Extensions);
 
-                    QuerySyntaxSerializer.Serialize(r.Query!, true)
-                        .MatchSnapshot();
+                    r.Query!.ToString(true).MatchSnapshot();
                 });
         }
 
@@ -185,7 +182,7 @@ namespace HotChocolate.Language
         public void Parse_Kitchen_Sink_Query_With_Russian_Escaped_Characters()
         {
             // arrange
-            byte[] source = Encoding.UTF8.GetBytes(
+            var source = Encoding.UTF8.GetBytes(
                 FileResource.Open("russian_utf8_escape_characters.json")
                     .NormalizeLineBreaks());
 
@@ -204,8 +201,7 @@ namespace HotChocolate.Language
                     Assert.Null(r.Variables);
                     Assert.Null(r.Extensions);
 
-                    QuerySyntaxSerializer.Serialize(r.Query!, true)
-                        .MatchSnapshot();
+                    r.Query!.ToString(true).MatchSnapshot();
                 });
         }
 
@@ -219,11 +215,11 @@ namespace HotChocolate.Language
                     .NormalizeLineBreaks()
             };
 
-            byte[] buffer = Encoding.UTF8.GetBytes(request.Query);
+            var buffer = Encoding.UTF8.GetBytes(request.Query);
             var expectedHash = Convert.ToBase64String(
                 SHA1.Create().ComputeHash(buffer));
 
-            byte[] source = Encoding.UTF8.GetBytes(
+            var source = Encoding.UTF8.GetBytes(
                 JsonConvert.SerializeObject(request
                     ).NormalizeLineBreaks());
 
@@ -258,8 +254,7 @@ namespace HotChocolate.Language
                     Assert.Null(r.Extensions);
 
                     Assert.Equal(expectedHash, r.QueryId);
-                    QuerySyntaxSerializer.Serialize(r.Query!, true)
-                        .MatchSnapshot();
+                    r.Query!.ToString(true).MatchSnapshot();
                 });
         }
 
@@ -274,11 +269,11 @@ namespace HotChocolate.Language
                     .NormalizeLineBreaks()
             };
 
-            byte[] source = Encoding.UTF8.GetBytes(
+            var source = Encoding.UTF8.GetBytes(
                 JsonConvert.SerializeObject(request
                     ).NormalizeLineBreaks());
 
-            byte[] buffer = Encoding.UTF8.GetBytes(request.Query);
+            var buffer = Encoding.UTF8.GetBytes(request.Query);
             var expectedHash = Convert.ToBase64String(
                 SHA1.Create().ComputeHash(buffer));
 
@@ -302,8 +297,7 @@ namespace HotChocolate.Language
                     Assert.Null(r.Extensions);
 
                     Assert.Equal(expectedHash, r.QueryId);
-                    QuerySyntaxSerializer.Serialize(r.Query!, true)
-                        .MatchSnapshot();
+                    r.Query!.ToString(true).MatchSnapshot();
                 });
         }
 
@@ -318,11 +312,11 @@ namespace HotChocolate.Language
                     .NormalizeLineBreaks()
             };
 
-            byte[] source = Encoding.UTF8.GetBytes(
+            var source = Encoding.UTF8.GetBytes(
                 JsonConvert.SerializeObject(request
                     ).NormalizeLineBreaks());
 
-            byte[] buffer = Encoding.UTF8.GetBytes(request.Query);
+            var buffer = Encoding.UTF8.GetBytes(request.Query);
             var expectedHash = Convert.ToBase64String(
                 SHA1.Create().ComputeHash(buffer));
 
@@ -347,8 +341,7 @@ namespace HotChocolate.Language
 
                     Assert.Equal("FooBar", r.QueryId);
                     Assert.Equal(expectedHash, r.QueryHash);
-                    QuerySyntaxSerializer.Serialize(r.Query!, true)
-                        .MatchSnapshot();
+                    r.Query!.ToString(true).MatchSnapshot();
                 });
         }
 
@@ -356,7 +349,7 @@ namespace HotChocolate.Language
         public void Parse_Kitchen_Sink_Query_AllProps_No_Cache()
         {
             // arrange
-            byte[] source = Encoding.UTF8.GetBytes(
+            var source = Encoding.UTF8.GetBytes(
                 JsonConvert.SerializeObject(
                     new GraphQLRequestDto
                     {
@@ -420,8 +413,8 @@ namespace HotChocolate.Language
                         new SnapshotNameExtension("Variables"));
                     r.Extensions.MatchSnapshot(
                         new SnapshotNameExtension("Extensions"));
-                    QuerySyntaxSerializer.Serialize(r.Query!, true)
-                        .MatchSnapshot(new SnapshotNameExtension("Query"));
+                    r.Query!.ToString(true).MatchSnapshot(
+                        new SnapshotNameExtension("Query"));
                 });
         }
 
@@ -429,7 +422,7 @@ namespace HotChocolate.Language
         public void Parse_Json()
         {
             // arrange
-            byte[] source = Encoding.UTF8.GetBytes(
+            var source = Encoding.UTF8.GetBytes(
                 JsonConvert.SerializeObject(
                     new GraphQLRequestDto
                     {
@@ -486,7 +479,7 @@ namespace HotChocolate.Language
         public void Parse_Socket_Message()
         {
             // arrange
-            byte[] source = Encoding.UTF8.GetBytes(
+            var source = Encoding.UTF8.GetBytes(
                 JsonConvert.SerializeObject(
                     new Dictionary<string, object>
                     {
@@ -570,7 +563,7 @@ namespace HotChocolate.Language
         public void Parse_Apollo_AQP_SignatureQuery_Variables_Without_Values()
         {
             // arrange
-            byte[] source = Encoding.UTF8.GetBytes(
+            var source = Encoding.UTF8.GetBytes(
                 FileResource.Open("Apollo_AQP_QuerySignature_2.json")
                     .NormalizeLineBreaks());
 
@@ -600,7 +593,7 @@ namespace HotChocolate.Language
         public void Parse_Apollo_AQP_FullRequest_And_Verify_Hash()
         {
             // arrange
-            byte[] source = Encoding.UTF8.GetBytes(
+            var source = Encoding.UTF8.GetBytes(
                 FileResource.Open("Apollo_AQP_FullRequest.json")
                     .NormalizeLineBreaks());
 
@@ -636,7 +629,7 @@ namespace HotChocolate.Language
         public void Parse_Float_Exponent_Format()
         {
             // arrange
-            byte[] source = Encoding.UTF8.GetBytes(
+            var source = Encoding.UTF8.GetBytes(
                 FileResource.Open("Float.json")
                 .NormalizeLineBreaks());
 
@@ -655,7 +648,7 @@ namespace HotChocolate.Language
                 () =>
                 {
                     // arrange
-                    byte[] source = Encoding.UTF8.GetBytes("{\"query\":\"\"}"
+                    var source = Encoding.UTF8.GetBytes("{\"query\":\"\"}"
                         .NormalizeLineBreaks());
                     var parserOptions = new ParserOptions();
                     var requestParser = new Utf8GraphQLRequestParser(
@@ -677,7 +670,7 @@ namespace HotChocolate.Language
                 () =>
                 {
                     // arrange
-                    byte[] source = Encoding.UTF8.GetBytes("{ }"
+                    var source = Encoding.UTF8.GetBytes("{ }"
                         .NormalizeLineBreaks());
                     var parserOptions = new ParserOptions();
                     var requestParser = new Utf8GraphQLRequestParser(
@@ -699,8 +692,7 @@ namespace HotChocolate.Language
                 () =>
                 {
                     // arrange
-                    byte[] source = Encoding.UTF8.GetBytes(""
-                        .NormalizeLineBreaks());
+                    var source = Encoding.UTF8.GetBytes(string.Empty);
                     var parserOptions = new ParserOptions();
                     var requestParser = new Utf8GraphQLRequestParser(
                         source,
@@ -721,8 +713,7 @@ namespace HotChocolate.Language
                 () =>
                 {
                     // arrange
-                    byte[] source = Encoding.UTF8.GetBytes(" "
-                        .NormalizeLineBreaks());
+                    var source = Encoding.UTF8.GetBytes(" ");
                     var parserOptions = new ParserOptions();
                     var requestParser = new Utf8GraphQLRequestParser(
                         source,

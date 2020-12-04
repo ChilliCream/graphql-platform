@@ -9,7 +9,7 @@ authorUrl: https://github.com/michaelstaib
 authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
 
-In this post I will walk you through how to build a GraphQL Server using _Hot Chocolate_ and _Entity Framework_.
+In this post I will walk you through how to build a GraphQL Server using Hot Chocolate and _Entity Framework_.
 
 _Entity Framework_ is an OR-mapper from Microsoft that implements the unit-of-work pattern. This basically means that with _Entity Framework_ we work against a `DbContext` and once in a while commit changes aggregated on that context to the database by invoking `SaveChanges`.
 
@@ -232,7 +232,7 @@ dotnet add package HotChocolate.AspNetCore
 dotnet add package HotChocolate.Types.Selections
 ```
 
-With _Hot Chocolate_ and the _pure code-first_ approach the query root type is represented by a simple class. Public methods or public properties on that type are inferred as fields of our GraphQL type.
+With Hot Chocolate and the _pure code-first_ approach the query root type is represented by a simple class. Public methods or public properties on that type are inferred as fields of our GraphQL type.
 
 The following class:
 
@@ -257,7 +257,7 @@ type Query {
 }
 ```
 
-> _Hot Chocolate_ will apply GraphQL conventions to inferred types which will remove the verb `Get` for instance from the method or if it is an async method the postfix `async` will be removed. These conventions can be configured.
+> Hot Chocolate will apply GraphQL conventions to inferred types which will remove the verb `Get` for instance from the method or if it is an async method the postfix `async` will be removed. These conventions can be configured.
 
 In GraphQL we call the method `GetStudents` a resolver since it resolves for us some data. Resolvers are executed independent from one another and each resolver has dependencies on different resources. Everything that a resolver needs can be injected as a method parameter. Our `GetStudents` resolver for instance needs the `ShoolContext` to fetch some data. By using argument injection the execution engine can better optimize how to execute a query.
 
@@ -274,7 +274,7 @@ public class Query
 }
 ```
 
-Our query class up there would already work. But only for the first level. It basically would resolve all students but we could not drill deeper. The enrollments would always be empty. In _Hot Chocolate_ we have a concept of field middleware that can alter the execution pipeline of our field resolver.
+Our query class up there would already work. But only for the first level. It basically would resolve all students but we could not drill deeper. The enrollments would always be empty. In Hot Chocolate we have a concept of field middleware that can alter the execution pipeline of our field resolver.
 
 The middleware order is important since multiple middleware form a field execution pipeline.
 
@@ -301,7 +301,7 @@ namespace ContosoUniversity
 
 Let’s paste this file into our project.
 
-I pointed out that in GraphQL everything resolves around a schema. In order to get our GraphQL server up and running we need to create and host a GraphQL schema in our server. In _Hot Chocolate_ we define a schema with the `SchemaBuilder`.
+I pointed out that in GraphQL everything resolves around a schema. In order to get our GraphQL server up and running we need to create and host a GraphQL schema in our server. In Hot Chocolate we define a schema with the `SchemaBuilder`.
 
 Open the `Startup.cs` again and then let us add a simple schema with our `Query` type.
 
@@ -336,9 +336,9 @@ new QueryExecutionOptions { ForceSerialExecution = true }
 
 Also, we are defining that the execution engine shall be forced to execute serially since `DbContext` is not thread-safe.
 
-> The upcoming version 11 of _Hot Chocolate_ uses `DbContext` pooling to use multiple `DbContext` instances in one request. This allows version 11 to parallelize data fetching better with _Entity Framework_.
+> The upcoming version 11 of Hot Chocolate uses `DbContext` pooling to use multiple `DbContext` instances in one request. This allows version 11 to parallelize data fetching better with _Entity Framework_.
 
-In order to enable our ASP.NET Core server to process GraphQL requests we need to register the _Hot Chocolate_ GraphQL middleware.
+In order to enable our ASP.NET Core server to process GraphQL requests we need to register the Hot Chocolate GraphQL middleware.
 
 For that we need to replace the `Configure` method of our `Startup.cs` with the following code.
 
@@ -449,7 +449,7 @@ Now click onto `Docs` again so that the schema tab slides back in again. We are 
 
 ### Recap
 
-While we just added one field that exposes the `Student` entity to _Hot Chocolate_, _Hot Chocolate_ explored what data is reachable from that entity. In conjunction with the `UseSelection` middleware we can now query all that data and drill into our graph.
+While we just added one field that exposes the `Student` entity to Hot Chocolate, Hot Chocolate explored what data is reachable from that entity. In conjunction with the `UseSelection` middleware we can now query all that data and drill into our graph.
 
 We have explored tooling with which we can explore the schema before issuing the first request.
 
@@ -635,7 +635,7 @@ Think about it, we really just added entity framework and exposed a single root 
 
 ## Filtering
 
-Let us go further with this. We actually can do more here and _Hot Chocolate_ provides you with a filter and sorting middleware to really give you the power to query your data with complex expressions.
+Let us go further with this. We actually can do more here and Hot Chocolate provides you with a filter and sorting middleware to really give you the power to query your data with complex expressions.
 
 First, we need to add two more packages that will add the sorting and filtering middleware.
 
@@ -845,7 +845,7 @@ SELECT "s"."FirstMidName",
 
 With filtering and sorting we infer complex filters from our models without almost any code. This allows us to query our data with complex expressions while drilling into the data graph.
 
-_Hot Chocolate_ supports complex expressions with a variety of query operators that can be enabled by just adding a simple attribute on your field resolver. We can also configure the filter capabilities which we want to allow. This means you can for instance disallow `OR` combinations of filter clauses.
+Hot Chocolate supports complex expressions with a variety of query operators that can be enabled by just adding a simple attribute on your field resolver. We can also configure the filter capabilities which we want to allow. This means you can for instance disallow `OR` combinations of filter clauses.
 
 ## Paging
 
@@ -1073,17 +1073,17 @@ public IQueryable<Student> GetStudentById([Service]SchoolContext context, int st
 
 This now looks like the initial resolvers that we wrote to fetch all students. We predefined the where clause and we added a new middleware called `UseFirstOrDefault`. The `UseFirstOrDefault` middleware will rewrite the result type for the GraphQL schema from `[Student]` to `Student` and ensure the we will only fetch a single entity from the database.
 
-`UseFirstOrDefault` from a semantics perspective aligns to `FirstOrDefaultAsync` provided by the _Entity Framework_. _Hot Chocolate_ also provides you with a `UseSingleOrDefault` middleware that will produce a GraphQL field error whenever there is more than one result.
+`UseFirstOrDefault` from a semantics perspective aligns to `FirstOrDefaultAsync` provided by the _Entity Framework_. Hot Chocolate also provides you with a `UseSingleOrDefault` middleware that will produce a GraphQL field error whenever there is more than one result.
 
 ## Conclusion and Outlook
 
-_Hot Chocolate_ has a powerful execution model that allows to natively integrate with data sources of any kind.
+Hot Chocolate has a powerful execution model that allows to natively integrate with data sources of any kind.
 
 The middleware that we showed you here like `UseSelection` or `UseFiltering` etc. do not only work with _Entity Framework_ but also support other providers that support `IQueryable<T>` to express database queries.
 
 But even if you want to support native SQL without `IQueryable<T>` it is super simple to inherit from our query rewriter base classes and and add this translation.
 
-By just implementing such a query rewriter you are creating a native database provider for _Hot Chocolate_ that integrates fully with the query engine.
+By just implementing such a query rewriter you are creating a native database provider for Hot Chocolate that integrates fully with the query engine.
 
 We also support the full features shown here with multiple other approaches like code-first with schema types or SDL first.
 
