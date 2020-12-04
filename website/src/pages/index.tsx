@@ -28,6 +28,7 @@ import AtminaLogoSvg from "../images/companies/atmina.svg";
 import AutoguruLogoSvg from "../images/companies/autoguru.svg";
 import CarmmunityLogoSvg from "../images/companies/carmmunity.svg";
 import E2mLogoSvg from "../images/companies/e2m.svg";
+import ExlrtLogoSvg from "../images/companies/exlrt.svg";
 import GiaLogoSvg from "../images/companies/gia.svg";
 import IncloudLogoSvg from "../images/companies/incloud.svg";
 import MotiviewLogoSvg from "../images/companies/motiview.svg";
@@ -225,6 +226,11 @@ const IndexPage: FunctionComponent = () => {
               <Logo width={90}>
                 <Link to="https://www.e2m.energy">
                   <E2mLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={130}>
+                <Link to="https://www.exlrt.com">
+                  <ExlrtLogoSvg />
                 </Link>
               </Logo>
               <Logo width={120}>
