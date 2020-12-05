@@ -7,5 +7,7 @@ namespace HotChocolate.MongoDb.Execution
         IMongoExecutable WithFiltering(MongoDbFilterDefinition filters);
 
         IMongoExecutable WithSorting(MongoDbSortDefinition sorting);
+
+        IMongoExecutable WithProjection(MongoDbProjectionDefinition projection);
     }
 }

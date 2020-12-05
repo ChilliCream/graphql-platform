@@ -17,18 +17,11 @@ namespace HotChocolate.MongoDb.Data.Sorting
 {
     public class SortVisitorTestBase
     {
-        protected string? FileName { get; } = Guid.NewGuid().ToString("N") + ".db";
-
         private Func<IResolverContext, IExecutable<TResult>> BuildResolver<TResult>(
             MongoResource mongoResource,
             params TResult[] results)
             where TResult : class
         {
-            if (FileName is null)
-            {
-                throw new InvalidOperationException();
-            }
-
             IMongoCollection<TResult> collection =
                 mongoResource.CreateCollection<TResult>("data_" + Guid.NewGuid().ToString("N"));
 

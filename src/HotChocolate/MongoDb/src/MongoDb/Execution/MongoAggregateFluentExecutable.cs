@@ -46,6 +46,11 @@ namespace HotChocolate.MongoDb.Execution
                 pipeline = pipeline.Match(Filters.ToFilterDefinition<T>());
             }
 
+            if (Projections is not null)
+            {
+                pipeline = pipeline.Project<T>(Projections.ToProjectionDefinition<T>());
+            }
+
             return pipeline;
         }
     }

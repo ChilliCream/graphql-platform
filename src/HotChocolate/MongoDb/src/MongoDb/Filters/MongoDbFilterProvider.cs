@@ -70,6 +70,10 @@ namespace HotChocolate.MongoDb.Data.Filters
                         }
                     }
                 }
+                else
+                {
+                    await next(context).ConfigureAwait(false);
+                }
             }
         }
     }

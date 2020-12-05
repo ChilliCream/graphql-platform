@@ -44,7 +44,7 @@ namespace HotChocolate.Types
                     new MongoOffsetPagingProvider(),
                 options);
 
-        public static IObjectFieldDescriptor UseOffsetPaging<TSchemaType>(
+        public static IObjectFieldDescriptor UseMongoOffsetPaging<TSchemaType>(
             this IObjectFieldDescriptor descriptor,
             Type? itemType = null,
             PagingOptions options = default)

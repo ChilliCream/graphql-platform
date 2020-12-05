@@ -16,6 +16,9 @@ namespace HotChocolate.MongoDb.Execution
 
         protected MongoDbSortDefinition? Sorting { get; private set; }
 
+        protected MongoDbProjectionDefinition? Projections { get; private set; }
+
+
         protected FindOptionsBase? Options { get; private set; }
 
         public IMongoExecutable WithOptions(FindOptionsBase options)
@@ -33,6 +36,12 @@ namespace HotChocolate.MongoDb.Execution
         public IMongoExecutable WithSorting(MongoDbSortDefinition sorting)
         {
             Sorting = sorting;
+            return this;
+        }
+
+        public IMongoExecutable WithProjection(MongoDbProjectionDefinition projection)
+        {
+            Projections = projection;
             return this;
         }
 

@@ -1,10 +1,11 @@
 using HotChocolate.Data.Filters;
 using HotChocolate.MongoDb.Data.Filters;
+using HotChocolate.MongoDb.Sorting.Convention.Extensions;
 
 namespace HotChocolate.MongoDb.Data
 {
     /// <summary>
-    /// Provides filtering extensions for the <see cref="ISchemaBuilder"/>.
+    /// Provides mongo extensions for the <see cref="ISchemaBuilder"/>.
     /// </summary>
     public static class MongoSchemaBuilderExtensions
     {
@@ -18,7 +19,36 @@ namespace HotChocolate.MongoDb.Data
         /// Returns the <see cref="ISchemaBuilder"/>.
         /// </returns>
         public static ISchemaBuilder AddMongoDbFiltering(
-            this ISchemaBuilder builder) =>
-            builder.AddFiltering(x => x.AddMongoDbDefaults());
+            this ISchemaBuilder builder,
+            string? name = null) =>
+            builder.AddFiltering(x => x.AddMongoDbDefaults(), name);
+
+        /// <summary>
+        /// Adds sorting support.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="ISchemaBuilder"/>.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="ISchemaBuilder"/>.
+        /// </returns>
+        public static ISchemaBuilder AddMongoDbSorting(
+            this ISchemaBuilder builder,
+            string? name = null) =>
+            builder.AddSorting(x => x.AddMongoDbDefaults(), name);
+
+        /// <summary>
+        /// Adds projections support.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="ISchemaBuilder"/>.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="ISchemaBuilder"/>.
+        /// </returns>
+        public static ISchemaBuilder AddMongoDbProjections(
+            this ISchemaBuilder builder,
+            string? name = null) =>
+            builder.AddProjections(x => x.AddMongoDbDefaults(), name);
     }
 }

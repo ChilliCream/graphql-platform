@@ -29,6 +29,11 @@ namespace HotChocolate.MongoDb.Execution
                 options.Sort = Sorting.Render(bsonSerializer, serializers);
             }
 
+            if (Projections is not null)
+            {
+                options.Projection = Projections.Render(bsonSerializer, serializers);
+            }
+
             if (Filters is not null)
             {
                 filters = Filters.Render(bsonSerializer, serializers);
@@ -70,6 +75,11 @@ namespace HotChocolate.MongoDb.Execution
             if (Sorting is not null)
             {
                 pipeline = pipeline.Sort(Sorting.ToSortDefinition<T>());
+            }
+
+            if (Projections is not null)
+            {
+                pipeline = pipeline.Project<T>(Projections.ToProjectionDefinition<T>());
             }
 
             return pipeline;

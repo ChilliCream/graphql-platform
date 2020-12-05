@@ -73,6 +73,10 @@ namespace HotChocolate.MongoDb.Sorting.Convention.Extensions.Handlers
                         }
                     }
                 }
+                else
+                {
+                    await next(context).ConfigureAwait(false);
+                }
             }
         }
     }
