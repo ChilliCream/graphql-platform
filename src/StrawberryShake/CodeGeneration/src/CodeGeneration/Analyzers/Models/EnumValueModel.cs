@@ -6,7 +6,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
     {
         public EnumValueModel(
             string name,
-            EnumValue value,
+            IEnumValue value,
             string? description,
             string? underlyingValue)
         {

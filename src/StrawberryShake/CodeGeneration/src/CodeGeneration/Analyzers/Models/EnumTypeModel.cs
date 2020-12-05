@@ -3,13 +3,15 @@ using HotChocolate.Types;
 
 namespace StrawberryShake.CodeGeneration.Analyzers.Models
 {
-    public sealed class EnumTypeModel
-        : ITypeModel
+    /// <summary>
+    /// Represents an enum type model.
+    /// </summary>
+    public sealed class EnumTypeModel : ITypeModel
     {
         public EnumTypeModel(
             string name,
             string? description,
-            INamedType type,
+            EnumType type,
             string? underlyingType,
             IReadOnlyList<EnumValueModel> values)
         {
@@ -20,14 +22,31 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
             Values = values;
         }
 
+        /// <summary>
+        /// Gets the enum name.
+        /// </summary>
         public string Name { get; }
 
+        /// <summary>
+        /// Gets the enum xml documentation summary.
+        /// </summary>
         public string? Description { get; }
 
-        public INamedType Type { get; }
+        /// <summary>
+        /// Gets the enum type.
+        /// </summary>
+        public EnumType Type { get; }
 
+        INamedType ITypeModel.Type => Type;
+
+        /// <summary>
+        /// Gets the underlying type name.
+        /// </summary>
         public string? UnderlyingType { get; }
 
+        /// <summary>
+        /// Gets the enum values models.
+        /// </summary>
         public IReadOnlyList<EnumValueModel> Values { get; }
     }
 }

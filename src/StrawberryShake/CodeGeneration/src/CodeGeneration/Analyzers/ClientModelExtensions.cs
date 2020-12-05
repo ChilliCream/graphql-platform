@@ -173,7 +173,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
             writer.WriteStartArray();
 
-            foreach (ComplexOutputTypeModel possibleType in fieldParser.PossibleTypes)
+            foreach (OutputTypeModel possibleType in fieldParser.PossibleTypes)
             {
                 SerializeComplexOutputType(writer, possibleType);
             }
@@ -191,7 +191,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             {
                 switch (type)
                 {
-                    case ComplexOutputTypeModel outputType:
+                    case OutputTypeModel outputType:
                         SerializeComplexOutputType(writer, outputType);
                         break;
                     case InputObjectTypeModel inputType:
@@ -209,7 +209,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
         private static void SerializeComplexOutputType(
             Utf8JsonWriter writer,
-            ComplexOutputTypeModel outputType)
+            OutputTypeModel outputType)
         {
             writer.WriteStartObject();
 
@@ -222,7 +222,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
             writer.WriteStartArray();
 
-            foreach (ComplexOutputTypeModel implements in outputType.Types)
+            foreach (OutputTypeModel implements in outputType.Types)
             {
                 writer.WriteStringValue(implements.Name);
             }

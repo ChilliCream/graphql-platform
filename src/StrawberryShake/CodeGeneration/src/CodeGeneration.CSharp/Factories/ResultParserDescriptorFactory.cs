@@ -28,7 +28,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 var possibleTypes = new List<ResultTypeDescriptor>();
 
-                foreach (ComplexOutputTypeModel possibleType in fieldParser.PossibleTypes)
+                foreach (OutputTypeModel possibleType in fieldParser.PossibleTypes)
                 {
                     var components = new List<ResultTypeComponentDescriptor>();
                     var fields = new List<ResultFieldDescriptor>();

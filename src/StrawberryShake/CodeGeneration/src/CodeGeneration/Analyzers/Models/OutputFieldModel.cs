@@ -4,8 +4,7 @@ using HotChocolate.Types;
 
 namespace StrawberryShake.CodeGeneration.Analyzers.Models
 {
-    public class OutputFieldModel
-        : IFieldModel
+    public class OutputFieldModel : IFieldModel
     {
         public OutputFieldModel(
             string name,

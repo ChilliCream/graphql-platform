@@ -18,7 +18,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         string GetFullTypeName(IInputType type, bool optional = false);
 
-        string GetFullTypeName(ComplexOutputTypeModel type);
+        string GetFullTypeName(OutputTypeModel type);
 
         string GetFullTypeName(IOutputType type, SelectionSetNode? selectionSet);
 

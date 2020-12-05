@@ -26,7 +26,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     fieldSelection,
                     possibleSelections.ReturnType);
 
-            ComplexOutputTypeModel returnType =
+            OutputTypeModel returnType =
                 CreateInterfaceModel(
                     context,
                     returnTypeFragment,
@@ -49,7 +49,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             FieldNode fieldSelection,
             PossibleSelections possibleSelections,
             IFragmentNode returnTypeFragment,
-            ComplexOutputTypeModel returnType,
+            OutputTypeModel returnType,
             IType fieldType,
             Path path)
         {
@@ -57,7 +57,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
             if (selections.Count == 1)
             {
-                ComplexOutputTypeModel modelType = CreateClassModel(
+                OutputTypeModel modelType = CreateClassModel(
                     context,
                     returnTypeFragment,
                     returnType,
@@ -75,7 +75,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             }
             else
             {
-                IReadOnlyList<ComplexOutputTypeModel> modelTypes =
+                IReadOnlyList<OutputTypeModel> modelTypes =
                     CreateClassModels(
                         context,
                         returnType,

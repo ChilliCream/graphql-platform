@@ -15,8 +15,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
     {
         private readonly Dictionary<ISyntaxNode, ISet<NameString>> _names =
             new Dictionary<ISyntaxNode, ISet<NameString>>();
-        private readonly Dictionary<SelectionSetNode, Dictionary<string, ComplexOutputTypeModel>> _types =
-            new Dictionary<SelectionSetNode, Dictionary<string, ComplexOutputTypeModel>>();
+        private readonly Dictionary<SelectionSetNode, Dictionary<string, OutputTypeModel>> _types =
+            new Dictionary<SelectionSetNode, Dictionary<string, OutputTypeModel>>();
         private readonly Dictionary<string, ITypeModel> _typeByName =
             new Dictionary<string, ITypeModel>();
         private readonly Dictionary<FieldNode, FieldParserModel> _fieldParsers =
@@ -45,13 +45,13 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
         public IReadOnlyCollection<FieldParserModel> FieldParsers => _fieldParsers.Values;
 
-        public IEnumerable<ComplexOutputTypeModel> GetTypes(SelectionSetNode selectionSet)
+        public IEnumerable<OutputTypeModel> GetTypes(SelectionSetNode selectionSet)
         {
-            if (_types.TryGetValue(selectionSet, out Dictionary<string, ComplexOutputTypeModel>? t))
+            if (_types.TryGetValue(selectionSet, out Dictionary<string, OutputTypeModel>? t))
             {
                 return t.Values;
             }
-            return Enumerable.Empty<ComplexOutputTypeModel>();
+            return Enumerable.Empty<OutputTypeModel>();
         }
 
         public bool TryGetModel<T>(string name, [NotNullWhen(true)] out T model)
@@ -144,12 +144,12 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             return current;
         }
 
-        public void Register(ComplexOutputTypeModel type, bool update = false)
+        public void Register(OutputTypeModel type, bool update = false)
         {
             if (!_types.TryGetValue(type.SelectionSet,
-                out Dictionary<string, ComplexOutputTypeModel>? typeByName))
+                out Dictionary<string, OutputTypeModel>? typeByName))
             {
-                typeByName = new Dictionary<string, ComplexOutputTypeModel>();
+                typeByName = new Dictionary<string, OutputTypeModel>();
                 _types.Add(type.SelectionSet, typeByName);
             }
 

@@ -11,9 +11,9 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
             OperationDefinitionNode operation,
             FieldNode selection,
             Path path,
-            ComplexOutputTypeModel returnType,
+            OutputTypeModel returnType,
             IType fieldType,
-            IReadOnlyList<ComplexOutputTypeModel> possibleTypes)
+            IReadOnlyList<OutputTypeModel> possibleTypes)
         {
             Operation = operation;
             Selection = selection;
@@ -41,7 +41,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
         /// <summary>
         /// Gets the return type of the field.
         /// </summary>
-        public ComplexOutputTypeModel ReturnType { get; }
+        public OutputTypeModel ReturnType { get; }
 
         /// <summary>
         /// Gets the field type.
@@ -51,6 +51,6 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
         /// <summary>
         /// Gets the possible types that this field can return.
         /// </summary>
-        public IReadOnlyList<ComplexOutputTypeModel> PossibleTypes { get; }
+        public IReadOnlyList<OutputTypeModel> PossibleTypes { get; }
     }
 }

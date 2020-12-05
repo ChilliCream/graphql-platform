@@ -11,9 +11,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 {
     public partial class DocumentAnalyzer
     {
-        private readonly Dictionary<string, DocumentNode> _documents =
-            new Dictionary<string, DocumentNode>();
-        private readonly HashSet<string> _reservedName = new HashSet<string>();
+        private readonly Dictionary<string, DocumentNode> _documents = new();
+        private readonly HashSet<string> _reservedName = new();
         private ISchema? _schema;
         private IDocumentHashProvider? _hashProvider;
 
@@ -68,8 +67,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             CollectOutputTypes(context, _documents.Values);
 
             return new ClientModel(
-                _documents.Select(d =>
-                    CreateDocumentModel(context, d.Key, d.Value, _hashProvider))
+                _documents
+                    .Select(d => CreateDocumentModel(context, d.Key, d.Value, _hashProvider))
                     .ToArray(),
                 context.Types.ToArray());
         }

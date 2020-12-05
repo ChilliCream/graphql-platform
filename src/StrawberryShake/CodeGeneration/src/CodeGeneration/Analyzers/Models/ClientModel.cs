@@ -4,8 +4,16 @@ using HotChocolate.Language;
 
 namespace StrawberryShake.CodeGeneration.Analyzers.Models
 {
+    /// <summary>
+    /// Represents all models that are needed to generate a client.
+    /// </summary>
     public sealed class ClientModel
     {
+        /// <summary>
+        /// Initializes a new instance of <see cref="ClientModel" />
+        /// </summary>
+        /// <param name="documents">The document models.</param>
+        /// <param name="types">The type models.</param>
         public ClientModel(
             IReadOnlyList<DocumentModel> documents,
             IReadOnlyList<ITypeModel> types)

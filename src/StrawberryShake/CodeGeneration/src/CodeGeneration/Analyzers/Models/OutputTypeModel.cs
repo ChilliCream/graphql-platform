@@ -4,16 +4,15 @@ using HotChocolate.Types;
 
 namespace StrawberryShake.CodeGeneration.Analyzers.Models
 {
-    public sealed class ComplexOutputTypeModel
-        : ITypeModel
+    public sealed class OutputTypeModel : ITypeModel
     {
-        public ComplexOutputTypeModel(
+        public OutputTypeModel(
             string name,
             string? description,
             bool isInterface,
             INamedType type,
             SelectionSetNode selectionSet,
-            IReadOnlyList<ComplexOutputTypeModel> types,
+            IReadOnlyList<OutputTypeModel> types,
             IReadOnlyList<OutputFieldModel> fields)
         {
             Name = name;
@@ -35,7 +34,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
 
         public SelectionSetNode SelectionSet { get; }
 
-        public IReadOnlyList<ComplexOutputTypeModel> Types { get; }
+        public IReadOnlyList<OutputTypeModel> Types { get; }
 
         public IReadOnlyList<OutputFieldModel> Fields { get; }
     }

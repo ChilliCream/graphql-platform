@@ -231,7 +231,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         public static OutputModelDescriptor CreateOutputModelDescriptor(
             ICSharpClientBuilderContext context,
-            ComplexOutputTypeModel model)
+            OutputTypeModel model)
         {
             return new OutputModelDescriptor(
                 model.Name,
@@ -242,7 +242,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         public static OutputModelInterfaceDescriptor CreateOutputModelInterfaceDescriptor(
             ICSharpClientBuilderContext context,
-            ComplexOutputTypeModel model)
+            OutputTypeModel model)
         {
             return new OutputModelInterfaceDescriptor(
                 model.Name,

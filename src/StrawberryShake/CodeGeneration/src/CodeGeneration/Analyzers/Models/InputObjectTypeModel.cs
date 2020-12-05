@@ -4,7 +4,7 @@ using HotChocolate.Types;
 namespace StrawberryShake.CodeGeneration.Analyzers.Models
 {
     /// <summary>
-    /// Represents an input object model.
+    /// Represents an input object type model.
     /// </summary>
     public sealed class InputObjectTypeModel : ITypeModel
     {
@@ -33,7 +33,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
         public string Name { get; }
 
         /// <summary>
-        /// Gets the class description.
+        /// Gets the class xml documentation summary.
         /// </summary>
         public string? Description { get; }
 

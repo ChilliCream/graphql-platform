@@ -25,11 +25,15 @@ namespace StrawberryShake.CodeGeneration.Utilities
         public static string GetPathName(Path path)
         {
             var builder = new StringBuilder();
-            Path current = path;
+            Path? current = path;
 
             while (current != null)
             {
-                builder.Insert(0, GetPropertyName(current.Name));
+                if (current is NamePathSegment nameSegment)
+                {
+                    builder.Insert(0, GetPropertyName(nameSegment.Name));
+                }
+
                 current = current.Parent;
             }
 
@@ -39,7 +43,7 @@ namespace StrawberryShake.CodeGeneration.Utilities
 #if NETCOREAPP3_0 || NETCOREAPP2_2
         public static string GetPropertyName(string fieldName)
 #else
-        public unsafe static string GetPropertyName(string fieldName)
+        public static unsafe string GetPropertyName(string fieldName)
 #endif
         {
             var buffered = 0;
@@ -91,7 +95,7 @@ namespace StrawberryShake.CodeGeneration.Utilities
 #if NETCOREAPP3_1 || NETCOREAPP2_1
         public static string GetParameterName(string parameterName)
 #else
-        public unsafe static string GetParameterName(string parameterName)
+        public static unsafe string GetParameterName(string parameterName)
 #endif
         {
             var buffered = 0;

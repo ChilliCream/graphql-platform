@@ -15,11 +15,11 @@ namespace StrawberryShake.CodeGeneration.Analyzers
     public partial class DocumentAnalyzer
     {
         private static readonly UnionTypeSelectionSetAnalyzer _unionTypeSelectionSetAnalyzer =
-            new UnionTypeSelectionSetAnalyzer();
+            new();
         private static readonly InterfaceTypeSelectionSetAnalyzer _interfaceTypeSelectionSetAnalyzer =
-            new InterfaceTypeSelectionSetAnalyzer();
+            new();
         private static readonly ObjectTypeSelectionSetAnalyzer _objectTypeSelectionSetAnalyzer =
-            new ObjectTypeSelectionSetAnalyzer();
+            new();
 
         private static void CollectOutputTypes(
             IDocumentAnalyzerContext context,
@@ -39,7 +39,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             foreach (OperationDefinitionNode operation in
                 document.Definitions.OfType<OperationDefinitionNode>())
             {
-                var root = Path.New(operation.Name!.Value);
+                NamePathSegment root = Path.New(operation.Name!.Value);
 
                 ObjectType operationType = context.Schema.GetOperationType(operation.Operation);
 
@@ -160,8 +160,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             DocumentNode document,
             OperationDefinitionNode operationDefinition)
         {
-            ComplexOutputTypeModel returnType =
-                context.Types.OfType<ComplexOutputTypeModel>()
+            OutputTypeModel returnType =
+                context.Types.OfType<OutputTypeModel>()
                     .First(t => t.SelectionSet == operationDefinition.SelectionSet && t.IsInterface);
 
             var parser = new ParserModel(

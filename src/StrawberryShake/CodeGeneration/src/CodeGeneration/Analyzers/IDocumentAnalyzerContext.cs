@@ -30,14 +30,14 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             SelectionSetNode selectionSet,
             Path path);
 
-        IEnumerable<ComplexOutputTypeModel> GetTypes(SelectionSetNode selectionSet);
+        IEnumerable<OutputTypeModel> GetTypes(SelectionSetNode selectionSet);
 
         bool TryGetModel<T>(string name, [NotNullWhen(true)]out T? model)
             where T : class, ITypeModel;
 
         void SetDocument(DocumentNode document);
 
-        void Register(ComplexOutputTypeModel type, bool update = false);
+        void Register(OutputTypeModel type, bool update = false);
 
         void Register(InputObjectTypeModel objectType);
 
