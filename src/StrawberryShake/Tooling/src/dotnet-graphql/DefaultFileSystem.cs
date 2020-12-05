@@ -76,7 +76,7 @@ namespace StrawberryShake.Tools
 
             using (FileStream stream = File.Create(fileName))
             {
-                await write(stream);
+                await write(stream).ConfigureAwait(false);
             }
         }
     }

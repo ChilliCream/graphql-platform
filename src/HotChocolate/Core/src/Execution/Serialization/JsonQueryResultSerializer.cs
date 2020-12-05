@@ -64,11 +64,12 @@ namespace HotChocolate.Execution.Serialization
                 throw new ArgumentNullException(nameof(stream));
             }
 
-            await using var writer = new Utf8JsonWriter(stream, _options);
+            var writer = new Utf8JsonWriter(stream, _options);
+            await using (writer.ConfigureAwait(false));
 
             WriteResult(writer, result);
 
-            await writer.FlushAsync(cancellationToken);
+            await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
         }
 
         private static void WriteResult(Utf8JsonWriter writer, IQueryResult result)

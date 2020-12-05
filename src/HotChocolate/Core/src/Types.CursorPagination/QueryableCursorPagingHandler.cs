@@ -83,7 +83,8 @@ namespace HotChocolate.Types.Pagination
                 allEdges, first, last, after, before,
                 out var offset);
 
-            return await ExecuteQueryableAsync(edges, offset, cancellationToken);
+            return await ExecuteQueryableAsync(edges, offset, cancellationToken)
+                .ConfigureAwait(false);
         }
 
         private IQueryable<TEntity> GetEdgesToReturn(

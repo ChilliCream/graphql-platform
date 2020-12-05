@@ -104,7 +104,8 @@ namespace HotChocolate.Stitching.Pipeline
             IQueryRequest request,
             CancellationToken cancellationToken)
         {
-            await using var jsonWriter = new Utf8JsonWriter(writer, _jsonWriterOptions);
+            var jsonWriter = new Utf8JsonWriter(writer, _jsonWriterOptions);
+            await using (jsonWriter.ConfigureAwait(false));
 
             WriteJsonRequest(writer, jsonWriter, request);
             await jsonWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
