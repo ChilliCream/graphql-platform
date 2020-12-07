@@ -12,6 +12,21 @@ namespace HotChocolate.Execution.Instrumentation
     public class DiagnosticListenerTests
     {
         [Fact]
+        public async Task Can_Resolve_Listener_With_Dependencies()
+        {
+            // arrange
+            IRequestExecutor executor = await CreateExecutorAsync(c => c
+               .AddDiagnosticEventListener<DependentListener>()
+               .AddStarWarsTypes()
+               .Services
+               .AddSingleton<IDependency, Dependency>()
+               .AddStarWarsRepositories());
+
+            // act
+            await executor.ExecuteAsync("{ hero { name } }");
+        }
+
+        [Fact]
         public async Task Intercept_Resolver_Result_With_Listener()
         {
             // arrange
@@ -85,6 +100,26 @@ namespace HotChocolate.Execution.Instrumentation
                     Results.Add(Context.Result);
                 }
             }
+        }
+
+        private class DependentListener : DiagnosticEventListener
+        {
+            private readonly IDependency dependency;
+
+            public DependentListener(IDependency dependency)
+            {
+                this.dependency = dependency;
+            }
+        }
+
+        private interface IDependency
+        {
+
+        }
+
+        private class Dependency : IDependency
+        {
+
         }
     }
 }
