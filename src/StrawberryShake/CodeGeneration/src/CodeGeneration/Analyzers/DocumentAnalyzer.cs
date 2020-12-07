@@ -5,7 +5,8 @@ using System.Text;
 using HotChocolate;
 using HotChocolate.Language;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
-using StrawberryShake.Utilities;
+using StrawberryShake.CodeGeneration.Utilities;
+using static StrawberryShake.CodeGeneration.Utilities.OperationDocumentHelper;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
 {
@@ -61,10 +62,11 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             }
 
             var context = new DocumentAnalyzerContext(_schema, _reservedName);
+            OperationDocuments operations = CreateOperationDocuments(_documents.Values);
 
-            CollectEnumTypes(context, _documents.Values);
-            CollectInputObjectTypes(context, _documents.Values);
-            CollectOutputTypes(context, _documents.Values);
+            CollectEnumTypes(context, operations.Document);
+            CollectInputObjectTypes(context, operations.Document);
+            CollectOutputTypes(context, operations.Document);
 
             return new ClientModel(
                 _documents

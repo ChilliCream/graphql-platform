@@ -4,7 +4,7 @@ using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 
-namespace StrawberryShake.Utilities
+namespace StrawberryShake.CodeGeneration.Utilities
 {
     internal sealed class TypeNameQueryRewriter
         : QuerySyntaxRewriter<object?>

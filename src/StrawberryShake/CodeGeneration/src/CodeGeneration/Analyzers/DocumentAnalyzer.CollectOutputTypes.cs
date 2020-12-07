@@ -23,17 +23,10 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
         private static void CollectOutputTypes(
             IDocumentAnalyzerContext context,
-            IEnumerable<DocumentNode> documents)
+            DocumentNode document)
         {
-            foreach (DocumentNode document in documents)
-            {
-                context.SetDocument(document);
-                CollectOutputTypes(context, document);
-            }
-        }
+            context.SetDocument(document);
 
-        private static void CollectOutputTypes(IDocumentAnalyzerContext context, DocumentNode document)
-        {
             var backlog = new Queue<FieldSelection>();
 
             foreach (OperationDefinitionNode operation in

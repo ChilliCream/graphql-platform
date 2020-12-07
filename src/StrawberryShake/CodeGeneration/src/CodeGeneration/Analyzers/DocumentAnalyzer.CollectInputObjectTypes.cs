@@ -12,14 +12,10 @@ namespace StrawberryShake.CodeGeneration.Analyzers
     {
         private static void CollectInputObjectTypes(
             IDocumentAnalyzerContext context,
-            IEnumerable<DocumentNode> documents)
+            DocumentNode document)
         {
             var analyzer = new InputObjectTypeUsageAnalyzer(context.Schema);
-
-            foreach (DocumentNode document in documents)
-            {
-                analyzer.Analyze(document);
-            }
+            analyzer.Analyze(document);
 
             foreach (InputObjectType inputObjectType in analyzer.InputObjectTypes)
             {
