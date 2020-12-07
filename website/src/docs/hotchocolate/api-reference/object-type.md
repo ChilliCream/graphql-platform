@@ -1,36 +1,19 @@
 ---
-title: "Schema basics"
+title: Object Type
 ---
 
-The schema in GraphQL represents the type system and exposes your business model in a strong and rich way. The schema fully describes the shape of your data and how you can interact with it.
+The object type is the most important output type in GraphQL and represents the data we can fetch from our GraphQL server. The GraphQL SDL representation of an object looks like the following:
 
-The most important type in a GraphQL schema is the object type which lets you consume data. Every object type has to have at least one field which holds the data of an object. Fields can return simple scalars like String, Int, or again object types.
-
-```SDL
-type Book {
-  title: String
-  author: String
+```sdl
+type Starship {
+  id: ID!
+  name: String!
+  length(unit: LengthUnit = METER): Float
 }
 ```
 
-In GraphQL, we have three root types from which only the Query type has to be defined. Root types provide the entry points that let you fetch data, mutate data, or subscribe to events. Root types themself are object types.
-
-```SDL
-schema {
-  query: Query
-}
-
-type Query {
-  book: Book
-}
-
-type Book {
-  title: String
-  author: String
-}
-```
-
-In Hot Chocolate, there are three ways to define an object type.
+An object type in GraphQL consists of a collection of fields. Each object type has to have at least one field declared to be valid. Object fields in GraphQL can have arguments and are more like methods in _C#_. Each field has a distinct type. All field types have to be output types (scalars, enums, objects, unions, or interfaces). The arguments of a field, on the other hand, have to be input types scalars, enums, and input objects) and
+represent raw data that is passed into a field.
 
 > **Note:** Every single code example will be shown in three different approaches, annotation-based (previously known as pure code-first), code-first, and schema-first. However, they will always result in the same outcome on a GraphQL schema perspective and internally in Hot Chocolate. All three approaches have their pros and cons and can be combined when needed with each other. If you would like to learn more about the three approaches in Hot Chocolate, click on [Coding Approaches](/docs/hotchocolate/api-reference/coding-approaches).
 
@@ -159,6 +142,59 @@ public class Startup
 }
 ```
 
-## Nullability
+# Extension
 
-GraphQL has a concept of nun-null types. Basically any type can be a non-nullable type, in the SDL we decorate non-nullable types with the `Bang` token `!`. In order to describe this in C# we can use attributes, use C# nullable reference types or use the underlying schema types to describe our GraphQL type explicitly.
+The GraphQL SDL supports extending object types, this means that we can add fields to an existing object type without changing the code of our initial type definition.
+
+Extending types is useful for schema stitching but also when we want to add just something to an exist type or if we just want to split large type definitions. The latter is often the case with the query type definition.
+
+Hot Chocolate supports extending types with SDL-first, pure code-first and code-first. Let\`s have a look at how we can extend our person object:
+
+SDL-First:
+
+```sdl
+extend type Person {
+  address: String!
+}
+```
+
+Pure Code-First:
+
+```csharp
+[ExtendObjectType(Name = "Person")]
+public class PersonResolvers
+{
+    public IEnumerable<Person> GetFriends([Parent]Person person, [Service]IPersonRepository repository) =>
+        repository.GetFriends(person.Id);
+}
+
+SchemaBuilder.New()
+  ...
+  .AddType<PersonType>()
+  .AddType<PersonResolvers>()
+  .Create();
+```
+
+Code-First
+
+```csharp
+public class PersonTypeExtension
+    : ObjectTypeExtension
+{
+    protected override void Configure(IObjectTypeDescriptor descriptor)
+    {
+        descriptor.Name("Person");
+        descriptor.Field("address")
+            .Type<NonNullType<StringType>>()
+            .Resolver(/"Resolver Logic"/);
+    }
+}
+
+SchemaBuilder.New()
+  ..
+  .AddType<PersonType>()
+  .AddType<PersonTypeExtension>()
+  .Create();
+```
+
+Type extensions basically work like usual types and are also added like usual types.

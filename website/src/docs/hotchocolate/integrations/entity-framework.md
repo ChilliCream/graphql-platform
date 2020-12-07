@@ -2,7 +2,6 @@
 title: Entity Framework
 ---
 
-EF Core has seen huge adoption in the .NET world.  
 The execution engine of HotChocolate executes resolvers in parallel. This can lead to exceptions because
 the database context of Entity Framework cannot handle more than one request in parallel.
 So if you are seeing exceptions like `A second operation started on this context before a previous operation completed.`

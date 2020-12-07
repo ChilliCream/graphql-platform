@@ -107,6 +107,10 @@
                 "title": "Overview"
               },
               {
+                "path": "object-type",
+                "title": "Object Type"
+              },
+              {
                 "path": "language",
                 "title": "Lanugage"
               }, 
@@ -121,6 +125,10 @@
               {
                 "path": "aspnetcore",
                 "title": "ASP.NET Core"
+              },
+              {
+                "path": "executable",
+                "title": "Executable"
               },
               {
                 "path": "migrate-from-10-to-11",
