@@ -51,7 +51,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
         {
             if (_visitedTypes.Add(type))
             {
-                if (type is ListType listType
+                if (type is HotChocolate.Types.ListType listType
                     && listType.ElementType is IInputType elementType)
                 {
                     VisitInputType(elementType);
