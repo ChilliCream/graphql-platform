@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using HotChocolate;
 using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
@@ -32,7 +34,6 @@ namespace StrawberryShake.CodeGeneration.Utilities
             operations.Operations.Select(t => t.Value.ToString()).ToArray().MatchSnapshot();
         }
 
-
         [Fact]
         public void Merge_Multiple_Documents()
         {
@@ -52,6 +53,50 @@ namespace StrawberryShake.CodeGeneration.Utilities
                 t => Assert.Equal("GetAuthorsAndBooks", t.Key));
 
             operations.Operations.Select(t => t.Value.ToString()).ToArray().MatchSnapshot();
+        }
+
+        [Fact]
+        public void No_Operation()
+        {
+            // arrange
+            DocumentNode query = new(new List<IDefinitionNode>());
+            List<DocumentNode> queries = new() { query };
+
+            // act
+            void Error() => CreateOperationDocuments(queries);
+
+            // assert
+            Assert.Throws<ArgumentException>(Error).Message.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Duplicate_Operation()
+        {
+            // arrange
+            DocumentNode query1 = Parse(Open("simple.query2.graphql"));
+            DocumentNode query2 = Parse(Open("simple.query2.graphql"));
+            List<DocumentNode> queries = new() { query1, query2 };
+
+            // act
+            void Error() => CreateOperationDocuments(queries);
+
+            // assert
+            Assert.Throws<CodeGeneratorException>(Error).Message.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Duplicate_Fragment()
+        {
+            // arrange
+            DocumentNode query1 = Parse(Open("simple.query1.graphql"));
+            DocumentNode query2 = query1.WithDefinitions(query1.Definitions.Skip(2).ToArray());
+            List<DocumentNode> queries = new() { query1, query2 };
+
+            // act
+            void Error() => CreateOperationDocuments(queries);
+
+            // assert
+            Assert.Throws<CodeGeneratorException>(Error).Message.MatchSnapshot();
         }
     }
 }

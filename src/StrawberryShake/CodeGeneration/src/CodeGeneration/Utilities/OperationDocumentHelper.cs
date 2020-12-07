@@ -83,7 +83,7 @@ namespace StrawberryShake.CodeGeneration.Utilities
                         throw new CodeGeneratorException(
                             ErrorBuilder.New()
                                 .SetMessage(
-                                    "The operation name `{0}` is not unique.",
+                                    "The fragment name `{0}` is not unique.",
                                     fd.Name.Value)
                                 .AddLocation(fd)
                                 .Build());
