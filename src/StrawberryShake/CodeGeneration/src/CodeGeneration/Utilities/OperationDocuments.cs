@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using HotChocolate.Language;
 
-namespace StrawberryShake.CodeGeneration.Analyzers
+namespace StrawberryShake.CodeGeneration.Utilities
 {
     internal class OperationDocuments
     {

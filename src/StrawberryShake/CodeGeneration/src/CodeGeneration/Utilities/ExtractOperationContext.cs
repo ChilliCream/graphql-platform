@@ -4,12 +4,12 @@ using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 
-namespace StrawberryShake.CodeGeneration.Analyzers
+namespace StrawberryShake.CodeGeneration.Utilities
 {
     internal sealed class ExtractOperationContext : ISyntaxVisitorContext
     {
         private readonly DocumentNode _document;
-        private int _index;
+        private int _index = -1;
 
         public ExtractOperationContext(DocumentNode document)
         {

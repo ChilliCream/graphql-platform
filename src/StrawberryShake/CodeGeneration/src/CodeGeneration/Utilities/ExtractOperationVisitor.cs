@@ -1,7 +1,7 @@
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 
-namespace StrawberryShake.CodeGeneration.Analyzers
+namespace StrawberryShake.CodeGeneration.Utilities
 {
     internal class ExtractOperationVisitor : SyntaxWalker<ExtractOperationContext>
     {

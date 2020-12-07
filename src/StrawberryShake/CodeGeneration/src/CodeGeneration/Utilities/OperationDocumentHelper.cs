@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using HotChocolate;
 using HotChocolate.Language;
 
-namespace StrawberryShake.CodeGeneration.Analyzers
+namespace StrawberryShake.CodeGeneration.Utilities
 {
     /// <summary>
     /// Merges all documents and create one query document per operation.
