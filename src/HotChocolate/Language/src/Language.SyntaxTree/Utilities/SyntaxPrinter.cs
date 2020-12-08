@@ -45,8 +45,7 @@ namespace HotChocolate.Language.Utilities
 #if NETSTANDARD2_0
             using var streamWriter = new StreamWriter(stream, Encoding.UTF8);
 #else
-            var streamWriter = new StreamWriter(stream, Encoding.UTF8);
-            await using (streamWriter.ConfigureAwait(false));
+            await using var streamWriter = new StreamWriter(stream, Encoding.UTF8);
 #endif
 
             StringSyntaxWriter syntaxWriter = StringSyntaxWriter.Rent();

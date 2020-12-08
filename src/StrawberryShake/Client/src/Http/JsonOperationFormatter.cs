@@ -51,8 +51,7 @@ namespace StrawberryShake.Http
             bool includeId,
             bool includeDocument)
         {
-            var jsonWriter = new Utf8JsonWriter(stream);
-            await using (jsonWriter.ConfigureAwait(false));
+            await using var jsonWriter = new Utf8JsonWriter(stream);
             WriteJsonRequest(
                 operation, jsonWriter, extensions,
                 includeId, includeDocument);

@@ -64,8 +64,7 @@ namespace HotChocolate.Execution.Serialization
                 throw new ArgumentNullException(nameof(stream));
             }
 
-            var writer = new Utf8JsonWriter(stream, _options);
-            await using (writer.ConfigureAwait(false));
+            await using var writer = new Utf8JsonWriter(stream, _options);
 
             WriteResult(writer, result);
 
