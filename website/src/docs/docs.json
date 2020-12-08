@@ -107,8 +107,16 @@
                 "title": "Overview"
               },
               {
+                "path": "object-type",
+                "title": "Object Type"
+              },
+              {
                 "path": "language",
-                "title": "Lanugage"
+                "title": "Language"
+              }, 
+              {
+                "path": "extending-filtering",
+                "title": "Extending Filtering"
               },
               {
                 "path": "visitors",
@@ -117,6 +125,10 @@
               {
                 "path": "aspnetcore",
                 "title": "ASP.NET Core"
+              },
+              {
+                "path": "executable",
+                "title": "Executable"
               },
               {
                 "path": "migrate-from-10-to-11",

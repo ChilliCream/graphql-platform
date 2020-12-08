@@ -139,3 +139,13 @@ dotnet run --project ./Demo
 ```
 
 ![GraphQL IDE Execute Query](../../images/get-started-bcp-query.png)
+
+# Summary
+
+In this guide, we have learned how to set up a simple GraphQL server project and define a GraphQL schema with .NET.
+
+Moreover, we explored our GraphQL schema with our GraphQL IDE Banana Cake Pop and executed a simple query to test our server.
+
+If you want to dive deeper, you can start with our [GraphQL tutorial](https://github.com/ChilliCream/graphql-workshop) to get into several topics around GraphQL and Hot Chocolate.
+
+Further, you can learn more about defining GraphQL schemas in .NET [here](../defining-a-schema).
