@@ -22,7 +22,7 @@ namespace StrawberryShake.CodeGeneration.Utilities
 
             while (!(current is INamedType))
             {
-                if (current is ListType)
+                if (current is HotChocolate.Types.ListType)
                 {
                     if (types.Count == 0 || !(types.Peek() is NonNullType))
                     {

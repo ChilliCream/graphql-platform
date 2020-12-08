@@ -5,13 +5,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public class ParameterBuilder : ICodeBuilder
     {
-        private string? _type;
+        private TypeBuilder? _type;
         private string? _name;
         private string? _default;
 
         public static ParameterBuilder New() => new ParameterBuilder();
 
-        public ParameterBuilder SetType(string value, bool condition = true)
+        public ParameterBuilder SetType(TypeBuilder value, bool condition = true)
         {
             if (condition)
             {
@@ -35,16 +35,23 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public Task BuildAsync(CodeWriter writer)
+        public async Task BuildAsync(CodeWriter writer)
         {
             if (writer is null)
             {
                 throw new ArgumentNullException(nameof(writer));
             }
 
-            return _default is null
-                ? writer.WriteAsync($"{_type} {_name}")
-                : writer.WriteAsync($"{_type} {_name} = {_default}");
+            if (_type is null)
+            {
+                throw new ArgumentNullException(nameof(_type));
+            }
+
+            await _type.BuildAsync(writer).ConfigureAwait(false);
+
+            await (_default is null
+                ? writer.WriteAsync($"{_name}")
+                : writer.WriteAsync($"{_name} = {_default}"));
         }
     }
 }

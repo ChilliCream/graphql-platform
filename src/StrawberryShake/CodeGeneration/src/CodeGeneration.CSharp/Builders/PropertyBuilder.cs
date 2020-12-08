@@ -12,7 +12,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private string? _backingField;
         private ICode? _getCode;
         private ICode? _setCode;
-        private string? _type;
+        private TypeBuilder? _type;
         private string? _name;
 
         public static PropertyBuilder New() => new PropertyBuilder();
@@ -23,7 +23,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public PropertyBuilder SetType(string value)
+        public PropertyBuilder SetType(TypeBuilder value)
         {
             _type = value;
             return this;
@@ -74,6 +74,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 throw new ArgumentNullException(nameof(writer));
             }
 
+            if (_type is null)
+            {
+                throw new ArgumentNullException(nameof(_type));
+            }
+
             string modifier = _accessModifier.ToString().ToLowerInvariant();
             string setterModifier = string.Empty;
 
@@ -84,8 +89,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             }
 
             await writer.WriteIndentAsync().ConfigureAwait(false);
-            await writer.WriteAsync($"{modifier} {_type} {_name}")
-                .ConfigureAwait(false);
+            await writer.WriteAsync(modifier).ConfigureAwait(false);
+            await writer.WriteSpaceAsync().ConfigureAwait(false);
+            await _type.BuildAsync(writer).ConfigureAwait(false);
+            await writer.WriteAsync(_name).ConfigureAwait(false);
 
             if (_isAutoProperty)
             {

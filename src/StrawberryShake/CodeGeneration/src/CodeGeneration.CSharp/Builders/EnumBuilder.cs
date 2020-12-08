@@ -48,7 +48,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                         await writer.WriteAsync($" = {_elements[i].Item2}").ConfigureAwait(false);
                     }
 
-                    if (i + 1 == _elements.Count)
+                    if (i + 1 < _elements.Count)
                     {
                         await writer.WriteAsync($",").ConfigureAwait(false);
                     }

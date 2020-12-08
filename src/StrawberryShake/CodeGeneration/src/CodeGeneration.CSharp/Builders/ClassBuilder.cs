@@ -157,6 +157,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 await writer.WriteAsync("partial ").ConfigureAwait(false);
             }
 
+            await writer.WriteAsync("class ").ConfigureAwait(false);
             await writer.WriteLineAsync(_name).ConfigureAwait(false);
 
             if (!_isStatic && _implements.Count > 0)
