@@ -112,7 +112,11 @@
               },
               {
                 "path": "language",
-                "title": "Lanugage"
+                "title": "Language"
+              }, 
+              {
+                "path": "extending-filtering",
+                "title": "Extending Filtering"
               },
               {
                 "path": "visitors",
