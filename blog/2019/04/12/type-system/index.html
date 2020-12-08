@@ -1212,14 +1212,14 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
 <p>The most prominent API that we are introducing is the new <code class="language-text">SchemaBuilder</code>. The <code class="language-text">SchemaBuilder</code> provides us with a new way to define schemas. Do not worry the current <code class="language-text">ISchemaConfiguration</code> API is still supported and will not go away. In fact, <code class="language-text">ISchemaConfiguration</code> now is just an interface over <code class="language-text">SchemaBuilder</code> and we will evolve both APIs over time so that you can pick the one that you like more.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="63505675787273620000"
+              data-toaster-id="96960063179582750000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`ISchema schema = SchemaBuilder.New()
     .AddQueryType<FooType>()
-    .Create();`, `63505675787273620000`)"
+    .Create();`, `96960063179582750000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1236,7 +1236,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
 <p>With the schema builder we are now more flexible in scenarios like schema stitching.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="36396348035112714000"
+              data-toaster-id="66933790610322290000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1249,7 +1249,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
     .ModifyOptions(options => {  })
     .AddServices(services_a)
     .AddServices(services_b)
-    .Create();`, `36396348035112714000`)"
+    .Create();`, `66933790610322290000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1277,7 +1277,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
 <p>So, if we wanted to add to all the input type names the prefix <code class="language-text">super</code> we could do this like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="4914950726891920000"
+              data-toaster-id="14923077326569190000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1301,7 +1301,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
 
         return base.GetTypeName(type, kind);
     }
-}`, `4914950726891920000`)"
+}`, `14923077326569190000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1334,7 +1334,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
 <p>In order to register our conventions with the schema builder we can do the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="20590059694305360000"
+              data-toaster-id="38910006683374230000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1348,7 +1348,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
         c.RegisterQuerType<Foo>();
     }));
 
-}`, `20590059694305360000`)"
+}`, `38910006683374230000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1370,7 +1370,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
 <p>Or we could do it like the following with the new schema builder:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="19879723096634280000"
+              data-toaster-id="67520820044887950000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1381,7 +1381,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
     services.AddGraphQL(sp => SchemaBuilder.New()
         .AddQueryType<Foo>()
         .AddServices(sp));
-}`, `19879723096634280000`)"
+}`, `67520820044887950000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1401,7 +1401,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
 <p>One other major reason to rethink our type system was that many of you wanted to extend on types. One common thing that people wanted to do is to introduce generic types. We did something like this with our relay types. GraphQL does not really have generic types but the idea here is that you could have a type like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="10407008089137371000"
+              data-toaster-id="46371230201430745000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1410,7 +1410,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
     : ObjectType<IEdge>
     where TSchemaType : IOutputType
 {
-}`, `10407008089137371000`)"
+}`, `46371230201430745000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1429,7 +1429,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
 <p>So, let us have a look at how we would create our edge type with version 9:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="40102270939916140000"
+              data-toaster-id="56119898975425370000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1444,7 +1444,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
         descriptor.Name(dependency => dependency.Name + &quot;Edge&quot;)
             .DependsOn<TSchemaType>();
     }
-}`, `40102270939916140000`)"
+}`, `56119898975425370000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1497,7 +1497,7 @@ You can declare two kinds of dependencies in this step, either the dependency ha
 <p>Let us have a look at how we implemented our own <code class="language-text">Name</code> extension method in order to understand what <code class="language-text">Extend</code> is useful for:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="12884299315713577000"
+              data-toaster-id="88585533008235900000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1510,7 +1510,7 @@ You can declare two kinds of dependencies in this step, either the dependency ha
           ClrTypeReference.FromSchemaType(typeInfo.ClrType));
       definition.Name = createName(type);
   })
-  .DependsOn(dependency, mustBeNamed:true);`, `12884299315713577000`)"
+  .DependsOn(dependency, mustBeNamed:true);`, `88585533008235900000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1537,14 +1537,14 @@ You can declare two kinds of dependencies in this step, either the dependency ha
 <p>So, if we had a type like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="55067822834037770000"
+              data-toaster-id="72623846890772170000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`type Foo {
   bar: String!
-}`, `55067822834037770000`)"
+}`, `72623846890772170000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1559,7 +1559,7 @@ You can declare two kinds of dependencies in this step, either the dependency ha
 <p>We would want to be able to describe the filter capabilities that are available to the user of our API. This could look something like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="25361846989756610000"
+              data-toaster-id="80506927762417760000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1571,7 +1571,7 @@ You can declare two kinds of dependencies in this step, either the dependency ha
     {
         descriptor.Filter(t => t.Bar).AllowSmallerThan();
     }
-}`, `25361846989756610000`)"
+}`, `80506927762417760000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1591,7 +1591,7 @@ You can declare two kinds of dependencies in this step, either the dependency ha
 <p>The <code class="language-text">FilterType&lt;Foo&gt;</code> inherits from <code class="language-text">InputObjectType</code> and can with version 9 add its own descriptor. In order to replace the descriptor on our input type we would have to replace the configure method and introduce our new filter descriptor:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="15825568353292562000"
+              data-toaster-id="97515756558289240000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1636,7 +1636,7 @@ You can declare two kinds of dependencies in this step, either the dependency ha
     }
 
     #endregion
-}`, `15825568353292562000`)"
+}`, `97515756558289240000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1690,7 +1690,7 @@ You can declare two kinds of dependencies in this step, either the dependency ha
 <p>In order to replace the old descriptor, we sealed of the old <code class="language-text">Configure</code> method. Also, we introduced our new <code class="language-text">Configure</code> method with the new descriptor.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="47661353015654154000"
+              data-toaster-id="10722222029307836000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1704,7 +1704,7 @@ protected sealed override void Configure(
     IInputObjectTypeDescriptor descriptor)
 {
     throw new NotSupportedException();
-}`, `47661353015654154000`)"
+}`, `10722222029307836000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1728,7 +1728,7 @@ protected sealed override void Configure(
 <p>Also, with the new version we added the context data dictionary to all types, fields and arguments. You can use this to add custom metadata to objects of the type system. Context data can be declared on the type definition and will be copied to the corresponding type object.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="17442625675029633000"
+              data-toaster-id="83178570412313670000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1738,7 +1738,7 @@ protected sealed override void Configure(
   .OnBeforeCreate(definition =>
   {
       definition.ContextData[&quot;Foo&quot;] = &quot;Bar&quot;;
-  });`, `17442625675029633000`)"
+  });`, `83178570412313670000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1756,12 +1756,12 @@ protected sealed override void Configure(
 <p>You can access the context data on a type object like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="66036295875126760000"
+              data-toaster-id="52874258569279210000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`schema.GetType<ObjectType>(&quot;Query&quot;).ContextData.ContainsKey(&quot;Foo&quot;);`, `66036295875126760000`)"
+              onClick="copyToClipboard(`schema.GetType<ObjectType>(&quot;Query&quot;).ContextData.ContainsKey(&quot;Foo&quot;);`, `52874258569279210000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1776,7 +1776,7 @@ protected sealed override void Configure(
 <p>In order to activate relayjs support you can do now the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="34707341969481044000"
+              data-toaster-id="34322440829762280000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1784,7 +1784,7 @@ protected sealed override void Configure(
               onClick="copyToClipboard(`SchemaBuilder.New()
     .EnableRelaySupport()
     .AddQueryType<Foo>()
-    .Create()`, `34707341969481044000`)"
+    .Create()`, `34322440829762280000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1801,7 +1801,7 @@ protected sealed override void Configure(
 <p>In <code class="language-text">ObjectType</code>s you can now declare a type as node type. That means this type will implement the node interface and can be resolved through the node field:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="34831364871783354000"
+              data-toaster-id="55789391618674560000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1814,7 +1814,7 @@ protected sealed override void Configure(
         descriptor.AsNode<Foo,int>((ctx, id) =>
             ctx.Service<IMyRepository>().GetById(id));
     }
-}`, `34831364871783354000`)"
+}`, `55789391618674560000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1839,7 +1839,7 @@ protected sealed override void Configure(
 <p>Let us say we have the type <code class="language-text">FooType</code> that has one field <code class="language-text">description</code>.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="2536237591446899000"
+              data-toaster-id="25713415111439364000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1852,7 +1852,7 @@ protected sealed override void Configure(
     {
         descriptor.Field(t => t.Description);
     }
-}`, `2536237591446899000`)"
+}`, `25713415111439364000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1873,7 +1873,7 @@ protected sealed override void Configure(
 <p>We can now introduce a type extension for our <code class="language-text">FooType</code> that adds for instance a new field <code class="language-text">test</code>.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="3989319009164904400"
+              data-toaster-id="42173929743663990000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1889,7 +1889,7 @@ protected sealed override void Configure(
             .Resolver(() => new List<string>())
             .Type<ListType<StringType>>();
     }
-}`, `3989319009164904400`)"
+}`, `42173929743663990000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1915,7 +1915,7 @@ protected sealed override void Configure(
 <p>So, let us have a look of how we add type extensions to our schema:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="802112290327694500"
+              data-toaster-id="579287641290537900"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1923,7 +1923,7 @@ protected sealed override void Configure(
               onClick="copyToClipboard(`ISchema schema = SchemaBuilder.New()
   .AddQueryType<FooType>()
   .AddType<FooTypeExtension>();
-  .Create()`, `802112290327694500`)"
+  .Create()`, `579287641290537900`)"
             >
               <div
                 class="gatsby-code-button"
