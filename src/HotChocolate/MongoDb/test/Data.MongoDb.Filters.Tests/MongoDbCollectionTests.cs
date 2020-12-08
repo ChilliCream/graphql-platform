@@ -23,8 +23,8 @@ namespace HotChocolate.Data.MongoDb.Filters
 
         private static readonly Bar[] _barEntities =
         {
-            new Bar { Baz = new DateTime(2020, 12, 1) },
-            new Bar { Baz = new DateTime(2020, 12, 2) }
+            new Bar { Baz = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero) },
+            new Bar { Baz = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero) }
         };
 
         private readonly MongoResource _resource;
@@ -88,14 +88,14 @@ namespace HotChocolate.Data.MongoDb.Filters
             // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { baz: { eq: \"2020-01-11\"}}){ baz}}")
+                    .SetQuery("{ root(where: { baz: { eq: \"2020-01-11T00:00:00Z\"}}){ baz}}")
                     .Create());
 
             res1.MatchDocumentSnapshot("2020-01-11");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { baz: { eq: \"2020-01-12\"}}){ baz}}")
+                    .SetQuery("{ root(where: { baz: { eq: \"2020-01-12T00:00:00Z\"}}){ baz}}")
                     .Create());
 
             res2.MatchDocumentSnapshot("2020-01-12");

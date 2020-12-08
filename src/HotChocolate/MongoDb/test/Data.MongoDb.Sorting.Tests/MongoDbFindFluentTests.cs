@@ -24,15 +24,15 @@ namespace HotChocolate.Data.MongoDb.Sorting
 
         private static readonly Bar[] _barEntities =
         {
-            new Bar { Baz = new DateTime(2020, 1, 12) },
-            new Bar { Baz = new DateTime(2020, 1, 11) }
+            new Bar { Baz = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero) },
+            new Bar { Baz = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero) }
         };
 
         private static readonly Baz[] _bazEntities =
         {
-            new Baz { Bar = new DateTime(2020, 1, 12), Qux = 1 },
-            new Baz { Bar = new DateTime(2020, 1, 11), Qux = 0 },
-            new Baz { Bar = new DateTime(1996, 1, 11), Qux = -1 }
+            new Baz { Bar = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero), Qux = 1 },
+            new Baz { Bar = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero), Qux = 0 },
+            new Baz { Bar = new DateTimeOffset(1996, 1, 11, 0, 0, 0, TimeSpan.Zero), Qux = -1 }
         };
 
         private readonly MongoResource _resource;
