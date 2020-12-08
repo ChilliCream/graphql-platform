@@ -14,8 +14,8 @@
     "ContentType": "application/json; charset=utf-8",
     "StatusCode": "OK",
     "Data": {
-      "hero": {
-        "id": "1000"
+      "human": {
+        "name": "Luke Skywalker"
       }
     },
     "Errors": null,

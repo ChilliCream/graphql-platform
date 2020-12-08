@@ -121,7 +121,7 @@ namespace HotChocolate.AspNetCore
 
             for (var i = 0; i < requests.Count; i++)
             {
-                QueryRequestBuilder requestBuilder = QueryRequestBuilder.From(requests[0]);
+                QueryRequestBuilder requestBuilder = QueryRequestBuilder.From(requests[i]);
 
                 await requestInterceptor.OnCreateAsync(
                     context, requestExecutor, requestBuilder, context.RequestAborted);
