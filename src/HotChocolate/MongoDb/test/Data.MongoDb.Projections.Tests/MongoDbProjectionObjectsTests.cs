@@ -81,7 +81,6 @@ namespace HotChocolate.Data.MongoDb.Projections
                             root {
                                 number
                                 foo {
-                                    id
                                     barEnum
                                 }
                             }

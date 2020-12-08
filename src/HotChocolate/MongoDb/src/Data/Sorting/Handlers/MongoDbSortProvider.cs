@@ -43,7 +43,8 @@ namespace HotChocolate.Data.MongoDb.Sorting.Convention.Extensions.Handlers
 
                 if (filter is not NullValueNode &&
                     argument.Type is ListType listType &&
-                    listType.ElementType is SortInputType sortInputType)
+                    listType.ElementType is NonNullType nn &&
+                    nn.NamedType() is SortInputType sortInputType)
                 {
                     visitorContext = new MongoDbSortVisitorContext(sortInputType);
 

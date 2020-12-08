@@ -13,12 +13,12 @@ namespace HotChocolate.Data.MongoDb.Sorting
         {
             if (result is { })
             {
-                result.MatchSnapshot(snapshotName);
                 if (result.ContextData is { } &&
                     result.ContextData.TryGetValue("query", out object? queryResult))
                 {
                     queryResult.MatchSnapshot(new SnapshotNameExtension(snapshotName + "_query"));
                 }
+                result.MatchSnapshot(snapshotName);
             }
         }
     }
