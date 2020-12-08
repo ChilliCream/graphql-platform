@@ -67,7 +67,6 @@ namespace HotChocolate.Data.MongoDb.Filters
                                     .Create();
                         }
                     })
-                .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)
                 .UseDefaultPipeline()
                 .Services
                 .BuildServiceProvider()
