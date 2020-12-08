@@ -611,23 +611,25 @@ downstream schemas.
             object? context)
         {
             if (node.Type.NamedType().Name.Value.EndsWith("Connection") &&
-                node.Arguments.Any(
+                (node.Arguments.Any(
                     t => t.Name.Value.EqualsOrdinal("first") &&
-                        t.Type.NamedType().Name.Value.EqualsOrdinal("Int")))
+                        t.Type.NamedType().Name.Value.EqualsOrdinal("Int"))
+                || node.Arguments.Any(
+                    t => t.Name.Value.EqualsOrdinal("last") &&
+                        t.Type.NamedType().Name.Value.EqualsOrdinal("Int"))
+                ))
             {
                 var arguments = node.Arguments.ToList();
 
                 InputValueDefinitionNode first =
-                    arguments.First(t => t.Name.Value.EqualsOrdinal("first"));
+                    arguments.FirstOrDefault(t => t.Name.Value.EqualsOrdinal("first"));
 
                 InputValueDefinitionNode last =
-                    arguments.First(t => t.Name.Value.EqualsOrdinal("last"));
+                    arguments.FirstOrDefault(t => t.Name.Value.EqualsOrdinal("last"));
 
-                arguments[arguments.IndexOf(first)] =
-                    first.WithType(RewriteType(first.Type, "PaginationAmount"));
+                if (first != null) arguments[arguments.IndexOf(first)] = first.WithType(RewriteType(first.Type, "PaginationAmount"));
 
-                arguments[arguments.IndexOf(last)] =
-                    first.WithType(RewriteType(first.Type, "PaginationAmount"));
+                if (last != null) arguments[arguments.IndexOf(last)] = last.WithType(RewriteType(last.Type, "PaginationAmount"));
 
                 node = node.WithArguments(arguments);
             }
