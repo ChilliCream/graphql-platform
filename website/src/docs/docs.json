@@ -113,6 +113,10 @@
               {
                 "path": "language",
                 "title": "Language"
+              }, 
+              {
+                "path": "extending-filtering",
+                "title": "Extending Filtering"
               },
               {
                 "path": "visitors",
