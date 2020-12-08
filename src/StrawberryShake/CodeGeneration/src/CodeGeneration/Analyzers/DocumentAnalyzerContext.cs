@@ -74,7 +74,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             _fieldCollector = new FieldCollector(Schema, fragmentCollection);
         }
 
-        public PossibleSelections CollectFields(
+        public SelectionVariants CollectFields(
             INamedOutputType type,
             SelectionSetNode selectionSet,
             Path path)

@@ -46,7 +46,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     if (!current.Field.Type.NamedType().IsLeafType())
                     {
                         VisitFieldSelectionSet(
-                            context, operation, current.Selection,
+                            context, operation, current.FieldSyntax,
                             current.Field.Type, path, backlog);
                     }
                 }
@@ -62,13 +62,13 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             Path path,
             Queue<FieldSelection> backlog)
         {
-            PossibleSelections possibleSelections =
+            SelectionVariants selectionVariants =
                 context.CollectFields(
                     operationType,
                     operation.SelectionSet,
                     path);
 
-            EnqueueFields(backlog, possibleSelections.ReturnType.Fields, path);
+            EnqueueFields(backlog, selectionVariants.ReturnType.Fields, path);
 
             _objectTypeSelectionSetAnalyzer.Analyze(
                 context,
@@ -86,7 +86,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     },
                     Array.Empty<ArgumentNode>(),
                     null),
-                possibleSelections,
+                selectionVariants,
                 new NonNullType(operationType),
                 operationType,
                 path);
@@ -102,13 +102,13 @@ namespace StrawberryShake.CodeGeneration.Analyzers
         {
             var namedType = (INamedOutputType)fieldType.NamedType();
 
-            PossibleSelections possibleSelections =
+            SelectionVariants selectionVariants =
                 context.CollectFields(
                     namedType,
                     fieldSelection.SelectionSet!,
                     path);
 
-            foreach (SelectionInfo selectionInfo in possibleSelections.Variants)
+            foreach (Selection selectionInfo in selectionVariants.Variants)
             {
                 EnqueueFields(backlog, selectionInfo.Fields, path);
             }
@@ -119,7 +119,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     context,
                     operation,
                     fieldSelection,
-                    possibleSelections,
+                    selectionVariants,
                     fieldType,
                     unionType,
                     path);
@@ -130,7 +130,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     context,
                     operation,
                     fieldSelection,
-                    possibleSelections,
+                    selectionVariants,
                     fieldType,
                     interfaceType,
                     path);
@@ -141,7 +141,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     context,
                     operation,
                     fieldSelection,
-                    possibleSelections,
+                    selectionVariants,
                     fieldType,
                     objectType,
                     path);
@@ -207,7 +207,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             {
                 backlog.Enqueue(new FieldSelection(
                     fieldSelection.Field,
-                    fieldSelection.Selection,
+                    fieldSelection.FieldSyntax,
                     path));
             }
         }

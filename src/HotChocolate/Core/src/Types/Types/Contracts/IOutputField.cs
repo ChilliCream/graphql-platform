@@ -2,8 +2,7 @@
 
 namespace HotChocolate.Types
 {
-    public interface IOutputField
-       : IField
+    public interface IOutputField : IField
     {
         bool IsIntrospectionField { get; }
 

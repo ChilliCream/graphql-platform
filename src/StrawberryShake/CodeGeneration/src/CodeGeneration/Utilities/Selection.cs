@@ -6,9 +6,9 @@ using HotChocolate.Types;
 
 namespace StrawberryShake.CodeGeneration.Utilities
 {
-    internal sealed class SelectionInfo
+    internal sealed class Selection
     {
-        public SelectionInfo(
+        public Selection(
             INamedType type,
             SelectionSetNode selectionSet,
             IReadOnlyList<FieldSelection> fields,
@@ -19,7 +19,7 @@ namespace StrawberryShake.CodeGeneration.Utilities
             Fields = fields ?? throw new ArgumentNullException(nameof(fields));
             Fragments = fragments ?? throw new ArgumentNullException(nameof(fragments));
             ExpandedSelectionSet = selectionSet.WithSelections(
-                fields.Select(t => t.Selection).ToList());
+                fields.Select(t => t.FieldSyntax).ToList());
         }
 
         public INamedType Type { get; }

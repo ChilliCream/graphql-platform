@@ -4,8 +4,7 @@ using HotChocolate.Types;
 
 namespace StrawberryShake.CodeGeneration.Utilities
 {
-    internal sealed class Fragment
-        : IFragment
+    internal sealed class Fragment : IFragment
     {
         public Fragment(
             string name,

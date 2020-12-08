@@ -13,7 +13,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             IDocumentAnalyzerContext context,
             OperationDefinitionNode operation,
             FieldNode fieldSelection,
-            PossibleSelections possibleSelections,
+            SelectionVariants selectionVariants,
             IType fieldType,
             ObjectType namedType,
             Path path)
@@ -22,7 +22,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 ResolveReturnType(
                     namedType,
                     fieldSelection,
-                    possibleSelections.ReturnType);
+                    selectionVariants.ReturnType);
 
             OutputTypeModel returnType =
                 CreateInterfaceModel(
@@ -35,7 +35,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     context,
                     returnTypeFragment,
                     returnType,
-                    possibleSelections.ReturnType,
+                    selectionVariants.ReturnType,
                     path);
 
             CreateFieldParserModel(

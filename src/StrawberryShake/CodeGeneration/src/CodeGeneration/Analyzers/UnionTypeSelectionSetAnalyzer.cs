@@ -16,7 +16,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             IDocumentAnalyzerContext context,
             OperationDefinitionNode operation,
             FieldNode fieldSelection,
-            PossibleSelections possibleSelections,
+            SelectionVariants selectionVariants,
             IType fieldType,
             UnionType namedType,
             Path path)
@@ -25,7 +25,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 ResolveReturnType(
                     namedType,
                     fieldSelection,
-                    possibleSelections.ReturnType);
+                    selectionVariants.ReturnType);
 
             OutputTypeModel returnType =
                 CreateInterfaceModel(
@@ -37,7 +37,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 context,
                 operation,
                 fieldSelection,
-                possibleSelections,
+                selectionVariants,
                 returnType,
                 fieldType,
                 path);
@@ -47,12 +47,12 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             IDocumentAnalyzerContext context,
             OperationDefinitionNode operation,
             FieldNode fieldSelection,
-            PossibleSelections possibleSelections,
+            SelectionVariants selectionVariants,
             OutputTypeModel returnType,
             IType fieldType,
             Path path)
         {
-            IReadOnlyCollection<SelectionInfo> selections = possibleSelections.Variants;
+            IReadOnlyCollection<Selection> selections = selectionVariants.Variants;
 
             IReadOnlyList<OutputTypeModel> modelTypes =
                 CreateClassModels(

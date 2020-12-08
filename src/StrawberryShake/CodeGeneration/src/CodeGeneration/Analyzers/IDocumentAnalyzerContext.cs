@@ -25,7 +25,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
         NameString GetOrCreateName(NameString name);
 
-        PossibleSelections CollectFields(
+        SelectionVariants CollectFields(
             INamedOutputType type,
             SelectionSetNode selectionSet,
             Path path);

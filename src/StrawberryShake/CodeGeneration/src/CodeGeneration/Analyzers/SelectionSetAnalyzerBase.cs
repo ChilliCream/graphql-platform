@@ -21,7 +21,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
            IDocumentAnalyzerContext context,
            OperationDefinitionNode operation,
            FieldNode fieldSelection,
-           PossibleSelections possibleSelections,
+           SelectionVariants selectionVariants,
            IType fieldType,
            T namedType,
            Path path);
@@ -150,13 +150,13 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
             return fields.Values.Select(t =>
             {
-                string responseName = (t.Selection.Alias ?? t.Selection.Name).Value;
+                string responseName = (t.FieldSyntax.Alias ?? t.FieldSyntax.Name).Value;
                 return new OutputFieldModel(
                     t.ResponseName,
                     t.Field.Description,
                     t.Field,
                     t.Field.Type,
-                    t.Selection,
+                    t.FieldSyntax,
                     path.Append(responseName));
             }).ToList();
         }
@@ -199,7 +199,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             IDocumentAnalyzerContext context,
             IFragmentNode returnTypeFragment,
             OutputTypeModel returnType,
-            SelectionInfo selection,
+            Selection selection,
             Path path)
         {
             var fieldNames = new HashSet<string>(
@@ -232,12 +232,12 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             IDocumentAnalyzerContext context,
             OutputTypeModel returnType,
             FieldNode fieldSelection,
-            IReadOnlyCollection<SelectionInfo> selections,
+            IReadOnlyCollection<Selection> selections,
             Path path)
         {
             var possibleModelTypes = new List<OutputTypeModel>();
 
-            foreach (SelectionInfo selection in selections)
+            foreach (Selection selection in selections)
             {
                 IFragmentNode modelType = ResolveReturnType(
                     selection.Type, fieldSelection, selection);
@@ -453,7 +453,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
         protected static IFragmentNode ResolveReturnType(
             INamedType namedType,
             FieldNode fieldSelection,
-            SelectionInfo selection)
+            Selection selection)
         {
             var returnType = new FragmentNode(new Fragment(
                 CreateName(namedType, fieldSelection, GetClassName),
