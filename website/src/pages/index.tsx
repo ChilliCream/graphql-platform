@@ -26,6 +26,7 @@ import { Layout } from "../components/structure/layout";
 import AeiLogoSvg from "../images/companies/aei.svg";
 import AtminaLogoSvg from "../images/companies/atmina.svg";
 import AutoguruLogoSvg from "../images/companies/autoguru.svg";
+import BiqhLogoSvg from "../images/companies/biqh.svg";
 import CarmmunityLogoSvg from "../images/companies/carmmunity.svg";
 import E2mLogoSvg from "../images/companies/e2m.svg";
 import ExlrtLogoSvg from "../images/companies/exlrt.svg";
@@ -216,6 +217,11 @@ const IndexPage: FunctionComponent = () => {
               <Logo width={180}>
                 <Link to="https://www.autoguru.com.au">
                   <AutoguruLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={100}>
+                <Link to="https://www.biqh.com">
+                  <BiqhLogoSvg />
                 </Link>
               </Logo>
               <Logo width={180}>

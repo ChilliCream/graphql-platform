@@ -11,3 +11,8 @@ Various libraries, packages, etc. that developers can add to their own project a
 ### Validation
 
 - [FairyBread](https://github.com/benmccallum/fairybread) - Input validation for Hot Chocolate
+- [DarkHills.HotChocolate.FluentValidation](https://github.com/DarkHills/HotChocolate.FluentValidation) - FluentValidation middleware for Hot Chocolate
+
+### Data access
+
+- [DarkHills.HotChocolate.TransactionScope](https://github.com/DarkHills/HotChocolate.TransactionScope) - TransactionScope middleware for Hot Chocolate
