@@ -7,7 +7,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace HotChocolate.Data.MongoDb {
+namespace HotChocolate.MongoDb {
     using System;
     
     
@@ -28,7 +28,7 @@ namespace HotChocolate.Data.MongoDb {
         internal static System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.Equals(null, resourceMan)) {
-                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("HotChocolate.Data.MongoDb.MongoDbResources", typeof(MongoDbResources).Assembly);
+                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("HotChocolate.MongoDb.MongoDbResources", typeof(MongoDbResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

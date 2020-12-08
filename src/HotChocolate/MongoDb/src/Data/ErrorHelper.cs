@@ -4,6 +4,7 @@ using HotChocolate.Data;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Language;
+using HotChocolate.MongoDb;
 using HotChocolate.Types;
 
 namespace HotChocolate.Data.MongoDb

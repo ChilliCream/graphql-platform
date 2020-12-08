@@ -21,10 +21,11 @@
   <data name="ErrorHelper_Filtering_CreateNonNullError" xml:space="preserve">
     <value>The provided value for filter `{0}` of type {1} is invalid. Null values are not supported.</value>
   </data>
-  <data name="ErrorHelper_Sorting_CreateNonNullError" xml:space="preserve">
+    <data name="ErrorHelper_Sorting_CreateNonNullError" xml:space="preserve">
     <value>The provided value for sorting `{0}` of type {1} is invalid. Null values are not supported.</value>
   </data>
-  <data name="Paging_SourceIsNotSupported" xml:space="preserve">
+    <data name="Paging_SourceIsNotSupported" xml:space="preserve">
     <value>The provided source {0} is not supported for mongo paging</value>
   </data>
+
 </root>
