@@ -5,6 +5,7 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Data.Filters
@@ -14,6 +15,7 @@ namespace HotChocolate.Data.Filters
         protected string? FileName { get; set; } = Guid.NewGuid().ToString("N") + ".db";
 
         private Func<IResolverContext, IEnumerable<TResult>> BuildResolver<TResult>(
+            Action<ModelBuilder>? onModelCreating,
             params TResult[] results)
             where TResult : class
         {
@@ -22,7 +24,7 @@ namespace HotChocolate.Data.Filters
                 throw new InvalidOperationException();
             }
 
-            var dbContext = new DatabaseContext<TResult>(FileName);
+            var dbContext = new DatabaseContext<TResult>(FileName, onModelCreating);
             dbContext.Database.EnsureDeleted();
             dbContext.Database.EnsureCreated();
             dbContext.AddRange(results);
@@ -43,13 +45,16 @@ namespace HotChocolate.Data.Filters
         protected IRequestExecutor CreateSchema<TEntity, T>(
             TEntity[] entities,
             FilterConvention? convention = null,
-            bool withPaging = false)
+            bool withPaging = false,
+            Action<ISchemaBuilder>? configure = null,
+            Action<ModelBuilder>? onModelCreating = null)
             where TEntity : class
             where T : FilterInputType<TEntity>
         {
             convention ??= new FilterConvention(x => x.AddDefaults().BindRuntimeType<TEntity, T>());
 
-            Func<IResolverContext, IEnumerable<TEntity>>? resolver = BuildResolver(entities);
+            Func<IResolverContext, IEnumerable<TEntity>>? resolver =
+                BuildResolver(onModelCreating,entities);
 
             ISchemaBuilder builder = SchemaBuilder.New()
                 .AddConvention<IFilterConvention>(convention)
@@ -68,6 +73,8 @@ namespace HotChocolate.Data.Filters
                                     ctx => resolver(ctx).AsExecutable()),
                             withPaging);
                     });
+
+            configure?.Invoke(builder);
 
             ISchema schema = builder.Create();
 

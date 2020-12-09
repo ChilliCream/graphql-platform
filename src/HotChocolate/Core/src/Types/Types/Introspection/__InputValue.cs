@@ -1,5 +1,6 @@
 #pragma warning disable IDE1006 // Naming Styles
 using HotChocolate.Language;
+using HotChocolate.Language.Utilities;
 using HotChocolate.Properties;
 
 #nullable enable
@@ -45,12 +46,7 @@ namespace HotChocolate.Types.Introspection
                         return null;
                     }
 
-                    if (field.DefaultValue is not null)
-                    {
-                        return QuerySyntaxSerializer.Serialize(field.DefaultValue);
-                    }
-
-                    return null;
+                    return field.DefaultValue?.Print();
                 });
         }
 

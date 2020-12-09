@@ -46,9 +46,9 @@ Projections can be registered on a field. A middleware will apply the selected f
 Support for `IQueryable` comes out of the box.
 The projection middleware will create a projection for the whole subtree of its field. Only fields that
 are members of a type will be projected. Fields that define a customer resolver cannot be projected
-to the database. If the middleware encounters a field that specifies `UseProjections()` this field will be skipped.
+to the database. If the middleware encounters a field that specifies `UseProjection()` this field will be skipped.
 
-> ⚠️ **Note:** If you use more than middleware, keep in mind that **ORDER MATTERS**. The correct order is UsePaging > UseProjections > UseFiltering > UseSorting
+> ⚠️ **Note:** If you use more than middleware, keep in mind that **ORDER MATTERS**. The correct order is UsePaging > UseProjection > UseFiltering > UseSorting
 
 **Code First**
 
@@ -58,7 +58,7 @@ public class QueryType
 {
     protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
     {
-        descriptor.Field(t => t.GetPersons(default)).UseProjections();
+        descriptor.Field(t => t.GetPersons(default)).UseProjection();
     }
 }
 
@@ -71,7 +71,7 @@ public class Query
 
 **Pure Code First**
 
-The field descriptor attribute `[UseProjections]` does apply the extension method `UseProjections()` on the field descriptor.
+The field descriptor attribute `[UseProjection]` does apply the extension method `UseProjection()` on the field descriptor.
 
 ```csharp
 public class Query
@@ -120,7 +120,7 @@ type User {
 # Sorting Filtering and Paging
 
 Projections can be used together with sorting, filtering and paging. The order of the middlewares must be correct.
-Make sure to have the following order: UsePaging > UseProjections > UseFiltering > UseSorting
+Make sure to have the following order: UsePaging > UseProjection > UseFiltering > UseSorting
 
 Filtering and sorting can be projected over relations. Projections **cannot** project paging over relations.
 
@@ -287,7 +287,7 @@ public class User
 
 **Pure Code First**
 
-The field descriptor attribute `[UseProjections]` does apply the extension method `UseProjections()` on the field descriptor.
+The field descriptor attribute `[UseProjection]` does apply the extension method `UseProjection()` on the field descriptor.
 
 ```csharp
 public class User

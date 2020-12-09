@@ -380,7 +380,7 @@ namespace HotChocolate.Language.Utilities
 
             writer.WriteType(node.Type);
 
-            if (node.DefaultValue is { } value)
+            if (node.DefaultValue is { Kind: not SyntaxKind.NullValue } value)
             {
                 writer.WriteSpace();
                 writer.Write("=");

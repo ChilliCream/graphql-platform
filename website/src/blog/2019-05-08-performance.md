@@ -68,11 +68,11 @@ With version 9.1 we will further optimize the resolver compilation by allowing l
 
 ## Execution Engine
 
-We have updated our execution engine to use less memory and execute faster. The new execution engine is at least 2.3 times faster and uses half of the memory GraphQL-DotNet does to execute a query. If you are using schema first we are actually seeing 8.9 times faster executon of queries with _Hot Chocolate_ compared to GraphQL-DotNet.
+We have updated our execution engine to use less memory and execute faster. The new execution engine is at least 2.3 times faster and uses half of the memory GraphQL-DotNet does to execute a query. If you are using schema first we are actually seeing 8.9 times faster executon of queries with Hot Chocolate compared to GraphQL-DotNet.
 
 GraphQL-DotNet is still faster when validating queries, but this is offset since we are caching validation results. Validation will be one of the things we will work on for version 9.1. So, expect improvements here.
 
-Also, we are putting a lot of work in our new execution plan feature. With execution plans we are seeing 3 times faster query executions compared to the current _Hot Chocolate_ version 9 preview bits.
+Also, we are putting a lot of work in our new execution plan feature. With execution plans we are seeing 3 times faster query executions compared to the current Hot Chocolate version 9 preview bits.
 
 The execution plan feature allows us to pre-analyze the query graph and in many cases optimize the execution of resolvers significantly. We will talk about this in more detail after we have shipped version 9.
 
@@ -86,9 +86,9 @@ We are investing heavily in performance and stability and see perfomance as feat
 
 Stitching is also one area we will start to improve performance-wise once we have the execution plan feature implemented.
 
-The bottom line here is that if you go with _Hot Chocolate_ you will get the most spec compliant and most performant GraphQL server on the .Net platform.
+The bottom line here is that if you go with Hot Chocolate you will get the most spec compliant and most performant GraphQL server on the .Net platform.
 
-Each time a GraphQL spec element hits draft status we will go ahead and implement it with _Hot Chocolate_, this means that with _Hot Chocolate_ you will always get the latest GraphQL features.
+Each time a GraphQL spec element hits draft status we will go ahead and implement it with Hot Chocolate, this means that with Hot Chocolate you will always get the latest GraphQL features.
 
 Also, we are working to have all the benchmarkings ready with GraphQL-Bench. This will make it more transparant what we are testing and will let us more easily assess where we are heading performance wise.
 

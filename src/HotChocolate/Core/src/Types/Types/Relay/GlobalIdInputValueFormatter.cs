@@ -10,15 +10,11 @@ using HotChocolate.Internal;
 
 namespace HotChocolate.Types.Relay
 {
-    internal class GlobalIdInputValueFormatter
-        : IInputValueFormatter
+    internal class GlobalIdInputValueFormatter : IInputValueFormatter
     {
         private readonly NameString _typeName;
         private readonly IIdSerializer _idSerializer;
         private readonly bool _validateType;
-#if !NETSTANDARD2_0
-        private readonly Type _resultTypeSource;
-#endif
         private readonly Func<IList> _createList;
 
         public GlobalIdInputValueFormatter(
@@ -30,9 +26,6 @@ namespace HotChocolate.Types.Relay
             _typeName = typeName;
             _idSerializer = idSerializer;
             _validateType = validateType;
-#if !NETSTANDARD2_0
-            _resultTypeSource = resultType.Source;
-#endif
             _createList = CreateListFactory(resultType);
         }
 
@@ -47,11 +40,7 @@ namespace HotChocolate.Types.Relay
             {
                 try
                 {
-#if !NETSTANDARD2_0
-                    IdValue id = _idSerializer.Deserialize(s, _resultTypeSource);
-#else
                     IdValue id = _idSerializer.Deserialize(s);
-#endif
 
                     if (!_validateType || _typeName.Equals(id.TypeName))
                     {
@@ -80,11 +69,7 @@ namespace HotChocolate.Types.Relay
 
                     foreach (string sv in stringEnumerable)
                     {
-#if !NETSTANDARD2_0
-                        IdValue id = _idSerializer.Deserialize(sv, _resultTypeSource);
-#else
                         IdValue id = _idSerializer.Deserialize(sv);
-#endif
 
                         if (!_validateType || _typeName.Equals(id.TypeName))
                         {

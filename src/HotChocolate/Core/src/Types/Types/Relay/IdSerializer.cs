@@ -1,14 +1,13 @@
 using System;
+using System.Text;
 using System.Buffers;
 using System.Buffers.Text;
-using System.Text;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
 namespace HotChocolate.Types.Relay
 {
-    public sealed class IdSerializer
-        : IIdSerializer
+    public sealed class IdSerializer : IIdSerializer
     {
         private const int _stackallocThreshold = 256;
         private const int _divisor = 4;
@@ -173,10 +172,7 @@ namespace HotChocolate.Types.Relay
             }
         }
 
-        public IdValue Deserialize(string serializedId) =>
-            Deserialize(serializedId, resultType: null);
-
-        public IdValue Deserialize(string serializedId, Type resultType)
+        public IdValue Deserialize(string serializedId)
         {
             if (serializedId is null)
             {
