@@ -27,7 +27,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(valueSyntax));
             }
 
-            return (valueSyntax is TLiteral casted && IsInstanceOfType(casted))
+            return valueSyntax is TLiteral casted && IsInstanceOfType(casted)
                 || valueSyntax is NullValueNode;
         }
 
