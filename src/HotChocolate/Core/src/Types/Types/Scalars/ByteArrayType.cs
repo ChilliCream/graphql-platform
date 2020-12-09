@@ -6,15 +6,26 @@ using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
-    public sealed class ByteArrayType
-        : ScalarType<byte[], StringValueNode>
+    public sealed class ByteArrayType : ScalarType<byte[], StringValueNode>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ByteArrayType"/> class.
         /// </summary>
         public ByteArrayType()
-            : base(ScalarNames.ByteArray, BindingBehavior.Implicit)
+            : this(ScalarNames.ByteArray, bind: BindingBehavior.Implicit)
         {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ByteArrayType"/> class.
+        /// </summary>
+        public ByteArrayType(
+            NameString name,
+            string? description = null,
+            BindingBehavior bind = BindingBehavior.Implicit)
+            : base(name, bind)
+        {
+            Description = description;
         }
 
         protected override byte[] ParseLiteral(StringValueNode valueSyntax)
@@ -24,7 +35,7 @@ namespace HotChocolate.Types
 
         protected override StringValueNode ParseValue(byte[] runtimeValue)
         {
-            return new StringValueNode(Convert.ToBase64String(runtimeValue));
+            return new(Convert.ToBase64String(runtimeValue));
         }
 
         public override IValueNode ParseResult(object? resultValue)

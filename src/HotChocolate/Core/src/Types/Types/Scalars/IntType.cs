@@ -13,18 +13,22 @@ namespace HotChocolate.Types
     /// http://facebook.github.io/graphql/June2018/#sec-Int
     /// </summary>
     [SpecScalar]
-    public sealed class IntType
-        : IntegerTypeBase<int>
+    public sealed class IntType : IntegerTypeBase<int>
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IntType"/> class.
+        /// </summary>
         public IntType()
-            : this(ScalarNames.Int,
-                TypeResources.IntType_Description,
-                bind: BindingBehavior.Implicit)
+            : this(int.MinValue, int.MaxValue)
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IntType"/> class.
+        /// </summary>
         public IntType(int min, int max)
-            : this(ScalarNames.Int,
+            : this(
+                ScalarNames.Int,
                 TypeResources.IntType_Description,
                 min,
                 max,
@@ -32,25 +36,24 @@ namespace HotChocolate.Types
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IntType"/> class.
+        /// </summary>
         public IntType(
             NameString name,
             string? description = null,
-            int min = int.MinValue,
-            int max = int.MaxValue,
+            int min = byte.MinValue,
+            int max = byte.MaxValue,
             BindingBehavior bind = BindingBehavior.Explicit)
             : base(name, min, max, bind)
         {
             Description = description;
         }
 
-        protected override int ParseLiteral(IntValueNode valueSyntax)
-        {
-            return valueSyntax.ToInt32();
-        }
+        protected override int ParseLiteral(IntValueNode valueSyntax) =>
+            valueSyntax.ToInt32();
 
-        protected override IntValueNode ParseValue(int runtimeValue)
-        {
-            return new IntValueNode(runtimeValue);
-        }
+        protected override IntValueNode ParseValue(int runtimeValue) =>
+            new(runtimeValue);
     }
 }

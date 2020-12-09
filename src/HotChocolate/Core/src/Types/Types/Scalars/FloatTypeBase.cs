@@ -7,8 +7,8 @@ using HotChocolate.Properties;
 namespace HotChocolate.Types
 {
     public abstract class FloatTypeBase<TRuntimeType>
-       : ScalarType<TRuntimeType>
-       where TRuntimeType : IComparable
+        : ScalarType<TRuntimeType>
+        where TRuntimeType : IComparable
     {
         protected FloatTypeBase(
             NameString name,

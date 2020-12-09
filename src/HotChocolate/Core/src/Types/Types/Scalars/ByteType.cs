@@ -1,46 +1,51 @@
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
-    public sealed class ByteType
-        : IntegerTypeBase<byte>
+    public sealed class ByteType : IntegerTypeBase<byte>
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ByteType"/> class.
+        /// </summary>
         public ByteType()
             : this(byte.MinValue, byte.MaxValue)
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ByteType"/> class.
+        /// </summary>
         public ByteType(byte min, byte max)
-            : this(ScalarNames.Byte, min, max)
-        {
-            Description = TypeResources.ByteType_Description;
-        }
-
-        public ByteType(NameString name)
-            : this(name, byte.MinValue, byte.MaxValue)
-        {
-        }
-
-        public ByteType(NameString name, byte min, byte max)
-            : base(name, min, max, BindingBehavior.Implicit)
+            : this(
+                ScalarNames.Byte,
+                TypeResources.ByteType_Description,
+                min,
+                max,
+                BindingBehavior.Implicit)
         {
         }
 
-        public ByteType(NameString name, string description, byte min, byte max)
-            : base(name, min, max, BindingBehavior.Implicit)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ByteType"/> class.
+        /// </summary>
+        public ByteType(
+            NameString name,
+            string? description = null,
+            byte min = byte.MinValue,
+            byte max = byte.MaxValue,
+            BindingBehavior bind = BindingBehavior.Explicit)
+            : base(name, min, max, bind)
         {
             Description = description;
         }
 
-        protected override byte ParseLiteral(IntValueNode valueSyntax)
-        {
-            return valueSyntax.ToByte();
-        }
+        protected override byte ParseLiteral(IntValueNode valueSyntax) =>
+            valueSyntax.ToByte();
 
-        protected override IntValueNode ParseValue(byte runtimeValue)
-        {
-            return new IntValueNode(runtimeValue);
-        }
+        protected override IntValueNode ParseValue(byte runtimeValue) =>
+            new(runtimeValue);
     }
 }

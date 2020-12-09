@@ -671,4 +671,7 @@ Type: `{0}`</value>
   <data name="NodeType_TypeDescription" xml:space="preserve">
     <value>The node interface is implemented by entities that have a global unique identifier.</value>
   </data>
+  <data name="AnyType_CycleInObjectGraph" xml:space="preserve">
+    <value>Cycle in object graph detected.</value>
+  </data>
 </root>
