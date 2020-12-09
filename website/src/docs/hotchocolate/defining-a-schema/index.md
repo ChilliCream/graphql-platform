@@ -2,84 +2,484 @@
 title: "Schema basics"
 ---
 
-Use this section as an introduction to explain what a reader can expect of this document.
+The schema in GraphQL represents the type system and exposes your business model in a strong and rich way. The schema fully describes the shape of your data and how you can interact with it.
 
-# Headlines
+# Object Type
 
-Use headlines to separate a document into several sections. First level headlines will appear in the left hand navigation. This will help the reader to quickly skip sections or jump to a particular section.
+The most important type in a GraphQL schema is the object type which lets you consume data. Every object type has to have at least one field which holds the data of an object. Fields can return simple scalars like String, Int, or again object types.
 
-# Use Diagrams
-
-Use [mermaid diagrams](https://mermaid-js.github.io/mermaid) to help a reader understand complex problems. Jump over to the [mermaid playground](https://mermaid-js.github.io/mermaid-live-editor) to test your diagrams.
-
-```mermaid
-graph TD
-  A[Christmas] -->|Get money| B(Go shopping)
-  B --> C{Let me think}
-  C -->|One| D[Laptop]
-  C -->|Two| E[iPhone]
-  C -->|Three| F[fa:fa-car Car]
-```
-
-# Use Code Examples
-
-A code example is another tool to help readers following the document and understanding the problem. Here is an list of code blocks that are used often with the ChilliCream GraphQL platform.
-
-Use `sdl` to describe GraphQL schemas.
-
-```sdl
-type Author {
-  name: String!
+```SDL
+type Book {
+  title: String
+  author: String
 }
 ```
 
-Use `graphql` to describe GraphQL operations.
+## Operations
 
-```graphql
-query {
-  author(id: 1) {
-    name
-  }
+In GraphQL, we have three root types from which only the Query type has to be defined. Root types provide the entry points that let you fetch data, mutate data, or subscribe to events. Root types themself are object types.
+
+```SDL
+schema {
+  query: Query
+}
+
+type Query {
+  book: Book
+}
+
+type Book {
+  title: String
+  author: String
 }
 ```
 
-Use `json` for everything JSON related for example a GraphQL result.
+In Hot Chocolate, there are three ways to define an object type.
 
-```json
-{
-  "data": {
-    "author": {
-      "name": "ChilliCream"
-    }
-  }
-}
-```
+> **Note:** Every single code example will be shown in three different approaches, annotation-based (previously known as pure code-first), code-first, and schema-first. However, they will always result in the same outcome on a GraphQL schema perspective and internally in Hot Chocolate. All three approaches have their pros and cons and can be combined when needed with each other. If you would like to learn more about the three approaches in Hot Chocolate, click on [Coding Approaches](/docs/hotchocolate/api-reference/coding-approaches).
 
-Use `sql` for SQL queries.
-
-```sql
-SELECT id FROM Authors WHERE id = 1
-```
-
-Use `csharp` for C# code.
+**Annotation-based approach**
 
 ```csharp
-public interface Author
+// Query.cs
+public class Query
 {
-    int Id { get; }
+    public Book GetBook() => new Book { Title  = "C# in depth", Author = "Jon Skeet" };
+}
 
-    string Name { get; }
+// Book.cs
+public class Book
+{
+    public string Title { get; set; }
+
+    public string Author { get; set; }
+}
+
+// Startup.cs
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddRouting()
+            .AddGraphQLServer()
+            .AddQueryType<Query>();
+    }
+
+    // Omitted code for brevity
 }
 ```
 
-# Use Images
+**Code-first approach**
 
-When using images make sure it's a PNG file which is at least 800 pixels wide.
+```csharp
+// Query.cs
+public class Query
+{
+    public Book GetBook() => new Book { Title  = "C# in depth", Author = "Jon Skeet" };
+}
 
-# Use Tables
+// QueryType.cs
+public class QueryType : ObjectType<Query>
+{
+    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
+    {
+        descriptor
+            .Field(f => f.GetBook())
+            .Type<BookType>();
+    }
+}
 
-When using tables make sure you always use titles.
+// Book.cs
+public class Book
+{
+    public string Title { get; set; }
 
-| Name        | Description        |
-| ----------- | ------------------ |
-| ChilliCream | A GraphQL platform |
+    public string Author { get; set; }
+}
+
+// BookType.cs
+public class BookType : ObjectType<Book>
+{
+    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
+    {
+        descriptor
+            .Field(f => f.Title)
+            .Type<StringType>();
+
+        descriptor
+            .Field(f => f.Author)
+            .Type<StringType>();
+    }
+}
+
+
+// Startup.cs
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddRouting()
+            .AddGraphQLServer()
+            .AddQueryType<QueryType>();
+    }
+
+    // Omitted code for brevity
+}
+```
+
+**Schema-first approach**
+
+```csharp
+// Query.cs
+public class Query
+{
+    public Book GetBook() => new Book { Title  = "C# in depth", Author = "Jon Skeet" };
+}
+
+// Startup.cs
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddRouting()
+            .AddGraphQLServer()
+            .AddDocumentFromString(@"
+                type Query {
+                  book: Book
+                }
+
+                type Book {
+                  title: String
+                  author: String
+                }
+            ")
+            .BindComplexType<Query>();
+    }
+
+    // Omitted code for brevity
+}
+```
+
+## Fields
+
+Fields of object types can be compared to methods in C# and allow us to pass in arguments.
+
+```sdl
+type Query {
+  book(id: String): Book
+}
+
+type Book {
+  title: String
+  author: String
+}
+```
+
+```graphql
+{
+  book(id: "abc") {
+    title
+  }
+}
+```
+
+**Annotation-based approach**
+
+```csharp
+// Query.cs
+public class Query
+{
+    public Task<Book> GetBookAsync(string id)
+    {
+        // Omitted code for brevity
+    }
+}
+
+// Book.cs
+public class Book
+{
+    public string Title { get; set; }
+
+    public string Author { get; set; }
+}
+
+// Startup.cs
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddRouting()
+            .AddGraphQLServer()
+            .AddQueryType<Query>();
+    }
+
+    // Omitted code for brevity
+}
+```
+
+**Code-first approach**
+
+```csharp
+// Query.cs
+public class Query
+{
+    public Task<Book> GetBookAsync(string id)
+    {
+        // Omitted code for brevity
+    }
+}
+
+// QueryType.cs
+public class QueryType : ObjectType<Query>
+{
+    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
+    {
+        descriptor
+            .Field(f => f.GetBook(default))
+            .Type<BookType>();
+    }
+}
+
+// Book.cs
+public class Book
+{
+    public string Title { get; set; }
+
+    public string Author { get; set; }
+}
+
+// BookType.cs
+public class BookType : ObjectType<Book>
+{
+    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
+    {
+        descriptor
+            .Field(f => f.Title)
+            .Type<StringType>();
+
+        descriptor
+            .Field(f => f.Author)
+            .Type<StringType>();
+    }
+}
+
+
+// Startup.cs
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddRouting()
+            .AddGraphQLServer()
+            .AddQueryType<QueryType>();
+    }
+
+    // Omitted code for brevity
+}
+```
+
+**Schema-first approach**
+
+```csharp
+// Query.cs
+public class Query
+{
+    public Task<Book> GetBookAsync(string id)
+    {
+        // Omitted code for brevity
+    }
+}
+
+// Startup.cs
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddRouting()
+            .AddGraphQLServer()
+            .AddDocumentFromString(@"
+                type Query {
+                  book(id: String): Book
+                }
+
+                type Book {
+                  title: String
+                  author: String
+                }
+            ")
+            .BindComplexType<Query>();
+    }
+
+    // Omitted code for brevity
+}
+```
+
+> Further reading:
+>
+> - [Object Types](/docs/hotchocolate/api-reference/object-type).
+> - [Resolvers](/docs/hotchocolate/fetching-data).
+
+# Input Objects
+
+In GraphQL we distinguish between input- and output-types. We already learned about object types which is the most prominent output-type and lets us consume data. Further, we used simple scalars like `String` to pass data into a field as an argument. In order to define complex structures of raw data that can be used as input data GraphQL defines input objects.
+
+```sdl
+input BookInput {
+  title: String
+  author: String
+}
+```
+
+If we wanted for instance to create a new book with a mutation we could do that like the following.
+
+**Annotation-based approach**
+
+```csharp
+// Query.cs
+public class Query
+{
+    // Omitted code for brevity
+}
+
+// Query.cs
+public class Mutation
+{
+    public async Task<Book> CreateBook(Book book)
+    {
+
+    }
+}
+
+// Book.cs
+public class Book
+{
+    public string Title { get; set; }
+
+    public string Author { get; set; }
+}
+
+// Startup.cs
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddRouting()
+            .AddGraphQLServer()
+            .AddQueryType<Query>();
+    }
+
+    // Omitted code for brevity
+}
+```
+
+**Code-first approach**
+
+```csharp
+// Query.cs
+public class Query
+{
+    public Task<Book> GetBookAsync(string id)
+    {
+        // Omitted code for brevity
+    }
+}
+
+// QueryType.cs
+public class QueryType : ObjectType<Query>
+{
+    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
+    {
+        descriptor
+            .Field(f => f.GetBook(default))
+            .Type<BookType>();
+    }
+}
+
+// Book.cs
+public class Book
+{
+    public string Title { get; set; }
+
+    public string Author { get; set; }
+}
+
+// BookType.cs
+public class BookType : ObjectType<Book>
+{
+    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
+    {
+        descriptor
+            .Field(f => f.Title)
+            .Type<StringType>();
+
+        descriptor
+            .Field(f => f.Author)
+            .Type<StringType>();
+    }
+}
+
+
+// Startup.cs
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddRouting()
+            .AddGraphQLServer()
+            .AddQueryType<QueryType>();
+    }
+
+    // Omitted code for brevity
+}
+```
+
+**Schema-first approach**
+
+```csharp
+// Query.cs
+public class Query
+{
+    public Task<Book> GetBookAsync(string id)
+    {
+        // Omitted code for brevity
+    }
+}
+
+// Startup.cs
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddRouting()
+            .AddGraphQLServer()
+            .AddDocumentFromString(@"
+                type Query {
+                  book(id: String): Book
+                }
+
+                type Book {
+                  title: String
+                  author: String
+                }
+            ")
+            .BindComplexType<Query>();
+    }
+
+    // Omitted code for brevity
+}
+```
+
+# Lists
+
+# Nullability
+
+GraphQL has a concept of nun-null types. Basically any type can be a non-nullable type, in the SDL we decorate non-nullable types with the `Bang` token `!`. In order to describe this in C# we can use attributes, use C# nullable reference types or use the underlying schema types to describe our GraphQL type explicitly.

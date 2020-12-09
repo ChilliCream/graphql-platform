@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using HotChocolate.Language;
+using HotChocolate.Language.Utilities;
 using HotChocolate.Types;
 using HotChocolate.Utilities.Introspection;
 
@@ -18,13 +21,8 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(schema));
             }
 
-            var sb = new StringBuilder();
-            using var stringWriter = new StringWriter(sb);
-            using var documentWriter = new DocumentWriter(stringWriter);
             DocumentNode document = SerializeSchema(schema);
-            var serializer = new SchemaSyntaxSerializer(true);
-            serializer.Visit(document, documentWriter);
-            return sb.ToString();
+            return document.Print();
         }
 
         public static void Serialize(ISchema schema, TextWriter textWriter)
@@ -39,10 +37,28 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(textWriter));
             }
 
-            using var documentWriter = new DocumentWriter(textWriter);
             DocumentNode document = SerializeSchema(schema);
-            var serializer = new SchemaSyntaxSerializer(true);
-            serializer.Visit(document, documentWriter);
+            textWriter.Write(document.Print());
+        }
+
+        public static async ValueTask SerializeAsync(
+            ISchema schema,
+            Stream stream,
+            bool indented = true,
+            CancellationToken cancellationToken = default)
+        {
+            if (schema is null)
+            {
+                throw new ArgumentNullException(nameof(schema));
+            }
+
+            if (stream is null)
+            {
+                throw new ArgumentNullException(nameof(stream));
+            }
+
+            DocumentNode document = SerializeSchema(schema);
+            await document.PrintToAsync(stream, indented, cancellationToken).ConfigureAwait(false);
         }
 
         public static DocumentNode SerializeSchema(

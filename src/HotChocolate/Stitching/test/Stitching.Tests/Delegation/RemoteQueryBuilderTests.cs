@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Language.Utilities;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -47,7 +48,7 @@ namespace HotChocolate.Stitching.Delegation
                 .Build("abc", new Dictionary<(NameString Type, NameString Schema), NameString>());
 
             // assert
-            QuerySyntaxSerializer.Serialize(newQuery).MatchSnapshot();
+            newQuery.Print().MatchSnapshot();
         }
 
         [Fact]
@@ -76,14 +77,14 @@ namespace HotChocolate.Stitching.Delegation
                 .OfType<OperationDefinitionNode>().Single()
                 .SelectionSet.Selections
                 .OfType<FieldNode>().Single()
-                .SelectionSet.Selections
+                .SelectionSet!.Selections
                 .OfType<FieldNode>().Single();
 
 
             // act
             DocumentNode newQuery = RemoteQueryBuilder.New()
                 .SetOperation(new NameNode(
-                    nameof(BuildRemoteQueryCanOverrideOperationName)), 
+                    nameof(BuildRemoteQueryCanOverrideOperationName)),
                     OperationType.Query)
                 .SetSelectionPath(path)
                 .SetRequestField(field)
@@ -91,7 +92,7 @@ namespace HotChocolate.Stitching.Delegation
                 .Build("abc", new Dictionary<(NameString Type, NameString Schema), NameString>());
 
             // assert
-            QuerySyntaxSerializer.Serialize(newQuery).MatchSnapshot();
+            newQuery.Print().MatchSnapshot();
         }
     }
 }
