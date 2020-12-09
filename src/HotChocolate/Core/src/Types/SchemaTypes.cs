@@ -101,7 +101,7 @@ namespace HotChocolate
             {
                 possibleTypes[objectType.Name] = new List<ObjectType> { objectType };
 
-                foreach (InterfaceType interfaceType in objectType.Interfaces)
+                foreach (InterfaceType interfaceType in objectType.Implements)
                 {
                     if (!possibleTypes.TryGetValue(interfaceType.Name, out List<ObjectType> pt))
                     {

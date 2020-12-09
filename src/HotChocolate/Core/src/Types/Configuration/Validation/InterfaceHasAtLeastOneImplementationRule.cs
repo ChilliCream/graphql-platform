@@ -25,7 +25,7 @@ namespace HotChocolate.Configuration.Validation
 
             foreach (ObjectType objectType in typeSystemObjects.OfType<ObjectType>())
             {
-                foreach (InterfaceType interfaceType in objectType.Interfaces)
+                foreach (InterfaceType interfaceType in objectType.Implements)
                 {
                     interfaceTypes.Remove(interfaceType);
                 }

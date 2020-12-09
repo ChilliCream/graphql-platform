@@ -12,6 +12,7 @@ namespace HotChocolate.Types.Descriptors
         , INamingConventions
     {
         private const string _inputPostfix = "Input";
+        private const string _inputTypePostfix = "InputType";
         private readonly IDocumentationProvider _documentation;
 
         public DefaultNamingConventions(IDocumentationProvider documentation)
@@ -62,10 +63,26 @@ namespace HotChocolate.Types.Descriptors
 
             string name = type.GetGraphQLName();
 
-            if (kind == TypeKind.InputObject
-                && !name.EndsWith(_inputPostfix, StringComparison.Ordinal))
+            if (kind == TypeKind.InputObject)
             {
-                name += _inputPostfix;
+                var isInputObjectType = typeof(InputObjectType).IsAssignableFrom(type);
+                var isEndingInput = name.EndsWith(_inputPostfix, StringComparison.Ordinal);
+                var isEndingInputType = name.EndsWith(_inputTypePostfix, StringComparison.Ordinal);
+
+                if (isInputObjectType && isEndingInputType)
+                {
+                    return name.Substring(0, name.Length - 4);
+                }
+
+                if (isInputObjectType && !isEndingInput && !isEndingInputType)
+                {
+                    return name + _inputPostfix;
+                }
+
+                if(!isInputObjectType && !isEndingInput)
+                {
+                    return name + _inputPostfix;
+                }
             }
 
             return name;
@@ -182,12 +199,15 @@ namespace HotChocolate.Types.Descriptors
             }
 
             bool allUpper = true;
+            int lengthMinusOne = name.Length - 1;
 
             for (var i = 0; i < name.Length; i++)
             {
                 var c = name[i];
 
-                if (i > 0 && char.IsUpper(c))
+                if (i > 0 && char.IsUpper(c) && 
+                    (!char.IsUpper(name[i - 1]) || 
+                        (i < lengthMinusOne && char.IsLower(name[i + 1]))))
                 {
                     underscores++;
                 }
@@ -224,7 +244,9 @@ namespace HotChocolate.Types.Descriptors
 
                 for (var i = 1; i < name.Length; i++)
                 {
-                    if (char.IsUpper(name[i]))
+                    if (char.IsUpper(name[i]) && 
+                        (!char.IsUpper(name[i - 1]) || 
+                            (i < lengthMinusOne && char.IsLower(name[i + 1]))))
                     {
                         buffer[p++] = '_';
                     }

@@ -1,6 +1,8 @@
+using HotChocolate.Data.Filters;
 using HotChocolate.Data.Filters.Expressions;
+using HotChocolate.Data.Filters.Spatial;
 
-namespace HotChocolate.Data.Filters.Spatial
+namespace HotChocolate.Data
 {
     public static class SpatialFilterProviderDescriptorQueryableExtensions
     {
@@ -10,10 +12,15 @@ namespace HotChocolate.Data.Filters.Spatial
                 .AddFieldHandler<QueryableSpatialGeometryDataHandler>()
                 .AddFieldHandler<QueryableSpatialBufferDataHandler>()
                 .AddFieldHandler<QueryableSpatialContainsOperationHandler>()
+                .AddFieldHandler<QueryableSpatialNotContainsOperationHandler>()
                 .AddFieldHandler<QueryableSpatialDistanceOperationHandler>()
                 .AddFieldHandler<QueryableSpatialIntersectsOperationHandler>()
+                .AddFieldHandler<QueryableSpatialNotIntersectsOperationHandler>()
                 .AddFieldHandler<QueryableSpatialOverlapsOperationHandler>()
+                .AddFieldHandler<QueryableSpatialNotOverlapsOperationHandler>()
                 .AddFieldHandler<QueryableSpatialTouchesOperationHandler>()
-                .AddFieldHandler<QueryableSpatialWithinOperationHandler>();
+                .AddFieldHandler<QueryableSpatialNotTouchesOperationHandler>()
+                .AddFieldHandler<QueryableSpatialWithinOperationHandler>()
+                .AddFieldHandler<QueryableSpatialNotWithinOperationHandler>();
     }
 }

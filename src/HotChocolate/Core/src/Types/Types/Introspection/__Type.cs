@@ -65,6 +65,11 @@ namespace HotChocolate.Types.Introspection
                 .Field(Names.OfType)
                 .Type<__Type>()
                 .ResolveWith<Resolvers>(t => t.GetOfType(default!));
+
+            descriptor
+                .Field(Names.SpecifiedBy)
+                .Type<StringType>()
+                .ResolveWith<Resolvers>(t => t.GetSpecifiedBy(default!));
         }
 
         private class Resolvers
@@ -90,7 +95,7 @@ namespace HotChocolate.Types.Introspection
             }
 
             public IEnumerable<IInterfaceType>? GetInterfaces([Parent] IType type) =>
-                type is IComplexOutputType complexType ? complexType.Interfaces : null;
+                type is IComplexOutputType complexType ? complexType.Implements : null;
 
             public IEnumerable<IType>? GetPossibleTypes(ISchema schema, [Parent]INamedType type) =>
                 type.IsAbstractType() ? schema.GetPossibleTypes(type) : null;
@@ -117,6 +122,11 @@ namespace HotChocolate.Types.Introspection
                     NonNullType nnt => nnt.Type,
                     _ => null
                 };
+
+            public string? GetSpecifiedBy([Parent] IType type) =>
+                type is ScalarType scalar
+                    ? scalar.SpecifiedBy?.ToString()
+                    : null;
         }
 
         public static class Names
@@ -131,6 +141,7 @@ namespace HotChocolate.Types.Introspection
             public const string EnumValues = "enumValues";
             public const string InputFields = "inputFields";
             public const string OfType = "ofType";
+            public const string SpecifiedBy = "specifiedBy";
             public const string IncludeDeprecated = "includeDeprecated";
         }
     }

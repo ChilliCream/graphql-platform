@@ -19,7 +19,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_BooleanEqual_Expression()
         {
             // arrange
-            IRequestExecutor tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities, true);
+            IRequestExecutor tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities, true);
 
             // act
             IExecutionResult res1 = await tester.ExecuteAsync(
@@ -52,12 +52,12 @@ namespace HotChocolate.Data.Filters
             public bool? Bar { get; set; }
         }
 
-        public class FooFilterType
+        public class FooFilterInput
             : FilterInputType<Foo>
         {
         }
 
-        public class FooNullableFilterType
+        public class FooNullableFilterInput
             : FilterInputType<FooNullable>
         {
         }

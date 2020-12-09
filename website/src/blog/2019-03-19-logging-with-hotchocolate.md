@@ -8,17 +8,17 @@ authorUrl: https://github.com/michaelstaib
 authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
 
-One common question that comes up on our slack channel is if _Hot Chocolate_ supports some kind of logging infrastructure. My personal opinion here is that logging/tracing is often very project specific and an API should not force one specific logging solution onto its users.
+One common question that comes up on our slack channel is if Hot Chocolate supports some kind of logging infrastructure. My personal opinion here is that logging/tracing is often very project specific and an API should not force one specific logging solution onto its users.
 
 Instead we have opted to provide diagnostic events through Microsoft`s diagnostic source which does not force us to serialize any payloads. This in turn gives you the ability to pick and choose the information that best fits your need for your tracing/logging solution.
 
-This post will walk you through on how to add a logger of your choice to _Hot Chocolate_ and get exactly the right amount of information for your project.
+This post will walk you through on how to add a logger of your choice to Hot Chocolate and get exactly the right amount of information for your project.
 
 In this blog we will use the ASP.Net core logging API to show how a logger can be attached to our diagnostic events.
 
 ## Setup
 
-But before we can get started let us first setup a web project with _Hot Chocolate_:
+But before we can get started let us first setup a web project with Hot Chocolate:
 
 ```bash
 mkdir logging
@@ -55,7 +55,7 @@ Perfect, now we have setup all the basics and can get started.
 
 ## Diagnostic Observer
 
-The _Hot Chocolate_ server provides diagnostic events through a diagnostic source. We can subscribe to these events by providing a diagnostic observer. A diagnostic observer is basically any class that implements our marker interface `IDiagnosticObserver`.
+The Hot Chocolate server provides diagnostic events through a diagnostic source. We can subscribe to these events by providing a diagnostic observer. A diagnostic observer is basically any class that implements our marker interface `IDiagnosticObserver`.
 
 Into this class we can add public methods that are subscribed to the actual diagnostic listener. The methods that shall subscribe to an event have to be annotated to with the `DiagnosticNameAttribute`.
 

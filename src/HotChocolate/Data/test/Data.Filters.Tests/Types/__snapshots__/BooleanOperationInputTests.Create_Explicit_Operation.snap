@@ -3,7 +3,7 @@
 }
 
 type Query {
-  foo(test: FooFilterTypeFilterInput): String
+  foo(test: FooFilterInput): String
 }
 
 input BooleanOperationFilterInput {
@@ -11,9 +11,9 @@ input BooleanOperationFilterInput {
   neq: Boolean
 }
 
-input FooFilterTypeFilterInput {
-  and: [FooFilterTypeFilterInput!]
-  or: [FooFilterTypeFilterInput!]
+input FooFilterInput {
+  and: [FooFilterInput!]
+  or: [FooFilterInput!]
   boolean: BooleanOperationFilterInput
 }
 

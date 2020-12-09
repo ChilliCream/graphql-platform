@@ -7,10 +7,10 @@ type Query {
 }
 
 input StringFoo {
-  bar: DefaultSortEnumType
+  bar: SortEnumType
 }
 
-enum DefaultSortEnumType {
+enum SortEnumType {
   ASC
   DESC
 }

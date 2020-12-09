@@ -34,18 +34,15 @@ namespace HotChocolate.Stitching.Delegation
 
             public INamedOutputType? TypeContext { get; set; }
 
-            public DirectiveType Directive { get; set; }
+            public IOutputField? OutputField { get; set; }
 
-            public IOutputField OutputField { get; set; }
+            public IInputField? InputField { get; set; }
 
-            public IInputField InputField { get; set; }
-
-            public IInputType InputType { get; set; }
+            public IInputType? InputType { get; set; }
 
             public ImmutableHashSet<string> FragmentPath { get; set; }
 
-            public IDictionary<string, FragmentDefinitionNode> Fragments
-            { get; }
+            public IDictionary<string, FragmentDefinitionNode> Fragments { get; }
 
             public Context Clone()
             {

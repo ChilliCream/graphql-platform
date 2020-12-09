@@ -3,8 +3,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Stitching.Schemas.Contracts
 {
-    public class QueryType
-        : ObjectType<Query>
+    public class QueryType : ObjectType<Query>
     {
         protected override void Configure(
             IObjectTypeDescriptor<Query> descriptor)

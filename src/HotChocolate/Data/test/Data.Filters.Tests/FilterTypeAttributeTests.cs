@@ -6,7 +6,7 @@ using Xunit;
 
 namespace HotChocolate.Data.Filters
 {
-    public class FilterTypeAttributeTests
+    public class FilterInputAttributeTests
     {
         [Fact]
         public void GenericTypeDescriptorAttribute_Changes_Name()

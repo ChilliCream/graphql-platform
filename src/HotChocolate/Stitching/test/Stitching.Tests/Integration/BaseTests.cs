@@ -693,5 +693,56 @@ namespace HotChocolate.Stitching.Integration
             // assert
             Assert.NotNull(schema.GetDirectiveType("foo"));
         }
+
+        [Fact]
+        public async Task Add_Dummy_Directive_From_Resource()
+        {
+            // arrange
+            IHttpClientFactory httpClientFactory =
+                Context.CreateDefaultRemoteSchemas();
+
+            // act
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddSingleton(httpClientFactory)
+                    .AddGraphQL()
+                    .AddRemoteSchema(Context.ContractSchema)
+                    .AddRemoteSchema(Context.CustomerSchema)
+                    .AddTypeExtensionsFromResource(
+                        GetType().Assembly,
+                        "HotChocolate.Stitching.__resources__.DummyDirective.graphql")
+                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                    .BuildSchemaAsync();
+
+            // assert
+            Assert.NotNull(schema.GetDirectiveType("foo"));
+        }
+
+        [Fact]
+        public async Task Add_Dummy_Directive_From_Resource_Key_Does_Not_Exist()
+        {
+            // arrange
+            IHttpClientFactory httpClientFactory =
+                Context.CreateDefaultRemoteSchemas();
+
+            // act
+            async Task Configure() =>
+                await new ServiceCollection()
+                    .AddSingleton(httpClientFactory)
+                    .AddGraphQL()
+                    .AddRemoteSchema(Context.ContractSchema)
+                    .AddRemoteSchema(Context.CustomerSchema)
+                    .AddTypeExtensionsFromResource(
+                        GetType().Assembly,
+                        "HotChocolate.Stitching.__resources__.abc")
+                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                    .BuildSchemaAsync();
+
+            // assert
+            SchemaException exception = await Assert.ThrowsAsync<SchemaException>(Configure);
+            Assert.Contains(
+                "The resource `HotChocolate.Stitching.__resources__.abc` was not found!",
+                exception.Message);
+        }
     }
 }

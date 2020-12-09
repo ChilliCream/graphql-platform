@@ -20,7 +20,8 @@ namespace HotChocolate.Data.Sorting
 
         protected IRequestExecutor CreateSchema<TEntity, T>(
             TEntity?[] entities,
-            SortConvention? convention = null)
+            SortConvention? convention = null,
+            Action<ISchemaBuilder>? configure = null)
             where TEntity : class
             where T : SortInputType<TEntity>
         {
@@ -46,6 +47,8 @@ namespace HotChocolate.Data.Sorting
                             .Resolver(ctx => resolver(ctx).AsExecutable())
                             .UseSorting<T>();
                     });
+
+            configure?.Invoke(builder);
 
             ISchema? schema = builder.Create();
 

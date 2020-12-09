@@ -3,10 +3,10 @@
 }
 
 type Query {
-  foo(test: ListFilterInputOfStringOperationFilterInput): String
+  foo(test: ListStringOperationFilterInput): String
 }
 
-input ListFilterInputOfStringOperationFilterInput {
+input ListStringOperationFilterInput {
   all: StringOperationFilterInput
   none: StringOperationFilterInput
   some: StringOperationFilterInput

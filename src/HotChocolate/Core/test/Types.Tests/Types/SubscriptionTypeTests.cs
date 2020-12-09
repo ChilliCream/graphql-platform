@@ -246,6 +246,41 @@ namespace HotChocolate.Types
         }
 
         [InlineData("onSomething")]
+        [Theory]
+        public async Task SubscribeAndResolve_Attribute_ISourceStream(string field)
+        {
+            // arrange
+            using var cts = new CancellationTokenSource(30000);
+
+            // act
+            IRequestExecutor executor = await CreateExecutorAsync(r => r
+                .AddInMemorySubscriptions()
+                .AddQueryType(c => c.Name("Query").Field("a").Resolver("b"))
+                .AddMutationType<MyMutation>()
+                .AddSubscriptionType<PureCodeFirstSourceStream>());
+
+            // act
+            var subscriptionResult = (ISubscriptionResult)await executor.ExecuteAsync(
+                "subscription { " + field + " (userId: \"1\") }", cts.Token);
+
+            IExecutionResult mutationResult = await executor.ExecuteAsync(
+                "mutation { writeBoolean(userId: \"1\" message: true) }",
+                cts.Token);
+            Assert.Null(mutationResult.Errors);
+
+            // assert
+            var results = new StringBuilder();
+            await foreach (IQueryResult result in
+                subscriptionResult.ReadResultsAsync().WithCancellation(cts.Token))
+            {
+                results.AppendLine(result.ToJson());
+                break;
+            }
+
+            results.ToString().MatchSnapshot(new SnapshotNameExtension(field));
+        }
+
+        [InlineData("onSomething")]
         [InlineData("onSomethingTask")]
         [InlineData("onSomethingValueTask")]
         [InlineData("onSomethingObj")]
@@ -666,6 +701,17 @@ namespace HotChocolate.Types
             }
         }
 
+        public class PureCodeFirstSourceStream
+        {
+            [SubscribeAndResolve]
+            public ValueTask<ISourceStream<bool>> OnSomething(
+                string userId,
+                [Service] ITopicEventReceiver receiver)
+            {
+                return receiver.SubscribeAsync<string, bool>(userId);
+            }
+        }
+
         public class PureCodeFirstEnumerable
         {
             [SubscribeAndResolve]
@@ -838,6 +884,15 @@ namespace HotChocolate.Types
 
         public class MyMutation
         {
+            public bool WriteBoolean(
+                string userId,
+                bool message,
+                [Service] ITopicEventSender eventSender)
+            {
+                eventSender.SendAsync(userId, message);
+                return message;
+            }
+
             public string WriteMessage(
                 string userId,
                 string message,

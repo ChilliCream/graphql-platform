@@ -8,7 +8,7 @@ authorUrl: https://github.com/michaelstaib
 authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
 
-Today I was asked in our slack channel how one could write an integration test against _Hot Chocolate_ without setting up an ASP.Net Core _TestServer_.
+Today I was asked in our slack channel how one could write an integration test against Hot Chocolate without setting up an ASP.Net Core _TestServer_.
 Though the ASP.Net Core _TestServer_ API is quite nice, it is much more cumbersome to test a schema this way.
 
 For full integration tests through all the layers we could in fact setup a test GraphQL endpoint with the complete ASP.net core pipeline by using the ASP.Net core _TestServer_ API.
@@ -112,7 +112,7 @@ The query executor will return an execution result, depending on the type of ope
 
 An `IReadOnlyQueryResult` contains basically the result graph of the query, but asserting this could be very tiresome.
 
-My good friend [Normen](https://github.com/nscheibe) who works at Swiss Life created a snapshot testing library that basically works like [jestjs](https://jestjs.io). We use _Snapshooter_ internally to test the _Hot Chocolate_ core.
+My good friend [Normen](https://github.com/nscheibe) who works at Swiss Life created a snapshot testing library that basically works like [jestjs](https://jestjs.io). We use _Snapshooter_ internally to test the Hot Chocolate core.
 
 [Snapshooter](https://github.com/SwissLife-OSS/snapshooter) will create a snapshot at the first execution of the test. The snapshots are saved in a folder `__snapshot__` that is co-located with our test class. Every consecutive test run will be validated against that first snapshot. If the snapshots do not match the test will fail and tell us what part did not match.
 
@@ -176,7 +176,7 @@ https://github.com/SwissLife-OSS/snapshooter
 
 Ok, lets have a look at our second category. This I think is the simplest test we will write and probably we will just have one or two of those tests.
 
-_Hot Chocolate_ lets us print our schema as GraphQL SDL, this means that we can create a simple SDL representation like the following:
+Hot Chocolate lets us print our schema as GraphQL SDL, this means that we can create a simple SDL representation like the following:
 
 ```graphql
 type Query {

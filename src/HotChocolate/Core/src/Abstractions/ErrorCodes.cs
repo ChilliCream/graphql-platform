@@ -25,6 +25,7 @@ namespace HotChocolate
             public const string QueryNotFound = "HC0015";
             public const string TaskProcessingError = "HC0008";
             public const string SyntaxError = "HC0014";
+            public const string CannotCreateRootValue = "HC0019";
         }
 
         public static class Server
