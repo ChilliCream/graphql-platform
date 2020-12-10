@@ -5,6 +5,10 @@ using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb.Execution
 {
+    /// <summary>
+    /// A executable that is based on <see cref="IAggregateFluent{TInput}"/>
+    /// </summary>
+    /// <typeparam name="T">The entity type</typeparam>
     public class MongoAggregateFluentExecutable<T> : MongoExecutable<T>
     {
         private readonly IAggregateFluent<T> _aggregate;
@@ -14,25 +18,36 @@ namespace HotChocolate.Data.MongoDb.Execution
             _aggregate = aggregate;
         }
 
+        /// <inheritdoc />
+        public override object Source => _aggregate;
+
+        /// <inheritdoc />
         public override async ValueTask<IList> ToListAsync(CancellationToken cancellationToken) =>
             await BuildPipeline()
                 .ToListAsync(cancellationToken)
                 .ConfigureAwait(false);
 
+        /// <inheritdoc />
         public override async ValueTask<object?> FirstOrDefaultAsync(
             CancellationToken cancellationToken) =>
             await BuildPipeline()
                 .FirstOrDefaultAsync(cancellationToken)
                 .ConfigureAwait(false);
 
+        /// <inheritdoc />
         public override async ValueTask<object?> SingleOrDefaultAsync(
             CancellationToken cancellationToken) =>
             await BuildPipeline()
                 .SingleOrDefaultAsync(cancellationToken)
                 .ConfigureAwait(false);
 
+        /// <inheritdoc />
         public override string Print() => BuildPipeline().ToString() ?? "";
 
+        /// <summary>
+        /// Applies filtering sorting and projections on the <see cref="IExecutable{T}.Source"/>
+        /// </summary>
+        /// <returns>A aggregate fluent including the configuration of this executable</returns>
         public IAggregateFluent<T> BuildPipeline()
         {
             IAggregateFluent<T> pipeline = _aggregate;
@@ -41,14 +56,15 @@ namespace HotChocolate.Data.MongoDb.Execution
                 pipeline = pipeline.Sort(Sorting.ToSortDefinition<T>());
             }
 
+
             if (Filters is not null)
             {
                 pipeline = pipeline.Match(Filters.ToFilterDefinition<T>());
             }
 
-            if (Projections is not null)
+            if (Projection is not null)
             {
-                pipeline = pipeline.Project<T>(Projections.ToProjectionDefinition<T>());
+                pipeline = pipeline.Project<T>(Projection.ToProjectionDefinition<T>());
             }
 
             return pipeline;

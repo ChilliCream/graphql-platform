@@ -7,6 +7,10 @@ using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb.Execution
 {
+    /// <summary>
+    /// A executable that is based on <see cref="IMongoCollection{TResult}"/>
+    /// </summary>
+    /// <typeparam name="T">The entity type</typeparam>
     public class MongoCollectionExecutable<T> : MongoExecutable<T>
     {
         private readonly IMongoCollection<T> _collection;
@@ -16,6 +20,25 @@ namespace HotChocolate.Data.MongoDb.Execution
             _collection = collection;
         }
 
+        public override object Source => _collection;
+
+        /// <summary>
+        /// The options that were set by <see cref="WithOptions"/>
+        /// </summary>
+        protected FindOptionsBase? Options { get; private set; }
+
+        /// <summary>
+        /// Applies the options to the executable
+        /// </summary>
+        /// <param name="options">The options</param>
+        /// <returns>A executable that contains the options</returns>
+        public IMongoExecutable WithOptions(FindOptionsBase options)
+        {
+            Options = options;
+            return this;
+        }
+
+        /// <inheritdoc />
         public override async ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
         {
             IBsonSerializerRegistry serializers = _collection.Settings.SerializerRegistry;
@@ -29,9 +52,9 @@ namespace HotChocolate.Data.MongoDb.Execution
                 options.Sort = Sorting.Render(bsonSerializer, serializers);
             }
 
-            if (Projections is not null)
+            if (Projection is not null)
             {
-                options.Projection = Projections.Render(bsonSerializer, serializers);
+                options.Projection = Projection.Render(bsonSerializer, serializers);
             }
 
             if (Filters is not null)
@@ -46,20 +69,27 @@ namespace HotChocolate.Data.MongoDb.Execution
             return await cursor.ToListAsync(cancellationToken).ConfigureAwait(false);
         }
 
+        /// <inheritdoc />
         public override async ValueTask<object?> FirstOrDefaultAsync(
             CancellationToken cancellationToken) =>
             await BuildPipeline()
                 .FirstOrDefaultAsync(cancellationToken)
                 .ConfigureAwait(false);
 
+        /// <inheritdoc />
         public override async ValueTask<object?> SingleOrDefaultAsync(
             CancellationToken cancellationToken) =>
             await BuildPipeline()
                 .SingleOrDefaultAsync(cancellationToken)
                 .ConfigureAwait(false);
 
+        /// <inheritdoc />
         public override string Print() => BuildPipeline().ToString() ?? "";
 
+        /// <summary>
+        /// Applies filtering sorting and projections on the <see cref="IExecutable{T}.Source"/>
+        /// </summary>
+        /// <returns>A find fluent including the configuration of this executable</returns>
         public IFindFluent<T, T> BuildPipeline()
         {
             FindOptions options = Options as FindOptions ?? new FindOptions();
@@ -77,9 +107,9 @@ namespace HotChocolate.Data.MongoDb.Execution
                 pipeline = pipeline.Sort(Sorting.ToSortDefinition<T>());
             }
 
-            if (Projections is not null)
+            if (Projection is not null)
             {
-                pipeline = pipeline.Project<T>(Projections.ToProjectionDefinition<T>());
+                pipeline = pipeline.Project<T>(Projection.ToProjectionDefinition<T>());
             }
 
             return pipeline;
