@@ -14,7 +14,8 @@ namespace HotChocolate.Data.MongoDb.Projections
     {
         private static readonly Foo[] _fooEntities =
         {
-            new Foo { Bar = true, Baz = "a" }, new Foo { Bar = false, Baz = "b" }
+            new Foo { Bar = true, Baz = "a" },
+            new Foo { Bar = false, Baz = "b" }
         };
 
         private static readonly FooNullable[] _fooNullableEntities =
