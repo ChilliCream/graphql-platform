@@ -12,14 +12,14 @@ namespace HotChocolate.Types
         /// Initializes a new instance of the <see cref="LongType"/> class.
         /// </summary>
         public LongType()
-            : this(int.MinValue, int.MaxValue)
+            : this(long.MinValue, long.MaxValue)
         {
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LongType"/> class.
         /// </summary>
-        public LongType(int min, int max)
+        public LongType(long min, long max)
             : this(
                 ScalarNames.Long,
                 TypeResources.LongType_Description,
@@ -35,8 +35,8 @@ namespace HotChocolate.Types
         public LongType(
             NameString name,
             string? description = null,
-            int min = byte.MinValue,
-            int max = byte.MaxValue,
+            long min = long.MinValue,
+            long max = long.MaxValue,
             BindingBehavior bind = BindingBehavior.Explicit)
             : base(name, min, max, bind)
         {

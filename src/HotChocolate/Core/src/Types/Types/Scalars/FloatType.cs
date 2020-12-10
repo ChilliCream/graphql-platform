@@ -44,8 +44,8 @@ namespace HotChocolate.Types
         public FloatType(
             NameString name,
             string? description = null,
-            double min = byte.MinValue,
-            double max = byte.MaxValue,
+            double min = double.MinValue,
+            double max = double.MaxValue,
             BindingBehavior bind = BindingBehavior.Explicit)
             : base(name, min, max, bind)
         {

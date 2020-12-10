@@ -33,8 +33,8 @@ namespace HotChocolate.Types
         public ShortType(
             NameString name,
             string? description = null,
-            short min = byte.MinValue,
-            short max = byte.MaxValue,
+            short min = short.MinValue,
+            short max = short.MaxValue,
             BindingBehavior bind = BindingBehavior.Explicit)
             : base(name, min, max, bind)
         {

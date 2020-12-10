@@ -42,8 +42,8 @@ namespace HotChocolate.Types
         public IntType(
             NameString name,
             string? description = null,
-            int min = byte.MinValue,
-            int max = byte.MaxValue,
+            int min = int.MinValue,
+            int max = int.MaxValue,
             BindingBehavior bind = BindingBehavior.Explicit)
             : base(name, min, max, bind)
         {

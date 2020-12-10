@@ -34,8 +34,8 @@ namespace HotChocolate.Types
         public DecimalType(
             NameString name,
             string? description = null,
-            decimal min = byte.MinValue,
-            decimal max = byte.MaxValue,
+            decimal min = decimal.MinValue,
+            decimal max = decimal.MaxValue,
             BindingBehavior bind = BindingBehavior.Explicit)
             : base(name, min, max, bind)
         {
