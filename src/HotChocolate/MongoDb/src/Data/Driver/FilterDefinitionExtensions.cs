@@ -6,7 +6,8 @@ namespace HotChocolate.Data.MongoDb
 {
     internal static class FilterDefinitionExtensions
     {
-        public static MongoDbFilterDefinition Wrap<T>(this FilterDefinition<T> sortDefinition) =>
+        public static MongoDbFilterDefinition Wrap<T>(
+            this FilterDefinition<T> sortDefinition) =>
             new FilterDefinitionWrapper<T>(sortDefinition);
 
         private class FilterDefinitionWrapper<TDocument> : MongoDbFilterDefinition
