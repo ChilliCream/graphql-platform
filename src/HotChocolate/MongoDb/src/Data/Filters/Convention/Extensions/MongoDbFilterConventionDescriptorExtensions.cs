@@ -5,11 +5,24 @@ namespace HotChocolate.Data.MongoDb.Filters
 {
     public static class MongoDbFilterConventionDescriptorExtensions
     {
+        /// <summary>
+        /// Initializes the default configuration for MongoDb on the convention by adding operations
+        /// </summary>
+        /// <param name="descriptor">The descriptor where the handlers are registered</param>
+        /// <returns>The descriptor that was passed in as a parameter</returns>
         public static IFilterConventionDescriptor AddMongoDbDefaults(
             this IFilterConventionDescriptor descriptor) =>
-            descriptor.AddDefaultOperations().BindDefaultTypes().UseMongoDbProvider();
+            descriptor.AddDefaultMongoOperations().BindMongoDbDefaultTypes().UseMongoDbProvider();
 
-        public static IFilterConventionDescriptor AddDefaultOperations(
+        /// <summary>
+        /// Adds default operations for MongoDb to the descriptor
+        /// </summary>
+        /// <param name="descriptor">The descriptor where the handlers are registered</param>
+        /// <returns>The descriptor that was passed in as a parameter</returns>
+        /// <exception cref="ArgumentNullException">
+        /// Throws in case the argument <paramref name="descriptor"/> is null
+        /// </exception>
+        public static IFilterConventionDescriptor AddDefaultMongoOperations(
             this IFilterConventionDescriptor descriptor)
         {
             if (descriptor is null)
@@ -46,7 +59,16 @@ namespace HotChocolate.Data.MongoDb.Filters
             return descriptor;
         }
 
-        public static IFilterConventionDescriptor BindDefaultTypes(
+        /// <summary>
+        /// Binds common runtime types to the according <see cref="FilterInputType"/> that are
+        /// supported by MongoDb
+        /// </summary>
+        /// <param name="descriptor">The descriptor where the handlers are registered</param>
+        /// <returns>The descriptor that was passed in as a parameter</returns>
+        /// <exception cref="ArgumentNullException">
+        /// Throws in case the argument <paramref name="descriptor"/> is null
+        /// </exception>
+        public static IFilterConventionDescriptor BindMongoDbDefaultTypes(
             this IFilterConventionDescriptor descriptor)
         {
             if (descriptor is null)

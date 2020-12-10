@@ -4,10 +4,20 @@ namespace HotChocolate.Data.MongoDb.Filters
 {
     public static class FilterConventionDescriptorMongoDbExtensions
     {
+        /// <summary>
+        /// Adds a <see cref="MongoDbFilterProvider"/> with default configuration
+        /// </summary>
+        /// <param name="descriptor">The descriptor where the provider is registered</param>
+        /// <returns>The descriptor that was passed in as a parameter</returns>
         public static IFilterConventionDescriptor UseMongoDbProvider(
             this IFilterConventionDescriptor descriptor) =>
             descriptor.Provider(new MongoDbFilterProvider(x => x.AddDefaultMongoHandler()));
 
+        /// <summary>
+        /// Initializes the default configuration of the provider by registering handlers
+        /// </summary>
+        /// <param name="descriptor">The descriptor where the handlers are registered</param>
+        /// <returns>The descriptor that was passed in as a parameter</returns>
         public static IFilterProviderDescriptor<MongoDbFilterVisitorContext> AddDefaultMongoHandler(
             this IFilterProviderDescriptor<MongoDbFilterVisitorContext> descriptor)
         {
