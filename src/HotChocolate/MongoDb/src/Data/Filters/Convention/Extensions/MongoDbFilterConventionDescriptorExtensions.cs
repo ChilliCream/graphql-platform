@@ -12,7 +12,7 @@ namespace HotChocolate.Data.MongoDb.Filters
         /// <returns>The descriptor that was passed in as a parameter</returns>
         public static IFilterConventionDescriptor AddMongoDbDefaults(
             this IFilterConventionDescriptor descriptor) =>
-            descriptor.AddDefaultMongoOperations().BindMongoDbDefaultTypes().UseMongoDbProvider();
+            descriptor.AddDefaultMongoDbOperations().BindDefaultMongoDbTypes().UseMongoDbProvider();
 
         /// <summary>
         /// Adds default operations for MongoDb to the descriptor
@@ -22,7 +22,7 @@ namespace HotChocolate.Data.MongoDb.Filters
         /// <exception cref="ArgumentNullException">
         /// Throws in case the argument <paramref name="descriptor"/> is null
         /// </exception>
-        public static IFilterConventionDescriptor AddDefaultMongoOperations(
+        public static IFilterConventionDescriptor AddDefaultMongoDbOperations(
             this IFilterConventionDescriptor descriptor)
         {
             if (descriptor is null)
@@ -68,7 +68,7 @@ namespace HotChocolate.Data.MongoDb.Filters
         /// <exception cref="ArgumentNullException">
         /// Throws in case the argument <paramref name="descriptor"/> is null
         /// </exception>
-        public static IFilterConventionDescriptor BindMongoDbDefaultTypes(
+        public static IFilterConventionDescriptor BindDefaultMongoDbTypes(
             this IFilterConventionDescriptor descriptor)
         {
             if (descriptor is null)
