@@ -13,7 +13,8 @@ namespace HotChocolate.Data.MongoDb
     {
         private readonly MongoDbProjectionDefinition[] _projections;
 
-        public MongoDbCombinedProjectionDefinition(params MongoDbProjectionDefinition[] projections)
+        public MongoDbCombinedProjectionDefinition(
+            params MongoDbProjectionDefinition[] projections)
         {
             _projections = projections;
         }
