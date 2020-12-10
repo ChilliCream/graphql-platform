@@ -22,13 +22,13 @@ namespace HotChocolate.Data.MongoDb.Execution
         public override async ValueTask<object?> FirstOrDefaultAsync(
             CancellationToken cancellationToken) =>
             await BuildPipeline()
-                .ToListAsync(cancellationToken)
+                .FirstOrDefaultAsync(cancellationToken)
                 .ConfigureAwait(false);
 
         public override async ValueTask<object?> SingleOrDefaultAsync(
             CancellationToken cancellationToken) =>
             await BuildPipeline()
-                .ToListAsync(cancellationToken)
+                .SingleOrDefaultAsync(cancellationToken)
                 .ConfigureAwait(false);
 
         public override string Print() => BuildPipeline().ToString() ?? "";
