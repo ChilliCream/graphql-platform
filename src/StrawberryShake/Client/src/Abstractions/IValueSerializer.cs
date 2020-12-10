@@ -63,7 +63,6 @@ namespace StrawberryShake
             throw new NotImplementedException();
         }
 
-
         private class GetFooQueryObservable : IOperationObservable<GetFooResult>
         {
             private readonly IOperationExecutor<GetFooResult> _operationExecutor;
