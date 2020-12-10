@@ -13,23 +13,18 @@ namespace HotChocolate.Types
         /// Initializes a new instance of the <see cref="UrlType"/> class.
         /// </summary>
         public UrlType()
-            : base(ScalarNames.Url, BindingBehavior.Implicit)
+            : this(ScalarNames.Url, bind: BindingBehavior.Implicit)
         {
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UrlType"/> class.
         /// </summary>
-        public UrlType(NameString name)
-            : base(name, BindingBehavior.Implicit)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="UrlType"/> class.
-        /// </summary>
-        public UrlType(NameString name, string description)
-            : base(name, BindingBehavior.Implicit)
+        public UrlType(
+            NameString name,
+            string? description = null,
+            BindingBehavior bind = BindingBehavior.Explicit)
+            : base(name, bind)
         {
             Description = description;
         }
