@@ -22,7 +22,7 @@ namespace HotChocolate.Types
         public ByteArrayType(
             NameString name,
             string? description = null,
-            BindingBehavior bind = BindingBehavior.Implicit)
+            BindingBehavior bind = BindingBehavior.Explicit)
             : base(name, bind)
         {
             Description = description;
