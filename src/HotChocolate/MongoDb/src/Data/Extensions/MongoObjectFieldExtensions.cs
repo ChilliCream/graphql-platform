@@ -1,11 +1,11 @@
-using HotChocolate.Data.Filters;
+using HotChocolate.Types;
 
 namespace HotChocolate.Data.MongoDb
 {
-    internal static class MongoFilterOperationFieldExtensions
+    internal static class MongoObjectFieldExtensions
     {
         public static string GetName(
-            this IFilterField field)
+            this IObjectField field)
         {
             string fieldName = field.Name;
             if (field.Member is { } p)
