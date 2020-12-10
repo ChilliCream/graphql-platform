@@ -10,14 +10,10 @@ namespace HotChocolate.Data.MongoDb
     /// </summary>
     internal sealed class AndFilterDefinition : MongoDbFilterDefinition
     {
-        #region static
-
         private static readonly string[] __operatorsThatCannotBeCombined = new[]
         {
             "$geoWithin", "$near", "$geoIntersects", "$nearSphere"
         };
-
-        #endregion
 
         private readonly MongoDbFilterDefinition[] _filters;
 
