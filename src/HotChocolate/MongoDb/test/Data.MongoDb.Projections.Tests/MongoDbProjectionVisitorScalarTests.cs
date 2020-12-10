@@ -13,7 +13,8 @@ namespace HotChocolate.Data.MongoDb.Projections
     {
         private static readonly Foo[] _fooEntities =
         {
-            new Foo { Bar = true, Baz = "a" }, new Foo { Bar = false, Baz = "b" }
+            new Foo { Bar = true, Baz = "a" },
+            new Foo { Bar = false, Baz = "b" }
         };
 
         private readonly SchemaCache _cache;
@@ -64,7 +65,11 @@ namespace HotChocolate.Data.MongoDb.Projections
                 objectType: new ObjectType<Foo>(
                     x => x
                         .Field("foo")
-                        .Resolver(new[] { "foo" })
+                        .Resolver(
+                            new[]
+                            {
+                                "foo"
+                            })
                         .Type<ListType<StringType>>()));
 
             // act
