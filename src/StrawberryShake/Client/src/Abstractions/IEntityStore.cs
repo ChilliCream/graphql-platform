@@ -1,0 +1,12 @@
+using System;
+using System.Collections.Generic;
+
+namespace StrawberryShake
+{
+    public interface IEntityStore : IObservable<ISet<EntityId>>
+    {
+        T GetOrCreate<T>(EntityId id) where T : class;
+
+        IDisposable BeginUpdate();
+    }
+}

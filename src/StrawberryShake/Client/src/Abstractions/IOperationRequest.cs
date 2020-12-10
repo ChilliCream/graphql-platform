@@ -24,8 +24,5 @@ namespace StrawberryShake
         IDictionary<string, object> ContextData { get; }
     }
 
-    public interface IOperationResultBuilder<TData, TResult>
-    {
-               
-    }
+
 }
