@@ -4,7 +4,7 @@ title: "Language"
 
 # Abstract Syntax Tree (AST)
 
-_Hot Chocolate_ seems to focus solely around `ObjectType`, `InputType` et al. These types work as an interface to configure the _GraphQL_ schema. This schema is used to parse and validate incoming requests. Under the hood, every `query`, `mutation` or `subscription` request is parsed into a so-called abstract syntax tree. Each node of this tree denotes a part of the incoming _GraphQL_ query.
+Hot Chocolate seems to focus solely around `ObjectType`, `InputType` et al. These types work as an interface to configure the _GraphQL_ schema. This schema is used to parse and validate incoming requests. Under the hood, every `query`, `mutation` or `subscription` request is parsed into a so-called abstract syntax tree. Each node of this tree denotes a part of the incoming _GraphQL_ query.
 
 ```graphql
 query Users {
