@@ -17,7 +17,6 @@ namespace HotChocolate.Types
         public const string Date = "Date";
         public const string MultiplierPath = "MultiplierPath";
         public const string Name = "Name";
-        public const string PaginationAmount = "PaginationAmount";
         public const string ByteArray = "ByteArray";
         public const string Any = "Any";
         public const string TimeSpan = "TimeSpan";
