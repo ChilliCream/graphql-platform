@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net.Http;
@@ -31,18 +32,29 @@ namespace StrawberryShake
 
     public class GetFooQuery
     {
-        public Task<IOperationResult<GetFooResult>> ExecuteAsync(
+        private readonly IOperationExecutor<GetFooResult> _operationExecutor;
+        private readonly IOperationStore _operationStore;
+
+        public GetFooQuery(
+            IOperationExecutor<GetFooResult> operationExecutor,
+            IOperationStore operationStore)
+        {
+            _operationExecutor = operationExecutor;
+            _operationStore = operationStore;
+        }
+
+        public async Task<IOperationResult<GetFooResult>> ExecuteAsync(
             string a, string b, string c,
             CancellationToken cancellationToken = default)
         {
-            // execute pipeline
-            // network only
-            // request serialize => Send => Receive => (IResultReader, Store) => Result
-            // store first
-            // TryGetFromStore => network only
-            // store and network
-            // TryGetFromStore => always network only
-            throw new NotImplementedException();
+            var request = new GetFooQueryRequest();
+            request.Variables.Add("a", a);
+            request.Variables.Add("b", b);
+            request.Variables.Add("c", c);
+
+            return await _operationExecutor
+                .ExecuteAsync(request, cancellationToken)
+                .ConfigureAwait(false);
         }
 
         public IOperationObservable<GetFooResult> Watch(
@@ -50,6 +62,65 @@ namespace StrawberryShake
         {
             throw new NotImplementedException();
         }
+
+
+        private class GetFooQueryObservable : IOperationObservable<GetFooResult>
+        {
+            private readonly IOperationExecutor<GetFooResult> _operationExecutor;
+            private readonly IOperationStore _operationStore;
+            private readonly GetFooQueryRequest _request;
+
+            public IDisposable Subscribe(
+                IObserver<IOperationResult<GetFooResult>> observer)
+            {
+                throw new NotImplementedException();
+            }
+
+            public ValueTask<IAsyncDisposable> SubscribeAsync(
+                IObserver<string> observer,
+                CancellationToken cancellationToken = default)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void Subscribe(
+                Action<IOperationResult<GetFooResult>> next,
+                CancellationToken cancellationToken = default)
+            {
+
+
+
+                throw new NotImplementedException();
+            }
+
+            public void Subscribe(
+                Func<IOperationResult<GetFooResult>, ValueTask> nextAsync,
+                CancellationToken cancellationToken = default)
+            {
+                Task.Run(async () =>
+                    {
+                        _operationStore
+                            .Watch<GetFooResult>(_request)
+                            .Subscribe(nextAsync, cancellationToken);
+
+                        await _operationExecutor
+                            .ExecuteAsync(_request, cancellationToken)
+                            .ConfigureAwait(false);
+                    },
+                    cancellationToken);
+            }
+        }
+    }
+
+
+    public class GetFooQueryRequest : IOperationRequest
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public IDocument Document { get; set; }
+        public IDictionary<string, object> Variables { get; }
+        public IDictionary<string, object> Extensions { get; }
+        public IDictionary<string, object> ContextData { get; }
     }
 
     public static class Usage

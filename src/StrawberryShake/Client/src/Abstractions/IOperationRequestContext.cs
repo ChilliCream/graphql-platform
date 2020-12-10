@@ -7,5 +7,7 @@ namespace StrawberryShake
         IOperationRequest Request { get; }
 
         IServiceProvider Services { get; }
+
+        IExecutionResult? Result { get; set; }
     }
 }

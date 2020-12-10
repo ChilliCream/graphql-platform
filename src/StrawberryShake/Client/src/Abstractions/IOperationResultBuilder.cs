@@ -1,7 +1,7 @@
 namespace StrawberryShake
 {
-    public interface IOperationResultBuilder<TData, TResult>
+    public interface IOperationResultBuilder<in TData, out TResult>
     {
-
+        TResult Build(TData data);
     }
 }

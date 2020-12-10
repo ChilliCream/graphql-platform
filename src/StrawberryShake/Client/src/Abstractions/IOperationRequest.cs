@@ -5,17 +5,17 @@ namespace StrawberryShake
     // needs to implement equality
     public interface IOperationRequest
     {
-        string Id { get; set; }
+        string Id { get; }
 
         /// <summary>
         /// Gets the operation name.
         /// </summary>
-        string Name { get; set; }
+        string Name { get; }
 
         /// <summary>
         /// Gets the query document containing this operation.
         /// </summary>
-        IDocument Document { get; set; }
+        IDocument Document { get; }
 
         IDictionary<string, object> Variables { get; }
 
@@ -23,6 +23,4 @@ namespace StrawberryShake
 
         IDictionary<string, object> ContextData { get; }
     }
-
-
 }
