@@ -26,6 +26,7 @@ namespace HotChocolate.Data.MongoDb.Execution
         /// </summary>
         protected MongoDbProjectionDefinition? Projection { get; private set; }
 
+        /// <inheritdoc />
         public IMongoExecutable WithFiltering(MongoDbFilterDefinition filters)
         {
             Filters = filters;
