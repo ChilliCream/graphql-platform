@@ -130,7 +130,7 @@ namespace StrawberryShake
         public List<EntityId> Bars { get; set; }
     }
 
-    public interface IEntityStore
+    public interface IEntityStore : IObservable<ISet<EntityId>>
     {
         T GetOrCreate<T>(EntityId id) where T : class;
 
@@ -139,16 +139,19 @@ namespace StrawberryShake
 
     public interface IOperationStore
     {
-        // IRequest / IOperationResult / [EntityId] / IOperationObservable
+        // IRequest / IOperationResult / [EntityId]
 
-        void Set<T>(IRequest request, IOperationResult<T> result) where T : class;
+        void Set<T>(IOperationRequest operationRequest, IOperationResult<T> result) where T : class;
 
-        IOperationResult<T> Get<T>(IRequest request) where T : class;
+        IOperationResult<T>? Get<T>(IOperationRequest operationRequest) where T : class;
 
-        IOperationObservable<T> Subscribe<T>(IRequest request) where T : class;
+        IOperationObservable<T> Watch<T>(IOperationRequest operationRequest) where T : class;
     }
 
+    public readonly struct RequestUpdate
+    {
 
+    }
 
     public readonly struct EntityId
     {

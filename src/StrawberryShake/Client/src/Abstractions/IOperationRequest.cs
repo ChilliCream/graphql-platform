@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace StrawberryShake
 {
     // needs to implement equality
-    public interface IRequest
+    public interface IOperationRequest
     {
         string Id { get; set; }
 
@@ -20,5 +20,12 @@ namespace StrawberryShake
         IDictionary<string, object> Variables { get; }
 
         IDictionary<string, object> Extensions { get; }
+
+        IDictionary<string, object> ContextData { get; }
+    }
+
+    public interface IOperationResultBuilder<TData, TResult>
+    {
+               
     }
 }
