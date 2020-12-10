@@ -21,7 +21,6 @@ namespace HotChocolate.Data.MongoDb.Filters
                 return false;
             }
 
-
             query = new AndFilterDefinition(scope.Level.Peek().ToArray());
 
             return true;
