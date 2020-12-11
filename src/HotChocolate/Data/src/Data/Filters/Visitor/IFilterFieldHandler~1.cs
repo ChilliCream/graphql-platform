@@ -4,6 +4,10 @@ using HotChocolate.Language.Visitors;
 
 namespace HotChocolate.Data.Filters
 {
+    /// <summary>
+    /// Represents a handler that can be bound to a <see cref="FilterField"/>. The handler is
+    /// executed during the visitation of a input object.
+    /// </summary>
     public interface IFilterFieldHandler<in TContext>
         : IFilterFieldHandler
         where TContext : IFilterVisitorContext
