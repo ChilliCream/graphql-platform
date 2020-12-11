@@ -6,6 +6,10 @@ using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb.Filters
 {
+    /// <summary>
+    /// This filter operation handler maps a NotGreaterThan operation field to a
+    /// <see cref="FilterDefinition{TDocument}"/>
+    /// </summary>
     public class MongoDbComparableNotGreaterThanHandler
         : MongoDbComparableOperationHandler
     {
@@ -14,8 +18,10 @@ namespace HotChocolate.Data.MongoDb.Filters
             CanBeNull = false;
         }
 
+        /// <inheritdoc />
         protected override int Operation => DefaultFilterOperations.NotGreaterThan;
 
+        /// <inheritdoc />
         public override MongoDbFilterDefinition HandleOperation(
             MongoDbFilterVisitorContext context,
             IFilterOperationField field,

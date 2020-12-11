@@ -1,27 +1,26 @@
-using System;
 using HotChocolate.Data.Filters;
-using HotChocolate.Language;
-using MongoDB.Bson;
-using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb.Filters
 {
+    /// <summary>
+    /// This filter operation handler maps a Some operation field to a
+    /// <see cref="FilterDefinition{TDocument}"/>
+    /// </summary>
     public class MongoDbListSomeOperationHandler : MongoDbListOperationHandlerBase
     {
+        /// <inheritdoc />
         protected override int Operation => DefaultFilterOperations.Some;
 
+        /// <inheritdoc />
         protected override MongoDbFilterDefinition HandleListOperation(
             MongoDbFilterVisitorContext context,
             IFilterField field,
-            ObjectFieldNode node,
-            Type closureType,
             MongoDbFilterScope scope,
-            string path,
-            MongoDbFilterDefinition? bsonDocument)
+            string path)
         {
             return new MongoDbFilterOperation(
                 path,
-                new MongoDbFilterOperation("$elemMatch", GetFilters(context, scope)));
+                new MongoDbFilterOperation("$elemMatch", CombineOperationsOfScope(scope)));
         }
     }
 }

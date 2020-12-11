@@ -1,12 +1,18 @@
 using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
 using HotChocolate.Language;
+using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb.Filters
 {
+    /// <summary>
+    /// This filter operation handler maps a In operation field to a
+    /// <see cref="FilterDefinition{TDocument}"/>
+    /// </summary>
     public class MongoDbInOperationHandler
         : MongoDbOperationHandlerBase
     {
+        /// <inheritdoc />
         public override bool CanHandle(
             ITypeCompletionContext context,
             IFilterInputTypeDefinition typeDefinition,
@@ -16,6 +22,7 @@ namespace HotChocolate.Data.MongoDb.Filters
                 operationField.Id is DefaultFilterOperations.In;
         }
 
+        /// <inheritdoc />
         public override MongoDbFilterDefinition HandleOperation(
             MongoDbFilterVisitorContext context,
             IFilterOperationField field,

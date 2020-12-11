@@ -6,9 +6,14 @@ using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb.Filters
 {
+    /// <summary>
+    /// This filter operation handler maps a Equals operation field to a
+    /// <see cref="FilterDefinition{TDocument}"/>
+    /// </summary>
     public class MongoDbEqualsOperationHandler
         : MongoDbOperationHandlerBase
     {
+        /// <inheritdoc />
         public override bool CanHandle(
             ITypeCompletionContext context,
             IFilterInputTypeDefinition typeDefinition,
@@ -18,6 +23,7 @@ namespace HotChocolate.Data.MongoDb.Filters
                 operationField.Id is DefaultFilterOperations.Equals;
         }
 
+        /// <inheritdoc />
         public override MongoDbFilterDefinition HandleOperation(
             MongoDbFilterVisitorContext context,
             IFilterOperationField field,

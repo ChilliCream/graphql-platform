@@ -6,6 +6,10 @@ using MongoDB.Bson;
 
 namespace HotChocolate.Data.MongoDb.Filters
 {
+    /// <summary>
+    /// This filter operation handler maps a Any operation field to a
+    /// <see cref="FilterDefinition{TDocument}"/>
+    /// </summary>
     public class MongoDbListAnyOperationHandler
         : MongoDbOperationHandlerBase
     {
@@ -14,6 +18,7 @@ namespace HotChocolate.Data.MongoDb.Filters
             CanBeNull = false;
         }
 
+        /// <inheritdoc />
         public override bool CanHandle(
             ITypeCompletionContext context,
             IFilterInputTypeDefinition typeDefinition,
@@ -24,6 +29,7 @@ namespace HotChocolate.Data.MongoDb.Filters
                 operationField.Id is DefaultFilterOperations.Any;
         }
 
+        /// <inheritdoc />
         public override MongoDbFilterDefinition HandleOperation(
             MongoDbFilterVisitorContext context,
             IFilterOperationField field,

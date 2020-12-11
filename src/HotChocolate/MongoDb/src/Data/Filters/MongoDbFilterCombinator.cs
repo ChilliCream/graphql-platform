@@ -7,9 +7,11 @@ using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb.Filters
 {
+    /// <inheritdoc />
     public class MongoDbFilterCombinator
         : FilterOperationCombinator<MongoDbFilterVisitorContext, MongoDbFilterDefinition>
     {
+        /// <inheritdoc />
         public override bool TryCombineOperations(
             MongoDbFilterVisitorContext context,
             Queue<MongoDbFilterDefinition> operations,

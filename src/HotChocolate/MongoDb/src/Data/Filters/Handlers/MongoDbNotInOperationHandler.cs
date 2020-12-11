@@ -1,14 +1,18 @@
 using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
 using HotChocolate.Language;
-using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb.Filters
 {
+    /// <summary>
+    /// This filter operation handler maps a NotIn operation field to a
+    /// <see cref="FilterDefinition{TDocument}"/>
+    /// </summary>
     public class MongoDbNotInOperationHandler
         : MongoDbOperationHandlerBase
     {
+        /// <inheritdoc />
         public override bool CanHandle(
             ITypeCompletionContext context,
             IFilterInputTypeDefinition typeDefinition,
@@ -18,6 +22,7 @@ namespace HotChocolate.Data.MongoDb.Filters
                 operationField.Id is DefaultFilterOperations.NotIn;
         }
 
+        /// <inheritdoc />
         public override MongoDbFilterDefinition HandleOperation(
             MongoDbFilterVisitorContext context,
             IFilterOperationField field,

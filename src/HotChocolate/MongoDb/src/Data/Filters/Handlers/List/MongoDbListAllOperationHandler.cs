@@ -1,22 +1,24 @@
-using System;
 using System.Collections.Generic;
 using HotChocolate.Data.Filters;
-using HotChocolate.Language;
+using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb.Filters
 {
+    /// <summary>
+    /// This filter operation handler maps a All operation field to a
+    /// <see cref="FilterDefinition{TDocument}"/>
+    /// </summary>
     public class MongoDbListAllOperationHandler : MongoDbListOperationHandlerBase
     {
+        /// <inheritdoc />
         protected override int Operation => DefaultFilterOperations.All;
 
+        /// <inheritdoc />
         protected override MongoDbFilterDefinition HandleListOperation(
             MongoDbFilterVisitorContext context,
             IFilterField field,
-            ObjectFieldNode node,
-            Type closureType,
             MongoDbFilterScope scope,
-            string path,
-            MongoDbFilterDefinition? bsonDocument) =>
+            string path) =>
             field.Type is IComparableOperationFilterInputType
                 ? CreateArrayAllScalar(scope, path)
                 : CreateArrayAll(scope, path);

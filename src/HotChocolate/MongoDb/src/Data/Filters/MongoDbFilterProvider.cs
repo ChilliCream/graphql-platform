@@ -5,11 +5,14 @@ using HotChocolate.Language;
 using HotChocolate.Data.MongoDb.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb.Filters
 {
+    /// <summary>
+    /// A <see cref="FilterProvider{TContext}"/> translates a incoming query to a
+    /// <see cref="FilterDefinition{T}"/>
+    /// </summary>
     public class MongoDbFilterProvider
         : FilterProvider<MongoDbFilterVisitorContext>
     {
@@ -28,6 +31,7 @@ namespace HotChocolate.Data.MongoDb.Filters
             new FilterVisitor<MongoDbFilterVisitorContext, MongoDbFilterDefinition>(
                 new MongoDbFilterCombinator());
 
+        /// <inheritdoc />
         public override FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName)
         {
             return next => context => ExecuteAsync(next, context);

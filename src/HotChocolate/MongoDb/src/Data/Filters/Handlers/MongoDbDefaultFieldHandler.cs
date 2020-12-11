@@ -6,16 +6,27 @@ using HotChocolate.Language.Visitors;
 
 namespace HotChocolate.Data.MongoDb.Filters
 {
+    /// <summary>
+    /// The default handler for all <see cref="FilterField"/> for the
+    /// <see cref="MongoDbFilterProvider"/>
+    /// </summary>
     public class MongoDbDefaultFieldHandler
         : FilterFieldHandler<MongoDbFilterVisitorContext, MongoDbFilterDefinition>
     {
+        /// <summary>
+        /// Checks if the field not a filter operations field
+        /// </summary>
+        /// <param name="context">The current context</param>
+        /// <param name="typeDefinition">The definition of the type that declares the field</param>
+        /// <param name="fieldDefinition">The definition of the field</param>
+        /// <returns>True in case the field can be handled</returns>
         public override bool CanHandle(
             ITypeCompletionContext context,
             IFilterInputTypeDefinition typeDefinition,
             IFilterFieldDefinition fieldDefinition) =>
-            !(fieldDefinition is FilterOperationFieldDefinition) &&
-            fieldDefinition.Member is not null;
+            !(fieldDefinition is FilterOperationFieldDefinition);
 
+        /// <inheritdoc />
         public override bool TryHandleEnter(
             MongoDbFilterVisitorContext context,
             IFilterField field,
@@ -42,6 +53,7 @@ namespace HotChocolate.Data.MongoDb.Filters
             return true;
         }
 
+        /// <inheritdoc />
         public override bool TryHandleLeave(
             MongoDbFilterVisitorContext context,
             IFilterField field,
