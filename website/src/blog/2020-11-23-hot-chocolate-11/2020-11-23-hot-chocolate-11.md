@@ -471,7 +471,7 @@ But as I said in the beginning, there is a lot more coming with the next dot upd
 
 # Extensibility
 
-With Hot Chocolate 11, we changed direction. Hot Chocolate, until now, was quite locked down to provide a refined experience and not expose any extension API that we might regret exposing; we kept a lot of stuff internal. During development, we decided that any new component like `HotChocolate.Data` and `HotChocolate.Stitching` is not allowed to use any internal API to ensure that anybody can build powerful integrations.
+With Hot Chocolate 11, we have invested in adding extensibility points, where our customers and partners who want to extend Hot Chocolate can do so easily and safely. When customizations are created, the creator can be assured that the integrity of Hot Chocolate will be maintained in the future and those extensions will continue to work as designed through minor and major releases of Hot Chocolate.  Our existing extensions, `HotChocolate.Data` and `HotChocolate.Stitching` already take advantage of this new extensibility feature.
 
 We essentially created a new interception API that can hook into the type initialization to completely rewrite an inferred schema. It can create new types when it finds an attribute or branch of types and essentially creates versions of the same graph. It gives you a powerful API that visits each type during its various initialization stages and lets you change the APIs.
 
