@@ -1,4 +1,4 @@
-﻿using HotChocolate.Data.Neo4J.Language;
+using HotChocolate.Data.Neo4J.Language;
 
 namespace HotChocolate.Data.Neo4J
 {
@@ -13,6 +13,9 @@ namespace HotChocolate.Data.Neo4J
                     break;
                 case ClauseKind.Create:
                     LeaveVistable((Create)visitable);
+                    break;
+                case ClauseKind.Node:
+                    LeaveVistable((Node)visitable);
                     break;
                 case 0:
                     break;

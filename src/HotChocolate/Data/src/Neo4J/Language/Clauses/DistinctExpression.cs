@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace HotChocolate.Data.Neo4J.Language
 {
@@ -17,7 +17,6 @@ namespace HotChocolate.Data.Neo4J.Language
         public new void Visit(CypherVisitor visitor)
         {
             visitor.Enter(this);
-
             _expression.Visit(visitor);
             visitor.Leave(this);
         }

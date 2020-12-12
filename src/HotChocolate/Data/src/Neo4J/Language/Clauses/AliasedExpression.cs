@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace HotChocolate.Data.Neo4J.Language
 {
@@ -7,7 +7,7 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class AliasedExpression : Expression, IAliased
     {
-        public new static ClauseKind Kind => ClauseKind.AliasedExpression;
+        public new ClauseKind Kind { get; } = ClauseKind.AliasedExpression;
         private readonly Expression _expression;
         private readonly string _alias;
 

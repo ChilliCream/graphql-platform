@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace HotChocolate.Data.Neo4J.Language
 {
@@ -36,10 +36,8 @@ namespace HotChocolate.Data.Neo4J.Language
                 return this;
             }
 
-            if (condition is CompoundCondition)
+            if (condition is CompoundCondition compoundCondition)
             {
-                CompoundCondition compoundCondition = (CompoundCondition)condition;
-
                 if (_operator == chainingOperator && chainingOperator == compoundCondition._operator)
                 {
                     if (compoundCondition.CanBeFlattenedWith(chainingOperator))
@@ -53,7 +51,7 @@ namespace HotChocolate.Data.Neo4J.Language
                 }
                 else
                 {
-                    CompoundCondition inner = new CompoundCondition(chainingOperator);
+                    var inner = new CompoundCondition(chainingOperator);
                     inner._conditions.Add(compoundCondition);
                     _conditions.Add(inner);
                 }
@@ -89,7 +87,7 @@ namespace HotChocolate.Data.Neo4J.Language
             {
                 return;
             }
-            bool hasManyConditions = _conditions.Count > 1;
+            var hasManyConditions = _conditions.Count > 1;
 
             if (hasManyConditions)
             {
@@ -104,9 +102,9 @@ namespace HotChocolate.Data.Neo4J.Language
                 {
                     // This takes care of a potential inner compound condition that got added with a different operator
                     // and thus forms a tree.
-                    Operator actualOperator = condition is CompoundCondition ?
+                    Operator actualOperator = condition is CompoundCondition condition1 ?
 
-                    ((CompoundCondition)condition)._operator :
+                    condition1._operator :
                     _operator;
                     AcceptVisitorWithOperatorForChildCondition(visitor, actualOperator, condition);
                 }
@@ -116,8 +114,7 @@ namespace HotChocolate.Data.Neo4J.Language
         }
 
         private static void AcceptVisitorWithOperatorForChildCondition(
-            CypherVisitor visitor, Operator op, Condition condition
-            )
+            CypherVisitor visitor, Operator op, Condition condition)
         {
             VisitIfNotNull(op, visitor);
             condition.Visit(visitor);

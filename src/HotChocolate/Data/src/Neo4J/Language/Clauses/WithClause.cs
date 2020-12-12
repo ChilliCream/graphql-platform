@@ -1,9 +1,9 @@
-﻿namespace HotChocolate.Data.Neo4J.Language
+namespace HotChocolate.Data.Neo4J.Language
 {
     /// <summary>
     /// https://s3.amazonaws.com/artifacts.opencypher.org/railroad/With.html
     /// </summary>
-    public class With : Visitable
+    public class WithClause : Visitable
     {
         public new static ClauseKind Kind => ClauseKind.With;
 
@@ -11,7 +11,7 @@
         private readonly ProjectionBody _projectionBody;
         private readonly Where _where;
 
-        public With(bool distinct, ExpressionList returnItems, Order order, Skip skip, Limit limit, Where where)
+        public WithClause(bool distinct, ExpressionList returnItems, Order order, Skip skip, Limit limit, Where where)
         {
             _distinct = new Distinct(distinct);
             _projectionBody = new ProjectionBody(returnItems, order, skip, limit);

@@ -1,11 +1,11 @@
-﻿namespace HotChocolate.Data.Neo4J.Language
+namespace HotChocolate.Data.Neo4J.Language
 {
     /// <summary>
     /// Used to create patterns excluded in a where clause via Not}.
     /// </summary>
     public class ExcludePattern : Condition
     {
-        public new ClauseKind Kind => ClauseKind.ExcludePattern;
+        public new ClauseKind Kind { get; } = ClauseKind.ExcludePattern;
 
         private readonly PatternElement _patternElement;
 

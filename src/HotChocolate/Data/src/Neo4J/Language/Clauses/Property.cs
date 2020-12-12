@@ -32,7 +32,7 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public static Property Create(Expression container, string name) => new Property(container, new PropertyLookup(name));
 
-        public Operation To(Expression expression) => Operations.Set(this, expression);
+        //public Operation To(Expression expression) => Operations.Set(this, expression);
 
         public new void Visit(CypherVisitor visitor)
         {

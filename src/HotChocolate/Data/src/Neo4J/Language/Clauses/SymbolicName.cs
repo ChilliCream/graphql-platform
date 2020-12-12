@@ -1,4 +1,6 @@
 ﻿using System;
+using HotChocolate.Data.Neo4J.Extensions;
+using HotChocolate.Data.Neo4J.Utils;
 
 namespace HotChocolate.Data.Neo4J.Language
 {
@@ -20,6 +22,8 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public static SymbolicName Of(string name)
         {
+            Assertions.HasText(name, "Name must not be empty.");
+            //Assertions.IsTrue();
             return new SymbolicName(name);
         }
 

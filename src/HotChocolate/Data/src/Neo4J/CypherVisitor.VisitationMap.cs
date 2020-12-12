@@ -1,4 +1,4 @@
-﻿using HotChocolate.Data.Neo4J.Language;
+using HotChocolate.Data.Neo4J.Language;
 
 namespace HotChocolate.Data.Neo4J
 {
@@ -31,6 +31,16 @@ namespace HotChocolate.Data.Neo4J
         public void LeaveVistable(Create create)
         {
             _builder.Write(" ");
+        }
+
+        public void EnterVisitable(Node node)
+        {
+            _builder.Write("(");
+        }
+
+        public void LeaveVistable(Node node)
+        {
+            _builder.Write(")");
         }
     }
 }

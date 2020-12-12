@@ -63,17 +63,17 @@ namespace HotChocolate.Data.Neo4J.Language
             return Operation.Create(target, Operator.Set, value);
         }
 
-        static Operation Set(Node target, string[] label)
-        {
+        //static Operation Set(Node target, string[] label)
+        //{
 
-            return Operation.Create(target, Operator.SetLabel, label);
-        }
+        //    return Operation.Create(target, Operator.SetLabel, label);
+        //}
 
-        static Operation Remove(Node target, string[] label)
-        {
+        //static Operation Remove(Node target, string[] label)
+        //{
 
-            return Operation.Create(target, Operator.RemoveLabel, label);
-        }
+        //    return Operation.Create(target, Operator.RemoveLabel, label);
+        //}
 
 
         /**

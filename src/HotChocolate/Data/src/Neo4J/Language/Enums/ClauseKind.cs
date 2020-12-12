@@ -1,4 +1,4 @@
-﻿namespace HotChocolate.Data.Neo4J.Language
+namespace HotChocolate.Data.Neo4J.Language
 {
     public enum ClauseKind
     {
@@ -11,7 +11,12 @@
         Operator,
         StatementPrefix,
 
+        Literal,
+
         Node,
+        NodeLabel,
+        NodeLabels,
+
         Relationship,
 
         Match,

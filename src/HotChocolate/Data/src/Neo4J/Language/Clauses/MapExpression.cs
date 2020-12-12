@@ -6,11 +6,12 @@ namespace HotChocolate.Data.Neo4J.Language
     {
         private MapExpression(List<Expression> children) : base(children) { }
 
-        public static MapExpression Create(object[] input)
+        public static MapExpression Create()
         {
-            List<Expression> newContent = new List<Expression>();
-            HashSet<string> knownKeys = new HashSet<string>();
+            var newContent = new List<Expression>();
+            //var knownKeys = new HashSet<string>();
 
+            return new MapExpression(newContent);
         }
     }
 }

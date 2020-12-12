@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
+using HotChocolate.Data.Neo4J.Utils;
 
 namespace HotChocolate.Data.Neo4J.Language
 {
@@ -7,9 +8,10 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class Node : Visitable
     {
+        public new ClauseKind Kind { get; } = ClauseKind.Node;
         private readonly SymbolicName? _symbolicName;
-        private readonly List<NodeLabel>? _labels;
-        private readonly Properties? _properties;
+        private readonly List<NodeLabel> _labels;
+        private readonly Properties _properties;
 
         private Node(string primaryLabel, Properties properties, string[] additionalLabels)
         {
@@ -32,7 +34,7 @@ namespace HotChocolate.Data.Neo4J.Language
             _properties = properties;
         }
 
-        private Node(SymbolicName? symbolicName, Properties? properties, List<NodeLabel>? labels)
+        private Node(SymbolicName? symbolicName, Properties properties, List<NodeLabel> labels)
         {
             _symbolicName = symbolicName;
             _properties = properties;
@@ -44,7 +46,11 @@ namespace HotChocolate.Data.Neo4J.Language
         /// </summary>
         /// <param name="newSymbolicName"></param>
         /// <returns></returns>
-        public Node Named(string newSymbolicName) => new Node(SymbolicName.Of(newSymbolicName), _properties, _labels);
+        public Node Named(string newSymbolicName)
+        {
+            Assertions.HasText(newSymbolicName, "Symbolic name is required");
+            return new Node(SymbolicName.Of(newSymbolicName), _properties, _labels);
+        }
 
         /// <summary>
         /// Creates a copy of this node with a new symbolic name.
@@ -55,10 +61,28 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public Node WithProperties(MapExpression newProperties) => new Node(_symbolicName, newProperties == null ? null : new Properties(newProperties), _labels);
 
-        public Property property(string name)
+        //public Property property(string name)
+        //{
+        //    return Property.Create(this, name);
+        //}
+
+        public static Node Create(string primaryLabel, string[] additionalLabels)
         {
-            return Property.Create(this, name);
+            return Create(primaryLabel, null, additionalLabels);
         }
 
+        public static Node Create(string primaryLabel, MapExpression properties, string[]? aditionalLabels)
+        {
+            return new Node(primaryLabel, properties != null ? new Properties(properties) : null, aditionalLabels);
+        }
+
+        public new void Visit(CypherVisitor visitor)
+        {
+            visitor.Enter(this);
+            VisitIfNotNull(_symbolicName, visitor);
+            _labels.ForEach(label => label.Visit(visitor));
+            VisitIfNotNull(_properties, visitor);
+            visitor.Leave(this);
+        }
     }
 }
