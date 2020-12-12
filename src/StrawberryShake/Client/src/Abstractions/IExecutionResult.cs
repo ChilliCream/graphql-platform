@@ -16,16 +16,16 @@ namespace StrawberryShake
     {
     }
 
-    public interface IAsyncObservable<out T> : IObservable<T>
+    public interface IAsyncObservable<out T>
     {
         ValueTask<IAsyncDisposable> SubscribeAsync(
-            IObserver<string> observer,
+            IAsyncObserver<T> observer,
             CancellationToken cancellationToken = default);
     }
 
-    public interface IAsyncObserver<in T> : IObserver<T>
+    public interface IAsyncObserver<in T>
     {
-        ValueTask OnCompletedAsync(CancellationToken cancellationToken = default);
+        ValueTask OnCompletedAsync();
         ValueTask OnErrorAsync(Exception error, CancellationToken cancellationToken = default);
         ValueTask OnNextAsync(T value, CancellationToken cancellationToken = default);
     }
