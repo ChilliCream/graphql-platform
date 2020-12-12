@@ -24,7 +24,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
             await _generator.WriteAsync(
                 _codeWriter,
                 new TypeClassDescriptor(
-                    "Foo",
+                    NamingConventions.EntityTypeNameFromTypeName("Foo"),
                     "FooBarNamespace",
                     new string[] { },
                     new[]
@@ -76,7 +76,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
             await _generator.WriteAsync(
                 _codeWriter,
                 new TypeClassDescriptor(
-                    "Foo",
+                    NamingConventions.EntityTypeNameFromTypeName("Foo"),
                     "FooBarNamespace",
                     new string[] { },
                     new[]

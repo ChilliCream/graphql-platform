@@ -1,0 +1,10 @@
+﻿[global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+public static partial class FooFromFooEntityMapper
+{
+    public static Foo Map(
+        FooEntity entity,
+        EntityStore entityStore)
+    {
+        return new Foo(entity.SomeText);
+    }
+}

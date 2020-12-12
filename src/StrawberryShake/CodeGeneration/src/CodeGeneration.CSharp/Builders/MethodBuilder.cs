@@ -74,6 +74,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
+        public MethodBuilder AddInlineCode(string value)
+        {
+            _lines.Add(CodeInlineBuilder.New().SetText(value));
+            return this;
+        }
+
         public async Task BuildAsync(CodeWriter writer)
         {
             if (writer is null)
@@ -138,6 +144,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
             using (writer.IncreaseIndent())
             {
+                await writer.WriteIndentAsync().ConfigureAwait(false);
                 foreach (ICode code in _lines)
                 {
                     await code.BuildAsync(writer).ConfigureAwait(false);

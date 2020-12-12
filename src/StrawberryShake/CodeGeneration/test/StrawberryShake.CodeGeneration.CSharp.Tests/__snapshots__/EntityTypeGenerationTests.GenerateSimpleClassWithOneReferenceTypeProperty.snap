@@ -3,6 +3,6 @@
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class Foo
     {
-        public (string, object) Bar { get; set; }
+        public EntityId Bar { get; set; }
     }
 }

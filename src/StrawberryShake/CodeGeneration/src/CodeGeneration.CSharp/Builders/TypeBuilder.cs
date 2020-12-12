@@ -8,6 +8,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private string? _name;
         private ListType _isList = ListType.NoList;
         private bool _isNullable = false;
+        public static TypeBuilder New() => new TypeBuilder();
 
         public TypeBuilder SetListType(ListType isList)
         {

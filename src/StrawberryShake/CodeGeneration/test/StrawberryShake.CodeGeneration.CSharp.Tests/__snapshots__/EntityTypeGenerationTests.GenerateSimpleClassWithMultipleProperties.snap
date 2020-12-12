@@ -1,12 +1,12 @@
 ﻿namespace FooBarNamespace
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class Foo
+    public partial class FooEntity
     {
         public string Id { get; set; }
 
-        public IReadOnlyList<(string, object)> Bars { get; set; }
+        public IReadOnlyList<EntityId> Bars { get; set; }
 
-        public (string, object)? Baz { get; set; }
+        public EntityId? Baz { get; set; }
     }
 }

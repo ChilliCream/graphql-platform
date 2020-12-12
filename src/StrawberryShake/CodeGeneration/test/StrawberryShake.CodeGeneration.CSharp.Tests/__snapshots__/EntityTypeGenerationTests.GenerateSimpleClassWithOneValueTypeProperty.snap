@@ -1,7 +1,7 @@
 ﻿namespace FooBarNamespace
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class Foo
+    public partial class FooEntity
     {
         public string SomeText { get; set; }
     }

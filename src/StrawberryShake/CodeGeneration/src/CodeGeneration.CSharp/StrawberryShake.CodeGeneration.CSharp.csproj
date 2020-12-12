@@ -7,7 +7,20 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Client\src\Abstractions\StrawberryShake.Abstractions.csproj" />
     <ProjectReference Include="..\CodeGeneration\StrawberryShake.CodeGeneration.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="_old\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="_old\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="_old\**" />
   </ItemGroup>
 
 </Project>
