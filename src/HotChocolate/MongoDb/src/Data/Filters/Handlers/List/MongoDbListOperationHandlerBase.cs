@@ -88,7 +88,6 @@ namespace HotChocolate.Data.MongoDb.Filters
                 context.GetLevel().Enqueue(combinedOperations);
             }
 
-
             action = SyntaxVisitor.Continue;
             return true;
         }
