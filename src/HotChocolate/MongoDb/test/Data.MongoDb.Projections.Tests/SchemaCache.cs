@@ -7,8 +7,8 @@ using Squadron;
 namespace HotChocolate.Data.MongoDb.Projections
 {
     public class SchemaCache
-        : ProjectionVisitorTestBase,
-          IDisposable
+        : ProjectionVisitorTestBase
+        , IDisposable
     {
         private readonly ConcurrentDictionary<(Type, object), IRequestExecutor> _cache =
             new ConcurrentDictionary<(Type, object), IRequestExecutor>();

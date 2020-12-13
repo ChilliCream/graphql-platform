@@ -7,8 +7,8 @@ using Squadron;
 namespace HotChocolate.Data.MongoDb.Filters
 {
     public class SchemaCache
-        : FilterVisitorTestBase,
-          IDisposable
+        : FilterVisitorTestBase
+        , IDisposable
     {
         private MongoResource _resource = null!;
 

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Data.MongoDb.Filters;
 using HotChocolate.Resolvers;
@@ -10,6 +7,9 @@ using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 using Snapshooter.Xunit;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Squadron;
 using Xunit;
 

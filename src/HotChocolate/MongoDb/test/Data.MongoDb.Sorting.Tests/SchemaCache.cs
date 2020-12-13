@@ -7,8 +7,8 @@ using Squadron;
 namespace HotChocolate.Data.MongoDb.Sorting
 {
     public class SchemaCache
-        : SortVisitorTestBase,
-          IDisposable
+        : SortVisitorTestBase
+        , IDisposable
     {
         private MongoResource _resource = null!;
 
