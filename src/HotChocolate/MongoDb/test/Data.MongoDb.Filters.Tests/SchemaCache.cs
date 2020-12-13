@@ -20,7 +20,6 @@ namespace HotChocolate.Data.MongoDb.Filters
         private readonly ConcurrentDictionary<(Type, Type, object), IRequestExecutor> _cache =
             new ConcurrentDictionary<(Type, Type, object), IRequestExecutor>();
 
-
         public IRequestExecutor CreateSchema<T, TType>(T[] entities, bool withPaging = false)
             where T : class
             where TType : FilterInputType<T>
