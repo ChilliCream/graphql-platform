@@ -13,7 +13,7 @@ namespace HotChocolate.Data.Neo4J.Language
         private readonly List<NodeLabel> _labels;
         private readonly Properties _properties;
 
-        private Node(string primaryLabel, Properties properties, string[] additionalLabels)
+        private Node(string primaryLabel, Properties? properties, string[]? additionalLabels)
         {
             _symbolicName = null;
             _labels = new List<NodeLabel>();
@@ -61,17 +61,32 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public Node WithProperties(MapExpression newProperties) => new Node(_symbolicName, newProperties == null ? null : new Properties(newProperties), _labels);
 
+        public Node WithProperties(object[] keyAndValues)
+        {
+            MapExpression newProperties = null;
+            if(keyAndValues != null && keyAndValues.Length != 0)
+            {
+                newProperties = MapExpression.Create(keyAndValues);
+            }
+            return WithProperties(newProperties);
+        }
+
         //public Property property(string name)
         //{
         //    return Property.Create(this, name);
         //}
+
+        public static Node Create(string primaryLabel)
+        {
+            return new Node(primaryLabel, null, null);
+        }
 
         public static Node Create(string primaryLabel, string[] additionalLabels)
         {
             return Create(primaryLabel, null, additionalLabels);
         }
 
-        public static Node Create(string primaryLabel, MapExpression properties, string[]? aditionalLabels)
+        public static Node Create(string primaryLabel, MapExpression? properties, string[]? aditionalLabels)
         {
             return new Node(primaryLabel, properties != null ? new Properties(properties) : null, aditionalLabels);
         }

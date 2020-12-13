@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace HotChocolate.Data.Neo4J.Language
@@ -31,6 +31,8 @@ namespace HotChocolate.Data.Neo4J.Language
             _children.ForEach(child => child.Visit(visitor));
             visitor.Leave(this);
         }
+
+        public List<TType> GetChildren() => _children;
 
         /// <summary>
         /// A hook for interfere with the visitation of child elements.

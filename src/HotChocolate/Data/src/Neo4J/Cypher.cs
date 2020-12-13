@@ -10,9 +10,32 @@ namespace HotChocolate.Data.Neo4J
     /// </summary>
     public static class Cypher
     {
-        public static Node Node(string primaryLabel, string[] additionalLabels)
+
+        // Nodes
+        // FilterDefinition
+        // SortDefinition
+        // ProjectionDefinition
+        // PaginationDefinition
+
+        //private List<Visitable> _clauses = new List<Visitable>();
+
+        public static Node Node(string primaryLabel)
+        {
+            return Language.Node.Create(primaryLabel, null);
+        }
+
+        public static Node Node(string primaryLabel, string[]? additionalLabels)
         {
             return Language.Node.Create(primaryLabel, additionalLabels);
+        }
+
+        public static string Build(Visitable statement)
+        {
+            using var visitor = new CypherVisitor();
+            // _clauses.ForEach(c => c.Visit(visitor));
+
+            return visitor.Print();
+
         }
     }
 }
