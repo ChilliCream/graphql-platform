@@ -7,6 +7,7 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class Order : Visitable
     {
+        public override ClauseKind Kind => ClauseKind.OrderBy;
         public Order() { }
     }
 }

@@ -11,6 +11,7 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class Pattern : TypedSubtree<PatternElement, Pattern>
     {
+        public override ClauseKind Kind => ClauseKind.Default;
         public Pattern(List<PatternElement> patternElements) : base(patternElements) { }
     }
 }

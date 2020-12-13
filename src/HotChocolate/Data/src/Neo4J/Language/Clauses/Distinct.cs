@@ -2,7 +2,7 @@
 {
     public class Distinct : Visitable
     {
-        public new ClauseKind Kind { get; } = ClauseKind.Distinct;
+        public override ClauseKind Kind => ClauseKind.Distinct;
 
         private readonly bool _value;
 

@@ -6,7 +6,7 @@
     /// </summary>
     public class Where : Visitable
     {
-        public new ClauseKind Kind { get; } = ClauseKind.Where;
+        public override ClauseKind Kind => ClauseKind.Where;
         private readonly Condition _condition;
 
         public Where(Condition condition)

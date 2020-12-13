@@ -5,6 +5,7 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class Properties : Visitable
     {
+        public override ClauseKind Kind => ClauseKind.Default;
         private readonly MapExpression _properties;
 
         public Properties(MapExpression properties)

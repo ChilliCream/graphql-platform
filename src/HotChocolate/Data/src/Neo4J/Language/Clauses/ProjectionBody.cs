@@ -5,6 +5,7 @@
     /// </summary>
     public class ProjectionBody : Visitable
     {
+        public override ClauseKind Kind => ClauseKind.Default;
         private readonly ExpressionList _returnItems;
         private readonly Order _order;
         private readonly Skip _skip;

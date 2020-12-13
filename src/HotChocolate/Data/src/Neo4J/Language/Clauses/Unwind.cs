@@ -5,7 +5,7 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class Unwind : Visitable, IReadingClause
     {
-        public new ClauseKind Kind { get; } = ClauseKind.Unwind;
+        public override ClauseKind Kind => ClauseKind.Unwind;
         private readonly Expression _expressionToUnwind;
         private readonly string _variable;
 

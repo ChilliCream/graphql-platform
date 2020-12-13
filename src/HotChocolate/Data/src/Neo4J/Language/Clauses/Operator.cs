@@ -51,7 +51,7 @@
         public readonly static Operator SetLabel = new Operator("", Type.Label);
         public readonly static Operator RemoveLabel = new Operator("", Type.Label);
 
-        public new ClauseKind Kind => ClauseKind.Operator;
+        public override ClauseKind Kind => ClauseKind.Operator;
 
         private readonly string _representation;
         private readonly Type _type;

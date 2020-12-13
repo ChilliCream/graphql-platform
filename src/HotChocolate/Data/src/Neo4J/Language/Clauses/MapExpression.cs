@@ -4,6 +4,7 @@ namespace HotChocolate.Data.Neo4J.Language
 {
     public class MapExpression : TypedSubtree<Expression, MapExpression>
     {
+        public override ClauseKind Kind => ClauseKind.Default;
         private MapExpression(List<Expression> children) : base(children) { }
 
         public static MapExpression Create(object[] input)

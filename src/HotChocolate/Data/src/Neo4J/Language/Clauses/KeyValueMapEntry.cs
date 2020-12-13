@@ -2,6 +2,7 @@ namespace HotChocolate.Data.Neo4J.Language
 {
     internal sealed class KeyValueMapEntry : Expression
     {
+        public override ClauseKind Kind => ClauseKind.Default;
         private readonly string _key;
         private readonly Expression _value;
 

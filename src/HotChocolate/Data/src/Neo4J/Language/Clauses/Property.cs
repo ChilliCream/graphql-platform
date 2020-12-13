@@ -7,6 +7,7 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class Property : Expression
     {
+        public override ClauseKind Kind => ClauseKind.Default;
         private readonly Expression _container;
         private readonly PropertyLookup _name;
 

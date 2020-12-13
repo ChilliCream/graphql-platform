@@ -6,7 +6,7 @@
     /// </summary>
     public class Delete : Visitable, IUpdatingClause
     {
-        public new ClauseKind Kind { get; } = ClauseKind.Delete;
+        public override ClauseKind Kind => ClauseKind.Delete;
         private readonly ExpressionList _deleteItems;
         private readonly bool _detach;
 

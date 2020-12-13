@@ -2,6 +2,7 @@ namespace HotChocolate.Data.Neo4J.Language
 {
     public class SortDirection : Visitable
     {
+        public override ClauseKind Kind => ClauseKind.Default;
         private const string _undefined = "";
         private const string _asc = "ASC";
         private const string _desc = "DESC";

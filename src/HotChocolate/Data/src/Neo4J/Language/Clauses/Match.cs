@@ -6,7 +6,7 @@
     /// </summary>
     public class Match : Visitable
     {
-        public new ClauseKind Kind { get; } = ClauseKind.Match;
+        public override ClauseKind Kind => ClauseKind.Match;
         private readonly bool _optional;
         private readonly Pattern _pattern;
         private readonly Where _optionalWhere;

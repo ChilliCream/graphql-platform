@@ -5,6 +5,8 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class UnionPart : Visitable
     {
+        public override ClauseKind Kind => ClauseKind.Default;
+
         private readonly bool _all;
         private readonly SingleQuery _query;
 

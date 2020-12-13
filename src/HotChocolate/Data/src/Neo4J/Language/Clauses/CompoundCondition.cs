@@ -4,6 +4,7 @@ namespace HotChocolate.Data.Neo4J.Language
 {
     public class CompoundCondition : Condition
     {
+        public override ClauseKind Kind => ClauseKind.Default;
         public readonly static CompoundCondition EmptyCondition =
             new CompoundCondition(null);
         public readonly static HashSet<Operator> ValidOperations =

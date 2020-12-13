@@ -41,6 +41,6 @@ namespace HotChocolate.Data.Neo4J.Language
         Union,
         Use,
         LoadCsv,
-        Condition,
+        Condition
     }
 }

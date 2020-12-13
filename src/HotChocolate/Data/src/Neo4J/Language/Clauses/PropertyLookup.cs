@@ -2,6 +2,7 @@ namespace HotChocolate.Data.Neo4J.Language
 {
     public class PropertyLookup : Expression
     {
+        public override ClauseKind Kind => ClauseKind.Default;
         private readonly string _propertyKeyName;
 
         public PropertyLookup(string propertyKeyName)

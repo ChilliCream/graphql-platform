@@ -8,7 +8,7 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class Node : Visitable
     {
-        public new ClauseKind Kind { get; } = ClauseKind.Node;
+        public override ClauseKind Kind => ClauseKind.Node;
         private readonly SymbolicName? _symbolicName;
         private readonly List<NodeLabel> _labels;
         private readonly Properties _properties;

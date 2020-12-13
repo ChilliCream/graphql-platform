@@ -5,7 +5,7 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class ExcludePattern : Condition
     {
-        public new ClauseKind Kind { get; } = ClauseKind.ExcludePattern;
+        public override ClauseKind Kind => ClauseKind.ExcludePattern;
 
         private readonly PatternElement _patternElement;
 

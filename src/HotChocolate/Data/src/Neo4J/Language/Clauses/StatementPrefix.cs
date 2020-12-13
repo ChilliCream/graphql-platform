@@ -9,7 +9,7 @@ namespace HotChocolate.Data.Neo4J.Language
         public readonly static StatementPrefix Call = new StatementPrefix("CALL");
         public readonly static StatementPrefix Merge = new StatementPrefix("MERGE");
         public readonly static StatementPrefix DetachDelete = new StatementPrefix("DETACH DELETE");
-        public static new ClauseKind Kind => ClauseKind.StatementPrefix;
+        public override ClauseKind Kind => ClauseKind.StatementPrefix;
         private readonly string _representation;
         public string GetRepresentation() => _representation;
 

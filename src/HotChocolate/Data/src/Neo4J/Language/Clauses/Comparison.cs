@@ -5,6 +5,7 @@
     /// </summary>
     public class Comparison : Condition
     {
+        public override ClauseKind Kind => ClauseKind.Default;
         private readonly Expression _left;
         private readonly Operator _operator;
         private readonly Expression _right;

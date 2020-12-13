@@ -3,10 +3,11 @@ using System;
 namespace HotChocolate.Data.Neo4J.Language
 {
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public class DistinctExpression : Expression
     {
+        public override ClauseKind Kind => ClauseKind.Default;
         private readonly Expression _expression;
 
         public DistinctExpression(Expression expression)

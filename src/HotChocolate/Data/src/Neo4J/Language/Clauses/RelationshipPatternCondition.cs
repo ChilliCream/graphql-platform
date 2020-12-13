@@ -8,6 +8,6 @@ namespace HotChocolate.Data.Neo4J.Language.Clauses
 {
     class RelationshipPatternCondition : Condition
     {
-
+        public override ClauseKind Kind => ClauseKind.Default;
     }
 }

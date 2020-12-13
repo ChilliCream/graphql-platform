@@ -5,7 +5,7 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class Create : Visitable, IUpdatingClause
     {
-        public new ClauseKind Kind { get; } = ClauseKind.Create;
+        public override ClauseKind Kind => ClauseKind.Create;
 
         private readonly Pattern _pattern;
 

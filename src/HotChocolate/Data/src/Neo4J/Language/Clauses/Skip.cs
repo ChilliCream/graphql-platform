@@ -2,6 +2,7 @@
 {
     public class Skip : Visitable
     {
+        public override ClauseKind Kind => ClauseKind.Skip;
         private readonly IntegerLiteral _skipAmount;
 
         private Skip(IntegerLiteral skipAmount)

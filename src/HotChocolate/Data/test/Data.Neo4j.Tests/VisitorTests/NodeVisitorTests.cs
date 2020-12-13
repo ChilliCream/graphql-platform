@@ -1,6 +1,6 @@
-using Xunit;
-using Snapshooter.Xunit;
 using HotChocolate.Data.Neo4J.Language;
+using Snapshooter.Xunit;
+using Xunit;
 
 namespace HotChocolate.Data.Neo4J.Tests
 {
@@ -27,7 +27,7 @@ namespace HotChocolate.Data.Neo4J.Tests
             Node bike = Cypher.Node("Bike", additionalLabels).Named("b");
             bike.Visit(visitor);
 
-            visitor.Print().MatchSnapshot();
+            visitor.MatchSnapshot();
         }
 
         [Fact]
@@ -38,7 +38,7 @@ namespace HotChocolate.Data.Neo4J.Tests
             Node bike = Cypher.Node("Bike");
             bike.Visit(visitor);
 
-            visitor.Print().MatchSnapshot();
+            visitor.MatchSnapshot();
         }
 
         [Fact]
@@ -49,7 +49,7 @@ namespace HotChocolate.Data.Neo4J.Tests
             Node bike = Cypher.Node("Bike");
             bike.Visit(visitor);
 
-            visitor.Print().MatchSnapshot();
+            visitor.MatchSnapshot();
         }
     }
 }

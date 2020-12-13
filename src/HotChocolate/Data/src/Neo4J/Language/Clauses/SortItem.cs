@@ -4,6 +4,7 @@ namespace HotChocolate.Data.Neo4J.Language
 {
     public class SortItem : Visitable
     {
+        public override ClauseKind Kind => ClauseKind.Default;
         private readonly Expression _expression;
         private readonly SortDirection _direction;
 
