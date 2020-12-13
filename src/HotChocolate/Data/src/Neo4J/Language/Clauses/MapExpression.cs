@@ -11,7 +11,7 @@ namespace HotChocolate.Data.Neo4J.Language
             var newContent = new List<Expression>();
             var knownKeys = new HashSet<string>();
 
-            for(int i=0; i<input.Length; i+=2)
+            for (var i = 0; i < input.Length; i += 2)
             {
                 var entry = new KeyValueMapEntry((string)input[i], (Expression)input[i + 1]);
                 newContent.Add(entry);

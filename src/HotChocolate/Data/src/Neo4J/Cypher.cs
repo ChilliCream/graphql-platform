@@ -21,10 +21,10 @@ namespace HotChocolate.Data.Neo4J
 
         public static Node Node(string primaryLabel)
         {
-            return Language.Node.Create(primaryLabel, null);
+            return Language.Node.Create(primaryLabel);
         }
 
-        public static Node Node(string primaryLabel, string[]? additionalLabels)
+        public static Node Node(string primaryLabel, string[] additionalLabels)
         {
             return Language.Node.Create(primaryLabel, additionalLabels);
         }
