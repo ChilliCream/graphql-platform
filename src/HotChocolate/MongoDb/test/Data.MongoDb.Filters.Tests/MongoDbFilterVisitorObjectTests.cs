@@ -10,8 +10,8 @@ using Xunit;
 namespace HotChocolate.Data.MongoDb.Filters
 {
     public class MongoDbFilterVisitorObjectTests
-        : SchemaCache,
-          IClassFixture<MongoResource>
+        : SchemaCache
+        , IClassFixture<MongoResource>
     {
         private static readonly Bar[] _barEntities =
         {
@@ -83,10 +83,7 @@ namespace HotChocolate.Data.MongoDb.Filters
                     BarString = "testbtest",
                     ObjectArray = new List<BarNullable>
                     {
-                        new BarNullable
-                        {
-                            Foo = new FooNullable { BarShort = null }
-                        }
+                        new BarNullable { Foo = new FooNullable { BarShort = null } }
                     }
                 }
             },
