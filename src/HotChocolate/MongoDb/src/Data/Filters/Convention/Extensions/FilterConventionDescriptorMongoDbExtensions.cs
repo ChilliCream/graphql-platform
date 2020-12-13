@@ -17,7 +17,7 @@ namespace HotChocolate.Data.MongoDb.Filters
         /// Initializes the default configuration of the provider by registering handlers
         /// </summary>
         /// <param name="descriptor">The descriptor where the handlers are registered</param>
-        /// <returns>The descriptor that was passed in as a parameter</returns>
+        /// <returns>The <paramref name="descriptor"/> that was passed in as a parameter</returns>
         public static IFilterProviderDescriptor<MongoDbFilterVisitorContext>
             AddDefaultMongoDbFieldHandlers(
                 this IFilterProviderDescriptor<MongoDbFilterVisitorContext> descriptor)

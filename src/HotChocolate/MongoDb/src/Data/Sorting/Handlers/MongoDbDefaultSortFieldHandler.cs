@@ -13,12 +13,14 @@ namespace HotChocolate.Data.MongoDb.Sorting.Handlers
     public class MongoDbDefaultSortFieldHandler
         : SortFieldHandler<MongoDbSortVisitorContext, MongoDbSortDefinition>
     {
+        /// <inheritdoc />
         public override bool CanHandle(
             ITypeCompletionContext context,
             ISortInputTypeDefinition typeDefinition,
             ISortFieldDefinition fieldDefinition) =>
             fieldDefinition.Member is not null;
 
+        /// <inheritdoc />
         public override bool TryHandleEnter(
             MongoDbSortVisitorContext context,
             ISortField field,
@@ -39,6 +41,7 @@ namespace HotChocolate.Data.MongoDb.Sorting.Handlers
             return true;
         }
 
+        /// <inheritdoc />
         public override bool TryHandleLeave(
             MongoDbSortVisitorContext context,
             ISortField field,

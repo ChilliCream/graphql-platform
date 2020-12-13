@@ -2,16 +2,14 @@ using System;
 using System.Threading.Tasks;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Language;
-using HotChocolate.Data.MongoDb;
-using HotChocolate.Data.MongoDb.Sorting;
 using HotChocolate.Data.MongoDb.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb.Sorting.Convention.Extensions.Handlers
 {
+    /// <inheritdoc />
     public class MongoDbSortProvider
         : SortProvider<MongoDbSortVisitorContext>
     {
@@ -29,6 +27,7 @@ namespace HotChocolate.Data.MongoDb.Sorting.Convention.Extensions.Handlers
             Visitor { get; } =
             new SortVisitor<MongoDbSortVisitorContext, MongoDbSortDefinition>();
 
+        /// <inheritdoc />
         public override FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName)
         {
             return next => context => ExecuteAsync(next, context);

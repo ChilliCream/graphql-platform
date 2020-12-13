@@ -11,6 +11,10 @@ using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb.Sorting.Handlers
 {
+    /// <summary>
+    /// Represents a mongodb handler that can be bound to a <see cref="SortField"/>. The handler is
+    /// executed during the visitation of a input object.
+    /// </summary>
     public abstract class MongoDbSortOperationHandlerBase
         : SortOperationHandler<MongoDbSortVisitorContext, MongoDbSortDefinition>
     {
@@ -25,6 +29,7 @@ namespace HotChocolate.Data.MongoDb.Sorting.Handlers
             _operation = operation;
         }
 
+        /// <inheritdoc/>
         public override bool CanHandle(
             ITypeCompletionContext context,
             EnumTypeDefinition typeDefinition,
@@ -33,6 +38,7 @@ namespace HotChocolate.Data.MongoDb.Sorting.Handlers
             return valueDefinition.Operation == _operation;
         }
 
+        /// <inheritdoc/>
         public override bool TryHandleEnter(
             MongoDbSortVisitorContext context,
             ISortField field,
