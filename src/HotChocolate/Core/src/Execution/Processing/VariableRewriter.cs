@@ -4,14 +4,14 @@ using HotChocolate.Language;
 namespace HotChocolate.Execution.Processing
 {
     /// <summary>
-    /// The variable rewriter is a utility that rewrites a value node and replaces all 
+    /// The variable rewriter is a utility that rewrites a value node and replaces all
     /// occurrences of <see cref="VariableNode" /> with concrete <see cref="IValueNode" />.
     /// </summary>
     public static class VariableRewriter
     {
         /// <summary>
-        /// Rewrites <paramref name="node" /> and replaces all occurrences of 
-        /// <see cref="VariableNode" /> with concrete <see cref="IValueNode" /> 
+        /// Rewrites <paramref name="node" /> and replaces all occurrences of
+        /// <see cref="VariableNode" /> with concrete <see cref="IValueNode" />
         /// from the <paramref name="variableValues" />.
         /// </summary>
         /// <param name="node">
@@ -71,7 +71,7 @@ namespace HotChocolate.Execution.Processing
                     if (rewrittenItems is null)
                     {
                         rewrittenItems = new ObjectFieldNode[node.Fields.Count];
-                        for (int j = 0; j < i; j++)
+                        for (int j = 0; j < node.Fields.Count; j++)
                         {
                             rewrittenItems[j] = node.Fields[j];
                         }
