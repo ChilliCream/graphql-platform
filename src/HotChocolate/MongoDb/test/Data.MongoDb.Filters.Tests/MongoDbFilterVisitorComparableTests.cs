@@ -9,12 +9,14 @@ using Xunit;
 namespace HotChocolate.Data.MongoDb.Filters
 {
     public class MongoDbFilterVisitorComparableTests
-        : SchemaCache,
-          IClassFixture<MongoResource>
+        : SchemaCache
+        , IClassFixture<MongoResource>
     {
         private static readonly Foo[] _fooEntities =
         {
-            new Foo { BarShort = 12 }, new Foo { BarShort = 14 }, new Foo { BarShort = 13 }
+            new Foo { BarShort = 12 },
+            new Foo { BarShort = 14 },
+            new Foo { BarShort = 13 }
         };
 
         private static readonly FooNullable[] _fooNullableEntities =

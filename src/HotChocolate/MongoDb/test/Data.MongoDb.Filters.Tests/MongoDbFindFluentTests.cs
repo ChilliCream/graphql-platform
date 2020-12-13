@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -9,6 +7,8 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
+using System;
+using System.Threading.Tasks;
 using Squadron;
 using Xunit;
 
@@ -18,7 +18,8 @@ namespace HotChocolate.Data.MongoDb.Filters
     {
         private static readonly Foo[] _fooEntities =
         {
-            new Foo { Bar = true }, new Foo { Bar = false }
+            new Foo { Bar = true },
+            new Foo { Bar = false }
         };
 
         private static readonly Bar[] _barEntities =

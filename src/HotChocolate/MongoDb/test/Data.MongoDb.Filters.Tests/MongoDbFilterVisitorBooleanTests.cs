@@ -9,12 +9,13 @@ using Squadron;
 namespace HotChocolate.Data.MongoDb.Filters
 {
     public class MongoDbFilterVisitorBooleanTests
-        : SchemaCache,
-          IClassFixture<MongoResource>
+        : SchemaCache
+        , IClassFixture<MongoResource>
     {
         private static readonly Foo[] _fooEntities =
         {
-            new Foo { Bar = true }, new Foo { Bar = false }
+            new Foo { Bar = true },
+            new Foo { Bar = false }
         };
 
         private static readonly FooNullable[] _fooNullableEntities =
