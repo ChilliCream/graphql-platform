@@ -10,8 +10,8 @@ using Xunit;
 namespace HotChocolate.Data.MongoDb.Filters
 {
     public class MongoDbFilterVisitorListTests
-        : SchemaCache,
-          IClassFixture<MongoResource>
+        : SchemaCache
+        , IClassFixture<MongoResource>
     {
         private static readonly Foo[] _fooEntities =
         {
