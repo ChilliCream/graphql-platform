@@ -5,12 +5,15 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Data.MongoDb
 {
+    /// <inheritdoc/>
     public class MongoDbProjectionFieldHandler
         : MongoDbProjectionHandlerBase
     {
+        /// <inheritdoc/>
         public override bool CanHandle(ISelection selection) =>
             selection.SelectionSet is not null;
 
+        /// <inheritdoc/>
         public override bool TryHandleEnter(
             MongoDbProjectionVisitorContext context,
             ISelection selection,
@@ -22,6 +25,7 @@ namespace HotChocolate.Data.MongoDb
             return true;
         }
 
+        /// <inheritdoc/>
         public override bool TryHandleLeave(
             MongoDbProjectionVisitorContext context,
             ISelection selection,

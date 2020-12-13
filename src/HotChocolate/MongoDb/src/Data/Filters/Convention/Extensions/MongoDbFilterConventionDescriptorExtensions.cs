@@ -9,7 +9,7 @@ namespace HotChocolate.Data.MongoDb.Filters
         /// Initializes the default configuration for MongoDb on the convention by adding operations
         /// </summary>
         /// <param name="descriptor">The descriptor where the handlers are registered</param>
-        /// <returns>The descriptor that was passed in as a parameter</returns>
+        /// <returns>The <paramref name="descriptor"/></returns>
         public static IFilterConventionDescriptor AddMongoDbDefaults(
             this IFilterConventionDescriptor descriptor) =>
             descriptor.AddDefaultMongoDbOperations().BindDefaultMongoDbTypes().UseMongoDbProvider();
@@ -18,7 +18,7 @@ namespace HotChocolate.Data.MongoDb.Filters
         /// Adds default operations for MongoDb to the descriptor
         /// </summary>
         /// <param name="descriptor">The descriptor where the handlers are registered</param>
-        /// <returns>The descriptor that was passed in as a parameter</returns>
+        /// <returns>The <paramref name="descriptor"/></returns>
         /// <exception cref="ArgumentNullException">
         /// Throws in case the argument <paramref name="descriptor"/> is null
         /// </exception>

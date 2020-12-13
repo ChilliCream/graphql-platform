@@ -7,6 +7,7 @@ using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb
 {
+    /// <inheritdoc/>
     public class MongoDbProjectionProvider
         : ProjectionProvider
     {
@@ -20,6 +21,7 @@ namespace HotChocolate.Data.MongoDb
         {
         }
 
+        /// <inheritdoc/>
         public override FieldMiddleware CreateExecutor<TEntityType>()
         {
             return next => context => ExecuteAsync(next, context);

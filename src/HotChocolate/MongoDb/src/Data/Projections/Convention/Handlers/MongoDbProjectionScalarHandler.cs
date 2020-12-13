@@ -4,12 +4,15 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Data.MongoDb
 {
+    /// <inheritdoc/>
     public class MongoDbProjectionScalarHandler
         : MongoDbProjectionHandlerBase
     {
+        /// <inheritdoc/>
         public override bool CanHandle(ISelection selection) =>
             selection.SelectionSet is null;
 
+        /// <inheritdoc/>
         public override bool TryHandleEnter(
             MongoDbProjectionVisitorContext context,
             ISelection selection,

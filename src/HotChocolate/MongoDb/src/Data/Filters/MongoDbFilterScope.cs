@@ -3,7 +3,7 @@ using HotChocolate.Data.Filters;
 
 namespace HotChocolate.Data.MongoDb.Filters
 {
-        /// <inheritdoc />
+    /// <inheritdoc />
     public class MongoDbFilterScope
         : FilterScope<MongoDbFilterDefinition>
     {

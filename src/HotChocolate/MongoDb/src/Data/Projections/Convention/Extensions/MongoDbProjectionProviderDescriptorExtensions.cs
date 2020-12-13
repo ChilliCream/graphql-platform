@@ -6,11 +6,24 @@ namespace HotChocolate.Data.MongoDb
 {
     public static class MongoDbProjectionProviderDescriptorExtensions
     {
+        /// <summary>
+        /// Initializes the default configuration for MongoDb on the convention by adding handlers
+        /// </summary>
+        /// <param name="descriptor">The descriptor where the handlers are registered</param>
+        /// <returns>The <paramref name="descriptor"/></returns>
         public static IProjectionProviderDescriptor AddMongoDbDefaults(
             this IProjectionProviderDescriptor descriptor) =>
-            descriptor.RegisteMongoDbHandlers();
+            descriptor.RegisterMongoDbHandlers();
 
-        public static IProjectionProviderDescriptor RegisteMongoDbHandlers(
+        /// <summary>
+        /// Registers projection handlers for mongodb
+        /// </summary>
+        /// <param name="descriptor">The descriptor where the handlers are registered</param>
+        /// <returns>The <paramref name="descriptor"/></returns>
+        /// <exception cref="ArgumentNullException">
+        /// Throws in case the argument <paramref name="descriptor"/> is null
+        /// </exception>
+        public static IProjectionProviderDescriptor RegisterMongoDbHandlers(
             this IProjectionProviderDescriptor descriptor)
         {
             if (descriptor is null)

@@ -5,6 +5,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Data.MongoDb
 {
+    /// <inheritdoc/>
     public class MongoDbProjectionVisitorContext
         : ProjectionVisitorContext<MongoDbProjectionDefinition>
     {
@@ -15,8 +16,14 @@ namespace HotChocolate.Data.MongoDb
         {
         }
 
+        /// <summary>
+        /// The path from the root to the current position in the input object
+        /// </summary>
         public Stack<string> Path { get; } = new Stack<string>();
 
+        /// <summary>
+        /// A list of already projected fields
+        /// </summary>
         public Stack<MongoDbProjectionDefinition> Projections { get; }
             = new Stack<MongoDbProjectionDefinition>();
     }
