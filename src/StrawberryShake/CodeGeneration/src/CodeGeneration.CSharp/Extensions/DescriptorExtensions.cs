@@ -7,7 +7,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
         public static TypeBuilder ToBuilder(this TypeDescriptor typeDescriptor) =>
             new TypeBuilder()
                 .SetName(typeDescriptor.Name)
-                .SetNullability(typeDescriptor.IsNullable)
+                .SetIsNullable(typeDescriptor.IsNullable)
                 .SetListType(typeDescriptor.ListType);
     }
 }

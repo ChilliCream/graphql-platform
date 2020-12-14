@@ -50,6 +50,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 throw new ArgumentNullException(nameof(writer));
             }
 
+            if (_determineStatement)
+            {
+                await writer.WriteIndentAsync().ConfigureAwait(false);
+            }
             await writer.WriteAsync(_methodName).ConfigureAwait(false);
 
             await writer.WriteAsync("(").ConfigureAwait(false);

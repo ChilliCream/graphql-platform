@@ -3,7 +3,7 @@ public static partial class FooFromFooEntityMapper
 {
     public static Foo Map(
         FooEntity entity,
-        EntityStore entityStore)
+        IEntityStore entityStore)
     {
         return new Foo(entity.SomeText);
     }

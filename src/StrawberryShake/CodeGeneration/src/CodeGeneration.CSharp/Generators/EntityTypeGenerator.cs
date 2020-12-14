@@ -31,7 +31,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     PropertyBuilder referencePropertyBuilder = PropertyBuilder
                         .New()
                         .SetName(prop.Name)
-                        .SetType(prop.Type.ToBuilder().SetName(WellKnownTypes.EntityId))
+                        .SetType(prop.Type.ToBuilder().SetName(WellKnownNames.EntityId))
                         .MakeSettable()
                         .SetAccessModifier(AccessModifier.Public);
                     classBuilder.AddProperty(referencePropertyBuilder);

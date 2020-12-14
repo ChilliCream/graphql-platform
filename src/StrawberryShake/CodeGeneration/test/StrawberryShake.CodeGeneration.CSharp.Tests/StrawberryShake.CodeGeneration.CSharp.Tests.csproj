@@ -25,6 +25,7 @@
 
     <ItemGroup>
       <Folder Include="__snapshots__" />
+      <Folder Include="__snapshots__\__mismatch__" />
     </ItemGroup>
 
 </Project>

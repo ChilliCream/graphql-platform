@@ -9,7 +9,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private bool _isConst;
         private bool _isStatic;
         private bool _isReadOnly;
-        private string? _type;
+        private TypeBuilder? _type;
         private string? _name;
         private string? _value;
         private bool _useDefaultInitializer;
@@ -26,8 +26,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         {
             if (condition)
             {
-                _type = value;
+                _type = TypeBuilder.New().SetName(value);
             }
+
+            return this;
+        }
+
+        public FieldBuilder SetType(TypeBuilder type)
+        {
+            _type = type;
             return this;
         }
 
@@ -80,6 +87,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 throw new ArgumentNullException(nameof(writer));
             }
 
+            if (_type is null)
+            {
+                throw new ArgumentNullException(nameof(_type));
+            }
+
             string modifier = _accessModifier.ToString().ToLowerInvariant();
 
             await writer.WriteIndentAsync().ConfigureAwait(false);
@@ -101,7 +113,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 await writer.WriteAsync("readonly ").ConfigureAwait(false);
             }
 
-            await writer.WriteAsync($"{_type} {_name}").ConfigureAwait(false);
+            await _type.BuildAsync(writer).ConfigureAwait(false);
+            await writer.WriteAsync(_name).ConfigureAwait(false);
 
             if (_value is { })
             {

@@ -144,7 +144,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
             using (writer.IncreaseIndent())
             {
-                await writer.WriteIndentAsync().ConfigureAwait(false);
                 foreach (ICode code in _lines)
                 {
                     await code.BuildAsync(writer).ConfigureAwait(false);

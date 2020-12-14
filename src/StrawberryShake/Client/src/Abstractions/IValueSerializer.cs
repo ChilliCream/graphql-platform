@@ -69,15 +69,18 @@ namespace StrawberryShake
             private readonly IOperationStore _operationStore;
             private readonly GetFooQueryRequest _request;
 
-            public IDisposable Subscribe(
-                IObserver<IOperationResult<GetFooResult>> observer)
+            public ValueTask<IAsyncDisposable> SubscribeAsync(IAsyncObserver<IOperationResult<GetFooResult>> observer, CancellationToken cancellationToken = default)
             {
                 throw new NotImplementedException();
             }
 
-            public ValueTask<IAsyncDisposable> SubscribeAsync(
-                IObserver<string> observer,
-                CancellationToken cancellationToken = default)
+            public void Subscribe(Func<IOperationResult<GetFooResult>, CancellationToken, ValueTask> nextAsync, CancellationToken cancellationToken = default)
+            {
+                throw new NotImplementedException();
+            }
+
+            public IDisposable Subscribe(
+                IObserver<IOperationResult<GetFooResult>> observer)
             {
                 throw new NotImplementedException();
             }
@@ -91,23 +94,23 @@ namespace StrawberryShake
 
                 throw new NotImplementedException();
             }
-
-            public void Subscribe(
-                Func<IOperationResult<GetFooResult>, ValueTask> nextAsync,
-                CancellationToken cancellationToken = default)
-            {
-                Task.Run(async () =>
-                    {
-                        _operationStore
-                            .Watch<GetFooResult>(_request)
-                            .Subscribe(nextAsync, cancellationToken);
-
-                        await _operationExecutor
-                            .ExecuteAsync(_request, cancellationToken)
-                            .ConfigureAwait(false);
-                    },
-                    cancellationToken);
-            }
+            //
+            // public void Subscribe(
+            //     Func<IOperationResult<GetFooResult>, ValueTask> nextAsync,
+            //     CancellationToken cancellationToken = default)
+            // {
+            //     Task.Run(async () =>
+            //         {
+            //             _operationStore
+            //                 .Watch<GetFooResult>(_request)
+            //                 .Subscribe(nextAsync, cancellationToken);
+            //
+            //             await _operationExecutor
+            //                 .ExecuteAsync(_request, cancellationToken)
+            //                 .ConfigureAwait(false);
+            //         },
+            //         cancellationToken);
+            // }
         }
     }
 

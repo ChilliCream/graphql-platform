@@ -40,13 +40,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 )
                 .AddParameter(
                     ParameterBuilder.New()
-                        .SetType(TypeBuilder.New().SetName(WellKnownTypes.EntityStore))
+                        .SetType(TypeBuilder.New().SetName(WellKnownNames.EntityStore))
                         .SetName(StoreParamName)
-                )
-                .AddInlineCode($"return new ");
+                );
 
             var methodCallBuilder = new MethodCallBuilder()
-                .SetMethodName(descriptor.ResultType.Name);
+                .SetMethodName($"return new {descriptor.ResultType.Name}");
             foreach (TypeClassPropertyDescriptor propertyDescriptor in descriptor.ResultType.Properties)
             {
                 if (propertyDescriptor.Type.IsReferenceType)

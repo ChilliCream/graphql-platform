@@ -20,6 +20,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
+        public ParameterBuilder SetType(string name)
+        {
+            _type = TypeBuilder.New().SetName(name);
+            return this;
+        }
+
         public ParameterBuilder SetName(string value)
         {
             _name = value;

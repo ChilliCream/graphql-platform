@@ -16,6 +16,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
+        public CodeLineBuilder AppendToLine(string value)
+        {
+            _value += value;
+            return this;
+        }
+
         public Task BuildAsync(CodeWriter writer)
         {
             if (writer is null)
