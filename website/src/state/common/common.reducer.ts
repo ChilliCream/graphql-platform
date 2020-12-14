@@ -11,7 +11,7 @@ import {
   showLegacyDocInfo,
   toggleAside,
   toggleTOC,
-  toggleNavigationGroup,
+  toggleNavigationGroup, hasScrolled, setArticleHeight,
 } from "./common.actions";
 
 export const commonReducer = createReducer<CommonState>(
@@ -77,6 +77,16 @@ export const commonReducer = createReducer<CommonState>(
     ...state,
     showAside: false,
     showTOC: !state.showTOC,
+  })),
+
+  onAction(hasScrolled, (state, {yScrollPosition}) => ({
+    ...state,
+    yScrollPosition: yScrollPosition
+  })),
+
+  onAction(setArticleHeight, (state, {articleHeight}) => ({
+    ...state,
+    articleViewportHeight: articleHeight
   })),
 
   onAction(toggleNavigationGroup, (state, { path }) => {

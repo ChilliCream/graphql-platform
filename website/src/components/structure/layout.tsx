@@ -1,10 +1,8 @@
-import React, { FunctionComponent, useEffect } from "react";
-import styled from "styled-components";
-import { GlobalStyle } from "../misc/global-style";
-import { Footer } from "./footer";
-import { Header } from "./header";
-import { CookieConsent } from "../misc/cookie-consent";
-import { PageTop } from "../misc/page-top";
+import React, {FunctionComponent, useEffect} from "react";
+import {GlobalStyle} from "../misc/global-style";
+import {Header} from "./header";
+import {CookieConsent} from "../misc/cookie-consent";
+import {MainContentContainer} from './main-content-container/main-content-container';
 
 export const Layout: FunctionComponent = ({ children }) => {
   useEffect(() => {
@@ -26,27 +24,8 @@ export const Layout: FunctionComponent = ({ children }) => {
     <>
       <GlobalStyle />
       <Header />
-      <MainContentWrapper>
-        <Content>{children}</Content>
-        <Footer />
-      </MainContentWrapper>
-      <PageTop />
+      <MainContentContainer>{children}</MainContentContainer>
       <CookieConsent />
     </>
   );
 };
-
-const MainContentWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  width: 100vw;
-  background-color: #fff;
-`;
-
-const Content = styled.main`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 60px;
-  width: 100%;
-`;

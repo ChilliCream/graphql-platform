@@ -2,8 +2,8 @@ import { graphql } from "gatsby";
 import React, { FunctionComponent } from "react";
 import styled from "styled-components";
 import { DocPageCommunityFragment } from "../../../graphql-types";
-import { IconContainer } from "./icon-container";
-import { Link } from "./link";
+import { IconContainer } from "../misc/icon-container";
+import { Link } from "../misc/link";
 
 import GitHubIconSvg from "../../images/github.svg";
 import SlackIconSvg from "../../images/slack.svg";

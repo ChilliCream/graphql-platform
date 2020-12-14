@@ -1,29 +1,18 @@
 import styled from "styled-components";
+import {IsPhablet, IsSmallDesktop} from '../doc-page/shared-style';
 
-export const ArticleWrapper = styled.div`
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-
-  @media only screen and (min-width: 820px) {
-    padding: 20px 10px 0;
-  }
-`;
-
-export const Article = styled.article`
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  margin-bottom: 40px;
-  padding-bottom: 20px;
-
-  @media only screen and (min-width: 820px) {
-    border-radius: 4px;
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
-  }
-`;
 
 export const ArticleHeader = styled.header`
+  position: relative;
+
+  ${IsSmallDesktop(`
+    padding-top: 54px;
+  `)}
+
+  ${IsPhablet(`
+    padding-top: 20px;
+  `)}
+
   @media only screen and (min-width: 820px) {
     > .gatsby-image-wrapper {
       border-radius: 4px 4px 0 0;
