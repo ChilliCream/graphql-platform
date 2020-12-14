@@ -8,6 +8,6 @@
     {
         public StringLiteral(string content) : base(content) { }
 
-        public override string AsString() => GetContent();
+        public override string AsString() => $"'{GetContent()}'";
     }
 }

@@ -1,24 +1,24 @@
 namespace HotChocolate.Data.Neo4J.Language
 {
-    internal sealed class KeyValueMapEntry : Expression
+    public class KeyValueMapEntry : Expression
     {
-        public override ClauseKind Kind => ClauseKind.Default;
-        private readonly string _key;
-        private readonly Expression _value;
+        public override ClauseKind Kind => ClauseKind.KeyValueMapEntry;
 
-        public KeyValueMapEntry(string key, Expression value)
+        public KeyValueMapEntry(string key, ILiteral value)
         {
-            _key = key;
-            _value = value;
+            Key = key;
+            Value = value;
         }
 
-        public string GetKey() => _key;
+        public string Key { get; }
 
-        public new void Visit(CypherVisitor visitor)
-        {
-            visitor.Enter(this);
-            _value.Visit(visitor);
-            visitor.Leave(this);
-        }
+        public ILiteral Value { get; }
+
+        // public new void Visit(CypherVisitor visitor)
+        // {
+        //     visitor.Enter(this);
+        //     Value.Visit(visitor);
+        //     visitor.Leave(this);
+        // }
     }
 }

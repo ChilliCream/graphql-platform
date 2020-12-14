@@ -1,8 +1,8 @@
 namespace HotChocolate.Data.Neo4J.Language
 {
-    public abstract class Literal<T> : Expression
+    public abstract class Literal<T> : Expression, ILiteral
     {
-        public override ClauseKind Kind { get; } = ClauseKind.Literal;
+        public override ClauseKind Kind => ClauseKind.Literal;
         /// <summary>
         /// The content of this literal.
         /// </summary>

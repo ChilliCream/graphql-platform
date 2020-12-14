@@ -13,6 +13,8 @@ namespace HotChocolate.Data.Neo4J.Language
     where TType : Visitable
     where TTree : TypedSubtree<TType, TTree>
     {
+        public override ClauseKind Kind => ClauseKind.TypedSubtree;
+
         private readonly List<TType> _children;
 
         protected TypedSubtree(List<TType> children)

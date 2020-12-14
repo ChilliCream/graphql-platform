@@ -7,7 +7,7 @@ namespace HotChocolate.Data.Neo4J
     /// <summary>
     /// Responsible for abstracting the logic of building cypher query text.
     /// </summary>
-    internal sealed class CypherBuilder : IDisposable
+    internal sealed class CypherWriter : IDisposable
     {
         private bool _isDisposed;
         private static readonly ObjectPoolProvider _objectPoolProvider =
@@ -16,7 +16,7 @@ namespace HotChocolate.Data.Neo4J
             _objectPoolProvider.CreateStringBuilderPool();
         private readonly StringBuilder _builder;
 
-        public CypherBuilder()
+        public CypherWriter()
         {
             _builder = _stringBuilderPool.Get();
         }

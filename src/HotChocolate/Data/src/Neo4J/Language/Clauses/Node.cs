@@ -6,12 +6,12 @@ namespace HotChocolate.Data.Neo4J.Language
     /// <summary>
     /// https://s3.amazonaws.com/artifacts.opencypher.org/railroad/NodePattern.html
     /// </summary>
-    public class Node : Visitable
+    public class Node : Visitable, IPatternElement
     {
         public override ClauseKind Kind => ClauseKind.Node;
         private readonly SymbolicName? _symbolicName;
         private readonly List<NodeLabel> _labels;
-        private readonly Properties _properties;
+        private readonly Properties? _properties;
 
         private Node(string primaryLabel, Properties? properties, string[]? additionalLabels)
         {
@@ -23,7 +23,7 @@ namespace HotChocolate.Data.Neo4J.Language
                 _labels.Add(new NodeLabel(primaryLabel));
             }
 
-            if (!(additionalLabels?.Length != 0))
+            if (!(additionalLabels == null || additionalLabels.Length == 0))
             {
                 foreach (var nodeLabel in additionalLabels)
                 {
@@ -94,9 +94,9 @@ namespace HotChocolate.Data.Neo4J.Language
         public new void Visit(CypherVisitor visitor)
         {
             visitor.Enter(this);
-            VisitIfNotNull(_symbolicName, visitor);
+            _symbolicName?.Visit(visitor);
             _labels.ForEach(label => label.Visit(visitor));
-            VisitIfNotNull(_properties, visitor);
+            _properties?.Visit(visitor);
             visitor.Leave(this);
         }
     }

@@ -4,21 +4,21 @@ namespace HotChocolate.Data.Neo4J
 {
     public partial class CypherVisitor
     {
-        public void Enter(Visitable visitable)
+        public void Leave(Visitable visitable)
         {
             switch (visitable.Kind)
             {
                 case ClauseKind.Match:
-                    EnterVisitable((Match)visitable);
-                    break;
-                case ClauseKind.Where:
-                    EnterVisitable((Where)visitable);
+                    LeaveVistable((Match)visitable);
                     break;
                 case ClauseKind.Create:
-                    EnterVisitable((Create)visitable);
+                    LeaveVistable((Create)visitable);
                     break;
                 case ClauseKind.Node:
-                    EnterVisitable((Node)visitable);
+                    LeaveVistable((Node)visitable);
+                    break;
+                case ClauseKind.MapExpression:
+                    LeaveVistable((MapExpression)visitable);
                     break;
                 case 0:
                     break;

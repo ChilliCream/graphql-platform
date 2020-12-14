@@ -27,7 +27,7 @@ namespace HotChocolate.Data.Neo4J.Tests
             Node bike = Cypher.Node("Bike", additionalLabels).Named("b");
             bike.Visit(visitor);
 
-            visitor.MatchSnapshot();
+            visitor.Print().MatchSnapshot();
         }
 
         [Fact]
@@ -35,10 +35,12 @@ namespace HotChocolate.Data.Neo4J.Tests
         {
             var visitor = new CypherVisitor();
 
-            Node bike = Cypher.Node("Bike");
+            Node bike = Cypher.Node("Bike")
+                                    .Named("b")
+                                    .WithProperties(new object[] {"Serviced", Cypher.LiteralTrue()});
             bike.Visit(visitor);
 
-            visitor.MatchSnapshot();
+            visitor.Print().MatchSnapshot();
         }
 
         [Fact]
@@ -46,10 +48,16 @@ namespace HotChocolate.Data.Neo4J.Tests
         {
             var visitor = new CypherVisitor();
 
-            Node bike = Cypher.Node("Bike");
+            Node bike = Cypher.Node("Bike")
+                                    .Named("b")
+                                    .WithProperties(new object[]
+                                    {
+                                        "Serviced", Cypher.LiteralTrue(),
+                                        "ServiceNote", Cypher.StringLiteral("Help is needed!")
+                                    });
             bike.Visit(visitor);
 
-            visitor.MatchSnapshot();
+            visitor.Print().MatchSnapshot();
         }
     }
 }

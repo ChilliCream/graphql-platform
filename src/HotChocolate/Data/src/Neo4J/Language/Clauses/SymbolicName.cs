@@ -11,7 +11,7 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class SymbolicName : Expression
     {
-        public override ClauseKind Kind => ClauseKind.Default;
+        public override ClauseKind Kind => ClauseKind.SymbolicName;
         private readonly string _value;
 
         public SymbolicName(string value)

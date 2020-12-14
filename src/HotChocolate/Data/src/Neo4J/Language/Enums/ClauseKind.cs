@@ -11,9 +11,16 @@ namespace HotChocolate.Data.Neo4J.Language
         Operator,
         StatementPrefix,
 
+        KeyValueMapEntry,
+        MapExpression,
+        Properties,
+        KeyValueSeparator,
+
         Literal,
+        BooleanLiteral,
 
         Node,
+        SymbolicName,
         NodeLabel,
         NodeLabels,
 

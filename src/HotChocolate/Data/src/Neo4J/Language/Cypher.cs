@@ -10,15 +10,6 @@ namespace HotChocolate.Data.Neo4J
     /// </summary>
     public static class Cypher
     {
-
-        // Nodes
-        // FilterDefinition
-        // SortDefinition
-        // ProjectionDefinition
-        // PaginationDefinition
-
-        //private List<Visitable> _clauses = new List<Visitable>();
-
         public static Node Node(string primaryLabel)
         {
             return Language.Node.Create(primaryLabel);
@@ -29,13 +20,10 @@ namespace HotChocolate.Data.Neo4J
             return Language.Node.Create(primaryLabel, additionalLabels);
         }
 
-        public static string Build(Visitable statement)
-        {
-            using var visitor = new CypherVisitor();
-            // _clauses.ForEach(c => c.Visit(visitor));
+        public static Literal<bool> LiteralTrue() => BooleanLiteral.True;
+        public static Literal<string> StringLiteral(string str) => new StringLiteral(str);
+        public static Literal<bool> LiteralFalse() => BooleanLiteral.False;
 
-            return visitor.Print();
-
-        }
+        public static CypherBuilder Match(Node node) => CypherBuilder.Builder().Match(node);
     }
 }

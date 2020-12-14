@@ -4,6 +4,7 @@ namespace HotChocolate.Data.Neo4J.Language
 {
     public sealed class BooleanLiteral : Literal<bool>
     {
+
         public static readonly BooleanLiteral True = new BooleanLiteral(true);
         public static readonly BooleanLiteral False = new BooleanLiteral(false);
 
@@ -22,5 +23,11 @@ namespace HotChocolate.Data.Neo4J.Language
         }
 
         public override string AsString() => GetContent().ToString(CultureInfo.InvariantCulture);
+
+        public new void Visit(CypherVisitor visitor)
+        {
+            visitor.Enter(this);
+            visitor.Leave(this);
+        }
     }
 }
