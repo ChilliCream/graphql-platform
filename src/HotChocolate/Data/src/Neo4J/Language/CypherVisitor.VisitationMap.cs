@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Data.Neo4J.Language;
 
@@ -58,7 +59,16 @@ namespace HotChocolate.Data.Neo4J
 
         public void EnterVisitable(Properties props)
         {
-            _writer.Write(" ");
+            _writer.Write(" {");
+            if (props.Props.Count == 1)
+            {
+                _writer.Write("");
+            }
+            foreach(KeyValuePair<string, ILiteral> entry in props.Props)
+            {
+
+            }
+            //_writer.Write(props.Props.);
         }
 
         public void EnterVisitable(MapExpression mapExpression)

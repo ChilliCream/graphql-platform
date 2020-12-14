@@ -6,6 +6,7 @@ namespace HotChocolate.Data.Neo4J.Language
     {
         public override ClauseKind Kind => ClauseKind.MapExpression;
 
+        public readonly Dictionary<string, ILiteral> _exps;
         private readonly List<KeyValueMapEntry> _expressions;
 
         //private MapExpression(List<Expression> children) : base(children) { }
@@ -13,6 +14,11 @@ namespace HotChocolate.Data.Neo4J.Language
         public MapExpression(List<KeyValueMapEntry> expressions)
         {
             _expressions = expressions;
+        }
+
+        public MapExpression(Dictionary<string, ILiteral> expressions)
+        {
+            _exps = expressions;
         }
 
         public static MapExpression Create(object[] input)

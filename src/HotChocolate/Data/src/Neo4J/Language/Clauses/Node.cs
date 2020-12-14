@@ -61,7 +61,7 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public Node WithProperties(MapExpression newProperties) => new Node(_symbolicName, newProperties == null ? null : new Properties(newProperties), _labels);
 
-        public Node WithProperties(object[] keyAndValues)
+        public Node WithProperties(Dictionary<string, ILiteral>)
         {
             MapExpression newProperties = null;
             if(keyAndValues != null && keyAndValues.Length != 0)
