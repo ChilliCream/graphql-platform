@@ -51,7 +51,6 @@ namespace HotChocolate.Data.MongoDb.Filters
         /// </summary>
         protected bool CanBeNull { get; set; } = true;
 
-
         /// <summary>
         /// Maps a operation field to a provider specific result.
         /// This method is called when the <see cref="FilterVisitor{TContext,T}"/> enters a

@@ -56,7 +56,6 @@ namespace HotChocolate.Data.MongoDb.Execution
                 pipeline = pipeline.Sort(Sorting.ToSortDefinition<T>());
             }
 
-
             if (Filters is not null)
             {
                 pipeline = pipeline.Match(Filters.ToFilterDefinition<T>());

@@ -24,7 +24,7 @@ namespace HotChocolate.Data.MongoDb
         /// <summary>
         /// A list of already projected fields
         /// </summary>
-        public Stack<MongoDbProjectionDefinition> Projections { get; }
-            = new Stack<MongoDbProjectionDefinition>();
+        public Stack<MongoDbProjectionDefinition> Projections { get; } =
+            new Stack<MongoDbProjectionDefinition>();
     }
 }
