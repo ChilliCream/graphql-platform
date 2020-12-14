@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Threading.Tasks;
 using HotChocolate.Data;
 using HotChocolate.Resolvers;
 using Microsoft.EntityFrameworkCore;
@@ -38,9 +39,26 @@ namespace HotChocolate.Types
                 .Extend()
                 .OnBeforeNaming((c, d) =>
                 {
-                    if (d.ResultType is not null &&
-                        typeof(IEnumerable).IsAssignableFrom(d.ResultType) &&
-                        d.ResultType.IsGenericType)
+                    if (d.ResultType is null)
+                    {
+                        d.MiddlewareComponents.Remove(placeholder);
+                        return;
+                    }
+
+                    if (
+                        typeof(Task).IsAssignableFrom(d.ResultType)
+                        && d.ResultType.IsGenericType
+                        && typeof(IEnumerable).IsAssignableFrom(d.ResultType.GenericTypeArguments[0])
+                        && d.ResultType.GenericTypeArguments[0].IsGenericType
+                    )
+                    {
+                        Type entity = d.ResultType.GenericTypeArguments[0].GenericTypeArguments[0];
+                        Type middleware = typeof(ToListMiddleware<>).MakeGenericType(entity);
+
+                        var index = d.MiddlewareComponents.IndexOf(placeholder);
+                        d.MiddlewareComponents[index] = Create(middleware);
+                    }
+                    else if (typeof(IEnumerable).IsAssignableFrom(d.ResultType) && d.ResultType.IsGenericType)
                     {
                         Type entity = d.ResultType.GenericTypeArguments[0];
                         Type middleware = typeof(ToListMiddleware<>).MakeGenericType(entity);
@@ -48,8 +66,13 @@ namespace HotChocolate.Types
                         var index = d.MiddlewareComponents.IndexOf(placeholder);
                         d.MiddlewareComponents[index] = Create(middleware);
                     }
-                    else if (d.ResultType is not null &&
-                        typeof(IExecutable).IsAssignableFrom(d.ResultType))
+                    else if (
+                        typeof(Task).IsAssignableFrom(d.ResultType)
+                        && d.ResultType.IsGenericType
+                        && typeof(IExecutable).IsAssignableFrom(d.ResultType.GenericTypeArguments[0])
+                        && d.ResultType.GenericTypeArguments[0].IsGenericType
+                        || typeof(IExecutable).IsAssignableFrom(d.ResultType)
+                    )
                     {
                         Type middleware = typeof(ExecutableMiddleware);
 
