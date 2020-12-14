@@ -34,7 +34,7 @@ namespace HotChocolate.Data
         /// </summary>
         /// <param name="source">The source that should be set</param>
         /// <returns>The new instance of an enumerable executable</returns>
-        public QueryableExecutable<T> WithSource(IQueryable<T> source)
+        public virtual QueryableExecutable<T> WithSource(IQueryable<T> source)
         {
             return new QueryableExecutable<T>(source);
         }
