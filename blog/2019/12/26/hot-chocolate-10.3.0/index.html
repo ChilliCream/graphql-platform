@@ -1225,7 +1225,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
 <p>With previous versions of C# we always had the problem that C# had only nullable reference types, hence we had to give our classes always some extra context to be able to infer non-null GraphQL types.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="40775724215739200000"
+              data-toaster-id="16709786211959532000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1240,7 +1240,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
     {
         return name is null ? &quot;Hello!&quot; : \$&quot;Hello {name}!&quot;
     }
-}`, `40775724215739200000`)"
+}`, `16709786211959532000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1263,7 +1263,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
 <p>It is needless to say that we also could do that with our schema types.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="46375965471306840000"
+              data-toaster-id="58590520254890530000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1274,7 +1274,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
     {
         descriptor.Field(t => t.SayHello(default)).Type<NonNullType<StringType>>();
     }
-}`, `46375965471306840000`)"
+}`, `58590520254890530000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1293,7 +1293,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
 <p>With C# 8.0 <em>Microsoft</em> introduced a new language feature called nullable reference types that allows us to define when reference types can be null.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="55752665567009440000"
+              data-toaster-id="84665756277875720000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1307,7 +1307,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
     {
         return name is null ? &quot;Hello!&quot; : \$&quot;Hello {name}!&quot;
     }
-}`, `55752665567009440000`)"
+}`, `84665756277875720000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1330,7 +1330,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
 <p>Hence the above class is now correctly inferred and translates nicely into GraphQL types.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="86453606435795400000"
+              data-toaster-id="34183729940910924000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1338,7 +1338,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
               onClick="copyToClipboard(`type Query {
   &quot;This field says hello.&quot;
   sayHello(name: String): String!
-}`, `86453606435795400000`)"
+}`, `34183729940910924000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1356,7 +1356,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
 <p>Our solution to this are descriptor attributes which act as a kind of an interceptor into the inferred schema type. This allows users to create their own attributes in an easy way and with all the power that is available through the schema type APIs.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="75286681359993340000"
+              data-toaster-id="51926935269645025000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1378,7 +1378,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
             }
         })
     }
-}`, `75286681359993340000`)"
+}`, `51926935269645025000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1408,7 +1408,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
 <p>The attributes very cleanly package all the logic for a middleware or other configuration aspects. This makes it very easy to use. By just applying an attribute to a class, property, method or any other member kind we can add completely new functionality to that specific element or even completely reconfigure it.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="32529083578186535000"
+              data-toaster-id="36954087669098110000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1423,7 +1423,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
     {
         return name is null ? &quot;Hello!&quot; : \$&quot;Hello {name}!&quot;
     }
-}`, `32529083578186535000`)"
+}`, `36954087669098110000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1460,7 +1460,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
 <p>Maybe we only want to apply arguments through an attribute to a field if the field is on an interface.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="95427339138160930000"
+              data-toaster-id="66765349387394760000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1469,7 +1469,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
 {
     [UseOffsetPaging]
     IQueryable<IFoo> GetFoos();
-}`, `95427339138160930000`)"
+}`, `66765349387394760000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1485,14 +1485,14 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
 <span class="token punctuation">}</span></code></pre></div>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="60745575863878940000"
+              data-toaster-id="27143021721966342000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`interface Foo {
   foos(skip: Int, take: Int): [Foo!]!
-}`, `60745575863878940000`)"
+}`, `27143021721966342000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1507,7 +1507,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
 <p>But if the same attribute is applied to an object field then we might also want to apply a middleware that adds some cross-cutting functionality to it like a paging algorithm.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="32774856508712722000"
+              data-toaster-id="91409254334333170000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1516,7 +1516,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
 {
     [UseOffsetPaging]
     IQueryable<IFoo> GetFoos();
-}`, `32774856508712722000`)"
+}`, `91409254334333170000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1532,14 +1532,14 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
 <span class="token punctuation">}</span></code></pre></div>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="21051180246480670000"
+              data-toaster-id="61844386960645560000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`type Bar implements Foo {
   foos(skip: Int, take: Int): [Foo!]!
-}`, `21051180246480670000`)"
+}`, `61844386960645560000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1554,7 +1554,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
 <p>For this we can use the attribute base class <code class="language-text">DescriptorAttribute</code>.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="14598217763051502000"
+              data-toaster-id="66602562313201360000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1578,7 +1578,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
             }
         }
     }
-}`, `14598217763051502000`)"
+}`, `66602562313201360000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1612,7 +1612,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
 <p>Last but not least we also have added a set of built-in attributes for paging, filtering, sorting and authorization.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="16890468985060170000"
+              data-toaster-id="68082244442583330000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1630,7 +1630,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
     {
         ...
     }
-}`, `16890468985060170000`)"
+}`, `68082244442583330000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1656,7 +1656,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
 <p>The attributes can be chained just like with the fluent API. The above code would translate into the following schema type.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="42394869164423480000"
+              data-toaster-id="611114751203545300"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1672,7 +1672,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
             .UseFiltering()
             .UseSorting();
     }
-}`, `42394869164423480000`)"
+}`, `611114751203545300`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1699,7 +1699,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
 <p>For this problem we have created a special set of descriptor attributes that mark the .NET type as a specific GraphQL type.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="17476289487934781000"
+              data-toaster-id="63893676376740970000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1708,7 +1708,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
 public struct Query
 {
     public string Foo => &quot;Foo&quot;;
-}`, `17476289487934781000`)"
+}`, `63893676376740970000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1725,7 +1725,7 @@ public struct Query
 <p>The same would work if we wanted to enforce that an abstract base class for instance becomes an interface or even a union type. It is important that the context in which this type is discovered also matters. So, one type could translate into an input type and an output type at the same time.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="54738030401422290000"
+              data-toaster-id="74129904795753280000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1738,7 +1738,7 @@ public struct Query
 public class Foo
 {
     public string Bar { get; set; }
-}`, `54738030401422290000`)"
+}`, `74129904795753280000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1759,7 +1759,7 @@ public class Foo
 <p>The above example would automatically translate into a GraphQL schema where <code class="language-text">Foo</code> would be represented by two types in the GraphQL schema.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="57012059606383935000"
+              data-toaster-id="31237820613854340000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1774,7 +1774,7 @@ type Foo {
 
 input FooInput {
   bar: String
-}`, `57012059606383935000`)"
+}`, `31237820613854340000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1803,7 +1803,7 @@ input FooInput {
 <p><strong>Approach 1 - Empty Class</strong></p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="85656580635550990000"
+              data-toaster-id="4987752389841949000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1814,7 +1814,7 @@ input FooInput {
 
 SchemaBuilder.New()
     .AddQueryType<Query>()
-    ...`, `85656580635550990000`)"
+    ...`, `4987752389841949000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1833,7 +1833,7 @@ SchemaBuilder<span class="token punctuation">.</span><span class="token function
 <p><strong>Approach 2 - Schema Type</strong></p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="75052315489828600000"
+              data-toaster-id="21283193853711135000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1848,7 +1848,7 @@ SchemaBuilder<span class="token punctuation">.</span><span class="token function
 
 SchemaBuilder.New()
     .AddQueryType<QueryType>()
-    ...`, `75052315489828600000`)"
+    ...`, `21283193853711135000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1871,7 +1871,7 @@ SchemaBuilder<span class="token punctuation">.</span><span class="token function
 <p>Next we could create standard C# classes to extend on the query type. We can divide our type into as many classes as we want. Also, since each class is independent we could for instance have extra query fields during development time by just adding an extension class on dev to our schema builder and on prod we could leave that away.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="79264936668676500000"
+              data-toaster-id="44717108545856370000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1885,7 +1885,7 @@ public class FooQueries
 SchemaBuilder.New()
     .AddQueryType<QueryType>()
     .AddType<FooQueries>()
-    .Create();`, `79264936668676500000`)"
+    .Create();`, `44717108545856370000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1907,14 +1907,14 @@ SchemaBuilder<span class="token punctuation">.</span><span class="token function
 <p>The above code would result in the following schema:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="45201223785681360000"
+              data-toaster-id="86154122302877780000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`type Query {
   hello: String
-}`, `45201223785681360000`)"
+}`, `86154122302877780000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1931,7 +1931,7 @@ SchemaBuilder<span class="token punctuation">.</span><span class="token function
 <p>Hot Chocolate is able to infer interface types from C# APIs since version 10.0.0. But now with the new capabilities of Hot Chocolate in 10.3.0 this becomes a really great feature.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="83628814634475100000"
+              data-toaster-id="24827570537049383000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1966,7 +1966,7 @@ SchemaBuilder.New()
     .AddQuery<Query>()
     .AddType<Dog>()
     .AddType<Cat>()
-    .Create();`, `83628814634475100000`)"
+    .Create();`, `24827570537049383000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2008,7 +2008,7 @@ SchemaBuilder<span class="token punctuation">.</span><span class="token function
     <span class="token punctuation">.</span><span class="token function">Create</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre></div>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="36436450150955024000"
+              data-toaster-id="88963198696289390000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2028,7 +2028,7 @@ type Dog implements Pet {
 
 type Cat implements Pet {
     // fields
-}`, `36436450150955024000`)"
+}`, `88963198696289390000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2061,7 +2061,7 @@ type Cat implements Pet {
 <p>Another concept we are introducing with 10.3.0 is optional on input object types. We are planning to use optional even more with version 11 but with 10.3.0 you can use them on input object types in order to distinguish between <strong>not set</strong> and <strong>null</strong>.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="10784692354282076000"
+              data-toaster-id="40074774373916310000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2069,7 +2069,7 @@ type Cat implements Pet {
               onClick="copyToClipboard(`public class Foo
 {
     public Optional<string> Bar { get; set; }
-}`, `10784692354282076000`)"
+}`, `40074774373916310000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2085,13 +2085,13 @@ type Cat implements Pet {
 <p>The important thing with optional is that they implicitly convert to the type specified as type parameter. This means that the following is valid code:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="42104425145325216000"
+              data-toaster-id="83264664560850110000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`var foo = new Foo { Bar = &quot;ABCDEF&quot; };
-string fooValue = foo.Bar;`, `42104425145325216000`)"
+string fooValue = foo.Bar;`, `83264664560850110000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2105,7 +2105,7 @@ string fooValue = foo.Bar;`, `42104425145325216000`)"
 <p>But we also can now distinguish between <strong>not set</strong> and <strong>null</strong> since we can ask the optional if it has a value.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="9090595277656277000"
+              data-toaster-id="52963116213961080000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2114,7 +2114,7 @@ string fooValue = foo.Bar;`, `42104425145325216000`)"
 if(foo.Bar.HasValue)
 {
     // property was set.
-}`, `9090595277656277000`)"
+}`, `52963116213961080000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2132,12 +2132,12 @@ if(foo.Bar.HasValue)
 <p>Also, we cannot use optional on arguments in the way that we could ask the context for an optional like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="6863122299179758000"
+              data-toaster-id="40624775982416740000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`context.Argument<Optional<string>>(&quot;foo&quot;);`, `6863122299179758000`)"
+              onClick="copyToClipboard(`context.Argument<Optional<string>>(&quot;foo&quot;);`, `40624775982416740000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2155,7 +2155,7 @@ if(foo.Bar.HasValue)
 <p>For a long time now, we can extend types or break types up into multiple parts.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="22439423187035603000"
+              data-toaster-id="33264156677931033000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2168,7 +2168,7 @@ if(foo.Bar.HasValue)
         descriptor.Field<Foo>(t => t.Bar).Use(...);
         descriptor.Field(&quot;baz&quot;).Use(...);
     }
-}`, `22439423187035603000`)"
+}`, `33264156677931033000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2189,7 +2189,7 @@ if(foo.Bar.HasValue)
 <p>But the type extension until now did not allow to specify an underlying model. With 10.3.0 we now allow you to specify any type extension with a generic type parameter.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="75511156473452720000"
+              data-toaster-id="61483665543678345000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2201,7 +2201,7 @@ if(foo.Bar.HasValue)
         descriptor.Name(&quot;Foo&quot;);
         descriptor.Field(t => t.Bar).Use(...);
     }
-}`, `75511156473452720000`)"
+}`, `61483665543678345000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2224,7 +2224,7 @@ if(foo.Bar.HasValue)
 <p>With version 10.3.0 we can now specify immutable classes like the following one as input object.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="61178486265004950000"
+              data-toaster-id="39575453711290294000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2237,7 +2237,7 @@ if(foo.Bar.HasValue)
     }
 
     public string Bar { get; }
-}`, `61178486265004950000`)"
+}`, `39575453711290294000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2259,7 +2259,7 @@ if(foo.Bar.HasValue)
 <p>Also supported is to use the constructor just for non-null reference types like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="93105527178453470000"
+              data-toaster-id="70245650963903870000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2274,7 +2274,7 @@ if(foo.Bar.HasValue)
     public string Bar { get; set; }
 
     public string? Baz { get; set; }
-}`, `93105527178453470000`)"
+}`, `70245650963903870000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2300,7 +2300,7 @@ if(foo.Bar.HasValue)
 <p>But if you want to easily hook up Azure ServiceBus or stream something over what ever, then this has become super simple with the new subscribe resolver.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="23558679900291970000"
+              data-toaster-id="9147319287644340000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2319,7 +2319,7 @@ if(foo.Bar.HasValue)
             })
             ...
     }
-}`, `23558679900291970000`)"
+}`, `9147319287644340000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2346,7 +2346,7 @@ if(foo.Bar.HasValue)
 <p>You also can bind the subscribe resolver like any other resolver to an underlying method.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="62640684204701880000"
+              data-toaster-id="56672384853751456000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2360,7 +2360,7 @@ if(foo.Bar.HasValue)
             .Subscribe(t => t.OnReceiveMessage())
             ...
     }
-}`, `62640684204701880000`)"
+}`, `56672384853751456000`)"
             >
               <div
                 class="gatsby-code-button"
