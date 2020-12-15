@@ -89,7 +89,7 @@ namespace StrawberryShake.Generators
                     }
                 }
 
-                await stream.FlushAsync();
+                await stream.FlushAsync().ConfigureAwait(false);
                 rewrittenBuffer = stream.ToArray();
             }
 

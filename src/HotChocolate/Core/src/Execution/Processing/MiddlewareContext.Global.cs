@@ -132,7 +132,7 @@ namespace HotChocolate.Execution.Processing
             {
                 _resolverResult = Field.Resolver is null
                     ? null
-                    : await Field.Resolver(this);
+                    : await Field.Resolver(this).ConfigureAwait(false);
                 _hasResolverResult = true;
             }
 
