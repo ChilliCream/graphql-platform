@@ -60,39 +60,14 @@ namespace HotChocolate.Data.Neo4J
         public void EnterVisitable(Properties props)
         {
             _writer.Write(" {");
-            if (props.Props.Count == 1)
-            {
-                _writer.Write("");
-            }
-            foreach(KeyValuePair<string, ILiteral> entry in props.Props)
-            {
-
-            }
-            //_writer.Write(props.Props.);
+            _writer.Write(string.Join(
+                ", ",
+                props.Props.Select(i => $" {i.Key}: {i.Value.AsString()} ")).TrimEnd(' ', ','));
         }
 
-        public void EnterVisitable(MapExpression mapExpression)
+        public void LeaveVistable(Properties properties)
         {
-            _writer.Write("{");
-            _writer.Write(mapExpression.GetValues().Count == 1
-                ? $" {mapExpression.GetValues()[0].Key}: {mapExpression.GetValues()[0].Value.AsString()} "
-                : string.Join(",", mapExpression.GetValues().Select(kvp => $" {kvp.Key}: {kvp.Value.AsString()} ")));
-        }
-
-        public void LeaveVistable(MapExpression mapExpression)
-        {
-            _writer.Write("}");
-        }
-
-        // public void EnterVisitable(KeyValueMapEntry keyValueMapEntry)
-        // {
-        //     _builder.Write(keyValueMapEntry.GetKey());
-        //     _builder.Write(": ");
-        // }
-
-        public void EnterVisitable(ILiteral expression)
-        {
-            _writer.Write(expression.AsString());
+            _writer.Write(" }");
         }
     }
 }

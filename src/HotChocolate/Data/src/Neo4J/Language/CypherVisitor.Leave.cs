@@ -17,8 +17,8 @@ namespace HotChocolate.Data.Neo4J
                 case ClauseKind.Node:
                     LeaveVistable((Node)visitable);
                     break;
-                case ClauseKind.MapExpression:
-                    LeaveVistable((MapExpression)visitable);
+                case ClauseKind.Properties:
+                    LeaveVistable((Properties)visitable);
                     break;
                 case 0:
                     break;

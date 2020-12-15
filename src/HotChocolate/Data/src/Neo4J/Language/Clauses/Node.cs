@@ -59,16 +59,19 @@ namespace HotChocolate.Data.Neo4J.Language
         /// <returns></returns>
         public Node Named(SymbolicName newSymbolicName) => new Node(newSymbolicName, _properties, _labels);
 
-        public Node WithProperties(MapExpression newProperties) => new Node(_symbolicName, newProperties == null ? null : new Properties(newProperties), _labels);
+        //public Node WithProperties(MapExpression newProperties) => new Node(_symbolicName, newProperties == null ? null : new Properties(newProperties), _labels);
 
-        public Node WithProperties(Dictionary<string, ILiteral>)
+        public Node WithProperties(Dictionary<string, ILiteral> properties)
         {
-            MapExpression newProperties = null;
-            if(keyAndValues != null && keyAndValues.Length != 0)
-            {
-                newProperties = MapExpression.Create(keyAndValues);
-            }
-            return WithProperties(newProperties);
+            // MapExpression newProperties = null;
+            // if(keyAndValues != null && keyAndValues.Length != 0)
+            // {
+            //     newProperties = MapExpression.Create(keyAndValues);
+            // }
+            // return WithProperties(newProperties);
+
+            return new(_symbolicName, new Properties(properties), _labels);
+            return this;
         }
 
         //public Property property(string name)
@@ -86,7 +89,7 @@ namespace HotChocolate.Data.Neo4J.Language
             return Create(primaryLabel, null, additionalLabels);
         }
 
-        public static Node Create(string primaryLabel, MapExpression? properties, string[]? aditionalLabels)
+        public static Node Create(string primaryLabel, Dictionary<string, ILiteral>? properties, string[]? aditionalLabels)
         {
             return new Node(primaryLabel, properties != null ? new Properties(properties) : null, aditionalLabels);
         }

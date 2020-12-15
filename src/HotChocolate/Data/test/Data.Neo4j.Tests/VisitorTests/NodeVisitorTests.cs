@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using HotChocolate.Data.Neo4J.Language;
 using Snapshooter.Xunit;
 using Xunit;
@@ -37,7 +38,11 @@ namespace HotChocolate.Data.Neo4J.Tests
 
             Node bike = Cypher.Node("Bike")
                                     .Named("b")
-                                    .WithProperties(new object[] {"Serviced", Cypher.LiteralTrue()});
+                                    .WithProperties(
+                                        new Dictionary<string, ILiteral>()
+                                        {
+                                            {"Serviced", Cypher.LiteralTrue()}
+                                        });
             bike.Visit(visitor);
 
             visitor.Print().MatchSnapshot();
@@ -50,11 +55,12 @@ namespace HotChocolate.Data.Neo4J.Tests
 
             Node bike = Cypher.Node("Bike")
                                     .Named("b")
-                                    .WithProperties(new object[]
-                                    {
-                                        "Serviced", Cypher.LiteralTrue(),
-                                        "ServiceNote", Cypher.StringLiteral("Help is needed!")
-                                    });
+                                    .WithProperties(
+                                        new Dictionary<string, ILiteral>()
+                                        {
+                                            {"Serviced", Cypher.LiteralTrue()},
+                                            {"ServiceNote", Cypher.StringLiteral("Help is needed!")}
+                                        });
             bike.Visit(visitor);
 
             visitor.Print().MatchSnapshot();

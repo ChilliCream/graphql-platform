@@ -6,9 +6,9 @@ namespace HotChocolate.Data.Neo4J.Language
     {
         private readonly List<Visitable> _clauses = new();
 
-        public CypherBuilder Match(Visitable patternElement)
+        public CypherBuilder Match(Pattern patternElement)
         {
-            var matchClause = new Match(false, patternElement, false);
+            var matchClause = new Match(false, patternElement, null);
             _clauses.Add(matchClause);
             return this;
         }

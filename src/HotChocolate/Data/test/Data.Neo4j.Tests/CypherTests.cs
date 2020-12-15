@@ -13,11 +13,11 @@ namespace HotChocolate.Data.Neo4J.Tests
 
 
 
-            Node bike = Cypher.Node("Bike", additionalLabels).Named("b");
-            Cypher
-            bike.Visit(visitor);
-
-            visitor.Print().MatchSnapshot();
+            // Node bike = Cypher.Node("Bike", additionalLabels).Named("b");
+            // Cypher
+            // bike.Visit(visitor);
+            //
+            // visitor.Print().MatchSnapshot();
         }
 
     }

@@ -29,15 +29,6 @@ namespace HotChocolate.Data.Neo4J
                 case ClauseKind.Properties:
                     EnterVisitable((Properties)visitable);
                     break;
-                case ClauseKind.MapExpression:
-                    EnterVisitable((MapExpression)visitable);
-                    break;
-                // case ClauseKind.KeyValueMapEntry:
-                //     EnterVisitable((KeyValueMapEntry)visitable);
-                //     break;
-                case ClauseKind.Literal:
-                    EnterVisitable((ILiteral)visitable);
-                    break;
                 case 0:
                     break;
             }

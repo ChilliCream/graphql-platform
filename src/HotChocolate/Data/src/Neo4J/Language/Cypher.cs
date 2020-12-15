@@ -24,6 +24,6 @@ namespace HotChocolate.Data.Neo4J
         public static Literal<string> StringLiteral(string str) => new StringLiteral(str);
         public static Literal<bool> LiteralFalse() => BooleanLiteral.False;
 
-        public static CypherBuilder Match(Node node) => CypherBuilder.Builder().Match(node);
+        //public static CypherBuilder Match(Node node) => CypherBuilder.Builder().Match(node);
     }
 }
