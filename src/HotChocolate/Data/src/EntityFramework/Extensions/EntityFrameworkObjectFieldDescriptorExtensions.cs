@@ -45,12 +45,10 @@ namespace HotChocolate.Types
                         return;
                     }
 
-                    if (
-                        typeof(Task).IsAssignableFrom(d.ResultType)
+                    if (typeof(Task).IsAssignableFrom(d.ResultType)
                         && d.ResultType.IsGenericType
                         && typeof(IEnumerable).IsAssignableFrom(d.ResultType.GenericTypeArguments[0])
-                        && d.ResultType.GenericTypeArguments[0].IsGenericType
-                    )
+                        && d.ResultType.GenericTypeArguments[0].IsGenericType)
                     {
                         Type entity = d.ResultType.GenericTypeArguments[0].GenericTypeArguments[0];
                         Type middleware = typeof(ToListMiddleware<>).MakeGenericType(entity);
@@ -66,13 +64,11 @@ namespace HotChocolate.Types
                         var index = d.MiddlewareComponents.IndexOf(placeholder);
                         d.MiddlewareComponents[index] = Create(middleware);
                     }
-                    else if (
-                        typeof(Task).IsAssignableFrom(d.ResultType)
+                    else if (typeof(Task).IsAssignableFrom(d.ResultType)
                         && d.ResultType.IsGenericType
                         && typeof(IExecutable).IsAssignableFrom(d.ResultType.GenericTypeArguments[0])
                         && d.ResultType.GenericTypeArguments[0].IsGenericType
-                        || typeof(IExecutable).IsAssignableFrom(d.ResultType)
-                    )
+                        || typeof(IExecutable).IsAssignableFrom(d.ResultType))
                     {
                         Type middleware = typeof(ExecutableMiddleware);
 
