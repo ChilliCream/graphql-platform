@@ -40,7 +40,9 @@ namespace StrawberryShake.Tools
                 {
                     Configuration config;
                     string configFile = _fileSystem.CombinePath(path, WellKnownFiles.Config);
-                    byte[] buffer = await _fileSystem.ReadAllBytesAsync(configFile);
+                    byte[] buffer = await _fileSystem
+                        .ReadAllBytesAsync(configFile)
+                        .ConfigureAwait(false);
 
                     config = JsonSerializer.Deserialize<Configuration>(
                         buffer,

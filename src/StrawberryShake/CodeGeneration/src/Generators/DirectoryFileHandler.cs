@@ -55,7 +55,7 @@ namespace StrawberryShake.Generators
                     ExecuteGeneratorAsync(task, typeLookup, usedNames)));
             }
 
-            await Task.WhenAll(tasks);
+            await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
         private async Task ExecuteGeneratorAsync(
