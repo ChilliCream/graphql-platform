@@ -12,7 +12,7 @@ namespace HotChocolate.Data.Neo4J.Tests
         {
             var visitor = new CypherVisitor();
 
-            Node bike = Cypher.Node("Bike").Named("b");
+            Node bike = Cypher.Node("Movie").Named("m");
             bike.Visit(visitor);
 
             visitor.Print().MatchSnapshot();
@@ -21,11 +21,11 @@ namespace HotChocolate.Data.Neo4J.Tests
         [Fact]
         public void NodeWithAdditionalLabels()
         {
-            string[] additionalLabels = { "Tricycle", "MotorCycle" };
+            string[] additionalLabels = { "Film", "Flick" };
 
             var visitor = new CypherVisitor();
 
-            Node bike = Cypher.Node("Bike", additionalLabels).Named("b");
+            Node bike = Cypher.Node("Movie", additionalLabels).Named("m");
             bike.Visit(visitor);
 
             visitor.Print().MatchSnapshot();
@@ -36,12 +36,12 @@ namespace HotChocolate.Data.Neo4J.Tests
         {
             var visitor = new CypherVisitor();
 
-            Node bike = Cypher.Node("Bike")
-                                    .Named("b")
+            Node bike = Cypher.Node("Movie")
+                                    .Named("m")
                                     .WithProperties(
                                         new Dictionary<string, ILiteral>()
                                         {
-                                            {"Serviced", Cypher.LiteralTrue()}
+                                            {"Released", Cypher.LiteralTrue()}
                                         });
             bike.Visit(visitor);
 
@@ -53,13 +53,14 @@ namespace HotChocolate.Data.Neo4J.Tests
         {
             var visitor = new CypherVisitor();
 
-            Node bike = Cypher.Node("Bike")
-                                    .Named("b")
+            Node bike = Cypher.Node("Movie")
+                                    .Named("m")
                                     .WithProperties(
                                         new Dictionary<string, ILiteral>()
                                         {
-                                            {"Serviced", Cypher.LiteralTrue()},
-                                            {"ServiceNote", Cypher.StringLiteral("Help is needed!")}
+                                            {"Released", Cypher.LiteralTrue()},
+                                            {"Title", Cypher.StringLiteral("The Matrix")},
+                                            {"ReleaseYear", Cypher.Null()}
                                         });
             bike.Visit(visitor);
 

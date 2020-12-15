@@ -21,6 +21,7 @@ namespace HotChocolate.Data.Neo4J
         }
 
         public static Literal<bool> LiteralTrue() => BooleanLiteral.True;
+        public static Literal<string> Null() => NullLiteral.Instance;
         public static Literal<string> StringLiteral(string str) => new StringLiteral(str);
         public static Literal<bool> LiteralFalse() => BooleanLiteral.False;
 
