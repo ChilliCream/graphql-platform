@@ -21,7 +21,7 @@ namespace StrawberryShake.Http.Pipelines
                     .ConfigureAwait(false);
             }
 
-            await _next(context);
+            await _next(context).ConfigureAwait(false);
         }
     }
 }

@@ -34,7 +34,7 @@ namespace HotChocolate.Subscriptions.InMemory
         {
             if (_topics.TryRemove(topic, out IEventTopic? eventTopic))
             {
-                await eventTopic.CompleteAsync();
+                await eventTopic.CompleteAsync().ConfigureAwait(false);
             }
         }
 

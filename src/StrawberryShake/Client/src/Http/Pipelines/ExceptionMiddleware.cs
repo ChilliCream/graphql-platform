@@ -17,7 +17,7 @@ namespace StrawberryShake.Http.Pipelines
         {
             try
             {
-                await _next(context);
+                await _next(context).ConfigureAwait(false);
             }
             catch (HttpRequestException ex)
             {

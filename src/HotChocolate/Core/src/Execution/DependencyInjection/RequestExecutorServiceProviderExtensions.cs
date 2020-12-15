@@ -157,7 +157,9 @@ namespace HotChocolate.Execution
                 await GetRequestExecutorAsync(services, schemaName, cancellationToken)
                     .ConfigureAwait(false);
 
-            return await executor.ExecuteAsync(request, cancellationToken);
+            return await executor
+                .ExecuteAsync(request, cancellationToken)
+                .ConfigureAwait(false);
         }
 
         /// <summary>
@@ -200,7 +202,9 @@ namespace HotChocolate.Execution
                 await BuildRequestExecutorAsync(builder, schemaName, cancellationToken)
                     .ConfigureAwait(false);
 
-            return await executor.ExecuteAsync(request, cancellationToken);
+            return await executor
+                .ExecuteAsync(request, cancellationToken)
+                .ConfigureAwait(false);
         }
 
         /// <summary>
@@ -244,7 +248,9 @@ namespace HotChocolate.Execution
                 await GetRequestExecutorAsync(services, schemaName, cancellationToken)
                     .ConfigureAwait(false);
 
-            return await executor.ExecuteAsync(query, cancellationToken);
+            return await executor
+                .ExecuteAsync(query, cancellationToken)
+                .ConfigureAwait(false);
         }
 
         /// <summary>
@@ -288,7 +294,9 @@ namespace HotChocolate.Execution
                 await BuildRequestExecutorAsync(builder, schemaName, cancellationToken)
                     .ConfigureAwait(false);
 
-            return await executor.ExecuteAsync(query, cancellationToken);
+            return await executor
+                .ExecuteAsync(query, cancellationToken)
+                .ConfigureAwait(false);
         }
 
         /// <summary>
@@ -323,8 +331,9 @@ namespace HotChocolate.Execution
                 await GetRequestExecutorAsync(services, schemaName, cancellationToken)
                     .ConfigureAwait(false);
 
-            return await executor.ExecuteBatchAsync(
-                requestBatch, allowParallelExecution, cancellationToken);
+            return await executor
+                .ExecuteBatchAsync(requestBatch, allowParallelExecution, cancellationToken)
+                .ConfigureAwait(false);
         }
     }
 }
