@@ -107,6 +107,8 @@
 <url> <loc>https://chillicream.com/docs/hotchocolate/v10/execution-engine/subscriptions</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/hotchocolate/v10/execution-engine/type-conversion</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/hotchocolate/v10/execution-engine/validation-rules</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
+<url> <loc>https://chillicream.com/docs/hotchocolate/v10/security</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
+<url> <loc>https://chillicream.com/docs/hotchocolate/v10/security/security</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/hotchocolate/v10/schema/code-first-object-type</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/hotchocolate/v10/schema/conventions</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/hotchocolate/v10/schema/custom-scalar-types</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
@@ -123,8 +125,6 @@
 <url> <loc>https://chillicream.com/docs/hotchocolate/v10/schema/relay</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/hotchocolate/v10/schema/resolvers</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/hotchocolate/v10/schema/union-type</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
-<url> <loc>https://chillicream.com/docs/hotchocolate/v10/security</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
-<url> <loc>https://chillicream.com/docs/hotchocolate/v10/security/security</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/hotchocolate/v10/server/dependency-injection</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/hotchocolate/v10/server</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/hotchocolate/v10/tutorials</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
