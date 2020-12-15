@@ -7,6 +7,7 @@ namespace HotChocolate.Data.Neo4J.Language
         AliasedExpression,
         Visitable,
         TypedSubtree,
+        Pattern,
         ExcludePattern,
         Operator,
         StatementPrefix,

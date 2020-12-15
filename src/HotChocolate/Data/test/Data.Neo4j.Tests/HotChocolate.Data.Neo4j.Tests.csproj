@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="ClauseTests" />
     <Folder Include="VisitorTests\__snapshots__" />
   </ItemGroup>
 

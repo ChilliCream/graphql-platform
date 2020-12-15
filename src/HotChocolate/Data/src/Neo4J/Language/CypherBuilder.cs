@@ -4,17 +4,33 @@ namespace HotChocolate.Data.Neo4J.Language
 {
     public class CypherBuilder
     {
+        /// <summary>
+        /// Current list of reading or update clauses to be generated.
+        /// </summary>
         private readonly List<Visitable> _clauses = new();
 
-        public CypherBuilder Match(Pattern patternElement)
+        private readonly List<PatternElement> _patternElements;
+        private readonly Dictionary<string, string> _filterDefinition;
+        private readonly Dictionary<string, string> _sortDefinition;
+        private readonly Dictionary<string, string> _paginatinDefinition;
+        private readonly Dictionary<string, string> _projectionDefinition;
+
+        public CypherBuilder Create(IPatternElement[] pattern)
         {
-            var matchClause = new Match(false, patternElement, null);
-            _clauses.Add(matchClause);
+            //var clause = new Create(pattern);
+            //_clauses.Add(matchClause);
             return this;
         }
-
         public static CypherBuilder Builder() => new();
 
+        private enum UpdateType {
+            Delete,
+            DETACH_DELETE,
+            SET,
+            REMOVE,
+            CREATE,
+            MERGE
+        }
         public string Build()
         {
             var visitor = new CypherVisitor();

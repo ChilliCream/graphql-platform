@@ -6,7 +6,7 @@ namespace HotChocolate.Data.Neo4J.Language
     /// <summary>
     /// https://s3.amazonaws.com/artifacts.opencypher.org/railroad/NodePattern.html
     /// </summary>
-    public class Node : Visitable, IPatternElement
+    public class Node : PatternElement
     {
         public override ClauseKind Kind => ClauseKind.Node;
         private readonly SymbolicName? _symbolicName;

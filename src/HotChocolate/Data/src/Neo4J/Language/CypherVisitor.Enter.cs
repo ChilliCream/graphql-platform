@@ -4,7 +4,7 @@ namespace HotChocolate.Data.Neo4J
 {
     public partial class CypherVisitor
     {
-        public void Enter(Visitable visitable)
+        public void Enter(IVisitable visitable)
         {
             switch (visitable.Kind)
             {

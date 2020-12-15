@@ -20,11 +20,12 @@ namespace HotChocolate.Data.Neo4J
             return Language.Node.Create(primaryLabel, additionalLabels);
         }
 
-        public static Literal<bool> LiteralTrue() => BooleanLiteral.True;
+        //public static CypherBuilder Create(IPatternElement[] pattern) => CypherBuilder.Builder().Create(pattern);
+
         public static Literal<string> Null() => NullLiteral.Instance;
         public static Literal<string> StringLiteral(string str) => new StringLiteral(str);
+        public static Literal<bool> LiteralTrue() => BooleanLiteral.True;
         public static Literal<bool> LiteralFalse() => BooleanLiteral.False;
-
-        //public static CypherBuilder Match(Node node) => CypherBuilder.Builder().Match(node);
+        public static Literal<string> Asterik() => Asterisk.Instance;
     }
 }

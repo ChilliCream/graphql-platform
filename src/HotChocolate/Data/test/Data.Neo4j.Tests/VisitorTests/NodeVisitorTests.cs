@@ -12,8 +12,8 @@ namespace HotChocolate.Data.Neo4J.Tests
         {
             var visitor = new CypherVisitor();
 
-            Node bike = Cypher.Node("Movie").Named("m");
-            bike.Visit(visitor);
+            Node movie = Cypher.Node("Movie").Named("m");
+            movie.Visit(visitor);
 
             visitor.Print().MatchSnapshot();
         }
@@ -25,8 +25,8 @@ namespace HotChocolate.Data.Neo4J.Tests
 
             var visitor = new CypherVisitor();
 
-            Node bike = Cypher.Node("Movie", additionalLabels).Named("m");
-            bike.Visit(visitor);
+            Node movie = Cypher.Node("Movie", additionalLabels).Named("m");
+            movie.Visit(visitor);
 
             visitor.Print().MatchSnapshot();
         }
@@ -36,14 +36,14 @@ namespace HotChocolate.Data.Neo4J.Tests
         {
             var visitor = new CypherVisitor();
 
-            Node bike = Cypher.Node("Movie")
+            Node movie = Cypher.Node("Movie")
                                     .Named("m")
                                     .WithProperties(
                                         new Dictionary<string, ILiteral>()
                                         {
-                                            {"Released", Cypher.LiteralTrue()}
+                                            {"Title", Cypher.StringLiteral("The Matrix")}
                                         });
-            bike.Visit(visitor);
+            movie.Visit(visitor);
 
             visitor.Print().MatchSnapshot();
         }
@@ -53,16 +53,16 @@ namespace HotChocolate.Data.Neo4J.Tests
         {
             var visitor = new CypherVisitor();
 
-            Node bike = Cypher.Node("Movie")
+            Node movie = Cypher.Node("Movie")
                                     .Named("m")
                                     .WithProperties(
                                         new Dictionary<string, ILiteral>()
                                         {
                                             {"Released", Cypher.LiteralTrue()},
                                             {"Title", Cypher.StringLiteral("The Matrix")},
-                                            {"ReleaseYear", Cypher.Null()}
+                                            {"Director", Cypher.Null()}
                                         });
-            bike.Visit(visitor);
+            movie.Visit(visitor);
 
             visitor.Print().MatchSnapshot();
         }
