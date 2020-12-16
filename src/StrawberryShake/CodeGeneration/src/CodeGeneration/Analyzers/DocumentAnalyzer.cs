@@ -84,7 +84,9 @@ namespace StrawberryShake.CodeGeneration.Analyzers
         {
             DocumentNode optimized = TypeNameQueryRewriter.Rewrite(original);
 
-            string serialized = QuerySyntaxSerializer.Serialize(optimized, false);
+            throw new Exception();
+
+            string serialized = null; //  QuerySyntaxSerializer.Serialize(optimized, false);
             byte[] buffer = Encoding.UTF8.GetBytes(serialized);
             string hash = hashProvider.ComputeHash(buffer);
 

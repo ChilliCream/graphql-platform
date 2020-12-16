@@ -13,12 +13,12 @@ namespace StrawberryShake
         private ImmutableList<Subscription> _subscriptions = ImmutableList<Subscription>.Empty;
         private bool _disposed;
 
-        public StoredOperation(IOperationRequest request)
+        public StoredOperation(OperationRequest request)
         {
             Request = request ?? throw new ArgumentNullException(nameof(request));
         }
 
-        public IOperationRequest Request { get; }
+        public OperationRequest Request { get; }
 
         public IOperationResult<T>? LastResult { get; private set; }
 

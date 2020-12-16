@@ -4,7 +4,7 @@ namespace StrawberryShake
 {
     public interface IOperationRequestContext
     {
-        IOperationRequest Request { get; }
+        OperationRequest Request { get; }
 
         IServiceProvider Services { get; }
 

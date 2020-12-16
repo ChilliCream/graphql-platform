@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace StrawberryShake
 {
-    public interface IOperationResult<T> : IOperationResult where T : class
+    public interface IOperationResult<out T> : IOperationResult where T : class
     {
         new T? Data { get; }
     }

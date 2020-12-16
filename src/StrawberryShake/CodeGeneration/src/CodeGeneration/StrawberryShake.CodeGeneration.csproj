@@ -12,8 +12,4 @@
     <ProjectReference Include="..\..\..\..\HotChocolate\Stitching\src\Stitching\HotChocolate.Stitching.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Include="Analyzers\ClientModelExtensions.cs" />
-  </ItemGroup>
-
 </Project>

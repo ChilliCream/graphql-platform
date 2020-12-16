@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -53,10 +54,12 @@ namespace StrawberryShake.CodeGeneration.Analyzers
         {
             writer.WriteStartObject();
 
-            writer.WriteString("original",
-                QuerySyntaxSerializer.Serialize(document.OriginalDocument));
-            writer.WriteString("optimized",
-                QuerySyntaxSerializer.Serialize(document.OptimizedDocument));
+            throw new Exception();
+
+            // writer.WriteString("original",
+            //     QuerySyntaxSerializer.Serialize(document.OriginalDocument));
+            // writer.WriteString("optimized",
+            //     QuerySyntaxSerializer.Serialize(document.OptimizedDocument));
             writer.WriteString("hashAlgorithm", document.HashAlgorithm);
             writer.WriteString("hash", document.Hash);
 
@@ -111,7 +114,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             writer.WriteString("type", argument.Type.Print());
             if (argument.DefaultValue is { })
             {
-                writer.WriteString("default", QuerySyntaxSerializer.Serialize(argument.DefaultValue));
+                throw new Exception();
+                // writer.WriteString("default", QuerySyntaxSerializer.Serialize(argument.DefaultValue));
             }
 
             writer.WriteEndObject();

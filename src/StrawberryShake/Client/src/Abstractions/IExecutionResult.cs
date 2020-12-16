@@ -33,14 +33,14 @@ namespace StrawberryShake
     public interface IOperationExecutor<T> where T : class
     {
         Task<IOperationResult<T>> ExecuteAsync(
-            IOperationRequest request,
+            OperationRequest request,
             CancellationToken cancellationToken = default);
     }
 
     public interface IConnection<out TData> // JsonElement
     {
         IAsyncEnumerable<TData> ExecuteAsync(
-            IOperationRequest request,
+            OperationRequest request,
             CancellationToken cancellationToken = default);
     }
 }

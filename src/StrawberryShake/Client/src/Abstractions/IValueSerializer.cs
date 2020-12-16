@@ -47,13 +47,13 @@ namespace StrawberryShake
             string a, string b, string c,
             CancellationToken cancellationToken = default)
         {
-            var request = new GetFooQueryRequest();
-            request.Variables.Add("a", a);
-            request.Variables.Add("b", b);
-            request.Variables.Add("c", c);
+            // var request = new OperationRequest();
+            // request.Variables.Add("a", a);
+            // request.Variables.Add("b", b);
+            // request.Variables.Add("c", c);
 
             return await _operationExecutor
-                .ExecuteAsync(request, cancellationToken)
+                .ExecuteAsync(null, cancellationToken)
                 .ConfigureAwait(false);
         }
 
@@ -115,7 +115,7 @@ namespace StrawberryShake
     }
 
 
-    public class GetFooQueryRequest : IOperationRequest
+    public class GetFooQueryRequest
     {
         public string Id { get; set; }
         public string Name { get; set; }

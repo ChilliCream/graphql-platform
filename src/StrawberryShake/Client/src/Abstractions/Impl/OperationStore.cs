@@ -11,11 +11,11 @@ namespace StrawberryShake
         , IDisposable
     {
         private readonly SemaphoreSlim _semaphore = new(1, 1);
-        private readonly ConcurrentDictionary<IOperationRequest, IStoredOperation> _results = new();
+        private readonly ConcurrentDictionary<OperationRequest, IStoredOperation> _results = new();
         private bool _disposed;
 
         public async ValueTask SetAsync<T>(
-            IOperationRequest operationRequest,
+            OperationRequest operationRequest,
             IOperationResult<T> operationResult,
             CancellationToken cancellationToken = default)
             where T : class
@@ -54,7 +54,7 @@ namespace StrawberryShake
         }
 
         public bool TryGet<T>(
-            IOperationRequest operationRequest,
+            OperationRequest operationRequest,
             [NotNullWhen(true)] out IOperationResult<T>? result)
             where T : class
         {
@@ -80,7 +80,7 @@ namespace StrawberryShake
         }
 
         public IOperationObservable<T> Watch<T>(
-            IOperationRequest operationRequest)
+            OperationRequest operationRequest)
             where T : class
         {
             if (operationRequest == null)
@@ -97,7 +97,7 @@ namespace StrawberryShake
         }
 
         private StoredOperation<T> GetOrAddStoredOperation<T>(
-            IOperationRequest request)
+            OperationRequest request)
             where T : class
         {
             if(_results.GetOrAdd(request, k => new StoredOperation<T>(k)) is StoredOperation<T> t)
