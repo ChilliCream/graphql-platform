@@ -106,6 +106,11 @@ namespace HotChocolate.Types
                 return true;
             }
 
+            if (!resultType.IsGenericType)
+            {
+                return false;
+            }
+
             Type resultTypeDefinition = resultType.GetGenericTypeDefinition();
             if ((resultTypeDefinition == _task || resultTypeDefinition == _valueTask) &&
                 typeof(IExecutable).IsAssignableFrom(resultType.GenericTypeArguments[0]))
