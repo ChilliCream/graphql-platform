@@ -7,16 +7,16 @@ namespace HotChocolate.Data.MongoDb
     internal static class FilterDefinitionExtensions
     {
         public static MongoDbFilterDefinition Wrap<T>(
-            this FilterDefinition<T> sortDefinition) =>
-            new FilterDefinitionWrapper<T>(sortDefinition);
+            this FilterDefinition<T> filterDefinition) =>
+            new FilterDefinitionWrapper<T>(filterDefinition);
 
         private class FilterDefinitionWrapper<TDocument> : MongoDbFilterDefinition
         {
-            private readonly FilterDefinition<TDocument> _sort;
+            private readonly FilterDefinition<TDocument> _filter;
 
-            public FilterDefinitionWrapper(FilterDefinition<TDocument> sort)
+            public FilterDefinitionWrapper(FilterDefinition<TDocument> filter)
             {
-                _sort = sort;
+                _filter = filter;
             }
 
             public override BsonDocument Render(
@@ -25,10 +25,10 @@ namespace HotChocolate.Data.MongoDb
             {
                 if (documentSerializer is IBsonSerializer<TDocument> typedSerializer)
                 {
-                    return _sort.Render(typedSerializer, serializerRegistry);
+                    return _filter.Render(typedSerializer, serializerRegistry);
                 }
 
-                return _sort.Render(
+                return _filter.Render(
                     serializerRegistry.GetSerializer<TDocument>(),
                     serializerRegistry);
             }
