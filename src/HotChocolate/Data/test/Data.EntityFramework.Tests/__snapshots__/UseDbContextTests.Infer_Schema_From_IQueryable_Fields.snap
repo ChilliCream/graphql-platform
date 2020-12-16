@@ -64,6 +64,7 @@ type PageInfo {
 type Query {
   authors: [Author!]!
   author: Author!
+  authorSync: Author
   authorOffsetPaging(skip: Int take: Int where: AuthorFilterInput order: [AuthorSortInput!]): AuthorCollectionSegment
   authorOffsetPagingExecutable(skip: Int take: Int where: AuthorFilterInput order: [AuthorSortInput!]): AuthorCollectionSegment
   authorCursorPagingExecutable(first: Int after: String last: Int before: String where: AuthorFilterInput order: [AuthorSortInput!]): AuthorConnection

@@ -18,6 +18,11 @@ namespace HotChocolate.Data
             await context.Authors.FirstOrDefaultAsync();
 
         [UseDbContext(typeof(BookContext))]
+        public Author? GetAuthorSync(
+            [ScopedService]BookContext context) =>
+            context.Authors.FirstOrDefault();
+
+        [UseDbContext(typeof(BookContext))]
         [UseOffsetPaging(IncludeTotalCount = true)]
         [UseFiltering]
         [UseSorting]
