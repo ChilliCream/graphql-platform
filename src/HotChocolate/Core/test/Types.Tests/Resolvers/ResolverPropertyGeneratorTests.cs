@@ -332,7 +332,7 @@ namespace HotChocolate.Resolvers.Expressions
             var resolverDescriptor = new ResolverDescriptor(
                 type,
                 typeof(Entity),
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
 
             // act
             var compiler = new ResolveCompiler();
@@ -356,7 +356,7 @@ namespace HotChocolate.Resolvers.Expressions
             var resolverDescriptor = new ResolverDescriptor(
                 type,
                 typeof(Entity),
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
 
             // act
             var compiler = new ResolveCompiler();
@@ -379,7 +379,7 @@ namespace HotChocolate.Resolvers.Expressions
             var resolverDescriptor = new ResolverDescriptor(
                 type,
                 typeof(Entity),
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
 
             // act
             var compiler = new ResolveCompiler();
@@ -402,7 +402,7 @@ namespace HotChocolate.Resolvers.Expressions
             var resolverDescriptor = new ResolverDescriptor(
                 type,
                 typeof(Entity),
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
 
             // act
             var compiler = new ResolveCompiler();
@@ -424,7 +424,7 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetMethod("ResolverWithCancellationToken");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
 
             // act
             var compiler = new ResolveCompiler();
@@ -447,7 +447,7 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetMethod("ResolverWithResolverContext");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
 
             // act
             var compiler = new ResolveCompiler();
@@ -468,7 +468,7 @@ namespace HotChocolate.Resolvers.Expressions
             MemberInfo resolverMember = type.GetMethod("ResolverWithFieldSelection");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
 
             // act
             var compiler = new ResolveCompiler();
@@ -499,7 +499,7 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetMethod("ResolverWithObjectType");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
 
             // act
             var compiler = new ResolveCompiler();
@@ -510,7 +510,7 @@ namespace HotChocolate.Resolvers.Expressions
                 .AddDocumentFromString("type Query { a: String }")
                 .AddResolver("Query", "a", "foo")
                 .Create();
-            ;
+
             ObjectType queryType = schema.GetType<ObjectType>("Query");
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
@@ -528,7 +528,7 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetMethod("ResolverWithOperationDefinition");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
 
             // act
             var compiler = new ResolveCompiler();
@@ -561,7 +561,7 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetMethod("ResolverWithObjectField");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
 
             // act
             var compiler = new ResolveCompiler();
@@ -572,7 +572,7 @@ namespace HotChocolate.Resolvers.Expressions
                 .AddDocumentFromString("type Query { a: String }")
                 .AddResolver("Query", "a", "foo")
                 .Create();
-            ;
+
             ObjectType queryType = schema.GetType<ObjectType>("Query");
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
@@ -590,7 +590,7 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetMethod("ResolverWithOutputField");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
 
             // act
             var compiler = new ResolveCompiler();
@@ -601,7 +601,7 @@ namespace HotChocolate.Resolvers.Expressions
                 .AddDocumentFromString("type Query { a: String }")
                 .AddResolver("Query", "a", "foo")
                 .Create();
-            ;
+
             ObjectType queryType = schema.GetType<ObjectType>("Query");
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
@@ -619,7 +619,7 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetMethod("ResolverWithDocument");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
 
             // act
             var compiler = new ResolveCompiler();
@@ -646,7 +646,7 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetMethod("ResolverWithSchema");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
 
             // act
             var compiler = new ResolveCompiler();
@@ -657,7 +657,7 @@ namespace HotChocolate.Resolvers.Expressions
                 .AddDocumentFromString("type Query { a: String }")
                 .AddResolver("Query", "a", "foo")
                 .Create();
-            ;
+
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
             context.SetupGet(t => t.Schema).Returns(schema);
@@ -674,7 +674,7 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetMethod("ResolverWithService");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
 
             // act
             var compiler = new ResolveCompiler();
@@ -697,7 +697,7 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetMethod("ResolveWithContextData");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
             var contextData = new Dictionary<string, object>
             {
                 { "foo", "bar"}
@@ -724,7 +724,7 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetMethod("ResolveWithContextDataDefault");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
             var contextData = new Dictionary<string, object>();
 
             // act
@@ -748,7 +748,7 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetMethod("ResolveWithContextData");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
             var contextData = new Dictionary<string, object>();
 
             // act
@@ -772,7 +772,7 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetMethod("ResolveWithScopedContextData");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
             ImmutableDictionary<string, object> contextData =
                 ImmutableDictionary<string, object>.Empty.SetItem("foo", "bar");
 
@@ -797,7 +797,7 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetMethod("ResolveWithScopedContextDataDefault");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
             ImmutableDictionary<string, object> contextData =
                 ImmutableDictionary<string, object>.Empty;
 
@@ -822,8 +822,9 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetMethod("ResolveWithScopedContextData");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
-            var contextData = ImmutableDictionary<string, object>.Empty;
+                new FieldMember("A", "b", resolverMember!));
+            ImmutableDictionary<string, object> contextData =
+                ImmutableDictionary<string, object>.Empty;
 
             // act
             var compiler = new ResolveCompiler();
@@ -846,7 +847,7 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetMethod("GetGlobalStateWithKey");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
             var contextData = new Dictionary<string, object>
             {
                 { "foo", "bar" }
@@ -872,7 +873,7 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetMethod("GetGlobalState");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
             var contextData = new Dictionary<string, object>
             {
                 { "foo", "bar" }
@@ -898,7 +899,7 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetMethod("GetGlobalState");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
             var contextData = new Dictionary<string, object>();
 
             // act
@@ -921,7 +922,7 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetMethod("GetGlobalStateWithDefaultAbc");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
             var contextData = new Dictionary<string, object>();
 
             // act
@@ -944,7 +945,7 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetMethod("GetGlobalStateWithDefault");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
             var contextData = new Dictionary<string, object>();
 
             // act
@@ -967,7 +968,7 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetMethod("SetGlobalState");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
             var contextData = new Dictionary<string, object>();
 
             // act
@@ -992,7 +993,7 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetMethod("SetGlobalStateGeneric");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
             var contextData = new Dictionary<string, object>();
 
             // act
@@ -1017,7 +1018,7 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetMethod("GetScopedStateWithKey");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
             var contextData = new Dictionary<string, object>
             {
                 { "foo", "bar" }
@@ -1043,7 +1044,7 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetMethod("GetScopedState");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
             var contextData = new Dictionary<string, object>
             {
                 { "foo", "bar" }
@@ -1069,7 +1070,7 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetMethod("GetScopedState");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
             var contextData = ImmutableDictionary<string, object>.Empty;
 
             // act
@@ -1092,8 +1093,9 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetMethod("GetScopedStateWithDefaultAbc");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
-            var contextData = ImmutableDictionary<string, object>.Empty;
+                new FieldMember("A", "b", resolverMember!));
+            ImmutableDictionary<string, object> contextData =
+                ImmutableDictionary<string, object>.Empty;
 
             // act
             FieldResolver resolver = ResolverCompiler.Resolve.Compile(resolverDescriptor);
@@ -1115,8 +1117,9 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetMethod("GetScopedStateWithDefault");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
-            var contextData = ImmutableDictionary<string, object>.Empty;
+                new FieldMember("A", "b", resolverMember!));
+            ImmutableDictionary<string, object> contextData =
+                ImmutableDictionary<string, object>.Empty;
 
             // act
             FieldResolver resolver = ResolverCompiler.Resolve.Compile(resolverDescriptor);
@@ -1138,7 +1141,7 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetMethod("SetScopedState");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
             ImmutableDictionary<string, object> contextData =
                 ImmutableDictionary<string, object>.Empty;
 
@@ -1166,7 +1169,7 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetMethod("SetScopedStateGeneric");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
             ImmutableDictionary<string, object> contextData =
                 ImmutableDictionary<string, object>.Empty;
 
@@ -1194,7 +1197,7 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetMethod("GetLocalStateWithKey");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
             var contextData = new Dictionary<string, object>
             {
                 { "foo", "bar" }
@@ -1220,7 +1223,7 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetMethod("GetLocalState");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
             var contextData = new Dictionary<string, object>
             {
                 { "foo", "bar" }
@@ -1246,7 +1249,7 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetMethod("GetLocalState");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
             var contextData = ImmutableDictionary<string, object>.Empty;
 
             // act
@@ -1269,7 +1272,7 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetMethod("GetLocalStateWithDefaultAbc");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
             var contextData = ImmutableDictionary<string, object>.Empty;
 
             // act
@@ -1292,7 +1295,7 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetMethod("GetLocalStateWithDefault");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
             var contextData = ImmutableDictionary<string, object>.Empty;
 
             // act
@@ -1315,7 +1318,7 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetMethod("SetLocalState");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
             ImmutableDictionary<string, object> contextData =
                 ImmutableDictionary<string, object>.Empty;
 
@@ -1343,7 +1346,7 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetMethod("SetLocalStateGeneric");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
             ImmutableDictionary<string, object> contextData =
                 ImmutableDictionary<string, object>.Empty;
 
@@ -1368,10 +1371,10 @@ namespace HotChocolate.Resolvers.Expressions
                 Task.FromResult<object>("ObjectResolverResult");
 
             public Task<string> StringTaskResolver() =>
-                Task.FromResult<string>("StringTaskResolver");
+                Task.FromResult("StringTaskResolver");
 
             public Task<string> StringTaskResolverWithArg(string a) =>
-                Task.FromResult<string>(a);
+                Task.FromResult(a);
 
             public object ObjectResolver() => "ObjectResolverResult";
 
