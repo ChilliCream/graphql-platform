@@ -88,12 +88,12 @@ namespace HotChocolate.Data.MongoDb.Projections
         {
             if (usePaging)
             {
-                descriptor.UseMongoPaging<ObjectType<TEntity>>();
+                descriptor.UseMongoDbPaging<ObjectType<TEntity>>();
             }
 
             if (useOffsetPaging)
             {
-                descriptor.UseMongoOffsetPaging<ObjectType<TEntity>>();
+                descriptor.UseMongoDbOffsetPaging<ObjectType<TEntity>>();
             }
 
             descriptor

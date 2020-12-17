@@ -223,7 +223,7 @@ namespace HotChocolate.Data.MongoDb.Paging
                                         context.ContextData["query"] = executable.Print();
                                     }
                                 })
-                            .UseMongoPaging<ObjectType<Foo>>(
+                            .UseMongoDbPaging<ObjectType<Foo>>(
                                 options: new PagingOptions { IncludeTotalCount = true });
                     })
                 .UseRequest(

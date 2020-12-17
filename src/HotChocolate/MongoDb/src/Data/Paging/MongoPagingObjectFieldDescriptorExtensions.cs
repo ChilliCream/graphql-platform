@@ -18,11 +18,11 @@ namespace HotChocolate.Types
         /// </typeparam>
         /// <typeparam name="TEntity">The type of the entity</typeparam>
         /// <returns>The <paramref name="descriptor"/></returns>
-        public static IObjectFieldDescriptor UseMongoPaging<TSchemaType, TEntity>(
+        public static IObjectFieldDescriptor UseMongoDbPaging<TSchemaType, TEntity>(
             this IObjectFieldDescriptor descriptor,
             PagingOptions options = default)
             where TSchemaType : class, IOutputType =>
-            UseMongoPaging<TSchemaType>(descriptor, typeof(TEntity), options);
+            UseMongoDbPaging<TSchemaType>(descriptor, typeof(TEntity), options);
 
         /// <summary>
         /// Adds cursor pagination support to the field. Rewrites the type to a connection type and
@@ -34,12 +34,12 @@ namespace HotChocolate.Types
         /// The schema type of the entity. Not a connection type
         /// </typeparam>
         /// <returns>The <paramref name="descriptor"/></returns>
-        public static IObjectFieldDescriptor UseMongoPaging<TSchemaType>(
+        public static IObjectFieldDescriptor UseMongoDbPaging<TSchemaType>(
             this IObjectFieldDescriptor descriptor,
             Type? entityType = null,
             PagingOptions options = default)
             where TSchemaType : class, IOutputType =>
-            UseMongoPaging(descriptor, typeof(TSchemaType), entityType, options);
+            UseMongoDbPaging(descriptor, typeof(TSchemaType), entityType, options);
 
         /// <summary>
         /// Adds cursor pagination support to the field. Rewrites the type to a connection type and
@@ -52,7 +52,7 @@ namespace HotChocolate.Types
         /// <param name="entityType">The type of the entity</param>
         /// <param name="options">The options for pagination</param>
         /// <returns>The <paramref name="descriptor"/></returns>
-        public static IObjectFieldDescriptor UseMongoPaging(
+        public static IObjectFieldDescriptor UseMongoDbPaging(
             this IObjectFieldDescriptor descriptor,
             Type? type = null,
             Type? entityType = null,
@@ -75,7 +75,7 @@ namespace HotChocolate.Types
         /// <param name="entityType">The type of the entity</param>
         /// <param name="options">The options for pagination</param>
         /// <returns>The <paramref name="descriptor"/></returns>
-        public static IObjectFieldDescriptor UseMongoOffsetPaging(
+        public static IObjectFieldDescriptor UseMongoDbOffsetPaging(
             this IObjectFieldDescriptor descriptor,
             Type? type = null,
             Type? entityType = null,
@@ -98,12 +98,12 @@ namespace HotChocolate.Types
         /// The schema type of the entity. Not a connection type
         /// </typeparam>
         /// <returns>The <paramref name="descriptor"/></returns>
-        public static IObjectFieldDescriptor UseMongoOffsetPaging<TSchemaType>(
+        public static IObjectFieldDescriptor UseMongoDbOffsetPaging<TSchemaType>(
             this IObjectFieldDescriptor descriptor,
             Type? entityType = null,
             PagingOptions options = default)
             where TSchemaType : IOutputType =>
-            UseMongoOffsetPaging(
+            UseMongoDbOffsetPaging(
                 descriptor,
                 typeof(TSchemaType),
                 entityType,
@@ -120,10 +120,10 @@ namespace HotChocolate.Types
         /// </typeparam>
         /// <typeparam name="TEntity">The type of the entity</typeparam>
         /// <returns>The <paramref name="descriptor"/></returns>
-        public static IObjectFieldDescriptor UseMongoOffsetPaging<TSchemaType, TEntity>(
+        public static IObjectFieldDescriptor UseMongoDbOffsetPaging<TSchemaType, TEntity>(
             this IObjectFieldDescriptor descriptor,
             PagingOptions options = default)
             where TSchemaType : class, IOutputType =>
-            UseMongoOffsetPaging<TSchemaType>(descriptor, typeof(TEntity), options);
+            UseMongoDbOffsetPaging<TSchemaType>(descriptor, typeof(TEntity), options);
     }
 }
