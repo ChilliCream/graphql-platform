@@ -40,7 +40,7 @@ namespace HotChocolate.Stitching.Delegation.ScopedVariables
             {
                 throw ArgumentScopedVariableResolver_InvalidArgumentName(
                     variable.Name.Value,
-                    context.FieldSelection,
+                    context.Selection.SyntaxNode,
                     context.Path);
             }
 

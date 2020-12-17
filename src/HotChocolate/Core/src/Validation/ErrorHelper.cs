@@ -80,6 +80,16 @@ namespace HotChocolate.Validation
                 .Build();
         }
 
+        public static IError DirectiveMustBeUniqueInLocation(
+            this IDocumentValidatorContext context,
+            DirectiveNode node) =>
+            ErrorBuilder.New()
+                .SetMessage(Resources.ErrorHelper_DirectiveMustBeUniqueInLocation)
+                .AddLocation(node)
+                .SetPath(context.CreateErrorPath())
+                .SpecifiedBy("sec-Directives-Are-Unique-Per-Location")
+                .Build();
+
         public static IError TypeSystemDefinitionNotAllowed(
             this IDocumentValidatorContext context,
             IDefinitionNode node)

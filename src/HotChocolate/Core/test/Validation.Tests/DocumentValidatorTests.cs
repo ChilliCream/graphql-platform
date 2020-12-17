@@ -696,6 +696,27 @@ namespace HotChocolate.Validation
             Assert.False(result.HasErrors);
         }
 
+        [Fact]
+        public void Ensure_That_Merged_Fields_Are_Not_In_Violation_Of_Duplicate_Directives_Rule()
+        {
+            ExpectValid(@"
+                query ($a: Boolean!) {
+                    dog {
+                        ... inlineFragOnScalar
+                        owner @include(if: $a) {
+                            address
+                        }
+                    }
+                }
+
+                fragment inlineFragOnScalar on Dog {
+                    owner @include(if: $a) {
+                        name
+                    }
+                }
+            ");
+        }
+
         private void ExpectValid(string sourceText) => ExpectValid(null, null, sourceText);
 
         private void ExpectValid(ISchema schema, IDocumentValidator validator, string sourceText)

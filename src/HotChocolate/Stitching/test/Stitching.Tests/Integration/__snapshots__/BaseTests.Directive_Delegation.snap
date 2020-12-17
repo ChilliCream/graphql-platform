@@ -1,0 +1,41 @@
+﻿{
+  "errors": [
+    {
+      "message": "Only one of each directive is allowed per location.",
+      "locations": [
+        {
+          "line": 23,
+          "column": 31
+        }
+      ],
+      "extensions": {
+        "specifiedBy": "http://spec.graphql.org/June2018/#sec-Directives-Are-Unique-Per-Location",
+        "remote": {
+          "message": "Only one of each directive is allowed per location.",
+          "locations": [
+            {
+              "line": 23,
+              "column": 31
+            }
+          ],
+          "extensions": {
+            "specifiedBy": "http://spec.graphql.org/June2018/#sec-Directives-Are-Unique-Per-Location"
+          }
+        },
+        "schemaName": "contract"
+      }
+    }
+  ],
+  "data": {
+    "customer": {
+      "name": "Freddy Freeman",
+      "consultant": {
+        "name": "Jordan Belfort"
+      },
+      "contracts": null
+    },
+    "consultant": {
+      "name": "Jordan Belfort"
+    }
+  }
+}

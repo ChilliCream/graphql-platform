@@ -23,8 +23,7 @@ namespace HotChocolate.Stitching.Delegation
         private const string _remoteErrorField = "remote";
         private const string _schemaNameErrorField = "schemaName";
 
-        private static readonly RootScopedVariableResolver _resolvers =
-            new RootScopedVariableResolver();
+        private static readonly RootScopedVariableResolver _resolvers = new();
 
         private readonly FieldDelegate _next;
 
@@ -59,7 +58,7 @@ namespace HotChocolate.Stitching.Delegation
                     CreateQuery(context, delegateDirective.Schema, path, reversePath);
 
                 IReadOnlyQueryResult result = await ExecuteQueryAsync(
-                        context, request, delegateDirective.Schema)
+                    context, request, delegateDirective.Schema)
                     .ConfigureAwait(false);
 
                 UpdateContextData(context, result, delegateDirective);

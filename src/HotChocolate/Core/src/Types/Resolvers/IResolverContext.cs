@@ -53,10 +53,17 @@ namespace HotChocolate.Resolvers
         OperationDefinitionNode Operation { get; }
 
         /// <summary>
+        /// Gets the merged field selection for which a field resolver is
+        /// being executed.
+        /// </summary>
+        [Obsolete("Use Selection.SyntaxNode")]
+        FieldNode FieldSelection { get; }
+
+        /// <summary>
         /// Gets the field selection for which a field resolver is
         /// being executed.
         /// </summary>
-        FieldNode FieldSelection { get; }
+        IFieldSelection Selection { get; }
 
         /// <summary>
         /// Gets the name that the field will have in the response map.
@@ -230,7 +237,7 @@ namespace HotChocolate.Resolvers
         void ReportError(IError error);
 
         /// <summary>
-        /// Gets the pre-compiled selections for the <paramref name="selectionSet" /> 
+        /// Gets the pre-compiled selections for the <paramref name="selectionSet" />
         /// with the specified <paramref name="typeContext" />.
         /// type context.
         /// </summary>
@@ -244,7 +251,7 @@ namespace HotChocolate.Resolvers
         /// Include also internal selections that shall not be included into the result set.
         /// </param>
         /// <returns>
-        /// Returns the pre-compiled selections for the <paramref name="selectionSet" /> 
+        /// Returns the pre-compiled selections for the <paramref name="selectionSet" />
         /// with the specified <paramref name="typeContext" />.
         /// </returns>
         IReadOnlyList<IFieldSelection> GetSelections(
