@@ -83,7 +83,7 @@ namespace HotChocolate.Execution.Processing
             ReportError(ErrorBuilder.New()
                 .SetMessage(errorMessage)
                 .SetPath(Path)
-                .AddLocation(FieldSelection)
+                .AddLocation(_selection.SyntaxNode)
                 .Build());
         }
 
@@ -106,7 +106,7 @@ namespace HotChocolate.Execution.Processing
                 IError error = _operationContext.ErrorHandler
                     .CreateUnexpectedError(exception)
                     .SetPath(Path)
-                    .AddLocation(FieldSelection)
+                    .AddLocation(_selection.SyntaxNode)
                     .Build();
 
                 ReportError(error);
@@ -121,7 +121,7 @@ namespace HotChocolate.Execution.Processing
             }
 
             error = _operationContext.ErrorHandler.Handle(error);
-            _operationContext.Result.AddError(error, FieldSelection);
+            _operationContext.Result.AddError(error, _selection.SyntaxNode);
             _operationContext.DiagnosticEvents.ResolverError(this, error);
             HasErrors = true;
         }

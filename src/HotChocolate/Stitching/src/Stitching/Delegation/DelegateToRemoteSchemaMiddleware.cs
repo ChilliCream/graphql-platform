@@ -111,7 +111,7 @@ namespace HotChocolate.Stitching.Delegation
 
             ExtractedField extractedField = fieldRewriter.ExtractField(
                 schemaName, context.Document, context.Operation,
-                context.FieldSelection, context.ObjectType);
+                context.Selection.SyntaxNode, context.ObjectType);
 
             IEnumerable<VariableValue> scopedVariables =
                 ResolveScopedVariables(
@@ -239,14 +239,14 @@ namespace HotChocolate.Stitching.Delegation
                     builder
                         .SetPath(RewriteErrorPath(error.Path, context.Path, fetchPath))
                         .ClearLocations()
-                        .AddLocation(context.FieldSelection);
+                        .AddLocation(context.Selection.SyntaxNode);
                 }
                 else if (IsHttpError(error))
                 {
                     builder
                         .SetPath(context.Path)
                         .ClearLocations()
-                        .AddLocation(context.FieldSelection);
+                        .AddLocation(context.Selection.SyntaxNode);
                 }
 
                 context.ReportError(builder.Build());

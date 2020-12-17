@@ -177,7 +177,7 @@ namespace HotChocolate.Execution.Processing
                 // if we detect a non-null violation we will stash it for later.
                 // the non-null propagation is delayed so that we can parallelize better.
                 _operationContext.Result.AddNonNullViolation(
-                    _context.FieldSelection,
+                    _context.Selection.SyntaxNode,
                     _context.Path,
                     _context.ResultMap);
             }

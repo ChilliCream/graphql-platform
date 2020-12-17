@@ -22,7 +22,7 @@ namespace HotChocolate.Resolvers.Expressions
             MemberInfo resolverMember = type.GetMethod("ObjectTaskResolver");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
 
             // act
             var compiler = new ResolveCompiler();
@@ -43,7 +43,7 @@ namespace HotChocolate.Resolvers.Expressions
             MemberInfo resolverMember = type.GetMethod("StringTaskResolver");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
 
             // act
             var compiler = new ResolveCompiler();
@@ -65,7 +65,7 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetMethod("StringTaskResolverWithArg");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
 
             // act
             var compiler = new ResolveCompiler();
@@ -74,8 +74,8 @@ namespace HotChocolate.Resolvers.Expressions
             // assert
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
-            context.Setup(t => t.Argument<string>("a")).Returns("abc");
-            string result = (string)await resolver.Resolver(context.Object);
+            context.Setup(t => t.ArgumentValue<string>("a")).Returns("abc");
+            var result = (string)await resolver.Resolver(context.Object);
             Assert.Equal("abc", result);
         }
 
@@ -87,7 +87,7 @@ namespace HotChocolate.Resolvers.Expressions
             MemberInfo resolverMember = type.GetMethod("ObjectResolver");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
 
             // act
             var compiler = new ResolveCompiler();
@@ -96,7 +96,7 @@ namespace HotChocolate.Resolvers.Expressions
             // assert
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
-            string result = (string)await resolver.Resolver(context.Object);
+            var result = (string)await resolver.Resolver(context.Object);
             Assert.Equal("ObjectResolverResult", result);
         }
 
@@ -108,7 +108,7 @@ namespace HotChocolate.Resolvers.Expressions
             MemberInfo resolverMember = type.GetMethod("StringResolver");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
 
             // act
             var compiler = new ResolveCompiler();
@@ -117,7 +117,7 @@ namespace HotChocolate.Resolvers.Expressions
             // assert
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
-            string result = (string)await resolver.Resolver(context.Object);
+            var result = (string)await resolver.Resolver(context.Object);
             Assert.Equal("StringTaskResolver", result);
         }
 
@@ -130,7 +130,7 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetMethod("StringResolverWithArg");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
 
             // act
             var compiler = new ResolveCompiler();
@@ -139,8 +139,8 @@ namespace HotChocolate.Resolvers.Expressions
             // assert
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
-            context.Setup(t => t.Argument<string>("a")).Returns("abc");
-            string result = (string)await resolver.Resolver(context.Object);
+            context.Setup(t => t.ArgumentValue<string>("a")).Returns("abc");
+            var result = (string)await resolver.Resolver(context.Object);
             Assert.Equal("abc", result);
         }
 
@@ -153,7 +153,7 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetProperty("ObjectTaskStringProp");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
 
             // act
             var compiler = new ResolveCompiler();
@@ -162,7 +162,7 @@ namespace HotChocolate.Resolvers.Expressions
             // assert
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
-            string result = (string)await resolver.Resolver(context.Object);
+            var result = (string)await resolver.Resolver(context.Object);
             Assert.Equal("ObjectTaskStringProp", result);
         }
 
@@ -175,7 +175,7 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetProperty("StringTaskResolverProp");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
 
             // act
             var compiler = new ResolveCompiler();
@@ -184,7 +184,7 @@ namespace HotChocolate.Resolvers.Expressions
             // assert
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
-            string result = (string)await resolver.Resolver(context.Object);
+            var result = (string)await resolver.Resolver(context.Object);
             Assert.Equal("StringTaskResolverProp", result);
         }
 
@@ -197,7 +197,7 @@ namespace HotChocolate.Resolvers.Expressions
                 type.GetProperty("StringProp");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
 
             // act
             var compiler = new ResolveCompiler();
@@ -206,7 +206,7 @@ namespace HotChocolate.Resolvers.Expressions
             // assert
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
-            string result = (string)await resolver.Resolver(context.Object);
+            var result = (string)await resolver.Resolver(context.Object);
             Assert.Equal("StringProp", result);
         }
 
@@ -219,7 +219,7 @@ namespace HotChocolate.Resolvers.Expressions
             var resolverDescriptor = new ResolverDescriptor(
                 type,
                 typeof(Entity),
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
 
             // act
             var compiler = new ResolveCompiler();
@@ -227,9 +227,8 @@ namespace HotChocolate.Resolvers.Expressions
 
             // assert
             var context = new Mock<IResolverContext>();
-            context.Setup(t => t.Resolver<Resolvers>())
-                .Returns(new Resolvers());
-            string result = (string)await resolver.Resolver(context.Object);
+            context.Setup(t => t.Resolver<Resolvers>()).Returns(new Resolvers());
+            var result = (string)await resolver.Resolver(context.Object);
             Assert.Equal("ObjectResolverResult", result);
         }
 
@@ -242,7 +241,7 @@ namespace HotChocolate.Resolvers.Expressions
             var resolverDescriptor = new ResolverDescriptor(
                 type,
                 typeof(Entity),
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
 
             // act
             var compiler = new ResolveCompiler();
@@ -250,9 +249,8 @@ namespace HotChocolate.Resolvers.Expressions
 
             // assert
             var context = new Mock<IResolverContext>();
-            context.Setup(t => t.Resolver<Resolvers>())
-                .Returns(new Resolvers());
-            string result = (string)await resolver.Resolver(context.Object);
+            context.Setup(t => t.Resolver<Resolvers>()).Returns(new Resolvers());
+            var result = (string)await resolver.Resolver(context.Object);
             Assert.Equal("StringTaskResolver", result);
         }
 
@@ -266,7 +264,7 @@ namespace HotChocolate.Resolvers.Expressions
             var resolverDescriptor = new ResolverDescriptor(
                 type,
                 typeof(Entity),
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
 
             // act
             var compiler = new ResolveCompiler();
@@ -274,10 +272,9 @@ namespace HotChocolate.Resolvers.Expressions
 
             // assert
             var context = new Mock<IResolverContext>();
-            context.Setup(t => t.Resolver<Resolvers>())
-                .Returns(new Resolvers());
-            context.Setup(t => t.Argument<string>("a")).Returns("abc");
-            string result = (string)await resolver.Resolver(context.Object);
+            context.Setup(t => t.Resolver<Resolvers>()).Returns(new Resolvers());
+            context.Setup(t => t.ArgumentValue<string>("a")).Returns("abc");
+            var result = (string)await resolver.Resolver(context.Object);
             Assert.Equal("abc", result);
         }
 
@@ -290,7 +287,7 @@ namespace HotChocolate.Resolvers.Expressions
             var resolverDescriptor = new ResolverDescriptor(
                 type,
                 typeof(Entity),
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
 
             // act
             var compiler = new ResolveCompiler();
@@ -298,9 +295,8 @@ namespace HotChocolate.Resolvers.Expressions
 
             // assert
             var context = new Mock<IResolverContext>();
-            context.Setup(t => t.Resolver<Resolvers>())
-                .Returns(new Resolvers());
-            string result = (string)await resolver.Resolver(context.Object);
+            context.Setup(t => t.Resolver<Resolvers>()).Returns(new Resolvers());
+            var result = (string)await resolver.Resolver(context.Object);
             Assert.Equal("ObjectResolverResult", result);
         }
 
@@ -313,7 +309,7 @@ namespace HotChocolate.Resolvers.Expressions
             var resolverDescriptor = new ResolverDescriptor(
                 type,
                 typeof(Entity),
-                new FieldMember("A", "b", resolverMember));
+                new FieldMember("A", "b", resolverMember!));
 
             // act
             var compiler = new ResolveCompiler();
@@ -321,9 +317,8 @@ namespace HotChocolate.Resolvers.Expressions
 
             // assert
             var context = new Mock<IResolverContext>();
-            context.Setup(t => t.Resolver<Resolvers>())
-                .Returns(new Resolvers());
-            string result = (string)await resolver.Resolver(context.Object);
+            context.Setup(t => t.Resolver<Resolvers>()).Returns(new Resolvers());
+            var result = (string)await resolver.Resolver(context.Object);
             Assert.Equal("StringTaskResolver", result);
         }
 
@@ -345,10 +340,9 @@ namespace HotChocolate.Resolvers.Expressions
 
             // assert
             var context = new Mock<IResolverContext>();
-            context.Setup(t => t.Resolver<Resolvers>())
-                .Returns(new Resolvers());
-            context.Setup(t => t.Argument<string>("a")).Returns("abc");
-            string result = (string)await resolver.Resolver(context.Object);
+            context.Setup(t => t.Resolver<Resolvers>()).Returns(new Resolvers());
+            context.Setup(t => t.ArgumentValue<string>("a")).Returns("abc");
+            var result = (string)await resolver.Resolver(context.Object);
             Assert.Equal("abc", result);
         }
 
@@ -370,9 +364,8 @@ namespace HotChocolate.Resolvers.Expressions
 
             // assert
             var context = new Mock<IResolverContext>();
-            context.Setup(t => t.Resolver<Resolvers>())
-                .Returns(new Resolvers());
-            string result = (string)await resolver.Resolver(context.Object);
+            context.Setup(t => t.Resolver<Resolvers>()).Returns(new Resolvers());
+            var result = (string)await resolver.Resolver(context.Object);
             Assert.Equal("ObjectTaskStringProp", result);
         }
 
@@ -394,9 +387,8 @@ namespace HotChocolate.Resolvers.Expressions
 
             // assert
             var context = new Mock<IResolverContext>();
-            context.Setup(t => t.Resolver<Resolvers>())
-                .Returns(new Resolvers());
-            string result = (string)await resolver.Resolver(context.Object);
+            context.Setup(t => t.Resolver<Resolvers>()).Returns(new Resolvers());
+            var result = (string)await resolver.Resolver(context.Object);
             Assert.Equal("StringTaskResolverProp", result);
         }
 
@@ -418,9 +410,8 @@ namespace HotChocolate.Resolvers.Expressions
 
             // assert
             var context = new Mock<IResolverContext>();
-            context.Setup(t => t.Resolver<Resolvers>())
-                .Returns(new Resolvers());
-            string result = (string)await resolver.Resolver(context.Object);
+            context.Setup(t => t.Resolver<Resolvers>()).Returns(new Resolvers());
+            var result = (string)await resolver.Resolver(context.Object);
             Assert.Equal("StringProp", result);
         }
 
@@ -441,11 +432,9 @@ namespace HotChocolate.Resolvers.Expressions
 
             // assert
             var context = new Mock<IResolverContext>();
-            context.Setup(t => t.Parent<Resolvers>())
-                .Returns(new Resolvers());
-            context.SetupGet(t => t.RequestAborted)
-                .Returns(CancellationToken.None);
-            string result = (string)await resolver.Resolver(context.Object);
+            context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
+            context.SetupGet(t => t.RequestAborted).Returns(CancellationToken.None);
+            var result = (string)await resolver.Resolver(context.Object);
             Assert.Equal("cancel", result);
         }
 
@@ -466,9 +455,8 @@ namespace HotChocolate.Resolvers.Expressions
 
             // assert
             var context = new Mock<IResolverContext>();
-            context.Setup(t => t.Parent<Resolvers>())
-                .Returns(new Resolvers());
-            bool result = (bool)await resolver.Resolver(context.Object);
+            context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
+            var result = (bool)(await resolver.Resolver(context.Object))!;
             Assert.True(result);
         }
 
@@ -477,8 +465,7 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
-                type.GetMethod("ResolverWithFieldSelection");
+            MemberInfo resolverMember = type.GetMethod("ResolverWithFieldSelection");
             var resolverDescriptor = new ResolverDescriptor(
                 type,
                 new FieldMember("A", "b", resolverMember));
@@ -491,7 +478,7 @@ namespace HotChocolate.Resolvers.Expressions
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Parent<Resolvers>())
                 .Returns(new Resolvers());
-            context.SetupGet(t => t.FieldSelection)
+            context.SetupGet(t => t.Selection.SyntaxNode)
                 .Returns(new FieldNode(
                     null,
                     new NameNode("foo"),
@@ -499,7 +486,7 @@ namespace HotChocolate.Resolvers.Expressions
                     Array.Empty<DirectiveNode>(),
                     Array.Empty<ArgumentNode>(),
                     null));
-            bool result = (bool)await resolver.Resolver(context.Object);
+            var result = (bool)(await resolver.Resolver(context.Object))!;
             Assert.True(result);
         }
 
@@ -526,11 +513,9 @@ namespace HotChocolate.Resolvers.Expressions
             ;
             ObjectType queryType = schema.GetType<ObjectType>("Query");
             var context = new Mock<IResolverContext>();
-            context.Setup(t => t.Parent<Resolvers>())
-                .Returns(new Resolvers());
-            context.SetupGet(t => t.ObjectType)
-                .Returns(queryType);
-            bool result = (bool)await resolver.Resolver(context.Object);
+            context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
+            context.SetupGet(t => t.ObjectType).Returns(queryType);
+            var result = (bool)(await resolver.Resolver(context.Object))!;
             Assert.True(result);
         }
 
@@ -563,7 +548,7 @@ namespace HotChocolate.Resolvers.Expressions
                     new SelectionSetNode(
                         null,
                         Array.Empty<ISelectionNode>())));
-            bool result = (bool)await resolver.Resolver(context.Object);
+            var result = (bool)(await resolver.Resolver(context.Object))!;
             Assert.True(result);
         }
 
@@ -590,10 +575,8 @@ namespace HotChocolate.Resolvers.Expressions
             ;
             ObjectType queryType = schema.GetType<ObjectType>("Query");
             var context = new Mock<IResolverContext>();
-            context.Setup(t => t.Parent<Resolvers>())
-                .Returns(new Resolvers());
-            context.SetupGet(t => t.Field)
-                .Returns(queryType.Fields.First());
+            context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
+            context.SetupGet(t => t.Field).Returns(queryType.Fields.First());
             var result = (bool)(await resolver.Resolver(context.Object))!;
             Assert.True(result);
         }
@@ -621,11 +604,9 @@ namespace HotChocolate.Resolvers.Expressions
             ;
             ObjectType queryType = schema.GetType<ObjectType>("Query");
             var context = new Mock<IResolverContext>();
-            context.Setup(t => t.Parent<Resolvers>())
-                .Returns(new Resolvers());
-            context.SetupGet(t => t.Field)
-                .Returns(queryType.Fields.First());
-            bool result = (bool)await resolver.Resolver(context.Object);
+            context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
+            context.SetupGet(t => t.Field).Returns(queryType.Fields.First());
+            var result = (bool)(await resolver.Resolver(context.Object))!;
             Assert.True(result);
         }
 
@@ -652,7 +633,7 @@ namespace HotChocolate.Resolvers.Expressions
                 .Returns(new DocumentNode(
                     null,
                     Array.Empty<IDefinitionNode>()));
-            bool result = (bool)await resolver.Resolver(context.Object);
+            var result = (bool)(await resolver.Resolver(context.Object))!;
             Assert.True(result);
         }
 
@@ -678,11 +659,9 @@ namespace HotChocolate.Resolvers.Expressions
                 .Create();
             ;
             var context = new Mock<IResolverContext>();
-            context.Setup(t => t.Parent<Resolvers>())
-                .Returns(new Resolvers());
-            context.SetupGet(t => t.Schema)
-                .Returns(schema);
-            bool result = (bool)await resolver.Resolver(context.Object);
+            context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
+            context.SetupGet(t => t.Schema).Returns(schema);
+            var result = (bool)(await resolver.Resolver(context.Object))!;
             Assert.True(result);
         }
 
@@ -703,11 +682,9 @@ namespace HotChocolate.Resolvers.Expressions
 
             // assert
             var context = new Mock<IResolverContext>();
-            context.Setup(t => t.Parent<Resolvers>())
-                .Returns(new Resolvers());
-            context.Setup(t => t.Service<MyService>())
-                .Returns(new MyService());
-            bool result = (bool)await resolver.Resolver(context.Object);
+            context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
+            context.Setup(t => t.Service<MyService>()).Returns(new MyService());
+            var result = (bool)(await resolver.Resolver(context.Object))!;
             Assert.True(result);
         }
 
@@ -734,7 +711,7 @@ namespace HotChocolate.Resolvers.Expressions
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
             context.Setup(t => t.ContextData).Returns(contextData);
-            string result = (string)await resolver.Resolver(context.Object);
+            var result = (string)await resolver.Resolver(context.Object);
             Assert.Equal("bar", result);
         }
 
@@ -782,8 +759,8 @@ namespace HotChocolate.Resolvers.Expressions
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
             context.Setup(t => t.ContextData).Returns(contextData);
-            Action action = () => resolver.Resolver(context.Object);
-            Assert.Throws<ArgumentException>(action);
+            void Action() => resolver.Resolver(context.Object);
+            Assert.Throws<ArgumentException>(Action);
         }
 
         [Fact]
@@ -796,8 +773,8 @@ namespace HotChocolate.Resolvers.Expressions
             var resolverDescriptor = new ResolverDescriptor(
                 type,
                 new FieldMember("A", "b", resolverMember));
-            var contextData = ImmutableDictionary<string, object>.Empty
-                .SetItem("foo", "bar");
+            ImmutableDictionary<string, object> contextData =
+                ImmutableDictionary<string, object>.Empty.SetItem("foo", "bar");
 
             // act
             var compiler = new ResolveCompiler();
@@ -807,7 +784,7 @@ namespace HotChocolate.Resolvers.Expressions
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
             context.Setup(t => t.ScopedContextData).Returns(contextData);
-            string result = (string)await resolver.Resolver(context.Object);
+            var result = (string)await resolver.Resolver(context.Object);
             Assert.Equal("bar", result);
         }
 
@@ -821,7 +798,8 @@ namespace HotChocolate.Resolvers.Expressions
             var resolverDescriptor = new ResolverDescriptor(
                 type,
                 new FieldMember("A", "b", resolverMember));
-            var contextData = ImmutableDictionary<string, object>.Empty;
+            ImmutableDictionary<string, object> contextData =
+                ImmutableDictionary<string, object>.Empty;
 
             // act
             var compiler = new ResolveCompiler();
@@ -855,8 +833,8 @@ namespace HotChocolate.Resolvers.Expressions
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
             context.Setup(t => t.ScopedContextData).Returns(contextData);
-            Action action = () => resolver.Resolver(context.Object);
-            Assert.Throws<ArgumentException>(action);
+            void Action() => resolver.Resolver(context.Object);
+            Assert.Throws<ArgumentException>(Action);
         }
 
         [Fact]
@@ -1161,7 +1139,8 @@ namespace HotChocolate.Resolvers.Expressions
             var resolverDescriptor = new ResolverDescriptor(
                 type,
                 new FieldMember("A", "b", resolverMember));
-            var contextData = ImmutableDictionary<string, object>.Empty;
+            ImmutableDictionary<string, object> contextData =
+                ImmutableDictionary<string, object>.Empty;
 
             // act
             FieldResolver resolver = ResolverCompiler.Resolve.Compile(resolverDescriptor);
@@ -1188,7 +1167,8 @@ namespace HotChocolate.Resolvers.Expressions
             var resolverDescriptor = new ResolverDescriptor(
                 type,
                 new FieldMember("A", "b", resolverMember));
-            var contextData = ImmutableDictionary<string, object>.Empty;
+            ImmutableDictionary<string, object> contextData =
+                ImmutableDictionary<string, object>.Empty;
 
             // act
             FieldResolver resolver = ResolverCompiler.Resolve.Compile(resolverDescriptor);
@@ -1336,7 +1316,8 @@ namespace HotChocolate.Resolvers.Expressions
             var resolverDescriptor = new ResolverDescriptor(
                 type,
                 new FieldMember("A", "b", resolverMember));
-            var contextData = ImmutableDictionary<string, object>.Empty;
+            ImmutableDictionary<string, object> contextData =
+                ImmutableDictionary<string, object>.Empty;
 
             // act
             FieldResolver resolver = ResolverCompiler.Resolve.Compile(resolverDescriptor);
@@ -1363,7 +1344,8 @@ namespace HotChocolate.Resolvers.Expressions
             var resolverDescriptor = new ResolverDescriptor(
                 type,
                 new FieldMember("A", "b", resolverMember));
-            var contextData = ImmutableDictionary<string, object>.Empty;
+            ImmutableDictionary<string, object> contextData =
+                ImmutableDictionary<string, object>.Empty;
 
             // act
             FieldResolver resolver = ResolverCompiler.Resolve.Compile(resolverDescriptor);
