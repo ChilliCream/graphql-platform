@@ -60,8 +60,8 @@ namespace HotChocolate.Types
             descriptor.UsePaging(
                 type,
                 entityType,
-                (services, sourceType) => services.GetService<MongoCursorPagingProvider>() ??
-                    new MongoCursorPagingProvider(),
+                (services, sourceType) => services.GetService<MongoDbCursorPagingProvider>() ??
+                    new MongoDbCursorPagingProvider(),
                 options);
 
         /// <summary>
@@ -83,8 +83,8 @@ namespace HotChocolate.Types
             descriptor.UseOffsetPaging(
                 type,
                 entityType,
-                (services, sourceType) => services.GetService<MongoOffsetPagingProvider>() ??
-                    new MongoOffsetPagingProvider(),
+                (services, sourceType) => services.GetService<MongoDbOffsetPagingProvider>() ??
+                    new MongoDbOffsetPagingProvider(),
                 options);
 
         /// <summary>

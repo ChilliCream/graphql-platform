@@ -5,7 +5,7 @@ using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb.Filters
 {
-    internal static class MongoFilterScopeExtensions
+    internal static class MongoDbFilterScopeExtensions
     {
         public static string GetPath(this MongoDbFilterScope scope) =>
             string.Join(".", scope.Path.Reverse());

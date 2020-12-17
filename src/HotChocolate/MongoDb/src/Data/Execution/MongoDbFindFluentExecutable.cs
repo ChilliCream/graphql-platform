@@ -9,11 +9,11 @@ namespace HotChocolate.Data.MongoDb.Execution
     /// A executable that is based on <see cref="IFindFluent{TInput,TResult}"/>
     /// </summary>
     /// <typeparam name="T">The entity type</typeparam>
-    public class MongoFindFluentExecutable<T> : MongoExecutable<T>
+    public class MongoDbFindFluentExecutable<T> : MongoDbExecutable<T>
     {
         private readonly IFindFluent<T, T> _findFluent;
 
-        public MongoFindFluentExecutable(IFindFluent<T, T> findFluent)
+        public MongoDbFindFluentExecutable(IFindFluent<T, T> findFluent)
         {
             _findFluent = findFluent;
         }

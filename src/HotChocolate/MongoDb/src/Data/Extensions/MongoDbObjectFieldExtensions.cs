@@ -1,11 +1,11 @@
-using HotChocolate.Data.Sorting;
+using HotChocolate.Types;
 
 namespace HotChocolate.Data.MongoDb
 {
-    internal static class MongoSortFieldExtensions
+    internal static class MongoDbObjectFieldExtensions
     {
         public static string GetName(
-            this ISortField field)
+            this IObjectField field)
         {
             string fieldName = field.Name;
             if (field.Member is { } p)

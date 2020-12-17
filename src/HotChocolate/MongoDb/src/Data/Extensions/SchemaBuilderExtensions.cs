@@ -7,7 +7,7 @@ namespace HotChocolate.Data.MongoDb
     /// <summary>
     /// Provides mongo extensions for the <see cref="ISchemaBuilder"/>.
     /// </summary>
-    public static class MongoSchemaBuilderExtensions
+    public static class MongoDbSchemaBuilderExtensions
     {
         /// <summary>
         /// Adds filtering support.

@@ -11,11 +11,11 @@ namespace HotChocolate.Data.MongoDb.Execution
     /// A executable that is based on <see cref="IMongoCollection{TResult}"/>
     /// </summary>
     /// <typeparam name="T">The entity type</typeparam>
-    public class MongoCollectionExecutable<T> : MongoExecutable<T>
+    public class MongoDbCollectionExecutable<T> : MongoDbExecutable<T>
     {
         private readonly IMongoCollection<T> _collection;
 
-        public MongoCollectionExecutable(IMongoCollection<T> collection)
+        public MongoDbCollectionExecutable(IMongoCollection<T> collection)
         {
             _collection = collection;
         }

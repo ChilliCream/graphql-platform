@@ -6,7 +6,7 @@ namespace Microsoft.Extensions.DependencyInjection
     /// <summary>
     /// Provides data extensions for the <see cref="IRequestExecutorBuilder"/>.
     /// </summary>
-    public static class HotChocolateMongoDataRequestBuilderExtensions
+    public static class MongoDbDataRequestBuilderExtensions
     {
         /// <summary>
         /// Adds filtering support.

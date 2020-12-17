@@ -7,7 +7,7 @@ namespace HotChocolate.Data.MongoDb.Execution
     /// <summary>
     /// Is the base class for a executable for the MongoDb.
     /// </summary>
-    public abstract class MongoExecutable<T>
+    public abstract class MongoDbExecutable<T>
         : IExecutable<T>
         , IMongoExecutable
     {

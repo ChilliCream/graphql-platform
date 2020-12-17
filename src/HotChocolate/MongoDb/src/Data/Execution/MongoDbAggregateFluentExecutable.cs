@@ -9,11 +9,11 @@ namespace HotChocolate.Data.MongoDb.Execution
     /// A executable that is based on <see cref="IAggregateFluent{TInput}"/>
     /// </summary>
     /// <typeparam name="T">The entity type</typeparam>
-    public class MongoAggregateFluentExecutable<T> : MongoExecutable<T>
+    public class MongoDbAggregateFluentExecutable<T> : MongoDbExecutable<T>
     {
         private readonly IAggregateFluent<T> _aggregate;
 
-        public MongoAggregateFluentExecutable(IAggregateFluent<T> aggregate)
+        public MongoDbAggregateFluentExecutable(IAggregateFluent<T> aggregate)
         {
             _aggregate = aggregate;
         }

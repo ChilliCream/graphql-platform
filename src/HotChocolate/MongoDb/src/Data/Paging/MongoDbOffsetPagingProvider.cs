@@ -12,10 +12,10 @@ using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb.Paging
 {
-    public class MongoOffsetPagingProvider : OffsetPagingProvider
+    public class MongoDbOffsetPagingProvider : OffsetPagingProvider
     {
         private static readonly MethodInfo _createHandler =
-            typeof(MongoOffsetPagingProvider).GetMethod(
+            typeof(MongoDbOffsetPagingProvider).GetMethod(
                 nameof(CreateHandlerInternal),
                 BindingFlags.Static | BindingFlags.NonPublic)!;
 
@@ -38,14 +38,14 @@ namespace HotChocolate.Data.MongoDb.Paging
                 .Invoke(null, new object[] { options })!;
         }
 
-        private static MongoOffsetPagingHandler<TEntity> CreateHandlerInternal<TEntity>(
+        private static MongoDbOffsetPagingHandler<TEntity> CreateHandlerInternal<TEntity>(
             PagingOptions options) =>
-            new MongoOffsetPagingHandler<TEntity>(options);
+            new MongoDbOffsetPagingHandler<TEntity>(options);
 
 
-        private class MongoOffsetPagingHandler<TEntity> : OffsetPagingHandler
+        private class MongoDbOffsetPagingHandler<TEntity> : OffsetPagingHandler
         {
-            public MongoOffsetPagingHandler(PagingOptions options) : base(options)
+            public MongoDbOffsetPagingHandler(PagingOptions options) : base(options)
             {
             }
 
@@ -66,11 +66,11 @@ namespace HotChocolate.Data.MongoDb.Paging
                     IFindFluent<TEntity, TEntity> f => FindFluentPagingContainer<TEntity>.New(f),
                     IMongoCollection<TEntity> m => FindFluentPagingContainer<TEntity>.New(
                         m.Find(FilterDefinition<TEntity>.Empty)),
-                    MongoCollectionExecutable<TEntity> mce =>
+                    MongoDbCollectionExecutable<TEntity> mce =>
                         CreatePagingContainer(mce.BuildPipeline()),
-                    MongoAggregateFluentExecutable<TEntity> mae =>
+                    MongoDbAggregateFluentExecutable<TEntity> mae =>
                         CreatePagingContainer(mae.BuildPipeline()),
-                    MongoFindFluentExecutable<TEntity> mfe =>
+                    MongoDbFindFluentExecutable<TEntity> mfe =>
                         CreatePagingContainer(mfe.BuildPipeline()),
                     _ => throw ThrowHelper.PagingTypeNotSupported(source.GetType())
                 };
