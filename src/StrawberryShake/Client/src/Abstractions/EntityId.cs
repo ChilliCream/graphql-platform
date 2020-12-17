@@ -10,6 +10,12 @@ namespace StrawberryShake
             Value = value ?? throw new ArgumentNullException(nameof(value));
         }
 
+        public void Deconstruct(out string name, out object value)
+        {
+            name = Name;
+            value = Value;
+        }
+
         /// <summary>
         /// Gets the GraphQL type name.
         /// </summary>
@@ -51,10 +57,10 @@ namespace StrawberryShake
         public override int GetHashCode() =>
             HashCode.Combine(Name, Value);
 
-        public void Deconstruct(out string name, out object value)
-        {
-            name = Name;
-            value = Value;
-        }
+        public static bool operator ==(EntityId x, EntityId y) =>
+            x.Equals(y);
+
+        public static bool operator !=(EntityId x, EntityId y) =>
+            !x.Equals(y);
     }
 }

@@ -8,6 +8,7 @@ namespace StrawberryShake
         T GetOrCreate<T>(EntityId id) where T : class;
 
         T? GetEntity<T>(EntityId id) where T : class;
+
         IReadOnlyList<T?> GetEntities<T>(EntityId id) where T : class;
 
         IDisposable BeginUpdate();
