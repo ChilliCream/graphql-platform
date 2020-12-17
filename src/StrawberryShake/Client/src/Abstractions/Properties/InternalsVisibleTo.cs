@@ -1,7 +1,3 @@
-namespace StrawberryShake.Properties
-{
-    public class InternalVisibleTo
-    {
-        
-    }
-}
+using System.Runtime.CompilerServices;
+
+[assembly:InternalsVisibleTo("StrawberryShake.Abstractions.Tests")]

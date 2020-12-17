@@ -12,14 +12,22 @@ namespace StrawberryShake
         private Dictionary<string, object?>? _contextData;
 
         public OperationRequest(
+            string name,
+            IDocument document,
+            IReadOnlyDictionary<string, object?>? variables = null)
+            : this(null, name, document, variables)
+        {
+        }
+
+        public OperationRequest(
             string? id,
             string name,
             IDocument document,
             IReadOnlyDictionary<string, object?>? variables = null)
         {
             Id = id;
-            Name = name;
-            Document = document;
+            Name = name ?? throw new ArgumentNullException(nameof(name));
+            Document = document ?? throw new ArgumentNullException(nameof(document));
             _variables = variables ?? _empty;
         }
 

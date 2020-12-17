@@ -20,12 +20,12 @@ namespace StrawberryShake
             CancellationToken cancellationToken = default)
             where T : class
         {
-            if (operationRequest == null)
+            if (operationRequest is null)
             {
                 throw new ArgumentNullException(nameof(operationRequest));
             }
 
-            if (operationResult == null)
+            if (operationResult is null)
             {
                 throw new ArgumentNullException(nameof(operationResult));
             }
