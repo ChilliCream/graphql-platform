@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -33,13 +32,6 @@ namespace StrawberryShake
     public interface IOperationExecutor<T> where T : class
     {
         Task<IOperationResult<T>> ExecuteAsync(
-            OperationRequest request,
-            CancellationToken cancellationToken = default);
-    }
-
-    public interface IConnection<out TData> // JsonElement
-    {
-        IAsyncEnumerable<TData> ExecuteAsync(
             OperationRequest request,
             CancellationToken cancellationToken = default);
     }
