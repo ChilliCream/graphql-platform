@@ -174,6 +174,7 @@ namespace HotChocolate.Data.MongoDb.Paging
         private ValueTask<IRequestExecutor> CreateSchemaAsync()
         {
             return new ServiceCollection()
+                .AddTransient<OffsetPagingProvider, MongoDbOffsetPagingProvider>()
                 .AddGraphQL()
                 .AddFiltering(x => x.AddMongoDbDefaults())
                 .AddQueryType(

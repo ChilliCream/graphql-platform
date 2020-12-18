@@ -19,7 +19,13 @@ namespace HotChocolate.Data.MongoDb.Paging
 
         public override bool CanHandle(IExtendedType source)
         {
-            return true;
+            return source.Source == typeof(IExecutable) ||
+                typeof(IMongoDbExecutable).IsAssignableFrom(source.Source) ||
+                source.Source.IsGenericTypeDefinition &&
+                source.Source.GetGenericTypeDefinition() is { } type && (
+                    type == typeof(IAggregateFluent<>) ||
+                    type == typeof(IFindFluent<,>) ||
+                    type == typeof(IMongoCollection<>));
         }
 
         protected override CursorPagingHandler CreateHandler(
@@ -33,7 +39,12 @@ namespace HotChocolate.Data.MongoDb.Paging
 
             return (CursorPagingHandler)_createHandler
                 .MakeGenericMethod(source.ElementType?.Source ?? source.Source)
-                .Invoke(null, new object[] { options })!;
+                .Invoke(
+                    null,
+                    new object[]
+                    {
+                        options
+                    })!;
         }
 
         private static MongoDbCursorPagingHandler<TEntity> CreateHandlerInternal<TEntity>(

@@ -205,6 +205,7 @@ namespace HotChocolate.Data.MongoDb.Paging
         private ValueTask<IRequestExecutor> CreateSchemaAsync()
         {
             return new ServiceCollection()
+                .AddTransient<CursorPagingProvider, MongoDbCursorPagingProvider>()
                 .AddGraphQL()
                 .AddFiltering(x => x.AddMongoDbDefaults())
                 .AddQueryType(
@@ -223,7 +224,7 @@ namespace HotChocolate.Data.MongoDb.Paging
                                         context.ContextData["query"] = executable.Print();
                                     }
                                 })
-                            .UseMongoDbPaging<ObjectType<Foo>>(
+                            .UsePaging<ObjectType<Foo>>(
                                 options: new PagingOptions { IncludeTotalCount = true });
                     })
                 .UseRequest(
