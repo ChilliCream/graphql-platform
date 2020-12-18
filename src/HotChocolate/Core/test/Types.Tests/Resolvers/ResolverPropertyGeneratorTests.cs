@@ -145,6 +145,54 @@ namespace HotChocolate.Resolvers.Expressions
         }
 
         [Fact]
+        public async Task Compile_StringValueNodeMethod_WithParams_SourceResolver()
+        {
+            // arrange
+            Type type = typeof(Resolvers);
+            MemberInfo resolverMember =
+                type.GetMethod("StringValueNodeResolverWithArg");
+            var resolverDescriptor = new ResolverDescriptor(
+                type,
+                new FieldMember("A", "b", resolverMember!));
+
+            // act
+            var compiler = new ResolveCompiler();
+            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+
+            // assert
+            var context = new Mock<IResolverContext>();
+            context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
+            context.Setup(t => t.ArgumentLiteral<StringValueNode>("a"))
+                .Returns(new StringValueNode("abc"));
+            var result = (string)await resolver.Resolver(context.Object);
+            Assert.Equal("abc", result);
+        }
+
+        [Fact]
+        public async Task Compile_OptionalStringMethod_WithParams_SourceResolver()
+        {
+            // arrange
+            Type type = typeof(Resolvers);
+            MemberInfo resolverMember =
+                type.GetMethod("OptionalStringResolverWithArg");
+            var resolverDescriptor = new ResolverDescriptor(
+                type,
+                new FieldMember("A", "b", resolverMember!));
+
+            // act
+            var compiler = new ResolveCompiler();
+            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+
+            // assert
+            var context = new Mock<IResolverContext>();
+            context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
+            context.Setup(t => t.ArgumentOptional<string>("a"))
+                .Returns(new Optional<string>("abc"));
+            var result = (string)await resolver.Resolver(context.Object);
+            Assert.Equal("abc", result);
+        }
+
+        [Fact]
         public async Task Compile_ObjTaskProperty_SourceResolver()
         {
             // arrange
@@ -460,6 +508,7 @@ namespace HotChocolate.Resolvers.Expressions
             Assert.True(result);
         }
 
+        [Obsolete]
         [Fact]
         public async Task Compile_Arguments_FieldSelection()
         {
@@ -478,7 +527,7 @@ namespace HotChocolate.Resolvers.Expressions
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Parent<Resolvers>())
                 .Returns(new Resolvers());
-            context.SetupGet(t => t.Selection.SyntaxNode)
+            context.SetupGet(t => t.FieldSelection)
                 .Returns(new FieldNode(
                     null,
                     new NameNode("foo"),
@@ -1381,6 +1430,10 @@ namespace HotChocolate.Resolvers.Expressions
             public string StringResolver() => "StringTaskResolver";
 
             public string StringResolverWithArg(string a) => a;
+
+            public string StringValueNodeResolverWithArg(StringValueNode a) => a.Value;
+
+            public string OptionalStringResolverWithArg(Optional<string> a) => a.Value;
 
             public Task<object> ObjectTaskStringProp { get; } =
                Task.FromResult<object>("ObjectTaskStringProp");
