@@ -1,6 +1,4 @@
-using System.Threading.Tasks;
 using HotChocolate.Execution;
-using HotChocolate.Tests;
 using Snapshooter;
 using Snapshooter.Xunit;
 
@@ -14,7 +12,7 @@ namespace HotChocolate.Data.MongoDb.Paging
         {
             if (result is { })
             {
-                result.MatchSnapshot(snapshotName);
+                result.ToJson().MatchSnapshot(new SnapshotNameExtension(snapshotName));
                 if (result.ContextData is { } &&
                     result.ContextData.TryGetValue("query", out object? queryResult) &&
                     queryResult is string queryString &&

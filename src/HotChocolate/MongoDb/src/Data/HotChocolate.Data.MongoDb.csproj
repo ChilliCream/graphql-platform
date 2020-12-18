@@ -1,9 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <PackageId>HotChocolate.MongoDb</PackageId>
-    <AssemblyName>HotChocolate.MongoDb</AssemblyName>
-    <RootNamespace>HotChocolate.MongoDb</RootNamespace>
+    <PackageId>HotChocolate.Data.Mongodb</PackageId>
+    <AssemblyName>HotChocolate.Data.Mongodb</AssemblyName>
+    <RootNamespace>HotChocolate.Data.Mongodb</RootNamespace>
     <NoWarn>$(NoWarn);CA1062</NoWarn>
   </PropertyGroup>
 

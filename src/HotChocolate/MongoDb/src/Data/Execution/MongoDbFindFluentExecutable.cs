@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Driver;
 
-namespace HotChocolate.Data.MongoDb.Execution
+namespace HotChocolate.Data.MongoDb
 {
     /// <summary>
     /// A executable that is based on <see cref="IFindFluent{TInput,TResult}"/>

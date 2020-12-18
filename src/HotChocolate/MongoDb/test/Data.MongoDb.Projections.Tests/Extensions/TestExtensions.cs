@@ -1,5 +1,4 @@
 using HotChocolate.Execution;
-using HotChocolate.Tests;
 using Snapshooter;
 using Snapshooter.Xunit;
 
@@ -13,7 +12,7 @@ namespace HotChocolate.Data.MongoDb.Projections
         {
             if (result is { })
             {
-                result.MatchSnapshot(snapshotName);
+                result.ToJson().MatchSnapshot(snapshotName);
                 if (result.ContextData is { } &&
                     result.ContextData.TryGetValue("query", out object? queryResult))
                 {

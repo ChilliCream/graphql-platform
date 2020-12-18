@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using HotChocolate.Data.MongoDb.Execution;
 using HotChocolate.Data.Projections;
 using HotChocolate.Resolvers;
 using MongoDB.Driver;
@@ -60,7 +59,7 @@ namespace HotChocolate.Data.MongoDb
 
                         await next(context).ConfigureAwait(false);
 
-                        if (context.Result is IMongoExecutable executable)
+                        if (context.Result is IMongoDbExecutable executable)
                         {
                             context.Result = executable.WithProjection(projections);
                         }

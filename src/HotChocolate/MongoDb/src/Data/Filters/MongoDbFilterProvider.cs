@@ -2,7 +2,6 @@ using System;
 using System.Threading.Tasks;
 using HotChocolate.Data.Filters;
 using HotChocolate.Language;
-using HotChocolate.Data.MongoDb.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using MongoDB.Driver;
@@ -68,7 +67,7 @@ namespace HotChocolate.Data.MongoDb.Filters
 
                         await next(context).ConfigureAwait(false);
 
-                        if (context.Result is IMongoExecutable executable)
+                        if (context.Result is IMongoDbExecutable executable)
                         {
                             context.Result = executable.WithFiltering(whereQuery);
                         }

@@ -1,7 +1,7 @@
-using HotChocolate.Data.MongoDb.Execution;
+using HotChocolate.Data.MongoDb;
 using MongoDB.Driver;
 
-namespace HotChocolate.Data.MongoDb
+namespace HotChocolate.Data
 {
     public static class MongoDbExecutableExtensions
     {

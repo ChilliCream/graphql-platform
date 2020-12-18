@@ -1,5 +1,4 @@
 using HotChocolate.Execution;
-using HotChocolate.Tests;
 using Snapshooter;
 using Snapshooter.Xunit;
 
@@ -18,7 +17,8 @@ namespace HotChocolate.Data.MongoDb.Sorting
                 {
                     queryResult.MatchSnapshot(new SnapshotNameExtension(snapshotName + "_query"));
                 }
-                result.MatchSnapshot(snapshotName);
+
+                result.ToJson().MatchSnapshot(new SnapshotNameExtension(snapshotName));
             }
         }
     }

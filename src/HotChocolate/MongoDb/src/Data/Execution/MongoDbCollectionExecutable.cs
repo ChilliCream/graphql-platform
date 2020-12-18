@@ -5,7 +5,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 
-namespace HotChocolate.Data.MongoDb.Execution
+namespace HotChocolate.Data.MongoDb
 {
     /// <summary>
     /// A executable that is based on <see cref="IMongoCollection{TResult}"/>
@@ -32,7 +32,7 @@ namespace HotChocolate.Data.MongoDb.Execution
         /// </summary>
         /// <param name="options">The options</param>
         /// <returns>A executable that contains the options</returns>
-        public IMongoExecutable WithOptions(FindOptionsBase options)
+        public IMongoDbExecutable WithOptions(FindOptionsBase options)
         {
             Options = options;
             return this;

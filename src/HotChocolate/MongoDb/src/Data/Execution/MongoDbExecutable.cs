@@ -2,14 +2,14 @@ using System.Collections;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace HotChocolate.Data.MongoDb.Execution
+namespace HotChocolate.Data.MongoDb
 {
     /// <summary>
     /// Is the base class for a executable for the MongoDb.
     /// </summary>
     public abstract class MongoDbExecutable<T>
         : IExecutable<T>
-        , IMongoExecutable
+        , IMongoDbExecutable
     {
         /// <summary>
         /// The filter definition that was set by <see cref="WithFiltering"/>
@@ -27,21 +27,21 @@ namespace HotChocolate.Data.MongoDb.Execution
         protected MongoDbProjectionDefinition? Projection { get; private set; }
 
         /// <inheritdoc />
-        public IMongoExecutable WithFiltering(MongoDbFilterDefinition filters)
+        public IMongoDbExecutable WithFiltering(MongoDbFilterDefinition filters)
         {
             Filters = filters;
             return this;
         }
 
         /// <inheritdoc />
-        public IMongoExecutable WithSorting(MongoDbSortDefinition sorting)
+        public IMongoDbExecutable WithSorting(MongoDbSortDefinition sorting)
         {
             Sorting = sorting;
             return this;
         }
 
         /// <inheritdoc />
-        public IMongoExecutable WithProjection(MongoDbProjectionDefinition projection)
+        public IMongoDbExecutable WithProjection(MongoDbProjectionDefinition projection)
         {
             Projection = projection;
             return this;

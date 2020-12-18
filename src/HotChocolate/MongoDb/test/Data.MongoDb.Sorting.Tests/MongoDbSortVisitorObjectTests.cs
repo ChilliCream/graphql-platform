@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
-using HotChocolate.Tests;
 using MongoDB.Bson.Serialization.Attributes;
 using Squadron;
 using Xunit;
@@ -24,17 +23,9 @@ namespace HotChocolate.Data.MongoDb.Sorting.Expressions
                     BarBool = true,
                     BarEnum = BarEnum.BAR,
                     BarString = "testatest",
-                    //ScalarArray = new[] { "c", "d", "a" },
                     ObjectArray = new List<Bar>
                     {
-                        new Bar
-                        {
-                            Foo = new Foo
-                            {
-                                // ScalarArray = new[] { "c", "d", "a" }
-                                BarShort = 12, BarString = "a"
-                            }
-                        }
+                        new Bar { Foo = new Foo { BarShort = 12, BarString = "a" } }
                     }
                 }
             },
@@ -46,17 +37,9 @@ namespace HotChocolate.Data.MongoDb.Sorting.Expressions
                     BarBool = true,
                     BarEnum = BarEnum.BAZ,
                     BarString = "testbtest",
-                    //ScalarArray = new[] { "c", "d", "b" },
                     ObjectArray = new List<Bar>
                     {
-                        new Bar
-                        {
-                            Foo = new Foo
-                            {
-                                //ScalarArray = new[] { "c", "d", "b" }
-                                BarShort = 14, BarString = "d"
-                            }
-                        }
+                        new Bar { Foo = new Foo { BarShort = 14, BarString = "d" } }
                     }
                 }
             },
@@ -68,7 +51,6 @@ namespace HotChocolate.Data.MongoDb.Sorting.Expressions
                     BarBool = false,
                     BarEnum = BarEnum.FOO,
                     BarString = "testctest",
-                    //ScalarArray = null,
                     ObjectArray = null,
                 }
             }
@@ -84,17 +66,9 @@ namespace HotChocolate.Data.MongoDb.Sorting.Expressions
                     BarBool = true,
                     BarEnum = BarEnum.BAR,
                     BarString = "testatest",
-                    //ScalarArray = new[] { "c", "d", "a" },
                     ObjectArray = new List<BarNullable>
                     {
-                        new BarNullable
-                        {
-                            Foo = new FooNullable
-                            {
-                                //ScalarArray = new[] { "c", "d", "a" }
-                                BarShort = 12,
-                            }
-                        }
+                        new BarNullable { Foo = new FooNullable { BarShort = 12 } }
                     }
                 }
             },
@@ -106,17 +80,9 @@ namespace HotChocolate.Data.MongoDb.Sorting.Expressions
                     BarBool = null,
                     BarEnum = BarEnum.BAZ,
                     BarString = "testbtest",
-                    //ScalarArray = new[] { "c", "d", "b" },
                     ObjectArray = new List<BarNullable>
                     {
-                        new BarNullable
-                        {
-                            Foo = new FooNullable
-                            {
-                                //ScalarArray = new[] { "c", "d", "b" }
-                                BarShort = null,
-                            }
-                        }
+                        new BarNullable { Foo = new FooNullable { BarShort = null } }
                     }
                 }
             },
@@ -128,17 +94,9 @@ namespace HotChocolate.Data.MongoDb.Sorting.Expressions
                     BarBool = false,
                     BarEnum = BarEnum.QUX,
                     BarString = "testctest",
-                    //ScalarArray = null,
                     ObjectArray = new List<BarNullable>
                     {
-                        new BarNullable
-                        {
-                            Foo = new FooNullable
-                            {
-                                //ScalarArray = new[] { "c", "d", "b" }
-                                BarShort = 14,
-                            }
-                        }
+                        new BarNullable { Foo = new FooNullable { BarShort = 14 } }
                     }
                 }
             },
@@ -150,7 +108,6 @@ namespace HotChocolate.Data.MongoDb.Sorting.Expressions
                     BarBool = false,
                     BarEnum = BarEnum.FOO,
                     BarString = "testdtest",
-                    //ScalarArray = null,
                     ObjectArray = null
                 }
             },
