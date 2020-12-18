@@ -41,7 +41,7 @@ namespace HotChocolate.Stitching.Delegation.ScopedVariables
 
             throw ThrowHelper.RootScopedVariableResolver_ScopeNotSupported(
                 variable.Scope.Value,
-                context.FieldSelection,
+                context.Selection.SyntaxNode,
                 context.Path);
         }
     }

@@ -67,7 +67,7 @@ namespace HotChocolate.Types.Pagination
             // when it is enabled (IncludeTotalCount) and when it is contained in the selection set.
             if (IncludeTotalCount &&
                 context.Field.Type is ObjectType objectType &&
-                context.FieldSelection.SelectionSet is {} selectionSet)
+                context.Selection.SyntaxNode.SelectionSet is {} selectionSet)
             {
                 IReadOnlyList<IFieldSelection> selections = context
                     .GetSelections(objectType, selectionSet, true);

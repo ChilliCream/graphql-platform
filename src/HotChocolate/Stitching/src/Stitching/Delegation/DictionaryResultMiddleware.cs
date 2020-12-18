@@ -26,9 +26,9 @@ namespace HotChocolate.Stitching.Delegation
                 !context.Field.Directives.Contains(DirectiveNames.Computed) &&
                 context.Parent<object>() is IDictionary<string, object> dict)
             {
-                string responseName = context.FieldSelection.Alias == null
-                    ? context.FieldSelection.Name.Value
-                    : context.FieldSelection.Alias.Value;
+                string responseName = context.Selection.SyntaxNode.Alias == null
+                    ? context.Selection.SyntaxNode.Name.Value
+                    : context.Selection.SyntaxNode.Alias.Value;
 
                 dict.TryGetValue(responseName, out object? obj);
                 context.Result = DictionaryDeserializer.DeserializeResult(context.Field.Type, obj);

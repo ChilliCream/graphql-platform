@@ -260,7 +260,7 @@ namespace HotChocolate.Validation.Properties {
                 return ResourceManager.GetString("ErrorHelper_MaxOperationComplexity", resourceCulture);
             }
         }
-
+        
         internal static string ErrorHelper_MaxExecutionDepth {
             get {
                 return ResourceManager.GetString("ErrorHelper_MaxExecutionDepth", resourceCulture);
@@ -270,6 +270,12 @@ namespace HotChocolate.Validation.Properties {
         internal static string HotChocolateValidationBuilderExtensions_MinimumAllowedValue {
             get {
                 return ResourceManager.GetString("HotChocolateValidationBuilderExtensions_MinimumAllowedValue", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_DirectiveMustBeUniqueInLocation {
+            get {
+                return ResourceManager.GetString("ErrorHelper_DirectiveMustBeUniqueInLocation", resourceCulture);
             }
         }
     }

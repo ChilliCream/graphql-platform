@@ -62,7 +62,7 @@ namespace HotChocolate.Stitching.Delegation.ScopedVariables
 
             throw ThrowHelper.FieldScopedVariableResolver_InvalidFieldName(
                 variable.Name.Value,
-                context.FieldSelection,
+                context.Selection.SyntaxNode,
                 context.Path);
         }
     }

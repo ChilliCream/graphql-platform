@@ -72,7 +72,7 @@ namespace HotChocolate.AspNetCore.Authorization
                         .SetMessage(AuthResources.AuthorizeMiddleware_NoDefaultPolicy)
                         .SetCode(ErrorCodes.Authentication.NoDefaultPolicy)
                         .SetPath(context.Path)
-                        .AddLocation(context.FieldSelection)
+                        .AddLocation(context.Selection.SyntaxNode)
                         .Build();
                     break;
 
@@ -84,7 +84,7 @@ namespace HotChocolate.AspNetCore.Authorization
                             directive.Policy))
                         .SetCode(ErrorCodes.Authentication.PolicyNotFound)
                         .SetPath(context.Path)
-                        .AddLocation(context.FieldSelection)
+                        .AddLocation(context.Selection.SyntaxNode)
                         .Build();
                     break;
 
@@ -95,7 +95,7 @@ namespace HotChocolate.AspNetCore.Authorization
                             ? ErrorCodes.Authentication.NotAuthorized
                             : ErrorCodes.Authentication.NotAuthenticated)
                         .SetPath(context.Path)
-                        .AddLocation(context.FieldSelection)
+                        .AddLocation(context.Selection.SyntaxNode)
                         .Build();
                     break;
             }
