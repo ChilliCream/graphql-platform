@@ -39,12 +39,7 @@ namespace HotChocolate.Data.MongoDb.Paging
 
             return (CursorPagingHandler)_createHandler
                 .MakeGenericMethod(source.ElementType?.Source ?? source.Source)
-                .Invoke(
-                    null,
-                    new object[]
-                    {
-                        options
-                    })!;
+                .Invoke(null, new object[] { options })!;
         }
 
         private static MongoDbCursorPagingHandler<TEntity> CreateHandlerInternal<TEntity>(

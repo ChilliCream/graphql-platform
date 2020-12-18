@@ -20,7 +20,13 @@ namespace HotChocolate.Data.MongoDb.Paging
 
         public override bool CanHandle(IExtendedType source)
         {
-            return true;
+            return source.Source == typeof(IExecutable) ||
+                typeof(IMongoDbExecutable).IsAssignableFrom(source.Source) ||
+                source.Source.IsGenericTypeDefinition &&
+                source.Source.GetGenericTypeDefinition() is { } type && (
+                    type == typeof(IAggregateFluent<>) ||
+                    type == typeof(IFindFluent<,>) ||
+                    type == typeof(IMongoCollection<>));
         }
 
         protected override OffsetPagingHandler CreateHandler(
