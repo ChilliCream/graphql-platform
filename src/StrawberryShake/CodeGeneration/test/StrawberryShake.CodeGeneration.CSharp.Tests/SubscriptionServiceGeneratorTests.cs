@@ -6,13 +6,13 @@ using Xunit;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Tests
 {
-    public class QueryServiceGeneratorTests
+    public class SubscriptionServiceGeneratorTests
     {
         readonly StringBuilder _stringBuilder;
         readonly CodeWriter _codeWriter;
         readonly OperationServiceGenerator _generator;
 
-        public QueryServiceGeneratorTests()
+        public SubscriptionServiceGeneratorTests()
         {
             _stringBuilder = new StringBuilder();
             _codeWriter = new CodeWriter(_stringBuilder);
@@ -24,7 +24,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
         {
             await _generator.WriteAsync(
                 _codeWriter,
-                new QueryOperationDescriptor(
+                new SubscriptionOperationDescriptor(
                     new TypeDescriptor(
                         "Foo",
                         false,
@@ -43,7 +43,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
         {
             await _generator.WriteAsync(
                 _codeWriter,
-                new QueryOperationDescriptor(
+                new SubscriptionOperationDescriptor(
                     new TypeDescriptor(
                         "Foo",
                         false,
@@ -65,7 +65,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
         {
             await _generator.WriteAsync(
                 _codeWriter,
-                new QueryOperationDescriptor(
+                new SubscriptionOperationDescriptor(
                     new TypeDescriptor(
                         "Foo",
                         false,
@@ -87,7 +87,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
         {
             await _generator.WriteAsync(
                 _codeWriter,
-                new QueryOperationDescriptor(
+                new SubscriptionOperationDescriptor(
                     new TypeDescriptor(
                         "Foo",
                         false,

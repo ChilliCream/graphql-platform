@@ -1,0 +1,18 @@
+﻿[global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+public partial class FooSubscription
+{
+    private readonly IOperationStore _operationStore;
+    private readonly IOperationExecutor<Foo> _operationExecutor;
+
+    public FooSubscription(
+        IOperationStore operationStore,
+        IOperationExecutor<Foo> operationExecutor)
+    {
+        _operationStore = operationStore;
+        _operationExecutor = operationExecutor;
+    }
+
+    public IOperationObservable<Foo> Watch(string name)
+    {
+    }
+}

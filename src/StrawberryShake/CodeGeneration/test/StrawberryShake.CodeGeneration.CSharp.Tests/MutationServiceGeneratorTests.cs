@@ -6,13 +6,13 @@ using Xunit;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Tests
 {
-    public class QueryServiceGeneratorTests
+    public class MutationServiceGeneratorTests
     {
         readonly StringBuilder _stringBuilder;
         readonly CodeWriter _codeWriter;
         readonly OperationServiceGenerator _generator;
 
-        public QueryServiceGeneratorTests()
+        public MutationServiceGeneratorTests()
         {
             _stringBuilder = new StringBuilder();
             _codeWriter = new CodeWriter(_stringBuilder);
@@ -20,11 +20,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
         }
 
         [Fact]
-        public async Task GenerateQueryServiceWithoutArguments()
+        public async Task GenerateMutationServiceWithoutArguments()
         {
             await _generator.WriteAsync(
                 _codeWriter,
-                new QueryOperationDescriptor(
+                new MutationOperationDescriptor(
                     new TypeDescriptor(
                         "Foo",
                         false,
@@ -39,11 +39,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
         }
 
         [Fact]
-        public async Task GenerateQueryServiceWithValueArgument()
+        public async Task GenerateMutationServiceWithValueArgument()
         {
             await _generator.WriteAsync(
                 _codeWriter,
-                new QueryOperationDescriptor(
+                new MutationOperationDescriptor(
                     new TypeDescriptor(
                         "Foo",
                         false,
@@ -61,11 +61,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
         }
 
         [Fact]
-        public async Task GenerateQueryServiceWithReferenceArgument()
+        public async Task GenerateMutationServiceWithReferenceArgument()
         {
             await _generator.WriteAsync(
                 _codeWriter,
-                new QueryOperationDescriptor(
+                new MutationOperationDescriptor(
                     new TypeDescriptor(
                         "Foo",
                         false,
@@ -83,11 +83,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
         }
 
         [Fact]
-        public async Task GenerateQueryServiceWithArguments()
+        public async Task GenerateMutationServiceWithArguments()
         {
             await _generator.WriteAsync(
                 _codeWriter,
-                new QueryOperationDescriptor(
+                new MutationOperationDescriptor(
                     new TypeDescriptor(
                         "Foo",
                         false,

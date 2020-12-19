@@ -1,0 +1,33 @@
+﻿[global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+public partial class FooMutation
+{
+    private readonly IOperationStore _operationStore;
+    private readonly IOperationExecutor<Foo> _operationExecutor;
+
+    public FooMutation(
+        IOperationStore operationStore,
+        IOperationExecutor<Foo> operationExecutor)
+    {
+        _operationStore = operationStore;
+        _operationExecutor = operationExecutor;
+    }
+
+    public async Task<IOperationResult<Foo>> Execute(
+        BarInput? bar,
+        CancellationToken cancellationToken = default)
+    {
+        var request = new FooMutationRequest();
+        request.Variables.Add("bar", bar);
+
+        return await _operationExecutor()
+            .ExecuteAsync(
+                request,
+                cancellationToken
+            )
+            .ConfigureAwait(false);
+    }
+
+    public IOperationObservable<Foo> Watch(BarInput? bar)
+    {
+    }
+}
