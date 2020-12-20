@@ -9,7 +9,7 @@
         public override ClauseKind Kind => ClauseKind.Match;
         private readonly bool _optional;
         private readonly Pattern _pattern;
-        private readonly Where _optionalWhere;
+        private readonly Where? _optionalWhere;
 
         public Match(bool optional, Pattern pattern, Where optionalWhere)
         {
@@ -24,7 +24,7 @@
         {
             visitor.Enter(this);
             _pattern.Visit(visitor);
-            VisitIfNotNull(_optionalWhere, visitor);
+            _optionalWhere?.Visit(visitor);
             visitor.Leave(this);
         }
     }

@@ -12,13 +12,5 @@
             visitor.Enter(this);
             visitor.Leave(this);
         }
-
-        /// <summary>
-        /// A helper method that presents the visitor to the visitable if the visitable is not null.
-        /// Not meant to be overridden.
-        /// </summary>
-        /// <param name="visitable">The visitable to visit if not null</param>
-        /// <param name="visitor">The visitor to use</param>
-        public static void VisitIfNotNull(IVisitable visitable, CypherVisitor visitor) => visitable?.Visit(visitor);
     }
 }

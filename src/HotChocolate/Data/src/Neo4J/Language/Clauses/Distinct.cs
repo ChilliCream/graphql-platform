@@ -10,7 +10,5 @@
         {
             _value = value;
         }
-
-        public bool GetValue() => _value;
     }
 }

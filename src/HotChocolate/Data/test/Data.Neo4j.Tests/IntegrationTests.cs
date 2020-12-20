@@ -44,11 +44,7 @@ namespace HotChocolate.Data.Neo4J.Tests
                             {"ReleaseYear", Cypher.Null()}
                         });
 
-                CypherBuilder cypher = CypherBuilder.Builder().Create(new IPatternElement[] { movie1, movie2 });
-                //
-                // IResultCursor cursor = await session.RunAsync(cypher.Build());
-                // // assert
-                // cursor.MatchSnapshot();
+
             }
             finally
             {

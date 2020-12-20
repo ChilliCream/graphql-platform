@@ -3,7 +3,7 @@ using Neo4j.Driver;
 
 namespace HotChocolate.Data.Neo4J
 {
-    public class DbClient : IDbClient
+    public class DbClient
     {
         public bool IsConnected => Driver != null;
 

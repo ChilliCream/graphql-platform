@@ -117,7 +117,7 @@ namespace HotChocolate.Data.Neo4J.Language
         private static void AcceptVisitorWithOperatorForChildCondition(
             CypherVisitor visitor, Operator op, Condition condition)
         {
-            VisitIfNotNull(op, visitor);
+            op?.Visit(visitor);
             condition.Visit(visitor);
         }
     }

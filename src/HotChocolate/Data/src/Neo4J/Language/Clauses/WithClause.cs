@@ -7,13 +7,13 @@ namespace HotChocolate.Data.Neo4J.Language
     {
         public override ClauseKind Kind => ClauseKind.With;
 
-        private readonly Distinct _distinct;
+        private readonly Distinct? _distinct;
         private readonly ProjectionBody _projectionBody;
-        private readonly Where _where;
+        private readonly Where? _where;
 
         public WithClause(bool distinct, ExpressionList returnItems, Order order, Skip skip, Limit limit, Where where)
         {
-            _distinct = new Distinct(distinct);
+            _distinct = distinct ? new Distinct(true) : null;
             _projectionBody = new ProjectionBody(returnItems, order, skip, limit);
             _where = where;
         }
@@ -21,9 +21,9 @@ namespace HotChocolate.Data.Neo4J.Language
         public new void Visit(CypherVisitor visitor)
         {
             visitor.Enter(this);
-            VisitIfNotNull(_distinct, visitor);
+            _distinct?.Visit(visitor);
             _projectionBody.Visit(visitor);
-            VisitIfNotNull(_where, visitor);
+            _where?.Visit(visitor);
             visitor.Leave(this);
         }
     }

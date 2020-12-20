@@ -11,7 +11,7 @@ namespace HotChocolate.Data.Neo4J
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+
         }
     }
 }
