@@ -189,7 +189,7 @@ namespace HotChocolate.Data.MongoDb.Paging
             public string Bar { get; set; } = default!;
         }
 
-        private Func<IResolverContext, IExecutable<TResult>> BuildResolver<TResult>(
+        private Func<IResolverContext, MongoDbCollectionExecutable<TResult>> BuildResolver<TResult>(
             MongoResource mongoResource,
             IEnumerable<TResult> results)
             where TResult : class
