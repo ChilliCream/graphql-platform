@@ -36,8 +36,8 @@ namespace StrawberryShake.Remove
 
         public IOperationObservable<GetFooResult> Watch(
             string a,
-            string? b,
-            string? c,
+            string? b = null,
+            string? c = null,
             ExecutionStrategy? strategy = null)
         {
             if (a is null)

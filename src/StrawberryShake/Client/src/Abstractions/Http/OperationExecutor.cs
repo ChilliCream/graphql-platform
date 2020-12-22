@@ -1,21 +1,33 @@
 using System;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using StrawberryShake.Properties;
-using StrawberryShake.Remove;
 using static StrawberryShake.Properties.Resources;
 
 namespace StrawberryShake.Http
 {
-    public class HttpOperationExecutor<T> : IOperationExecutor<T> where T : class
+    public class OperationExecutor<TData, TResult>
+        : IOperationExecutor<TResult>
+        where TResult : class
+        where TData : class
     {
-        private readonly IConnection<JsonDocument> _connection;
-        private readonly IOperationResultBuilder<JsonDocument, T> _resultBuilder;
+        private readonly IConnection<TData> _connection;
+        private readonly Func<IOperationResultBuilder<TData, TResult>> _resultBuilder;
         private readonly IOperationStore _operationStore;
         private readonly ExecutionStrategy _strategy;
 
-        public async Task<IOperationResult<T>> ExecuteAsync(
+        public OperationExecutor(
+            IConnection<TData> connection,
+            Func<IOperationResultBuilder<TData, TResult>> resultBuilder,
+            IOperationStore operationStore,
+            ExecutionStrategy strategy = ExecutionStrategy.NetworkOnly)
+        {
+            _connection = connection;
+            _resultBuilder = resultBuilder;
+            _operationStore = operationStore;
+            _strategy = strategy;
+        }
+
+        public async Task<IOperationResult<TResult>> ExecuteAsync(
             OperationRequest request,
             CancellationToken cancellationToken = default)
         {
@@ -24,11 +36,12 @@ namespace StrawberryShake.Http
                 throw new ArgumentNullException(nameof(request));
             }
 
-            IOperationResult<T>? result = null;
+            IOperationResult<TResult>? result = null;
+            IOperationResultBuilder<TData, TResult> resultBuilder = _resultBuilder();
 
             await foreach (var response in _connection.ExecuteAsync(request, cancellationToken))
             {
-                result = _resultBuilder.Build(response);
+                result = resultBuilder.Build(response);
             }
 
             if (result is null)
@@ -39,7 +52,7 @@ namespace StrawberryShake.Http
             return result;
         }
 
-        public IOperationObservable<T> Watch(
+        public IOperationObservable<TResult> Watch(
             OperationRequest request,
             ExecutionStrategy? strategy = null)
         {
@@ -56,18 +69,18 @@ namespace StrawberryShake.Http
                 strategy ?? _strategy);
         }
 
-        private class HttpOperationExecutorObservable : IOperationObservable<T>
+        private class HttpOperationExecutorObservable : IOperationObservable<TResult>
         {
-            private readonly IConnection<JsonDocument> _connection;
+            private readonly IConnection<TData> _connection;
             private readonly IOperationStore _operationStore;
-            private readonly IOperationResultBuilder<JsonDocument, T> _resultBuilder;
+            private readonly Func<IOperationResultBuilder<TData, TResult>> _resultBuilder;
             private readonly OperationRequest _request;
             private readonly ExecutionStrategy _strategy;
 
             public HttpOperationExecutorObservable(
-                IConnection<JsonDocument> connection,
+                IConnection<TData> connection,
                 IOperationStore operationStore,
-                IOperationResultBuilder<JsonDocument, T> resultBuilder,
+                Func<IOperationResultBuilder<TData, TResult>> resultBuilder,
                 OperationRequest request,
                 ExecutionStrategy strategy)
             {
@@ -79,19 +92,19 @@ namespace StrawberryShake.Http
             }
 
             public IDisposable Subscribe(
-                IObserver<IOperationResult<T>> observer)
+                IObserver<IOperationResult<TResult>> observer)
             {
                 var hasResultInStore = false;
 
                 if ((_strategy == ExecutionStrategy.CacheFirst ||
                     _strategy == ExecutionStrategy.CacheAndNetwork) &&
-                    _operationStore.TryGet(_request, out IOperationResult<T>? result))
+                    _operationStore.TryGet(_request, out IOperationResult<TResult>? result))
                 {
                     hasResultInStore = true;
                     observer.OnNext(result);
                 }
 
-                IDisposable session = _operationStore.Watch<T>(_request).Subscribe(observer);
+                IDisposable session = _operationStore.Watch<TResult>(_request).Subscribe(observer);
 
                 if (_strategy != ExecutionStrategy.CacheFirst || !hasResultInStore)
                 {
@@ -102,14 +115,14 @@ namespace StrawberryShake.Http
             }
 
             public async ValueTask<IAsyncDisposable> SubscribeAsync(
-                IAsyncObserver<IOperationResult<T>> observer,
+                IAsyncObserver<IOperationResult<TResult>> observer,
                 CancellationToken cancellationToken = default)
             {
                 var hasResultInStore = false;
 
                 if ((_strategy == ExecutionStrategy.CacheFirst ||
                      _strategy == ExecutionStrategy.CacheAndNetwork) &&
-                    _operationStore.TryGet(_request, out IOperationResult<T>? result))
+                    _operationStore.TryGet(_request, out IOperationResult<TResult>? result))
                 {
                     hasResultInStore = true;
                     await observer
@@ -118,7 +131,7 @@ namespace StrawberryShake.Http
                 }
 
                 IAsyncDisposable session = await _operationStore
-                    .Watch<T>(_request)
+                    .Watch<TResult>(_request)
                     .SubscribeAsync(observer, cancellationToken)
                     .ConfigureAwait(false);
 
@@ -131,17 +144,27 @@ namespace StrawberryShake.Http
             }
 
             public void Subscribe(
-                Action<IOperationResult<T>> next,
+                Action<IOperationResult<TResult>> next,
                 CancellationToken cancellationToken = default)
             {
-                throw new NotImplementedException();
+                IDisposable session = Subscribe(new DelegateObserver<TResult>(next));
+                cancellationToken.Register(() => session.Dispose());
             }
 
             public void Subscribe(
-                Func<IOperationResult<T>, CancellationToken, ValueTask> nextAsync,
+                Func<IOperationResult<TResult>, CancellationToken, ValueTask> nextAsync,
                 CancellationToken cancellationToken = default)
             {
-                throw new NotImplementedException();
+                Task.Run(async () =>
+                {
+                    IAsyncDisposable session =
+                        await SubscribeAsync(
+                            new AsyncDelegateObserver<TResult>(nextAsync),
+                            cancellationToken)
+                            .ConfigureAwait(false);
+
+                    cancellationToken.Register(() => session.DisposeAsync());
+                }, cancellationToken);
             }
 
 
@@ -151,19 +174,14 @@ namespace StrawberryShake.Http
             private async Task ExecuteAsync(
                 CancellationToken cancellationToken)
             {
+                IOperationResultBuilder<TData, TResult> resultBuilder = _resultBuilder();
+
                 await foreach (var response in
                     _connection.ExecuteAsync(_request, cancellationToken).ConfigureAwait(false))
                 {
-                    _resultBuilder.Build(response);
+                    resultBuilder.Build(response);
                 }
             }
         }
-    }
-
-    public enum ExecutionStrategy
-    {
-        CacheFirst,
-        CacheAndNetwork,
-        NetworkOnly
     }
 }

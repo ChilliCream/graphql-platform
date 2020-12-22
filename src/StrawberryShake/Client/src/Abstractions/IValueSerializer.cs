@@ -27,4 +27,19 @@ namespace StrawberryShake
     {
         //OperationResult<FooQueryResult> Parse(Stream stream);
     }
+
+    public class Usage
+    {
+        public void Foo(GetFooQuery query)
+        {
+            // query.ExecuteAsync()
+
+            query
+                .Watch("a")
+                .Subscribe(result =>
+                {
+                    Console.WriteLine(result.Data!.Foo.Bar);
+                });
+        }
+    }
 }
