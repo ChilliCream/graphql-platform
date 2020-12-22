@@ -21,9 +21,12 @@ namespace StrawberryShake.Http
             IOperationStore operationStore,
             ExecutionStrategy strategy = ExecutionStrategy.NetworkOnly)
         {
-            _connection = connection;
-            _resultBuilder = resultBuilder;
-            _operationStore = operationStore;
+            _connection = connection ??
+                throw new ArgumentNullException(nameof(connection));
+            _resultBuilder = resultBuilder ??
+                throw new ArgumentNullException(nameof(resultBuilder));
+            _operationStore = operationStore ??
+                throw new ArgumentNullException(nameof(operationStore));
             _strategy = strategy;
         }
 
