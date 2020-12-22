@@ -3,11 +3,12 @@
 
   <PropertyGroup>
     <AssemblyName>StrawberryShake.Abstractions.Tests</AssemblyName>
-    <RootNamespace>StrawberryShake.Abstractions</RootNamespace>
+    <RootNamespace>StrawberryShake</RootNamespace>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\HotChocolate\AspNetCore\test\AspNetCore.Tests\HotChocolate.AspNetCore.Tests.csproj" />
     <ProjectReference Include="..\..\src\Abstractions\StrawberryShake.Abstractions.csproj" />
   </ItemGroup>
 

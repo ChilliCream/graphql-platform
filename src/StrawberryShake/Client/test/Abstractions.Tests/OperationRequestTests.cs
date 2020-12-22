@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Moq;
 using Xunit;
 
-namespace StrawberryShake.Abstractions
+namespace StrawberryShake
 {
     public class OperationRequestTests
     {

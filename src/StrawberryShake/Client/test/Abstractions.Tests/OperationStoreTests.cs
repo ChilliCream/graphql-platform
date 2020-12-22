@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Moq;
 using Xunit;
 
-namespace StrawberryShake.Abstractions
+namespace StrawberryShake
 {
     public class OperationStoreTests
     {
