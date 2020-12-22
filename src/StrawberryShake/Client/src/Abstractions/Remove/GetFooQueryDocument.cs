@@ -1,7 +1,7 @@
 using System;
 using System.Text;
 
-namespace StrawberryShake
+namespace StrawberryShake.Remove
 {
     public class GetFooQueryDocument : IDocument
     {

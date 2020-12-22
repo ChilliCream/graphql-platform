@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace StrawberryShake
+namespace StrawberryShake.Remove
 {
     public class FooEntity
     {

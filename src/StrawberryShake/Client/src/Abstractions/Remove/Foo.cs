@@ -1,4 +1,4 @@
-namespace StrawberryShake
+namespace StrawberryShake.Remove
 {
     public partial class Foo
     {
