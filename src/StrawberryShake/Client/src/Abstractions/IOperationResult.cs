@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using StrawberryShake.Properties;
+using static StrawberryShake.Properties.Resources;
 
 namespace StrawberryShake
 {
@@ -16,10 +19,40 @@ namespace StrawberryShake
 
         IReadOnlyDictionary<string, object?> Extensions { get; }
 
+        IReadOnlyDictionary<string, object?> ContextData { get; }
+
         Type ResultType { get; }
+    }
 
-        bool HasErrors { get; }
+    public class OperationResult<T> : IOperationResult<T> where T : class
+    {
+        public OperationResult(
+            T? data,
+            IReadOnlyList<IError>? errors,
+            IReadOnlyDictionary<string, object?>? extensions = null,
+            IReadOnlyDictionary<string, object?>? contextData = null)
+        {
+            if (data is null && errors is null)
+            {
+                throw new ArgumentNullException(nameof(data), Response_BodyAndExceptionAreNull);
+            }
 
-        void EnsureNoErrors();
+            Data = data;
+            Errors = errors ?? Array.Empty<IError>();
+            Extensions = extensions ?? ImmutableDictionary<string, object?>.Empty;
+            ContextData = contextData ?? ImmutableDictionary<string, object?>.Empty;
+        }
+
+        public T? Data { get; }
+
+        object? IOperationResult.Data => Data;
+
+        public IReadOnlyList<IError> Errors { get; }
+
+        public IReadOnlyDictionary<string, object?> Extensions { get; }
+
+        public IReadOnlyDictionary<string, object?> ContextData { get; }
+
+        public Type ResultType => typeof(T);
     }
 }

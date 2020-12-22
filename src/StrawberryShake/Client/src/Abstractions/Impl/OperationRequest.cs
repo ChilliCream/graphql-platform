@@ -1,12 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace StrawberryShake
 {
     public sealed class OperationRequest : IEquatable<OperationRequest>
     {
-        private static readonly IReadOnlyDictionary<string, object?> _empty =
-            new Dictionary<string, object?>();
         private readonly IReadOnlyDictionary<string, object?> _variables;
         private Dictionary<string, object?>? _extensions;
         private Dictionary<string, object?>? _contextData;
@@ -28,7 +27,7 @@ namespace StrawberryShake
             Id = id;
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Document = document ?? throw new ArgumentNullException(nameof(document));
-            _variables = variables ?? _empty;
+            _variables = variables ?? ImmutableDictionary<string, object?>.Empty;
         }
 
         public void Deconstruct(

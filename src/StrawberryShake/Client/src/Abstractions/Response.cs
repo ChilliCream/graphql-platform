@@ -1,4 +1,6 @@
 using System;
+using StrawberryShake.Properties;
+using static StrawberryShake.Properties.Resources;
 
 namespace StrawberryShake
 {
@@ -26,8 +28,7 @@ namespace StrawberryShake
         {
             if (body is null && exception is null)
             {
-                throw new ArgumentNullException(nameof(body),
-                    "Either body or exception have to be set.");
+                throw new ArgumentNullException(nameof(body), Response_BodyAndExceptionAreNull);
             }
 
             Body = body;
@@ -39,6 +40,9 @@ namespace StrawberryShake
         /// </summary>
         public TBody? Body { get; }
 
+        /// <summary>
+        /// The transport exception.
+        /// </summary>
         public Exception? Exception { get; }
 
         /// <summary>

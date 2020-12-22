@@ -28,11 +28,4 @@ namespace StrawberryShake
         ValueTask OnErrorAsync(Exception error, CancellationToken cancellationToken = default);
         ValueTask OnNextAsync(T value, CancellationToken cancellationToken = default);
     }
-
-    public interface IOperationExecutor<T> where T : class
-    {
-        Task<IOperationResult<T>> ExecuteAsync(
-            OperationRequest request,
-            CancellationToken cancellationToken = default);
-    }
 }

@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace StrawberryShake
 {
@@ -27,91 +25,6 @@ namespace StrawberryShake
     public interface IResultReader
     {
         //OperationResult<FooQueryResult> Parse(Stream stream);
-    }
-
-
-    public class GetFooQuery
-    {
-        private readonly IOperationExecutor<GetFooResult> _operationExecutor;
-        private readonly IOperationStore _operationStore;
-
-        public GetFooQuery(
-            IOperationExecutor<GetFooResult> operationExecutor,
-            IOperationStore operationStore)
-        {
-            _operationExecutor = operationExecutor;
-            _operationStore = operationStore;
-        }
-
-        public async Task<IOperationResult<GetFooResult>> ExecuteAsync(
-            string a, string b, string c,
-            CancellationToken cancellationToken = default)
-        {
-            // var request = new OperationRequest();
-            // request.Variables.Add("a", a);
-            // request.Variables.Add("b", b);
-            // request.Variables.Add("c", c);
-
-            return await _operationExecutor
-                .ExecuteAsync(null, cancellationToken)
-                .ConfigureAwait(false);
-        }
-
-        public IOperationObservable<GetFooResult> Watch(
-            string a, string b, string c)
-        {
-            throw new NotImplementedException();
-        }
-
-        private class GetFooQueryObservable : IOperationObservable<GetFooResult>
-        {
-            private readonly IOperationExecutor<GetFooResult> _operationExecutor;
-            private readonly IOperationStore _operationStore;
-            private readonly GetFooQueryRequest _request;
-
-            public ValueTask<IAsyncDisposable> SubscribeAsync(IAsyncObserver<IOperationResult<GetFooResult>> observer, CancellationToken cancellationToken = default)
-            {
-                throw new NotImplementedException();
-            }
-
-            public void Subscribe(Func<IOperationResult<GetFooResult>, CancellationToken, ValueTask> nextAsync, CancellationToken cancellationToken = default)
-            {
-                throw new NotImplementedException();
-            }
-
-            public IDisposable Subscribe(
-                IObserver<IOperationResult<GetFooResult>> observer)
-            {
-                throw new NotImplementedException();
-            }
-
-            public void Subscribe(
-                Action<IOperationResult<GetFooResult>> next,
-                CancellationToken cancellationToken = default)
-            {
-
-
-
-                throw new NotImplementedException();
-            }
-            //
-            // public void Subscribe(
-            //     Func<IOperationResult<GetFooResult>, ValueTask> nextAsync,
-            //     CancellationToken cancellationToken = default)
-            // {
-            //     Task.Run(async () =>
-            //         {
-            //             _operationStore
-            //                 .Watch<GetFooResult>(_request)
-            //                 .Subscribe(nextAsync, cancellationToken);
-            //
-            //             await _operationExecutor
-            //                 .ExecuteAsync(_request, cancellationToken)
-            //                 .ConfigureAwait(false);
-            //         },
-            //         cancellationToken);
-            // }
-        }
     }
 
 
@@ -145,17 +58,4 @@ namespace StrawberryShake
      * }
      * }
      */
-
-    public class GetFooResult
-    {
-        public Foo Foo { get; }
-    }
-
-
-    public partial class Foo
-    {
-        public string Bar { get; }
-
-        public Baz Baz { get;  }
-    }
 }
