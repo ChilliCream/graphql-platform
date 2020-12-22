@@ -2,20 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using StrawberryShake.Http;
 
 namespace StrawberryShake.Remove
 {
     public class GetFooQuery
     {
         private readonly IOperationExecutor<GetFooResult> _operationExecutor;
-        private readonly IOperationStore _operationStore;
 
-        public GetFooQuery(
-            IOperationExecutor<GetFooResult> operationExecutor,
-            IOperationStore operationStore)
+        public GetFooQuery(IOperationExecutor<GetFooResult> operationExecutor)
         {
-            _operationExecutor = operationExecutor;
-            _operationStore = operationStore;
+            _operationExecutor = operationExecutor ??
+                throw new ArgumentNullException(nameof(operationExecutor));
         }
 
         public async Task<IOperationResult<GetFooResult>> ExecuteAsync(
@@ -39,7 +37,8 @@ namespace StrawberryShake.Remove
         public IOperationObservable<GetFooResult> Watch(
             string a,
             string? b,
-            string? c)
+            string? c,
+            ExecutionStrategy? strategy = null)
         {
             if (a is null)
             {
@@ -48,7 +47,7 @@ namespace StrawberryShake.Remove
 
             OperationRequest request = CreateRequest(a, b, c);
 
-            return _operationExecutor.Watch(request);
+            return _operationExecutor.Watch(request, strategy);
         }
 
         private OperationRequest CreateRequest(

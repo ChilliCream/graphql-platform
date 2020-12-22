@@ -13,6 +13,7 @@ namespace StrawberryShake.Remove
         public static GetFooQueryDocument Instance { get; } = new();
 
         public OperationKind Kind => OperationKind.Query;
+
         public ReadOnlySpan<byte> Body => _body;
 
         public override string ToString() => _bodyString;

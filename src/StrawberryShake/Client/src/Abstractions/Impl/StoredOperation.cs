@@ -90,7 +90,8 @@ namespace StrawberryShake
                 throw new ArgumentNullException(nameof(next));
             }
 
-            var subscription = new Subscription(new DelegateObserver(next), Unsubscribe);
+            var subscription = new Subscription(
+                new DelegateObserver<T>(next), Unsubscribe);
             cancellationToken.Register(() => subscription.Dispose());
 
             lock (_sync)
@@ -108,7 +109,8 @@ namespace StrawberryShake
                 throw new ArgumentNullException(nameof(nextAsync));
             }
 
-            var subscription = new Subscription(new AsyncDelegateObserver(nextAsync), Unsubscribe);
+            var subscription = new Subscription(
+                new AsyncDelegateObserver<T>(nextAsync), Unsubscribe);
             cancellationToken.Register(() => subscription.Dispose());
 
             lock (_sync)
@@ -139,50 +141,6 @@ namespace StrawberryShake
 
                 _disposed = true;
             }
-        }
-
-        private class DelegateObserver : IObserver<IOperationResult<T>>
-        {
-            private readonly Action<IOperationResult<T>> _next;
-
-            public DelegateObserver(Action<IOperationResult<T>> next)
-            {
-                _next = next;
-            }
-
-            public void OnNext(IOperationResult<T> value) => _next(value);
-
-            public void OnError(Exception error)
-            {
-            }
-
-            public void OnCompleted()
-            {
-            }
-        }
-
-        private class AsyncDelegateObserver : IAsyncObserver<IOperationResult<T>>
-        {
-            private readonly Func<IOperationResult<T>, CancellationToken, ValueTask> _nextAsync;
-
-            public AsyncDelegateObserver(
-                Func<IOperationResult<T>, CancellationToken, ValueTask> nextAsync)
-            {
-                _nextAsync = nextAsync;
-            }
-
-            public ValueTask OnNextAsync(
-                IOperationResult<T> value,
-                CancellationToken cancellationToken = default) =>
-                _nextAsync(value, cancellationToken);
-
-            public ValueTask OnErrorAsync(
-                Exception error,
-                CancellationToken cancellationToken = default) =>
-                default;
-
-            public ValueTask OnCompletedAsync() =>
-                default;
         }
 
         private class Subscription : IDisposable, IAsyncDisposable
