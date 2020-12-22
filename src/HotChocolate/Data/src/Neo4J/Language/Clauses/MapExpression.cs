@@ -4,8 +4,10 @@ namespace HotChocolate.Data.Neo4J.Language
 {
     public class MapExpression : Visitable// : TypedSubtree<Expression, MapExpression>
     {
+
         public override ClauseKind Kind => ClauseKind.MapExpression;
 
+        private readonly List<Expression> _values;
         public readonly Dictionary<string, ILiteral> _exps;
         private readonly List<KeyValueMapEntry> _expressions;
 
@@ -39,10 +41,10 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public List<KeyValueMapEntry> GetValues() => _expressions;
 
-        // public static MapExpression WithEntries(List<Expression> entries)
-        // {
-        //     return new MapExpression(entries);
-        // }
+        public static MapExpression WithEntries(List<Expression> entries)
+        {
+             return new MapExpression(entries);
+        }
 
         // public MapExpression AddEntries(List<Expression> entries)
         // {

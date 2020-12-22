@@ -3,5 +3,5 @@
     /// <summary>
     /// https://s3.amazonaws.com/artifacts.opencypher.org/railroad/PatternElement.html
     /// </summary>
-    public abstract class PatternElement : Visitable, IPatternElement { }
+    public abstract class PatternElement : Visitable { }
 }

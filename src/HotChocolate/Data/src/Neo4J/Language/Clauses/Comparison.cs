@@ -6,11 +6,11 @@
     public class Comparison : Condition
     {
         public override ClauseKind Kind => ClauseKind.Default;
-        private readonly Expression _left;
+        private readonly Expression? _left;
         private readonly Operator _operator;
-        private readonly Expression _right;
+        private readonly Expression? _right;
 
-        public Comparison(Expression left, Operator op, Expression right)
+        public Comparison(Expression? left, Operator op, Expression? right)
         {
             _left = NestedIfCondition(left);
             _operator = op;
@@ -27,7 +27,7 @@
             throw new System.ArgumentException("Invalid operator type"),
         };
 
-        private static Expression NestedIfCondition(Expression expression) =>
+        private static Expression? NestedIfCondition(Expression? expression) =>
             expression is Condition ? new NestedExpression(expression) : expression;
 
         public new void Visit(CypherVisitor visitor)

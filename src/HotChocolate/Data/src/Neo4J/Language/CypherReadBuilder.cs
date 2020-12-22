@@ -8,8 +8,6 @@ namespace HotChocolate.Data.Neo4J.Language
         private readonly Where _where;
         private readonly ReturnClause _return;
 
-
-
         public string Build()
         {
             using var visitor = new CypherVisitor();

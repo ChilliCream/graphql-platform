@@ -7,47 +7,27 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class Operations
     {
-        static Operation Concat(Expression op1, Expression op2)
-        {
+        public static Operation Concat(Expression op1, Expression op2) =>
+            Operation.Create(op1, Operator.Concat, op2);
 
-            return Operation.Create(op1, Operator.Concat, op2);
-        }
+        public static Operation Add(Expression op1, Expression op2) =>
+            Operation.Create(op1, Operator.Addition, op2);
 
-        static Operation Add(Expression op1, Expression op2)
-        {
 
-            return Operation.Create(op1, Operator.Addition, op2);
-        }
+        public static Operation Subtract(Expression op1, Expression op2) =>
+            Operation.Create(op1, Operator.Subtraction, op2);
 
-        static Operation Subtract(Expression op1, Expression op2)
-        {
+        public static Operation Multiply(Expression op1, Expression op2) =>
+            Operation.Create(op1, Operator.Multiplication, op2);
 
-            return Operation.Create(op1, Operator.Subtraction, op2);
-        }
+        public static Operation Divide(Expression op1, Expression op2) =>
+            Operation.Create(op1, Operator.Division, op2);
 
-        static Operation Multiply(Expression op1, Expression op2)
-        {
+        public static Operation Remainder(Expression op1, Expression op2) =>
+            Operation.Create(op1, Operator.Modulo, op2);
 
-            return Operation.Create(op1, Operator.Multiplication, op2);
-        }
-
-        static Operation Divide(Expression op1, Expression op2)
-        {
-
-            return Operation.Create(op1, Operator.Division, op2);
-        }
-
-        static Operation Remainder(Expression op1, Expression op2)
-        {
-
-            return Operation.Create(op1, Operator.Modulo, op2);
-        }
-
-        static Operation Pow(Expression op1, Expression op2)
-        {
-
-            return Operation.Create(op1, Operator.Exponent, op2);
-        }
+        public static Operation Pow(Expression op1, Expression op2) =>
+            Operation.Create(op1, Operator.Exponent, op2);
 
         /**
 		 * Creates a {@code =} operation. The left hand side should resolve to a property or to something which has labels
@@ -57,7 +37,7 @@ namespace HotChocolate.Data.Neo4J.Language
 		 * @param value  The new value of the target
 		 * @return A new operation.
 		 */
-        static Operation Set(Expression target, Expression value)
+        public static Operation Set(Expression target, Expression value)
         {
 
             return Operation.Create(target, Operator.Set, value);

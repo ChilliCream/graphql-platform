@@ -12,7 +12,6 @@ namespace HotChocolate.Data.Neo4J.Language
         private readonly Operator _op;
         private readonly Visitable _right;
 
-
         public static Operation Create(Expression op1, Operator op, Expression op2)
         {
             _ = op1 ?? throw new ArgumentNullException(nameof(op1));
@@ -24,7 +23,6 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public Operation(Expression left, Operator op, Expression right)
         {
-
             _left = left;
             _op = op;
             _right = right;

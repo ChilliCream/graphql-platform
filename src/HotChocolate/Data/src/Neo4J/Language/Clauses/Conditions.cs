@@ -6,7 +6,7 @@
     public static class Conditions
     {
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="lhs"></param>
         /// <param name="rhs"></param>
@@ -15,7 +15,7 @@
             Comparison.Create(lhs, Operator.Matches, rhs);
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="lhs"></param>
         /// <param name="rhs"></param>
@@ -24,7 +24,7 @@
             Comparison.Create(lhs, Operator.Equality, rhs);
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="lhs"></param>
         /// <param name="rhs"></param>
@@ -33,7 +33,7 @@
             Comparison.Create(lhs, Operator.InEquality, rhs);
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="lhs"></param>
         /// <param name="rhs"></param>
@@ -42,7 +42,7 @@
             Comparison.Create(lhs, Operator.LessThan, rhs);
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="lhs"></param>
         /// <param name="rhs"></param>
@@ -51,7 +51,7 @@
             Comparison.Create(lhs, Operator.LessThanOrEqualTo, rhs);
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="lhs"></param>
         /// <param name="rhs"></param>
@@ -60,7 +60,7 @@
             Comparison.Create(lhs, Operator.GreaterThan, rhs);
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="lhs"></param>
         /// <param name="rhs"></param>
@@ -71,5 +71,21 @@
         public static Condition Not(Condition condition) => condition.Not();
 
         public static Condition Not(PatternElement patternElement) => new ExcludePattern(patternElement);
+
+        public static Condition StartsWith(Expression lhs, Expression rhs) =>
+            Comparison.Create(lhs, Operator.StartsWith, rhs);
+
+        public static Condition EndsWith(Expression lhs, Expression rhs) =>
+            Comparison.Create(lhs, Operator.EndsWith, rhs);
+
+        public static Condition Contains(Expression lhs, Expression rhs) =>
+            Comparison.Create(lhs, Operator.Contains, rhs);
+
+        public static Condition IsNull(Expression expression) =>
+            Comparison.Create(Operator.IsNull, expression);
+
+        public static Condition IsNotNull(Expression expression) =>
+            Comparison.Create(Operator.IsNotNull, expression);
+
     }
 }
