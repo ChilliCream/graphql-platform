@@ -19,6 +19,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StrawberryShake.Abstraction
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StrawberryShake.Abstractions.Tests", "test\Abstractions.Tests\StrawberryShake.Abstractions.Tests.csproj", "{09707973-51B2-410C-8AE9-8E43AE76B41E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StrawberryShake.Resources", "src\Resources\StrawberryShake.Resources.csproj", "{33EB7848-2AA6-462A-A780-9B1BB617A0DA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -53,6 +55,18 @@ Global
 		{09707973-51B2-410C-8AE9-8E43AE76B41E}.Release|x64.Build.0 = Release|Any CPU
 		{09707973-51B2-410C-8AE9-8E43AE76B41E}.Release|x86.ActiveCfg = Release|Any CPU
 		{09707973-51B2-410C-8AE9-8E43AE76B41E}.Release|x86.Build.0 = Release|Any CPU
+		{33EB7848-2AA6-462A-A780-9B1BB617A0DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{33EB7848-2AA6-462A-A780-9B1BB617A0DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{33EB7848-2AA6-462A-A780-9B1BB617A0DA}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{33EB7848-2AA6-462A-A780-9B1BB617A0DA}.Debug|x64.Build.0 = Debug|Any CPU
+		{33EB7848-2AA6-462A-A780-9B1BB617A0DA}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{33EB7848-2AA6-462A-A780-9B1BB617A0DA}.Debug|x86.Build.0 = Debug|Any CPU
+		{33EB7848-2AA6-462A-A780-9B1BB617A0DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{33EB7848-2AA6-462A-A780-9B1BB617A0DA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{33EB7848-2AA6-462A-A780-9B1BB617A0DA}.Release|x64.ActiveCfg = Release|Any CPU
+		{33EB7848-2AA6-462A-A780-9B1BB617A0DA}.Release|x64.Build.0 = Release|Any CPU
+		{33EB7848-2AA6-462A-A780-9B1BB617A0DA}.Release|x86.ActiveCfg = Release|Any CPU
+		{33EB7848-2AA6-462A-A780-9B1BB617A0DA}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -60,6 +74,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{1EEB0D18-F7F9-4307-8D25-56B0E8805B13} = {F86146F2-8FDF-48FB-93B5-5803B73F1418}
 		{09707973-51B2-410C-8AE9-8E43AE76B41E} = {8D560D9D-FD1A-47F9-8DA6-1882E375F5D4}
+		{33EB7848-2AA6-462A-A780-9B1BB617A0DA} = {F86146F2-8FDF-48FB-93B5-5803B73F1418}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E0A4F9E5-A3D7-44E5-9EF4-54F62F627484}

@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>StrawberryShake.Resources</PackageId>
+    <AssemblyName>StrawberryShake.Resources</AssemblyName>
+    <RootNamespace>StrawberryShake</RootNamespace>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>

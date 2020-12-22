@@ -6,9 +6,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.TestHost;
 using HotChocolate.AspNetCore.Utilities;
-using Moq;
 using Snapshooter.Xunit;
-using StrawberryShake.Http;
 using Xunit;
 
 namespace StrawberryShake.Http
