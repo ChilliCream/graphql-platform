@@ -9,21 +9,18 @@ namespace StrawberryShake.Remove
     {
         private readonly IEntityStore _entityStore;
         private readonly Func<JsonElement, EntityId> _extractId;
-        private readonly IEntityMapper<HumanEntity, HumanHero> _humanHeroMapper;
-        private readonly IEntityMapper<DroidEntity, DroidHero> _droidHeroMapper;
+        private readonly IOperationResultDataFactory<GetHeroResult> _operationResultDataFactory;
         private readonly IValueSerializer<string, string> _stringSerializer;
 
         public GetHeroResultBuilder(
             IEntityStore entityStore,
             Func<JsonElement, EntityId> extractId,
-            IEntityMapper<HumanEntity, HumanHero> humanHeroMapper,
-            IEntityMapper<DroidEntity, DroidHero> droidHeroMapper,
+            IOperationResultDataFactory<GetHeroResult> operationResultDataFactory,
             IValueSerializerResolver valueSerializerResolver)
         {
             _entityStore = entityStore;
             _extractId = extractId;
-            _humanHeroMapper = humanHeroMapper;
-            _droidHeroMapper = droidHeroMapper;
+            _operationResultDataFactory = operationResultDataFactory;
             _stringSerializer = valueSerializerResolver.GetValueSerializer<string, string>("String");
         }
 
@@ -44,35 +41,27 @@ namespace StrawberryShake.Remove
 
         private GetHeroResult BuildDataFromJson(JsonElement obj)
         {
-            // store updates ...
-            EntityId heroId;
-
             using (_entityStore.BeginUpdate())
             {
-                heroId = UpdateHeroEntity(obj.GetProperty("hero"));
+                var entityIds = new HashSet<EntityId>();
+
+                // store updates ...
+                EntityId heroId = UpdateHeroEntity(obj.GetProperty("hero"), entityIds);
+
+                // build result
+                var resultInfo = new GetHeroResultInfo(
+                    heroId,
+                    DeserializeNonNullString(obj, "version"),
+                    entityIds);
+
+                return _operationResultDataFactory.Create(resultInfo);
             }
-
-            // create result
-            IHero hero = default!;
-
-            if (heroId.Name.Equals("Human", StringComparison.Ordinal))
-            {
-                hero = _humanHeroMapper.Map(_entityStore.GetEntity<HumanEntity>(heroId)!);
-            }
-
-            if (heroId.Name.Equals("Droid", StringComparison.Ordinal))
-            {
-                hero = _droidHeroMapper.Map(_entityStore.GetEntity<DroidEntity>(heroId)!);
-            }
-
-            return new GetHeroResult(
-                hero,
-                DeserializeNonNullString(obj, "version"));
         }
 
-        private EntityId UpdateHeroEntity(JsonElement obj)
+        private EntityId UpdateHeroEntity(JsonElement obj, ISet<EntityId> entityIds)
         {
             EntityId entityId = _extractId(obj);
+            entityIds.Add(entityId);
 
             if (entityId.Name.Equals("Human", StringComparison.Ordinal))
             {
@@ -83,7 +72,7 @@ namespace StrawberryShake.Remove
 
                 foreach (JsonElement child in obj.GetProperty("friends").EnumerateArray())
                 {
-                    friends.Add(UpdateFriendEntity(child));
+                    friends.Add(UpdateFriendEntity(child, entityIds));
                 }
 
                 entity.Friends = friends;
@@ -98,7 +87,7 @@ namespace StrawberryShake.Remove
 
                 foreach (JsonElement child in obj.GetProperty("friends").EnumerateArray())
                 {
-                    friends.Add(UpdateFriendEntity(child));
+                    friends.Add(UpdateFriendEntity(child, entityIds));
                 }
 
                 entity.Friends = friends;
@@ -107,9 +96,10 @@ namespace StrawberryShake.Remove
             throw new NotSupportedException();
         }
 
-        private EntityId UpdateFriendEntity(JsonElement obj)
+        private EntityId UpdateFriendEntity(JsonElement obj, ISet<EntityId> entityIds)
         {
             EntityId entityId = _extractId(obj);
+            entityIds.Add(entityId);
 
             if (entityId.Name.Equals("Human", StringComparison.Ordinal))
             {
@@ -128,7 +118,8 @@ namespace StrawberryShake.Remove
 
         private string DeserializeNonNullString(JsonElement obj, string propertyName)
         {
-            if (obj.TryGetProperty(propertyName, out JsonElement property))
+            if (obj.TryGetProperty(propertyName, out JsonElement property) &&
+                property.ValueKind != JsonValueKind.Null)
             {
                 _stringSerializer.Deserialize(property.GetString());
             }

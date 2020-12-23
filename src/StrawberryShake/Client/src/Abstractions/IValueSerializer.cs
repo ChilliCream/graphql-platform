@@ -25,7 +25,7 @@ namespace StrawberryShake
 
     public interface IOperationResultData
     {
-        //IEnumerable<EntityId> GetEntityIds();
+        IEnumerable<EntityId> GetEntityIds();
     }
 
     public interface IHasEntityDependencies
