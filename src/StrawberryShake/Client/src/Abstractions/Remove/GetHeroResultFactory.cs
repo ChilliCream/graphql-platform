@@ -2,13 +2,13 @@ using System;
 
 namespace StrawberryShake.Remove
 {
-    public class GerHeroResultFactory : IOperationResultDataFactory<GetHeroResult>
+    public class GetHeroResultFactory : IOperationResultDataFactory<GetHeroResult>
     {
         private readonly IEntityStore _entityStore;
         private readonly IEntityMapper<HumanEntity, HumanHero> _humanHeroMapper;
         private readonly IEntityMapper<DroidEntity, DroidHero> _droidHeroMapper;
 
-        public GerHeroResultFactory(
+        public GetHeroResultFactory(
             IEntityStore entityStore,
             IEntityMapper<HumanEntity, HumanHero> humanHeroMapper,
             IEntityMapper<DroidEntity, DroidHero> droidHeroMapper)
@@ -21,9 +21,9 @@ namespace StrawberryShake.Remove
                 throw new ArgumentNullException(nameof(droidHeroMapper));
         }
 
-        public GetHeroResult Create(IOperationResultDataInfo resultInfo)
+        public GetHeroResult Create(IOperationResultDataInfo dataInfo)
         {
-            if (resultInfo is GetHeroResultInfo info)
+            if (dataInfo is GetHeroResultInfo info)
             {
                 IHero hero = default!;
 

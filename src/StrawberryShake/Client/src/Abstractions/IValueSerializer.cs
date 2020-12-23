@@ -23,23 +23,6 @@ namespace StrawberryShake
         TRuntime Deserialize(TData data);
     }
 
-    public interface IOperationResultData
-    {
-        IEnumerable<EntityId> GetEntityIds();
-    }
-
-    public interface IHasEntityDependencies
-    {
-
-    }
-
-    public interface IEntityMapper<in TEntity, out TModel>
-        where TEntity : class
-        where TModel : class
-    {
-        TModel Map(TEntity entity);
-    }
-
 
     // knows about operation store and entity store and data
     public interface IResultReader

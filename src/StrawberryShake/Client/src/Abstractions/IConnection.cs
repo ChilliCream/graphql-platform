@@ -7,8 +7,8 @@ namespace StrawberryShake
     /// A connection represents a transport connection to a GraphQL server and allows to execute
     /// requests against it.
     /// </summary>
-    /// <typeparam name="TBody"></typeparam>
-    public interface IConnection<TBody> where TBody : class
+    /// <typeparam name="TResponseBody"></typeparam>
+    public interface IConnection<TResponseBody> where TResponseBody : class
     {
         /// <summary>
         /// Executes a request and yields the results.
@@ -22,7 +22,7 @@ namespace StrawberryShake
         /// <returns>
         /// The results of the request.
         /// </returns>
-        IAsyncEnumerable<Response<TBody>> ExecuteAsync(
+        IAsyncEnumerable<Response<TResponseBody>> ExecuteAsync(
             OperationRequest request,
             CancellationToken cancellationToken = default);
     }
