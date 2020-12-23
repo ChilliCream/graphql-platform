@@ -1,9 +1,16 @@
 ﻿[global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-public static partial class FooFromFooEntityMapper
+public partial class FooFromFooEntityMapper
+    : IEntityMapper<FooEntity, Foo>
 {
-    public static Foo Map(
-        FooEntity entity,
-        IEntityStore entityStore)
+    private readonly IEntityStore _entityStore;
+
+    public FooFromFooEntityMapper(IEntityStore entityStore)
+    {
+        _entityStore = entityStore
+             ?? throw new ArgumentNullException(nameof(entityStore));
+    }
+
+    public Foo Map(FooEntity entity)
     {
         return new Foo(
             entity.SomeText,

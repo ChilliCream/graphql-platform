@@ -56,5 +56,7 @@ namespace StrawberryShake
         public IReadOnlyDictionary<string, object?> ContextData { get; }
 
         public Type ResultType => typeof(T);
+
+        public object ResultInfo { get; }
     }
 }

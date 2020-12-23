@@ -44,7 +44,7 @@ namespace StrawberryShake.Remove
                     info.Version);
             }
 
-            throw new ArgumentException("GetHeroResultInfo expected.")
+            throw new ArgumentException("GetHeroResultInfo expected.");
         }
     }
 }
