@@ -17,12 +17,12 @@ namespace StrawberryShake
         /// <summary>
         /// Build runtime operation result.
         /// </summary>
-        /// <param name="data">
+        /// <param name="response">
         /// The serialized result.
         /// </param>
         /// <returns>
         /// Returns the runtime result.
         /// </returns>
-        IOperationResult<TResult> Build(Response<TData> data);
+        IOperationResult<TResult> Build(Response<TData> response);
     }
 }

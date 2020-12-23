@@ -7,18 +7,37 @@ using StrawberryShake.Remove;
 
 namespace StrawberryShake
 {
-
-    // does just know entities and data
-    public interface IEntityWriter<in TData, in TEntity> where TEntity : class
+    public interface IValueSerializerResolver
     {
-        /// <summary>
-        /// Gets the GraphQL type name.
-        /// </summary>
-        string Name { get; }
+        IValueSerializer<TData, TRuntime> GetValueSerializer<TData, TRuntime>(string name);
+    }
 
-        EntityId ExtractId(TData data);
 
-        void Write(TData data, TEntity entity);
+    public interface IValueSerializer
+    {
+
+    }
+
+    public interface IValueSerializer<in TData, out TRuntime> : IValueSerializer
+    {
+        TRuntime Deserialize(TData data);
+    }
+
+    public interface IOperationResultData
+    {
+        IEnumerable<EntityId> GetEntityIds()
+    }
+
+    public interface IHasEntityDependencies
+    {
+
+    }
+
+    public interface IEntityMapper<in TEntity, out TModel>
+        where TEntity : class
+        where TModel : class
+    {
+        TModel Map(TEntity entity);
     }
 
 
@@ -26,20 +45,5 @@ namespace StrawberryShake
     public interface IResultReader
     {
         //OperationResult<FooQueryResult> Parse(Stream stream);
-    }
-
-    public class Usage
-    {
-        public void Foo(GetFooQuery query)
-        {
-            // query.ExecuteAsync()
-
-            query
-                .Watch("a")
-                .Subscribe(result =>
-                {
-                    Console.WriteLine(result.Data!.Foo.Bar);
-                });
-        }
     }
 }

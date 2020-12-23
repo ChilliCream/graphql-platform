@@ -218,7 +218,7 @@ namespace StrawberryShake.Generators
                 context,
                 operation,
                 bar,
-                bar,
+                bar,obj.GetProperty("bar")
                 field,
                 context.CollectFields(bar, field.SelectionSet, path),
                 path);
