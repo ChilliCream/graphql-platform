@@ -4,17 +4,17 @@ using System.Threading.Tasks;
 
 namespace StrawberryShake
 {
-    public interface IOperationObservable<T>
-        : IObservable<IOperationResult<T>>
-        , IAsyncObservable<IOperationResult<T>>
-        where T : class
+    public interface IOperationObservable<out TResultData>
+        : IObservable<IOperationResult<TResultData>>
+        , IAsyncObservable<IOperationResult<TResultData>>
+        where TResultData : class
     {
         void Subscribe(
-            Action<IOperationResult<T>> next,
+            Action<IOperationResult<TResultData>> next,
             CancellationToken cancellationToken = default);
 
         void Subscribe(
-            Func<IOperationResult<T>, CancellationToken, ValueTask> nextAsync,
+            Func<IOperationResult<TResultData>, CancellationToken, ValueTask> nextAsync,
             CancellationToken cancellationToken = default);
     }
 }

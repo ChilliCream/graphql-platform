@@ -1,16 +1,15 @@
 using System.Threading;
 using System.Threading.Tasks;
-using StrawberryShake.Http;
 
 namespace StrawberryShake
 {
-    public interface IOperationExecutor<T> where T : class
+    public interface IOperationExecutor<TResultData> where TResultData : class
     {
-        Task<IOperationResult<T>> ExecuteAsync(
+        Task<IOperationResult<TResultData>> ExecuteAsync(
             OperationRequest request,
             CancellationToken cancellationToken = default);
 
-        IOperationObservable<T> Watch(
+        IOperationObservable<TResultData> Watch(
             OperationRequest request,
             ExecutionStrategy? strategy = null);
     }

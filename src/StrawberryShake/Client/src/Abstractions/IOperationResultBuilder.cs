@@ -4,15 +4,15 @@ namespace StrawberryShake
     /// The operation result builder will use the transport response and build from it
     /// the operation result.
     /// </summary>
-    /// <typeparam name="TData">
+    /// <typeparam name="TResponseBody">
     /// The serialized result.
     /// </typeparam>
-    /// <typeparam name="TResult">
+    /// <typeparam name="TResultData">
     /// The runtime result.
     /// </typeparam>
-    public interface IOperationResultBuilder<TData, out TResult>
-        where TResult : class
-        where TData : class
+    public interface IOperationResultBuilder<TResponseBody, out TResultData>
+        where TResponseBody : class
+        where TResultData : class
     {
         /// <summary>
         /// Build runtime operation result.
@@ -23,6 +23,6 @@ namespace StrawberryShake
         /// <returns>
         /// Returns the runtime result.
         /// </returns>
-        IOperationResult<TResult> Build(Response<TData> response);
+        IOperationResult<TResultData> Build(Response<TResponseBody> response);
     }
 }

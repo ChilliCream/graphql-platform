@@ -5,11 +5,11 @@ namespace StrawberryShake
 {
     public interface IEntityStore : IObservable<ISet<EntityId>>
     {
-        T GetOrCreate<T>(EntityId id) where T : class;
+        TEntity GetOrCreate<TEntity>(EntityId id) where TEntity : class;
 
-        T? GetEntity<T>(EntityId id) where T : class;
+        TEntity? GetEntity<TEntity>(EntityId id) where TEntity : class;
 
-        IReadOnlyList<T?> GetEntities<T>(EntityId id) where T : class;
+        IReadOnlyList<TEntity?> GetEntities<TEntity>(EntityId id) where TEntity : class;
 
         IDisposable BeginUpdate();
     }
