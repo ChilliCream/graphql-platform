@@ -10,6 +10,8 @@ namespace HotChocolate.Types.Pagination
         , IPageType
         where T : class, IOutputType
     {
+        internal const string TypeSuffix = "Connection";
+
         public ConnectionType()
         {
         }
@@ -34,7 +36,7 @@ namespace HotChocolate.Types.Pagination
         protected static void ApplyConfig(IObjectTypeDescriptor<Connection> descriptor)
         {
             descriptor
-                .Name(dependency => $"{dependency.Name}Connection")
+                .Name(d => $"{d.Name}{TypeSuffix}")
                 .DependsOn<T>()
                 .Description("A connection to a list of items.")
                 .BindFields(BindingBehavior.Explicit);

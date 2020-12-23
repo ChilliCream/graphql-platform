@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Configuration;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Pagination
 {
@@ -53,6 +56,21 @@ namespace HotChocolate.Types.Pagination
                 .Field(OffsetPagingFieldNames.TotalCount)
                 .Type<NonNullType<IntType>>()
                 .ResolveWith<Resolvers>(t => t.GetTotalCount(default!, default));
+        }
+
+        protected override void OnCompleteName(
+            ITypeCompletionContext context,
+            ObjectTypeDefinition definition)
+        {
+            if (context.TryGetType<CollectionSegmentType<T>>(
+                    context.TypeInspector
+                        .GetTypeRef(typeof(CollectionSegmentType<T>), TypeContext.Output),
+                    out _))
+            {
+                definition.Name = definition.Name.Value.Replace(TypeSuffix, "Count" + TypeSuffix);
+            }
+
+            base.OnCompleteName(context, definition);
         }
 
         private sealed class Resolvers

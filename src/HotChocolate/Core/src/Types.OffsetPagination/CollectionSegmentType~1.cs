@@ -9,6 +9,8 @@ namespace HotChocolate.Types.Pagination
         , IPageType
         where T : class, IOutputType
     {
+        internal const string TypeSuffix = "CollectionSegment";
+
         /// <summary>
         /// Initializes <see cref="CollectionSegmentType{T}" />.
         /// </summary>
@@ -43,7 +45,7 @@ namespace HotChocolate.Types.Pagination
         protected static void ApplyConfig(IObjectTypeDescriptor<CollectionSegment> descriptor)
         {
             descriptor
-                .Name(dependency => $"{dependency.Name}CollectionSegment")
+                .Name(d => $"{d.Name}{TypeSuffix}")
                 .DependsOn<T>()
                 .BindFieldsExplicitly();
 

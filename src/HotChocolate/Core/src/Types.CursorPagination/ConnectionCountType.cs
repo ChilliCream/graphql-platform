@@ -1,6 +1,8 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Configuration;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Pagination
 {
@@ -16,8 +18,8 @@ namespace HotChocolate.Types.Pagination
             Action<IObjectTypeDescriptor<Connection>> configure)
             : base(descriptor =>
             {
-                ApplyConfig(descriptor);
-                configure(descriptor);
+                    ApplyConfig(descriptor);
+                    configure(descriptor);
             })
         {
         }
@@ -33,6 +35,21 @@ namespace HotChocolate.Types.Pagination
                 .Field("totalCount")
                 .Type<NonNullType<IntType>>()
                 .ResolveWith<Resolvers>(t => t.GetTotalCount(default!, default));
+        }
+
+        protected override void OnCompleteName(
+            ITypeCompletionContext context,
+            ObjectTypeDefinition definition)
+        {
+            if (context.TryGetType<ConnectionType<T>>(
+                context.TypeInspector
+                    .GetTypeRef(typeof(ConnectionType<T>), TypeContext.Output),
+                out _))
+            {
+                definition.Name = definition.Name.Value.Replace(TypeSuffix, "Count" + TypeSuffix);
+            }
+
+            base.OnCompleteName(context, definition);
         }
 
         private sealed class Resolvers

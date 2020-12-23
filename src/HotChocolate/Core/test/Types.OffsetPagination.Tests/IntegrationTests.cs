@@ -540,6 +540,37 @@ namespace HotChocolate.Types.Pagination
             schema.Print().MatchSnapshot();
         }
 
+        [Fact]
+        public async Task OffsetPaging_DifferentOptionsInTotalCount_NoTypeCollection()
+        {
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<TotalCountMixQuery>()
+                    .Services
+                    .BuildServiceProvider()
+                    .GetRequestExecutorAsync();
+
+            var schema = executor.Schema.Print();
+
+            schema.MatchSnapshot();
+        }
+
+        public class TotalCountMixQuery
+        {
+            [UseOffsetPaging]
+            public IQueryable<Foo> GetFoos()
+            {
+                return new[] { new Foo() }.AsQueryable();
+            }
+
+            [UseOffsetPaging(IncludeTotalCount = true)]
+            public IQueryable<Foo> GetFoos2()
+            {
+                return new[] { new Foo() }.AsQueryable();
+            }
+        }
+
         public class QueryType : ObjectType<Query>
         {
             protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
