@@ -22,6 +22,8 @@ namespace StrawberryShake
         IReadOnlyDictionary<string, object?> ContextData { get; }
 
         Type ResultType { get; }
+
+        object ResultInfo { get; }
     }
 
     public class OperationResult<T> : IOperationResult<T> where T : class
