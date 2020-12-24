@@ -1329,12 +1329,12 @@ can return NetTopologySuite shapes and they will be transformed into GeoJSON.</p
 <p>You first need to add the package reference to your project. You can do this with the <code class="language-text">dotnet</code> cli:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="16638322243869741000"
+              data-toaster-id="28773945714672243000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`  dotnet add package HotChocolate.Spatial`, `16638322243869741000`)"
+              onClick="copyToClipboard(`  dotnet add package HotChocolate.Spatial`, `28773945714672243000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1347,14 +1347,14 @@ can return NetTopologySuite shapes and they will be transformed into GeoJSON.</p
 <p>To make the schema recognize the spatial types you need to register them on the schema builder.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="5175895795516250000"
+              data-toaster-id="63937118515240440000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`services
     .AddGraphQLServer()
-    .AddSpatialTypes();`, `5175895795516250000`)"
+    .AddSpatialTypes();`, `63937118515240440000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1369,7 +1369,7 @@ can return NetTopologySuite shapes and they will be transformed into GeoJSON.</p
 <p>All NetToplogySuite runtime types are now bound to the corresponding GeoJSON type.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="77128277843233900000"
+              data-toaster-id="56960063978785505000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1391,7 +1391,7 @@ public class Query
     {
         return someDbContext.Pubs;
     }
-}`, `77128277843233900000`)"
+}`, `56960063978785505000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1420,7 +1420,7 @@ public class Query
 <span class="token punctuation">}</span></code></pre></div>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="2643857102898472400"
+              data-toaster-id="70540374839358290000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1433,7 +1433,7 @@ public class Query
 
 type Query {
   pubs: [Pub!]!
-}`, `2643857102898472400`)"
+}`, `70540374839358290000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1453,7 +1453,7 @@ type Query {
 <span class="token punctuation">}</span></code></pre></div>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="8601365503813096000"
+              data-toaster-id="34746712339898188000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1470,7 +1470,7 @@ type Query {
     }
     name
   }
-}`, `8601365503813096000`)"
+}`, `34746712339898188000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1494,7 +1494,7 @@ type Query {
 <span class="token punctuation">}</span></code></pre></div>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="18869353856712266000"
+              data-toaster-id="35813864682906680000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1526,7 +1526,7 @@ type Query {
       }
     ]
   }
-}`, `18869353856712266000`)"
+}`, `35813864682906680000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1608,7 +1608,7 @@ type Query {
 <p>All GeoJSON output types implement the following interface.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="74334676191426700000"
+              data-toaster-id="55630797763172655000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1620,7 +1620,7 @@ type Query {
   bbox: [Float]
   &quot;The coordinate reference system integer identifier&quot;
   crs: Int
-}`, `74334676191426700000`)"
+}`, `55630797763172655000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1682,12 +1682,12 @@ When a resolver expects any <code class="language-text">Geometry</code> type as 
 This scalar should be used with caution. Input and output types are much more expressive than a custom scalar.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="29037675462978863000"
+              data-toaster-id="99080421420871450000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`scalar Geometry`, `29037675462978863000`)"
+              onClick="copyToClipboard(`scalar Geometry`, `99080421420871450000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1701,7 +1701,7 @@ This scalar should be used with caution. Input and output types are much more ex
 <p>To project spatial types, a special handler is needed. This handler can be registered on the schema with <code class="language-text">.AddSpatialProjections()</code></p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="19207045678585045000"
+              data-toaster-id="10647897820563124000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1710,7 +1710,7 @@ This scalar should be used with caution. Input and output types are much more ex
         .AddGraphQLServer()
         .AddProjections()
         .AddSpatialTypes()
-        .AddSpatialProjections()`, `19207045678585045000`)"
+        .AddSpatialProjections()`, `10647897820563124000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1727,7 +1727,7 @@ This scalar should be used with caution. Input and output types are much more ex
 <p>The projection middleware will use this handler to project the spatial data directly to the database</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="68469272004880180000"
+              data-toaster-id="57319229299108860000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1737,7 +1737,7 @@ This scalar should be used with caution. Input and output types are much more ex
 public IQueryable<Pub> GetPubs([ScopedService] SomeDbContext someDbContext)
 {
     return someDbContext.Pubs;
-}`, `68469272004880180000`)"
+}`, `57319229299108860000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1754,7 +1754,7 @@ public IQueryable<Pub> GetPubs([ScopedService] SomeDbContext someDbContext)
 <span class="token punctuation">}</span></code></pre></div>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="77277712324477600000"
+              data-toaster-id="70749130699718844000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1771,7 +1771,7 @@ public IQueryable<Pub> GetPubs([ScopedService] SomeDbContext someDbContext)
     }
     name
   }
-}`, `77277712324477600000`)"
+}`, `70749130699718844000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1795,13 +1795,13 @@ public IQueryable<Pub> GetPubs([ScopedService] SomeDbContext someDbContext)
 <span class="token punctuation">}</span></code></pre></div>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="11261254096578832000"
+              data-toaster-id="82215993440124650000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`SELECT p.&quot;Id&quot;, p.&quot;Location&quot;, p.&quot;Name&quot;
-FROM &quot;Pubs&quot; AS p`, `11261254096578832000`)"
+FROM &quot;Pubs&quot; AS p`, `82215993440124650000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1818,7 +1818,7 @@ FROM &quot;Pubs&quot; AS p`, `11261254096578832000`)"
 These handlers can be registered on the schema with <code class="language-text">.AddSpatialFiltering()</code></p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="43246623487882860000"
+              data-toaster-id="25506599162290190000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1827,7 +1827,7 @@ These handlers can be registered on the schema with <code class="language-text">
         .AddGraphQLServer()
         .AddProjections()
         .AddSpatialTypes()
-        .AddSpatialFiltering()`, `43246623487882860000`)"
+        .AddSpatialFiltering()`, `25506599162290190000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1845,7 +1845,7 @@ These handlers can be registered on the schema with <code class="language-text">
 for all <code class="language-text">Geometry</code> based types.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="14567760711575773000"
+              data-toaster-id="85722092179559370000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1855,7 +1855,7 @@ for all <code class="language-text">Geometry</code> based types.</p>
 public IQueryable<Pub> GetPubs([ScopedService] SomeDbContext someDbContext)
 {
     return someDbContext.Pubs;
-}`, `14567760711575773000`)"
+}`, `85722092179559370000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1872,7 +1872,7 @@ public IQueryable<Pub> GetPubs([ScopedService] SomeDbContext someDbContext)
 <span class="token punctuation">}</span></code></pre></div>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="36059154183502140000"
+              data-toaster-id="38099491396583170000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1922,7 +1922,7 @@ input PointFilterInput {
   noverlaps: GeometryOverlapsOperationFilterInput
   ntouches: GeometryTouchesOperationFilterInput
   nwithin: GeometryWithinOperationFilterInput
-}`, `36059154183502140000`)"
+}`, `38099491396583170000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1982,7 +1982,7 @@ input PointFilterInput {
 The filter also has all comparable filters.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="31430997394312675000"
+              data-toaster-id="24718112020703863000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2002,7 +2002,7 @@ The filter also has all comparable filters.</p>
   nlt: Float
   lte: Float
   nlte: Float
-}`, `31430997394312675000`)"
+}`, `24718112020703863000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2029,7 +2029,7 @@ The filter also has all comparable filters.</p>
 <span class="token punctuation">}</span></code></pre></div>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="36595825179815346000"
+              data-toaster-id="10050312031875630000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2046,7 +2046,7 @@ The filter also has all comparable filters.</p>
     name
     location
   }
-}`, `36595825179815346000`)"
+}`, `10050312031875630000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2070,14 +2070,14 @@ The filter also has all comparable filters.</p>
 <span class="token punctuation">}</span></code></pre></div>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="183761754583189340"
+              data-toaster-id="85535979085597800000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`SELECT c.&quot;Id&quot;, c.&quot;Name&quot;, c.&quot;Area&quot;
 FROM &quot;Counties&quot; AS c
-WHERE ST_Within(c.&quot;Area&quot;, @__p_0)`, `183761754583189340`)"
+WHERE ST_Within(c.&quot;Area&quot;, @__p_0)`, `85535979085597800000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2092,14 +2092,14 @@ WHERE ST_Within(c.&quot;Area&quot;, @__p_0)`, `183761754583189340`)"
 <p>The negation of this operation is <code class="language-text">nwithin</code></p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="54391847127600080000"
+              data-toaster-id="16726385502969653000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`SELECT c.&quot;Id&quot;, c.&quot;Name&quot;, c.&quot;Area&quot;
 FROM &quot;Counties&quot; AS c
-WHERE NOT ST_Within(c.&quot;Area&quot;, @__p_0)`, `54391847127600080000`)"
+WHERE NOT ST_Within(c.&quot;Area&quot;, @__p_0)`, `16726385502969653000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2116,7 +2116,7 @@ WHERE NOT ST_Within(c.&quot;Area&quot;, @__p_0)`, `54391847127600080000`)"
 <p>The filter requires an input geometry. You can optionally buffer this geometry with the input field buffer.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="34018467195029370000"
+              data-toaster-id="53861087271622480000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2124,7 +2124,7 @@ WHERE NOT ST_Within(c.&quot;Area&quot;, @__p_0)`, `54391847127600080000`)"
               onClick="copyToClipboard(`input GeometryContainsOperationFilterInput {
   geometry: Geometry!
   buffer: Float
-}`, `34018467195029370000`)"
+}`, `53861087271622480000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2139,7 +2139,7 @@ WHERE NOT ST_Within(c.&quot;Area&quot;, @__p_0)`, `54391847127600080000`)"
 <span class="token punctuation">}</span></code></pre></div>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="1463364045596660200"
+              data-toaster-id="11517319003183868000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2154,7 +2154,7 @@ WHERE NOT ST_Within(c.&quot;Area&quot;, @__p_0)`, `54391847127600080000`)"
     name
     area
   }
-}`, `1463364045596660200`)"
+}`, `11517319003183868000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2176,14 +2176,14 @@ WHERE NOT ST_Within(c.&quot;Area&quot;, @__p_0)`, `54391847127600080000`)"
 <span class="token punctuation">}</span></code></pre></div>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="43382337486848230000"
+              data-toaster-id="65440084930561420000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`SELECT c.&quot;Id&quot;, c.&quot;Name&quot;, c.&quot;Area&quot;
 FROM &quot;Counties&quot; AS c
-WHERE ST_Contains(c.&quot;Area&quot;, @__p_0)`, `43382337486848230000`)"
+WHERE ST_Contains(c.&quot;Area&quot;, @__p_0)`, `65440084930561420000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2198,14 +2198,14 @@ WHERE ST_Contains(c.&quot;Area&quot;, @__p_0)`, `43382337486848230000`)"
 <p>The negation of this operation is <code class="language-text">ncontains</code></p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="86870261413326160000"
+              data-toaster-id="2349468925751230500"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`SELECT c.&quot;Id&quot;, c.&quot;Name&quot;, c.&quot;Area&quot;
 FROM &quot;Counties&quot; AS c
-WHERE NOT ST_Contains(c.&quot;Area&quot;, @__p_0)`, `86870261413326160000`)"
+WHERE NOT ST_Contains(c.&quot;Area&quot;, @__p_0)`, `2349468925751230500`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2222,7 +2222,7 @@ WHERE NOT ST_Contains(c.&quot;Area&quot;, @__p_0)`, `86870261413326160000`)"
 <p>The filter requires an input geometry. You can optionally buffer this geometry with the input field buffer.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="76732366765518720000"
+              data-toaster-id="40877065487448960000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2230,7 +2230,7 @@ WHERE NOT ST_Contains(c.&quot;Area&quot;, @__p_0)`, `86870261413326160000`)"
               onClick="copyToClipboard(`input GeometryTouchesOperationFilterInput {
   geometry: Geometry!
   buffer: Float
-}`, `76732366765518720000`)"
+}`, `40877065487448960000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2245,7 +2245,7 @@ WHERE NOT ST_Contains(c.&quot;Area&quot;, @__p_0)`, `86870261413326160000`)"
 <span class="token punctuation">}</span></code></pre></div>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="70889540736652540000"
+              data-toaster-id="26047076845236437000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2266,7 +2266,7 @@ WHERE NOT ST_Contains(c.&quot;Area&quot;, @__p_0)`, `86870261413326160000`)"
       name
       area
     }
-}`, `70889540736652540000`)"
+}`, `26047076845236437000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2294,14 +2294,14 @@ WHERE NOT ST_Contains(c.&quot;Area&quot;, @__p_0)`, `86870261413326160000`)"
 <span class="token punctuation">}</span></code></pre></div>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="37692559576580596000"
+              data-toaster-id="7979026362261710000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`SELECT c.&quot;Id&quot;, c.&quot;Name&quot;, c.&quot;Area&quot;
 FROM &quot;Counties&quot; AS c
-WHERE ST_Touches(c.&quot;Area&quot;, @__p_0)`, `37692559576580596000`)"
+WHERE ST_Touches(c.&quot;Area&quot;, @__p_0)`, `7979026362261710000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2316,14 +2316,14 @@ WHERE ST_Touches(c.&quot;Area&quot;, @__p_0)`, `37692559576580596000`)"
 <p>The negation of this operation is <code class="language-text">ntouches</code></p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="41144717667066600000"
+              data-toaster-id="46342016774277540000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`SELECT c.&quot;Id&quot;, c.&quot;Name&quot;, c.&quot;Area&quot;
 FROM &quot;Counties&quot; AS c
-WHERE NOT ST_Touches(c.&quot;Area&quot;, @__p_0)`, `41144717667066600000`)"
+WHERE NOT ST_Touches(c.&quot;Area&quot;, @__p_0)`, `46342016774277540000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2340,7 +2340,7 @@ WHERE NOT ST_Touches(c.&quot;Area&quot;, @__p_0)`, `41144717667066600000`)"
 <p>The filter requires an input geometry. You can optionally buffer this geometry with the input field buffer.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="31564295608703152000"
+              data-toaster-id="60504316919057060000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2348,7 +2348,7 @@ WHERE NOT ST_Touches(c.&quot;Area&quot;, @__p_0)`, `41144717667066600000`)"
               onClick="copyToClipboard(`input GeometryIntersectsOperationFilterInput {
   geometry: Geometry!
   buffer: Float
-}`, `31564295608703152000`)"
+}`, `60504316919057060000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2363,7 +2363,7 @@ WHERE NOT ST_Touches(c.&quot;Area&quot;, @__p_0)`, `41144717667066600000`)"
 <span class="token punctuation">}</span></code></pre></div>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="46221712966985540000"
+              data-toaster-id="97866440881462030000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2384,7 +2384,7 @@ WHERE NOT ST_Touches(c.&quot;Area&quot;, @__p_0)`, `41144717667066600000`)"
       name
       road
     }
-}`, `46221712966985540000`)"
+}`, `97866440881462030000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2412,14 +2412,14 @@ WHERE NOT ST_Touches(c.&quot;Area&quot;, @__p_0)`, `41144717667066600000`)"
 <span class="token punctuation">}</span></code></pre></div>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="86419284140998930000"
+              data-toaster-id="67527792449056020000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`SELECT r.&quot;Id&quot;, r.&quot;Name&quot;, r.&quot;Road&quot;
 FROM &quot;Roads&quot; AS r
-WHERE ST_Intersects(r.&quot;Road&quot;, @__p_0)`, `86419284140998930000`)"
+WHERE ST_Intersects(r.&quot;Road&quot;, @__p_0)`, `67527792449056020000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2434,14 +2434,14 @@ WHERE ST_Intersects(r.&quot;Road&quot;, @__p_0)`, `86419284140998930000`)"
 <p>The negation of this operation is <code class="language-text">nintersects</code></p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="36642562907608322000"
+              data-toaster-id="28323103433510633000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`SELECT r.&quot;Id&quot;, r.&quot;Name&quot;, r.&quot;Road&quot;
 FROM &quot;Roads&quot; AS r
-WHERE NOT ST_Intersects(r.&quot;Road&quot;, @__p_0)`, `36642562907608322000`)"
+WHERE NOT ST_Intersects(r.&quot;Road&quot;, @__p_0)`, `28323103433510633000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2457,7 +2457,7 @@ WHERE NOT ST_Intersects(r.&quot;Road&quot;, @__p_0)`, `36642562907608322000`)"
 <p>The <code class="language-text">overlaps</code> filter is an implementation of <a href="http://nettopologysuite.github.io/NetTopologySuite/api/NetTopologySuite.Geometries.Geometry.html#NetTopologySuite_Geometries_Geometry_Overlaps_NetTopologySuite_Geometries_Geometry_"><code class="language-text">Geometry.Overlaps</code></a></p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="80166808413914420000"
+              data-toaster-id="24433026966795633000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2465,7 +2465,7 @@ WHERE NOT ST_Intersects(r.&quot;Road&quot;, @__p_0)`, `36642562907608322000`)"
               onClick="copyToClipboard(`input GeometryOverlapsOperationFilterInput {
   geometry: Geometry!
   buffer: Float
-}`, `80166808413914420000`)"
+}`, `24433026966795633000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2480,7 +2480,7 @@ WHERE NOT ST_Intersects(r.&quot;Road&quot;, @__p_0)`, `36642562907608322000`)"
 <span class="token punctuation">}</span></code></pre></div>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="89126377779322620000"
+              data-toaster-id="57153485918679280000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2501,7 +2501,7 @@ WHERE NOT ST_Intersects(r.&quot;Road&quot;, @__p_0)`, `36642562907608322000`)"
       name
       area
     }
-}`, `89126377779322620000`)"
+}`, `57153485918679280000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2529,14 +2529,14 @@ WHERE NOT ST_Intersects(r.&quot;Road&quot;, @__p_0)`, `36642562907608322000`)"
 <span class="token punctuation">}</span></code></pre></div>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="26316003981197910000"
+              data-toaster-id="28970717217839570000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`SELECT c.&quot;Id&quot;, c.&quot;Name&quot;, c.&quot;Area&quot;
 FROM &quot;Counties&quot; AS c
-WHERE ST_Overlaps(c.&quot;Area&quot;, @__p_0)`, `26316003981197910000`)"
+WHERE ST_Overlaps(c.&quot;Area&quot;, @__p_0)`, `28970717217839570000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2551,14 +2551,14 @@ WHERE ST_Overlaps(c.&quot;Area&quot;, @__p_0)`, `26316003981197910000`)"
 <p>The negation of this operation is <code class="language-text">noverlaps</code></p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="125749741996261650"
+              data-toaster-id="21570610220587080000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`SELECT c.&quot;Id&quot;, c.&quot;Name&quot;, c.&quot;Area&quot;
 FROM &quot;Counties&quot; AS c
-WHERE NOT ST_Overlaps(c.&quot;Area&quot;, @__p_0)`, `125749741996261650`)"
+WHERE NOT ST_Overlaps(c.&quot;Area&quot;, @__p_0)`, `21570610220587080000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2574,7 +2574,7 @@ WHERE NOT ST_Overlaps(c.&quot;Area&quot;, @__p_0)`, `125749741996261650`)"
 <p>The <code class="language-text">within</code> filter is an implementation of <a href="http://nettopologysuite.github.io/NetTopologySuite/api/NetTopologySuite.Geometries.Geometry.html#NetTopologySuite_Geometries_Geometry_Within_NetTopologySuite_Geometries_Geometry_"><code class="language-text">Geometry.Within</code></a></p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="14777414819533030000"
+              data-toaster-id="94074458525234330000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2582,7 +2582,7 @@ WHERE NOT ST_Overlaps(c.&quot;Area&quot;, @__p_0)`, `125749741996261650`)"
               onClick="copyToClipboard(`input GeometryWithinOperationFilterInput {
   geometry: Geometry!
   buffer: Float
-}`, `14777414819533030000`)"
+}`, `94074458525234330000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2597,7 +2597,7 @@ WHERE NOT ST_Overlaps(c.&quot;Area&quot;, @__p_0)`, `125749741996261650`)"
 <span class="token punctuation">}</span></code></pre></div>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="84000920622960000000"
+              data-toaster-id="68161385207075280000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2614,7 +2614,7 @@ WHERE NOT ST_Overlaps(c.&quot;Area&quot;, @__p_0)`, `125749741996261650`)"
     name
     location
   }
-}`, `84000920622960000000`)"
+}`, `68161385207075280000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2638,14 +2638,14 @@ WHERE NOT ST_Overlaps(c.&quot;Area&quot;, @__p_0)`, `125749741996261650`)"
 <span class="token punctuation">}</span></code></pre></div>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="76765432504696270000"
+              data-toaster-id="5193738075006182000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`SELECT c.&quot;Id&quot;, c.&quot;Name&quot;, c.&quot;Area&quot;
 FROM &quot;Counties&quot; AS c
-WHERE ST_Within(c.&quot;Area&quot;, @__p_0)`, `76765432504696270000`)"
+WHERE ST_Within(c.&quot;Area&quot;, @__p_0)`, `5193738075006182000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2660,14 +2660,14 @@ WHERE ST_Within(c.&quot;Area&quot;, @__p_0)`, `76765432504696270000`)"
 <p>The negation of this operation is <code class="language-text">nwithin</code></p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="37508946077284540000"
+              data-toaster-id="33230041998473327000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`SELECT c.&quot;Id&quot;, c.&quot;Name&quot;, c.&quot;Area&quot;
 FROM &quot;Counties&quot; AS c
-WHERE NOT ST_Within(c.&quot;Area&quot;, @__p_0)`, `37508946077284540000`)"
+WHERE NOT ST_Within(c.&quot;Area&quot;, @__p_0)`, `33230041998473327000`)"
             >
               <div
                 class="gatsby-code-button"
