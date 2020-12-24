@@ -3,12 +3,8 @@ using HotChocolate.Configuration;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
-using HotChocolate.Data.MongoDb;
-using HotChocolate.Data.MongoDb.Sorting.Convention.Extensions.Handlers;
-using MongoDB.Bson;
-using MongoDB.Driver;
 
-namespace HotChocolate.Data.MongoDb.Sorting.Handlers
+namespace HotChocolate.Data.MongoDb.Sorting
 {
     public class MongoDbDefaultSortFieldHandler
         : SortFieldHandler<MongoDbSortVisitorContext, MongoDbSortDefinition>

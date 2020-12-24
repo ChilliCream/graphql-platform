@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using HotChocolate.Data.MongoDb.Sorting.Convention.Extensions.Handlers;
 
 namespace HotChocolate.Data.MongoDb.Sorting
 {

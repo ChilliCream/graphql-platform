@@ -1,6 +1,7 @@
+using HotChocolate.Data.MongoDb;
 using HotChocolate.Data.Projections;
 
-namespace HotChocolate.Data.MongoDb
+namespace HotChocolate.Data
 {
     public static class MongoDbProjectionConventionDescriptorExtensions
     {

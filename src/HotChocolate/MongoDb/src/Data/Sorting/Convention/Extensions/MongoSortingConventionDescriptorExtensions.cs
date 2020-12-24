@@ -1,7 +1,7 @@
 using System;
 using HotChocolate.Data.Sorting;
 
-namespace HotChocolate.Data.MongoDb.Sorting.Convention.Extensions
+namespace HotChocolate.Data
 {
     public static class MongoSortingConventionDescriptorExtensions
     {

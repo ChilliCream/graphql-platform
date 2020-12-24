@@ -6,7 +6,7 @@ using MongoDB.Bson.Serialization.Attributes;
 using Squadron;
 using Xunit;
 
-namespace HotChocolate.Data.MongoDb.Sorting.Expressions
+namespace HotChocolate.Data.MongoDb.Sorting
 {
     public class MongoDbSortVisitorEnumTests
         : SchemaCache,

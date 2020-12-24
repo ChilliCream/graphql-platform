@@ -1,8 +1,9 @@
 using HotChocolate.Data.Projections;
+using HotChocolate.Data.Sorting;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
 
-namespace HotChocolate.Data.MongoDb
+namespace HotChocolate.Data.MongoDb.Projections
 {
     /// <inheritdoc/>
     public class MongoDbProjectionScalarHandler

@@ -2,7 +2,6 @@ using System;
 using System.Threading.Tasks;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
-using HotChocolate.Data.MongoDb.Sorting.Convention.Extensions;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;

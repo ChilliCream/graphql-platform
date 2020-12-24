@@ -3,13 +3,10 @@ using HotChocolate.Configuration;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
-using HotChocolate.Data.MongoDb;
-using HotChocolate.Data.MongoDb.Sorting;
-using HotChocolate.Data.MongoDb.Sorting.Convention.Extensions.Handlers;
 using HotChocolate.Types.Descriptors.Definitions;
 using MongoDB.Driver;
 
-namespace HotChocolate.Data.MongoDb.Sorting.Handlers
+namespace HotChocolate.Data.MongoDb.Sorting
 {
     /// <summary>
     /// Represents a mongodb handler that can be bound to a <see cref="SortField"/>. The handler is

@@ -6,7 +6,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using MongoDB.Driver;
 
-namespace HotChocolate.Data.MongoDb.Sorting.Convention.Extensions.Handlers
+namespace HotChocolate.Data.MongoDb.Sorting
 {
     /// <inheritdoc />
     public class MongoDbSortProvider

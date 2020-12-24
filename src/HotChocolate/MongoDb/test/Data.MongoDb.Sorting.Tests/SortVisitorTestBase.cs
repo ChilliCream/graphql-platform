@@ -5,7 +5,6 @@ using HotChocolate.Data;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Data.MongoDb.Sorting.Convention.Extensions;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;

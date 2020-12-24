@@ -3,7 +3,7 @@ using HotChocolate.Data.Projections;
 using HotChocolate.Data.Projections.Expressions.Handlers;
 using HotChocolate.Execution.Processing;
 
-namespace HotChocolate.Data.MongoDb
+namespace HotChocolate.Data.MongoDb.Projections
 {
     /// <summary>
     /// A handler that can intersect a <see cref="ISelection"/> and optimize the selection set for

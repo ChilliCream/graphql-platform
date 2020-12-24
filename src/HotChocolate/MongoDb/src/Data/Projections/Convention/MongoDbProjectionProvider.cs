@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using HotChocolate.Data.Projections;
+using HotChocolate.Data.Sorting;
 using HotChocolate.Resolvers;
 using MongoDB.Driver;
 

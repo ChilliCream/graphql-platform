@@ -1,6 +1,5 @@
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.MongoDb.Filters;
-using HotChocolate.Data.MongoDb.Sorting.Convention.Extensions;
 
 namespace HotChocolate.Data.MongoDb
 {

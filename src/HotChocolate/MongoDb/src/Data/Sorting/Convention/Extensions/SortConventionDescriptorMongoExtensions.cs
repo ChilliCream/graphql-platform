@@ -1,8 +1,7 @@
+using HotChocolate.Data.MongoDb.Sorting;
 using HotChocolate.Data.Sorting;
-using HotChocolate.Data.MongoDb.Sorting.Convention.Extensions.Handlers;
-using HotChocolate.Data.MongoDb.Sorting.Handlers;
 
-namespace HotChocolate.Data.MongoDb.Sorting.Convention.Extensions
+namespace HotChocolate.Data
 {
     public static class SortConventionDescriptorMongoExtensions
     {

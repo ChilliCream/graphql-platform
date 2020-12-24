@@ -1,7 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using HotChocolate.Data.MongoDb;
 
-namespace HotChocolate.Data.MongoDb
+namespace HotChocolate.Data.Sorting
 {
     internal static class MongoProjectionVisitorContextExtensions
     {
