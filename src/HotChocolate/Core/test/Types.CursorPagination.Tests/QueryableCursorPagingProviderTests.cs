@@ -29,7 +29,7 @@ namespace HotChocolate.Types.Pagination
             IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
             IPagingHandler pagingHandler = pagingProvider.CreateHandler(sourceType, default);
 
-            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
+            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g" };
 
             var pagingDetails = new CursorPagingArguments(2);
             var context = new MockContext(pagingDetails);
@@ -61,6 +61,41 @@ namespace HotChocolate.Types.Pagination
 
 
         [Fact]
+        public async Task TakeLastSingle()
+        {
+            // arrange
+            var typeInspector = new DefaultTypeInspector();
+            IExtendedType sourceType = typeInspector.GetType(typeof(List<string>));
+
+            IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
+            IPagingHandler pagingHandler = pagingProvider.CreateHandler(sourceType, default);
+
+            var list = new List<string> { "f", "g" };
+
+            var pagingDetails = new CursorPagingArguments(last: 1);
+            var context = new MockContext(pagingDetails);
+
+            // act
+            var connection = (Connection)await pagingHandler.SliceAsync(context, list);
+
+            // assert
+            Assert.Collection(connection.Edges,
+                t =>
+                {
+                    Assert.Equal("g", t.Node);
+                    Assert.Equal(1, GetPositionFromCursor(t.Cursor));
+                });
+
+            Assert.True(
+                connection.Info.HasPreviousPage,
+                "HasPreviousPage");
+
+            Assert.False(
+                connection.Info.HasNextPage,
+                "HasNextPage");
+        }
+
+        [Fact]
         public async Task TakeLast()
         {
             // arrange
@@ -70,7 +105,7 @@ namespace HotChocolate.Types.Pagination
             IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
             IPagingHandler pagingHandler = pagingProvider.CreateHandler(sourceType, default);
 
-            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
+            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g" };
 
             var pagingDetails = new CursorPagingArguments(last: 2);
             var context = new MockContext(pagingDetails);
@@ -110,7 +145,7 @@ namespace HotChocolate.Types.Pagination
             IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
             IPagingHandler pagingHandler = pagingProvider.CreateHandler(sourceType, default);
 
-            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
+            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g" };
 
             var pagingDetails = new CursorPagingArguments();
             var context = new MockContext(pagingDetails);
@@ -154,7 +189,7 @@ namespace HotChocolate.Types.Pagination
             IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
             IPagingHandler pagingHandler = pagingProvider.CreateHandler(sourceType, default);
 
-            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
+            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g" };
 
             var pagingDetails = new CursorPagingArguments(first: 5);
             var context = new MockContext(pagingDetails);
@@ -198,7 +233,7 @@ namespace HotChocolate.Types.Pagination
             IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
             IPagingHandler pagingHandler = pagingProvider.CreateHandler(sourceType, default);
 
-            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
+            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g" };
 
             var pagingDetails = new CursorPagingArguments(first: 5);
             var context = new MockContext(pagingDetails);
@@ -220,7 +255,7 @@ namespace HotChocolate.Types.Pagination
             IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
             IPagingHandler pagingHandler = pagingProvider.CreateHandler(sourceType, default);
 
-            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
+            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g" };
 
             var pagingDetails = new CursorPagingArguments(first: 7);
             var context = new MockContext(pagingDetails);
@@ -242,7 +277,7 @@ namespace HotChocolate.Types.Pagination
             IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
             IPagingHandler pagingHandler = pagingProvider.CreateHandler(sourceType, default);
 
-            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
+            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g" };
 
             var pagingDetails = new CursorPagingArguments(first: 1);
             var context = new MockContext(pagingDetails);
@@ -268,7 +303,7 @@ namespace HotChocolate.Types.Pagination
             IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
             IPagingHandler pagingHandler = pagingProvider.CreateHandler(sourceType, default);
 
-            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
+            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g" };
 
             var pagingDetails = new CursorPagingArguments(first: 1);
             var context = new MockContext(pagingDetails);

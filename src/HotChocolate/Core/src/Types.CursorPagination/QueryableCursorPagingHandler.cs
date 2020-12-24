@@ -142,7 +142,7 @@ namespace HotChocolate.Types.Pagination
             var count = temp.Count();
             var skip = count - last;
 
-            if (skip > 1)
+            if (skip > 0)
             {
                 temp = temp.Skip(skip);
                 offset += count;
