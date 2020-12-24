@@ -218,7 +218,7 @@ namespace HotChocolate.Data.MongoDb.Paging
                 var count = await edges.CountAsync(cancellationToken).ConfigureAwait(false);
                 var skip = count - last;
 
-                if (skip > 1)
+                if (skip > 0)
                 {
                     temp = temp.Skip(skip);
                     offset += count;
