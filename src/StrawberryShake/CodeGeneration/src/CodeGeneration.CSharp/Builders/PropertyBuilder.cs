@@ -12,7 +12,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private string? _backingField;
         private ICode? _getCode;
         private ICode? _setCode;
-        private TypeBuilder? _type;
+        private TypeReferenceBuilder? _type;
         private string? _name;
 
         public static PropertyBuilder New() => new PropertyBuilder();
@@ -23,7 +23,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public PropertyBuilder SetType(TypeBuilder value)
+        public PropertyBuilder SetType(TypeReferenceBuilder value)
         {
             _type = value;
             return this;

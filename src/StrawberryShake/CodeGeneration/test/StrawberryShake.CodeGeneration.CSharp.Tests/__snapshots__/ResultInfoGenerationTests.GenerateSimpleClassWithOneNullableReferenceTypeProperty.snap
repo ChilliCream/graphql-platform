@@ -1,0 +1,19 @@
+﻿namespace FooBarNamespace
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class Foo
+        : IOperationResultDataInfoResultInfo
+    {
+        public Foo(
+            IReadOnlyList<EntityId> entityIds,
+            EntityId? bar)
+        {
+            EntityIds = entityIds;
+            Bar = bar;
+        }
+
+        public IReadOnlyList<EntityId> EntityIds { get; }
+
+        public EntityId? Bar { get; }
+    }
+}

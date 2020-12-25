@@ -41,7 +41,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetTypeName(descriptor.Name)
                 .AddParameter(
                     ParameterBuilder.New()
-                        .SetType(TypeBuilder.New().SetName(WellKnownNames.EntityStore))
+                        .SetType(TypeReferenceBuilder.New().SetName(WellKnownNames.EntityStore))
                         .SetName(StoreParamName)
                 )
                 .AddCode(AssignmentBuilder.New()
@@ -57,7 +57,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetReturnType(descriptor.ResultType.Name)
                 .AddParameter(
                     ParameterBuilder.New()
-                        .SetType(TypeBuilder.New().SetName(descriptor.EntityType.Name))
+                        .SetType(TypeReferenceBuilder.New().SetName(descriptor.EntityType.Name))
                         .SetName(EntityParamName)
                 );
 
@@ -66,13 +66,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             var mapperSet = new HashSet<string>();
 
-            foreach (TypeClassPropertyDescriptor propertyDescriptor in descriptor.ResultType.Properties)
+            foreach (TypePropertyDescriptor propertyDescriptor in descriptor.ResultType.Properties)
             {
-                if (propertyDescriptor.Type.IsReferenceType)
+                if (propertyDescriptor.TypeReference.IsReferenceType)
                 {
-                    var propertyMapperName = NamingConventions.MapperNameFromTypeName(propertyDescriptor.Type.Name);
+                    var propertyMapperName = NamingConventions.MapperNameFromTypeName(propertyDescriptor.TypeReference.Name);
                     var propertyMapperTypeName =
-                        $"IEntityMapper<{NamingConventions.EntityTypeNameFromTypeName(propertyDescriptor.Type.Name)}, {propertyDescriptor.Type.Name}>";
+                        $"IEntityMapper<{NamingConventions.EntityTypeNameFromTypeName(propertyDescriptor.TypeReference.Name)}, {propertyDescriptor.TypeReference.Name}>";
                     var propertyMapperFieldName = propertyMapperName.ToFieldName();
                     var propertyMapperParamName = propertyMapperName.WithLowerFirstChar();
 
@@ -100,7 +100,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
 
                     MethodCallBuilder entityMapperMethod;
-                    if (propertyDescriptor.Type.ListType == ListType.NoList)
+                    if (propertyDescriptor.TypeReference.ListType == ListType.NoList)
                     {
                         entityMapperMethod = MethodCallBuilder.New()
                             .SetDetermineStatement(false)
@@ -114,7 +114,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                 StoreParamName
                                 + "."
                                 + nameof(IEntityStore.GetEntity)
-                                + "<" + NamingConventions.EntityTypeNameFromTypeName(propertyDescriptor.Type.Name) + ">"
+                                + "<" + NamingConventions.EntityTypeNameFromTypeName(propertyDescriptor.TypeReference.Name) + ">"
                             );
                         entityGetterMethod
                             .SetDetermineStatement(false)
@@ -150,10 +150,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         entityMapperMethod = new MethodCallBuilder()
                             .SetMethodName(
                                 StoreParamName + "." +
-                                (propertyDescriptor.Type.ListType != ListType.NoList
+                                (propertyDescriptor.TypeReference.ListType != ListType.NoList
                                     ? nameof(IEntityStore.GetEntities)
                                     : nameof(IEntityStore.GetEntity))
-                                + "<" + NamingConventions.EntityTypeNameFromTypeName(propertyDescriptor.Type.Name) + ">"
+                                + "<" + NamingConventions.EntityTypeNameFromTypeName(propertyDescriptor.TypeReference.Name) + ">"
                             )
                             .SetDetermineStatement(false)
                             .AddArgument(EntityParamName + "." + propertyDescriptor.Name)

@@ -5,33 +5,33 @@ using StrawberryShake.CodeGeneration.CSharp.Extensions;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
-    public class TypeBuilder : ICodeBuilder
+    public class TypeReferenceBuilder : ICodeBuilder
     {
         private string? _name;
         private List<string> _genericTypeArguments = new List<string>();
         private ListType _isList = ListType.NoList;
         private bool _isNullable = false;
-        public static TypeBuilder New() => new TypeBuilder();
+        public static TypeReferenceBuilder New() => new TypeReferenceBuilder();
 
-        public TypeBuilder SetListType(ListType isList)
+        public TypeReferenceBuilder SetListType(ListType isList)
         {
             _isList = isList;
             return this;
         }
 
-        public TypeBuilder SetName(string name)
+        public TypeReferenceBuilder SetName(string name)
         {
             _name = name;
             return this;
         }
 
-        public TypeBuilder AddGeneric(string name)
+        public TypeReferenceBuilder AddGeneric(string name)
         {
             _genericTypeArguments.Add(name);
             return this;
         }
 
-        public TypeBuilder SetIsNullable(bool isNullable)
+        public TypeReferenceBuilder SetIsNullable(bool isNullable)
         {
             _isNullable = isNullable;
             return this;

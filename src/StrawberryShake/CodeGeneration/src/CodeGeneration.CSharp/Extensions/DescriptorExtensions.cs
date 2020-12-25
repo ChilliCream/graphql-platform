@@ -4,10 +4,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
 {
     public static class DescriptorExtensions
     {
-        public static TypeBuilder ToBuilder(this TypeDescriptor typeDescriptor) =>
-            new TypeBuilder()
-                .SetName(typeDescriptor.Name)
-                .SetIsNullable(typeDescriptor.IsNullable)
-                .SetListType(typeDescriptor.ListType);
+        public static TypeReferenceBuilder ToBuilder(this TypeReferenceDescriptor typeReferenceDescriptor) =>
+            new TypeReferenceBuilder()
+                .SetName(typeReferenceDescriptor.Name)
+                .SetIsNullable(typeReferenceDescriptor.IsNullable)
+                .SetListType(typeReferenceDescriptor.ListType);
+
+        public static TypeReferenceBuilder ToEntityIdBuilder(this TypeReferenceDescriptor typeReferenceDescriptor) =>
+            new TypeReferenceBuilder()
+                .SetName(typeReferenceDescriptor.IsReferenceType ? WellKnownNames.EntityId : typeReferenceDescriptor.Name)
+                .SetIsNullable(typeReferenceDescriptor.IsNullable)
+                .SetListType(typeReferenceDescriptor.ListType);
     }
 }

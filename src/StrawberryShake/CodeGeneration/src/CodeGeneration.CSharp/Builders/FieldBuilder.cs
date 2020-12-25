@@ -9,7 +9,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private bool _isConst;
         private bool _isStatic;
         private bool _isReadOnly;
-        private TypeBuilder? _type;
+        private TypeReferenceBuilder? _type;
         private string? _name;
         private string? _value;
         private bool _useDefaultInitializer;
@@ -26,15 +26,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         {
             if (condition)
             {
-                _type = TypeBuilder.New().SetName(value);
+                _type = TypeReferenceBuilder.New().SetName(value);
             }
 
             return this;
         }
 
-        public FieldBuilder SetType(TypeBuilder type)
+        public FieldBuilder SetType(TypeReferenceBuilder typeReference)
         {
-            _type = type;
+            _type = typeReference;
             return this;
         }
 

@@ -11,14 +11,14 @@ namespace StrawberryShake.CodeGeneration
         /// <summary>
         /// The EntityType from which the target type shall be created
         /// </summary>
-        public TypeClassDescriptor EntityType { get; }
+        public TypeDescriptor EntityType { get; }
 
         /// <summary>
         /// The target Result type, which is the return type of the mapper
         /// </summary>
-        public TypeClassDescriptor ResultType { get; }
+        public TypeDescriptor ResultType { get; }
 
-        public ResultFromEntityTypeMapperDescriptor(TypeClassDescriptor entityType, TypeClassDescriptor resultType)
+        public ResultFromEntityTypeMapperDescriptor(TypeDescriptor entityType, TypeDescriptor resultType)
         {
             EntityType = entityType;
             ResultType = resultType;

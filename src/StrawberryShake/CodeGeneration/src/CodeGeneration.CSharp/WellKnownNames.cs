@@ -6,6 +6,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         public const string OperationStore  = "IOperationStore";
         public const string OperationExecutor  = "IOperationExecutor";
         public const string OperationResult  = "IOperationResult";
+        public const string IOperationResultDataInfo  = "IOperationResultDataInfo";
 
         public const string EntityId = "EntityId";
 

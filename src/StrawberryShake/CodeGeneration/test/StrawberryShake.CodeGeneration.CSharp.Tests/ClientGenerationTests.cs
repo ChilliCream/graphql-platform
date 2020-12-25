@@ -29,13 +29,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
                     new List<OperationDescriptor>()
                     {
                         new QueryOperationDescriptor(
-                            new TypeDescriptor(
+                            new TypeReferenceDescriptor(
                                 "GetFoo",
                                 false,
                                 ListType.NoList,
                                 true
                             ),
-                            new Dictionary<string, TypeDescriptor>()
+                            new Dictionary<string, TypeReferenceDescriptor>()
                         )
                     }
                 )
@@ -54,22 +54,22 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
                     new List<OperationDescriptor>()
                     {
                         new QueryOperationDescriptor(
-                            new TypeDescriptor(
+                            new TypeReferenceDescriptor(
                                 "GetFoo",
                                 false,
                                 ListType.NoList,
                                 true
                             ),
-                            new Dictionary<string, TypeDescriptor>()
+                            new Dictionary<string, TypeReferenceDescriptor>()
                         ),
                         new MutationOperationDescriptor(
-                            new TypeDescriptor(
+                            new TypeReferenceDescriptor(
                                 "UpdateFoo",
                                 false,
                                 ListType.NoList,
                                 true
                             ),
-                            new Dictionary<string, TypeDescriptor>()
+                            new Dictionary<string, TypeReferenceDescriptor>()
                         )
                     }
                 )

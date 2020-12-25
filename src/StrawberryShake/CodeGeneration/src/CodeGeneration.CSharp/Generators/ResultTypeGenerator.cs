@@ -5,35 +5,37 @@ using StrawberryShake.CodeGeneration.CSharp.Extensions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public class ResultTypeGenerator: CodeGenerator<TypeClassDescriptor>
+    public class ResultTypeGenerator: CodeGenerator<TypeDescriptor>
     {
-        protected override Task WriteAsync(CodeWriter writer, TypeClassDescriptor typeClassDescriptor)
+        protected override Task WriteAsync(CodeWriter writer, TypeDescriptor typeDescriptor)
         {
             if (writer is null)
             {
                 throw new ArgumentNullException(nameof(writer));
             }
 
-            if (typeClassDescriptor is null)
+            if (typeDescriptor is null)
             {
-                throw new ArgumentNullException(nameof(typeClassDescriptor));
+                throw new ArgumentNullException(nameof(typeDescriptor));
             }
 
             ClassBuilder classBuilder = ClassBuilder.New()
-                .SetName(typeClassDescriptor.Name);
+                .SetName(typeDescriptor.Name);
 
             ConstructorBuilder constructorBuilder = ConstructorBuilder.New()
-                .SetTypeName(typeClassDescriptor.Name)
+                .SetTypeName(typeDescriptor.Name)
                 .SetAccessModifier(AccessModifier.Public);
 
 
-            foreach (var prop in typeClassDescriptor.Properties)
+            foreach (var prop in typeDescriptor.Properties)
             {
+                var propTypeBuilder = prop.TypeReference.ToBuilder();
+
                 // Add Property to class
                 var propBuilder = PropertyBuilder
                     .New()
                     .SetName(prop.Name)
-                    .SetType(prop.Type.ToBuilder())
+                    .SetType(propTypeBuilder)
                     .SetAccessModifier(AccessModifier.Public);
                 classBuilder.AddProperty(propBuilder);
 
@@ -41,12 +43,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 var paramName = prop.Name.WithLowerFirstChar();
                 ParameterBuilder parameterBuilder = ParameterBuilder.New()
                     .SetName(paramName)
-                    .SetType(prop.Type.ToBuilder());
+                    .SetType(propTypeBuilder);
                 constructorBuilder.AddParameter(parameterBuilder);
                 constructorBuilder.AddCode(prop.Name + " = " + paramName + ";");
             }
 
-            foreach (var implement in typeClassDescriptor.Implements)
+            foreach (var implement in typeDescriptor.Implements)
             {
                 classBuilder.AddImplements(implement);
             }
@@ -54,7 +56,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             classBuilder.AddConstructor(constructorBuilder);
 
             return CodeFileBuilder.New()
-                .SetNamespace(typeClassDescriptor.Namespace)
+                .SetNamespace(typeDescriptor.Namespace)
                 .AddType(classBuilder)
                 .BuildAsync(writer);
         }

@@ -5,17 +5,17 @@ using Xunit;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Tests
 {
-    public class EntityTypeGenerationTests
+    public class ResultInfoGenerationTests
     {
         readonly StringBuilder _stringBuilder;
         readonly CodeWriter _codeWriter;
-        readonly EntityTypeGenerator _generator;
+        readonly ResultInfoGenerator _generator;
 
-        public EntityTypeGenerationTests()
+        public ResultInfoGenerationTests()
         {
             _stringBuilder = new StringBuilder();
             _codeWriter = new CodeWriter(_stringBuilder);
-            _generator = new EntityTypeGenerator();
+            _generator = new ResultInfoGenerator();
         }
 
         [Fact]
@@ -24,7 +24,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
             await _generator.WriteAsync(
                 _codeWriter,
                 new TypeDescriptor(
-                    NamingConventions.EntityTypeNameFromTypeName("Foo"),
+                    "Foo",
                     "FooBarNamespace",
                     new string[] { },
                     new[]
@@ -71,12 +71,91 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
         }
 
         [Fact]
+        public async Task GenerateSimpleClassWithOneNullableValueTypeProperty()
+        {
+            await _generator.WriteAsync(
+                _codeWriter,
+                new TypeDescriptor(
+                    "Foo",
+                    "FooBarNamespace",
+                    new string[] { },
+                    new[]
+                    {
+                        new TypePropertyDescriptor(
+                            new TypeReferenceDescriptor(
+                                "string",
+                                true,
+                                ListType.NoList,
+                                false
+                            ),
+                            "SomeText"
+                        )
+                    }
+                )
+            );
+            _stringBuilder.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task GenerateSimpleClassWithOneNullableReferenceTypeProperty()
+        {
+            await _generator.WriteAsync(
+                _codeWriter,
+                new TypeDescriptor(
+                    "Foo",
+                    "FooBarNamespace",
+                    new string[] { },
+                    new[]
+                    {
+                        new TypePropertyDescriptor(
+                            new TypeReferenceDescriptor(
+                                "Bar",
+                                true,
+                                ListType.NoList,
+                                true
+                            ),
+                            "Bar"
+                        )
+                    }
+                )
+            );
+            _stringBuilder.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task GenerateSimpleClassWithImplements()
+        {
+            await _generator.WriteAsync(
+                _codeWriter,
+                new TypeDescriptor(
+                    "Foo",
+                    "FooBarNamespace",
+                    new string[] {"IFoo", "IBar"},
+                    new[]
+                    {
+                        new TypePropertyDescriptor(
+                            new TypeReferenceDescriptor(
+                                "Bar",
+                                false,
+                                ListType.NoList,
+                                true
+                            ),
+                            "Bar"
+                        )
+                    }
+                )
+            );
+            _stringBuilder.ToString().MatchSnapshot();
+        }
+
+
+        [Fact]
         public async Task GenerateSimpleClassWithMultipleProperties()
         {
             await _generator.WriteAsync(
                 _codeWriter,
                 new TypeDescriptor(
-                    NamingConventions.EntityTypeNameFromTypeName("Foo"),
+                    "Foo",
                     "FooBarNamespace",
                     new string[] { },
                     new[]

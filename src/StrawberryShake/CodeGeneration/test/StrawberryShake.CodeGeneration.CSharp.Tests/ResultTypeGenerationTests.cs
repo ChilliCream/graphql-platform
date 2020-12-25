@@ -23,14 +23,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
         {
             await _generator.WriteAsync(
                 _codeWriter,
-                new TypeClassDescriptor(
+                new TypeDescriptor(
                     "Foo",
                     "FooBarNamespace",
                     new string[] { },
                     new[]
                     {
-                        new TypeClassPropertyDescriptor(
-                            new TypeDescriptor(
+                        new TypePropertyDescriptor(
+                            new TypeReferenceDescriptor(
                                 "string",
                                 false,
                                 ListType.NoList,
@@ -49,14 +49,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
         {
             await _generator.WriteAsync(
                 _codeWriter,
-                new TypeClassDescriptor(
+                new TypeDescriptor(
                     "Foo",
                     "FooBarNamespace",
                     new string[] { },
                     new[]
                     {
-                        new TypeClassPropertyDescriptor(
-                            new TypeDescriptor(
+                        new TypePropertyDescriptor(
+                            new TypeReferenceDescriptor(
                                 "Bar",
                                 false,
                                 ListType.NoList,
@@ -75,14 +75,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
         {
             await _generator.WriteAsync(
                 _codeWriter,
-                new TypeClassDescriptor(
+                new TypeDescriptor(
                     "Foo",
                     "FooBarNamespace",
                     new string[] { },
                     new[]
                     {
-                        new TypeClassPropertyDescriptor(
-                            new TypeDescriptor(
+                        new TypePropertyDescriptor(
+                            new TypeReferenceDescriptor(
                                 "string",
                                 true,
                                 ListType.NoList,
@@ -101,14 +101,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
         {
             await _generator.WriteAsync(
                 _codeWriter,
-                new TypeClassDescriptor(
+                new TypeDescriptor(
                     "Foo",
                     "FooBarNamespace",
                     new string[] { },
                     new[]
                     {
-                        new TypeClassPropertyDescriptor(
-                            new TypeDescriptor(
+                        new TypePropertyDescriptor(
+                            new TypeReferenceDescriptor(
                                 "Bar",
                                 true,
                                 ListType.NoList,
@@ -127,14 +127,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
         {
             await _generator.WriteAsync(
                 _codeWriter,
-                new TypeClassDescriptor(
+                new TypeDescriptor(
                     "Foo",
                     "FooBarNamespace",
                     new string[] {"IFoo", "IBar"},
                     new[]
                     {
-                        new TypeClassPropertyDescriptor(
-                            new TypeDescriptor(
+                        new TypePropertyDescriptor(
+                            new TypeReferenceDescriptor(
                                 "Bar",
                                 false,
                                 ListType.NoList,
@@ -154,14 +154,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
         {
             await _generator.WriteAsync(
                 _codeWriter,
-                new TypeClassDescriptor(
+                new TypeDescriptor(
                     "Foo",
                     "FooBarNamespace",
                     new string[] { },
                     new[]
                     {
-                        new TypeClassPropertyDescriptor(
-                            new TypeDescriptor(
+                        new TypePropertyDescriptor(
+                            new TypeReferenceDescriptor(
                                 "string",
                                 false,
                                 ListType.NoList,
@@ -169,8 +169,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
                             ),
                             "Id"
                         ),
-                        new TypeClassPropertyDescriptor(
-                            new TypeDescriptor(
+                        new TypePropertyDescriptor(
+                            new TypeReferenceDescriptor(
                                 "Bar",
                                 false,
                                 ListType.List,
@@ -178,8 +178,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
                             ),
                             "Bars"
                         ),
-                        new TypeClassPropertyDescriptor(
-                            new TypeDescriptor(
+                        new TypePropertyDescriptor(
+                            new TypeReferenceDescriptor(
                                 "Baz",
                                 true,
                                 ListType.NoList,

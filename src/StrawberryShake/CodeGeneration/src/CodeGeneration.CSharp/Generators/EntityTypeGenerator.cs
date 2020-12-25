@@ -5,33 +5,33 @@ using StrawberryShake.CodeGeneration.CSharp.Extensions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public class EntityTypeGenerator: CodeGenerator<TypeClassDescriptor>
+    public class EntityTypeGenerator: CodeGenerator<TypeDescriptor>
     {
-        protected override Task WriteAsync(CodeWriter writer, TypeClassDescriptor typeClassDescriptor)
+        protected override Task WriteAsync(CodeWriter writer, TypeDescriptor typeDescriptor)
         {
             if (writer is null)
             {
                 throw new ArgumentNullException(nameof(writer));
             }
 
-            if (typeClassDescriptor is null)
+            if (typeDescriptor is null)
             {
-                throw new ArgumentNullException(nameof(typeClassDescriptor));
+                throw new ArgumentNullException(nameof(typeDescriptor));
             }
 
             // Setup class
             ClassBuilder classBuilder = ClassBuilder.New()
-                .SetName(typeClassDescriptor.Name);
+                .SetName(typeDescriptor.Name);
 
             // Add Properties to class
-            foreach (var prop in typeClassDescriptor.Properties)
+            foreach (var prop in typeDescriptor.Properties)
             {
-                if (prop.Type.IsReferenceType)
+                if (prop.TypeReference.IsReferenceType)
                 {
                     PropertyBuilder referencePropertyBuilder = PropertyBuilder
                         .New()
                         .SetName(prop.Name)
-                        .SetType(prop.Type.ToBuilder().SetName(WellKnownNames.EntityId))
+                        .SetType(prop.TypeReference.ToBuilder().SetName(WellKnownNames.EntityId))
                         .MakeSettable()
                         .SetAccessModifier(AccessModifier.Public);
                     classBuilder.AddProperty(referencePropertyBuilder);
@@ -41,7 +41,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     PropertyBuilder propBuilder = PropertyBuilder
                         .New()
                         .SetName(prop.Name)
-                        .SetType(prop.Type.ToBuilder())
+                        .SetType(prop.TypeReference.ToBuilder())
                         .MakeSettable()
                         .SetAccessModifier(AccessModifier.Public);
                     classBuilder.AddProperty(propBuilder);
@@ -49,7 +49,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
 
             return CodeFileBuilder.New()
-                .SetNamespace(typeClassDescriptor.Namespace)
+                .SetNamespace(typeDescriptor.Namespace)
                 .AddType(classBuilder)
                 .BuildAsync(writer);
         }

@@ -24,9 +24,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     FieldBuilder.New()
                         .SetReadOnly()
                         .SetType(
-                            TypeBuilder.New()
+                            TypeReferenceBuilder.New()
                                 .SetName(WellKnownNames.OperationExecutor)
-                                .AddGeneric(descriptor.ResultType.Name)
+                                .AddGeneric(descriptor.ResultTypeReference.Name)
                         )
                         .SetName(OperationExecutorFieldName)
                 );
@@ -41,9 +41,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .AddParameter(
                     ParameterBuilder.New()
                         .SetType(
-                            TypeBuilder.New()
+                            TypeReferenceBuilder.New()
                                 .SetName(WellKnownNames.OperationExecutor)
-                                .AddGeneric(descriptor.ResultType.Name)
+                                .AddGeneric(descriptor.ResultTypeReference.Name)
                         )
                         .SetName(OperationExecutorParamName)
                 )
@@ -56,14 +56,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
             if (descriptor is not SubscriptionOperationDescriptor)
             {
                 executeMethod = MethodBuilder.New()
-                    .SetReturnType($"async Task<{WellKnownNames.OperationResult}<{descriptor.ResultType.Name}>>")
+                    .SetReturnType($"async Task<{WellKnownNames.OperationResult}<{descriptor.ResultTypeReference.Name}>>")
                     .SetAccessModifier(AccessModifier.Public)
                     .SetName(WellKnownNames.Execute);
             }
 
 
             var watchMethod = MethodBuilder.New()
-                .SetReturnType($"IOperationObservable<{descriptor.ResultType.Name}>")
+                .SetReturnType($"IOperationObservable<{descriptor.ResultTypeReference.Name}>")
                 .SetAccessModifier(AccessModifier.Public)
                 .SetName(WellKnownNames.Watch);
 
@@ -73,7 +73,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 var paramBuilder = ParameterBuilder.New()
                     .SetName(keyValuePair.Key)
                     .SetType(
-                        TypeBuilder.New()
+                        TypeReferenceBuilder.New()
                             .SetName(paramType.Name)
                             .SetIsNullable(paramType.IsNullable)
                             .SetListType(paramType.ListType)

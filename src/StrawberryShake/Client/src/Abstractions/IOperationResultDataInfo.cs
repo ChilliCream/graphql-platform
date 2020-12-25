@@ -9,7 +9,8 @@ namespace StrawberryShake
     public interface IOperationResultDataInfo
     {
         /// <summary>
-        /// A read-only set of all entities that are used by the operation result.
+        /// A read-only set (reflexive and transitive closure) of all entities that are used by the operation result.
+        /// This includes all entities (And not only the entities on the root level of the result).
         /// </summary>
         IReadOnlyCollection<EntityId> EntityIds { get; }
     }

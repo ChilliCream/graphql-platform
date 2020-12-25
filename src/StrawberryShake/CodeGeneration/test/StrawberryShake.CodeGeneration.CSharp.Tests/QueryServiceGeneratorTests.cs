@@ -25,13 +25,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
             await _generator.WriteAsync(
                 _codeWriter,
                 new QueryOperationDescriptor(
-                    new TypeDescriptor(
+                    new TypeReferenceDescriptor(
                         "Foo",
                         false,
                         ListType.NoList,
                         true
                     ),
-                    new Dictionary<string, TypeDescriptor>()
+                    new Dictionary<string, TypeReferenceDescriptor>()
                 )
             );
 
@@ -44,15 +44,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
             await _generator.WriteAsync(
                 _codeWriter,
                 new QueryOperationDescriptor(
-                    new TypeDescriptor(
+                    new TypeReferenceDescriptor(
                         "Foo",
                         false,
                         ListType.NoList,
                         true
                     ),
-                    new Dictionary<string, TypeDescriptor>()
+                    new Dictionary<string, TypeReferenceDescriptor>()
                     {
-                        {"name", new TypeDescriptor("string", false, ListType.NoList, false)}
+                        {"name", new TypeReferenceDescriptor("string", false, ListType.NoList, false)}
                     }
                 )
             );
@@ -66,15 +66,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
             await _generator.WriteAsync(
                 _codeWriter,
                 new QueryOperationDescriptor(
-                    new TypeDescriptor(
+                    new TypeReferenceDescriptor(
                         "Foo",
                         false,
                         ListType.NoList,
                         true
                     ),
-                    new Dictionary<string, TypeDescriptor>()
+                    new Dictionary<string, TypeReferenceDescriptor>()
                     {
-                        {"bar", new TypeDescriptor("BarInput", true, ListType.NoList, true)}
+                        {"bar", new TypeReferenceDescriptor("BarInput", true, ListType.NoList, true)}
                     }
                 )
             );
@@ -88,16 +88,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
             await _generator.WriteAsync(
                 _codeWriter,
                 new QueryOperationDescriptor(
-                    new TypeDescriptor(
+                    new TypeReferenceDescriptor(
                         "Foo",
                         false,
                         ListType.NoList,
                         true
                     ),
-                    new Dictionary<string, TypeDescriptor>()
+                    new Dictionary<string, TypeReferenceDescriptor>()
                     {
-                        {"name", new TypeDescriptor("string", false, ListType.NoList, false)},
-                        {"a", new TypeDescriptor("BarInput", true, ListType.NoList, true)}
+                        {"name", new TypeReferenceDescriptor("string", false, ListType.NoList, false)},
+                        {"a", new TypeReferenceDescriptor("BarInput", true, ListType.NoList, true)}
                     }
                 )
             );

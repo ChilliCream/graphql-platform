@@ -5,13 +5,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public class ParameterBuilder : ICodeBuilder
     {
-        private TypeBuilder? _type;
+        private TypeReferenceBuilder? _type;
         private string? _name;
         private string? _default;
 
         public static ParameterBuilder New() => new ParameterBuilder();
 
-        public ParameterBuilder SetType(TypeBuilder value, bool condition = true)
+        public ParameterBuilder SetType(TypeReferenceBuilder value, bool condition = true)
         {
             if (condition)
             {
@@ -22,7 +22,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
         public ParameterBuilder SetType(string name)
         {
-            _type = TypeBuilder.New().SetName(name);
+            _type = TypeReferenceBuilder.New().SetName(name);
             return this;
         }
 

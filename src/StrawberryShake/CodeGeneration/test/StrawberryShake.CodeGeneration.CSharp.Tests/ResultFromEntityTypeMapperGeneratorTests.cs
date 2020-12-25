@@ -24,14 +24,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
             await _generator.WriteAsync(
                 _codeWriter,
                 new ResultFromEntityTypeMapperDescriptor(
-                    new TypeClassDescriptor(
+                    new TypeDescriptor(
                         NamingConventions.EntityTypeNameFromTypeName("Foo"),
                         "EntityNamespace",
                         new string[] { },
                         new[]
                         {
-                            new TypeClassPropertyDescriptor(
-                                new TypeDescriptor(
+                            new TypePropertyDescriptor(
+                                new TypeReferenceDescriptor(
                                     "string",
                                     false,
                                     ListType.NoList,
@@ -39,8 +39,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                 ),
                                 "SomeText"
                             ),
-                            new TypeClassPropertyDescriptor(
-                                new TypeDescriptor(
+                            new TypePropertyDescriptor(
+                                new TypeReferenceDescriptor(
                                     "string",
                                     false,
                                     ListType.NoList,
@@ -50,14 +50,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
                             )
                         }
                     ),
-                    new TypeClassDescriptor(
+                    new TypeDescriptor(
                         "Foo",
                         "ResultTypeNamespace",
                         new string[] { },
                         new[]
                         {
-                            new TypeClassPropertyDescriptor(
-                                new TypeDescriptor(
+                            new TypePropertyDescriptor(
+                                new TypeReferenceDescriptor(
                                     "string",
                                     false,
                                     ListType.NoList,
@@ -79,14 +79,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
             await _generator.WriteAsync(
                 _codeWriter,
                 new ResultFromEntityTypeMapperDescriptor(
-                    new TypeClassDescriptor(
+                    new TypeDescriptor(
                         NamingConventions.EntityTypeNameFromTypeName("Foo"),
                         "EntityNamespace",
                         new string[] { },
                         new[]
                         {
-                            new TypeClassPropertyDescriptor(
-                                new TypeDescriptor(
+                            new TypePropertyDescriptor(
+                                new TypeReferenceDescriptor(
                                     "string",
                                     false,
                                     ListType.NoList,
@@ -94,8 +94,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                 ),
                                 "SomeText"
                             ),
-                            new TypeClassPropertyDescriptor(
-                                new TypeDescriptor(
+                            new TypePropertyDescriptor(
+                                new TypeReferenceDescriptor(
                                     "string",
                                     false,
                                     ListType.NoList,
@@ -105,14 +105,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
                             )
                         }
                     ),
-                    new TypeClassDescriptor(
+                    new TypeDescriptor(
                         "Foo",
                         "ResultTypeNamespace",
                         new string[] { },
                         new[]
                         {
-                            new TypeClassPropertyDescriptor(
-                                new TypeDescriptor(
+                            new TypePropertyDescriptor(
+                                new TypeReferenceDescriptor(
                                     "string",
                                     false,
                                     ListType.NoList,
@@ -120,8 +120,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                 ),
                                 "SomeText"
                             ),
-                            new TypeClassPropertyDescriptor(
-                                new TypeDescriptor(
+                            new TypePropertyDescriptor(
+                                new TypeReferenceDescriptor(
                                     "string",
                                     false,
                                     ListType.NoList,
@@ -143,14 +143,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
             await _generator.WriteAsync(
                 _codeWriter,
                 new ResultFromEntityTypeMapperDescriptor(
-                    new TypeClassDescriptor(
+                    new TypeDescriptor(
                         NamingConventions.EntityTypeNameFromTypeName("Foo"),
                         "EntityNamespace",
                         new string[] { },
                         new[]
                         {
-                            new TypeClassPropertyDescriptor(
-                                new TypeDescriptor(
+                            new TypePropertyDescriptor(
+                                new TypeReferenceDescriptor(
                                     "string",
                                     false,
                                     ListType.NoList,
@@ -158,8 +158,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                 ),
                                 "SomeText"
                             ),
-                            new TypeClassPropertyDescriptor(
-                                new TypeDescriptor(
+                            new TypePropertyDescriptor(
+                                new TypeReferenceDescriptor(
                                     "Bar",
                                     false,
                                     ListType.NoList,
@@ -169,14 +169,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
                             )
                         }
                     ),
-                    new TypeClassDescriptor(
+                    new TypeDescriptor(
                         "Foo",
                         "ResultTypeNamespace",
                         new string[] { },
                         new[]
                         {
-                            new TypeClassPropertyDescriptor(
-                                new TypeDescriptor(
+                            new TypePropertyDescriptor(
+                                new TypeReferenceDescriptor(
                                     "Bar",
                                     false,
                                     ListType.NoList,
@@ -197,14 +197,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
             await _generator.WriteAsync(
                 _codeWriter,
                 new ResultFromEntityTypeMapperDescriptor(
-                    new TypeClassDescriptor(
+                    new TypeDescriptor(
                         NamingConventions.EntityTypeNameFromTypeName("Foo"),
                         "EntityNamespace",
                         new string[] { },
                         new[]
                         {
-                            new TypeClassPropertyDescriptor(
-                                new TypeDescriptor(
+                            new TypePropertyDescriptor(
+                                new TypeReferenceDescriptor(
                                     "string",
                                     false,
                                     ListType.NoList,
@@ -212,8 +212,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                 ),
                                 "SomeText"
                             ),
-                            new TypeClassPropertyDescriptor(
-                                new TypeDescriptor(
+                            new TypePropertyDescriptor(
+                                new TypeReferenceDescriptor(
                                     "Bar",
                                     false,
                                     ListType.List,
@@ -223,14 +223,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
                             )
                         }
                     ),
-                    new TypeClassDescriptor(
+                    new TypeDescriptor(
                         "Foo",
                         "ResultTypeNamespace",
                         new string[] { },
                         new[]
                         {
-                            new TypeClassPropertyDescriptor(
-                                new TypeDescriptor(
+                            new TypePropertyDescriptor(
+                                new TypeReferenceDescriptor(
                                     "string",
                                     false,
                                     ListType.NoList,
@@ -238,8 +238,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                 ),
                                 "SomeText"
                             ),
-                            new TypeClassPropertyDescriptor(
-                                new TypeDescriptor(
+                            new TypePropertyDescriptor(
+                                new TypeReferenceDescriptor(
                                     "Bar",
                                     false,
                                     ListType.List,
@@ -260,14 +260,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
             await _generator.WriteAsync(
                 _codeWriter,
                 new ResultFromEntityTypeMapperDescriptor(
-                    new TypeClassDescriptor(
+                    new TypeDescriptor(
                         NamingConventions.EntityTypeNameFromTypeName("Foo"),
                         "EntityNamespace",
                         new string[] { },
                         new[]
                         {
-                            new TypeClassPropertyDescriptor(
-                                new TypeDescriptor(
+                            new TypePropertyDescriptor(
+                                new TypeReferenceDescriptor(
                                     "string",
                                     false,
                                     ListType.NoList,
@@ -275,8 +275,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                 ),
                                 "SomeText"
                             ),
-                            new TypeClassPropertyDescriptor(
-                                new TypeDescriptor(
+                            new TypePropertyDescriptor(
+                                new TypeReferenceDescriptor(
                                     "Bar",
                                     false,
                                     ListType.List,
@@ -284,8 +284,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                 ),
                                 "BarReferenceList"
                             ),
-                            new TypeClassPropertyDescriptor(
-                                new TypeDescriptor(
+                            new TypePropertyDescriptor(
+                                new TypeReferenceDescriptor(
                                     "Bar",
                                     false,
                                     ListType.NoList,
@@ -293,8 +293,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                 ),
                                 "BarReference"
                             ),
-                            new TypeClassPropertyDescriptor(
-                                new TypeDescriptor(
+                            new TypePropertyDescriptor(
+                                new TypeReferenceDescriptor(
                                     "string",
                                     false,
                                     ListType.NoList,
@@ -304,14 +304,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
                             ),
                         }
                     ),
-                    new TypeClassDescriptor(
+                    new TypeDescriptor(
                         "Foo",
                         "ResultTypeNamespace",
                         new string[] { },
                         new[]
                         {
-                            new TypeClassPropertyDescriptor(
-                                new TypeDescriptor(
+                            new TypePropertyDescriptor(
+                                new TypeReferenceDescriptor(
                                     "string",
                                     false,
                                     ListType.NoList,
@@ -319,8 +319,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                 ),
                                 "SomeText"
                             ),
-                            new TypeClassPropertyDescriptor(
-                                new TypeDescriptor(
+                            new TypePropertyDescriptor(
+                                new TypeReferenceDescriptor(
                                     "Bar",
                                     false,
                                     ListType.List,
@@ -328,8 +328,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                 ),
                                 "BarReferenceList"
                             ),
-                            new TypeClassPropertyDescriptor(
-                                new TypeDescriptor(
+                            new TypePropertyDescriptor(
+                                new TypeReferenceDescriptor(
                                     "Bar",
                                     false,
                                     ListType.NoList,
@@ -337,8 +337,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                 ),
                                 "BarReference"
                             ),
-                            new TypeClassPropertyDescriptor(
-                                new TypeDescriptor(
+                            new TypePropertyDescriptor(
+                                new TypeReferenceDescriptor(
                                     "string",
                                     false,
                                     ListType.NoList,
