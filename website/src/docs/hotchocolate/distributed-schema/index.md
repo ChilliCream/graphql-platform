@@ -17,9 +17,9 @@ You can for example stitch third-party services and use federations for domain s
 
 _Schema of the Person Service_
 
-```
+```sdl
 type Query {
-  persons: Person;
+  persons: Person
 }
 
 type Person {
@@ -30,9 +30,9 @@ type Person {
 
 _Schema of the Address Service_
 
-```
+```sdl
 type Query {
-  addressOfPerson(persondId: ID): Address;
+  addressOfPerson(persondId: ID!): Address
 }
 
 type Address {
@@ -43,9 +43,9 @@ type Address {
 
 _Gateway Service_
 
-```
+```sdl
 type Query {
-  persons: Person;
+  persons: Person
 }
 
 type Person {
@@ -71,7 +71,7 @@ Gateway:
 
 ```sdl
 extend type Person {
-  address: Address @delegate(schema: "Address", path:"addressOfPerson(personId: $fields:Id")
+  address: Address @delegate(schema: "Address", path:"addressOfPerson(personId: $fields:Id"))
 }
 ```
 
@@ -104,7 +104,7 @@ Address Service:
 
 ```sdl
 extend type Person {
-  address: Address @delegate(schema: "Address", path:"addressOfPerson(personId: $fields:Id")
+  address: Address @delegate(schema: "Address", path:"addressOfPerson(personId: $fields:Id"))
 }
 ```
 

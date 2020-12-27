@@ -81,6 +81,28 @@
             ]
           },
           {
+            "path": "distributed-schema",
+            "title": "Distributed Schemas",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "schema-stitching",
+                "title": "Schema Stitching"
+              },
+              {
+                "path": "schema-federations",
+                "title": "Schema Federations"
+              },
+              {
+                "path": "schema-configuration",
+                "title": "Schema Configuration"
+              }
+            ]
+          },
+          {
             "path": "integrations",
             "title": "Integrations",
             "items": [
@@ -113,7 +135,7 @@
               {
                 "path": "language",
                 "title": "Language"
-              }, 
+              },
               {
                 "path": "extending-filtering",
                 "title": "Extending Filtering"
