@@ -981,8 +981,7 @@ namespace Microsoft.Extensions.DependencyInjection
         private static string GetArgumentValue(DirectiveNode directive, string argumentName)
         {
             ArgumentNode? type = directive.Arguments
-                .FirstOrDefault(a => a.Name.Value.EqualsOrdinal(
-                    DirectiveFieldNames.RemoveType_TypeName));
+                .FirstOrDefault(a => a.Name.Value.EqualsOrdinal(argumentName));
 
             if (type is null)
             {
