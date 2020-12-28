@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace StrawberryShake
+namespace StrawberryShake.Impl
 {
     internal class AsyncDelegateObserver<T> : IAsyncObserver<IOperationResult<T>> where T : class
     {

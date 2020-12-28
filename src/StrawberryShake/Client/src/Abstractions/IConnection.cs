@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading;
+using StrawberryShake.Impl;
 
 namespace StrawberryShake
 {

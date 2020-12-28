@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace StrawberryShake
+namespace StrawberryShake.Impl
 {
     public sealed class OperationRequest : IEquatable<OperationRequest>
     {

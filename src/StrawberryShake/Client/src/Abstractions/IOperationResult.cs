@@ -1,17 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using StrawberryShake.Properties;
-using StrawberryShake.Remove;
 using static StrawberryShake.Properties.Resources;
 
 namespace StrawberryShake
 {
-    public interface IOperationResult<out T> : IOperationResult where T : class
+    public interface IOperationResult<T> : IOperationResult where T : class
     {
         new T? Data { get; }
 
         IOperationResultDataFactory<T> DataFactory { get; }
+
+        IOperationResult<T> WithData(T data, IOperationResultDataInfo dataInfo);
     }
 
     public interface IOperationResult
@@ -67,5 +67,8 @@ namespace StrawberryShake
         public IReadOnlyDictionary<string, object?> Extensions { get; }
 
         public IReadOnlyDictionary<string, object?> ContextData { get; }
+
+        public IOperationResult<T> WithData(T data, IOperationResultDataInfo dataInfo) =>
+            new OperationResult<T>(data, dataInfo, DataFactory, Errors, Extensions, ContextData);
     }
 }

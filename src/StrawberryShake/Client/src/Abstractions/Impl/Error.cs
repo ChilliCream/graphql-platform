@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace StrawberryShake
+namespace StrawberryShake.Impl
 {
     /// <summary>
     /// Represents a query error.
