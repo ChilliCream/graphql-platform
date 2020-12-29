@@ -92,9 +92,9 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            if (runtimeValue is Guid uri)
+            if (runtimeValue is Guid guid)
             {
-                resultValue = uri.ToString(_format);
+                resultValue = guid.ToString(_format);
                 return true;
             }
 
