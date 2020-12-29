@@ -7,7 +7,291 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [11.0.7]
+
+## [11.0.6]
+
+## [11.0.5]
+
+## [11.0.4]
+
+## [11.0.3]
+
+## [11.0.2]
+
+## [11.0.1]
+
+## [11.0.0]
+
 ### Added
+
+- Added FirstOrDefault Middleware & improved EF docs (#2635)
+- Added support for spatial types and spatial filters (#2541, #2566, #2567, #2637, #2638, #2639)
+- Added new data integration API (#2633, #2631, #2629, #2618, #2619)
+- Introduced new conventions API ()
+- Added Banana Cake Pop middleware which replaces the Voyager, Playground and GraphiQL middleware.
+- Added better error when root value cannot be created. (#2598)
+- Added schema error interceptor (#2581)
+- Added new Dataloader middleware (#2548)
+- Add support for IExecutable to Data (#2527)
+
+
+- SPEC: Custom Scalar Specification URLs  (#2614)
+
+### Changed
+
+- Refined converter API (#2593)
+- Changed schema endpoint route from `http://localhost/graphql/schema` to `http://localhost/graphql?sdl`
+- Changed ASP.NET Core integration by using the ASP.NET Core routing API.
+- Refined .NET Templates (#2570)
+- SPEC: Rewrote GraphQL middleware to align with current GraphQL over HTTP spec draft.
+- SPEC: Re-implemented request validation to align better GraphQL spec and graphql-js.
+
+### Removed
+
+- Removed Voyager middleware.
+- Removed Playground middleware.
+- Removed GraphiQL middleware.
+
+### Fixed
+
+- Allow to annotate enums and enum values with GraphQLNameAttribute (#2315)
+- Fixed xml documentation inheritance issue. (#2645)
+- The type trimming now correctly handles executable directives (#2605)
+- Fixed issue when using subscriptions with variables. (#2596)
+- Fixed name convention interference with the introspection types. (#2588)
+
+* 5a1d67ddbaa1b9975064ca4f82d0c86994d00406 Added support to use a page type directly (#2540)
+* 60c8fb9b2a57f1b5714b2adbb7b0817caa43827b Fix duplicated filter/sorting type names (#2530)
+* e65e07a87424714d673176557bbd62b601b2cdea Bump gatsby-plugin-manifest from 2.5.1 to 2.5.2 in /website (#2537)
+* 1272189c97cadce932da17bc0ca72fb04af9fe3b Bump gatsby from 2.25.1 to 2.25.2 in /website (#2538)
+* f93f97c8cf21cc5042661efe56b907de320e9c26 Bump gatsby-remark-autolink-headers from 2.4.0 to 2.4.1 in /website (#2539)
+* b28feeb3f98abf6549fe43199ba393232b9b3540 Fixed a few website issues and upgraded packages (#2535)
+* 115f47c887634737e0b8f36ccd821341a05898ce Reworked Stitching Variable Handling (#2533)
+* 1de7cf865771789ca824814c5023806addca605c Add conventions to executor builder (#2532)
+* 300d01bf7f146c2d7444af381fa74b1a0b724eb4 Reworked Stitching Error Handling (#2529)
+* 601190bce1ad69b7a3fd63d43b15cb36bdded17c Schema Stitching Refinements (#2526)
+* 5a351058f27799de7b5867dcd73fc67bcca077f9 Fixed field resolver respect inheritance (#2515)
+* 4d87c535f9c7d6e0f3a1ece4375a3c449afc39f2 Fixes stitching issues when fetching from downstream services. (#2511)
+* f70c344d62a028fd108300667c9912c2654d6ca6 Fixed async node resolvers (#2493)
+* f491d2ff769695ad69ead1abac73e329ce7fdd91 Fixed dictionary middleware. (#2492)
+* ab0edc3fd5ecf2a9c3823597aed7c49d06295f99 Fixed Stitching Issues (#2491)
+* 8cfda3807fb8a7d10659fd45a12d0a7f343fea74 Fixed nullref issue with the result map (#2489)
+* 91dab88a907f72fa83ca738f88e0723f7678e328 Fixed issue that directives were dropped when using the schema printer. (#2486)
+* a1b249970149193911a5de4362aa60df48facab7 BCP config, error details and middleware improvements (#2483)
+* 4ac43f5ee5499f6a984a55ab8a18d2b8873a7a8a Fixed: Projection when using offset paging (#2476)
+* 0de8364d2b4996d61e0fd2248d45ed089b95c17e Add more tests for federated stitching. (#2474)
+* 32bfa7fa2878244fc6c2fb1e9ef3bb88d8c02682 Remove legacy selections (#2478)
+* ec060126bbb7950d3502850b732b2dc5f9b2bc79 Prefetch TotalCount  (#2480)
+* 650c80b9342686a968f9e9aad839f8b8e09cab22 Fix value coercion of enum values (#2477)
+* 80572670005e06ed476177265d6eba298c91f66c Refactored IExecutable (#2479)
+* 3d6a617d3fb87f601f13f74402a8db057010515d Added support for federated stitching. (#2471)
+* 27c0fac210da27989bf1e8b49e43d901b4c43b89 Properly infer the enum values from GraphQL SDL
+* cb939227a22cefddbd6ec88357b18c77ba84c461 Updated BCP (#2467)
+* 93e9ff6cc502f760802155188b9b4036fb3d3baa Fixed schema stitching issues with enum naming
+* 0dee68ff53dae5730e665e3253b6665d355545c8 Updated bcp resources (#2464)
+* 5f7d3b6a348f54fb844ff910fbe4999ee91e57ab Fixed projection convention issues
+* 014784c2d517c24b4149c7170e073cf74012fe3f Integrated projections into new configuration API
+* baef95ecdb56acc76d5f84ce4b12f84667552557 Compile nullable attributes as internal
+* f925bfe6721d65f97e6dfe27b5c80f3402c42986 Fixed Mutation Executor issue
+* 68a5a1fc3db981a002ded1bf8d28de8bb5ba3fbb EntityFramework now references HotChocolate.Data
+* 00b1234b88eb690ec315dfc9289293538f52a2ca Added attributes for filtering and sorting (#2453)
+* b8b4b0bb040094ce83b5ef77b1f3b1b5919776cc Removes ReportError On ConventionContext (#2455)
+* a9e91a9b1955875ca9f22b5d668a548dbf24665f Improved error messages for missing conventions (#2457)
+* 5c419eb8d687d097484723b60a5cf9cfdd7b3324 Convention Extensions (#2451)
+* 5360b701992b036480e2d1920a4b75628451167f Added projections support to version 11 (#2419)
+* 762b09e23702b9e43562343c0f23818e584e6924 Added ziosk and e2m logo; set 1 year expiration for cookie consent
+* 21f7642742b532bf818eb9370220bb24091191b9 Merge pull request #2412 from AradAral/patch-1
+* c508b34c22d8d251977641afbaa310a716731260 Merge branch 'develop' into patch-1
+* 911db2a81fe928be570bc35accf7e53c520e271b Add list input for sorting
+* a4946fa6681dfa9d5ff92e1329108ec8b5b98db8 Merge branch 'develop' into pse/sorting-as-array
+* 548b964f30576dbf8a71d8231aef7c6392d7070c Fix message on the attribute obsolete in NodeObjectTypeExtensions.
+* 02d6789d5e692944fef809cee0cc743522395c2c Merge branch 'develop' into patch-1
+* 6d355dc65c556c3c28e3e52f9a52ad9eed255e00 Merge branch 'develop' into vbornand-patch-1
+* be06ce5c7914e73165166341b3cb80b739cdc38b Merge branch 'develop' into pse/sorting-as-array
+* 8ceda1a3a753685b2fbeed9bcda833b55d30bad2 Adds IExecutable abstraction to core
+* 8d32a4afa37d90a339f8459ccb047b14a4bbf3a2 Merge branch 'develop' into pse/query-abstraction
+* 70a4741f6c9bfe044286c8ee3e2d6448277cdd4a fix tests
+* 317531017d5c8703a6e6116f5b451b07e3671b69 Really make defintions read-only
+* fc6cc326e7e4c9bb65557c919a3fb75a66fc9463 really make defintions readonly
+* 250649878e5640586d3210771378ff6da6e95449 make definitions readonly (#2447)
+* e0e5fda21d0d2dd3077a02e3a8c4613b20b681b4 Merge branch 'develop' into pse/readonly-data-definitions
+* b13a2f44c177633b84e5ff0b844f8c435afd49a2 Added tests that show we can rewrite scalar types (#2444)
+* dd2120a5b99ef070257e770b9df5772dec7062eb make definitions readonly
+* b902c2a3a0fbfa77a5dadeb642f8086b87657e63 rename to executable
+* 3ca2178e8c9cabad1e9f0680d42332c9d0b1620a rename to executable
+* b44f9998ff25e1231198c35396f1b708eb9c9cc2 fix refactoring issue
+* 0bd2c532ce47ca36f6e2008ef010a3b9276e5ede add query abstraction
+* 66ced99a405a6261662ececa7b099d1383cea32f Fixed issue with non-null arguments that have defaults (#2441)
+* ce3568d1deebf3129a3869b45f2b483bab727f83 fix format
+* d9278777c5948e9ae2c76cf318afe7672181de71 feat: add list support to sorting
+* e1560c78335d9d50b5e0d7de97f503c3afa40119 Update NodeObjectTypeExtensions.cs
+* 27c68fa145c065433c4484b408134048eeeea5ee Fixed HotChocolate.Data.EntityFramework assembly name.
+* 2a0605af9bbf24e0d74310ace5fc2f1623e28a86 Added entity framework helpers. (#2435)
+* 6d795038eb2e0839b8583c5807a9717d81d8cc86 Fixed issue where empty selection sets lead to execution errors. (#2432)
+* 6a78a9b2bdaf2ac97c6f693bc74f072edd905157 Added pure code-first Node resolver (#2434)
+* 1b34d9a04968c651c000724ca0dcfc304c214477 Get default value from constructor when type is a record. (#2428)
+* d7eba9d1ea435236d4819abf06030c8e0638fb57 Added Filter Binding Tests (#2431)
+* 9ef8f5fb2ccbf06b88d401e0066d1abcf737d30e Fix: Added Enum to GraphQLDescriptionAttribute (#2430)
+* 8299a944864a07bc0881ef06ce68818d801533d2 Allow custom remote schema fetchers (#2425)
+* 3ddde4893ca443c7112fbe985bef4492778ad695 Allow for scalars to be renamed when stitching a schema. (#2424)
+* f80ec34be1148c13ff29a24a6d5eaaeeb69b23f0 Allow for list aggregations when delegating. (#2418)
+* 8673af5f5cd5833c9f07b75962c11f20cffc7050 Banana Cake Pop Middleware (#2417)
+* b0e061e6a5729e2047f2c626adb817d8ed759b6c Migrates stitching to the new configuration API (#2403)
+* 9816d61a18432f68e4c398193d411968056b767c Changing type="solution" to type="project" in template.json (#2413)
+* 1f7ff19a08e3b4c27fb95c4f93216b41ad688a13 Correcting the link to the execution options
+* 59da40c9bea05b975e886353202aa49d8fce85a8 Added carmmunity logo (#2410)
+* 289f0dcf54822ccf4d5b68a2a4862e60ada39ebd Changed Package Project URL
+* 249770920cafc6a48e34208252b822549f759687 Migrated spatial types to new type system core. (#2304)
+* ed032ed397f9c168d7a26b461a43a5189c0ffcae Updated Benchmark Results
+* afc0237b1ee0a1812db2bccb68aaf669e0cfc5e5 Added SwissLife logo (#2402)
+* 6149d2862d79f86b7ad5af2e7937f3a810ba7b8f issue lock
+* db24b425f7da3dd2d04d64c78fae40847bb9855e Adds Apollo Federation Types (#2361)
+* c5f26e856feb59dfb8c3aef82a5c8f76286571db Reversed accidental move of the type tests
+* f7d6af69271bcbb3d0dfdad2614c44051bd054e8 Added integration tests for sorting (#2313)
+* 5b478a9c6e092291b180db3927c9251a96f76556 Added tests for filtering in combination with paging. (#2317)
+* a1277798df08ecacb42cf15fbfaa0ec342c0ff94 Fixed issue where the result helper was not correctly cleared after usage. (#2380)
+* 2419fa0bf73797e820a7775724f7ae4e0ce639ce Fixed end boundare for incremental results
+* 689c52bf251970f14860b0f9db68798a52daeef2 Adds @defer transport layer. (#2377)
+* 91d6801e2bd8e2f2a45339f20d96c92587607539 Added @defer to the GraphQL core. (#2359)
+* 0b42aeff89f9d7e34a988b2805df316393a19109 Added Configuration API for the Global ID serializer. (#2370)
+* 82a07bd9d25e78bb1b8cc0be8f5cc170d0e223a2 Added pushpay logo (#2368)
+* 929ae9859f00ec1e1236aa8bbe9d432a0f9c9666 Refined Selection Optimizer (#2354)
+* 03088d76bc393211e7942e9e272046d339cddd3b Fixed link to subscription docs (#2366)
+* 1b4eb36d2d428baf104f8ae720b562286f3b1c32 Fixed issue where we normalized schema references incorrectly (#2363)
+* b04ea1fac71409537860ab7717c3c64628dcf2ec Updated Website Menu
+* 6ee13366a05ba11ed9ed47874e05e5caead47c36 Update index.md
+* e601cbd8d431e055b87a56f2ddea766320f4d8ea Track the types that are dependant on unresolvable references (#2360)
+* ea2b940fe01c77cf097cc8623fa81956209d40ca Update README.md (#2357)
+* c81548b4e6c52c6f74641b7ab7ad41e0455dd640 Deleted Filtering.md (#2352)
+* 34bbe343a21204ec01f5356a320b752a431cbd7c Added Hot Chocolate Docs Introduction
+* 4f6638b295ed2204e6a5978ec574e743e108cb42 Fixed two links (#2356)
+* 5b85fd2e654b2f5f03caa036e295fe0ed3c1fba5 New Platform Readme (#2355)
+* 5c10aedccb10b34dfca8806245bc3a85cf0b455a Added test snapshot
+* 4737777f0150254b8e5165e3ee9709654b47fad8 [Security] Bump dot-prop from 4.2.0 to 4.2.1 in /website (#2256)
+* d5a4f0067d54637709e1ce1133df1c773da38312 Updated startpage (#2353)
+* bdabf0b919fd50bfff3713ff825ee01720928a4d Reworked Build and Merged Changed
+* a254da9cdf57c960580df41c8dc04bd85a74d176 Build Settings
+* b5950660092a07b931d58a1cb154726cfc02d324 Fixed broken link.
+* 6f64af27cf2991ede17fbe348ba3bdce0beefb21 Added test that proofs that elements can be variables (#2349)
+* be7c71748e3706e999797915be70f53c61920881 Added test that ensures that objects can be variables (#2350)
+* 5be38a78318533430ad6a1d2b83abc9ca8265501 Fix typos (#2346)
+* b00cc42ecbffa5d110b4742e2c1841317fee3603 Introduced new IPageType interface (#2348)
+* a12d0ec93706895fc6120109a6b9bbbf5afda237 /docs redirect to HC V10 (#2347)
+* 4527b3e766e0b0ffaf96f1d65da1018b06c90c2c CNAME (#2345)
+* ead7fab4250b5b6e90c1383a8aaa10e59642ec0e Fixed Build Scripts
+* 1b9023501f0783890c00d9313f5f33d3c26e8719 test: add object tests for sorting (#2312)
+* 04f2b9b3b0a30a03995893f657a6b11b8ce674cb Optional parameter for useFiltering (#2341)
+* c8583702891b3e873f6ee22ac845440aec924387 Updated url (#2342)
+* ec4e6e3bfc0915be0363bb341fa8fefd8f224a7b Added v10 docs (#2340)
+* f327145ecb943f5528ac22f17cc66c12626c9e87 Adds extension for System.Type to filtering (#2316)
+* 38241e53bc7e66f7b662927271a6aee9ac0631f7 Added some tests that ensure middlewares compile with ValueTask and Task (#2337)
+* 8001dd8461168f1af3e15299b58930102e7f9393 Changed the build so that we again publish templates (#2336)
+* f84ac7a178411390be127797bcd792dd4150eca7 Updated Templates (#2335)
+* 838ce4906a3e26f86c159943d594805355a2abc8 Refined Persisted Query Support (#2334)
+* 40d9772f7f03050fdc5cd204c206a1cdba15cc3f Refined support for records. (#2331)
+* b6d7dd9afb7b8d2a19212604dfbe29b0cea7779b Fixed offset paging issue where the middleware through when the items in the list where less than the page size. (#2330)
+* d0b72ed8c6b101c89d5c59b703266fa1172c11a5 moved attributes to types namespace (#2328)
+* fe4e043f37a5a59709cb3c2d18891952bfec6bb9 Fixed issues with the variable deserialization. (#2326)
+* 08ffd724ef7c50f224bca03affe4e19a34a2d0e2 Improved footer and added redirects (#2324)
+* 29965cd8e2b35152b06ec346813e8ecacf8ea795 Update Tooling Packages (#2323)
+* 6e562e85f10b6849b784ecf122b3114d9d37da30 Added offset (skip-take) paging. (#2096)
+* 5375190af449490338c6aa53d561175dd08f899e Finalized start page (#2321)
+* 4b1fa569c13ec0db0b7430b6788711e912ab9f36 Article Design & Marketing Pages (#2318)
+
+* 129635560bf10c02e9eb704f9c73ba6c44aa2256 Optimized Database Integration Tests (#2314)
+* 8307aedbb6677696c361ec8ac47a8bbe2e5bf657 Fixed Sorting Member Inference Issue (#2311)
+* f2fc0d0aff3c778b28a12595185783ee51c1d1e1 Fixed type binding issues with filtering. (#2310)
+* 76554a562013224bcd01e04bb2455725352e6219 Fixed target framework for the authorization package
+* 535646b6dff44f1cd1ffa9d5df37033e79125a8a Fixed authorization target frameworks
+* 98d29f9aa9838b95fe959175f39df502a0826448 Adds sorting to the data package (#2300)
+* 538a94e29077a7be5dbd97a3ee5087ecd897412e Migrated Schema Middleware (#2307)
+* 4776afc56385a3d2ac1b3a9fd919e6811d06c059 Website: Feeds and Design (#2308)
+* a0690579e0264a267fc5c8e64a4666f30f8a9411 Migrated authorization directives back into the ASP.NET Core packages. (#2306)
+* 93f21fa971fc47e2099c14b8c848425a30229128 Removes Stackable list (#2295)
+* 8999d51d880bd0b8361acb3faa658914fc4d829e Migrate version 10.5 features to version 11. (#2293)
+* c8b37e6079ffef2dd021ab7d397515289149ee93 Fix nullability issue on filter descriptor  (#2296)
+* 7427498794f72645514fb361aaaed0373fbd60d6 Refined Global ID handling. (#2292)
+* 4058f4c5a5658df28a048d91fd62a820a269fcda Spell character correctly (#2287)
+* 6f687f4f200da90c399d39b167320b21d0cab3e5 Added SchemaFirst test with resolver (#2291)
+* 794c727aa9b94272cd058110b67d4805b36c583e Added some helpers and legacy APIs back to the core (#2290)
+* 3178999ff44d4e013f9ddd364db3a9ac83b445f9 Added GetRequestExecutorAsync convenience
+* 8ab6ce878ede4939ad47795f571d2fa19ca3e154 Removed interface IDiagnosticObserver
+* 59edbef71c8df8c5abbd9f3b1c51de7756a75326 Fixed executor eviction (#2286)
+* d0c214edaa77549887eb55942907de2a4c8788b0 Added new HTTP GET middleware (#2282)
+* d435e9861f55c7ff46a8906a3a40736208c0ef80 Introduced a input value formatter that can be bound to input fields and arguments. (#2277)
+* 719ce7d681633ecad10a189389c6b96895e5260d Migrated Subscription Middleware (#2280)
+* 5e070ffc69a104125369deec299bc51fa861eeb5 Removed unused variables from build
+* 6d64f129729db3b5a08007e0c1d1ef2a40737083 Reconfigured Sonar Build Settings
+* 66618263ef328f7adfd3b8a9d9fbedb029d57b09 Migrated batching to the new ASP.NET Core middleware. (#2274)
+* 5c28395077e2734395c3ef4cc540ac90763ffbe7 Add version 10 filter API for backward compatibility. (#2255)
+* 99b3eb6fb22d6d7c082ddeba1c65d8dda434c45d Update azure-pipelines.test-pr-hotchocolate.yml for Azure Pipelines
+* 431d6e987658c0623677b347d29456809c3703bb Adds the filter APIs 2.0 (#2228)
+* 39e1260851fe9a7fe70b1bbcfd68204b421474ba Fix Contribution link in readme.md (#2247)
+
+## [10.5.5]
+
+### Fixed
+
+- Fixed operation serialization [#2646](https://github.com/ChilliCream/hotchocolate/pull/2646)
+
+## [10.5.4]
+
+### Fixed
+
+- Fixed QueryRequestBuild handling of extensions. [#2608](https://github.com/ChilliCream/hotchocolate/pull/2608)
+
+## [10.5.3]
+
+### Fixed
+
+- Fixed ConnectionMiddleware and IEnumerable + IConnection [#2378](https://github.com/ChilliCream/hotchocolate/pull/2378)
+
+## [10.5.2]
+
+### Fixed
+
+- Fixed ID serialization on input types [#2174](https://github.com/ChilliCream/hotchocolate/pull/2174)
+
+## [10.5.1]
+
+### Fixed
+
+- Fixed field discovery [#2167](https://github.com/ChilliCream/hotchocolate/pull/2167)
+
+## [10.5.0]
+
+### Added
+
+- Added new `ResolveWith` descriptor method. [#1892](https://github.com/ChilliCream/hotchocolate/pull/1892)
+- Added support for local schema authentication and multi delegation.
+- Added nullable detection with Required attribute.
+- Added support for expression syntax on field selectors `descriptor.Field(t => t.Foo.Bar)`. [#2157](https://github.com/ChilliCream/hotchocolate/pull/2157)
+- Added TimeSpan scalar.
+- Added support for field-scoped services (services that only live for the duration of the field execution).
+- Added new `ID` attribute to streamline global object identifiers. [#2165](https://github.com/ChilliCream/hotchocolate/pull/2165)
+- Added bew `ID` descriptor to streamline global object identifiers. [#2166](https://github.com/ChilliCream/hotchocolate/pull/2166)
+
+### Changed
+
+- Impoved the connection API for easier integration. [#1887](https://github.com/ChilliCream/hotchocolate/pull/1887)
+- Unsealed AuthorizeAttribute. [#1993](https://github.com/ChilliCream/hotchocolate/pull/1993)
+- Expose character-set in content-type.
+- Use invariant culture when parsing numbers in AnyType [#2134](https://github.com/ChilliCream/hotchocolate/pull/2134)
+- Changed behavior of `SubscribeAttribute` to align better with the behaviour of version 11.
+- Changed ID serializer to align better with the behaviour of version 11.
+
+### Fixed
+
+- Fixed ambiguous Nullable Attribute. [#1982](https://github.com/ChilliCream/hotchocolate/pull/1982)
+- Fixed projection of __typename. [#2009](https://github.com/ChilliCream/hotchocolate/pull/2009)
+- Fix stitching serialization invalid json. [#2024](https://github.com/ChilliCream/hotchocolate/pull/2024) [#1972](https://github.com/ChilliCream/hotchocolate/pull/1972) [#2091](https://github.com/ChilliCream/hotchocolate/pull/2091)
+- Fixed the serialization formatter for decimals. [#1940](https://github.com/ChilliCream/hotchocolate/pull/1940)
+- Fixed deprecation delegation for schema stitching.
+- Fixed optional handling when deserializing input values. [#2133](https://github.com/ChilliCream/hotchocolate/pull/2133) [#2153](https://github.com/ChilliCream/hotchocolate/pull/2153) [#2158](https://github.com/ChilliCream/hotchocolate/pull/2158)
+- Fixed compile error in templates.
+- Fixed schema type discovery issues.
+- Fixed field discovery for object type extensions.
 
 ## [10.4.0]
 
