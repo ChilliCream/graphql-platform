@@ -202,7 +202,7 @@
     <value>The schema file path mustn't be null or empty.</value>
   </data>
   <data name="SchemaMergerExtensions_NoValidConstructor" xml:space="preserve">
-    <value>A type merge handler has to have one constructore that has only one parameter of the type MergeTypeDelegate.</value>
+    <value>A type merge handler has to have one constructor that has only one parameter of the type MergeTypeDelegate.</value>
   </data>
   <data name="SchemaName_EmptyOrNull" xml:space="preserve">
     <value>The schema name mustn't be null or empty.</value>

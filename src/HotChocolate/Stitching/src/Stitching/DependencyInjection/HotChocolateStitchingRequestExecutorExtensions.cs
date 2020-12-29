@@ -21,7 +21,7 @@ using HotChocolate.Stitching.SchemaDefinitions;
 using HotChocolate.Stitching.Utilities;
 using HotChocolate.Utilities;
 using HotChocolate.Utilities.Introspection;
-using ThrowHelper = HotChocolate.Stitching.ThrowHelper;
+using static HotChocolate.Stitching.ThrowHelper;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -622,7 +622,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
                     if (stream is null)
                     {
-                        throw ThrowHelper.RequestExecutorBuilder_ResourceNotFound(key);
+                        throw RequestExecutorBuilder_ResourceNotFound(key);
                     }
 
 #if NET5_0
@@ -980,31 +980,20 @@ namespace Microsoft.Extensions.DependencyInjection
 
         private static string GetArgumentValue(DirectiveNode directive, string argumentName)
         {
-            ArgumentNode? type = directive.Arguments
-                .FirstOrDefault(a => a.Name.Value.EqualsOrdinal(
-                    DirectiveFieldNames.RemoveType_TypeName));
+            ArgumentNode? argument = directive.Arguments
+                .FirstOrDefault(a => a.Name.Value.EqualsOrdinal(argumentName));
 
-            if (type is null)
+            if (argument is null)
             {
-                // TODO : throw helper
-                throw new SchemaException(SchemaErrorBuilder.New()
-                    .SetMessage(
-                        "`{0}` is not specified.",
-                        argumentName)
-                    .Build());
+                throw RequestExecutorBuilder_ArgumentWithNameWasNotFound(argumentName);
             }
 
-            if (type.Value is StringValueNode sv)
+            if (argument.Value is StringValueNode sv)
             {
                 return sv.Value;
             }
 
-            // TODO : throw helper
-            throw new SchemaException(SchemaErrorBuilder.New()
-                .SetMessage(
-                    "`{0}` must have a string value.",
-                    argumentName)
-                .Build());
+            throw RequestExecutorBuilder_ArgumentValueWasNotAStringValue(argumentName);
         }
     }
 }
