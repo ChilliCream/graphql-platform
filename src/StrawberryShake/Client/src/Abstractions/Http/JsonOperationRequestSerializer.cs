@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text.Json;
+using StrawberryShake.Impl;
 
 namespace StrawberryShake.Http
 {

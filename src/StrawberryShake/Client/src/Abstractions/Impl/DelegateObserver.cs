@@ -1,6 +1,6 @@
 using System;
 
-namespace StrawberryShake
+namespace StrawberryShake.Impl
 {
     internal class DelegateObserver<T> : IObserver<IOperationResult<T>> where T : class
     {

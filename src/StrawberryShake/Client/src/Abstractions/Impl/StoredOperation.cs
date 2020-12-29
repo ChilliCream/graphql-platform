@@ -1,10 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using StrawberryShake.Remove;
 
-namespace StrawberryShake
+namespace StrawberryShake.Impl
 {
     internal class StoredOperation<T>
         : IStoredOperation
@@ -22,6 +22,10 @@ namespace StrawberryShake
         public OperationRequest Request { get; }
 
         public IOperationResult<T>? LastResult { get; private set; }
+
+        public IReadOnlyCollection<EntityId> EntityIds =>
+            LastResult?.DataInfo?.EntityIds ??
+            ArraySegment<EntityId>.Empty;
 
         public async ValueTask SetResultAsync(
             IOperationResult<T> result,
@@ -42,6 +46,18 @@ namespace StrawberryShake
             foreach (Subscription observer in observers)
             {
                 await observer.OnNextAsync(result, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        public async ValueTask FoO()
+        {
+            if (LastResult is { DataInfo: not null } result)
+            {
+                await SetResultAsync(
+                    result.WithData(
+                        result.DataFactory.Create(result.DataInfo),
+                        result.DataInfo))
+                    .ConfigureAwait(false);
             }
         }
 

@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace StrawberryShake
+namespace StrawberryShake.Impl
 {
     internal sealed class OperationStore
         : IOperationStore
@@ -94,6 +95,21 @@ namespace StrawberryShake
             }
 
             return GetOrAddStoredOperation<T>(operationRequest);
+        }
+
+        private async ValueTask OnEntityUpdate(ISet<EntityId> updatedEntities)
+        {
+            foreach (IStoredOperation operation in _results.Values)
+            {
+                if (updatedEntities.Overlaps(operation.EntityIds))
+                {
+
+                }
+            }
+
+
+
+
         }
 
         private StoredOperation<T> GetOrAddStoredOperation<T>(

@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using static StrawberryShake.Properties.Resources;
 
-namespace StrawberryShake.Http
+namespace StrawberryShake.Impl
 {
     public class OperationExecutor<TData, TResult>
         : IOperationExecutor<TResult>
@@ -169,7 +169,6 @@ namespace StrawberryShake.Http
                     cancellationToken.Register(() => session.DisposeAsync());
                 }, cancellationToken);
             }
-
 
             private void BeginExecute(CancellationToken cancellationToken = default) =>
                 Task.Run(() => ExecuteAsync(cancellationToken), cancellationToken);
