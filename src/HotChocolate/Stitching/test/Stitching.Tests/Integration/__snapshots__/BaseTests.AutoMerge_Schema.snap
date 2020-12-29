@@ -150,8 +150,8 @@ directive @custom(d: DateTime) on FIELD
 "The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`."
 directive @defer("If this argument label has a value other than null, it will be passed on to the result of this defer directive. This label is intended to give client applications a way to identify to which fragment a deferred result belongs to." label: String "Deferred when true." if: Boolean) on FRAGMENT_SPREAD | INLINE_FRAGMENT
 
-"Delegates a resolver to a remote schema"
-directive @delegate("The path to the field on the remote schema" path: String "The name of the schema to which this field shall be delegated to." schema: Name!) on FIELD_DEFINITION
+"Delegates a resolver to a remote schema."
+directive @delegate("The path to the field on the remote schema." path: String "The name of the schema to which this field shall be delegated to." schema: Name!) on FIELD_DEFINITION
 
 "The @deprecated directive is used within the type system definition language to indicate deprecated portions of a GraphQL service’s schema,such as deprecated fields on a type or deprecated enum values."
 directive @deprecated("Deprecations include a reason for why it is deprecated, which is formatted using Markdown syntax (as specified by CommonMark)." reason: String = "No longer supported") on FIELD_DEFINITION | ENUM_VALUE
