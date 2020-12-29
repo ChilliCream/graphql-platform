@@ -2,6 +2,9 @@ using System.Collections.Generic;
 
 namespace StrawberryShake.CodeGeneration
 {
+    /// <summary>
+    /// Describes a type, which may be a concrete class or an interface.
+    /// </summary>
     public class TypeDescriptor
         : ICodeDescriptor
     {
@@ -24,6 +27,18 @@ namespace StrawberryShake.CodeGeneration
         /// The name of the namespace the generated type shall reside in
         /// </summary>
         public string Namespace { get; }
+
+        /// <summary>
+        /// States whether or not this type is an interface
+        /// </summary>
+        public bool IsInterface => IsImplementedBy.Count > 0;
+
+        /// <summary>
+        /// A list of types that implement this interface
+        /// This list must only contain the most specific, concrete classes (that implement this interface),
+        /// but no other interfaces.
+        /// </summary>
+        public IReadOnlyList<string> IsImplementedBy { get; }
 
         public TypeDescriptor(
             string name,
