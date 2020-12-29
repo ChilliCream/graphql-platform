@@ -6,6 +6,7 @@ using HotChocolate.Language;
 using HotChocolate.Stitching.Merge;
 using HotChocolate.Stitching.Merge.Rewriters;
 using HotChocolate.Types.Descriptors;
+using static HotChocolate.Stitching.ThrowHelper;
 using static HotChocolate.Stitching.WellKnownContextData;
 
 namespace HotChocolate.Stitching
@@ -21,9 +22,7 @@ namespace HotChocolate.Stitching
                 return executors;
             }
 
-            // TODO : throw helper
-            throw new InvalidOperationException(
-                "The mandatory remote executors have not been found.");
+            throw RequestExecutorBuilder_RemoteExecutorNotFound();
         }
 
         public static IReadOnlyDictionary<NameString, IRequestExecutor> GetRemoteExecutors(
@@ -35,9 +34,7 @@ namespace HotChocolate.Stitching
                 return executors;
             }
 
-            // TODO : throw helper
-            throw new InvalidOperationException(
-                "The mandatory remote executors have not been found.");
+            throw RequestExecutorBuilder_RemoteExecutorNotFound();
         }
 
         public static ISchemaBuilder AddRemoteExecutor(
@@ -292,8 +289,7 @@ namespace HotChocolate.Stitching
                 return dict;
             }
 
-            // todo . throw helper
-            throw new InvalidOperationException("A stitched schema must provide a name lookup");
+            throw RequestExecutorBuilder_NameLookupNotFound();
         }
 
         public static IReadOnlyDictionary<(NameString, NameString), NameString> GetNameLookup(
