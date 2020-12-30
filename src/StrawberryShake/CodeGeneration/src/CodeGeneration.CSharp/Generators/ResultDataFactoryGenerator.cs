@@ -5,10 +5,9 @@ using StrawberryShake.CodeGeneration.CSharp.Extensions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public class ResultDataFactoryGenerator : CodeGenerator<TypeDescriptor>
+    public class ResultDataFactoryGenerator : ClassBaseGenerator<TypeDescriptor>
     {
-        const string StoreParamName = "entityStore";
-        private readonly string StoreFieldName = StoreParamName.ToFieldName();
+        const string StoreParamName = "_entityStore";
 
         protected override Task WriteAsync(CodeWriter writer, TypeDescriptor typeDescriptor)
         {
@@ -22,42 +21,45 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 throw new ArgumentNullException(nameof(typeDescriptor));
             }
 
-            var entityStoretypeReference = TypeReferenceBuilder.New().SetName(WellKnownNames.EntityStore);
+            ClassBuilder
+                .SetName(NamingConventions.ResultFactoryNameFromTypeName(typeDescriptor.Name))
+                .AddImplements($"{WellKnownNames.IOperationResultDataFactory}<{typeDescriptor.Name}>");
 
-            ClassBuilder classBuilder = ClassBuilder.New()
-                .AddImplements($"{WellKnownNames.OperationResultDataFactory}<{typeDescriptor.Name}>")
-                .AddField(
-                    FieldBuilder.New()
-                        .SetName(StoreFieldName)
-                        .SetType(entityStoretypeReference)
-                )
-                .SetName(typeDescriptor.Name);
-
-            ConstructorBuilder constructorBuilder = ConstructorBuilder.New()
+            ConstructorBuilder
                 .SetTypeName(typeDescriptor.Name)
-                .AddParameter(
-                    ParameterBuilder.New()
-                        .SetType(entityStoretypeReference)
-                        .SetName(StoreParamName)
-                )
-                .AddCode(
-                    AssignmentBuilder.New()
-                        .SetLefthandSide(StoreFieldName)
-                        .SetRighthandSide(StoreParamName)
-                )
                 .SetAccessModifier(AccessModifier.Public);
 
+            ConstructorAssignedField(
+                WellKnownNames.IEntityStore,
+                StoreParamName
+            );
+
+
+            var mappersToInject = typeDescriptor.IsInterface
+                ? typeDescriptor.IsImplementedBy
+                : new[] {typeDescriptor.Name};
+
+            foreach (var mapperType in mappersToInject)
+            {
+                var typeName = TypeReferenceBuilder
+                    .New()
+                    .SetName(WellKnownNames.IEntityMapper)
+                    .AddGeneric(NamingConventions.EntityTypeNameFromTypeName(mapperType))
+                    .AddGeneric(mapperType);
+
+                ConstructorAssignedField(
+                    typeName,
+                    NamingConventions.MapperNameFromTypeName(mapperType).ToFieldName()
+                );
+            }
 
             foreach (var prop in typeDescriptor.Properties)
             {
-
             }
-
-            classBuilder.AddConstructor(constructorBuilder);
 
             return CodeFileBuilder.New()
                 .SetNamespace(typeDescriptor.Namespace)
-                .AddType(classBuilder)
+                .AddType(ClassBuilder)
                 .BuildAsync(writer);
         }
     }

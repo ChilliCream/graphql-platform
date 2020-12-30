@@ -17,6 +17,6 @@ public partial class FooFromFooEntityMapper
 
     public Foo Map(FooEntity entity)
     {
-        return new Foo(_barFromBarEntityMapper.Map(entityStore.GetEntity<BarEntity>(entity.BarReference)));
+        return new Foo(_barFromBarEntityMapper.Map(_entityStore.GetEntity<BarEntity>(entity.BarReference)));
     }
 }

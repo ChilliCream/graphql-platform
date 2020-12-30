@@ -1,16 +1,15 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public class ResultFromEntityTypeMapperGenerator : CodeGenerator<ResultFromEntityTypeMapperDescriptor>
+    public class ResultFromEntityTypeMapperGenerator : ClassBaseGenerator<ResultFromEntityTypeMapperDescriptor>
     {
         const string EntityParamName = "entity";
-        const string StoreParamName = "entityStore";
+        const string StoreFieldName = "_entityStore";
         const string MapMethodName = "Map";
 
         protected override Task WriteAsync(CodeWriter writer, ResultFromEntityTypeMapperDescriptor descriptor)
@@ -26,29 +25,17 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
 
             // Setup class
-            ClassBuilder classBuilder = ClassBuilder.New()
+            ClassBuilder
                 .AddImplements($"IEntityMapper<{descriptor.EntityType.Name}, {descriptor.ResultType.Name}>")
-                .AddField(
-                    FieldBuilder.New()
-                        .SetReadOnly()
-                        .SetName(StoreParamName.ToFieldName())
-                        .SetType(WellKnownNames.EntityStore)
-                )
                 .SetName(descriptor.Name);
 
-            var constructorBuilder = ConstructorBuilder
-                .New()
-                .SetTypeName(descriptor.Name)
-                .AddParameter(
-                    ParameterBuilder.New()
-                        .SetType(TypeReferenceBuilder.New().SetName(WellKnownNames.EntityStore))
-                        .SetName(StoreParamName)
-                )
-                .AddCode(AssignmentBuilder.New()
-                    .SetLefthandSide(StoreParamName.ToFieldName())
-                    .SetRighthandSide(StoreParamName)
-                    .AssertNonNull()
-                );
+            ConstructorBuilder.SetTypeName(descriptor.Name);
+
+            ConstructorAssignedField(
+                WellKnownNames.IEntityStore,
+                StoreFieldName
+            );
+
 
             // Define map method
             MethodBuilder methodBuilder = MethodBuilder.New()
@@ -70,34 +57,21 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 if (propertyDescriptor.TypeReference.IsReferenceType)
                 {
-                    var propertyMapperName = NamingConventions.MapperNameFromTypeName(propertyDescriptor.TypeReference.Name);
+                    var propertyMapperName =
+                        NamingConventions.MapperNameFromTypeName(propertyDescriptor.TypeReference.Name);
                     var propertyMapperTypeName =
                         $"IEntityMapper<{NamingConventions.EntityTypeNameFromTypeName(propertyDescriptor.TypeReference.Name)}, {propertyDescriptor.TypeReference.Name}>";
                     var propertyMapperFieldName = propertyMapperName.ToFieldName();
-                    var propertyMapperParamName = propertyMapperName.WithLowerFirstChar();
 
                     if (!mapperSet.Contains(propertyMapperName))
                     {
                         mapperSet.Add(propertyMapperName);
-                        classBuilder.AddField(
-                            FieldBuilder.New()
-                                .SetReadOnly()
-                                .SetName(propertyMapperFieldName)
-                                .SetType(propertyMapperTypeName)
-                        );
 
-                        constructorBuilder.AddParameter(
-                            ParameterBuilder.New()
-                                .SetName(propertyMapperParamName)
-                                .SetType(propertyMapperTypeName)
+                        ConstructorAssignedField(
+                            propertyMapperTypeName,
+                            propertyMapperFieldName
                         );
-
-                        constructorBuilder.AddCode(AssignmentBuilder.New()
-                            .SetLefthandSide(propertyMapperFieldName)
-                            .SetRighthandSide(propertyMapperParamName)
-                            .AssertNonNull());
                     }
-
 
                     MethodCallBuilder entityMapperMethod;
                     if (propertyDescriptor.TypeReference.ListType == ListType.NoList)
@@ -111,10 +85,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
                         var entityGetterMethod = new MethodCallBuilder()
                             .SetMethodName(
-                                StoreParamName
+                                StoreFieldName
                                 + "."
                                 + nameof(IEntityStore.GetEntity)
-                                + "<" + NamingConventions.EntityTypeNameFromTypeName(propertyDescriptor.TypeReference.Name) + ">"
+                                + "<" + NamingConventions.EntityTypeNameFromTypeName(
+                                    propertyDescriptor.TypeReference.Name
+                                ) + ">"
                             );
                         entityGetterMethod
                             .SetDetermineStatement(false)
@@ -149,11 +125,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
                         entityMapperMethod = new MethodCallBuilder()
                             .SetMethodName(
-                                StoreParamName + "." +
+                                StoreFieldName + "." +
                                 (propertyDescriptor.TypeReference.ListType != ListType.NoList
                                     ? nameof(IEntityStore.GetEntities)
                                     : nameof(IEntityStore.GetEntity))
-                                + "<" + NamingConventions.EntityTypeNameFromTypeName(propertyDescriptor.TypeReference.Name) + ">"
+                                + "<" + NamingConventions.EntityTypeNameFromTypeName(
+                                    propertyDescriptor.TypeReference.Name
+                                ) + ">"
                             )
                             .SetDetermineStatement(false)
                             .AddArgument(EntityParamName + "." + propertyDescriptor.Name)
@@ -171,9 +149,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
 
             methodBuilder.AddCode(methodCallBuilder);
-            classBuilder.AddMethod(methodBuilder);
-            classBuilder.AddConstructor(constructorBuilder);
-            return classBuilder.BuildAsync(writer);
+            ClassBuilder.AddMethod(methodBuilder);
+            return ClassBuilder.BuildAsync(writer);
         }
     }
 }

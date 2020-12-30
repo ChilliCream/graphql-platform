@@ -5,7 +5,8 @@ public partial class FooClient
 
     public FooClient(GetFooQuery getFooQuery)
     {
-        _getFooQuery =  getFooQuery;
+        _getFooQuery = getFooQuery
+             ?? throw new ArgumentNullException(nameof(getFooQuery));
     }
 
     public GetFooQuery GetFooQuery()

@@ -2,12 +2,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public class WellKnownNames
     {
-        public const string EntityStore  = "IEntityStore";
-        public const string OperationStore  = "IOperationStore";
-        public const string OperationExecutor  = "IOperationExecutor";
-        public const string OperationResult  = "IOperationResult";
-        public const string OperationResultDataFactory  = "IOperationResultDataFactory";
+        public const string IEntityStore  = "IEntityStore";
+        public const string IOperationStore  = "IOperationStore";
+        public const string IOperationExecutor  = "IOperationExecutor";
+        public const string IOperationResult  = "IOperationResult";
+        public const string IOperationResultDataFactory  = "IOperationResultDataFactory";
         public const string IOperationResultDataInfo  = "IOperationResultDataInfo";
+        public const string IEntityMapper  = "IEntityMapper";
 
         public const string EntityId = "EntityId";
 

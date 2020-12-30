@@ -26,7 +26,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetTypeName(typeDescriptor.Name)
                 .SetAccessModifier(AccessModifier.Public);
 
-
             foreach (var prop in typeDescriptor.Properties)
             {
                 var propTypeBuilder = prop.TypeReference.ToBuilder();

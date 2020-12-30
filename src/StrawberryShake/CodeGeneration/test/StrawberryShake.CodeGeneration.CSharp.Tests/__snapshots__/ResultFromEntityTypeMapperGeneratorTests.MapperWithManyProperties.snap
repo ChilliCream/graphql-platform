@@ -19,10 +19,10 @@ public partial class FooFromFooEntityMapper
     {
         return new Foo(
             entity.SomeText,
-            entityStore.GetEntities<BarEntity>(entity.BarReferenceList)
+            _entityStore.GetEntities<BarEntity>(entity.BarReferenceList)
                 .Select(referencedEntity => _barFromBarEntityMapper.Map(referencedEntity))
                 .ToList(),
-            _barFromBarEntityMapper.Map(entityStore.GetEntity<BarEntity>(entity.BarReference)),
+            _barFromBarEntityMapper.Map(_entityStore.GetEntity<BarEntity>(entity.BarReference)),
             entity.SomeOtherText
         );
     }
