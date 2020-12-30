@@ -9,13 +9,18 @@ namespace StrawberryShake.Impl
     internal interface IStoredOperation : IDisposable
     {
         /// <summary>
-        /// The entities that were used to create this result.
+        /// Gets the entities that were used to create this result.
         /// </summary>
         IReadOnlyCollection<EntityId> EntityIds { get; }
 
         /// <summary>
+        /// Gets the current entity store version of this operation.
+        /// </summary>
+        ulong Version { get; }
+
+        /// <summary>
         /// This will trigger the stored operation to rebuild the result from the entity store.
         /// </summary>
-        void UpdateResult();
+        void UpdateResult(ulong version);
     }
 }

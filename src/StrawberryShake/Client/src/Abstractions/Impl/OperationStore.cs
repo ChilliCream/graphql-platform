@@ -13,7 +13,7 @@ namespace StrawberryShake.Impl
         private readonly IDisposable _entityChangeObserverSession;
         private bool _disposed;
 
-        public OperationStore(IObservable<ISet<EntityId>> entityChangeObserver)
+        public OperationStore(IObservable<EntityUpdate> entityChangeObserver)
         {
             _entityChangeObserverSession = entityChangeObserver.Subscribe(OnEntityUpdate);
         }
@@ -85,7 +85,7 @@ namespace StrawberryShake.Impl
             return GetOrAddStoredOperation<T>(operationRequest);
         }
 
-        private void OnEntityUpdate(ISet<EntityId> updatedEntities)
+        private void OnEntityUpdate(EntityUpdate update)
         {
             if (_disposed)
             {
@@ -94,9 +94,10 @@ namespace StrawberryShake.Impl
 
             foreach (IStoredOperation operation in _results.Values)
             {
-                if (updatedEntities.Overlaps(operation.EntityIds))
+                if (operation.Version < update.Version &&
+                    update.UpdatedEntityIds.Overlaps(operation.EntityIds))
                 {
-                    operation.UpdateResult();
+                    operation.UpdateResult(update.Version);
                 }
             }
         }

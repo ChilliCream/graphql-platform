@@ -101,8 +101,8 @@ namespace StrawberryShake.Impl
 
             void FinalizeUpdate(ulong version, ISet<EntityId> updatedEntityIds)
             {
-                _currentUpdateSession = null;
                 _entityUpdateObservable.OnUpdated(updatedEntityIds, version);
+                _currentUpdateSession = null;
                 _semaphore.Release();
             }
         }
@@ -119,7 +119,7 @@ namespace StrawberryShake.Impl
             {
                 lock (_sync)
                 {
-                    _observers = _observers.Remove(observer);
+                    _observers = _observers.Add(observer);
                 }
 
                 return new Subscription(this, observer);

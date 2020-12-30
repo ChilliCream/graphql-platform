@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using Moq;
 using StrawberryShake.Impl;
 using Xunit;
@@ -14,7 +11,7 @@ namespace StrawberryShake
         public void Store_And_Retrieve_Result()
         {
             // arrange
-            var entityChangeObserver = new EntityChangeObservable();
+            var entityChangeObserver = new MockEntityChangeObservable();
             var document = new Mock<IDocument>();
             var result = new Mock<IOperationResult<string>>();
             var store = new OperationStore(entityChangeObserver);
@@ -34,7 +31,7 @@ namespace StrawberryShake
         public void TryGet_Not_Found()
         {
             // arrange
-            var entityChangeObserver = new EntityChangeObservable();
+            var entityChangeObserver = new MockEntityChangeObservable();
             var document = new Mock<IDocument>();
             var store = new OperationStore(entityChangeObserver);
             var request = new OperationRequest("abc", document.Object);
@@ -51,7 +48,7 @@ namespace StrawberryShake
         public void Watch_For_Updates()
         {
             // arrange
-            var entityChangeObserver = new EntityChangeObservable();
+            var entityChangeObserver = new MockEntityChangeObservable();
             var document = new Mock<IDocument>();
             var result = new Mock<IOperationResult<string>>();
             var store = new OperationStore(entityChangeObserver);
@@ -72,7 +69,7 @@ namespace StrawberryShake
         public void Watch_Unsubscribe()
         {
             // arrange
-            var entityChangeObserver = new EntityChangeObservable();
+            var entityChangeObserver = new MockEntityChangeObservable();
             var document = new Mock<IDocument>();
             var result = new Mock<IOperationResult<string>>();
             var store = new OperationStore(entityChangeObserver);
@@ -109,11 +106,11 @@ namespace StrawberryShake
             }
         }
 
-        private class EntityChangeObservable
-            : IObservable<ISet<EntityId>>
+        private class MockEntityChangeObservable
+            : IObservable<EntityUpdate>
             , IDisposable
         {
-            public IDisposable Subscribe(IObserver<ISet<EntityId>> observer)
+            public IDisposable Subscribe(IObserver<EntityUpdate> observer)
             {
                 return this;
             }

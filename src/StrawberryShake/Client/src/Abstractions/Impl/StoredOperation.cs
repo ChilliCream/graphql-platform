@@ -26,6 +26,8 @@ namespace StrawberryShake.Impl
             LastResult?.DataInfo?.EntityIds ??
             ArraySegment<EntityId>.Empty;
 
+        public ulong Version => LastResult?.DataInfo?.Version ?? 0;
+
         public void SetResult(
             IOperationResult<T> result)
         {
@@ -47,14 +49,14 @@ namespace StrawberryShake.Impl
             }
         }
 
-        public void UpdateResult()
+        public void UpdateResult(ulong version)
         {
             if (LastResult is { DataInfo: not null } result)
             {
                 SetResult(
                     result.WithData(
                         result.DataFactory.Create(result.DataInfo),
-                        result.DataInfo.WithVersion()));
+                        result.DataInfo.WithVersion(version)));
             }
         }
 
