@@ -23,7 +23,6 @@ namespace StrawberryShake.Integration
 
         public string Version { get; }
 
-
         IReadOnlyCollection<EntityId> IOperationResultDataInfo.EntityIds => _entityIds;
 
         ulong IOperationResultDataInfo.Version => _version;

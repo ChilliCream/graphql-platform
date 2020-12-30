@@ -4,7 +4,6 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
-using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake.Impl;
 using StrawberryShake.Integration.Mappers;
 using Xunit;
@@ -53,22 +52,27 @@ namespace StrawberryShake.Integration
 
             GetHeroResult? result = null;
             var query = new GetHeroQuery(operationExecutor);
-            query.Watch().Subscribe(c => 
+            query.Watch().Subscribe(c =>
             {
-                result = c.Data; 
+                result = c.Data;
             });
 
-            await Task.Delay(50);
+            await Task.Delay(1000);
+
+            using (entityStore.BeginUpdate())
+            {
+                DroidEntity entity = entityStore.GetOrCreate<DroidEntity>(new EntityId("Droid", "abc"));
+                entity.Name = "C3-PO";
+            }
+
+            await Task.Delay(1000);
 
             Assert.NotNull(result);
-            
 
-            EntityId ExtractEntityId(JsonElement obj)
-            {
-                return new EntityId(
+            EntityId ExtractEntityId(JsonElement obj) =>
+                new(
                     obj.GetProperty("__typename").GetString()!,
                     obj.GetProperty("id").GetString()!);
-            }
         }
 
 
@@ -94,7 +98,7 @@ namespace StrawberryShake.Integration
                 string name)
             {
                 var serializer = new MockStringValueSerializer();
-                
+
                 if (serializer is IValueSerializer<TData, TRuntime> d)
                 {
                     return d;
