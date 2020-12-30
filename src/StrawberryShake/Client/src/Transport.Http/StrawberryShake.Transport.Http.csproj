@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>StrawberryShake.Transport.Http</PackageId>
+    <AssemblyName>StrawberryShake.Transport.Http</AssemblyName>
+    <RootNamespace>StrawberryShake.Transport.Http</RootNamespace>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Text.Json" Version="4.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core\StrawberryShake.Core.csproj" />
+  </ItemGroup>
+
+</Project>
