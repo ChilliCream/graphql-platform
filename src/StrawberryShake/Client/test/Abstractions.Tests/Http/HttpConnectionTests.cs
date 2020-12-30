@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.TestHost;
 using HotChocolate.AspNetCore.Utilities;
 using Snapshooter.Xunit;
+using StrawberryShake.Impl;
 using Xunit;
 
 namespace StrawberryShake.Http

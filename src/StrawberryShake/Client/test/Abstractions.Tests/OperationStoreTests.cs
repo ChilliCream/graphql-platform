@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
+using StrawberryShake.Impl;
 using Xunit;
 
 namespace StrawberryShake
@@ -9,16 +11,17 @@ namespace StrawberryShake
     public class OperationStoreTests
     {
         [Fact]
-        public async Task Store_And_Retrieve_Result()
+        public void Store_And_Retrieve_Result()
         {
             // arrange
+            var entityChangeObserver = new EntityChangeObservable();
             var document = new Mock<IDocument>();
             var result = new Mock<IOperationResult<string>>();
-            var store = new OperationStore();
+            var store = new OperationStore(entityChangeObserver);
             var request = new OperationRequest("abc", document.Object);
 
             // act
-            await store.SetAsync(request, result.Object);
+            store.Set(request, result.Object);
             var success = store.TryGet(request, out IOperationResult<string>? retrieved);
 
 
@@ -31,8 +34,9 @@ namespace StrawberryShake
         public void TryGet_Not_Found()
         {
             // arrange
+            var entityChangeObserver = new EntityChangeObservable();
             var document = new Mock<IDocument>();
-            var store = new OperationStore();
+            var store = new OperationStore(entityChangeObserver);
             var request = new OperationRequest("abc", document.Object);
 
             // act
@@ -44,66 +48,78 @@ namespace StrawberryShake
         }
 
         [Fact]
-        public async Task Watch_For_Updates()
+        public void Watch_For_Updates()
         {
             // arrange
+            var entityChangeObserver = new EntityChangeObservable();
             var document = new Mock<IDocument>();
             var result = new Mock<IOperationResult<string>>();
-            var store = new OperationStore();
+            var store = new OperationStore(entityChangeObserver);
             var request = new OperationRequest("abc", document.Object);
-            var observer = new TestObserver();
+            var observer = new ResultObserver();
 
             // act
-            IAsyncDisposable session = await store
+            using IDisposable session = store
                 .Watch<string>(request)
-                .SubscribeAsync(observer);
+                .Subscribe(observer);
 
             // assert
-            await store.SetAsync(request, result.Object);
+            store.Set(request, result.Object);
             Assert.Same(result.Object, observer.LastResult);
-            await session.DisposeAsync();
         }
 
         [Fact]
-        public async Task Watch_Unsubscribe()
+        public void Watch_Unsubscribe()
         {
             // arrange
+            var entityChangeObserver = new EntityChangeObservable();
             var document = new Mock<IDocument>();
             var result = new Mock<IOperationResult<string>>();
-            var store = new OperationStore();
+            var store = new OperationStore(entityChangeObserver);
             var request = new OperationRequest("abc", document.Object);
-            var observer = new TestObserver();
+            var observer = new ResultObserver();
 
-            IAsyncDisposable session = await store
+            IDisposable session = store
                 .Watch<string>(request)
-                .SubscribeAsync(observer);
+                .Subscribe(observer);
 
             // act
-            await session.DisposeAsync();
+            session.Dispose();
 
             // assert
-            await store.SetAsync(request, result.Object);
+            store.Set(request, result.Object);
             Assert.Null(observer.LastResult);
         }
 
-        public class TestObserver : IAsyncObserver<IOperationResult<string>>
+        public class ResultObserver : IObserver<IOperationResult<string>>
         {
             public IOperationResult<string>? LastResult { get; private set; }
 
-            public ValueTask OnCompletedAsync() =>
-                default;
-
-            public ValueTask OnErrorAsync(
-                Exception error,
-                CancellationToken cancellationToken = default) =>
-                default;
-
-            public ValueTask OnNextAsync(
-                IOperationResult<string> value,
-                CancellationToken cancellationToken = default)
+            public void OnNext(IOperationResult<string> value)
             {
                 LastResult = value;
-                return default;
+            }
+
+            public void OnError(Exception error)
+            {
+            }
+
+            public void OnCompleted()
+            {
+            }
+        }
+
+        private class EntityChangeObservable
+            : IObservable<ISet<EntityId>>
+            , IDisposable
+        {
+            public IDisposable Subscribe(IObserver<ISet<EntityId>> observer)
+            {
+                return this;
+            }
+
+            public void Dispose()
+            {
             }
         }
     }

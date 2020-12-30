@@ -24,7 +24,7 @@ namespace StrawberryShake.Remove
                 .ConfigureAwait(false);
         }
 
-        public IOperationObservable<GetHeroResult> Watch(
+        public IObservable<IOperationResult<GetHeroResult>> Watch(
             ExecutionStrategy? strategy = null)
         {
             OperationRequest request = CreateRequest();

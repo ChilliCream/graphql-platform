@@ -55,7 +55,7 @@ namespace StrawberryShake.Impl
             return result;
         }
 
-        public IOperationObservable<TResult> Watch(
+        public IObservable<IOperationResult<TResult>> Watch(
             OperationRequest request,
             ExecutionStrategy? strategy = null)
         {
@@ -72,7 +72,7 @@ namespace StrawberryShake.Impl
                 strategy ?? _strategy);
         }
 
-        private class HttpOperationExecutorObservable : IOperationObservable<TResult>
+        private class HttpOperationExecutorObservable : IObservable<IOperationResult<TResult>>
         {
             private readonly IConnection<TData> _connection;
             private readonly IOperationStore _operationStore;
@@ -115,59 +115,6 @@ namespace StrawberryShake.Impl
                 }
 
                 return session;
-            }
-
-            public async ValueTask<IAsyncDisposable> SubscribeAsync(
-                IAsyncObserver<IOperationResult<TResult>> observer,
-                CancellationToken cancellationToken = default)
-            {
-                var hasResultInStore = false;
-
-                if ((_strategy == ExecutionStrategy.CacheFirst ||
-                     _strategy == ExecutionStrategy.CacheAndNetwork) &&
-                    _operationStore.TryGet(_request, out IOperationResult<TResult>? result))
-                {
-                    hasResultInStore = true;
-                    await observer
-                        .OnNextAsync(result, cancellationToken)
-                        .ConfigureAwait(false);
-                }
-
-                IAsyncDisposable session = await _operationStore
-                    .Watch<TResult>(_request)
-                    .SubscribeAsync(observer, cancellationToken)
-                    .ConfigureAwait(false);
-
-                if (_strategy != ExecutionStrategy.CacheFirst || !hasResultInStore)
-                {
-                    BeginExecute(cancellationToken);
-                }
-
-                return session;
-            }
-
-            public void Subscribe(
-                Action<IOperationResult<TResult>> next,
-                CancellationToken cancellationToken = default)
-            {
-                IDisposable session = Subscribe(new DelegateObserver<TResult>(next));
-                cancellationToken.Register(() => session.Dispose());
-            }
-
-            public void Subscribe(
-                Func<IOperationResult<TResult>, CancellationToken, ValueTask> nextAsync,
-                CancellationToken cancellationToken = default)
-            {
-                Task.Run(async () =>
-                {
-                    IAsyncDisposable session =
-                        await SubscribeAsync(
-                            new AsyncDelegateObserver<TResult>(nextAsync),
-                            cancellationToken)
-                            .ConfigureAwait(false);
-
-                    cancellationToken.Register(() => session.DisposeAsync());
-                }, cancellationToken);
             }
 
             private void BeginExecute(CancellationToken cancellationToken = default) =>

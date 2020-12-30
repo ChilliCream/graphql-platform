@@ -9,6 +9,5 @@ namespace StrawberryShake
 
         IServiceProvider Services { get; }
 
-        IExecutionResult? Result { get; set; }
     }
 }

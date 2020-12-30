@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using StrawberryShake.Impl;
@@ -10,7 +11,7 @@ namespace StrawberryShake
             OperationRequest request,
             CancellationToken cancellationToken = default);
 
-        IOperationObservable<TResultData> Watch(
+        IObservable<IOperationResult<TResultData>> Watch(
             OperationRequest request,
             ExecutionStrategy? strategy = null);
     }

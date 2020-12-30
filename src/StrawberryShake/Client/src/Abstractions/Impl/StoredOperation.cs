@@ -1,14 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace StrawberryShake.Impl
 {
     internal class StoredOperation<T>
         : IStoredOperation
-        , IOperationObservable<T> where T : class
+        , IObservable<IOperationResult<T>>
+        where T : class
     {
         private readonly object _sync = new();
         private ImmutableList<Subscription> _subscriptions = ImmutableList<Subscription>.Empty;
@@ -27,9 +26,8 @@ namespace StrawberryShake.Impl
             LastResult?.DataInfo?.EntityIds ??
             ArraySegment<EntityId>.Empty;
 
-        public async ValueTask SetResultAsync(
-            IOperationResult<T> result,
-            CancellationToken cancellationToken = default)
+        public void SetResult(
+            IOperationResult<T> result)
         {
             LastResult = result ?? throw new ArgumentNullException(nameof(result));
 
@@ -45,19 +43,18 @@ namespace StrawberryShake.Impl
             // if we have subscribers we will invoke every one of them
             foreach (Subscription observer in observers)
             {
-                await observer.OnNextAsync(result, cancellationToken).ConfigureAwait(false);
+                observer.OnNext(result);
             }
         }
 
-        public async ValueTask FoO()
+        public void UpdateResult()
         {
             if (LastResult is { DataInfo: not null } result)
             {
-                await SetResultAsync(
+                SetResult(
                     result.WithData(
                         result.DataFactory.Create(result.DataInfo),
-                        result.DataInfo))
-                    .ConfigureAwait(false);
+                        result.DataInfo));
             }
         }
 
@@ -77,63 +74,6 @@ namespace StrawberryShake.Impl
             }
 
             return subscription;
-        }
-
-        public ValueTask<IAsyncDisposable> SubscribeAsync(
-            IAsyncObserver<IOperationResult<T>> observer,
-            CancellationToken cancellationToken = default)
-        {
-            if (observer is null)
-            {
-                throw new ArgumentNullException(nameof(observer));
-            }
-
-            var subscription = new Subscription(observer, Unsubscribe);
-
-            lock (_sync)
-            {
-                _subscriptions = _subscriptions.Add(subscription);
-            }
-
-            return new ValueTask<IAsyncDisposable>(subscription);
-        }
-
-        public void Subscribe(
-            Action<IOperationResult<T>> next,
-            CancellationToken cancellationToken = default)
-        {
-            if (next is null)
-            {
-                throw new ArgumentNullException(nameof(next));
-            }
-
-            var subscription = new Subscription(
-                new DelegateObserver<T>(next), Unsubscribe);
-            cancellationToken.Register(() => subscription.Dispose());
-
-            lock (_sync)
-            {
-                _subscriptions = _subscriptions.Add(subscription);
-            }
-        }
-
-        public void Subscribe(
-            Func<IOperationResult<T>, CancellationToken, ValueTask> nextAsync,
-            CancellationToken cancellationToken = default)
-        {
-            if (nextAsync is null)
-            {
-                throw new ArgumentNullException(nameof(nextAsync));
-            }
-
-            var subscription = new Subscription(
-                new AsyncDelegateObserver<T>(nextAsync), Unsubscribe);
-            cancellationToken.Register(() => subscription.Dispose());
-
-            lock (_sync)
-            {
-                _subscriptions = _subscriptions.Add(subscription);
-            }
         }
 
         private void Unsubscribe(Subscription subscription)
@@ -160,61 +100,29 @@ namespace StrawberryShake.Impl
             }
         }
 
-        private class Subscription : IDisposable, IAsyncDisposable
+        private class Subscription : IDisposable
         {
-            private readonly IAsyncObserver<IOperationResult<T>>? _asyncObserver;
-            private readonly IObserver<IOperationResult<T>>? _observer;
+            private readonly IObserver<IOperationResult<T>> _observer;
             private readonly Action<Subscription> _unsubscribe;
             private bool _dispose;
 
             public Subscription(
-                object observer,
+                IObserver<IOperationResult<T>> observer,
                 Action<Subscription> unsubscribe)
             {
-                if (observer is IAsyncObserver<IOperationResult<T>> ao)
-                {
-                    _asyncObserver = ao;
-                }
-                else if (observer is IObserver<IOperationResult<T>> o)
-                {
-                    _observer = o;
-                }
-
+                _observer = observer;
                 _unsubscribe = unsubscribe;
             }
 
-            public async ValueTask OnNextAsync(
-                IOperationResult<T> result,
-                CancellationToken cancellationToken = default)
-            {
-                if (_asyncObserver is not null)
-                {
-                    await _asyncObserver
-                        .OnNextAsync(result, cancellationToken)
-                        .ConfigureAwait(false);
-                }
+            public void OnNext(IOperationResult<T> result) =>
+                _observer.OnNext(result);
 
-                _observer?.OnNext(result);
-            }
-
-            // we just invoke but do not await.
-            public void Dispose() => DisposeAsync().ConfigureAwait(false);
-
-            public async ValueTask DisposeAsync()
+            public void Dispose()
             {
                 if (!_dispose)
                 {
                     _unsubscribe(this);
-
-                    if (_asyncObserver is not null)
-                    {
-                        await _asyncObserver
-                            .OnCompletedAsync()
-                            .ConfigureAwait(false);
-                    }
-
-                    _observer?.OnCompleted();
-
+                    _observer.OnCompleted();
                     _dispose = true;
                 }
             }

@@ -1,6 +1,6 @@
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
-using System.Threading.Tasks;
 using StrawberryShake.Impl;
 
 namespace StrawberryShake
@@ -26,10 +26,9 @@ namespace StrawberryShake
         /// <typeparam name="TResultData">
         /// The type of result data.
         /// </typeparam>
-        ValueTask SetAsync<TResultData>(
+        void Set<TResultData>(
             OperationRequest operationRequest,
-            IOperationResult<TResultData> operationResult,
-            CancellationToken cancellationToken = default)
+            IOperationResult<TResultData> operationResult)
             where TResultData : class;
 
         /// <summary>
@@ -66,7 +65,7 @@ namespace StrawberryShake
         /// Returns an operation observable which can be used to observe
         /// updates to the result of the specified <paramref name="operationRequest"/>.
         /// </returns>
-        IOperationObservable<TResultData> Watch<TResultData>(
+        IObservable<IOperationResult<TResultData>> Watch<TResultData>(
             OperationRequest operationRequest)
             where TResultData : class;
     }

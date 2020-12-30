@@ -2,8 +2,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace StrawberryShake.Impl
 {
@@ -11,14 +9,18 @@ namespace StrawberryShake.Impl
         : IOperationStore
         , IDisposable
     {
-        private readonly SemaphoreSlim _semaphore = new(1, 1);
         private readonly ConcurrentDictionary<OperationRequest, IStoredOperation> _results = new();
+        private readonly IDisposable _entityChangeObserverSession;
         private bool _disposed;
 
-        public async ValueTask SetAsync<T>(
+        public OperationStore(IObservable<ISet<EntityId>> entityChangeObserver)
+        {
+            _entityChangeObserverSession = entityChangeObserver.Subscribe(OnEntityUpdate);
+        }
+
+        public void Set<T>(
             OperationRequest operationRequest,
-            IOperationResult<T> operationResult,
-            CancellationToken cancellationToken = default)
+            IOperationResult<T> operationResult)
             where T : class
         {
             if (operationRequest is null)
@@ -37,21 +39,7 @@ namespace StrawberryShake.Impl
             }
 
             StoredOperation<T> storedOperation = GetOrAddStoredOperation<T>(operationRequest);
-
-            await _semaphore
-                .WaitAsync(cancellationToken)
-                .ConfigureAwait(false);
-
-            try
-            {
-                await storedOperation
-                    .SetResultAsync(operationResult, cancellationToken)
-                    .ConfigureAwait(false);
-            }
-            finally
-            {
-                _semaphore.Release();
-            }
+            storedOperation.SetResult(operationResult);
         }
 
         public bool TryGet<T>(
@@ -80,11 +68,11 @@ namespace StrawberryShake.Impl
             return false;
         }
 
-        public IOperationObservable<T> Watch<T>(
+        public IObservable<IOperationResult<T>> Watch<T>(
             OperationRequest operationRequest)
             where T : class
         {
-            if (operationRequest == null)
+            if (operationRequest is null)
             {
                 throw new ArgumentNullException(nameof(operationRequest));
             }
@@ -97,19 +85,20 @@ namespace StrawberryShake.Impl
             return GetOrAddStoredOperation<T>(operationRequest);
         }
 
-        private async ValueTask OnEntityUpdate(ISet<EntityId> updatedEntities)
+        private void OnEntityUpdate(ISet<EntityId> updatedEntities)
         {
+            if (_disposed)
+            {
+                return;
+            }
+
             foreach (IStoredOperation operation in _results.Values)
             {
                 if (updatedEntities.Overlaps(operation.EntityIds))
                 {
-
+                    operation.UpdateResult();
                 }
             }
-
-
-
-
         }
 
         private StoredOperation<T> GetOrAddStoredOperation<T>(
@@ -129,7 +118,7 @@ namespace StrawberryShake.Impl
         {
             if (!_disposed)
             {
-                _semaphore.Dispose();
+                _entityChangeObserverSession.Dispose();
                 _disposed = true;
             }
         }
