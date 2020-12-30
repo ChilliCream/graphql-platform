@@ -1,0 +1,19 @@
+﻿namespace FooBarNamespace
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class Foo
+        : IOperationResultDataFactory<Foo>
+    {
+        private IEntityStore _entityStore;
+
+        public Foo(
+            IEntityStore entityStore,
+            string someText)
+        {
+            _entityStore = entityStore;
+            SomeText = someText;
+        }
+
+        public string SomeText { get; }
+    }
+}
