@@ -8,8 +8,10 @@ public partial class FooQuery
         IOperationStore operationStore,
         IOperationExecutor<Foo> operationExecutor)
     {
-        _operationStore = operationStore;
-        _operationExecutor = operationExecutor;
+        _operationStore = operationStore
+             ?? throw new ArgumentNullException(nameof(operationStore));
+        _operationExecutor = operationExecutor
+             ?? throw new ArgumentNullException(nameof(operationExecutor));
     }
 
     public async Task<IOperationResult<Foo>> Execute(
@@ -19,7 +21,7 @@ public partial class FooQuery
         var request = new FooQueryRequest();
         request.Variables.Add("bar", bar);
 
-        return await _operationExecutor()
+        return await _operationExecutor
             .ExecuteAsync(
                 request,
                 cancellationToken

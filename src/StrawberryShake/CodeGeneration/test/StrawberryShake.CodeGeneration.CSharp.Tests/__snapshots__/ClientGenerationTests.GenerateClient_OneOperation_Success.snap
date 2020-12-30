@@ -1,0 +1,16 @@
+﻿[global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+public partial class FooClient
+{
+    private readonly GetFooQuery _getFooQuery;
+
+    public FooClient(GetFooQuery getFooQuery)
+    {
+        _getFooQuery = getFooQuery
+             ?? throw new ArgumentNullException(nameof(getFooQuery));
+    }
+
+    public GetFooQuery GetFooQuery()
+    {
+        return _getFooQuery;
+    }
+}

@@ -5,7 +5,7 @@ using StrawberryShake.CodeGeneration.CSharp.Extensions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public class ResultInfoGenerator : CodeGenerator<TypeDescriptor>
+    public class ResultInfoGenerator : ClassBaseGenerator<TypeDescriptor>
     {
         private const string EntityIdsPropertyName = "EntityIds";
 
@@ -25,7 +25,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetListType(ListType.List)
                 .SetName(WellKnownNames.EntityId);
 
-            ClassBuilder classBuilder = ClassBuilder.New()
+            ClassBuilder
                 .AddImplements(NamingConventions.ResultIntoNameFromTypeName(WellKnownNames.IOperationResultDataInfo))
                 .AddProperty(
                     PropertyBuilder.New()
@@ -35,7 +35,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetName(typeDescriptor.Name);
 
             var entityIdsParamName = EntityIdsPropertyName.WithLowerFirstChar();
-            ConstructorBuilder constructorBuilder = ConstructorBuilder.New()
+            ConstructorBuilder
                 .SetTypeName(typeDescriptor.Name)
                 .AddParameter(
                     ParameterBuilder.New()
@@ -59,22 +59,20 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetName(prop.Name)
                     .SetType(propTypeBuilder)
                     .SetAccessModifier(AccessModifier.Public);
-                classBuilder.AddProperty(propBuilder);
+                ClassBuilder.AddProperty(propBuilder);
 
                 // Add initialization of property to the constructor
                 var paramName = prop.Name.WithLowerFirstChar();
                 ParameterBuilder parameterBuilder = ParameterBuilder.New()
                     .SetName(paramName)
                     .SetType(propTypeBuilder);
-                constructorBuilder.AddParameter(parameterBuilder);
-                constructorBuilder.AddCode(prop.Name + " = " + paramName + ";");
+                ConstructorBuilder.AddParameter(parameterBuilder);
+                ConstructorBuilder.AddCode(prop.Name + " = " + paramName + ";");
             }
-
-            classBuilder.AddConstructor(constructorBuilder);
 
             return CodeFileBuilder.New()
                 .SetNamespace(typeDescriptor.Namespace)
-                .AddType(classBuilder)
+                .AddType(ClassBuilder)
                 .BuildAsync(writer);
         }
     }

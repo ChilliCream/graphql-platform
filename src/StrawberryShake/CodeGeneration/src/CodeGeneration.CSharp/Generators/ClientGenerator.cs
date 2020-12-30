@@ -1,42 +1,35 @@
+using System;
 using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public class ClientGenerator : CodeGenerator<ClientDescriptor>
+    public class ClientGenerator : ClassBaseGenerator<ClientDescriptor>
     {
-        protected override Task WriteAsync(CodeWriter writer, ClientDescriptor descriptor)
+        protected override Task WriteAsync(CodeWriter writer, ClientDescriptor clientDescriptor)
         {
-            var classBuilder = ClassBuilder.New()
-                .SetName(descriptor.Name);
-
-            var constructorBuilder = ConstructorBuilder.New()
-                .SetTypeName(descriptor.Name)
-                .SetAccessModifier(AccessModifier.Public);
-
-
-            foreach (OperationDescriptor operation in descriptor.Operations)
+            if (writer is null)
             {
-                classBuilder.AddField(
-                    FieldBuilder.New()
-                        .SetReadOnly()
-                        .SetType(operation.Name)
-                        .SetName(operation.Name.ToFieldName())
+                throw new ArgumentNullException(nameof(writer));
+            }
+
+            if (clientDescriptor is null)
+            {
+                throw new ArgumentNullException(nameof(clientDescriptor));
+            }
+
+            ClassBuilder.SetName(clientDescriptor.Name);
+            ConstructorBuilder.SetTypeName(clientDescriptor.Name);
+
+            foreach (OperationDescriptor operation in clientDescriptor.Operations)
+            {
+                ConstructorAssignedField(
+                    operation.Name,
+                    operation.Name.ToFieldName()
                 );
 
-                constructorBuilder.AddParameter(
-                    ParameterBuilder.New()
-                        .SetName(operation.Name.WithLowerFirstChar())
-                        .SetType(operation.Name)
-                );
-
-                constructorBuilder.AddCode(
-                    CodeLineBuilder.New()
-                        .SetLine($"{operation.Name.ToFieldName()} =  {operation.Name.WithLowerFirstChar()};")
-                );
-
-                classBuilder.AddMethod(
+                ClassBuilder.AddMethod(
                     MethodBuilder.New()
                         .SetAccessModifier(AccessModifier.Public)
                         .SetReturnType(operation.Name)
@@ -45,8 +38,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 );
             }
 
-            classBuilder.AddConstructor(constructorBuilder);
-            return classBuilder.BuildAsync(writer);
+            return ClassBuilder.BuildAsync(writer);
         }
     }
 }

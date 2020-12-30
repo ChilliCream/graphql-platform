@@ -1,19 +1,20 @@
 ﻿namespace FooBarNamespace
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class Foo
+    public partial class FooResultFactory
         : IOperationResultDataFactory<Foo>
     {
-        private IEntityStore _entityStore;
+        private readonly IEntityStore _entityStore;
+        private readonly IEntityMapper<FooEntity, Foo> _fooFromFooEntityMapper;
 
-        public Foo(
+        public FooResultFactory(
             IEntityStore entityStore,
-            string someText)
+            IEntityMapper<FooEntity, Foo> fooFromFooEntityMapper)
         {
-            _entityStore = entityStore;
-            SomeText = someText;
+            _entityStore = entityStore
+                 ?? throw new ArgumentNullException(nameof(entityStore));
+            _fooFromFooEntityMapper = fooFromFooEntityMapper
+                 ?? throw new ArgumentNullException(nameof(fooFromFooEntityMapper));
         }
-
-        public string SomeText { get; }
     }
 }

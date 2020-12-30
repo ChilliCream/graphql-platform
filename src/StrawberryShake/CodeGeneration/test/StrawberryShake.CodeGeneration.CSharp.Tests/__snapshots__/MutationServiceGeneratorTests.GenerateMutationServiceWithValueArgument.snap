@@ -8,15 +8,20 @@ public partial class FooMutation
         IOperationStore operationStore,
         IOperationExecutor<Foo> operationExecutor)
     {
-        _operationStore = operationStore;
-        _operationExecutor = operationExecutor;
+        _operationStore = operationStore
+             ?? throw new ArgumentNullException(nameof(operationStore));
+        _operationExecutor = operationExecutor
+             ?? throw new ArgumentNullException(nameof(operationExecutor));
     }
 
-    public async Task<IOperationResult<Foo>> Execute(CancellationToken cancellationToken = default)
+    public async Task<IOperationResult<Foo>> Execute(
+        string name,
+        CancellationToken cancellationToken = default)
     {
         var request = new FooMutationRequest();
+        request.Variables.Add("name", name);
 
-        return await _operationExecutor()
+        return await _operationExecutor
             .ExecuteAsync(
                 request,
                 cancellationToken
@@ -24,7 +29,7 @@ public partial class FooMutation
             .ConfigureAwait(false);
     }
 
-    public IOperationObservable<Foo> Watch()
+    public IOperationObservable<Foo> Watch(string name)
     {
     }
 }

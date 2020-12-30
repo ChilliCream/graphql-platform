@@ -36,16 +36,16 @@ namespace StrawberryShake
 
         public void OnNext(ISet<EntityId> value)
         {
-            foreach (var VARIABLE in value.Overlaps(_operationStore.))
-            {
+            // foreach (var VARIABLE in value.Overlaps(_operationStore.))
+            // {
 
-            }
+            // }
 
 
-            using (_entityStore.BeginRead())
-            {
-                _entityStore.GetEntities<object>(value)
-            }
+            // using (_entityStore.BeginRead())
+            // {
+                // _entityStore.GetEntities<object>(value)
+            // }
         }
 
         public void OnError(Exception error)

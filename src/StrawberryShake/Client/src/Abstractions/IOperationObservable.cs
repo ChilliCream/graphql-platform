@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace StrawberryShake
 {
-    public interface IOperationObservable<out TResultData>
+    public interface IOperationObservable<TResultData>
         : IObservable<IOperationResult<TResultData>>
         , IAsyncObservable<IOperationResult<TResultData>>
         where TResultData : class

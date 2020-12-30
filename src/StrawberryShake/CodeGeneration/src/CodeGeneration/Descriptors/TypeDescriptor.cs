@@ -44,12 +44,14 @@ namespace StrawberryShake.CodeGeneration
             string name,
             string @namespace,
             IReadOnlyList<string> implements,
-            IReadOnlyList<TypePropertyDescriptor> properties)
+            IReadOnlyList<TypePropertyDescriptor> properties,
+            IReadOnlyList<string>? isImplementedBy = null)
         {
             Name = name;
             Properties = properties;
             Namespace = @namespace;
             Implements = implements;
+            IsImplementedBy = isImplementedBy ?? new string[] { };
         }
     }
 }

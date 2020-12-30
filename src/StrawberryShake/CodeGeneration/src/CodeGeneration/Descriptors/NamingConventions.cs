@@ -35,5 +35,10 @@ namespace StrawberryShake.CodeGeneration
         {
             return operationServiceName + "Request";
         }
+
+        public static string ResultFactoryNameFromTypeName(string typeName)
+        {
+            return typeName + "ResultFactory";
+        }
     }
 }

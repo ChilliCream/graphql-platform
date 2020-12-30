@@ -10,7 +10,7 @@ namespace StrawberryShake
     /// <typeparam name="TResultData">
     /// The runtime result.
     /// </typeparam>
-    public interface IOperationResultBuilder<TResponseBody, out TResultData>
+    public interface IOperationResultBuilder<TResponseBody, TResultData>
         where TResponseBody : class
         where TResultData : class
     {

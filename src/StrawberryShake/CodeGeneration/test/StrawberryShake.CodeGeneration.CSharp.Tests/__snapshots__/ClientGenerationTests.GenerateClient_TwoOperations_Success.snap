@@ -8,8 +8,10 @@ public partial class FooClient
         GetFooQuery getFooQuery,
         UpdateFooMutation updateFooMutation)
     {
-        _getFooQuery =  getFooQuery;
-        _updateFooMutation =  updateFooMutation;
+        _getFooQuery = getFooQuery
+             ?? throw new ArgumentNullException(nameof(getFooQuery));
+        _updateFooMutation = updateFooMutation
+             ?? throw new ArgumentNullException(nameof(updateFooMutation));
     }
 
     public GetFooQuery GetFooQuery()
