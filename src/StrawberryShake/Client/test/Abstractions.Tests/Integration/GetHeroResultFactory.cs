@@ -1,6 +1,6 @@
 using System;
 
-namespace StrawberryShake.Remove
+namespace StrawberryShake.Integration
 {
     public class GetHeroResultFactory : IOperationResultDataFactory<GetHeroResult>
     {

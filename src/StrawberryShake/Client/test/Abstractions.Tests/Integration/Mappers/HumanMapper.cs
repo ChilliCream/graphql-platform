@@ -1,4 +1,4 @@
-namespace StrawberryShake.Remove.Mappers
+namespace StrawberryShake.Integration.Mappers
 {
     public class HumanMapper : IEntityMapper<HumanEntity, Human>
     {

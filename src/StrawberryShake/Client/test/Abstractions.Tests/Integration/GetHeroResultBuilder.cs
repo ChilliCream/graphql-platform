@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json;
 
-namespace StrawberryShake.Remove
+namespace StrawberryShake.Integration
 {
     public class GetHeroResultBuilder : IOperationResultBuilder<JsonDocument, GetHeroResult>
     {
@@ -76,6 +76,7 @@ namespace StrawberryShake.Remove
                 }
 
                 entity.Friends = friends;
+                return entityId;
             }
 
             if (entityId.Name.Equals("Droid", StringComparison.Ordinal))
@@ -91,6 +92,7 @@ namespace StrawberryShake.Remove
                 }
 
                 entity.Friends = friends;
+                return entityId;
             }
 
             throw new NotSupportedException();
@@ -105,12 +107,14 @@ namespace StrawberryShake.Remove
             {
                 HumanEntity entity = _entityStore.GetOrCreate<HumanEntity>(entityId);
                 entity.Name = DeserializeNonNullString(obj, "name");
+                return entityId;
             }
 
             if (entityId.Name.Equals("Droid", StringComparison.Ordinal))
             {
                 DroidEntity entity = _entityStore.GetOrCreate<DroidEntity>(entityId);
                 entity.Name = DeserializeNonNullString(obj, "name");
+                return entityId;
             }
 
             throw new NotSupportedException();
@@ -121,7 +125,7 @@ namespace StrawberryShake.Remove
             if (obj.TryGetProperty(propertyName, out JsonElement property) &&
                 property.ValueKind != JsonValueKind.Null)
             {
-                _stringSerializer.Deserialize(property.GetString());
+                return _stringSerializer.Deserialize(property.GetString()!);
             }
 
             throw new InvalidOperationException();

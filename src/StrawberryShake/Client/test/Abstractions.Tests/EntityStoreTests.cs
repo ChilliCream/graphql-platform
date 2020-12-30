@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Moq;
 using StrawberryShake.Impl;
 using Xunit;
 
@@ -27,7 +26,7 @@ namespace StrawberryShake
             });
 
             // act
-            using (IEntityUpdateSession session = entityStore.BeginUpdate())
+            using (entityStore.BeginUpdate())
             {
                 MockEntity entity = entityStore.GetOrCreate<MockEntity>(entityId);
                 entity.Foo = "abc";

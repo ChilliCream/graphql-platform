@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace StrawberryShake.Remove
+namespace StrawberryShake.Integration
 {
     public class FriendsConnection
     {

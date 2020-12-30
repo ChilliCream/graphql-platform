@@ -1,13 +1,11 @@
 using System.Collections.Generic;
 
-namespace StrawberryShake.Remove
+namespace StrawberryShake.Integration
 {
-    public class HumanEntity
+    public class DroidEntity
     {
         public EntityId Id { get; set; }
-
         public string Name { get; set; }
-
         public List<EntityId> Friends { get; set; }
     }
 }

@@ -1,7 +1,7 @@
 using System;
 using System.Text;
 
-namespace StrawberryShake.Remove
+namespace StrawberryShake.Integration
 {
     public class GetHeroQueryDocument : IDocument
     {

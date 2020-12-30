@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace StrawberryShake.Remove.Mappers
+namespace StrawberryShake.Integration.Mappers
 {
     public class DroidHeroMapper : IEntityMapper<DroidEntity, DroidHero>
     {

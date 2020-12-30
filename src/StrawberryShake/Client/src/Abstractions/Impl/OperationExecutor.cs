@@ -128,7 +128,9 @@ namespace StrawberryShake.Impl
                 await foreach (var response in
                     _connection.ExecuteAsync(_request, cancellationToken).ConfigureAwait(false))
                 {
-                    resultBuilder.Build(response);
+                    _operationStore.Set(
+                        _request,
+                        resultBuilder.Build(response));;
                 }
             }
         }

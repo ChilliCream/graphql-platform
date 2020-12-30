@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using StrawberryShake.Impl;
 
-namespace StrawberryShake.Remove
+namespace StrawberryShake.Integration
 {
     public class GetHeroQuery
     {

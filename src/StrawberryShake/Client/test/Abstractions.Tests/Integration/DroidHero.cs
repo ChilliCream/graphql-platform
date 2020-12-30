@@ -1,8 +1,8 @@
-namespace StrawberryShake.Remove
+namespace StrawberryShake.Integration
 {
-    public partial class HumanHero : IHero
+    public partial class DroidHero : IHero
     {
-        public HumanHero(string name, FriendsConnection friends)
+        public DroidHero(string name, FriendsConnection friends)
         {
             Name = name;
             Friends = friends;

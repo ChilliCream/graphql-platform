@@ -1,4 +1,4 @@
-namespace StrawberryShake.Remove
+namespace StrawberryShake.Integration
 {
     public interface IHero : ICharacter
     {
