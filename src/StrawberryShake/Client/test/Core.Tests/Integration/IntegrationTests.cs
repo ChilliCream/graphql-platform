@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
 using StrawberryShake.Integration.Mappers;
+using StrawberryShake.Serialization;
 using Xunit;
 
 namespace StrawberryShake.Integration
@@ -41,7 +42,7 @@ namespace StrawberryShake.Integration
                 entityStore,
                 ExtractEntityId,
                 resultDataFactory,
-                new MockValueSerializerResolver());
+                new SerializerResolver(new[] { new StringSerializer() }));
 
             var operationExecutor = new OperationExecutor<JsonDocument, GetHeroResult>(
                 connection,
@@ -82,27 +83,6 @@ namespace StrawberryShake.Integration
             {
                 string json = FileResource.Open("GetHeroResult.json");
                 yield return new Response<JsonDocument>(JsonDocument.Parse(json), null);
-            }
-        }
-
-        public class MockStringValueSerializer : IValueSerializer<string, string>
-        {
-            public string Deserialize(string data) => data;
-        }
-
-        public class MockValueSerializerResolver : IValueSerializerResolver
-        {
-            public IValueSerializer<TData, TRuntime> GetValueSerializer<TData, TRuntime>(
-                string name)
-            {
-                var serializer = new MockStringValueSerializer();
-
-                if (serializer is IValueSerializer<TData, TRuntime> d)
-                {
-                    return d;
-                }
-
-                throw new ArgumentException();
             }
         }
     }

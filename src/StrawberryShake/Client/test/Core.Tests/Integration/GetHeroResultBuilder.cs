@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
+using StrawberryShake.Serialization;
 
 namespace StrawberryShake.Integration
 {
@@ -9,18 +10,18 @@ namespace StrawberryShake.Integration
         private readonly IEntityStore _entityStore;
         private readonly Func<JsonElement, EntityId> _extractId;
         private readonly IOperationResultDataFactory<GetHeroResult> _resultDataFactory;
-        private readonly IValueSerializer<string, string> _stringSerializer;
+        private readonly ILeafValueParser<string, string> _stringParser;
 
         public GetHeroResultBuilder(
             IEntityStore entityStore,
             Func<JsonElement, EntityId> extractId,
             IOperationResultDataFactory<GetHeroResult> resultDataFactory,
-            IValueSerializerResolver valueSerializerResolver)
+            ISerializerResolver stringParser)
         {
             _entityStore = entityStore;
             _extractId = extractId;
             _resultDataFactory = resultDataFactory;
-            _stringSerializer = valueSerializerResolver.GetValueSerializer<string, string>("String");
+            _stringParser = stringParser.GetLeafValueParser<string, string>("String");
         }
 
         public IOperationResult<GetHeroResult> Build(Response<JsonDocument> response)
@@ -125,7 +126,7 @@ namespace StrawberryShake.Integration
             if (obj.TryGetProperty(propertyName, out JsonElement property) &&
                 property.ValueKind != JsonValueKind.Null)
             {
-                return _stringSerializer.Deserialize(property.GetString()!);
+                return _stringParser.Parse(property.GetString()!);
             }
 
             throw new InvalidOperationException();

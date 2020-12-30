@@ -6,7 +6,6 @@ namespace StrawberryShake
         Integer,
         Float,
         Boolean,
-        Enum,
-        Object
+        Enum
     }
 }
