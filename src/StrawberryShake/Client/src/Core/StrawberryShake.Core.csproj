@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>StrawberryShake.Core</PackageId>
+    <AssemblyName>StrawberryShake.Core</AssemblyName>
+    <RootNamespace>StrawberryShake</RootNamespace>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Collections.Immutable" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Resources\StrawberryShake.Resources.csproj" />
+  </ItemGroup>
+
+</Project>
