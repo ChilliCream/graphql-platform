@@ -42,21 +42,20 @@ namespace StrawberryShake.Remove
 
         private (GetHeroResult, GetHeroResultInfo) BuildData(JsonElement obj)
         {
-            using (_entityStore.BeginUpdate())
-            {
-                var entityIds = new HashSet<EntityId>();
+            using IEntityUpdateSession session = _entityStore.BeginUpdate();
+            var entityIds = new HashSet<EntityId>();
 
-                // store updates ...
-                EntityId heroId = UpdateHeroEntity(obj.GetProperty("hero"), entityIds);
+            // store updates ...
+            EntityId heroId = UpdateHeroEntity(obj.GetProperty("hero"), entityIds);
 
-                // build result
-                var resultInfo = new GetHeroResultInfo(
-                    heroId,
-                    DeserializeNonNullString(obj, "version"),
-                    entityIds);
+            // build result
+            var resultInfo = new GetHeroResultInfo(
+                heroId,
+                DeserializeNonNullString(obj, "version"),
+                entityIds,
+                session.Version);
 
-                return (_resultDataFactory.Create(resultInfo), resultInfo);
-            }
+            return (_resultDataFactory.Create(resultInfo), resultInfo);
         }
 
         private EntityId UpdateHeroEntity(JsonElement obj, ISet<EntityId> entityIds)

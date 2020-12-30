@@ -54,7 +54,7 @@ namespace StrawberryShake.Impl
                 SetResult(
                     result.WithData(
                         result.DataFactory.Create(result.DataInfo),
-                        result.DataInfo));
+                        result.DataInfo.WithVersion()));
             }
         }
 

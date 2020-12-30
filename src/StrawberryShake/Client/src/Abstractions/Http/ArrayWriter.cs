@@ -52,7 +52,7 @@ namespace StrawberryShake.Http
             {
                 byte[] buffer = _buffer;
 
-                int newSize = buffer.Length * 2;
+                var newSize = buffer.Length * 2;
                 if (neededCapacity > buffer.Length)
                 {
                     newSize += neededCapacity;
