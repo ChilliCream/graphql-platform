@@ -2,8 +2,20 @@ using System;
 
 namespace StrawberryShake
 {
+    /// <summary>
+    /// Represents the internal entity id which is used to interact with the client store.
+    /// </summary>
     public readonly struct EntityId
     {
+        /// <summary>
+        /// Initializes a new instance of <see cref="EntityId"/>.
+        /// </summary>
+        /// <param name="name">
+        /// The GraphQL type name.
+        /// </param>
+        /// <param name="value">
+        /// The internal ID value.
+        /// </param>
         public EntityId(string name, object value)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));

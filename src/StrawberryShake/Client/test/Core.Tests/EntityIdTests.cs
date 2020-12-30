@@ -105,5 +105,19 @@ namespace StrawberryShake
             Assert.NotEqual(hashCodeA, hashCodeC);
             Assert.NotEqual(hashCodeB, hashCodeC);
         }
+
+        [Fact]
+        public void Deconstruct_Id()
+        {
+            // arrange
+            var id = new EntityId("abc", "def");
+
+            // act
+            var (typeName, value) = id;
+
+            // assert
+            Assert.Equal("abc", typeName);
+            Assert.Equal("def", value);
+        }
     }
 }
