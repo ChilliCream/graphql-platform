@@ -190,7 +190,7 @@ namespace HotChocolate.Types.Relay
                 innerSerializer,
                 typeName is { },
                 DotNetTypeInfoFactory.IsListType(type),
-                DotNetTypeInfoFactory.GetInnerListType(type));
+                DotNetTypeInfoFactory.Unwrap(type));
         }
     }
 }

@@ -22,4 +22,8 @@
     <ProjectReference Include="..\Types.Tests.Documentation\Types.Tests.Documentation.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Types\Relay\__snapshots__\__mismatch__\" />
+  </ItemGroup>
+
 </Project>

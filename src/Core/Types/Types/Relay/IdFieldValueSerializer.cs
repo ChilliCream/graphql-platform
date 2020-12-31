@@ -39,7 +39,7 @@ namespace HotChocolate.Types.Relay
             SchemaName = schemaName;
         }
 
-        public virtual object? Deserialize(object? value)
+        public object? Deserialize(object? value)
         {
             if (value is null)
             {
@@ -49,7 +49,7 @@ namespace HotChocolate.Types.Relay
             {
                 try
                 {
-                    IdValue id = InnerSerializer.Deserialize(s);
+                    IdValue id = DeserializeId(s);
 
                     if (!Validate || TypeName.Equals(id.TypeName))
                     {
@@ -77,7 +77,7 @@ namespace HotChocolate.Types.Relay
 
                     foreach (string sv in stringEnumerable)
                     {
-                        IdValue id = InnerSerializer.Deserialize(sv);
+                        IdValue id = DeserializeId(sv);
 
                         if (!Validate || TypeName.Equals(id.TypeName))
                         {
@@ -102,6 +102,11 @@ namespace HotChocolate.Types.Relay
                 ErrorBuilder.New()
                     .SetMessage("The specified value is not a valid ID value.")
                     .Build());
+        }
+
+        protected virtual IdValue DeserializeId(string s)
+        {
+            return InnerSerializer.Deserialize(s);
         }
 
         private static Type CreateListType(Type elementType)
