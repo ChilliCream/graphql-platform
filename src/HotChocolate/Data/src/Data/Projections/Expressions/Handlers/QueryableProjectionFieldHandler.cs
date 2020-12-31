@@ -14,7 +14,7 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers
         : QueryableProjectionHandlerBase
     {
         public override bool CanHandle(ISelection selection) =>
-            selection.Field.Member is {} &&
+            selection.Field.Member is { } &&
             selection.SelectionSet is not null;
 
         public override bool TryHandleEnter(
@@ -34,13 +34,21 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers
             Type memberType;
             if (field.Member is PropertyInfo propertyInfo)
             {
-                memberType = propertyInfo.PropertyType;
-                nestedProperty = Expression.Property(context.GetInstance(), propertyInfo);
+                if (propertyInfo.CanWrite)
+                {
+                    memberType = propertyInfo.PropertyType;
+                    nestedProperty = Expression.Property(context.GetInstance(), propertyInfo);
+                }
+                else
+                {
+                    action = SelectionVisitor.Skip;
+                    return true;
+                }
             }
-            else if (field.Member is MethodInfo methodInfo)
+            else if (field.Member is MethodInfo)
             {
-                memberType = methodInfo.ReturnType;
-                nestedProperty = Expression.Call(context.GetInstance(), methodInfo);
+                action = SelectionVisitor.Skip;
+                return true;
             }
             else
             {
@@ -94,10 +102,6 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers
             if (field.Member is PropertyInfo propertyInfo)
             {
                 nestedProperty = Expression.Property(context.GetInstance(), propertyInfo);
-            }
-            else if (field.Member is MethodInfo methodInfo)
-            {
-                nestedProperty = Expression.Call(context.GetInstance(), methodInfo);
             }
             else
             {
