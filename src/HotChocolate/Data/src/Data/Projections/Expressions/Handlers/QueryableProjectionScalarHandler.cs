@@ -19,8 +19,7 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers
             ISelection selection,
             out ISelectionVisitorAction? action)
         {
-            if (selection.Field.Member is PropertyInfo propertyInfo &&
-                propertyInfo.CanWrite)
+            if (selection.Field.Member is PropertyInfo { CanWrite: true })
             {
                 action = SelectionVisitor.SkipAndLeave;
                 return true;

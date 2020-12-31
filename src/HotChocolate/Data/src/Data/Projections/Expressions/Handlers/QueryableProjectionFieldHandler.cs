@@ -32,27 +32,15 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers
 
             Expression nestedProperty;
             Type memberType;
-            if (field.Member is PropertyInfo propertyInfo)
+            if (field.Member is PropertyInfo { CanWrite: true } propertyInfo)
             {
-                if (propertyInfo.CanWrite)
-                {
-                    memberType = propertyInfo.PropertyType;
-                    nestedProperty = Expression.Property(context.GetInstance(), propertyInfo);
-                }
-                else
-                {
-                    action = SelectionVisitor.Skip;
-                    return true;
-                }
-            }
-            else if (field.Member is MethodInfo)
-            {
-                action = SelectionVisitor.Skip;
-                return true;
+                memberType = propertyInfo.PropertyType;
+                nestedProperty = Expression.Property(context.GetInstance(), propertyInfo);
             }
             else
             {
-                throw new InvalidOperationException();
+                action = SelectionVisitor.Skip;
+                return true;
             }
 
             // We add a new scope for the sub selection. This allows a new member initialization

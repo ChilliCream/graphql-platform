@@ -35,15 +35,7 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers
         {
             IObjectField field = selection.Field;
 
-            if (field.Member is PropertyInfo propertyInfo)
-            {
-                if (!propertyInfo.CanWrite)
-                {
-                    action = SelectionVisitor.Skip;
-                    return true;
-                }
-            }
-            else
+            if (!(field.Member is PropertyInfo { CanWrite: true }))
             {
                 action = SelectionVisitor.Skip;
                 return true;
