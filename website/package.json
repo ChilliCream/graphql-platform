@@ -44,7 +44,7 @@
     "gatsby-remark-mermaid": "^2.1.0",
     "gatsby-remark-prismjs": "^3.9.0",
     "gatsby-remark-reading-time": "^1.1.0",
-    "gatsby-source-filesystem": "^2.7.0",
+    "gatsby-source-filesystem": "^2.8.1",
     "gatsby-transformer-json": "^2.7.0",
     "gatsby-transformer-remark": "^2.12.0",
     "gatsby-transformer-sharp": "^2.8.0",
