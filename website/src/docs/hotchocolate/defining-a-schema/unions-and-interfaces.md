@@ -102,7 +102,7 @@ All fields declared on the interface type are available to query directly.
 ## Interface Definition
 
 HotChocolate tries to infer interfaces from the .Net types.
-When a resolver returns an interface, you just have to register the implementation on the schema.
+When a resolver returns an interface, you just have to register the implementation on the schema builder.
 HotChocolate will register the types as implementations of the interface.
 
 ### Annotation Based
@@ -252,8 +252,8 @@ public void ConfigureServices(IServiceCollection services)
 ```
 
 # Unions
-Unions are very similar to interfaces. The difference is that unions do not have fields in common.
-Unions are useful if you want to return completely disjunct objects.
+Unions are very similar to interfaces. The difference is that members of an unions do not have fields in common.
+Unions are useful if you have completely disjunct structured types.
 
 ```sdl
 type Group {
@@ -322,7 +322,7 @@ public class Group : IGroupMember
   [Id]
   public Guid Identifier { get; set; }
 
-  public IGroupMember[] Members {get; set;}
+  public IGroupMember[] Members { get; set; }
 }
 
 public class User : IGroupMember 
