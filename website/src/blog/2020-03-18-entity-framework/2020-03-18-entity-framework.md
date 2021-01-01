@@ -225,11 +225,11 @@ In GraphQL we interact with the data through root types. In this post we will on
 
 The query root type exposes fields which are called root fields. The root fields define how we can query for data. For our university GraphQL server we want to be able to query the students and then drill deeper into what courses a student is enrolled to or what grade he/she has in a specific course.
 
-Before we actually can put some GraphQL types in our project we again need to add some packages. This time we need to add the `HotChocolate.AspNetCore` package to enable the core GraphQL server functionality. Also we need the `HotChocolate.Types.Selections` package to be able to use _Entity Framework_ projections.
+Before we actually can put some GraphQL types in our project we again need to add some packages. This time we need to add the `HotChocolate.AspNetCore` package to enable the core GraphQL server functionality. Also we need the `HotChocolate.Data.EntityFramework` package to be able to use _Entity Framework_ projections.
 
 ```bash
 dotnet add package HotChocolate.AspNetCore
-dotnet add package HotChocolate.Types.Selections
+dotnet add package HotChocolate.Data.EntityFramework
 ```
 
 With Hot Chocolate and the _pure code-first_ approach the query root type is represented by a simple class. Public methods or public properties on that type are inferred as fields of our GraphQL type.
@@ -283,7 +283,7 @@ In our case we want _Entity Framework_ projections to work so that we can drill 
 ```csharp
 using System.Linq;
 using HotChocolate;
-using HotChocolate.Types;
+using HotChocolate.Data;
 
 namespace ContosoUniversity
 {
@@ -292,7 +292,7 @@ namespace ContosoUniversity
         /// <summary>
         /// Gets all students.
         /// </summary>
-        [UseSelection]
+        [UseProjection]
         public IQueryable<Student> GetStudents([Service]SchoolContext schoolContext) =>
             schoolContext.Students;
     }
@@ -312,31 +312,11 @@ public void ConfigureServices(IServiceCollection services)
 {
     services.AddDbContext<SchoolContext>();
 
-    services.AddGraphQL(
-        SchemaBuilder.New()
-            .AddQueryType<Query>()
-            .Create(),
-        new QueryExecutionOptions { ForceSerialExecution = true });
+    services.AddGraphQLServer()
+            .AddQueryType<GraphQLQuery>()
+            .AddProjections()             // This line creates a 'Provider' for HotChocolate to use to convert GraphQL queries into E.F. Queries
 }
 ```
-
-The above code registers a GraphQL schema with the dependency injection container.
-
-```csharp
-SchemaBuilder.New()
-    .AddQueryType<Query>()
-    .Create()
-```
-
-The schema builder registers our `Query` class as GraphQL `Query` root type.
-
-```csharp
-new QueryExecutionOptions { ForceSerialExecution = true }
-```
-
-Also, we are defining that the execution engine shall be forced to execute serially since `DbContext` is not thread-safe.
-
-> The upcoming version 11 of Hot Chocolate uses `DbContext` pooling to use multiple `DbContext` instances in one request. This allows version 11 to parallelize data fetching better with _Entity Framework_.
 
 In order to enable our ASP.NET Core server to process GraphQL requests we need to register the Hot Chocolate GraphQL middleware.
 
@@ -352,74 +332,24 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         app.UseDeveloperExceptionPage();
     }
 
+    app.UseHttpsRedirection();
     app.UseRouting();
-
-    app.UseGraphQL();
 
     app.UseEndpoints(endpoints =>
     {
-        endpoints.MapGet("/", async context =>
-        {
-            await context.Response.WriteAsync("Hello World!");
-        });
+        endpoints.MapControllers();
+        endpoints.MapGraphQL();
     });
 }
 ```
 
-`app.UseGraphQL();` registers the GraphQL middleware with the server. Since we did not specify any path the middleware will run on the root of our server. Like with field middleware the order of ASP.NET Core middleware is important.
+`endpoints.MapGraphQL();` registers the GraphQL middleware with the server. Since we did not specify any path the middleware will run on the root of our server. Like with field middleware the order of ASP.NET Core middleware is important.
 
 ## Testing a GraphQL Server
 
-In order to now query our GraphQL server we need a GraphQL IDE to formulate queries and explore the schema. If you want a deluxe GraphQL IDE as an application, you can get our very own Banana Cakepop which can be downloaded [here](/docs/bananacakepop).
+ _Banana Cakepop_ now comes bundled automatically with `HotChocolate.AspNetCore`
 
-![Hot Chocolate](banana-cake-pop.png)
-
-But you can also opt for _Playground_ and host a simple GraphQL IDE as a middleware with the server. If you want to use playground add the following package to the project:
-
-```bash
-dotnet add package HotChocolate.AspNetCore.Playground
-```
-
-After that we need to register the playground middleware. For that add `app.UsePlayground();` after `app.UseGraphQL()`. By default, playground is hosted on `/playground` meaning in our case `http://localhost:5000/playground`.
-
-The `Configure` method should now look like the following:
-
-```csharp
-public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-{
-    InitializeDatabase(app);
-
-    if (env.IsDevelopment())
-    {
-        app.UseDeveloperExceptionPage();
-    }
-
-    app.UseRouting();
-
-    app.UseGraphQL();
-    app.UsePlayground();
-
-    app.UseEndpoints(endpoints =>
-    {
-        endpoints.MapGet("/", async context =>
-        {
-            await context.Response.WriteAsync("Hello World!");
-        });
-    });
-}
-```
-
-Let’s test our GraphQL server.
-
-```bash
-dotnet run --urls http://localhost:5000
-```
-
-### Testing with Banana Cakepop
-
-If you have chosen _Banana Cakepop_ to test and explore the GraphQL Schema open it now.
-
-_Banana Cakepop_ will open with an empty tab. In the address bar type in the URL of our GraphQL server `http://localhost:5000` and hit `enter`.
+To start it, type the URL of our GraphQL server in the address bar followed by `/graphql` `http://localhost:5000/graphql` and hit `enter`.
 
 ![Hot Chocolate](banana-cake-pop-address.png)
 
@@ -433,23 +363,10 @@ In our current schema we can see that we have a single root field called `studen
 
 Now close the schema tab again so that we can write some queries.
 
-### Testing with Playground
-
-If you have opted for _Playground_ open your browser and navigate to `http://localhost:5000/playground`.
-
-On the right-hand side click on the `Docs` button. A pane will slide out showing us the root types and root fields of our schema.
-
-![Hot Chocolate](playground-root-types.png)
-
-In our current schema we can see that we have a single root field called `students`. If we click on that the schema explorer opens and we can drill into our type. We can see what fields we can request from our `Student` type. We also can see that we can drill in further and fetch the enrollments and from the enrollments the courses and so on.
-
-![Hot Chocolate](playground-expanded-schema.png)
-
-Now click onto `Docs` again so that the schema tab slides back in again. We are now ready to write our first query.
 
 ### Recap
 
-While we just added one field that exposes the `Student` entity to Hot Chocolate, Hot Chocolate explored what data is reachable from that entity. In conjunction with the `UseSelection` middleware we can now query all that data and drill into our graph.
+While we just added one field that exposes the `Student` entity to Hot Chocolate, Hot Chocolate explored what data is reachable from that entity. In conjunction with the `.AddProjections()` & `UseProjection` middleware we can now query all that data and drill into our graph.
 
 We have explored tooling with which we can explore the schema before issuing the first request.
 
@@ -627,9 +544,9 @@ SELECT "s"."FirstMidName",
     ORDER BY "s"."Id", "t"."EnrollmentId", "t"."CourseId"
 ```
 
-The `UseSelection` middleware allows us by just attributing it to a field resolver that returns an `IQueryable<T>` to drill into that data set.
+The `UseProjection` middleware allows us by just attributing it to a field resolver that returns an `IQueryable<T>` to drill into that data set.
 
-Without a lot of code, we already have a working GraphQL server that returns all the students. We are already able to drill into our data and the `UseSelection` middleware rewrites GraphQL selections into `IQueryable<T>` projections that ensures that we only select the data that we need from the database.
+Without a lot of code, we already have a working GraphQL server that returns all the students. We are already able to drill into our data and the `UseProjection` middleware rewrites GraphQL selections into `IQueryable<T>` projections that ensures that we only select the data that we need from the database.
 
 Think about it, we really just added entity framework and exposed a single root field that basically just returns the `DbSet<Student>`.
 
@@ -637,7 +554,7 @@ Think about it, we really just added entity framework and exposed a single root 
 
 Let us go further with this. We actually can do more here and Hot Chocolate provides you with a filter and sorting middleware to really give you the power to query your data with complex expressions.
 
-First, we need to add two more packages that will add the sorting and filtering middleware.
+First, we need to add filtering and sorting providers to our GraphQL service.
 
 ```bash
 dotnet add package HotChocolate.Types.Filters
@@ -645,11 +562,34 @@ dotnet add package HotChocolate.Types.Sorting
 ```
 
 With these new packages in place let us rewrite our query type in order to enable proper filtering support.
+In `Startup.cs` add the following two lines right after `.AddQueryType<>()`
+
+```csharp
+    .AddFiltering()
+    .AddSorting()
+```
+
+Your `ConfigureServices` function should now look like
+
+```csharp
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddDbContext<SchoolContext>();
+
+    services.AddGraphQLServer()
+            .AddQueryType<Query>()
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+}
+```
+
+Then you need to add the attributes to the fields that you want to be able to filter and sort 
 
 ```csharp
 using System.Linq;
 using HotChocolate;
-using HotChocolate.Types;
+using HotChocolate.Data;
 
 namespace ContosoUniversity
 {
@@ -705,7 +645,7 @@ For our first query let us fetch the students with the `lastName` `Bar` or `Baz`
 
 ```graphql
 query {
-  students(where: { OR: [{ lastName: "Bar" }, { lastName: "Baz" }] }) {
+  students(where: { OR: [{ lastName: { eq: "Bar" } }, { lastName: { eq: "Baz" } }] }) {
     firstMidName
     lastName
     enrollments {
@@ -792,7 +732,7 @@ public class Student
 }
 ```
 
-We don\`t need to apply `UseSelections` again. `UseSelections` really only has to be applied where the data is initially fetched. In this case we do only want to support filtering but no sorting on enrollments. I could again add both but decided to only use filtering here.
+We don\`t need to apply `UseProjection` again. `UseProjection` really only has to be applied where the data is initially fetched. In this case we do only want to support filtering but no sorting on enrollments. I could again add both but decided to only use filtering here.
 
 Let us restart our server and modify our query further.
 
@@ -804,10 +744,10 @@ For the next query we will get all students with the last name `Bar` that are en
 
 ```graphql
 query {
-  students(where: { lastName: "Bar" }) {
+  students(where: { lastName: { eq: "Bar" } }) {
     firstMidName
     lastName
-    enrollments(where: { courseId: 1 }) {
+    enrollments(where: { courseId: { eq:  1 } }) {
       courseId
       course {
         title
@@ -1071,7 +1011,7 @@ public IQueryable<Student> GetStudentById([Service]SchoolContext context, int st
     context.Students.Where(t => t.Id == studentId);
 ```
 
-This now looks like the initial resolvers that we wrote to fetch all students. We predefined the where clause and we added a new middleware called `UseFirstOrDefault`. The `UseFirstOrDefault` middleware will rewrite the result type for the GraphQL schema from `[Student]` to `Student` and ensure the we will only fetch a single entity from the database.
+This now looks like the initial resolvers that we wrote to fetch all students. We predefined the where clause and we added a new middleware called `UseFirstOrDefault`. The `UseFirstOrDefault` middleware will rewrite the result type for the GraphQL schema from `[Student]` to `Student` and ensure that we will only fetch a single entity from the database.
 
 `UseFirstOrDefault` from a semantics perspective aligns to `FirstOrDefaultAsync` provided by the _Entity Framework_. Hot Chocolate also provides you with a `UseSingleOrDefault` middleware that will produce a GraphQL field error whenever there is more than one result.
 
@@ -1079,15 +1019,13 @@ This now looks like the initial resolvers that we wrote to fetch all students. W
 
 Hot Chocolate has a powerful execution model that allows to natively integrate with data sources of any kind.
 
-The middleware that we showed you here like `UseSelection` or `UseFiltering` etc. do not only work with _Entity Framework_ but also support other providers that support `IQueryable<T>` to express database queries.
+The middleware that we showed you here like `UseProjection` or `UseFiltering` etc. do not only work with _Entity Framework_ but also support other providers that support `IQueryable<T>` to express database queries.
 
 But even if you want to support native SQL without `IQueryable<T>` it is super simple to inherit from our query rewriter base classes and and add this translation.
 
 By just implementing such a query rewriter you are creating a native database provider for Hot Chocolate that integrates fully with the query engine.
 
 We also support the full features shown here with multiple other approaches like code-first with schema types or SDL first.
-
-With version 11 we are introducing a new more powerful query engine that will provide full query execution plan support. Version 11 will have even better filters and push what we showed here today to the limit.
 
 The example used in this post can be found [here](https://github.com/ChilliCream/hotchocolate-examples/tree/master/blog/2020/2020-03-18-entity-framework/ContosoUni).
 
