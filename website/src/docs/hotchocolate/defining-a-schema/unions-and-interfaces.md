@@ -184,7 +184,7 @@ public class MediaMessageType : InterfaceType<IMediaMessage>
         descriptor.Field(x => x.SendBy);
 
         // This interface implements a interface
-        descirptor.Implements<MessageType>();
+        descriptor.Implements<MessageType>();
     }
 }
 ```
