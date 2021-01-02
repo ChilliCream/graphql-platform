@@ -12,4 +12,3 @@ Sorry for any inconvenience, and thank you for being patient!
 
 The ChilliCream Team
 
-<br><br><br>

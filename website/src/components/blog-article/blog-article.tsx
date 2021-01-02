@@ -1,5 +1,6 @@
 import { graphql } from "gatsby";
 import Img, { FluidObject } from "gatsby-image";
+import { MDXRenderer } from "gatsby-plugin-mdx";
 import React, { FunctionComponent } from "react";
 import styled from "styled-components";
 import { BlogArticleFragment } from "../../../graphql-types";
@@ -22,8 +23,8 @@ interface BlogArticleProperties {
 export const BlogArticle: FunctionComponent<BlogArticleProperties> = ({
   data,
 }) => {
-  const { markdownRemark } = data;
-  const { frontmatter, html } = markdownRemark!;
+  const { mdx } = data;
+  const { frontmatter, body } = mdx!;
   const path = frontmatter!.path!;
   const title = frontmatter!.title!;
   const existingTags: string[] = frontmatter!.tags!
@@ -40,10 +41,14 @@ export const BlogArticle: FunctionComponent<BlogArticleProperties> = ({
           <ArticleHeader>
             {featuredImage && <Img fluid={featuredImage} />}
             <ArticleTitle>{title}</ArticleTitle>
-            <BlogArticleMetadata data={markdownRemark!} />
+            <BlogArticleMetadata data={mdx!} />
             <BlogArticleTags tags={existingTags} />
           </ArticleHeader>
-          <ArticleContent dangerouslySetInnerHTML={{ __html: html! }} />
+          <ArticleContent>
+            <MDXRenderer>
+              {body}
+            </MDXRenderer>
+          </ArticleContent>
         </Article>
         <ArticleComments data={data} path={path} title={title} />
       </ArticleWrapper>
@@ -53,7 +58,7 @@ export const BlogArticle: FunctionComponent<BlogArticleProperties> = ({
 
 export const BlogArticleGraphQLFragment = graphql`
   fragment BlogArticle on Query {
-    markdownRemark(frontmatter: { path: { eq: $path } }) {
+    mdx(frontmatter: { path: { eq: $path } }) { 
       excerpt
       frontmatter {
         featuredImage {
@@ -67,7 +72,7 @@ export const BlogArticleGraphQLFragment = graphql`
         title
         ...BlogArticleTags
       }
-      html
+      body
       ...BlogArticleMetadata
     }
     ...ArticleComments

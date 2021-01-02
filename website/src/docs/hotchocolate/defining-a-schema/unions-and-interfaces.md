@@ -2,6 +2,8 @@
 title: "Unions and Interfaces"
 ---
 
+import { ExampleTabs } from "../../../components/mdx/example-tabs"
+
 Similar to most type systems, GraphQL knows abstract types. There are two kinds of abstract types:
 [Interfaces](https://graphql.org/learn/schema/#interfaces) and [Unions](https://graphql.org/learn/schema/#unions)
 
@@ -41,7 +43,7 @@ type VideoMessage implements MediaMessage {
 
 A type can also implement multiple interfaces.
 
-```
+```sdl
 type VideoMessage implements Message & HasMediaType {
   sendBy: User!
   createdAt: DateTime!
@@ -105,7 +107,9 @@ HotChocolate tries to infer interfaces from the .Net types.
 When a resolver returns an interface, you just have to register the implementation on the schema builder.
 HotChocolate will register the types as implementations of the interface.
 
-### Annotation Based
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
 In the annotation based approach, you most likely do not need to worry about interfaces at all.
 
 ```csharp
@@ -134,6 +138,7 @@ public class TextMessage : IMessage
 ```
 
 _Configure Services_
+
 ```csharp
   public void ConfigureServices(IServiceCollection services)
   {
@@ -161,8 +166,9 @@ public abstract class Message
 }
 ```
 
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
 
-**Code First**
 HotChocolate provides a fluent configuration API for interfaces that is very similar to the `ObjectType` interface.
 
 ```csharp
@@ -190,6 +196,7 @@ public class MediaMessageType : InterfaceType<IMediaMessage>
 ```
 
 In a `ObjectType` you can declare what interface this object type implements.
+
 ```csharp
 public class VideoMessageType : ObjectType<VideoMessage>
 {
@@ -200,8 +207,11 @@ public class VideoMessageType : ObjectType<VideoMessage>
 }
 ```
 
-**Schema First**
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
 In schema first interfaces can be declared directly in SDL:
+
 ```csharp
 public void ConfigureServices(IServiceCollection services)
 {
@@ -251,7 +261,11 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
+</ExampleTabs.Schema>
+</ExampleTabs>
+
 # Unions
+
 Unions are very similar to interfaces. The difference is that members of an unions do not have fields in common.
 Unions are useful if you have completely disjunct structured types.
 
@@ -286,6 +300,7 @@ You have to use [Inline Fragments 📄](https://spec.graphql.org/June2018/#sec-I
     } 
 }
 ```
+
 ```json
 {
     "accessControl": [
@@ -305,9 +320,12 @@ You have to use [Inline Fragments 📄](https://spec.graphql.org/June2018/#sec-I
 }
 ```
 
-## Interface Definition
+## Union Definition
 
-### Annotation Based
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
 In the annotation based approach, HotChocolate tries to infer union types from the .Net types.
 You can manage the membership of union types with a marker interface.
 
@@ -337,6 +355,7 @@ public class Query
 ```
 
 _Configure Services_
+
 ```csharp
   public void ConfigureServices(IServiceCollection services)
   {
@@ -352,7 +371,9 @@ _Configure Services_
   }
 ```
 
-**Code First**
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
 HotChocolate provides a fluent configuration API for union types that is very similar to the `ObjectType` interface.
 
 ```csharp
@@ -371,8 +392,11 @@ public class GroupMemberType : UnionType
 }
 ```
 
-**Schema First**
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
 In schema first unions can be declared directly in SDL:
+
 ```csharp
 public void ConfigureServices(IServiceCollection services)
 {
@@ -400,3 +424,7 @@ public void ConfigureServices(IServiceCollection services)
             "accessControl", 
             (context, token) => context.Service<IAccessRepo>().GetItems());
 }
+```
+
+</ExampleTabs.Schema>
+</ExampleTabs>

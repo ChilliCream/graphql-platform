@@ -26,8 +26,8 @@ export const BlogArticles: FunctionComponent<BlogArticlesProperties> = ({
         {edges.map(({ node }) => {
           const existingTags: string[] = node?.frontmatter?.tags
             ? (node.frontmatter.tags.filter(
-                (tag) => tag && tag.length > 0
-              ) as string[])
+              (tag) => tag && tag.length > 0
+            ) as string[])
             : [];
           const featuredImage = node?.frontmatter!.featuredImage
             ?.childImageSharp?.fluid as FluidObject;
@@ -56,7 +56,7 @@ export const BlogArticles: FunctionComponent<BlogArticlesProperties> = ({
 };
 
 export const BlogArticlesGraphQLFragment = graphql`
-  fragment BlogArticles on MarkdownRemarkConnection {
+  fragment BlogArticles on MdxConnection {
     edges {
       node {
         id

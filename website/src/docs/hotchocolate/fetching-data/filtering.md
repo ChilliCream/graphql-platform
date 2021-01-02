@@ -120,7 +120,7 @@ public class PersonFilterType
 If you want to limit the operations on a field, you need to declare you own operation type.
 Given you want to only allow `eq` and `neq` on a string field, this could look like this
 
-```csharp{7}
+```csharp {7}
 public class PersonFilterType
     : FilterInputType<Person>
 {
