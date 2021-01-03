@@ -557,7 +557,7 @@ Let us go further with this. We actually can do more here and Hot Chocolate prov
 First, we need to add filtering and sorting providers to our GraphQL service.
 
 With these new packages in place let us rewrite our query type in order to enable proper filtering support.
-In `Startup.cs` add the following two lines right after `.AddQueryType<>()`
+In `Startup.cs` add the following two lines  after `.AddGraphQLServer()`
 
 ```csharp
     .AddFiltering()
