@@ -120,7 +120,7 @@ namespace Microsoft.Extensions.DependencyInjection
             builder.ConfigureValidation(m =>
                 m.Modifiers.Add(o => o.ComplexityCalculation = calculation));
 
-        public static IValidationBuilder TryAddValidationRule<T>(
+        public static IValidationBuilder TryAddValidationVisitor<T>(
             this IValidationBuilder builder)
             where T : DocumentValidatorVisitor, new()
         {
@@ -134,7 +134,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 }));
         }
 
-        public static IValidationBuilder TryAddValidationRule<T>(
+        public static IValidationBuilder TryAddValidationVisitor<T>(
             this IValidationBuilder builder,
             Func<IServiceProvider, ValidationOptions, T> factory)
             where T : DocumentValidatorVisitor
@@ -145,6 +145,36 @@ namespace Microsoft.Extensions.DependencyInjection
                     if (o.Rules.All(t => t.GetType() != typeof(DocumentValidatorRule<T>)))
                     {
                         o.Rules.Add(new DocumentValidatorRule<T>(factory(s, o)));
+                    }
+                }));
+        }
+
+        public static IValidationBuilder TryAddValidationRule<T>(
+            this IValidationBuilder builder)
+            where T : class, IDocumentValidatorRule, new()
+        {
+            return builder.ConfigureValidation(m =>
+                m.Modifiers.Add(o =>
+                {
+                    if (o.Rules.All(t => t.GetType() != typeof(T)))
+                    {
+                        o.Rules.Add(new T());
+                    }
+                }));
+        }
+
+        public static IValidationBuilder TryAddValidationRule<T>(
+            this IValidationBuilder builder,
+            Func<IServiceProvider, ValidationOptions, T> factory)
+            where T : class, IDocumentValidatorRule
+        {
+            return builder.ConfigureValidation((s, m) =>
+                m.Modifiers.Add(o =>
+                {
+                    T instance = factory(s, o);
+                    if (o.Rules.All(t => t.GetType() != instance.GetType()))
+                    {
+                        o.Rules.Add(instance);
                     }
                 }));
         }

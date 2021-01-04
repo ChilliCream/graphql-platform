@@ -65,7 +65,7 @@ namespace HotChocolate.Stitching.Delegation
                 schema.GetType<ObjectType>("Query").Fields["foo"]);
             context.Setup(t => t.ArgumentValue<object>(It.IsAny<NameString>()))
                 .Returns("Baz");
-            context.Setup(t => t.FieldSelection)
+            context.Setup(t => t.Selection.SyntaxNode)
                 .Returns(new FieldNode(
                     null,
                     new NameNode("foo"),

@@ -74,7 +74,7 @@ namespace HotChocolate.Data
                 .SetMessage(DataResources.ProjectionProvider_CreateMoreThanOneError)
                 .SetCode("SELECTIONS_SINGLE_MORE_THAN_ONE")
                 .SetPath(context.Path)
-                .AddLocation(context.FieldSelection)
+                .AddLocation(context.Selection.SyntaxNode)
                 .Build();
 
         public static IError ProjectionProvider_CreateMoreThanOneError() =>

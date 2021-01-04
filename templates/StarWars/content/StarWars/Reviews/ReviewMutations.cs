@@ -19,7 +19,9 @@ namespace StarWars.Reviews
         {
             var review = new Review(input.Stars, input.Commentary);
             repository.AddReview(input.Episode, review);
-            await eventSender.SendAsync(input.Episode, review);
+            await eventSender
+                .SendAsync(input.Episode, review)
+                .ConfigureAwait(false);
             return new CreateReviewPayload(input.Episode, review);
         }
     }

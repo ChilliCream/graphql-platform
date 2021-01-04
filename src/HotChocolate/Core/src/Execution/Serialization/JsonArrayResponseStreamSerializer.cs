@@ -12,8 +12,7 @@ namespace HotChocolate.Execution.Serialization
         private const byte _leftBracket = (byte)'[';
         private const byte _rightBracket = (byte)']';
         private const byte _comma = (byte)',';
-        private readonly JsonQueryResultSerializer _serializer =
-            new JsonQueryResultSerializer();
+        private readonly JsonQueryResultSerializer _serializer = new();
 
         public Task SerializeAsync(
             IResponseStream responseStream,

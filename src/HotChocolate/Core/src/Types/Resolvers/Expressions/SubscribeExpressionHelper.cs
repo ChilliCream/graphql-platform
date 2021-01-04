@@ -18,7 +18,7 @@ namespace HotChocolate.Resolvers.Expressions
                 return null;
             }
 
-            return await task;
+            return await task.ConfigureAwait(false);
         }
 
         public static async ValueTask<ISourceStream> AwaitTaskSourceStream(
@@ -29,7 +29,7 @@ namespace HotChocolate.Resolvers.Expressions
                 return null;
             }
 
-            return await task;
+            return await task.ConfigureAwait(false);
         }
 
         public static async ValueTask<ISourceStream> AwaitTaskAsyncEnumerable<T>(
@@ -83,7 +83,7 @@ namespace HotChocolate.Resolvers.Expressions
         public static async ValueTask<ISourceStream> AwaitValueTaskSourceStreamGeneric<T>(
             ValueTask<ISourceStream<T>> task)
         {
-            return await task;
+            return await task.ConfigureAwait(false);
         }
 
         public static async ValueTask<ISourceStream> AwaitValueTaskAsyncEnumerable<T>(

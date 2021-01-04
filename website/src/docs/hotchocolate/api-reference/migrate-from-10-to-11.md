@@ -420,7 +420,7 @@ The source result stack was removed from the resolver context for performance re
     }
 ```
 
-## Autorization
+## Authorization
 
 If you use authorization, you need to add a package reference to `HotChocolate.AspNetCore.Authorization`.
 

@@ -16,24 +16,21 @@ namespace HotChocolate.Types
         /// Initializes a new instance of the <see cref="NameType"/> class.
         /// </summary>
         public NameType()
-            : base(ScalarNames.Name, BindingBehavior.Implicit)
-        {
-            Description = TypeResources.NameType_Description;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="NameType"/> class.
-        /// </summary>
-        public NameType(NameString name)
-            : base(name, BindingBehavior.Implicit)
+            : this(
+                ScalarNames.Name,
+                TypeResources.NameType_Description,
+                BindingBehavior.Implicit)
         {
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="NameType"/> class.
         /// </summary>
-        public NameType(NameString name, string description)
-            : base(name, BindingBehavior.Implicit)
+        public NameType(
+            NameString name,
+            string? description = null,
+            BindingBehavior bind = BindingBehavior.Explicit)
+            : base(name, bind)
         {
             Description = description;
         }

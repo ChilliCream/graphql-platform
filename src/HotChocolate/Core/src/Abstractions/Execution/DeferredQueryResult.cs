@@ -115,7 +115,7 @@ namespace HotChocolate.Execution
                     yield return deferredResult;
                 }
 
-                await _session.DisposeAsync();
+                await _session.DisposeAsync().ConfigureAwait(false);
             }
         }
 
