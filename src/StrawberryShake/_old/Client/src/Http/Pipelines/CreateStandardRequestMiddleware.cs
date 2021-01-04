@@ -35,7 +35,7 @@ namespace StrawberryShake.Http.Pipelines
                     WellKnownHeaders.ContentTypeJson.Value);
             }
 
-            await _next(context);
+            await _next(context).ConfigureAwait(false);
         }
     }
 }

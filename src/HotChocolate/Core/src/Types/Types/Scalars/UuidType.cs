@@ -7,16 +7,14 @@ using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
-    public sealed class UuidType
-        : ScalarType<Guid, StringValueNode>
+    public sealed class UuidType : ScalarType<Guid, StringValueNode>
     {
         private readonly string _format;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UuidType"/> class.
         /// </summary>
-        public UuidType()
-            : this('\0')
+        public UuidType() : this('\0')
         {
         }
 
@@ -24,23 +22,19 @@ namespace HotChocolate.Types
         /// Initializes a new instance of the <see cref="UuidType"/> class.
         /// </summary>
         public UuidType(char format = '\0')
-            : this(ScalarNames.Uuid, format)
+            : this(ScalarNames.Uuid, format: format, bind: BindingBehavior.Implicit)
         {
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UuidType"/> class.
         /// </summary>
-        public UuidType(NameString name, char format = '\0')
-            : this(name, null, format)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="UuidType"/> class.
-        /// </summary>
-        public UuidType(NameString name, string? description, char format = '\0')
-            : base(name, BindingBehavior.Implicit)
+        public UuidType(
+            NameString name,
+            string? description = null,
+            char format = '\0',
+            BindingBehavior bind = BindingBehavior.Explicit)
+            : base(name, bind)
         {
             Description = description;
             _format = CreateFormatString(format);
@@ -48,12 +42,12 @@ namespace HotChocolate.Types
 
         protected override bool IsInstanceOfType(StringValueNode valueSyntax)
         {
-            return Utf8Parser.TryParse(valueSyntax.AsSpan(), out Guid _, out int _, _format[0]);
+            return Utf8Parser.TryParse(valueSyntax.AsSpan(), out Guid _, out _, _format[0]);
         }
 
         protected override Guid ParseLiteral(StringValueNode valueSyntax)
         {
-            if (Utf8Parser.TryParse(valueSyntax.AsSpan(), out Guid g, out int _, _format[0]))
+            if (Utf8Parser.TryParse(valueSyntax.AsSpan(), out Guid g, out _, _format[0]))
             {
                 return g;
             }
@@ -98,9 +92,9 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            if (runtimeValue is Guid uri)
+            if (runtimeValue is Guid guid)
             {
-                resultValue = uri.ToString(_format);
+                resultValue = guid.ToString(_format);
                 return true;
             }
 
@@ -140,15 +134,7 @@ namespace HotChocolate.Types
                 && format != 'B'
                 && format != 'P')
             {
-                throw new ArgumentException(
-                    "Unknown format. Guid supports the following format chars: " +
-                    $"{{ `N`, `D`, `B`, `P` }}.{Environment.NewLine}" +
-                    "https://docs.microsoft.com/en-us/dotnet/api/" +
-                    "system.buffers.text.utf8parser.tryparse?" +
-                    "view=netcore-3.1#System_Buffers_Text_Utf8Parser_" +
-                    "TryParse_System_ReadOnlySpan_System_Byte__System_Guid__" +
-                    "System_Int32__System_Char_",
-                    nameof(format));
+                throw new ArgumentException(TypeResources.UuidType_FormatUnknown, nameof(format));
             }
 
             return format == '\0' ? "N" : format.ToString();

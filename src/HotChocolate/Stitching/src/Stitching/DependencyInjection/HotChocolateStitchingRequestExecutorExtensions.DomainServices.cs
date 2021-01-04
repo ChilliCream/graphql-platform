@@ -21,7 +21,9 @@ namespace Microsoft.Extensions.DependencyInjection
                 .TryAddTypeInterceptor(typeInterceptor)
                 .TryAddSchemaInterceptor(schemaInterceptor)
                 .ConfigureOnRequestExecutorCreatedAsync(
-                    async (sp, executor, ct) => await descriptor.PublishAsync(sp, ct));
+                    async (sp, executor, ct) => await descriptor
+                        .PublishAsync(sp, ct)
+                        .ConfigureAwait(false));
 
             return builder;
         }

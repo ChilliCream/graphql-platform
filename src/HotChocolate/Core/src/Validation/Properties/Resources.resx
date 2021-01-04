@@ -212,4 +212,7 @@
   <data name="HotChocolateValidationBuilderExtensions_MinimumAllowedValue" xml:space="preserve">
     <value>The minimum allowed value is 1.</value>
   </data>
+  <data name="ErrorHelper_DirectiveMustBeUniqueInLocation" xml:space="preserve">
+    <value>Only one of each directive is allowed per location.</value>
+  </data>
 </root>

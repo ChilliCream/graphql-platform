@@ -147,7 +147,7 @@ namespace HotChocolate.Execution
 
             if (executor is null)
             {
-                await _semaphore.WaitAsync(cancellationToken);
+                await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
                 try
                 {

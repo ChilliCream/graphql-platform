@@ -10,6 +10,7 @@ namespace HotChocolate.Types
     {
         private static readonly uint NegativeBit = 0x80000000;
 
+        [Flags]
         private enum Parts
         {
             HasNone = 0,
@@ -38,7 +39,7 @@ namespace HotChocolate.Types
             out TimeSpan? result)
         {
             ulong ticks = 0;
-            bool isNegative = (nanoseconds & NegativeBit) != 0;
+            var isNegative = (nanoseconds & NegativeBit) != 0;
 
             // Throw error if result cannot fit into a long
             try
@@ -74,26 +75,22 @@ namespace HotChocolate.Types
                         ticks += (ulong)seconds;
 
                         // Tick count interval is in 100 nanosecond intervals (7 digits)
-                        ticks *= (ulong)TimeSpan.TicksPerSecond;
+                        ticks *= TimeSpan.TicksPerSecond;
                         ticks += (ulong)nanoseconds / 100;
                     }
                     else
                     {
                         // Multiply YearMonth duration by number of ticks per day
-                        ticks *= (ulong)TimeSpan.TicksPerDay;
+                        ticks *= TimeSpan.TicksPerDay;
                     }
 
                     if (isNegative)
                     {
-                        // Handle special case of Int64.MaxValue + 1 before negation, since it would otherwise overflow
-                        if (ticks >= (ulong)long.MaxValue + 1)
-                        {
-                            result = new TimeSpan(long.MinValue);
-                        }
-                        else
-                        {
-                            result = new TimeSpan(-((long)ticks));
-                        }
+                        // Handle special case of Int64.MaxValue + 1 before negation,
+                        // since it would otherwise overflow
+                        result = ticks >= (ulong)long.MaxValue + 1
+                            ? new TimeSpan(long.MinValue)
+                            : new TimeSpan(-((long)ticks));
                     }
                     else
                     {
@@ -118,19 +115,16 @@ namespace HotChocolate.Types
             int hours = default;
             int minutes = default;
             int seconds = default;
-            uint nanoseconds = default; // High bit is used to indicate whether duration is negative
+            uint nanoseconds; // High bit is used to indicate whether duration is negative
 
-            int length;
-            int value, pos, numDigits;
             Parts parts = Parts.HasNone;
 
             result = default;
 
             s = s.Trim();
-            length = s.Length;
+            var length = s.Length;
 
-            pos = 0;
-            numDigits = 0;
+            var pos = 0;
 
             if (pos >= length)
             {
@@ -157,7 +151,7 @@ namespace HotChocolate.Types
                 return false;
             }
 
-            if (!TryParseDigits(s, ref pos, false, out value, out numDigits))
+            if (!TryParseDigits(s, ref pos, false, out var value, out var numDigits))
             {
                 return false;
             }
@@ -353,23 +347,24 @@ namespace HotChocolate.Types
             return false;
         }
 
-        /// Helper method that constructs an integer from leading digits starting at s[offset].  "offset" is
-        /// updated to contain an offset just beyond the last digit.  The number of digits consumed is returned in
-        /// cntDigits.  The integer is returned (0 if no digits).  If the digits cannot fit into an Int32:
-        ///   1. If eatDigits is true, then additional digits will be silently discarded (don't count towards numDigits)
+        /// Helper method that constructs an integer from leading digits starting at s[offset].
+        /// "offset" is updated to contain an offset just beyond the last digit.
+        /// The number of digits consumed is returned in cntDigits.
+        /// The integer is returned (0 if no digits).  If the digits cannot fit into an Int32:
+        ///   1. If eatDigits is true, then additional digits will be silently discarded
+        ///      (don't count towards numDigits)
         ///   2. If eatDigits is false, an overflow exception is thrown
         private static bool TryParseDigits(string s, ref int offset, bool eatDigits, out int result, out int numDigits)
         {
-            int offsetStart = offset;
-            int offsetEnd = s.Length;
-            int digit;
+            var offsetStart = offset;
+            var offsetEnd = s.Length;
 
             result = 0;
             numDigits = 0;
 
             while (offset < offsetEnd && s[offset] >= '0' && s[offset] <= '9')
             {
-                digit = s[offset] - '0';
+                var digit = s[offset] - '0';
 
                 if (result > (int.MaxValue - digit) / 10)
                 {

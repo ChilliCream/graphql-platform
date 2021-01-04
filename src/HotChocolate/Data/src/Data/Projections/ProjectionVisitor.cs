@@ -16,7 +16,7 @@ namespace HotChocolate.Data.Projections
         public virtual void Visit(TContext context)
         {
             SelectionSetNode selectionSet =
-                context.Context.FieldSelection.SelectionSet ?? throw new Exception();
+                context.Context.Selection.SyntaxNode.SelectionSet ?? throw new Exception();
             context.SelectionSetNodes.Push(selectionSet);
             Visit(context.Context.Field, context);
         }
