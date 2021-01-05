@@ -62,6 +62,8 @@ namespace HotChocolate.Execution.Processing
         public Path Path =>
             _middlewareContext.Path;
 
+        public bool HasErrors => _middlewareContext.HasErrors;
+
         public CancellationToken CancellationToken =>
             RequestAborted;
 
