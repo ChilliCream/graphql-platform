@@ -42,7 +42,7 @@
     "gatsby-remark-code-buttons": "^2.0.4",
     "gatsby-remark-images": "^3.8.1",
     "gatsby-remark-mermaid": "^2.1.0",
-    "gatsby-remark-prismjs": "^3.10.0",
+    "gatsby-remark-prismjs": "^3.11.0",
     "gatsby-remark-reading-time": "^1.1.0",
     "gatsby-source-filesystem": "^2.8.1",
     "gatsby-transformer-json": "^2.8.0",
