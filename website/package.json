@@ -47,7 +47,7 @@
     "gatsby-source-filesystem": "^2.8.1",
     "gatsby-transformer-json": "^2.8.0",
     "gatsby-transformer-remark": "^2.13.1",
-    "gatsby-transformer-sharp": "^2.9.0",
+    "gatsby-transformer-sharp": "^2.10.0",
     "prismjs": "^1.23.0",
     "puppeteer": "^5.5.0",
     "react": "^17.0.1",
