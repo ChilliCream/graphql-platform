@@ -77,7 +77,7 @@ namespace HotChocolate.Resolvers
         Path Path { get; }
 
         /// <summary>
-        /// Indicates that context has errors. To report new error use <see cref="ReportError(IError)"/>
+        /// Indicates that the context has errors. To report new errors use <see cref="ReportError(IError)"/>
         /// </summary>
         bool HasErrors { get; }
 
