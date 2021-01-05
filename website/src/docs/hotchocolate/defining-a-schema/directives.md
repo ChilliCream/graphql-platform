@@ -90,7 +90,7 @@ Now that we have a basic understanding of what directives are, how they work, an
 
 # Custom Directives
 
-You can specify a directive by inheriting from `DirectiveType`:
+To create a directive, we need to create a new class that inherits from `DirectiveType` and also to override the `Configure` methods. Okay, here is a simple example.
 
 ```csharp
 public class MyDirective
@@ -104,27 +104,34 @@ public class MyDirective
 }
 ```
 
-In order to use a directive it has to be registered with the schema.
+Before we can use our custom directive, we need to register it to the GraphQL schema. When using the HotChocolate .Net template, we just go to the `ConfigureServices` method, located in the `Startup.cs` file.
 
 ```csharp
-SchemaBuilder.New()
-    .AddDirectiveType<MyDirective>()
-    .Create();
+services
+    .AddGraphQLServer()
+    .AddQueryType<Query>()
+    .AddDirectiveType<MyDirectiveType>();
 ```
 
-GraphQL specifies three directives in the spec (skip, include and deprecated) which are always registered with your schema.
-
-The skip and include directives can be used in queries to in- or exclude fields from your query.
+Let's recap! We have registered a new directive named `my` without any arguments and limited the usage to fields only. A GraphQL document with our new directive could look like this.
 
 ```graphql
-query foo($hideField: Boolean = false) {
-  hello @skip(if: $hideField)
+query foo {
+  bar @my
 }
 ```
 
-# Repeatable
+## Repeatable Directives
 
-Directives are by default unique, that means that you can annotate a directive just once to an object. If you want to add a specific directive type multiple times you have to specify the directive as repeatable.
+By default, directives are not repeatable, which means directives are unique and can be applied once at a specific location. For example, if we use the `my` directive twice at the field `bar`, we will encounter a validation error. So the following GraphQL document results in an error if the directive is not repeatable.
+
+```graphql
+query foo {
+  bar @my @my
+}
+```
+
+To make our directive repeatable, we need to add just one line code to the existing `Configure` method.
 
 ```csharp
 public class MyDirective
@@ -139,7 +146,7 @@ public class MyDirective
 }
 ```
 
-# Typed Arguments
+## Typed Arguments
 
 Directive can have arguments that can be used to make them more flexible. So, if we had a directive like the following:
 
@@ -209,7 +216,7 @@ public class FooType
 
 Since, the directive instance that we have added to our type is now a strong .NET type we do not have to fear changes to the directive structure or its name anymore.
 
-# Middleware
+## Middleware
 
 What makes directive with Hot Chocolate very useful is the ability to associate a middleware with it. A middleware can alternate the result or even produce the result of a field. A directive middleware is only added to a field middleware pipeline when the directive was annotated to the object definition, the field definition or the field.
 
@@ -241,7 +248,7 @@ public class MyDirective
 
 Directives with middleware or executable directives can be put on object types and on their field definitions or on the field selection in a query. Executable directives on an object type will replace the field resolver of every field of the annotated object type.
 
-## Order
+### Order
 
 In GraphQL the directive order is significant and with our middleware we use the order of directives to create a resolver pipeline through which the result flows.
 
