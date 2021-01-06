@@ -14,7 +14,7 @@ namespace HotChocolate.Types.Spatial
                 .BindFieldsExplicitly();
 
             descriptor
-                .Field(x => x.Coordinates)
+                .Field(x => x.Coordinate)
                 .Description(GeoJson_Field_Coordinates_Description_Point);
 
             descriptor
