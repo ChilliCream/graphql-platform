@@ -25,8 +25,15 @@ namespace HotChocolate.AspNetCore
 
         /// <summary>
         /// Defines if the GraphQL schema SDL can be downloaded.
+        /// Enables for HTTP GET and HEAD requests.
         /// </summary>
         public bool EnableSchemaRequests { get; set; } = true;
+
+        /// <summary>
+        /// Defines if the GraphQL schema SDL when downloaded
+        /// includes a .
+        /// </summary>
+        public bool EnableSchemaRequestsChecksumResponseHeader { get; set; } = true;
     }
 
     /// <summary>
