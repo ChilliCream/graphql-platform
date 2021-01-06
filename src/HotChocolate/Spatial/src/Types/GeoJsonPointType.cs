@@ -15,7 +15,7 @@ namespace HotChocolate.Types.Spatial
 
             descriptor
                 .Field(x => x.Coordinate)
-                .Name("coordinates")
+                .Name(WellKnownFields.CoordinatesFieldName)
                 .Description(GeoJson_Field_Coordinates_Description_Point);
 
             descriptor
