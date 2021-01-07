@@ -54,12 +54,13 @@ namespace HotChocolate.Stitching.Delegation
                     reversePath = ImmutableStack.CreateRange(path);
                 }
 
-                IReadOnlyQueryRequest request =
+                IQueryRequest request =
                     CreateQuery(context, delegateDirective.Schema, path, reversePath);
 
-                IReadOnlyQueryResult result = await ExecuteQueryAsync(
+                IQueryResult result = await ExecuteQueryAsync(
                     context, request, delegateDirective.Schema)
                     .ConfigureAwait(false);
+                context.RegisterForCleanup(result.Dispose);
 
                 UpdateContextData(context, result, delegateDirective);
 
@@ -76,7 +77,7 @@ namespace HotChocolate.Stitching.Delegation
 
         private void UpdateContextData(
             IResolverContext context,
-            IReadOnlyQueryResult result,
+            IQueryResult result,
             DelegateDirective delegateDirective)
         {
             if (result.ContextData is { Count: > 0 })
@@ -154,7 +155,7 @@ namespace HotChocolate.Stitching.Delegation
 
         private static async Task<IReadOnlyQueryResult> ExecuteQueryAsync(
             IResolverContext context,
-            IReadOnlyQueryRequest request,
+            IQueryRequest request,
             string schemaName)
         {
             IStitchingContext stitchingContext = context.Service<IStitchingContext>();
