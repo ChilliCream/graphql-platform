@@ -5,6 +5,8 @@ using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Stitching.Schemas.Contracts;
+using HotChocolate.Stitching.Schemas.Customers;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
@@ -806,6 +808,60 @@ namespace HotChocolate.Stitching.Integration
             Assert.Contains(
                 "The resource `HotChocolate.Stitching.__resources__.abc` was not found!",
                 exception.Message);
+        }
+
+        [Fact]
+        public async Task AddLocalSchema()
+        {
+            // arrange
+            var connections = new Dictionary<string, HttpClient>
+            {
+                { Context.ContractSchema, Context.CreateContractService().CreateClient() }
+            };
+
+            IHttpClientFactory httpClientFactory =
+                StitchingTestContext.CreateRemoteSchemas(connections);
+
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddSingleton(httpClientFactory)
+                    .AddGraphQL()
+                    .AddRemoteSchema(Context.ContractSchema)
+                    .AddLocalSchema(Context.CustomerSchema)
+                    .AddTypeExtensionsFromString(
+                        @"extend type Customer {
+                            contracts: [Contract!]
+                                @delegate(
+                                    schema: ""contract"",
+                                    path: ""contracts(customerId:$fields:id)"")
+                        }")
+                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                    .AddGraphQL(Context.CustomerSchema)
+                    .AddCustomerSchema()
+                    .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"{
+                    customer(id: ""Q3VzdG9tZXIKZDE="") {
+                        name
+                        consultant {
+                            name
+                        }
+                        contracts {
+                            id
+                            ... on LifeInsuranceContract {
+                                premium
+                            }
+                            ... on SomeOtherContract {
+                                expiryDate
+                            }
+                        }
+                    }
+                }");
+
+            // assert
+            result.MatchSnapshot();
         }
     }
 }

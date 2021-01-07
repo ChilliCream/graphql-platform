@@ -71,5 +71,13 @@ namespace HotChocolate.Execution.Processing
         ISelectionSet CollectFields(
             SelectionSetNode selectionSet,
             ObjectType typeContext);
+
+        /// <summary>
+        /// Register cleanup tasks that will be executed after resolver execution is finished.
+        /// </summary>
+        /// <param name="action">
+        /// Cleanup action.
+        /// </param>
+        void RegisterForCleanup(Action action);
     }
 }
