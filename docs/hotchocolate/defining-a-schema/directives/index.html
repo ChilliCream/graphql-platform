@@ -1317,7 +1317,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>Directives consist of a name and a list of arguments that contain zero or more arguments. <code class="language-text">@skip</code>, for example, has the name <strong>skip</strong> and a mandatory argument named <strong>if</strong>. Also, <code class="language-text">@skip</code> carries a piece of hidden information only examinable in SDL, namely the location, which specifies where a directive is applicable. Let's take a look at the SDL of the <code class="language-text">@skip</code> directive.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="57598632139379060000"
+              data-toaster-id="60320101890899470000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1325,7 +1325,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
               onClick="copyToClipboard(`directive @skip(if: Boolean!) on
     | FIELD
     | FRAGMENT_SPREAD
-    | INLINE_FRAGMENT`, `57598632139379060000`)"
+    | INLINE_FRAGMENT`, `60320101890899470000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1343,7 +1343,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>Let's say we have a GraphQL document and want to exclude details under certain circumstances; it would probably look something like this.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="29917258141295333000"
+              data-toaster-id="59804044205396350000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1359,7 +1359,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 fragment Details on User {
   mobileNumber
   phoneNumber
-}`, `29917258141295333000`)"
+}`, `59804044205396350000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1383,7 +1383,7 @@ fragment Details on User {
 <p>With <code class="language-text">@skip</code>, we've successfully altered the GraphQL's runtime execution behavior. If <code class="language-text">$excludeDetails</code> is set to <code class="language-text">true</code>, the execution engine will exclude the fields <code class="language-text">mobileNumber</code> and <code class="language-text">phoneNumber</code>; the response would look like this.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="76684845784078160000"
+              data-toaster-id="26468494566536170000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1395,7 +1395,7 @@ fragment Details on User {
       &quot;name&quot;: &quot;Henry&quot;
     }
   }
-}`, `76684845784078160000`)"
+}`, `26468494566536170000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1417,7 +1417,7 @@ fragment Details on User {
 <p><strong>Directives' order is significant</strong> because the execution is in <strong>sequential order</strong>, which means one after the other. If we have something like the following example, we can see how directives can affect each other.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="74788704128058490000"
+              data-toaster-id="47913010439402410000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1426,7 +1426,7 @@ fragment Details on User {
   me {
     name @skip(if: true) @include(if: true)
   }
-}`, `74788704128058490000`)"
+}`, `47913010439402410000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1443,7 +1443,7 @@ fragment Details on User {
 <p>Since we excluded the field <code class="language-text">name</code> first, <code class="language-text">@include</code> does not affect the field <code class="language-text">name</code> anymore. We then just get an empty <code class="language-text">me</code> object in return.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="83117147529664740000"
+              data-toaster-id="67129368460855886000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1452,7 +1452,7 @@ fragment Details on User {
   &quot;data&quot;: {
     &quot;me&quot;: {}
   }
-}`, `83117147529664740000`)"
+}`, `67129368460855886000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1467,7 +1467,7 @@ fragment Details on User {
   <span class="token punctuation">}</span>
 <span class="token punctuation">}</span></code></pre></div>
 <p>In our example, the sequential order looks like this.</p>
-<div class="mermaid" data-processed="true"><svg id="mermaid-1609885838746" width="100%" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" height="54" style="max-width: 327.875px;" viewBox="0 0 327.875 54"><style>#mermaid-1609885838746{font-family:sans-serif;font-size:16px;fill:#333;}#mermaid-1609885838746 .error-icon{fill:#552222;}#mermaid-1609885838746 .error-text{fill:#552222;stroke:#552222;}#mermaid-1609885838746 .edge-thickness-normal{stroke-width:2px;}#mermaid-1609885838746 .edge-thickness-thick{stroke-width:3.5px;}#mermaid-1609885838746 .edge-pattern-solid{stroke-dasharray:0;}#mermaid-1609885838746 .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-1609885838746 .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-1609885838746 .marker{fill:#333333;}#mermaid-1609885838746 .marker.cross{stroke:#333333;}#mermaid-1609885838746 svg{font-family:sans-serif;font-size:16px;}#mermaid-1609885838746 .label{font-family:sans-serif;color:#333;}#mermaid-1609885838746 .label text{fill:#333;}#mermaid-1609885838746 .node rect,#mermaid-1609885838746 .node circle,#mermaid-1609885838746 .node ellipse,#mermaid-1609885838746 .node polygon,#mermaid-1609885838746 .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-1609885838746 .node .label{text-align:center;}#mermaid-1609885838746 .node.clickable{cursor:pointer;}#mermaid-1609885838746 .arrowheadPath{fill:#333333;}#mermaid-1609885838746 .edgePath .path{stroke:#333333;stroke-width:1.5px;}#mermaid-1609885838746 .flowchart-link{stroke:#333333;fill:none;}#mermaid-1609885838746 .edgeLabel{background-color:#e8e8e8;text-align:center;}#mermaid-1609885838746 .edgeLabel rect{opacity:0.5;background-color:#e8e8e8;fill:#e8e8e8;}#mermaid-1609885838746 .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-1609885838746 .cluster text{fill:#333;}#mermaid-1609885838746 div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:sans-serif;font-size:12px;background:hsl(80,100%,96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-1609885838746:root{--mermaid-font-family:sans-serif;}#mermaid-1609885838746 flowchart{fill:apa;}</style><g><g class="output"><g class="clusters"></g><g class="edgePaths"><g class="edgePath LS-A LE-B" id="L-A-B" style="opacity: 1;"><path class="path" d="M127.8125,27L152.8125,27L177.8125,27" marker-end="url(#arrowhead7)" style="fill:none"></path><defs><marker id="arrowhead7" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="strokeWidth" markerWidth="8" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowheadPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></path></marker></defs></g></g><g class="edgeLabels"><g class="edgeLabel" transform="" style="opacity: 1;"><g transform="translate(0,0)" class="label"><rect rx="0" ry="0" width="0" height="0"></rect><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;"><span id="L-L-A-B" class="edgeLabel L-LS-A' L-LE-B"></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default" id="flowchart-A-2" transform="translate(67.90625,27)" style="opacity: 1;"><rect rx="5" ry="5" x="-59.90625" y="-19" width="119.8125" height="38" class="label-container"></rect><g class="label" transform="translate(0,0)"><g transform="translate(-49.90625,-9)"><foreignObject width="99.8125" height="18"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">@skip(if: true)</div></foreignObject></g></g></g><g class="node default" id="flowchart-B-3" transform="translate(248.84375,27)" style="opacity: 1;"><rect rx="5" ry="5" x="-71.03125" y="-19" width="142.0625" height="38" class="label-container"></rect><g class="label" transform="translate(0,0)"><g transform="translate(-61.03125,-9)"><foreignObject width="122.0625" height="18"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">@include(if: true)</div></foreignObject></g></g></g></g></g></g></svg></div>
+<div class="mermaid" data-processed="true"><svg id="mermaid-1610008456781" width="100%" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" height="54" style="max-width: 327.875px;" viewBox="0 0 327.875 54"><style>#mermaid-1610008456781{font-family:sans-serif;font-size:16px;fill:#333;}#mermaid-1610008456781 .error-icon{fill:#552222;}#mermaid-1610008456781 .error-text{fill:#552222;stroke:#552222;}#mermaid-1610008456781 .edge-thickness-normal{stroke-width:2px;}#mermaid-1610008456781 .edge-thickness-thick{stroke-width:3.5px;}#mermaid-1610008456781 .edge-pattern-solid{stroke-dasharray:0;}#mermaid-1610008456781 .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-1610008456781 .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-1610008456781 .marker{fill:#333333;}#mermaid-1610008456781 .marker.cross{stroke:#333333;}#mermaid-1610008456781 svg{font-family:sans-serif;font-size:16px;}#mermaid-1610008456781 .label{font-family:sans-serif;color:#333;}#mermaid-1610008456781 .label text{fill:#333;}#mermaid-1610008456781 .node rect,#mermaid-1610008456781 .node circle,#mermaid-1610008456781 .node ellipse,#mermaid-1610008456781 .node polygon,#mermaid-1610008456781 .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-1610008456781 .node .label{text-align:center;}#mermaid-1610008456781 .node.clickable{cursor:pointer;}#mermaid-1610008456781 .arrowheadPath{fill:#333333;}#mermaid-1610008456781 .edgePath .path{stroke:#333333;stroke-width:1.5px;}#mermaid-1610008456781 .flowchart-link{stroke:#333333;fill:none;}#mermaid-1610008456781 .edgeLabel{background-color:#e8e8e8;text-align:center;}#mermaid-1610008456781 .edgeLabel rect{opacity:0.5;background-color:#e8e8e8;fill:#e8e8e8;}#mermaid-1610008456781 .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-1610008456781 .cluster text{fill:#333;}#mermaid-1610008456781 div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:sans-serif;font-size:12px;background:hsl(80,100%,96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-1610008456781:root{--mermaid-font-family:sans-serif;}#mermaid-1610008456781 flowchart{fill:apa;}</style><g><g class="output"><g class="clusters"></g><g class="edgePaths"><g class="edgePath LS-A LE-B" id="L-A-B" style="opacity: 1;"><path class="path" d="M127.8125,27L152.8125,27L177.8125,27" marker-end="url(#arrowhead7)" style="fill:none"></path><defs><marker id="arrowhead7" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="strokeWidth" markerWidth="8" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowheadPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></path></marker></defs></g></g><g class="edgeLabels"><g class="edgeLabel" transform="" style="opacity: 1;"><g transform="translate(0,0)" class="label"><rect rx="0" ry="0" width="0" height="0"></rect><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;"><span id="L-L-A-B" class="edgeLabel L-LS-A' L-LE-B"></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default" id="flowchart-A-2" transform="translate(67.90625,27)" style="opacity: 1;"><rect rx="5" ry="5" x="-59.90625" y="-19" width="119.8125" height="38" class="label-container"></rect><g class="label" transform="translate(0,0)"><g transform="translate(-49.90625,-9)"><foreignObject width="99.8125" height="18"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">@skip(if: true)</div></foreignObject></g></g></g><g class="node default" id="flowchart-B-3" transform="translate(248.84375,27)" style="opacity: 1;"><rect rx="5" ry="5" x="-71.03125" y="-19" width="142.0625" height="38" class="label-container"></rect><g class="label" transform="translate(0,0)"><g transform="translate(-61.03125,-9)"><foreignObject width="122.0625" height="18"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">@include(if: true)</div></foreignObject></g></g></g></g></g></g></svg></div>
 <blockquote>
 <p><strong>Note:</strong> We will have a deep dive on directives' order in the <a href="#middleware">Middleware</a> section.</p>
 </blockquote>
@@ -1476,7 +1476,7 @@ fragment Details on User {
 <p>To create a directive, we need to create a new class that inherits from <code class="language-text">DirectiveType</code> and also to override the <code class="language-text">Configure</code> methods. Okay, here is a simple example.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="22655264395381260000"
+              data-toaster-id="52099136457850890000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1489,7 +1489,7 @@ fragment Details on User {
         descriptor.Name(&quot;my&quot;);
         descriptor.Location(DirectiveLocation.Field);
     }
-}`, `22655264395381260000`)"
+}`, `52099136457850890000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1510,7 +1510,7 @@ fragment Details on User {
 <p>Before we can use our custom directive, we need to register it to the GraphQL schema. When using the HotChocolate .Net template, we just go to the <code class="language-text">ConfigureServices</code> method, located in the <code class="language-text">Startup.cs</code> file.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="74313775590927220000"
+              data-toaster-id="69706995643615110000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1518,7 +1518,7 @@ fragment Details on User {
               onClick="copyToClipboard(`services
     .AddGraphQLServer()
     .AddQueryType<Query>()
-    .AddDirectiveType<MyDirectiveType>();`, `74313775590927220000`)"
+    .AddDirectiveType<MyDirectiveType>();`, `69706995643615110000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1534,14 +1534,14 @@ fragment Details on User {
 <p>Let's recap! We have registered a new directive named <code class="language-text">my</code> without any arguments and limited the usage to fields only. A GraphQL document with our new directive could look like this.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="39894722489447100000"
+              data-toaster-id="34589760733110310000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`query foo {
   bar @my
-}`, `39894722489447100000`)"
+}`, `34589760733110310000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1557,14 +1557,14 @@ fragment Details on User {
 <p>By default, directives are not repeatable, which means directives are unique and can be applied once at a specific location. For example, if we use the <code class="language-text">my</code> directive twice at the field <code class="language-text">bar</code>, we will encounter a validation error. So the following GraphQL document results in an error if the directive is not repeatable.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="50482992508436370000"
+              data-toaster-id="24476669185765675000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`query foo {
   bar @my @my
-}`, `50482992508436370000`)"
+}`, `24476669185765675000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1579,7 +1579,7 @@ fragment Details on User {
 <p>To make our directive repeatable, we need to add just one line code to the existing <code class="language-text">Configure</code> method.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="1766251194950352400"
+              data-toaster-id="56362401993126450000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1593,7 +1593,7 @@ fragment Details on User {
         descriptor.Location(DirectiveLocation.Field);
         descriptor.Repeatable();
     }
-}`, `1766251194950352400`)"
+}`, `56362401993126450000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1616,7 +1616,7 @@ fragment Details on User {
 <p>Directive can have arguments that can be used to make them more flexible. So, if we had a directive like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="37295971566894146000"
+              data-toaster-id="92008653535267800000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1630,7 +1630,7 @@ fragment Details on User {
         descriptor.Argument(&quot;name&quot;).Type<NonNullType<StringType>>();
         descriptor.Location(DirectiveLocation.Object);
     }
-}`, `37295971566894146000`)"
+}`, `92008653535267800000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1652,7 +1652,7 @@ fragment Details on User {
 <p>We could associate the <code class="language-text">MyDirective</code> with an object like this:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="86095160599632380000"
+              data-toaster-id="17086366587118174000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1666,7 +1666,7 @@ fragment Details on User {
         descriptor.Directive(&quot;my&quot;, new StringValue(&quot;bar&quot;));
         ...
     }
-}`, `86095160599632380000`)"
+}`, `17086366587118174000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1688,7 +1688,7 @@ fragment Details on User {
 <p>Adding directives just with their name is not type safe and could lead to runtime errors which can be avoided by using our generic variant of the directive type. The generic directive type declares the .NET type that represents the directive instance.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="8751327799494501000"
+              data-toaster-id="99166479609752580000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1706,7 +1706,7 @@ fragment Details on User {
 public class MyDirective
 {
     public string Name { get; set; }
-}`, `8751327799494501000`)"
+}`, `99166479609752580000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1733,7 +1733,7 @@ public class MyDirective
 <p>So, with our new directive in place we could now add it to our object type like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="35183317217489220000"
+              data-toaster-id="47010644442440630000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1747,7 +1747,7 @@ public class MyDirective
         descriptor.Directive(new MyDirective { Name = &quot;bar&quot; });
         ...
     }
-}`, `35183317217489220000`)"
+}`, `47010644442440630000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1773,7 +1773,7 @@ public class MyDirective
 <p>In order to add a middleware to a directive you could declare it with the descriptor as a delegate.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="49478056415533620000"
+              data-toaster-id="18087192428452182000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1796,7 +1796,7 @@ public class MyDirective
 public class MyDirective
 {
     public string Name { get; set; }
-}`, `49478056415533620000`)"
+}`, `18087192428452182000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1832,7 +1832,7 @@ public class MyDirective
 <p>The order of middleware pipeline is defined by the order of the directives. Since, executable directives will flow from the object type to its field definitions the directives of the type would be called first in the order that they were annotated.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="26382832564217850000"
+              data-toaster-id="43416872303532350000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1843,7 +1843,7 @@ public class MyDirective
 
 type Bar @a @b {
   baz: String @c @d
-}`, `26382832564217850000`)"
+}`, `43416872303532350000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1863,7 +1863,7 @@ type Bar @a @b {
 <p>If there were more directives in the query, they would be appended to the directives from the type.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="73513203909205885000"
+              data-toaster-id="81042475166019700000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1872,7 +1872,7 @@ type Bar @a @b {
   foo {
     baz @e @f
   }
-}`, `73513203909205885000`)"
+}`, `81042475166019700000`)"
             >
               <div
                 class="gatsby-code-button"
