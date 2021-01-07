@@ -148,4 +148,4 @@ Moreover, we explored our GraphQL schema with our GraphQL IDE Banana Cake Pop an
 
 If you want to dive deeper, you can start with our [GraphQL tutorial](https://github.com/ChilliCream/graphql-workshop) to get into several topics around GraphQL and Hot Chocolate.
 
-Further, you can learn more about defining GraphQL schemas in .NET [here](../defining-a-schema).
+Further, you can learn more about defining GraphQL schemas in .NET [here](/docs/hotchocolate/defining-a-schema).

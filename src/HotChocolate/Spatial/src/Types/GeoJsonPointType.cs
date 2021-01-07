@@ -1,4 +1,5 @@
 using NetTopologySuite.Geometries;
+using static HotChocolate.Types.Spatial.WellKnownFields;
 using static HotChocolate.Types.Spatial.Properties.Resources;
 using static HotChocolate.Types.Spatial.WellKnownTypeNames;
 
@@ -14,7 +15,8 @@ namespace HotChocolate.Types.Spatial
                 .BindFieldsExplicitly();
 
             descriptor
-                .Field(x => x.Coordinates)
+                .Field(x => x.Coordinate)
+                .Name(CoordinatesFieldName)
                 .Description(GeoJson_Field_Coordinates_Description_Point);
 
             descriptor
