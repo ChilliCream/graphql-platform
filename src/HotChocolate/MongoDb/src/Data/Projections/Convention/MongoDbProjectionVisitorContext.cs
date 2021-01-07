@@ -9,6 +9,7 @@ namespace HotChocolate.Data.MongoDb
     public class MongoDbProjectionVisitorContext
         : ProjectionVisitorContext<MongoDbProjectionDefinition>
     {
+        /// <inheritdoc/>
         public MongoDbProjectionVisitorContext(
             IResolverContext context,
             IOutputType initialType)
@@ -19,12 +20,11 @@ namespace HotChocolate.Data.MongoDb
         /// <summary>
         /// The path from the root to the current position in the input object
         /// </summary>
-        public Stack<string> Path { get; } = new Stack<string>();
+        public Stack<string> Path { get; } = new();
 
         /// <summary>
         /// A list of already projected fields
         /// </summary>
-        public Stack<MongoDbProjectionDefinition> Projections { get; } =
-            new Stack<MongoDbProjectionDefinition>();
+        public Stack<MongoDbProjectionDefinition> Projections { get; } = new();
     }
 }

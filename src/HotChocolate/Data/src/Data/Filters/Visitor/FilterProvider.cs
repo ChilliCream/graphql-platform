@@ -27,11 +27,14 @@ namespace HotChocolate.Data.Filters
 
         private IFilterConvention? _filterConvention;
 
+        /// <inheritdoc />
         protected FilterProvider()
         {
             _configure = Configure;
         }
 
+
+        /// <inheritdoc />
         public FilterProvider(Action<IFilterProviderDescriptor<TContext>> configure)
         {
             _configure = configure ??

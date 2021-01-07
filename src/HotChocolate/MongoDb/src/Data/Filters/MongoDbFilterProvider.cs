@@ -15,20 +15,23 @@ namespace HotChocolate.Data.MongoDb.Filters
     public class MongoDbFilterProvider
         : FilterProvider<MongoDbFilterVisitorContext>
     {
+        /// <inheritdoc />
         public MongoDbFilterProvider()
         {
         }
 
+        /// <inheritdoc />
         public MongoDbFilterProvider(
             Action<IFilterProviderDescriptor<MongoDbFilterVisitorContext>> configure)
             : base(configure)
         {
         }
 
+        /// <summary>
+        /// The visitor that is used to traverse the incoming selection set an execute handlers
+        /// </summary>
         protected virtual FilterVisitor<MongoDbFilterVisitorContext, MongoDbFilterDefinition>
-            Visitor { get; } =
-            new FilterVisitor<MongoDbFilterVisitorContext, MongoDbFilterDefinition>(
-                new MongoDbFilterCombinator());
+            Visitor { get; } = new(new MongoDbFilterCombinator());
 
         /// <inheritdoc />
         public override FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName)

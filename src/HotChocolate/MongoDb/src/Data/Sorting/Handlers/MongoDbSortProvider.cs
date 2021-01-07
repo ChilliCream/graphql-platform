@@ -12,19 +12,23 @@ namespace HotChocolate.Data.MongoDb.Sorting
     public class MongoDbSortProvider
         : SortProvider<MongoDbSortVisitorContext>
     {
+        /// <inheritdoc/>
         public MongoDbSortProvider()
         {
         }
 
+        /// <inheritdoc/>
         public MongoDbSortProvider(
             Action<ISortProviderDescriptor<MongoDbSortVisitorContext>> configure)
             : base(configure)
         {
         }
 
+        /// <summary>
+        /// The visitor thar will traverse a incoming query and execute the sorting handlers
+        /// </summary>
         protected virtual SortVisitor<MongoDbSortVisitorContext, MongoDbSortDefinition>
-            Visitor { get; } =
-            new SortVisitor<MongoDbSortVisitorContext, MongoDbSortDefinition>();
+            Visitor { get; } = new SortVisitor<MongoDbSortVisitorContext, MongoDbSortDefinition>();
 
         /// <inheritdoc />
         public override FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName)

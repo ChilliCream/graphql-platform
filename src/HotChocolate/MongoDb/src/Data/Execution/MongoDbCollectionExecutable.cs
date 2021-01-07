@@ -15,11 +15,13 @@ namespace HotChocolate.Data.MongoDb
     {
         private readonly IMongoCollection<T> _collection;
 
+        /// <inheritdoc />
         public MongoDbCollectionExecutable(IMongoCollection<T> collection)
         {
             _collection = collection;
         }
 
+        /// <inheritdoc />
         public override object Source => _collection;
 
         /// <summary>

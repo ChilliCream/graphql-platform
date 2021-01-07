@@ -58,6 +58,7 @@ namespace HotChocolate.Types
             set => _includeTotalCount = value;
         }
 
+        /// <inheritdoc />
         protected override void TryConfigure(
             IDescriptorContext context,
             IDescriptor descriptor,

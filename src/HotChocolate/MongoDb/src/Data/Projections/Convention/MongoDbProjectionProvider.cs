@@ -11,10 +11,12 @@ namespace HotChocolate.Data.MongoDb
     public class MongoDbProjectionProvider
         : ProjectionProvider
     {
+        /// <inheritdoc/>
         public MongoDbProjectionProvider()
         {
         }
 
+        /// <inheritdoc/>
         public MongoDbProjectionProvider(
             Action<IProjectionProviderDescriptor> configure)
             : base(configure)

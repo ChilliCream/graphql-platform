@@ -11,6 +11,9 @@ using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb.Paging
 {
+    /// <summary>
+    /// An offset paging provider for MongoDb that create pagination queries
+    /// </summary>
     public class MongoDbOffsetPagingProvider : OffsetPagingProvider
     {
         private static readonly MethodInfo _createHandler =
@@ -43,8 +46,7 @@ namespace HotChocolate.Data.MongoDb.Paging
         }
 
         private static MongoDbOffsetPagingHandler<TEntity> CreateHandlerInternal<TEntity>(
-            PagingOptions options) =>
-            new MongoDbOffsetPagingHandler<TEntity>(options);
+            PagingOptions options) => new MongoDbOffsetPagingHandler<TEntity>(options);
 
 
         private class MongoDbOffsetPagingHandler<TEntity> : OffsetPagingHandler
