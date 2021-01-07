@@ -26,8 +26,10 @@ import { Layout } from "../components/structure/layout";
 import AeiLogoSvg from "../images/companies/aei.svg";
 import AtminaLogoSvg from "../images/companies/atmina.svg";
 import AutoguruLogoSvg from "../images/companies/autoguru.svg";
+import BeyableLogoSvg from "../images/companies/beyable.svg";
 import BiqhLogoSvg from "../images/companies/biqh.svg";
 import CarmmunityLogoSvg from "../images/companies/carmmunity.svg";
+import CompassLogoSvg from "../images/companies/compass.svg";
 import E2mLogoSvg from "../images/companies/e2m.svg";
 import ExlrtLogoSvg from "../images/companies/exlrt.svg";
 import GiaLogoSvg from "../images/companies/gia.svg";
@@ -219,6 +221,11 @@ const IndexPage: FunctionComponent = () => {
                   <AutoguruLogoSvg />
                 </Link>
               </Logo>
+              <Logo width={150}>
+                <Link to="https://www.beyable.com">
+                  <BeyableLogoSvg />
+                </Link>
+              </Logo>
               <Logo width={100}>
                 <Link to="https://www.biqh.com">
                   <BiqhLogoSvg />
@@ -227,6 +234,11 @@ const IndexPage: FunctionComponent = () => {
               <Logo width={180}>
                 <Link to="https://carmmunity.io">
                   <CarmmunityLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={180}>
+                <Link to="https://www.compass.education">
+                  <CompassLogoSvg />
                 </Link>
               </Logo>
               <Logo width={90}>
