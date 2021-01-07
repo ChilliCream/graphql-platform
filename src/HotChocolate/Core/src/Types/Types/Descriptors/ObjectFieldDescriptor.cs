@@ -333,6 +333,7 @@ namespace HotChocolate.Types.Descriptors
                 Definition.ResolverMember = propertyOrMethod;
                 Definition.Resolver = null;
                 Definition.ResultType = propertyOrMethod.GetReturnType();
+                return this;
             }
 
             throw new ArgumentException(

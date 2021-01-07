@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Data.Projections.Expressions;
@@ -18,7 +19,8 @@ namespace HotChocolate.Data.Projections.Handlers
         : IProjectionFieldInterceptor<QueryableProjectionContext>
     {
         public bool CanHandle(ISelection selection) =>
-            selection.Field.Member is {} &&
+            selection.Field.Member is PropertyInfo propertyInfo &&
+            propertyInfo.CanWrite &&
             selection.Field.ContextData.ContainsKey(ContextVisitFilterArgumentKey) &&
             selection.Field.ContextData.ContainsKey(ContextArgumentNameKey);
 
