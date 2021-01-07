@@ -12,6 +12,7 @@
         "root"
       ],
       "extensions": {
+        "code": "HC0020",
         "expectedType": "Short!",
         "filterType": "ComparableNullableOfInt16OperationFilterInput"
       }

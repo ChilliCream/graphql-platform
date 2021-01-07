@@ -12,6 +12,7 @@
         "root"
       ],
       "extensions": {
+        "code": "HC0020",
         "expectedType": "FooEnum!",
         "filterType": "FooEnumOperationFilterInput"
       }
