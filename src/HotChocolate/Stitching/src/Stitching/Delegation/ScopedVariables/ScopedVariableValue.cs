@@ -3,9 +3,9 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Delegation.ScopedVariables
 {
-    internal readonly struct VariableValue
+    internal readonly struct ScopedVariableValue
     {
-        internal VariableValue(
+        internal ScopedVariableValue(
             string name,
             ITypeNode type,
             IValueNode? value,
@@ -25,7 +25,7 @@ namespace HotChocolate.Stitching.Delegation.ScopedVariables
 
         public IValueNode? DefaultValue { get; }
 
-        public VariableValue WithValue(IValueNode value) =>
-            new VariableValue(Name, Type, value, DefaultValue);
+        public ScopedVariableValue WithValue(IValueNode value) =>
+            new ScopedVariableValue(Name, Type, value, DefaultValue);
     }
 }
