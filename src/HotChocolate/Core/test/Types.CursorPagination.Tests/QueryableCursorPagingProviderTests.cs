@@ -449,6 +449,8 @@ namespace HotChocolate.Types.Pagination
 
             public Path Path => throw new NotImplementedException();
 
+            public bool HasErrors => throw new NotImplementedException();
+
             public IImmutableDictionary<string, object> ScopedContextData
             {
                 get => throw new NotImplementedException();

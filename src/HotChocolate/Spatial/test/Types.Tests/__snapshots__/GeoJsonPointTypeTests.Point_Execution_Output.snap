@@ -5,10 +5,8 @@
     "test": {
       "type": "Point",
       "coordinates": [
-        [
-          30.0,
-          10.0
-        ]
+        30.0,
+        10.0
       ],
       "bbox": [
         30.0,
