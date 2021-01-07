@@ -1,10 +1,8 @@
 using System;
 using System.Linq;
-using HotChocolate.Data;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Language;
-using HotChocolate.Data.Mongodb;
 using HotChocolate.Types;
 
 namespace HotChocolate.Data.MongoDb
@@ -24,6 +22,7 @@ namespace HotChocolate.Data.MongoDb
                     context.Operations.Peek().Name,
                     filterType.Visualize())
                 .AddLocation(value)
+                .SetCode(ErrorCodes.Data.NonNullError)
                 .SetExtension("expectedType", new NonNullType(field.Type).Visualize())
                 .SetExtension("filterType", filterType.Visualize())
                 .Build();
@@ -42,6 +41,7 @@ namespace HotChocolate.Data.MongoDb
                     context.Fields.Peek().Name,
                     sortType.Visualize())
                 .AddLocation(value)
+                .SetCode(ErrorCodes.Data.NonNullError)
                 .SetExtension("expectedType", new NonNullType(field.Type).Visualize())
                 .SetExtension("sortType", sortType.Visualize())
                 .Build();
@@ -50,14 +50,14 @@ namespace HotChocolate.Data.MongoDb
 
     internal static class ThrowHelper
     {
-        public static GraphQLException PagingTypeNotSupported(
-            Type type)
+        public static GraphQLException PagingTypeNotSupported(Type type)
         {
             return new GraphQLException(
                 ErrorBuilder.New()
                     .SetMessage(
                         MongoDbResources.Paging_SourceIsNotSupported,
                         type.FullName ?? type.Name)
+                    .SetCode(ErrorCodes.Data.NoPagingationProviderFound)
                     .Build());
         }
     }
