@@ -6,7 +6,9 @@ Here we will learn what GraphQL directives are and how we can build custom direc
 
 # Introduction
 
-Directives provide a way to add metadata for client tools such as code generators or IDEs or alternate a GraphQL server's runtime execution and type validation behavior. There are two kinds of directives, executable directives to extend GraphQL documents and type-system directives to extend SDL types. Typically, any GraphQL server implementation should provide the following directives `@skip`, `@include`, and `@deprecated`. `@skip` and `@include`, for example, are executable directives used in GraphQL documents, whereas `@deprecated` is a type-system directive used in SDL to inform client tools that a particular part such as a field is deprecated.
+Directives provide a way to add metadata for client tools such as code generators and IDEs or alternate a GraphQL server's runtime execution and type validation behavior. There are two kinds of directives, executable directives to annotate executable parts of GraphQL documents and type-system directives to annotate SDL types. Typically, any GraphQL server implementation should provide the following directives `@skip`, `@include`, and `@deprecated`. `@skip` and `@include`, for example, are executable directives used in GraphQL documents to exclude or include fields, whereas `@deprecated` is a type-system directive used in SDL types to inform client tools that a particular part such as a field is deprecated.
+
+> **Hint:** Directives in GraphQL are pretty similar to Attributes in .Net
 
 ## Structure
 
@@ -19,7 +21,7 @@ directive @skip(if: Boolean!) on
     | INLINE_FRAGMENT
 ```
 
-The `directive` keyword in SDL indicates that we're dealing with a directive type declaration. The `@` sign also indicates that this is a directive but more from a usage perspective. The word `skip` represents the directive's name followed by a pair of parentheses that includes a list of arguments, consisting, in our case, of one argument named `if` of type non-nullable boolean (means it's required). The `on` keyword indicates the location where or at which part a directive is applicable, followed by a list of exact locations separated by pipes `|`. In the case of `@skip`, we can see that we're dealing with an executable directive because this directive is only applicable to fields, fragment-spreads, and inline-fragments that only exist in GraphQL documents and not in SDL.
+The `directive` keyword in SDL indicates that we're dealing with a directive type declaration. The `@` sign also indicates that this is a directive but more from a usage perspective. The word `skip` represents the directive's name followed by a pair of parentheses that includes a list of arguments, consisting, in our case, of one argument named `if` of type non-nullable boolean (means it's required). The `on` keyword indicates the location where or at which part a directive is applicable, followed by a list of exact locations separated by pipes `|`. In the case of `@skip`, we can see that we're dealing with an executable directive because this directive is only applicable to fields, fragment-spreads, and inline-fragments.
 
 ## Usage
 
@@ -67,7 +69,7 @@ query me {
 }
 ```
 
-Since we excluded the field `name` first, `@include` does not affect the field `name` anymore. We then just get an empty `me` object in return.
+Since we excluded the field `name` in the first place, `@include` does not affect the field `name` anymore. We then just get an empty `me` object in return.
 
 ```json
 {
@@ -77,20 +79,24 @@ Since we excluded the field `name` first, `@include` does not affect the field `
 }
 ```
 
-In our example, the sequential order looks like this.
+For better visualization purposes, that's how we could interpret the sequential order in this particular case.
 
 ```mermaid
-graph LR
-  A("@skip(if: true)") --> B("@include(if: true)")
+sequenceDiagram
+    alt if == true
+        @skip->>+@skip: field or fragment excluded
+    else
+        @skip->>+@include: field or fragment not excluded
+    end
 ```
 
-> **Note:** We will have a deep dive on directives' order in the [Middleware](#middleware) section.
+> **Note:** We will have a deep dive on directives' order under the [Middleware](#middleware) section.
 
 Now that we have a basic understanding of what directives are, how they work, and what we can do with them, let's have fun and create a custom directive.
 
 # Custom Directives
 
-To create a directive, we need to create a new class that inherits from `DirectiveType` and also to override the `Configure` methods. Okay, here is a simple example.
+To create a directive, we need to create a new class that inherits from `DirectiveType` and also to override the `Configure` method. Okay, here is a simple example.
 
 ```csharp
 public class MyDirective
@@ -104,7 +110,7 @@ public class MyDirective
 }
 ```
 
-Before we can use our custom directive, we need to register it to the GraphQL schema. When using the HotChocolate .Net template, we just go to the `ConfigureServices` method, located in the `Startup.cs` file.
+Before we can use our custom directive, we need to register it to the GraphQL schema. When using the HotChocolate .Net template, we just go to the `ConfigureServices` method, located in the `Startup.cs` file, and add a single line of code `AddDirectiveType<MyDirectiveType>()` to the existing GraphQL configuration.
 
 ```csharp
 services
@@ -113,7 +119,7 @@ services
     .AddDirectiveType<MyDirectiveType>();
 ```
 
-Let's recap! We have registered a new directive named `my` without any arguments and limited the usage to fields only. A GraphQL document with our new directive could look like this.
+Let's recap! We have registered a new directive named `my` without any arguments and limited the usage to fields only. A GraphQL query request with our new directive could look like this.
 
 ```graphql
 query foo {
@@ -121,9 +127,11 @@ query foo {
 }
 ```
 
+As of now, our custom directive provides no functionality. We will handle that part under the [Middleware](#middleware) section. But before we do that, let's talk about the repeatable directive and typed arguments.
+
 ## Repeatable Directives
 
-By default, directives are not repeatable, which means directives are unique and can be applied once at a specific location. For example, if we use the `my` directive twice at the field `bar`, we will encounter a validation error. So the following GraphQL document results in an error if the directive is not repeatable.
+By default, directives are not repeatable, which means directives are unique and can be applied once at a specific location. For example, if we use the `my` directive twice at the field `bar`, we will encounter a validation error. So the following GraphQL query request results in an error if the directive is not repeatable.
 
 ```graphql
 query foo {
@@ -131,7 +139,7 @@ query foo {
 }
 ```
 
-To make our directive repeatable, we need to add just one line code to the existing `Configure` method.
+To enable repeatability, we need to add just one line of code `descriptor.Repeatable();` to the existing `Configure` method.
 
 ```csharp
 public class MyDirective
@@ -146,9 +154,17 @@ public class MyDirective
 }
 ```
 
+This configuration will translate into the following SDL.
+
+```sdl
+directive @my repeatable on FIELD
+```
+
+That was easy! Let's head over to the next section, where we talk about typed arguments!
+
 ## Typed Arguments
 
-Directive can have arguments that can be used to make them more flexible. So, if we had a directive like the following:
+A directive can provide additional information through attributes. Arguments might also come in handy in combination with repeatable directives for reusability purposes. To add an argument we just use a single line of code `descriptor.Argument("name").Type<NonNullType<StringType>>();`. In this line of code, we tell the descriptor that we want to add an argument named `name`, and it's of type non-nullable string (means it's required).
 
 ```csharp
 public class MyDirective
@@ -157,11 +173,19 @@ public class MyDirective
     protected override void Configure(IDirectiveTypeDescriptor descriptor)
     {
         descriptor.Name("my");
+        descriptor.Location(DirectiveLocation.Field);
         descriptor.Argument("name").Type<NonNullType<StringType>>();
-        descriptor.Location(DirectiveLocation.Object);
     }
 }
 ```
+
+This configuration will translate into the following SDL.
+
+```sdl
+directive @my(name: String!) on FIELD
+```
+
+### Type Safety
 
 We could associate the `MyDirective` with an object like this:
 
@@ -173,12 +197,11 @@ public class FooType
     {
         descriptor.Name("Foo");
         descriptor.Directive("my", new StringValue("bar"));
-        ...
     }
 }
 ```
 
-Adding directives just with their name is not type safe and could lead to runtime errors which can be avoided by using our generic variant of the directive type. The generic directive type declares the .NET type that represents the directive instance.
+Adding directives just with their name is not type-safe and could lead to runtime errors, which are avoidable by using our generic variant of the directive type. The generic directive type declares the .NET type that represents the directive instance.
 
 ```csharp
 public class MyDirectiveType
@@ -187,7 +210,6 @@ public class MyDirectiveType
     protected override void Configure(IDirectiveTypeDescriptor descriptor)
     {
         descriptor.Name("my");
-        ...
     }
 }
 
@@ -199,7 +221,7 @@ public class MyDirective
 
 The generic directive type works similar to the generic input object type. The directive descriptor will automatically try to discover any properties and expose those as arguments.
 
-So, with our new directive in place we could now add it to our object type like the following:
+So, with our new directive in place, we could now add it to our object type like the following:
 
 ```csharp
 public class FooType
@@ -209,12 +231,11 @@ public class FooType
     {
         descriptor.Name("Foo");
         descriptor.Directive(new MyDirective { Name = "bar" });
-        ...
     }
 }
 ```
 
-Since, the directive instance that we have added to our type is now a strong .NET type we do not have to fear changes to the directive structure or its name anymore.
+Since the directive instance that we have added to our type is now a strong .NET type, we don't have to fear changes to the directive structure or name anymore.
 
 ## Middleware
 
