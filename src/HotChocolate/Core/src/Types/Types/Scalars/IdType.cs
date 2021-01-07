@@ -16,31 +16,24 @@ namespace HotChocolate.Types
     /// http://facebook.github.io/graphql/June2018/#sec-ID
     /// </summary>
     [SpecScalar]
-    public sealed class IdType
-        : ScalarType<string>
+    public sealed class IdType : ScalarType<string>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="IdType"/> class.
         /// </summary>
-        public IdType()
-            : base(ScalarNames.ID, BindingBehavior.Explicit)
+        public IdType() : this(ScalarNames.ID, TypeResources.IdType_Description)
         {
-            Description = TypeResources.IdType_Description;
+
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="IdType"/> class.
         /// </summary>
-        public IdType(NameString name)
-            : base(name, BindingBehavior.Explicit)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="IdType"/> class.
-        /// </summary>
-        public IdType(NameString name, string description)
-            : base(name, BindingBehavior.Explicit)
+        public IdType(
+            NameString name,
+            string? description = null,
+            BindingBehavior bind = BindingBehavior.Explicit)
+            : base(name, bind)
         {
             Description = description;
         }

@@ -15,6 +15,38 @@ namespace HotChocolate.Data.Projections
         private readonly SchemaCache _cache = new SchemaCache();
 
         [Fact]
+        public async Task Create_NotSettable_Expression()
+        {
+            // arrange
+            IRequestExecutor tester = _cache.CreateSchema(_fooEntities);
+
+            // act
+            // assert
+            IExecutionResult res1 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery("{ root{ notSettable }}")
+                    .Create());
+
+            res1.MatchSqlSnapshot();
+        }
+
+        [Fact]
+        public async Task Create_Computed_Expression()
+        {
+            // arrange
+            IRequestExecutor tester = _cache.CreateSchema(_fooEntities);
+
+            // act
+            // assert
+            IExecutionResult res1 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery("{ root{ computed }}")
+                    .Create());
+
+            res1.MatchSqlSnapshot();
+        }
+
+        [Fact]
         public async Task Create_ProjectsTwoProperties_Expression()
         {
             // arrange
@@ -75,6 +107,10 @@ namespace HotChocolate.Data.Projections
             public bool Bar { get; set; }
 
             public string Baz { get; set; }
+
+            public string Computed() => "Foo";
+
+            public string? NotSettable { get; }
         }
 
         public class FooNullable

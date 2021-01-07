@@ -117,7 +117,9 @@ services.AddQueryRequestInterceptor(
 **New:**
 
 ```csharp
-services.AddHttpRequestInterceptor(
+services.AddGraphQLServer()
+    ...
+    .AddHttpRequestInterceptor(
     (context, executor, builder, ct) =>
     {
         // your code
@@ -127,7 +129,9 @@ services.AddHttpRequestInterceptor(
 You can also extend `DefaultHttpRequestInterceptor` and inject it like the following.
 
 ```csharp
-services.AddHttpRequestInterceptor<MyCustomExecutor>();
+services.AddGraphQLServer()
+    ...
+    .AddHttpRequestInterceptor<MyCustomExecutor>();
 ```
 
 > A request interceptor is a service that is used by all hosted schemas.
@@ -420,7 +424,7 @@ The source result stack was removed from the resolver context for performance re
     }
 ```
 
-## Autorization
+## Authorization
 
 If you use authorization, you need to add a package reference to `HotChocolate.AspNetCore.Authorization`.
 

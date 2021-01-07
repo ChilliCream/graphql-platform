@@ -83,7 +83,7 @@ namespace StrawberryShake.Http.Subscriptions
                 writer.WriteId(subscriptionId);
                 writer.WriteEndObject();
 
-                await sub.Connection.SendAsync(writer.Body);
+                await sub.Connection.SendAsync(writer.Body).ConfigureAwait(false);
             }
         }
 

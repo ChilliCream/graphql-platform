@@ -42,7 +42,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(factory));
             }
 
-            return builder.ConfigureSchemaServices(s => s.AddSingleton(factory));
+            return builder.ConfigureSchemaServices(s => s.AddSingleton<IErrorFilter, T>(factory));
         }
 
         public static IRequestExecutorBuilder AddErrorFilter<T>(

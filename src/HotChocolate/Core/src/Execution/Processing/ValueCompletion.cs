@@ -91,7 +91,7 @@ namespace HotChocolate.Execution.Processing
 
             middlewareContext.ReportError(
                 UnexpectedValueCompletionError(
-                    middlewareContext.FieldSelection,
+                    middlewareContext.Selection.SyntaxNode,
                     path));
 
             completedResult = null;
@@ -249,7 +249,7 @@ namespace HotChocolate.Execution.Processing
             middlewareContext.ReportError(
                 ListValueIsNotSupported(
                     result.GetType(),
-                    middlewareContext.FieldSelection,
+                    middlewareContext.Selection.SyntaxNode,
                     path));
             completedResult = null;
             return false;
@@ -377,7 +377,7 @@ namespace HotChocolate.Execution.Processing
             middlewareContext.ReportError(
                 ListValueIsNotSupported(
                     result.GetType(),
-                    middlewareContext.FieldSelection,
+                    middlewareContext.Selection.SyntaxNode,
                     path));
             completedResult = null;
             return false;
@@ -414,7 +414,7 @@ namespace HotChocolate.Execution.Processing
                 middlewareContext.ReportError(
                     InvalidLeafValue(
                         ex,
-                        middlewareContext.FieldSelection,
+                        middlewareContext.Selection.SyntaxNode,
                         path));
             }
             catch (Exception ex)
@@ -423,7 +423,7 @@ namespace HotChocolate.Execution.Processing
                     UnexpectedLeafValueSerializationError(
                         ex,
                         operationContext.ErrorHandler,
-                        middlewareContext.FieldSelection,
+                        middlewareContext.Selection.SyntaxNode,
                         path));
             }
 
@@ -444,7 +444,7 @@ namespace HotChocolate.Execution.Processing
                 out ObjectType? objectType))
             {
                 SelectionSetNode selectionSet =
-                    middlewareContext.FieldSelection.SelectionSet!;
+                    middlewareContext.Selection.SyntaxNode.SelectionSet!;
 
                 ISelectionSet selections =
                     operationContext.CollectFields(selectionSet, objectType);
@@ -459,7 +459,7 @@ namespace HotChocolate.Execution.Processing
 
             middlewareContext.ReportError(
                 ValueCompletion_CouldNotResolveAbstractType(
-                    middlewareContext.FieldSelection,
+                    middlewareContext.Selection.SyntaxNode,
                     path));
             completedResult = null;
             return false;
@@ -501,7 +501,7 @@ namespace HotChocolate.Execution.Processing
                 middlewareContext.ReportError(
                     UnableToResolveTheAbstractType(
                         fieldType.Print(),
-                        middlewareContext.FieldSelection,
+                        middlewareContext.Selection.SyntaxNode,
                         path));
             }
             catch (Exception ex)
@@ -510,7 +510,7 @@ namespace HotChocolate.Execution.Processing
                     UnexpectedErrorWhileResolvingAbstractType(
                         ex,
                         fieldType.Print(),
-                        middlewareContext.FieldSelection,
+                        middlewareContext.Selection.SyntaxNode,
                         path));
             }
 

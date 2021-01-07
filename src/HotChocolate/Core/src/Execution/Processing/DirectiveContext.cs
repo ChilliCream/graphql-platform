@@ -52,11 +52,18 @@ namespace HotChocolate.Execution.Processing
         public OperationDefinitionNode Operation =>
             _middlewareContext.Operation;
 
+        [Obsolete("Use Selection.SyntaxNode")]
         public FieldNode FieldSelection =>
             _middlewareContext.FieldSelection;
 
+        public IFieldSelection Selection =>
+            _middlewareContext.Selection;
+
         public Path Path =>
             _middlewareContext.Path;
+
+        public bool HasErrors =>
+            _middlewareContext.HasErrors;
 
         public CancellationToken CancellationToken =>
             RequestAborted;

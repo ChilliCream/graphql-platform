@@ -5,32 +5,38 @@ using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
-    public sealed class ShortType
-        : IntegerTypeBase<short>
+    public sealed class ShortType : IntegerTypeBase<short>
     {
-        public ShortType()
-            : this(short.MinValue, short.MaxValue)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ShortType"/> class.
+        /// </summary>
+        public ShortType() : this(short.MinValue, short.MaxValue)
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ShortType"/> class.
+        /// </summary>
         public ShortType(short min, short max)
-            : this(ScalarNames.Short, min, max)
-        {
-            Description = TypeResources.ShortType_Description;
-        }
-
-        public ShortType(NameString name)
-            : this(name, short.MinValue, short.MaxValue)
-        {
-        }
-
-        public ShortType(NameString name, short min, short max)
-            : base(name, min, max, BindingBehavior.Implicit)
+            : this(
+                ScalarNames.Short,
+                TypeResources.ShortType_Description,
+                min,
+                max,
+                BindingBehavior.Implicit)
         {
         }
 
-        public ShortType(NameString name, string description, short min, short max)
-            : base(name, min, max, BindingBehavior.Implicit)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ShortType"/> class.
+        /// </summary>
+        public ShortType(
+            NameString name,
+            string? description = null,
+            short min = short.MinValue,
+            short max = short.MaxValue,
+            BindingBehavior bind = BindingBehavior.Explicit)
+            : base(name, min, max, bind)
         {
             Description = description;
         }

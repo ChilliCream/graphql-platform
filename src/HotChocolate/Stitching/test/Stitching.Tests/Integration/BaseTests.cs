@@ -319,6 +319,69 @@ namespace HotChocolate.Stitching.Integration
         }
 
         [Fact]
+        public async Task Directive_Delegation()
+        {
+            // arrange
+            IHttpClientFactory httpClientFactory =
+                Context.CreateDefaultRemoteSchemas();
+
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddSingleton(httpClientFactory)
+                    .AddGraphQL()
+                    .AddRemoteSchema(Context.ContractSchema)
+                    .AddRemoteSchema(Context.CustomerSchema)
+                    .AddTypeExtensionsFromString(
+                        @"extend type Customer {
+                            contracts: [Contract!]
+                                @delegate(
+                                    schema: ""contract"",
+                                    path: ""contracts(customerId:$fields:id)"")
+                        }")
+                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                    .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"{
+                    customer: customerOrConsultant(id: ""Q3VzdG9tZXIKZDE="") {
+                        ...customer
+                        ...consultant
+                    }
+                    consultant: customerOrConsultant(id: ""Q29uc3VsdGFudApkMQ=="") {
+                        ...customer
+                        ...consultant
+                    }
+                }
+
+                fragment customer on Customer {
+                    name
+                    consultant {
+                        name
+                    }
+                    contracts @include(if: true) {
+                        id
+                        ... on LifeInsuranceContract {
+                            premium
+                        }
+                    }
+                    contracts @include(if: true) {
+                        id
+                        ... on SomeOtherContract {
+                            expiryDate
+                        }
+                    }
+                }
+
+                fragment consultant on Consultant {
+                    name
+                }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task AutoMerge_Execute_Arguments()
         {
             // arrange

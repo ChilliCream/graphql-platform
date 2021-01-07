@@ -32,7 +32,7 @@ namespace HotChocolate.Types
             NameString name,
             string? description = default,
             TimeSpanFormat format = TimeSpanFormat.Iso8601,
-            BindingBehavior bind = BindingBehavior.Implicit)
+            BindingBehavior bind = BindingBehavior.Explicit)
             : base(name, bind)
         {
             _format = format;

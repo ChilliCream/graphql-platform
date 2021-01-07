@@ -47,7 +47,9 @@ namespace MarshmallowPie.Storage.FileSystem
             string fullFilePath, byte[] buffer, int offset, int count,
             CancellationToken cancellationToken = default)
         {
-            await using FileStream stream = IOFile.Create(fullFilePath);
+            await using FileStream stream = IOFile
+                .Create(fullFilePath)
+                .ConfigureAwait(false);
             await stream.WriteAsync(buffer, offset, count, cancellationToken).ConfigureAwait(false);
         }
 

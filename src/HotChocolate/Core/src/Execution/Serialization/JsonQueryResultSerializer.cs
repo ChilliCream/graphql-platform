@@ -68,7 +68,7 @@ namespace HotChocolate.Execution.Serialization
 
             WriteResult(writer, result);
 
-            await writer.FlushAsync(cancellationToken);
+            await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
         }
 
         private static void WriteResult(Utf8JsonWriter writer, IQueryResult result)
