@@ -3,9 +3,9 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Processing
 {
-    public readonly struct VariableValue
+    internal readonly struct VariableValueOrLiteral
     {
-        public VariableValue(
+        public VariableValueOrLiteral(
             IInputType type,
             object? value,
             IValueNode? valueLiteral)
