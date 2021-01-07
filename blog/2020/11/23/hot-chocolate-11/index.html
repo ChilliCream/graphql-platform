@@ -1216,12 +1216,12 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
 <p>Records are now fully supported and let you create full GraphQL types with a single line of code. I personally like to use records for input types when using the pure code-first (annotation based) approach.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="95832839774139350000"
+              data-toaster-id="23887123002095500000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`public record AddSessionInput(string Title, string SpeakerId);`, `95832839774139350000`)"
+              onClick="copyToClipboard(`public record AddSessionInput(string Title, string SpeakerId);`, `23887123002095500000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1234,12 +1234,12 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
 <p>We reworked Hot Chocolate also to accept attributes on the parameters when using the short-hand syntax.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="14629236914179588000"
+              data-toaster-id="61812433751440474000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`public record AddSessionInput(string Title, [ID(nameof(Speaker))] string SpeakerId);`, `14629236914179588000`)"
+              onClick="copyToClipboard(`public record AddSessionInput(string Title, [ID(nameof(Speaker))] string SpeakerId);`, `61812433751440474000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1255,14 +1255,14 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
 <p>While .NET 5 support is nice, the most significant change from an API perspective is the new configuration API, which now brings together all the different builders to set up a GraphQL server. This makes the server configuration now very accessible and straightforward to use.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="76151717586033430000"
+              data-toaster-id="86338955076012460000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`services
     .AddGraphQLServer()
-    .AddQueryType<Query>();`, `76151717586033430000`)"
+    .AddQueryType<Query>();`, `86338955076012460000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1277,7 +1277,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
 <p>The builder API lets you chain in new extension methods that can add new capabilities without the need to change the actual builder API. The builder interface is nothing more than a named access to the service collection, which lets you add named configurations to the DI that are consecutively used to create a GraphQL server.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="50894503565345190000"
+              data-toaster-id="89439364140826850000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1293,7 +1293,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
     /// Gets the application services.
     /// </summary>
     IServiceCollection Services { get; }
-}`, `50894503565345190000`)"
+}`, `89439364140826850000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1318,7 +1318,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
 <p>With the new configuration API, you now can chain in various configurations without the need to remember where these things were hidden.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="5683234995423470000"
+              data-toaster-id="76501643385906350000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1353,7 +1353,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
     .EnsureDatabaseIsCreated()
     .AddInMemorySubscriptions()
     .AddFileSystemQueryStorage(&quot;./persisted_queries&quot;)
-    .UsePersistedQueryPipeline();`, `5683234995423470000`)"
+    .UsePersistedQueryPipeline();`, `76501643385906350000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1396,7 +1396,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
 <p>With the new configuration API, we also reworked the ASP.NET Core integration to use the endpoints API. It now is effortless to apply the Hot Chocolate server to a routing configuration.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="64484169046538670000"
+              data-toaster-id="44643716020665420000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1415,7 +1415,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
     {
         endpoints.MapGraphQL();
     });
-}`, `64484169046538670000`)"
+}`, `44643716020665420000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1475,7 +1475,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
 <p>To configure Banana Cake Pop or other middleware settings, you can chain in the server options with the GraphQLEndpointConventionBuilder.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="83638244751948190000"
+              data-toaster-id="97228280150459830000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1496,7 +1496,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
             {
                 Tool = { Enable = false }
             }));
-}`, `83638244751948190000`)"
+}`, `97228280150459830000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1616,7 +1616,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"byOQKQ,"}/*!
 <p>To write an entity that implements the node interface, you can now just put everything into one class.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="60703526830162090000"
+              data-toaster-id="22018274057258357000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1632,7 +1632,7 @@ public class Person
     {
         // ...
     }
-}`, `60703526830162090000`)"
+}`, `22018274057258357000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1656,7 +1656,7 @@ public class Person
 <p>We often want to have the node resolver logic in a separate class that only deals with fetching the entity by ID. Or even have multiple node resolvers co-located in the same class. This can be done by specifying the node resolver type on the node attribute.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="62325356293544630000"
+              data-toaster-id="31703109367470363000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1667,7 +1667,7 @@ public class Person
     public int Id { get; set; }
 
     public string Name { get; set; }
-}`, `62325356293544630000`)"
+}`, `31703109367470363000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1693,7 +1693,7 @@ public class Person
 <p>We will help you that this does not feel cumbersome and automatically add the missing re-implementations with code-first.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="16883590064381671000"
+              data-toaster-id="45907427228080740000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1723,7 +1723,7 @@ public class Query
 services
     .AddGraphQLServer()
     .AddQueryType<Query>()
-    .AddInterfaceType<INode>()`, `16883590064381671000`)"
+    .AddInterfaceType<INode>()`, `45907427228080740000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1761,7 +1761,7 @@ services
 <p>This schema will translate to the following GraphQL SDL.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="32147489812843143000"
+              data-toaster-id="75084088957031700000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1786,7 +1786,7 @@ type Person implements IPerson & INode {
 
 type Query {
   person: IPerson
-}`, `32147489812843143000`)"
+}`, `75084088957031700000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1822,7 +1822,7 @@ type Query {
 <p>When you implement a scalar type, you can now pass on this <code class="language-text">specifiedBy</code> URL.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="62874339218540265000"
+              data-toaster-id="56369163374754775000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1836,7 +1836,7 @@ type Query {
     }
 
     // ...
-}`, `62874339218540265000`)"
+}`, `56369163374754775000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1860,7 +1860,7 @@ type Query {
 <p>We also invested a lot of time in a very early feature called defer and stream. Defer, and stream allow you to de-prioritize parts of your request. This means that you essentially can tell the server to give you all the data in one go, but you mark the data that can arrive a little later.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="44315058169620180000"
+              data-toaster-id="70975767345867040000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1879,7 +1879,7 @@ type Query {
       }
     }
   }
-}`, `44315058169620180000`)"
+}`, `70975767345867040000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1942,7 +1942,7 @@ type Query {
 support.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="85539591847248510000"
+              data-toaster-id="73077566870911710000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1966,7 +1966,7 @@ support.</p>
 
         return descriptor;
     }
-}`, `85539591847248510000`)"
+}`, `73077566870911710000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2007,7 +2007,7 @@ support.</p>
 <p>Apart from the refactoring of the data integration API, we introduced our new GeoJSON based spatial types. These spatial types are not just simple types but can also be used to add spatial filter capabilities to our data integration API.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="16641086389581883000"
+              data-toaster-id="48508709041946510000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2024,7 +2024,7 @@ support.</p>
     name
     location
   }
-}`, `16641086389581883000`)"
+}`, `48508709041946510000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2049,14 +2049,14 @@ support.</p>
 <p>Which translates to:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="23481152043358610000"
+              data-toaster-id="56260589847105495000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(` SELECT c.&quot;Id&quot;, c.&quot;Name&quot;, c.&quot;Area&quot;
  FROM &quot;Counties&quot; AS c
- WHERE ST_Within(c.&quot;Area&quot;, @__p_0)`, `23481152043358610000`)"
+ WHERE ST_Within(c.&quot;Area&quot;, @__p_0)`, `56260589847105495000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2080,7 +2080,7 @@ support.</p>
 <p>The first thing to note with schema stitching is that it completely integrates with a standard schema. No more is there a separate stitching builder that makes it challenging to add customizations.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="1473558938734220800"
+              data-toaster-id="47470218952771370000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2091,7 +2091,7 @@ support.</p>
     .AddRemoteSchema(Accounts)
     .AddRemoteSchema(Inventory)
     .AddRemoteSchema(Products)
-    .AddRemoteSchema(Reviews);`, `1473558938734220800`)"
+    .AddRemoteSchema(Reviews);`, `47470218952771370000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2110,7 +2110,7 @@ support.</p>
 <p>Essentially now you just merge in types into your schema from anywhere, and you are still able to create local types that are merged with remote types. This gives a lot of control and flexibility to you. With that, any schema could also be a gateway.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="8528019956041555000"
+              data-toaster-id="64618066555074270000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2123,7 +2123,7 @@ support.</p>
     .AddRemoteSchema(Accounts)
     .AddRemoteSchema(Inventory)
     .AddRemoteSchema(Products)
-    .AddRemoteSchema(Reviews);`, `8528019956041555000`)"
+    .AddRemoteSchema(Reviews);`, `64618066555074270000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2147,7 +2147,7 @@ support.</p>
 <p>The gateway will further store schema configurations on Redis so that even if there are downstream services offline, we can always create a schema, and only on execution might there be errors for affected parts of the schema. This really makes a federated schema more resilient.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="97637652600427790000"
+              data-toaster-id="21304201073422900000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2155,7 +2155,7 @@ support.</p>
               onClick="copyToClipboard(`services
     .AddGraphQLServer()
     .AddQueryType(d => d.Name(&quot;Query&quot;))
-    .AddRemoteSchemasFromRedis(&quot;Demo&quot;, sp => sp.GetRequiredService<ConnectionMultiplexer>());`, `97637652600427790000`)"
+    .AddRemoteSchemasFromRedis(&quot;Demo&quot;, sp => sp.GetRequiredService<ConnectionMultiplexer>());`, `21304201073422900000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2176,7 +2176,7 @@ support.</p>
 <p>Also, it allows you to modify the underlying type definitions rather than being constrained by the fluent API. These extension APIs are not meant for the standard developer creating a schema but for people who want to write powerful, reusable components like <code class="language-text">HotChocolate.Data</code>. We also rewrote a lot of our core components to use this new API, like the introspection.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="31465181553051623000"
+              data-toaster-id="57966649588575740000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2207,7 +2207,7 @@ internal sealed class IntrospectionTypeInterceptor : TypeInterceptor
             objectTypeDefinition.Fields.Insert(position, CreateTypeNameField(context));
         }
     }
-}`, `31465181553051623000`)"
+}`, `57966649588575740000`)"
             >
               <div
                 class="gatsby-code-button"
