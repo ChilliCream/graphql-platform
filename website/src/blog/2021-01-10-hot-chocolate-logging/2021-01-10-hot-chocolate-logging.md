@@ -177,9 +177,11 @@ and you can drill down on each one and see the actual query as well as the passe
 
 # Wrap
 
+alsdfjals; ldasf l;kads fjl;as
 <hr/><hr/>
 # BIO PIECE LIKE TELERIK BLOG
 
+![bio](replace-bio-impage-with-markup-doing-same-like-telerik-blog.png)
 <hr/><hr/>
 # BOTTOM PIECE? 
 
