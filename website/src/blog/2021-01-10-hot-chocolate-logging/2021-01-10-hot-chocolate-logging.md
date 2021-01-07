@@ -9,4 +9,4 @@ authorUrl: https://github.com/pkellner
 authorImageUrl: https://avatars3.githubusercontent.com/u/241170?s=60&v=4
 ---
 
-Today we ... more to come
+Today we ... more to come ...
