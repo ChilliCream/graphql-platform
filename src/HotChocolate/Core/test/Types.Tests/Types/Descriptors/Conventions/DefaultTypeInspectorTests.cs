@@ -609,8 +609,6 @@ namespace HotChocolate.Types.Descriptors
             // act
             var members = typeInspector.GetMembers(typeof(DoNotInfer)).ToList();
 
-            var x = members.Select(t => t.Name).ToList();
-
             // assert
             Assert.Collection(
                 members.OrderBy(t => t.Name),

@@ -23,13 +23,9 @@ namespace HotChocolate.Types.Descriptors
         private const string _equals = "Equals";
         private const string _clone = "<Clone>$";
 
-        private readonly TypeCache _typeCache = new TypeCache();
-
-        private readonly Dictionary<MemberInfo, ExtendedMethodInfo> _methods =
-            new Dictionary<MemberInfo, ExtendedMethodInfo>();
-
-        private readonly Dictionary<Type, bool> _records =
-            new Dictionary<Type, bool>();
+        private readonly TypeCache _typeCache = new();
+        private readonly Dictionary<MemberInfo, ExtendedMethodInfo> _methods = new();
+        private readonly Dictionary<Type, bool> _records = new();
 
         public DefaultTypeInspector(bool ignoreRequiredAttribute = false)
         {
