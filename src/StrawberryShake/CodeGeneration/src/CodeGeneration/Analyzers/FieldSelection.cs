@@ -10,7 +10,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             IOutputField field, 
             FieldNode syntaxNode, 
             Path path,
-            bool isConditional)
+            bool isConditional = true)
         {
             ResponseName = syntaxNode.Alias?.Value ?? syntaxNode.Name.Value;
             Field = field;

@@ -93,6 +93,7 @@ namespace StrawberryShake.Integration
                 }
 
                 entity.Friends = friends;
+
                 return entityId;
             }
 

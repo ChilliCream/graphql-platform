@@ -6,6 +6,7 @@ using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
+using IHasDirectives = HotChocolate.Language.IHasDirectives;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
 {
@@ -170,15 +171,25 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
             if (type.Fields.TryGetField(fieldName, out IOutputField? field))
             {
-                if (fields.TryGetValue(responseName, out FieldSelection? fieldSelection) &&
-                    fieldSelection.IsConditional)
+                if (fields.TryGetValue(responseName, out FieldSelection? fieldSelection))
                 {
-                    // TODO : if skip and include is detected make it conditional
+                    if (fieldSelection.IsConditional && !IsConditional(fieldSyntax))
+                    {
+                        fieldSelection = new FieldSelection(
+                            field,
+                            fieldSyntax,
+                            path.Append(responseName));
+                        fields[responseName] = fieldSelection;
+                    }
                 }
                 else
                 {
-                    // TODO : Check for skip and include
-                    fields.Add(responseName, new FieldSelection(field, fieldSyntax, path, false));
+                    fieldSelection = new FieldSelection(
+                        field,
+                        fieldSyntax,
+                        path.Append(responseName),
+                        IsConditional(fieldSyntax));
+                    fields.Add(responseName, fieldSelection);
                 }
             }
             else
@@ -188,6 +199,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     $"Field `{fieldName}` does not exist in type `{type.Name}`.");
             }
         }
+
+        private static bool IsConditional(IHasDirectives hasDirectives) => false;
 
         private void ResolveFragmentSpread(
             FragmentSpreadNode fragmentSpreadSyntax,
