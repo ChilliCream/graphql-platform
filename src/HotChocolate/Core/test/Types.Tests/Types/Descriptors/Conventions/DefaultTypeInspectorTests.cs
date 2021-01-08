@@ -770,7 +770,7 @@ namespace HotChocolate.Types.Descriptors
 
             public async void GetAsyncVoid() { }
 
-#if !NETSTANDARD2_0
+#if !NETCOREAPP2_1
             public string RefStruct(ReadOnlySpan<byte> bytes) => "";
 #endif
 
