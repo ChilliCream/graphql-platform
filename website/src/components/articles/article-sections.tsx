@@ -4,7 +4,7 @@ import { useDispatch } from "react-redux";
 import styled from "styled-components";
 import { ArticleSectionsFragment } from "../../../graphql-types";
 import { closeAside } from "../../state/common";
-import { MostProminentSection } from "./doc-page-elements";
+import { MostProminentSection } from "../doc-page/doc-page-elements";
 
 interface ArticleSectionsProperties {
   data: ArticleSectionsFragment;

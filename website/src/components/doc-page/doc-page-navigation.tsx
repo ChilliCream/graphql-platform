@@ -17,19 +17,17 @@ import {
   toggleTOC,
 } from "../../state/common";
 import {
-  BodyStyle,
-  FixedContainer,
+  DocPageStickySideBarStyle,
   MostProminentSection,
-  Navigation,
 } from "./doc-page-elements";
 import { DocPagePaneHeader } from "./doc-page-pane-header";
-import { IconContainer } from "./icon-container";
-import { Link } from "./link";
-import { useStickyElement } from "./useStickyElement";
+import { IconContainer } from "../misc/icon-container";
+import { Link } from "../misc/link";
 
 import ArrowDownIconSvg from "../../images/arrow-down.svg";
 import ArrowUpIconSvg from "../../images/arrow-up.svg";
 import ProductSwitcherIconSvg from "../../images/th-large.svg";
+import { BoxShadow, IsTablet } from "./shared-style";
 
 interface DocPageNavigationProperties {
   data: DocPageNavigationFragment;
@@ -44,10 +42,6 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
   selectedProduct,
   selectedVersion,
 }) => {
-  const { containerRef, elementRef } = useStickyElement<
-    HTMLElement,
-    HTMLDivElement
-  >(1050);
   const expandedPaths = useSelector<State, string[]>(
     (state) => state.common.expandedPaths
   );
@@ -184,103 +178,99 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
     }
   }, [activeProduct, selectedPath, selectedProduct]);
 
+  const height = useSelector<State, string>((state) => {
+    return state.common.articleViewportHeight;
+  });
+
   return (
-    <Navigation ref={containerRef}>
-      <BodyStyle disableScrolling={showTOC} />
-      <FixedContainer ref={elementRef} className={showTOC ? "show" : ""}>
-        <DocPagePaneHeader
-          title="Table of contents"
-          showWhenScreenWidthIsSmallerThan={1050}
-          onClose={handleCloseTOC}
-        />
-        <ProductSwitcher>
-          <ProductSwitcherButton
-            onClick={(e) => handleToggleClick(e, productSwitcherOpen)}
-          >
-            {activeProduct?.title}
-            <IconContainer size={16}>
-              <ProductSwitcherIconSvg />
-            </IconContainer>
-          </ProductSwitcherButton>
-          <ProductSwitcherDialog
-            open={productSwitcherOpen}
-            onClick={handleClickDialog}
-          >
-            {data.config?.products?.map((product) =>
-              product === activeProduct ? (
-                <ActiveProduct key={product!.path!} onClick={handleCloseClick}>
-                  <ProductTitle>{product!.title!}</ProductTitle>
-                  <ProductDescription>
-                    {product!.description!}
-                  </ProductDescription>
-                </ActiveProduct>
-              ) : (
-                <ProductLink
-                  key={product!.path!}
-                  to={
-                    product!.versions![0]!.path! === ""
-                      ? `/docs/${product!.path!}/`
-                      : `/docs/${product!.path!}/${product!.versions![0]!
-                          .path!}/`
-                  }
-                >
-                  <ProductTitle>{product!.title!}</ProductTitle>
-                  <ProductDescription>
-                    {product!.description!}
-                  </ProductDescription>
-                </ProductLink>
-              )
-            )}
-          </ProductSwitcherDialog>
-        </ProductSwitcher>
-        {!productSwitcherOpen && activeProduct!.versions!.length > 1 && (
-          <ProductVersions>
-            {activeProduct!.versions!.map((version, index) => (
-              <ProductVersion
-                key={version!.path! + index}
-                className={
-                  activeVersion!.path! === version!.path! ? "active" : undefined
+    <Navigation calculatedHeight={height} className={showTOC ? "show" : ""}>
+      <DocPagePaneHeader
+        title="Table of contents"
+        showWhenScreenWidthIsSmallerThan={1111}
+        onClose={handleCloseTOC}
+      />
+      <ProductSwitcher>
+        <ProductSwitcherButton
+          onClick={(e) => handleToggleClick(e, productSwitcherOpen)}
+        >
+          {activeProduct?.title}
+          <IconContainer size={16}>
+            <ProductSwitcherIconSvg />
+          </IconContainer>
+        </ProductSwitcherButton>
+        <ProductSwitcherDialog
+          open={productSwitcherOpen}
+          onClick={handleClickDialog}
+        >
+          {data.config?.products?.map((product) =>
+            product === activeProduct ? (
+              <ActiveProduct key={product!.path!} onClick={handleCloseClick}>
+                <ProductTitle>{product!.title!}</ProductTitle>
+                <ProductDescription>{product!.description!}</ProductDescription>
+              </ActiveProduct>
+            ) : (
+              <ProductLink
+                key={product!.path!}
+                to={
+                  product!.versions![0]!.path! === ""
+                    ? `/docs/${product!.path!}/`
+                    : `/docs/${product!.path!}/${product!.versions![0]!.path!}/`
                 }
               >
-                <ProductVersionLink
-                  to={
-                    version!.path! === ""
-                      ? `/docs/${activeProduct!.path!}/`
-                      : `/docs/${activeProduct!.path!}/${version!.path!}/`
-                  }
-                >
-                  {version!.title}
-                </ProductVersionLink>
-              </ProductVersion>
-            ))}
-          </ProductVersions>
-        )}
-        {!productSwitcherOpen && activeVersion?.items && (
-          <MostProminentSection>
-            {buildNavigationStructure(
-              activeVersion.items
-                .filter((item) => !!item)
-                .map<Item>((item) => ({
-                  path: item!.path!,
-                  title: item!.title!,
-                  items: item!.items
-                    ? item?.items
-                        .filter((item) => !!item)
-                        .map<Item>((item) => ({
-                          path: item!.path!,
-                          title: item!.title!,
-                        }))
-                    : undefined,
-                })),
-              `/docs/${activeProduct!.path!}${
-                activeVersion?.path?.length && activeVersion.path.length > 0
-                  ? "/" + activeVersion.path!
-                  : ""
-              }`
-            )}
-          </MostProminentSection>
-        )}
-      </FixedContainer>
+                <ProductTitle>{product!.title!}</ProductTitle>
+                <ProductDescription>{product!.description!}</ProductDescription>
+              </ProductLink>
+            )
+          )}
+        </ProductSwitcherDialog>
+      </ProductSwitcher>
+      {!productSwitcherOpen && activeProduct!.versions!.length > 1 && (
+        <ProductVersions>
+          {activeProduct!.versions!.map((version, index) => (
+            <ProductVersion
+              key={version!.path! + index}
+              className={
+                activeVersion!.path! === version!.path! ? "active" : undefined
+              }
+            >
+              <ProductVersionLink
+                to={
+                  version!.path! === ""
+                    ? `/docs/${activeProduct!.path!}/`
+                    : `/docs/${activeProduct!.path!}/${version!.path!}/`
+                }
+              >
+                {version!.title}
+              </ProductVersionLink>
+            </ProductVersion>
+          ))}
+        </ProductVersions>
+      )}
+      {!productSwitcherOpen && activeVersion?.items && (
+        <MostProminentSection>
+          {buildNavigationStructure(
+            activeVersion.items
+              .filter((item) => !!item)
+              .map<Item>((item) => ({
+                path: item!.path!,
+                title: item!.title!,
+                items: item!.items
+                  ? item?.items
+                      .filter((item) => !!item)
+                      .map<Item>((item) => ({
+                        path: item!.path!,
+                        title: item!.title!,
+                      }))
+                  : undefined,
+              })),
+            `/docs/${activeProduct!.path!}${
+              activeVersion?.path?.length && activeVersion.path.length > 0
+                ? "/" + activeVersion.path!
+                : ""
+            }`
+          )}
+        </MostProminentSection>
+      )}
     </Navigation>
   );
 };
@@ -327,6 +317,27 @@ interface Item {
   title: string;
   items?: Item[];
 }
+
+export const Navigation = styled.nav<{ calculatedHeight: string }>`
+  ${DocPageStickySideBarStyle}
+  padding: 25px 0 0;
+  transition: margin-left 250ms;
+  background-color: white;
+
+  &.show {
+    margin-left: 0;
+  }
+
+  ${({ calculatedHeight }) =>
+    IsTablet(`
+      margin-left: -105%;
+      height: ${calculatedHeight};
+      position: fixed;
+      top: 60px;
+      left: 0;
+      ${BoxShadow}
+    `)}
+`;
 
 const ProductSwitcher = styled.div`
   display: flex;
@@ -382,9 +393,9 @@ const ProductSwitcherDialog = styled.div<{ open: boolean }>`
   background-color: #fff;
 
   @media only screen and (min-width: 1070px) {
+    top: 135px;
     position: fixed;
     z-index: 10;
-    top: 150px;
     flex-direction: row;
     flex-wrap: wrap;
     margin: 0 14px;

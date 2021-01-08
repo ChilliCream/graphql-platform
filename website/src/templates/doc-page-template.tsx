@@ -3,7 +3,7 @@ import React, { FunctionComponent } from "react";
 import { DocPageFragment } from "../../graphql-types";
 import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
-import { DocPage } from "../components/widgets/doc-page";
+import { DocPage } from "../components/doc-page/doc-page";
 
 interface DocPageTemplateProperties {
   data: DocPageFragment;

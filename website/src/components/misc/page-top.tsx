@@ -1,28 +1,35 @@
-import React, { createRef, FunctionComponent, useCallback } from "react";
+import React, { createRef, FunctionComponent } from "react";
 import styled from "styled-components";
-import { useScroll } from "./useScroll";
 
 import ArrowUpIconSvg from "../../images/arrow-up.svg";
+import { useSelector } from "react-redux";
+import { State } from "../../state";
 
-export const PageTop: FunctionComponent = () => {
+export const PageTop: FunctionComponent<{ onTopScroll: () => void }> = ({
+  onTopScroll,
+}) => {
   const ref = createRef<HTMLButtonElement>();
-
-  const handleClick = useCallback(() => {
-    window.scrollTo(0, 0);
-  }, []);
-
-  useScroll((top) => {
-    ref.current!.style.display = top > 60 ? "initial" : "none";
-  });
+  const showButton = useSelector<State, boolean>(
+    (state) => state.common.yScrollPosition > 60
+  );
 
   return (
-    <JumpToTop ref={ref} onClick={handleClick}>
+    <JumpToTop
+      className={showButton ? "show" : ""}
+      ref={ref}
+      onClick={onTopScroll}
+    >
       <ArrowUpIconSvg />
     </JumpToTop>
   );
 };
 
 const JumpToTop = styled.button`
+  display: none;
+  &.show {
+    display: initial;
+  }
+
   position: fixed;
   right: 50px;
   bottom: 50px;
