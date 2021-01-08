@@ -1,10 +1,8 @@
-import React, {FunctionComponent} from 'react';
-import styled from 'styled-components';
+import React, { FunctionComponent } from "react";
+import styled from "styled-components";
 
 export const ContentComponent: FunctionComponent = ({ children }) => {
-  return (
-      <Content>{children}</Content>
-  );
+  return <Content>{children}</Content>;
 };
 
 const Content = styled.main`

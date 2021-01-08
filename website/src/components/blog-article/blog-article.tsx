@@ -12,8 +12,8 @@ import {
 import { BlogArticleMetadata } from "./blog-article-metadata";
 import { BlogArticleSharebar } from "./blog-article-sharebar";
 import { BlogArticleTags } from "./blog-article-tags";
-import {IsTablet} from '../doc-page/shared-style';
-import {Article} from '../articles/article';
+import { IsTablet } from "../doc-page/shared-style";
+import { Article } from "../articles/article";
 
 interface BlogArticleProperties {
   data: BlogArticleFragment;

@@ -36,6 +36,10 @@ export const toggleNavigationGroup = createAction<{ readonly path: string }>(
   "[Common] Toggle navigation group"
 );
 
-export const hasScrolled = createAction<{readonly yScrollPosition: number}>("[Common] The main view container has scrolled");
+export const hasScrolled = createAction<{ readonly yScrollPosition: number }>(
+  "[Common] The main view container has scrolled"
+);
 
-export const setArticleHeight = createAction<{readonly articleHeight: string}>("[Common] The height of the lastly displayed article.");
+export const setArticleHeight = createAction<{
+  readonly articleHeight: string;
+}>("[Common] The height of the lastly displayed article.");

@@ -16,8 +16,10 @@ const BlogArticleTemplate: FunctionComponent<BlogArticleTemplateProperties> = ({
     <Layout>
       <SEO
         description={data.markdownRemark!.excerpt || undefined}
-        imageUrl={data.markdownRemark!.frontmatter!.featuredImage
-          ?.childImageSharp!.fluid!.src}
+        imageUrl={
+          data.markdownRemark!.frontmatter!.featuredImage?.childImageSharp!
+            .fluid!.src
+        }
         isArticle
         title={data.markdownRemark!.frontmatter!.title!}
       />

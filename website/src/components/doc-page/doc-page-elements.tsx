@@ -1,9 +1,7 @@
-import styled, {createGlobalStyle} from "styled-components";
-import {IsMobile, IsTablet} from './shared-style';
+import styled, { createGlobalStyle } from "styled-components";
+import { IsMobile, IsTablet } from "./shared-style";
 
-export const MostProminentSection = styled.div`
-
-`;
+export const MostProminentSection = styled.div``;
 
 export const DocPageStickySideBarStyle = `
   max-height: 90vh;
@@ -23,7 +21,6 @@ export const DocPageStickySideBarStyle = `
     width: 100%;
   `)}
 `;
-
 
 export const BodyStyle = createGlobalStyle<{ disableScrolling: boolean }>`
   body {

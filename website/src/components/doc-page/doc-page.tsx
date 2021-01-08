@@ -1,23 +1,36 @@
-import {graphql} from "gatsby";
-import React, {FunctionComponent, useCallback} from "react";
-import {useDispatch, useSelector} from "react-redux";
+import { graphql } from "gatsby";
+import React, { FunctionComponent, useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
-import {DocPageFragment} from "../../../graphql-types";
-import {toggleAside, toggleTOC} from "../../state/common";
-import {ArticleComments} from "../articles/article-comments";
-import {ArticleContent, ArticleHeader, ArticleTitle} from "../articles/article-elements";
-import {ArticleSections} from "../articles/article-sections";
-import {Aside, DocPageAside} from "./doc-page-aside";
-import {DocPageCommunity} from "./doc-page-community";
-import {DocPageLegacy} from "./doc-page-legacy";
-import {DocPageNavigation, Navigation} from "./doc-page-navigation";
+import { DocPageFragment } from "../../../graphql-types";
+import { toggleAside, toggleTOC } from "../../state/common";
+import { ArticleComments } from "../articles/article-comments";
+import {
+  ArticleContent,
+  ArticleHeader,
+  ArticleTitle,
+} from "../articles/article-elements";
+import { ArticleSections } from "../articles/article-sections";
+import { Aside, DocPageAside } from "./doc-page-aside";
+import { DocPageCommunity } from "./doc-page-community";
+import { DocPageLegacy } from "./doc-page-legacy";
+import { DocPageNavigation, Navigation } from "./doc-page-navigation";
 
 import ListAltIconSvg from "../../images/list-alt.svg";
 import NewspaperIconSvg from "../../images/newspaper.svg";
-import {DocPageDesktopGridColumns, IsDesktop, IsPhablet, IsSmallDesktop, IsTablet} from './shared-style';
-import {Article} from '../articles/article';
-import {ArticleWrapper, ArticleWrapperElement} from './doc-page-article-wrapper';
-import {State} from '../../state';
+import {
+  DocPageDesktopGridColumns,
+  IsDesktop,
+  IsPhablet,
+  IsSmallDesktop,
+  IsTablet,
+} from "./shared-style";
+import { Article } from "../articles/article";
+import {
+  ArticleWrapper,
+  ArticleWrapperElement,
+} from "./doc-page-article-wrapper";
+import { State } from "../../state";
 
 interface DocPageProperties {
   data: DocPageFragment;
@@ -25,11 +38,11 @@ interface DocPageProperties {
 }
 
 export const DocPage: FunctionComponent<DocPageProperties> = ({
-                                                                data,
-                                                                originPath,
-                                                              }) => {
+  data,
+  originPath,
+}) => {
   const dispatch = useDispatch();
-  const {fields, frontmatter, html} = data.file!.childMarkdownRemark!;
+  const { fields, frontmatter, html } = data.file!.childMarkdownRemark!;
   const slug = fields!.slug!.substring(1);
   const path = `/docs/${slug}`;
   const productAndVersionPattern = /^([\w-]*?)\/(v\d+)?/g;
@@ -39,7 +52,7 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
   const title = frontmatter!.title!;
 
   const hasScrolled = useSelector<State, boolean>((state) => {
-      return state.common.yScrollPosition > 10;
+    return state.common.yScrollPosition > 10;
   });
 
   const handleToggleTOC = useCallback(() => {
@@ -61,29 +74,31 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
       <ArticleWrapper>
         <ArticleContainer>
           <Article>
-            {false && <DocPageLegacy/>}
+            {false && <DocPageLegacy />}
             <ArticleHeader>
               <ResponsiveMenuWrapper>
-                <ResponsiveMenuBackground hasScrolled={hasScrolled}></ResponsiveMenuBackground>
+                <ResponsiveMenuBackground
+                  hasScrolled={hasScrolled}
+                ></ResponsiveMenuBackground>
                 <ResponsiveMenu hasScrolled={hasScrolled}>
                   <Button onClick={handleToggleTOC} className="toc-toggle">
-                    <ListAltIconSvg/> Table of contents
+                    <ListAltIconSvg /> Table of contents
                   </Button>
                   <Button onClick={handleToggleAside} className="aside-toggle">
-                    <NewspaperIconSvg/> About this article
+                    <NewspaperIconSvg /> About this article
                   </Button>
                 </ResponsiveMenu>
               </ResponsiveMenuWrapper>
               <ArticleTitle>{title}</ArticleTitle>
             </ArticleHeader>
-            <ArticleContent dangerouslySetInnerHTML={{__html: html!}}/>
+            <ArticleContent dangerouslySetInnerHTML={{ __html: html! }} />
           </Article>
-          {false && <ArticleComments data={data} path={path} title={title}/>}
+          {false && <ArticleComments data={data} path={path} title={title} />}
         </ArticleContainer>
       </ArticleWrapper>
       <DocPageAside>
-        <DocPageCommunity data={data} originPath={originPath}/>
-        <ArticleSections data={data.file!.childMarkdownRemark!}/>
+        <DocPageCommunity data={data} originPath={originPath} />
+        <ArticleSections data={data.file!.childMarkdownRemark!} />
       </DocPageAside>
     </Container>
   );
@@ -187,13 +202,17 @@ const ResponsiveMenu = styled.div<{ hasScrolled: boolean }>`
   position: fixed;
   transition: all 100ms linear 0s;
   top: 100px;
-  ${(state => state.hasScrolled ? 'top: 60px;' : '')}
+  ${(state) => (state.hasScrolled ? "top: 60px;" : "")}
   box-sizing: border-box;
   z-index: 3;
   display: flex;
   flex-direction: row;
   align-items: center;
-  background: linear-gradient(180deg, #ffffff 30%, rgba(255, 255, 255, 0.75) 100%);
+  background: linear-gradient(
+    180deg,
+    #ffffff 30%,
+    rgba(255, 255, 255, 0.75) 100%
+  );
 
   width: 800px;
   margin-left: auto;
@@ -227,13 +246,17 @@ const ResponsiveMenu = styled.div<{ hasScrolled: boolean }>`
 `;
 
 const ResponsiveMenuBackground = styled.div<{ hasScrolled: boolean }>`
-  display: ${(state => state.hasScrolled ? 'initial': 'none')};
+  display: ${(state) => (state.hasScrolled ? "initial" : "none")};
   position: fixed;
   height: 60px;
   top: 60px;
   box-sizing: border-box;
   z-index: 2;
-  background: linear-gradient(180deg, #ffffff 30%, rgba(255, 255, 255, 0.75) 100%);
+  background: linear-gradient(
+    180deg,
+    #ffffff 30%,
+    rgba(255, 255, 255, 0.75) 100%
+  );
 
   width: 800px;
   margin-left: auto;

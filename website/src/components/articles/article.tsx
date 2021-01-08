@@ -1,10 +1,8 @@
-import styled from 'styled-components';
-import React, {FunctionComponent} from 'react';
+import styled from "styled-components";
+import React, { FunctionComponent } from "react";
 
-export const Article: FunctionComponent = ({children}) => {
-  return (
-    <ArticleElement>{children}</ArticleElement>
-  );
+export const Article: FunctionComponent = ({ children }) => {
+  return <ArticleElement>{children}</ArticleElement>;
 };
 
 const ArticleElement = styled.article`

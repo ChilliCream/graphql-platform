@@ -13,11 +13,13 @@ import LogoTextSvg from "../../images/chillicream-text.svg";
 import SlackIconSvg from "../../images/slack.svg";
 import TimesIconSvg from "../../images/times.svg";
 import TwitterIconSvg from "../../images/twitter.svg";
-import {useSelector} from 'react-redux';
-import {State} from '../../state';
+import { useSelector } from "react-redux";
+import { State } from "../../state";
 
 export const Header: FunctionComponent = () => {
-  const showShadow = useSelector<State, boolean>((state) => state.common.yScrollPosition > 0);
+  const showShadow = useSelector<State, boolean>(
+    (state) => state.common.yScrollPosition > 0
+  );
 
   const [topNavOpen, setTopNavOpen] = useState<boolean>(false);
   const data = useStaticQuery<GetHeaderDataQuery>(graphql`

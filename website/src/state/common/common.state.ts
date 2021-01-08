@@ -17,5 +17,5 @@ export const initialState: CommonState = {
   showTOC: false,
   showLegacyDocInfo: false,
   yScrollPosition: 0,
-  articleViewportHeight: '94vh'
+  articleViewportHeight: "94vh",
 };

@@ -1,10 +1,10 @@
-import React, {FunctionComponent, useEffect, useRef} from "react";
+import React, { FunctionComponent, useEffect, useRef } from "react";
 import styled from "styled-components";
-import {Footer} from "./footer";
-import {PageTop} from "../../misc/page-top";
-import {useDispatch} from 'react-redux';
-import {hasScrolled} from '../../../state/common';
-import {ContentComponent} from './content';
+import { Footer } from "./footer";
+import { PageTop } from "../../misc/page-top";
+import { useDispatch } from "react-redux";
+import { hasScrolled } from "../../../state/common";
+import { ContentComponent } from "./content";
 
 export const MainContentContainer: FunctionComponent = ({ children }) => {
   const ref = useRef<HTMLDivElement>(null);
@@ -13,7 +13,7 @@ export const MainContentContainer: FunctionComponent = ({ children }) => {
   const handleScroll = () => {
     const top = ref.current?.scrollTop || 0;
     dispatch(hasScrolled({ yScrollPosition: top }));
-  }
+  };
 
   useEffect(() => {
     ref.current?.addEventListener("scroll", handleScroll);
@@ -38,16 +38,16 @@ export const MainContentContainer: FunctionComponent = ({ children }) => {
   const scrollToTop = () => {
     ref.current?.scrollTo({
       top: 0,
-      behavior: 'smooth'
-    })
-  }
+      behavior: "smooth",
+    });
+  };
 
   return (
-      <MainContentWrapper ref={ref}>
-        <ContentComponent>{children}</ContentComponent>
-        <Footer />
-        <PageTop onTopScroll={scrollToTop} />
-      </MainContentWrapper>
+    <MainContentWrapper ref={ref}>
+      <ContentComponent>{children}</ContentComponent>
+      <Footer />
+      <PageTop onTopScroll={scrollToTop} />
+    </MainContentWrapper>
   );
 };
 

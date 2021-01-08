@@ -1,8 +1,8 @@
-import React, {FunctionComponent, useEffect} from "react";
-import {GlobalStyle} from "../misc/global-style";
-import {Header} from "./header";
-import {CookieConsent} from "../misc/cookie-consent";
-import {MainContentContainer} from './main-content-container/main-content-container';
+import React, { FunctionComponent, useEffect } from "react";
+import { GlobalStyle } from "../misc/global-style";
+import { Header } from "./header";
+import { CookieConsent } from "../misc/cookie-consent";
+import { MainContentContainer } from "./main-content-container/main-content-container";
 
 export const Layout: FunctionComponent = ({ children }) => {
   useEffect(() => {
