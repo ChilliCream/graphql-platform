@@ -1,0 +1,28 @@
+﻿namespace FooBarNamespace
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class 
+        : IOperationResultBuilder<JsonElement, GetHeroResult>
+    {
+        private readonly IEntityStore _entityStore;
+        private readonly Func<JsonElement, EntityId> _entityStore;
+        private readonly IOperationResultDataFactory<GetHeroResult> _resultDataFactory;
+        private readonly ILeafValueParser<string, string> _(string, string)Parser;
+
+        public (
+            IEntityStore entityStore,
+            Func<JsonElement, EntityId> entityStore,
+            IOperationResultDataFactory<GetHeroResult> resultDataFactory,
+            ILeafValueParser<string, string> (string, string)Parser)
+        {
+            _entityStore = entityStore
+                 ?? throw new ArgumentNullException(nameof(entityStore));
+            _entityStore = entityStore
+                 ?? throw new ArgumentNullException(nameof(entityStore));
+            _resultDataFactory = resultDataFactory
+                 ?? throw new ArgumentNullException(nameof(resultDataFactory));
+            _(string, string)Parser = (string, string)Parser
+                 ?? throw new ArgumentNullException(nameof((string, string)Parser));
+        }
+    }
+}

@@ -11,15 +11,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         protected override Task WriteAsync(CodeWriter writer, TypeDescriptor typeDescriptor)
         {
-            if (writer is null)
-            {
-                throw new ArgumentNullException(nameof(writer));
-            }
-
-            if (typeDescriptor is null)
-            {
-                throw new ArgumentNullException(nameof(typeDescriptor));
-            }
+            AssertNonNull(writer, typeDescriptor);
 
             ClassBuilder
                 .SetName(NamingConventions.ResultFactoryNameFromTypeName(typeDescriptor.Name))
@@ -29,7 +21,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetTypeName(typeDescriptor.Name)
                 .SetAccessModifier(AccessModifier.Public);
 
-            ConstructorAssignedField(
+            AddConstructorAssignedField(
                 WellKnownNames.IEntityStore,
                 StoreParamName
             );
@@ -47,7 +39,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .AddGeneric(NamingConventions.EntityTypeNameFromTypeName(mapperType))
                     .AddGeneric(mapperType);
 
-                ConstructorAssignedField(
+                AddConstructorAssignedField(
                     typeName,
                     NamingConventions.MapperNameFromTypeName(mapperType).ToFieldName()
                 );

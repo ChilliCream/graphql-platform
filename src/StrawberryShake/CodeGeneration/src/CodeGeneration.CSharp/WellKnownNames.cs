@@ -8,6 +8,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
         public const string IOperationResult  = "IOperationResult";
         public const string IOperationResultDataFactory  = "IOperationResultDataFactory";
         public const string IOperationResultDataInfo  = "IOperationResultDataInfo";
+        public const string IOperationResultBuilder  = "IOperationResultBuilder";
+        public const string ILeafValueParser  = "ILeafValueParser";
         public const string IEntityMapper  = "IEntityMapper";
 
         public const string EntityId = "EntityId";

@@ -11,25 +11,18 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         protected override Task WriteAsync(CodeWriter writer, OperationDescriptor operationDescriptor)
         {
-            if (writer is null)
-            {
-                throw new ArgumentNullException(nameof(writer));
-            }
+            AssertNonNull(writer, operationDescriptor);
 
-            if (operationDescriptor is null)
-            {
-                throw new ArgumentNullException(nameof(operationDescriptor));
-            }
 
             ClassBuilder.SetName(operationDescriptor.Name);
             ConstructorBuilder.SetTypeName(operationDescriptor.Name);
 
-            ConstructorAssignedField(
+            AddConstructorAssignedField(
                 WellKnownNames.IOperationStore,
                 OperationStoreFieldName
             );
 
-            ConstructorAssignedField(
+            AddConstructorAssignedField(
                 TypeReferenceBuilder.New()
                     .SetName(WellKnownNames.IOperationExecutor)
                     .AddGeneric(operationDescriptor.ResultTypeReference.Name),

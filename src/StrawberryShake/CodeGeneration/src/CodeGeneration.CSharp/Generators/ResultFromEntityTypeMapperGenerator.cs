@@ -14,15 +14,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         protected override Task WriteAsync(CodeWriter writer, ResultFromEntityTypeMapperDescriptor descriptor)
         {
-            if (writer is null)
-            {
-                throw new ArgumentNullException(nameof(writer));
-            }
-
-            if (descriptor is null)
-            {
-                throw new ArgumentNullException(nameof(descriptor));
-            }
+            AssertNonNull(writer, descriptor);
 
             // Setup class
             ClassBuilder
@@ -31,7 +23,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             ConstructorBuilder.SetTypeName(descriptor.Name);
 
-            ConstructorAssignedField(
+            AddConstructorAssignedField(
                 WellKnownNames.IEntityStore,
                 StoreFieldName
             );
@@ -67,7 +59,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     {
                         mapperSet.Add(propertyMapperName);
 
-                        ConstructorAssignedField(
+                        AddConstructorAssignedField(
                             propertyMapperTypeName,
                             propertyMapperFieldName
                         );

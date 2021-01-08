@@ -5,19 +5,11 @@ using StrawberryShake.CodeGeneration.CSharp.Builders;
 namespace StrawberryShake.CodeGeneration.CSharp
 {
     public class EnumGenerator
-        : CodeGenerator<EnumDescriptor>
+        : CSharpBaseGenerator<EnumDescriptor>
     {
         protected override Task WriteAsync(CodeWriter writer, EnumDescriptor descriptor)
         {
-            if (writer is null)
-            {
-                throw new ArgumentNullException(nameof(writer));
-            }
-
-            if (descriptor is null)
-            {
-                throw new ArgumentNullException(nameof(descriptor));
-            }
+            AssertNonNull(writer, descriptor);
 
             EnumBuilder enumBuilder = EnumBuilder.New()
                 .SetName(descriptor.Name);

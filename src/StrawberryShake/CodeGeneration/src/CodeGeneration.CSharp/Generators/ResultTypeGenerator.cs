@@ -5,19 +5,11 @@ using StrawberryShake.CodeGeneration.CSharp.Extensions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public class ResultTypeGenerator: CodeGenerator<TypeDescriptor>
+    public class ResultTypeGenerator: CSharpBaseGenerator<TypeDescriptor>
     {
         protected override Task WriteAsync(CodeWriter writer, TypeDescriptor typeDescriptor)
         {
-            if (writer is null)
-            {
-                throw new ArgumentNullException(nameof(writer));
-            }
-
-            if (typeDescriptor is null)
-            {
-                throw new ArgumentNullException(nameof(typeDescriptor));
-            }
+            AssertNonNull(writer, typeDescriptor);
 
             ClassBuilder classBuilder = ClassBuilder.New()
                 .SetName(typeDescriptor.Name);

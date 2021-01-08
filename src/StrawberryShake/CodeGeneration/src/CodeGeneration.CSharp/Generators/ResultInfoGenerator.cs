@@ -11,15 +11,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         protected override Task WriteAsync(CodeWriter writer, TypeDescriptor typeDescriptor)
         {
-            if (writer is null)
-            {
-                throw new ArgumentNullException(nameof(writer));
-            }
-
-            if (typeDescriptor is null)
-            {
-                throw new ArgumentNullException(nameof(typeDescriptor));
-            }
+            AssertNonNull(writer, typeDescriptor);
 
             var entityIdsTypeReference = TypeReferenceBuilder.New()
                 .SetListType(ListType.List)
