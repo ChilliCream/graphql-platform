@@ -125,6 +125,9 @@ namespace HotChocolate.Execution.Processing
         public ValueTask<T> ResolveAsync<T>() =>
             _middlewareContext.ResolveAsync<T>();
 
+        public void RegisterForCleanup(Action action) =>
+            _middlewareContext.RegisterForCleanup(action);
+
         public ValueKind ArgumentKind(NameString name) =>
             _middlewareContext.ArgumentKind(name);
 
