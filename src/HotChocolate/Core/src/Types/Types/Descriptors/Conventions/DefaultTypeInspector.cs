@@ -624,9 +624,9 @@ namespace HotChocolate.Types.Descriptors
                 return false;
             }
 
-            if (returnType == typeof(object)
-                 || returnType == typeof(Task<object>)
-                 || returnType == typeof(ValueTask<object>))
+            if (returnType == typeof(object) ||
+                returnType == typeof(Task<object>) ||
+                returnType == typeof(ValueTask<object>))
             {
                 return HasConfiguration(member);
             }
@@ -739,30 +739,15 @@ namespace HotChocolate.Types.Descriptors
             return true;
         }
 
-        private static bool TypeIsNotAllowed(Type type)
-        {
-            if (typeof(ICustomAttributeProvider).IsAssignableFrom(type))
-            {
-                return false;
-            }
-
-            if (type.IsByRef)
-            {
-                return false;
-            }
-
-            return true;
-        }
-
         private static bool HasConfiguration(ICustomAttributeProvider element)
         {
-            return element.IsDefined(typeof(GraphQLTypeAttribute), true)
-                || element.IsDefined(typeof(ParentAttribute), true)
-                || element.IsDefined(typeof(ServiceAttribute), true)
-                || element.IsDefined(typeof(GlobalStateAttribute), true)
-                || element.IsDefined(typeof(ScopedServiceAttribute), true)
-                || element.IsDefined(typeof(LocalStateAttribute), true)
-                || element.IsDefined(typeof(DescriptorAttribute), true);
+            return element.IsDefined(typeof(GraphQLTypeAttribute), true) ||
+                element.IsDefined(typeof(ParentAttribute), true) ||
+                element.IsDefined(typeof(ServiceAttribute), true) ||
+                element.IsDefined(typeof(GlobalStateAttribute), true) ||
+                element.IsDefined(typeof(ScopedServiceAttribute), true) ||
+                element.IsDefined(typeof(LocalStateAttribute), true) ||
+                element.IsDefined(typeof(DescriptorAttribute), true);
         }
 
         private static bool IsIgnored(MemberInfo member)
