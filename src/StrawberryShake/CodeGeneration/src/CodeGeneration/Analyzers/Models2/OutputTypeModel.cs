@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -12,16 +13,16 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models2
             bool isInterface,
             INamedType type,
             SelectionSetNode selectionSet,
-            IReadOnlyList<OutputTypeModel> types,
-            IReadOnlyList<OutputFieldModel> fields)
+            IReadOnlyList<OutputFieldModel> fields,
+            IReadOnlyList<OutputTypeModel>? implementations = null)
         {
             Name = name;
             Description = description;
             IsInterface = isInterface;
             Type = type;
             SelectionSet = selectionSet;
-            Types = types;
             Fields = fields;
+            Implementations = implementations ?? Array.Empty<OutputTypeModel>();
         }
 
         public string Name { get; }
@@ -34,7 +35,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models2
 
         public SelectionSetNode SelectionSet { get; }
 
-        public IReadOnlyList<OutputTypeModel> Types { get; }
+        public IReadOnlyList<OutputTypeModel> Implementations { get; }
 
         public IReadOnlyList<OutputFieldModel> Fields { get; }
     }

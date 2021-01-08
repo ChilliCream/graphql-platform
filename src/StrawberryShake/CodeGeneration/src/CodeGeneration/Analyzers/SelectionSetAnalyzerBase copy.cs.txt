@@ -5,7 +5,7 @@ using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
-using StrawberryShake.CodeGeneration.Analyzers.Models;
+using StrawberryShake.CodeGeneration.Analyzers.Models2;
 using StrawberryShake.CodeGeneration.Types;
 using StrawberryShake.CodeGeneration.Utilities;
 using StrawberryShake.CodeGeneration.Analyzers.Types;
@@ -14,17 +14,13 @@ using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
 {
-    internal abstract class SelectionSetAnalyzerBase<T>
-        where T : INamedType
+    internal abstract class SelectionSetAnalyzer2
     {
-        public abstract void Analyze(
-           IDocumentAnalyzerContext context,
-           OperationDefinitionNode operation,
-           FieldNode fieldSelection,
-           SelectionVariants selectionVariants,
-           IType fieldType,
-           T namedType,
-           Path path);
+        public abstract OutputTypeModel Analyze(
+           IDocumentAnalyzerContext2 context,
+           ISelectionSetVariants selectionVariants,
+           Path selectionPath,
+           IType fieldType);
 
         protected OutputTypeModel CreateInterfaceModel(
             IDocumentAnalyzerContext context,
@@ -196,19 +192,15 @@ namespace StrawberryShake.CodeGeneration.Analyzers
         }
 
         protected OutputTypeModel CreateClassModel(
-            IDocumentAnalyzerContext context,
-            IFragmentNode returnTypeFragment,
-            OutputTypeModel returnType,
-            Selection selection,
+            IDocumentAnalyzerContext2 context,
+            IFragment returnTypeFragment,
+            IFieldSelection fieldSelection,
             Path path)
         {
-            var fieldNames = new HashSet<string>(
-                selection.Fields.Select(t => GetPropertyName(t.ResponseName)));
-
-            string className = context.GetOrCreateName(
-                returnTypeFragment.Fragment.SelectionSet,
+            string className = context.ResolveTypeName(
                 GetClassName(returnTypeFragment.Name),
-                fieldNames);
+                returnTypeFragment.Fragment.SelectionSet,
+                path);
 
             var modelClass = new OutputTypeModel(
                 className,
@@ -216,14 +208,11 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 false,
                 returnTypeFragment.Fragment.TypeCondition,
                 returnTypeFragment.Fragment.SelectionSet,
-                new[] { returnType },
                 CreateFields(
                     (IComplexOutputType)returnTypeFragment.Fragment.TypeCondition,
                     selection.SelectionSet.Selections,
-                    n => true,
+                    _ => true,
                     path));
-
-            context.Register(modelClass);
 
             return modelClass;
         }

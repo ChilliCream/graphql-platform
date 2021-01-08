@@ -12,14 +12,18 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models2
             DocumentNode document,
             OperationDefinitionNode operation,
             IReadOnlyList<ArgumentModel> arguments,
-            IReadOnlyList<INamedType> leafTypes)
+            OutputTypeModel resultType,
+            IReadOnlyList<LeafTypeModel> leafTypes,
+            IReadOnlyList<InputObjectTypeModel> inputObjectTypes)
         {
             Name = name;
             Type = type;
             Document = document;
             Operation = operation;
             Arguments = arguments;
+            ResultType = resultType;
             LeafTypes = leafTypes;
+            InputObjectTypes = inputObjectTypes;
         }
 
         public string Name { get; }
@@ -32,9 +36,10 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models2
 
         public IReadOnlyList<ArgumentModel> Arguments { get; }
 
-        /// <summary>
-        /// Gets the leaf types that are used by this operation.
-        /// </summary>
-        public IReadOnlyList<INamedType> LeafTypes { get; }
+        public OutputTypeModel ResultType { get; }
+
+        public IReadOnlyList<LeafTypeModel> LeafTypes { get; }
+
+        public IReadOnlyList<InputObjectTypeModel> InputObjectTypes { get; }
     }
 }

@@ -1,0 +1,201 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using HotChocolate;
+using HotChocolate.Language;
+using HotChocolate.Types;
+using StrawberryShake.CodeGeneration.Analyzers.Models;
+using StrawberryShake.CodeGeneration.Types;
+using StrawberryShake.CodeGeneration.Utilities;
+using FieldSelection = StrawberryShake.CodeGeneration.Utilities.FieldSelection;
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
+
+namespace StrawberryShake.CodeGeneration.Analyzers
+{
+    public partial class DocumentAnalyzer2
+    {
+        // private static readonly UnionTypeSelectionSetAnalyzer _unionSelectionAnalyzer = new();
+        // private static readonly InterfaceTypeSelectionSetAnalyzer _interfaceSelectionAnalyzer = new();
+        // private static readonly ObjectTypeSelectionSetAnalyzer _objectSelectionAnalyzer = new();
+
+        private static void GetResultType(
+            IDocumentAnalyzerContext context,
+            DocumentNode document)
+        {
+            OperationDefinitionNode operation = document.Definitions.OfType<OperationDefinitionNode>().First();
+            ObjectType operationType = context.Schema.GetOperationType(operation.Operation);
+            NamePathSegment root = Path.New(operation.Name!.Value);
+            Queue<FieldSelection> backlog = new();
+
+            // VisitOperationSelectionSet(context, operation, operationType, root, backlog);
+
+            while (backlog.Any())
+            {
+                FieldSelection current = backlog.Dequeue();
+                Path path = current.Path.Append(current.ResponseName);
+
+                if (!current.Field.Type.NamedType().IsLeafType())
+                {
+                    VisitFieldSelectionSet(
+                        context, operation, current.FieldSyntax,
+                        current.Field.Type, path, backlog);
+                }
+            }
+
+            RegisterOperationModel(context, document, operation);
+        }
+
+        private static void VisitOperationSelectionSet(
+            IDocumentAnalyzerContext2 context,
+            Path selectionPath)
+        {
+            ISelectionSetVariants selectionSetVariants =
+                context.CollectFields(
+                    context.OperationDefinition.SelectionSet,
+                    context.OperationType,
+                    selectionPath);
+
+            EnqueueFields(context.Fields, selectionSetVariants.ReturnType.Fields, selectionPath);
+
+/*
+            _objectSelectionAnalyzer.Analyze(
+                context,
+                new FieldNode(
+                    null,
+                    new NameNode(context.OperationName),
+                    null,
+                    new[]
+                    {
+                        new DirectiveNode(
+                            GeneratorDirectives.Type,
+                            new ArgumentNode("name", context.OperationName)),
+                        new DirectiveNode(GeneratorDirectives.Operation)
+                    },
+                    Array.Empty<ArgumentNode>(),
+                    null),
+                selectionSetVariants,
+                selectionPath,
+                new NonNullType(context.OperationType));
+                */
+        }
+
+        private static void VisitFieldSelectionSet(
+            IDocumentAnalyzerContext context,
+            OperationDefinitionNode operation,
+            FieldNode fieldSelection,
+            IType fieldType,
+            Path path,
+            Queue<FieldSelection> backlog)
+        {
+            var namedType = (INamedOutputType)fieldType.NamedType();
+
+            SelectionVariants selectionVariants =
+                context.CollectFields(
+                    namedType,
+                    fieldSelection.SelectionSet!,
+                    path);
+
+            foreach (Selection selectionInfo in selectionVariants.Variants)
+            {
+                //EnqueueFields(backlog, selectionInfo.Fields, path);
+            }
+
+/*
+            if (namedType is UnionType unionType)
+            {
+                _unionSelectionAnalyzer.Analyze(
+                    context,
+                    operation,
+                    fieldSelection,
+                    selectionVariants,
+                    fieldType,
+                    unionType,
+                    path);
+            }
+            else if (namedType is InterfaceType interfaceType)
+            {
+                _interfaceSelectionAnalyzer.Analyze(
+                    context,
+                    operation,
+                    fieldSelection,
+                    selectionVariants,
+                    fieldType,
+                    interfaceType,
+                    path);
+            }
+            else if (namedType is ObjectType objectType)
+            {
+                _objectSelectionAnalyzer.Analyze(
+                    context,
+                    operation,
+                    fieldSelection,
+                    selectionVariants,
+                    fieldType,
+                    objectType,
+                    path);
+            }
+            */
+        }
+
+        private static void RegisterOperationModel(
+            IDocumentAnalyzerContext context,
+            DocumentNode document,
+            OperationDefinitionNode operationDefinition)
+        {
+            OutputTypeModel returnType =
+                context.Types.OfType<OutputTypeModel>()
+                    .First(t => t.SelectionSet == operationDefinition.SelectionSet && t.IsInterface);
+
+            var parser = new ParserModel(
+                context.GetOrCreateName(
+                    GetClassName(operationDefinition.Name!.Value, "ResultParser")),
+                operationDefinition,
+                returnType,
+                context.FieldParsers.Where(t => t.Operation == operationDefinition).ToList());
+
+            var operation = new OperationModel(
+                returnType.Name,
+                context.Schema.GetOperationType(operationDefinition.Operation),
+                document,
+                operationDefinition,
+                parser,
+                CreateOperationArguments(context, operationDefinition));
+
+            context.Register(operation);
+        }
+
+        private static IReadOnlyList<ArgumentModel> CreateOperationArguments(
+            IDocumentAnalyzerContext context,
+            OperationDefinitionNode operationDefinition)
+        {
+            var arguments = new List<ArgumentModel>();
+
+            foreach (VariableDefinitionNode variableDefinition in
+                operationDefinition.VariableDefinitions)
+            {
+
+                INamedInputType namedInputType = context.Schema.GetType<INamedInputType>(
+                    variableDefinition.Type.NamedType().Name.Value);
+
+                arguments.Add(new ArgumentModel(
+                    variableDefinition.Variable.Name.Value,
+                    (IInputType)variableDefinition.Type.ToType(namedInputType),
+                    variableDefinition,
+                    variableDefinition.DefaultValue));
+            }
+
+            return arguments;
+        }
+
+        private static void EnqueueFields(
+            Queue<IFieldSelection> backlog,
+            IEnumerable<IFieldSelection> fieldSelections,
+            Path path)
+        {
+            foreach (IFieldSelection fieldSelection in fieldSelections)
+            {
+                backlog.Enqueue(fieldSelection.WithPath(path));
+            }
+        }
+    }
+}

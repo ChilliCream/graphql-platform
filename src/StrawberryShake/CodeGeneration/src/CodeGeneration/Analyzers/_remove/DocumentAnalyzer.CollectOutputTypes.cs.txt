@@ -158,8 +158,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     .First(t => t.SelectionSet == operationDefinition.SelectionSet && t.IsInterface);
 
             var parser = new ParserModel(
-                context.GetOrCreateName(
-                    GetClassName(operationDefinition.Name!.Value, "ResultParser")),
+                context.GetOrCreateName(GetClassName(operationDefinition.Name!.Value, "ResultParser")),
                 operationDefinition,
                 returnType,
                 context.FieldParsers.Where(t => t.Operation == operationDefinition).ToList());

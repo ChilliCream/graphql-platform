@@ -10,7 +10,7 @@ using StrawberryShake.CodeGeneration.Utilities;
 namespace StrawberryShake.CodeGeneration.Analyzers
 {
     internal class UnionTypeSelectionSetAnalyzer
-        : SelectionSetAnalyzerBase<UnionType>
+        : SelectionSetAnalyzer<UnionType>
     {
         public override void Analyze(
             IDocumentAnalyzerContext context,

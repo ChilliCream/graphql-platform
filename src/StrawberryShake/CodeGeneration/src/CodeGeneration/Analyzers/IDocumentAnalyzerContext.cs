@@ -8,43 +8,30 @@ using StrawberryShake.CodeGeneration.Utilities;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
 {
-    internal interface IDocumentAnalyzerContext
+    internal interface IDocumentAnalyzerContext2
     {
         ISchema Schema { get; }
 
-        IReadOnlyCollection<ITypeModel> Types { get; }
+        ObjectType OperationType { get; }
 
-        IReadOnlyCollection<OperationModel> Operations { get; }
+        OperationDefinitionNode OperationDefinition { get; }
 
-        IReadOnlyCollection<FieldParserModel> FieldParsers { get; }
+        NameString OperationName { get; }
 
-        NameString GetOrCreateName(
+        Queue<FieldSelection> Fields { get; }
+
+        NameString ResolveTypeName(
+            NameString proposedName);
+
+        NameString ResolveTypeName(
+            NameString proposedName,
             ISyntaxNode node,
-            NameString name,
-            ISet<string>? skipNames = null);
+            Path path,
+            IReadOnlyList<string>? additionalNamePatterns = null);
 
-        NameString GetOrCreateName(NameString name);
-
-        SelectionVariants CollectFields(
-            INamedOutputType type,
+        SelectionSetVariants CollectFields(
             SelectionSetNode selectionSet,
+            INamedOutputType type,
             Path path);
-
-        IEnumerable<OutputTypeModel> GetTypes(SelectionSetNode selectionSet);
-
-        bool TryGetModel<T>(string name, [NotNullWhen(true)]out T? model)
-            where T : class, ITypeModel;
-
-        void SetDocument(DocumentNode document);
-
-        void Register(OutputTypeModel type, bool update = false);
-
-        void Register(InputObjectTypeModel objectType);
-
-        void Register(EnumTypeModel type);
-
-        void Register(OperationModel operation);
-
-        void Register(FieldParserModel parser);
     }
 }

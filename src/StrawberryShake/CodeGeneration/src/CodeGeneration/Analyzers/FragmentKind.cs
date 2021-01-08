@@ -1,4 +1,4 @@
-namespace StrawberryShake.CodeGeneration.Utilities
+namespace StrawberryShake.CodeGeneration.Analyzers
 {
     public enum FragmentKind
     {

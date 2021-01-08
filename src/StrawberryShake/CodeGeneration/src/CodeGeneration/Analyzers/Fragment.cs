@@ -1,10 +1,10 @@
-﻿using System;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using StrawberryShake.CodeGeneration.Utilities;
 
-namespace StrawberryShake.CodeGeneration.Utilities
+namespace StrawberryShake.CodeGeneration.Analyzers
 {
-    internal sealed class Fragment : IFragment
+    public class Fragment
     {
         public Fragment(
             string name,
@@ -14,8 +14,8 @@ namespace StrawberryShake.CodeGeneration.Utilities
         {
             Name = name;
             Kind = kind;
-            TypeCondition = typeCondition ?? throw new ArgumentNullException(nameof(typeCondition));
-            SelectionSet = selectionSet ?? throw new ArgumentNullException(nameof(selectionSet));
+            TypeCondition = typeCondition;
+            SelectionSet = selectionSet;
         }
 
         public string Name { get; }

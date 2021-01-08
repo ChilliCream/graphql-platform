@@ -2,46 +2,50 @@ using StrawberryShake.CodeGeneration.CSharp.Builders;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public abstract class ClassBaseGenerator<T> : CodeGenerator<T> where T : ICodeDescriptor
+    public abstract class ClassBaseGenerator<T>
+        : CodeGenerator<T>
+        where T : ICodeDescriptor
     {
-        protected ClassBuilder ClassBuilder = ClassBuilder.New();
-        protected ConstructorBuilder ConstructorBuilder = ConstructorBuilder.New();
-
         protected ClassBaseGenerator()
         {
             ClassBuilder.AddConstructor(ConstructorBuilder);
         }
+
+        protected ClassBuilder ClassBuilder { get; } = ClassBuilder.New();
+
+        protected ConstructorBuilder ConstructorBuilder { get; } = ConstructorBuilder.New();
 
         protected void ConstructorAssignedField(TypeReferenceBuilder type, string fieldName)
         {
             var paramName = fieldName.TrimStart('_');
 
             ClassBuilder.AddField(
-                FieldBuilder.New()
+                FieldBuilder
+                    .New()
                     .SetReadOnly()
                     .SetName(fieldName)
-                    .SetType(type)
-            );
+                    .SetType(type));
 
             ConstructorBuilder.AddParameter(
-                    ParameterBuilder.New()
-                        .SetType(type)
-                        .SetName(paramName)
-                )
+                ParameterBuilder
+                    .New()
+                    .SetType(type)
+                    .SetName(paramName))
                 .AddCode(
-                    AssignmentBuilder.New()
+                    AssignmentBuilder
+                        .New()
                         .SetLefthandSide(fieldName)
                         .SetRighthandSide(paramName)
-                        .AssertNonNull()
-                );
+                        .AssertNonNull());
         }
 
         protected void ConstructorAssignedField(string typename, string paramName)
         {
             ConstructorAssignedField(
-                TypeReferenceBuilder.New().SetName(typename),
-                paramName
-            );
+                TypeReferenceBuilder
+                    .New()
+                    .SetName(typename),
+                paramName);
         }
     }
 }

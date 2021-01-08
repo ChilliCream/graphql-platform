@@ -6,17 +6,13 @@ using StrawberryShake.CodeGeneration.Utilities;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
 {
-    internal class ObjectTypeSelectionSetAnalyzer
-        : SelectionSetAnalyzerBase<ObjectType>
+    internal class ObjectTypeSelectionSetAnalyzer : SelectionSetAnalyzer
     {
-        public override void Analyze(
-            IDocumentAnalyzerContext context,
-            OperationDefinitionNode operation,
-            FieldNode fieldSelection,
-            SelectionVariants selectionVariants,
-            IType fieldType,
-            ObjectType namedType,
-            Path path)
+        public override OutputTypeModel Analyze(
+            IDocumentAnalyzerContext2 context,
+            ISelectionSetVariants selectionVariants,
+            Path selectionPath,
+            IType fieldType)
         {
             IFragmentNode returnTypeFragment =
                 ResolveReturnType(
@@ -37,15 +33,6 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     returnType,
                     selectionVariants.ReturnType,
                     path);
-
-            CreateFieldParserModel(
-                context,
-                operation,
-                fieldSelection,
-                path,
-                returnType,
-                fieldType,
-                modelType);
         }
     }
 }
