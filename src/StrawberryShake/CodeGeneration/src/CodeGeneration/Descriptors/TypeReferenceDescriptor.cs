@@ -26,12 +26,23 @@ namespace StrawberryShake.CodeGeneration
         /// </summary>
         public bool IsReferenceType { get; }
 
-        public TypeReferenceDescriptor(string name, bool isNullable, ListType listType, bool isReferenceType)
+        /// <summary>
+        /// Is the type a known EntityType?
+        /// </summary>
+        public bool IsEntityType { get; }
+
+        public TypeReferenceDescriptor(
+            string name,
+            bool isNullable,
+            ListType listType,
+            bool isReferenceType,
+            bool isEntityType = false)
         {
             Name = name;
             IsNullable = isNullable;
             ListType = listType;
             IsReferenceType = isReferenceType;
+            IsEntityType = isEntityType;
         }
     }
 }

@@ -18,7 +18,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetName(WellKnownNames.EntityId);
 
             ClassBuilder
-                .AddImplements(NamingConventions.ResultIntoNameFromTypeName(WellKnownNames.IOperationResultDataInfo))
+                .AddImplements(NamingConventions.ResultInfoNameFromTypeName(WellKnownNames.IOperationResultDataInfo))
                 .AddProperty(
                     PropertyBuilder.New()
                         .SetName(EntityIdsPropertyName)

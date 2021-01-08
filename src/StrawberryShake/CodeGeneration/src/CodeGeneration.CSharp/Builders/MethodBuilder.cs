@@ -10,7 +10,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private Inheritance _inheritance = Inheritance.None;
         private bool _isStatic = false;
         private bool _isAsync = false;
-        private string _returnType = "void";
+        private TypeReferenceBuilder _returnType = TypeReferenceBuilder.New().SetName("void");
         private string? _name;
         private readonly List<ParameterBuilder> _parameters = new List<ParameterBuilder>();
         private readonly List<ICode> _lines = new List<ICode>();
@@ -45,6 +45,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         {
             if (condition)
             {
+                _returnType = TypeReferenceBuilder.New().SetName(value);
+            }
+            return this;
+        }
+
+        public MethodBuilder SetReturnType(TypeReferenceBuilder value, bool condition = true)
+        {
+            if (condition)
+            {
                 _returnType = value;
             }
             return this;
@@ -65,6 +74,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         public MethodBuilder AddCode(ICode value)
         {
             _lines.Add(value);
+            return this;
+        }
+
+        public MethodBuilder AddEmptyLine()
+        {
+            _lines.Add(CodeLineBuilder.New());
             return this;
         }
 
@@ -103,9 +118,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 await writer.WriteAsync("async ").ConfigureAwait(false);
             }
 
-            await writer.WriteAsync(
-                $"{CreateInheritance()}{_returnType} {_name}(")
-                .ConfigureAwait(false);
+            await writer.WriteAsync($"{CreateInheritance()}").ConfigureAwait(false);
+            await _returnType.BuildAsync(writer).ConfigureAwait(false);
+            await writer.WriteAsync($"{_name}(").ConfigureAwait(false);
 
             if (_parameters.Count == 0)
             {

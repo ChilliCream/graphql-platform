@@ -2,9 +2,9 @@ namespace StrawberryShake.CodeGeneration
 {
     public static class NamingConventions
     {
-        public static string ResultIntoNameFromTypeName(string typeName)
+        public static string ResultInfoNameFromTypeName(string typeName)
         {
-            return typeName + "ResultInfo";
+            return typeName + "Info";
         }
 
         public static string MutationServiceNameFromTypeName(string typeName)
@@ -38,7 +38,12 @@ namespace StrawberryShake.CodeGeneration
 
         public static string ResultFactoryNameFromTypeName(string typeName)
         {
-            return typeName + "ResultFactory";
+            return typeName + "Factory";
+        }
+
+        public static string ResultBuilderNameFromTypeName(string typeName)
+        {
+            return typeName + "Builder";
         }
     }
 }

@@ -9,13 +9,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
     {
         readonly StringBuilder _stringBuilder;
         readonly CodeWriter _codeWriter;
-        readonly ResultBuilderGenerator _generator;
+        readonly JsonResultBuilderGenerator _generator;
 
         public ResultBuilderGeneratorTests()
         {
             _stringBuilder = new StringBuilder();
             _codeWriter = new CodeWriter(_stringBuilder);
-            _generator = new ResultBuilderGenerator();
+            _generator = new JsonResultBuilderGenerator();
         }
 
         [Fact]
@@ -51,8 +51,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
                           )
                       }
                   ),
-                  TransportResultRootTypeName = "JsonElement",
-                  ValueParsers = new []{("string", "string")}
+                  ValueParsers = new []{("string", "string", "String")}
                 }
             );
             _stringBuilder.ToString().MatchSnapshot();

@@ -11,7 +11,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         protected override Task WriteAsync(CodeWriter writer, OperationDescriptor operationDescriptor)
         {
-            AssertNonNull(writer, operationDescriptor);
+            AssertNonNull(
+                writer,
+                operationDescriptor
+            );
 
 
             ClassBuilder.SetName(operationDescriptor.Name);
@@ -84,14 +87,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             foreach (var keyValuePair in operationDescriptor.Arguments)
             {
-                var line = CodeLineBuilder.New();
-                line.SetLine("request.Variables.Add(\"");
-                line.AppendToLine(keyValuePair.Key);
-                line.AppendToLine("\"");
-                line.AppendToLine(", ");
-                line.AppendToLine(keyValuePair.Key);
-                line.AppendToLine(");");
-                requestBuilder.AddCode(line);
+                requestBuilder.AddCode(
+                    CodeLineBuilder.New().SetLine(
+                        $"request.Variables.Add(\"{keyValuePair.Key}\", {keyValuePair.Key}, );"
+                    )
+                );
             }
 
             executeMethod?.AddCode(

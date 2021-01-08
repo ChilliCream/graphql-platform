@@ -6,32 +6,21 @@ using System.Threading.Tasks;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
-    public class CodeBlockBuilder
+    public class CodeInlineBlockBuilder
         : ICode
     {
-        private readonly List<ICode> _blockParts = new List<ICode>();
+        private readonly List<ICode> _lineParts = new List<ICode>();
 
-        public static CodeBlockBuilder New() => new CodeBlockBuilder();
+        public static CodeInlineBlockBuilder New() => new CodeInlineBlockBuilder();
 
-        public CodeBlockBuilder AddCode(ICode value)
+        public CodeInlineBlockBuilder AddCode(ICode value)
         {
             if (value is null)
             {
                 throw new ArgumentNullException(nameof(value));
             }
 
-            _blockParts.Add(value);
-            return this;
-        }
-
-        public CodeBlockBuilder AddCode(string value)
-        {
-            if (value is null)
-            {
-                throw new ArgumentNullException(nameof(value));
-            }
-
-            _blockParts.Add(CodeInlineBuilder.New().SetText(value));
+            _lineParts.Add(value);
             return this;
         }
 
@@ -42,7 +31,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 throw new ArgumentNullException(nameof(writer));
             }
 
-            foreach (ICode code in _blockParts)
+            foreach (ICode code in _lineParts)
             {
                 await code.BuildAsync(writer).ConfigureAwait(false);
             }
