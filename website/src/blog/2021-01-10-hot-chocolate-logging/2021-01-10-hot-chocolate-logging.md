@@ -16,7 +16,7 @@ Hot Chocolate GraphQL server.
 
 # Just Show Me the Code
 
-You can find all the code from this article in this Github repository:
+You can find all the code from this article in this Github repository.
 
 https://github.com/pkellner/hot-chocolate-query-logging
 
