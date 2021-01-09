@@ -44,7 +44,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             foreach (var prop in typeDescriptor.Properties)
             {
-                var propTypeBuilder = prop.TypeReference.ToEntityIdBuilder();
+                var propTypeBuilder = prop.ToEntityIdBuilder();
                 // Add Property to class
                 var propBuilder = PropertyBuilder
                     .New()

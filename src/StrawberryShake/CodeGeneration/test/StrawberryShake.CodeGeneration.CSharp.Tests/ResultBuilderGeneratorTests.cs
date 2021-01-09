@@ -25,33 +25,35 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
                 _codeWriter,
                 new ResultBuilderDescriptor()
                 {
-                  ResultType  = new TypeDescriptor(
-                      "GetHeroResult",
-                      "FooBarNamespace",
-                      new string[] { },
-                      new[]
-                      {
-                          new TypePropertyDescriptor(
-                              new TypeReferenceDescriptor(
-                                  "IHero",
-                                  false,
-                                  ListType.NoList,
-                                  true
-                              ),
-                              "Hero"
-                          ),
-                          new TypePropertyDescriptor(
-                              new TypeReferenceDescriptor(
-                                  "string",
-                                  false,
-                                  ListType.NoList,
-                                  false
-                              ),
-                              "Version"
-                          )
-                      }
-                  ),
-                  ValueParsers = new []{("string", "string", "String")}
+                    ResultType = new TypeDescriptor(
+                        "GetHeroResult",
+                        "FooBarNamespace",
+                        new string[] { },
+                        new[]
+                        {
+                            new NamedTypeReferenceDescriptor(
+                                new TypeDescriptor(
+                                    "IHero",
+                                    "IHeroNamespace",
+                                    isImplementedBy: new[] {"Human", "Droid"},
+                                    isEntityType: true
+                                ),
+                                false,
+                                ListType.NoList,
+                                "Hero"
+                            ),
+                            new NamedTypeReferenceDescriptor(
+                                new TypeDescriptor(
+                                    "string",
+                                    "System"
+                                ),
+                                false,
+                                ListType.NoList,
+                                "Version"
+                            )
+                        }
+                    ),
+                    ValueParsers = new[] {("string", "string", "String")}
                 }
             );
             _stringBuilder.ToString().MatchSnapshot();

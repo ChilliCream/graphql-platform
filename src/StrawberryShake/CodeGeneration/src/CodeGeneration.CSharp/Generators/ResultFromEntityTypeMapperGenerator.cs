@@ -45,14 +45,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             var mapperSet = new HashSet<string>();
 
-            foreach (TypePropertyDescriptor propertyDescriptor in descriptor.ResultType.Properties)
+            foreach (NamedTypeReferenceDescriptor propertyDescriptor in descriptor.ResultType.Properties)
             {
-                if (propertyDescriptor.TypeReference.IsReferenceType)
+                if (propertyDescriptor.Type.IsEntityType)
                 {
                     var propertyMapperName =
-                        NamingConventions.MapperNameFromTypeName(propertyDescriptor.TypeReference.Name);
+                        NamingConventions.MapperNameFromTypeName(propertyDescriptor.TypeName);
                     var propertyMapperTypeName =
-                        $"IEntityMapper<{NamingConventions.EntityTypeNameFromTypeName(propertyDescriptor.TypeReference.Name)}, {propertyDescriptor.TypeReference.Name}>";
+                        $"IEntityMapper<{NamingConventions.EntityTypeNameFromTypeName(propertyDescriptor.TypeName)}, {propertyDescriptor.TypeName}>";
                     var propertyMapperFieldName = propertyMapperName.ToFieldName();
 
                     if (!mapperSet.Contains(propertyMapperName))
@@ -66,7 +66,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     }
 
                     MethodCallBuilder entityMapperMethod;
-                    if (propertyDescriptor.TypeReference.ListType == ListType.NoList)
+                    if (propertyDescriptor.ListType == ListType.NoList)
                     {
                         entityMapperMethod = MethodCallBuilder.New()
                             .SetDetermineStatement(false)
@@ -81,7 +81,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                 + "."
                                 + nameof(IEntityStore.GetEntity)
                                 + "<" + NamingConventions.EntityTypeNameFromTypeName(
-                                    propertyDescriptor.TypeReference.Name
+                                    propertyDescriptor.TypeName
                                 ) + ">"
                             );
                         entityGetterMethod
@@ -118,11 +118,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         entityMapperMethod = new MethodCallBuilder()
                             .SetMethodName(
                                 StoreFieldName + "." +
-                                (propertyDescriptor.TypeReference.ListType != ListType.NoList
+                                (propertyDescriptor.ListType != ListType.NoList
                                     ? nameof(IEntityStore.GetEntities)
                                     : nameof(IEntityStore.GetEntity))
                                 + "<" + NamingConventions.EntityTypeNameFromTypeName(
-                                    propertyDescriptor.TypeReference.Name
+                                    propertyDescriptor.TypeName
                                 ) + ">"
                             )
                             .SetDetermineStatement(false)

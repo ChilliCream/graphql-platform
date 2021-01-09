@@ -18,12 +18,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
             // Add Properties to class
             foreach (var prop in typeDescriptor.Properties)
             {
-                if (prop.TypeReference.IsReferenceType)
+                if (prop.Type.IsEntityType)
                 {
                     PropertyBuilder referencePropertyBuilder = PropertyBuilder
                         .New()
                         .SetName(prop.Name)
-                        .SetType(prop.TypeReference.ToBuilder().SetName(WellKnownNames.EntityId))
+                        .SetType(prop.ToBuilder().SetName(WellKnownNames.EntityId))
                         .MakeSettable()
                         .SetAccessModifier(AccessModifier.Public);
                     classBuilder.AddProperty(referencePropertyBuilder);
@@ -33,7 +33,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     PropertyBuilder propBuilder = PropertyBuilder
                         .New()
                         .SetName(prop.Name)
-                        .SetType(prop.TypeReference.ToBuilder())
+                        .SetType(prop.ToBuilder())
                         .MakeSettable()
                         .SetAccessModifier(AccessModifier.Public);
                     classBuilder.AddProperty(propBuilder);

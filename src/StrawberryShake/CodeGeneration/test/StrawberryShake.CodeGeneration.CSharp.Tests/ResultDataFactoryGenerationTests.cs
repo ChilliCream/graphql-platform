@@ -30,15 +30,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
                     new string[] { },
                     new[]
                     {
-                        new TypePropertyDescriptor(
-                            new TypeReferenceDescriptor(
-                                "string",
-                                false,
-                                ListType.NoList,
-                                false
-                            ),
-                            "SomeText"
-                        )
+                        TestHelper.GetNamedNonNullStringTypeReference("SomeText")
                     }
                 )
             );

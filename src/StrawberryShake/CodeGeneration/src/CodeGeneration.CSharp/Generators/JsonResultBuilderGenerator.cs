@@ -1,7 +1,9 @@
 using System;
+using System.Linq;
 using System.Reflection.Emit;
 using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
+using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using FieldBuilder = StrawberryShake.CodeGeneration.CSharp.Builders.FieldBuilder;
 using MethodBuilder = StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder;
 using ParameterBuilder = StrawberryShake.CodeGeneration.CSharp.Builders.ParameterBuilder;
@@ -15,6 +17,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private const string ResultDataFactoryFieldName = "_resultDataFactory";
         private const string SerializerResolverParamName = "serializerResolver";
         private const string TransportResultRootTypeName = "JsonElement";
+
+        private string GetUpdateMethodName(NamedTypeReferenceDescriptor namedTypeDescriptor) =>
+            $"Update{namedTypeDescriptor.Name}Entity";
 
         protected override Task WriteAsync(CodeWriter writer, ResultBuilderDescriptor resultBuilderDescriptor)
         {
@@ -91,6 +96,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             AddBuildDataMethod(resultTypeDescriptor);
 
+            foreach (var property in resultBuilderDescriptor.ResultType.Properties.Where(
+                prop => prop.Type.IsEntityType
+            ))
+            {
+                AddUpdateMethod(property);
+            }
+
             return CodeFileBuilder.New()
                 .SetNamespace(resultBuilderDescriptor.ResultType.Namespace)
                 .AddType(ClassBuilder)
@@ -154,30 +166,125 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         private void AddBuildDataMethod(TypeDescriptor resultTypeDescriptor)
         {
+            var objParameter = "obj";
             var buildDataMethod = MethodBuilder.New()
-                .SetAccessModifier(AccessModifier.Public)
+                .SetAccessModifier(AccessModifier.Private)
                 .SetName("BuildData")
-                .SetReturnType($"({resultTypeDescriptor.Name}, {NamingConventions.ResultInfoNameFromTypeName(resultTypeDescriptor.Name)})")
+                .SetReturnType(
+                    $"({resultTypeDescriptor.Name}, {NamingConventions.ResultInfoNameFromTypeName(resultTypeDescriptor.Name)})"
+                )
                 .AddParameter(
                     ParameterBuilder.New()
                         .SetType("JsonElement")
-                        .SetName("obj")
+                        .SetName(objParameter)
                 );
 
+            var sessionName = "session";
             buildDataMethod.AddCode(
                 CodeLineBuilder.New()
                     .SetLine(
                         CodeBlockBuilder.New()
-                            .AddCode($"using {WellKnownNames.IEntityUpdateSession} session = ")
+                            .AddCode($"using {WellKnownNames.IEntityUpdateSession} {sessionName} = ")
                             .AddCode(EntityStoreFieldName + ".BeginUpdate();")
                     )
             );
-            buildDataMethod.AddCode(CodeLineBuilder.New().SetLine($"var entityIds = new HashSet<{WellKnownNames.EntityId}>();"));
+            var entityIdsName = "entityIds";
+            buildDataMethod.AddCode(
+                CodeLineBuilder.New().SetLine($"var {entityIdsName} = new HashSet<{WellKnownNames.EntityId}>();")
+            );
 
             buildDataMethod.AddEmptyLine();
+            foreach (NamedTypeReferenceDescriptor typePropertyDescriptor in resultTypeDescriptor.Properties.Where(
+                prop => prop.Type.IsEntityType
+            ))
+            {
+                buildDataMethod.AddCode(
+                    AssignmentBuilder.New()
+                        .SetLefthandSide($"{WellKnownNames.EntityId} {typePropertyDescriptor.Name}Id")
+                        .SetRighthandSide(
+                            MethodCallBuilder.New()
+                                .SetDetermineStatement(false)
+                                .SetMethodName(GetUpdateMethodName(typePropertyDescriptor))
+                                .AddArgument(
+                                    $"{objParameter}.GetProperty(\"{typePropertyDescriptor.Name.WithLowerFirstChar()}\")"
+                                )
+                                .AddArgument(entityIdsName)
+                        )
+                );
+            }
 
+
+            var resultInfoConstructor = MethodCallBuilder.New()
+                .SetMethodName($"new {NamingConventions.ResultInfoNameFromTypeName(resultTypeDescriptor.Name)}")
+                .SetDetermineStatement(false);
+
+            foreach (NamedTypeReferenceDescriptor typePropertyDescriptor in resultTypeDescriptor.Properties)
+            {
+                if (typePropertyDescriptor.Type.IsEntityType)
+                {
+                    resultInfoConstructor.AddArgument($"{typePropertyDescriptor.Name}Id");
+                }
+                else
+                {
+                    resultInfoConstructor.AddArgument(
+                        MethodCallBuilder.New()
+                            .SetDetermineStatement(false)
+                            .SetMethodName(
+                                NamingConventions.TypeDeserializeMethodNameFromTypeName(typePropertyDescriptor)
+                            )
+                            .AddArgument(objParameter)
+                            .AddArgument($"\"{typePropertyDescriptor.Name.WithLowerFirstChar()}\"")
+                    );
+                }
+            }
+
+            resultInfoConstructor.AddArgument(entityIdsName);
+            resultInfoConstructor.AddArgument($"{sessionName}.{WellKnownNames.IEntityUpdateSession_Version}");
+
+            buildDataMethod.AddEmptyLine();
+            var resultInfoName = "resultInfo";
+            buildDataMethod.AddCode(
+                AssignmentBuilder.New()
+                    .SetLefthandSide($"var {resultInfoName}")
+                    .SetRighthandSide(resultInfoConstructor)
+            );
+
+            buildDataMethod.AddEmptyLine();
+            buildDataMethod.AddCode(
+                $"return ({ResultDataFactoryFieldName}.Create({resultInfoName}), {resultInfoName});"
+            );
 
             ClassBuilder.AddMethod(buildDataMethod);
+        }
+
+        private void AddUpdateMethod(NamedTypeReferenceDescriptor namedTypeReferenceDescriptor)
+        {
+            var objParamName = "obj";
+            var entityIdsParamName = "entityIds";
+            var updateEntityMethod = MethodBuilder.New()
+                .SetAccessModifier(AccessModifier.Private)
+                .SetName(NamingConventions.TypeDeserializeMethodNameFromTypeName(namedTypeReferenceDescriptor))
+                .SetReturnType(WellKnownNames.EntityId)
+                .AddParameter(
+                    ParameterBuilder.New()
+                        .SetType("JsonElement")
+                        .SetName(objParamName)
+                )
+                .AddParameter(
+                    ParameterBuilder.New()
+                        .SetType($"ISet<{WellKnownNames.EntityId}>")
+                        .SetName(entityIdsParamName)
+                );
+
+            var entityIdVarName = "entityId";
+            updateEntityMethod.AddCode($"{WellKnownNames.EntityId} {entityIdVarName} = {ExtractIdFieldName}({objParamName});");
+            updateEntityMethod.AddCode($"{entityIdsParamName}.Add({entityIdVarName})");
+
+
+            updateEntityMethod.AddEmptyLine();
+            updateEntityMethod.AddCode("throw new NotSupportedException();");
+
+            ClassBuilder.AddMethod(updateEntityMethod);
         }
     }
 }

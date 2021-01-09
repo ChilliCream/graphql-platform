@@ -6,13 +6,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
     {
         public static TypeReferenceBuilder ToBuilder(this TypeReferenceDescriptor typeReferenceDescriptor) =>
             new TypeReferenceBuilder()
-                .SetName(typeReferenceDescriptor.Name)
+                .SetName(typeReferenceDescriptor.TypeName)
                 .SetIsNullable(typeReferenceDescriptor.IsNullable)
                 .SetListType(typeReferenceDescriptor.ListType);
 
         public static TypeReferenceBuilder ToEntityIdBuilder(this TypeReferenceDescriptor typeReferenceDescriptor) =>
             new TypeReferenceBuilder()
-                .SetName(typeReferenceDescriptor.IsReferenceType ? WellKnownNames.EntityId : typeReferenceDescriptor.Name)
+                .SetName(typeReferenceDescriptor.IsEntityType ? WellKnownNames.EntityId : typeReferenceDescriptor.TypeName)
                 .SetIsNullable(typeReferenceDescriptor.IsNullable)
                 .SetListType(typeReferenceDescriptor.ListType);
     }

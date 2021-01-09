@@ -16,7 +16,7 @@ namespace StrawberryShake.CodeGeneration
         /// <summary>
         /// The properties that result from the requested fields of the operation this ResultType is generated for.
         /// </summary>
-        public IReadOnlyList<TypePropertyDescriptor> Properties { get; }
+        public IReadOnlyList<NamedTypeReferenceDescriptor> Properties { get; }
 
         /// <summary>
         /// A list of interface names the ResultType implements
@@ -40,18 +40,25 @@ namespace StrawberryShake.CodeGeneration
         /// </summary>
         public IReadOnlyList<string> IsImplementedBy { get; }
 
+        /// <summary>
+        /// Is the type a known EntityType?
+        /// </summary>
+        public bool IsEntityType { get; }
+
         public TypeDescriptor(
             string name,
             string @namespace,
-            IReadOnlyList<string> implements,
-            IReadOnlyList<TypePropertyDescriptor> properties,
-            IReadOnlyList<string>? isImplementedBy = null)
+            IReadOnlyList<string>? implements = null,
+            IReadOnlyList<NamedTypeReferenceDescriptor>? properties = null,
+            IReadOnlyList<string>? isImplementedBy = null,
+            bool isEntityType = false)
         {
             Name = name;
-            Properties = properties;
             Namespace = @namespace;
-            Implements = implements;
+            Implements = implements ?? new List<string>();
+            Properties = properties ?? new List<NamedTypeReferenceDescriptor>();
             IsImplementedBy = isImplementedBy ?? new string[] { };
+            IsEntityType = isEntityType;
         }
     }
 }

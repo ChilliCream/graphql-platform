@@ -45,5 +45,13 @@ namespace StrawberryShake.CodeGeneration
         {
             return typeName + "Builder";
         }
+
+        public static string TypeDeserializeMethodNameFromTypeName(NamedTypeReferenceDescriptor namedTypeReferenceDescriptor)
+        {
+            var ret = "Deserialize";
+            ret += namedTypeReferenceDescriptor.IsNullable ? "Nullable" : "NonNullable";
+            ret += namedTypeReferenceDescriptor.Type.Name;
+            return ret;
+        }
     }
 }

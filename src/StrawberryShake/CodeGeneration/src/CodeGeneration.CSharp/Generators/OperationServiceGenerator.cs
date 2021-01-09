@@ -28,7 +28,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             AddConstructorAssignedField(
                 TypeReferenceBuilder.New()
                     .SetName(WellKnownNames.IOperationExecutor)
-                    .AddGeneric(operationDescriptor.ResultTypeReference.Name),
+                    .AddGeneric(operationDescriptor.ResultTypeReference.TypeName),
                 OperationExecutorFieldName
             );
 
@@ -37,14 +37,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 executeMethod = MethodBuilder.New()
                     .SetReturnType(
-                        $"async Task<{WellKnownNames.IOperationResult}<{operationDescriptor.ResultTypeReference.Name}>>"
+                        $"async Task<{WellKnownNames.IOperationResult}<{operationDescriptor.ResultTypeReference.TypeName}>>"
                     )
                     .SetAccessModifier(AccessModifier.Public)
                     .SetName(WellKnownNames.Execute);
             }
 
             var watchMethod = MethodBuilder.New()
-                .SetReturnType($"IOperationObservable<{operationDescriptor.ResultTypeReference.Name}>")
+                .SetReturnType($"IOperationObservable<{operationDescriptor.ResultTypeReference.TypeName}>")
                 .SetAccessModifier(AccessModifier.Public)
                 .SetName(WellKnownNames.Watch);
 
@@ -55,7 +55,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetName(keyValuePair.Key)
                     .SetType(
                         TypeReferenceBuilder.New()
-                            .SetName(paramType.Name)
+                            .SetName(paramType.TypeName)
                             .SetIsNullable(paramType.IsNullable)
                             .SetListType(paramType.ListType)
                     );

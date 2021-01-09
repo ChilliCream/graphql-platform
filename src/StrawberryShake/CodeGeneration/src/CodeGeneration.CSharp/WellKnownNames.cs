@@ -16,6 +16,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         public const string EntityId = "EntityId";
         public const string IEntityUpdateSession = "IEntityUpdateSession";
+        public const string IEntityUpdateSession_Version = "Version";
 
         public const string Execute = "Execute";
         public const string Watch = "Watch";

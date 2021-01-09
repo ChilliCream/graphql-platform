@@ -1,6 +1,7 @@
 using System.Text;
 using System.Threading.Tasks;
 using Snapshooter.Xunit;
+using StrawberryShake.CodeGeneration.CSharp.Tests;
 using Xunit;
 
 namespace StrawberryShake.CodeGeneration.CSharp
@@ -30,42 +31,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         new string[] { },
                         new[]
                         {
-                            new TypePropertyDescriptor(
-                                new TypeReferenceDescriptor(
-                                    "string",
-                                    false,
-                                    ListType.NoList,
-                                    false
-                                ),
-                                "SomeText"
-                            ),
-                            new TypePropertyDescriptor(
-                                new TypeReferenceDescriptor(
-                                    "string",
-                                    false,
-                                    ListType.NoList,
-                                    false
-                                ),
-                                "OtherProperty"
-                            )
+                            TestHelper.GetNamedNonNullStringTypeReference("SomeText"),
+                            TestHelper.GetNamedNonNullStringTypeReference("OtherProperty"),
                         }
                     ),
                     new TypeDescriptor(
                         "Foo",
                         "ResultTypeNamespace",
                         new string[] { },
-                        new[]
-                        {
-                            new TypePropertyDescriptor(
-                                new TypeReferenceDescriptor(
-                                    "string",
-                                    false,
-                                    ListType.NoList,
-                                    false
-                                ),
-                                "SomeText"
-                            )
-                        }
+                        new[] {TestHelper.GetNamedNonNullStringTypeReference("SomeText"),}
                     )
                 )
             );
@@ -85,24 +59,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         new string[] { },
                         new[]
                         {
-                            new TypePropertyDescriptor(
-                                new TypeReferenceDescriptor(
-                                    "string",
-                                    false,
-                                    ListType.NoList,
-                                    false
-                                ),
-                                "SomeText"
-                            ),
-                            new TypePropertyDescriptor(
-                                new TypeReferenceDescriptor(
-                                    "string",
-                                    false,
-                                    ListType.NoList,
-                                    false
-                                ),
-                                "OtherProperty"
-                            )
+                            TestHelper.GetNamedNonNullStringTypeReference("SomeText"),
+                            TestHelper.GetNamedNonNullStringTypeReference("OtherProperty"),
                         }
                     ),
                     new TypeDescriptor(
@@ -111,24 +69,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         new string[] { },
                         new[]
                         {
-                            new TypePropertyDescriptor(
-                                new TypeReferenceDescriptor(
-                                    "string",
-                                    false,
-                                    ListType.NoList,
-                                    false
-                                ),
-                                "SomeText"
-                            ),
-                            new TypePropertyDescriptor(
-                                new TypeReferenceDescriptor(
-                                    "string",
-                                    false,
-                                    ListType.NoList,
-                                    false
-                                ),
-                                "OtherProperty"
-                            )
+                            TestHelper.GetNamedNonNullStringTypeReference("SomeText"),
+                            TestHelper.GetNamedNonNullStringTypeReference("OtherProperty"),
                         }
                     )
                 )
@@ -149,22 +91,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         new string[] { },
                         new[]
                         {
-                            new TypePropertyDescriptor(
-                                new TypeReferenceDescriptor(
-                                    "string",
-                                    false,
-                                    ListType.NoList,
-                                    false
-                                ),
-                                "SomeText"
-                            ),
-                            new TypePropertyDescriptor(
-                                new TypeReferenceDescriptor(
+                            TestHelper.GetNamedNonNullStringTypeReference("SomeText"), new NamedTypeReferenceDescriptor(
+                                new TypeDescriptor(
                                     "Bar",
-                                    false,
-                                    ListType.NoList,
-                                    true
+                                    "BarNamespace"
                                 ),
+                                false,
+                                ListType.NoList,
                                 "BarReference"
                             )
                         }
@@ -175,13 +108,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         new string[] { },
                         new[]
                         {
-                            new TypePropertyDescriptor(
-                                new TypeReferenceDescriptor(
+                            new NamedTypeReferenceDescriptor(
+                                new TypeDescriptor(
                                     "Bar",
-                                    false,
-                                    ListType.NoList,
-                                    true
+                                    "BarNamespace"
                                 ),
+                                false,
+                                ListType.NoList,
                                 "BarReference"
                             )
                         }
@@ -203,22 +136,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         new string[] { },
                         new[]
                         {
-                            new TypePropertyDescriptor(
-                                new TypeReferenceDescriptor(
-                                    "string",
-                                    false,
-                                    ListType.NoList,
-                                    false
-                                ),
-                                "SomeText"
-                            ),
-                            new TypePropertyDescriptor(
-                                new TypeReferenceDescriptor(
+                            TestHelper.GetNamedNonNullStringTypeReference("SomeText"), new NamedTypeReferenceDescriptor(
+                                new TypeDescriptor(
                                     "Bar",
-                                    false,
-                                    ListType.List,
-                                    true
+                                    "BarNamespace"
                                 ),
+                                false,
+                                ListType.List,
                                 "BarReferenceList"
                             )
                         }
@@ -229,23 +153,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         new string[] { },
                         new[]
                         {
-                            new TypePropertyDescriptor(
-                                new TypeReferenceDescriptor(
-                                    "string",
-                                    false,
-                                    ListType.NoList,
-                                    false
-                                ),
-                                "SomeText"
-                            ),
-                            new TypePropertyDescriptor(
-                                new TypeReferenceDescriptor(
+                            TestHelper.GetNamedNonNullStringTypeReference("SomeText"), new NamedTypeReferenceDescriptor(
+                                new TypeDescriptor(
                                     "Bar",
-                                    false,
-                                    ListType.List,
-                                    true
+                                    "BarNamespace",
+                                    isEntityType: true
                                 ),
-                                "BarReferenceList"
+                                false,
+                                ListType.List,
+                                "BarEntityList"
                             )
                         }
                     )
@@ -266,42 +182,25 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         new string[] { },
                         new[]
                         {
-                            new TypePropertyDescriptor(
-                                new TypeReferenceDescriptor(
-                                    "string",
-                                    false,
-                                    ListType.NoList,
-                                    false
-                                ),
-                                "SomeText"
-                            ),
-                            new TypePropertyDescriptor(
-                                new TypeReferenceDescriptor(
+                            TestHelper.GetNamedNonNullStringTypeReference("SomeText"), new NamedTypeReferenceDescriptor(
+                                new TypeDescriptor(
                                     "Bar",
-                                    false,
-                                    ListType.List,
-                                    true
+                                    "BarNamespace"
                                 ),
+                                true,
+                                ListType.List,
                                 "BarReferenceList"
                             ),
-                            new TypePropertyDescriptor(
-                                new TypeReferenceDescriptor(
+                            new NamedTypeReferenceDescriptor(
+                                new TypeDescriptor(
                                     "Bar",
-                                    false,
-                                    ListType.NoList,
-                                    true
+                                    "BarNamespace"
                                 ),
+                                true,
+                                ListType.NoList,
                                 "BarReference"
                             ),
-                            new TypePropertyDescriptor(
-                                new TypeReferenceDescriptor(
-                                    "string",
-                                    false,
-                                    ListType.NoList,
-                                    false
-                                ),
-                                "SomeOtherText"
-                            ),
+                            TestHelper.GetNamedNonNullStringTypeReference("SomeOtherText")
                         }
                     ),
                     new TypeDescriptor(
@@ -310,42 +209,25 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         new string[] { },
                         new[]
                         {
-                            new TypePropertyDescriptor(
-                                new TypeReferenceDescriptor(
-                                    "string",
-                                    false,
-                                    ListType.NoList,
-                                    false
-                                ),
-                                "SomeText"
-                            ),
-                            new TypePropertyDescriptor(
-                                new TypeReferenceDescriptor(
+                            TestHelper.GetNamedNonNullStringTypeReference("SomeText"), new NamedTypeReferenceDescriptor(
+                                new TypeDescriptor(
                                     "Bar",
-                                    false,
-                                    ListType.List,
-                                    true
+                                    "BarNamespace"
                                 ),
+                                false,
+                                ListType.List,
                                 "BarReferenceList"
                             ),
-                            new TypePropertyDescriptor(
-                                new TypeReferenceDescriptor(
+                            new NamedTypeReferenceDescriptor(
+                                new TypeDescriptor(
                                     "Bar",
-                                    false,
-                                    ListType.NoList,
-                                    true
+                                    "BarNamespace"
                                 ),
+                                false,
+                                ListType.NoList,
                                 "BarReference"
                             ),
-                            new TypePropertyDescriptor(
-                                new TypeReferenceDescriptor(
-                                    "string",
-                                    false,
-                                    ListType.NoList,
-                                    false
-                                ),
-                                "SomeOtherText"
-                            ),
+                            TestHelper.GetNamedNonNullStringTypeReference("SomeOtherText")
                         }
                     )
                 )
