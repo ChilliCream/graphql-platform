@@ -11,13 +11,13 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models2
             string? description,
             IOutputField field,
             IOutputType type,
-            FieldNode selection,
+            FieldNode syntaxNode,
             Path path)
         {
             Name = name;
             Description = description;
             Field = field;
-            Selection = selection;
+            SyntaxNode = syntaxNode;
             Path = path;
             Type = type;
         }
@@ -34,7 +34,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models2
 
         IType IFieldModel.Type => Type;
 
-        public FieldNode Selection { get; }
+        public FieldNode SyntaxNode { get; }
 
         public Path Path { get; }
     }

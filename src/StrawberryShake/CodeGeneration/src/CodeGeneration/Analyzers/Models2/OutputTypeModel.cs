@@ -14,7 +14,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models2
             INamedType type,
             SelectionSetNode selectionSet,
             IReadOnlyList<OutputFieldModel> fields,
-            IReadOnlyList<OutputTypeModel>? implementations = null)
+            IReadOnlyList<OutputTypeModel>? implements = null)
         {
             Name = name;
             Description = description;
@@ -22,7 +22,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models2
             Type = type;
             SelectionSet = selectionSet;
             Fields = fields;
-            Implementations = implementations ?? Array.Empty<OutputTypeModel>();
+            Implements = implements ?? Array.Empty<OutputTypeModel>();
         }
 
         public string Name { get; }
@@ -35,7 +35,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models2
 
         public SelectionSetNode SelectionSet { get; }
 
-        public IReadOnlyList<OutputTypeModel> Implementations { get; }
+        public IReadOnlyList<OutputTypeModel> Implements { get; }
 
         public IReadOnlyList<OutputFieldModel> Fields { get; }
     }

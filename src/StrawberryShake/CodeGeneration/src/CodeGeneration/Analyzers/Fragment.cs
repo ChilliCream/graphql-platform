@@ -1,6 +1,6 @@
+using System;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using StrawberryShake.CodeGeneration.Utilities;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
 {
@@ -25,5 +25,17 @@ namespace StrawberryShake.CodeGeneration.Analyzers
         public INamedType TypeCondition { get; }
 
         public SelectionSetNode SelectionSet { get; }
+
+        public Fragment WithName(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                throw new ArgumentException(
+                    $"'{nameof(name)}' cannot be null or empty", 
+                    nameof(name));
+            }
+
+            return new Fragment(name,Kind, TypeCondition, SelectionSet);
+        }
     }
 }

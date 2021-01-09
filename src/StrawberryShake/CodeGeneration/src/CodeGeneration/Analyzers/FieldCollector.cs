@@ -7,6 +7,7 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using IHasDirectives = HotChocolate.Language.IHasDirectives;
+using static StrawberryShake.CodeGeneration.Utilities.TypeHelpers;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
 {
@@ -270,31 +271,6 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     }
                 }
                 return true;
-            }
-            return false;
-        }
-
-        private static bool DoesTypeApply(IType typeCondition, INamedType current)
-        {
-            if (typeCondition is ObjectType ot)
-            {
-                return ot == current;
-            }
-            else if (typeCondition is InterfaceType it)
-            {
-                if (current is ObjectType cot)
-                {
-                    return cot.IsAssignableFrom(it);
-                }
-
-                if (current is InterfaceType cit)
-                {
-                    return it.Name.Equals(cit.Name, StringComparison.Ordinal);
-                }
-            }
-            else if (typeCondition is UnionType ut)
-            {
-                return ut.Types.ContainsKey(current.Name);
             }
             return false;
         }

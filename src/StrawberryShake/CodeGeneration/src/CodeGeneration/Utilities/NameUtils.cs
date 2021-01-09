@@ -55,15 +55,6 @@ namespace StrawberryShake.CodeGeneration.Utilities
                 {
                     amended[buffered++] = char.ToUpper(fieldName[i], CultureInfo.InvariantCulture);
                 }
-                else if (fieldName[i] == '_')
-                {
-                    if (i + 1 < fieldName.Length
-                        && char.IsLetter(fieldName[i + 1]))
-                    {
-                        amended[buffered++] =
-                            char.ToUpper(fieldName[++i], CultureInfo.InvariantCulture);
-                    }
-                }
                 else
                 {
                     amended[buffered++] = fieldName[i];
