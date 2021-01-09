@@ -1,7 +1,7 @@
 ---
 path: "/blog/2021/01/10/hot-chocolate-logging"
 date: "2021-01-10"
-title: "Log Your Queries, Mutations and Subscriptions While Developing Code"
+title: "Log Your Queries While Building a GraphQL Server"
 tags: ["hotchocolate", "graphql", "dotnet", "aspnetcore"]
 featuredImage: "hot-chocolate-11-banner.png"
 author: Peter Kellner
@@ -16,12 +16,11 @@ Hot Chocolate GraphQL server.
 
 # Just Show Me the Code
 
-You can find all the code from this article at this URL.
+You can find all the code from this article in this Github repository:
 
-https://.../.../...$$$
+https://github.com/pkellner/hot-chocolate-query-logging
 
-There are only two things you need to do.  First, you need to create a new class in your project that implements `DiagnosticEventListener`.  You can put this C#
-any place in your project.
+To start logging your GraphQL server requests this is all you need to do.  First, you need to create a new class in your project that implements the listener `DiagnosticEventListener`.
 
 ```csharp
 using System;
@@ -95,7 +94,7 @@ namespace logging
 
 Then, in your `startup.cs`, you need to subscribe to the the Hot Chocolate `DiagnosticEventListener`, which is what the above `ConsoleQueryLogger` class implements.
 
-That's done in the `ConfigureServices` method in `startup.cs` as shown below.
+That's done in the `ConfigureServices` method in `startup.cs`.
 
 ```csharp
 public class Startup
@@ -126,7 +125,7 @@ public class Startup
 For this logger to have something to do, we need to have a `Query` in our project so let's make a very simple class and put it in a file `Query.cs`.
 
 
-Let's assume you have in your `Query.cs` a resolver that takes a single parameter and returns a string, like this for example:
+Let's assume you have in your `Query.cs` a resolver that takes a single parameter and returns a string based on a passed in parameter (like this for example).
 
 ```csharp
 namespace logging
@@ -164,7 +163,7 @@ query person($upperCase: Boolean) {
 }
 ```
 
-with the associated variable Boolean in your POST `upperCase`
+with the associated `Boolean` variable in your POST `upperCase`
 
 ```graphql
 {
@@ -189,9 +188,7 @@ upperCase    :true  :HotChocolate.Types.BooleanType
 Ellapsed time for query is 162 milliseconds.
 ```
 
-
-
-Notice the execution time shows as 162 milliseconds. If you execute the query again, you'll see that drop to just 1 or 2 milliseconds as now, the query is cached by Hot Chocolate.
+Notice the execution time shows as 162 milliseconds. If you execute the query again, you'll see that drop to just 1 or 2 milliseconds as now, the query, along with it's resolvers are cached by Hot Chocolate.
 
 Now, for a little more details on what's actually happening here, as well as how to log your queries using the very useful 
 <a href="https://miniprofiler.com/dotnet/AspDotNetCore" target="_blank">MiniProfiler for ASP.NET Core</a>.
@@ -201,7 +198,7 @@ Now, for a little more details on what's actually happening here, as well as how
 
 Adding console logging is really quite simple in what is going on.  It's straight forward usage of both the ASP.NET Core <a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection" target="_blank">Dependency Injection</a> and <a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/middleware" target="_blank">Middleware</a> implementations.
 
-Look at this line of code in our `startup.cs`.
+That middleware is added to our `startup.cs`.
 
 ```csharp
 .AddDiagnosticEventListener(sp =>
@@ -210,14 +207,15 @@ Look at this line of code in our `startup.cs`.
   ));
 ```
 
-`AddDiagnosticEventListener` is adding to the Hot Chocolate GraphQL server middleware, or really just a listener designed to listen for events that happen while the server is processing requests.  Typically, these are diagnostic events that give us the ability to do things like capture GraphQL queries and variables while at the same time, doing something useful with them (like log them to the console).
+`AddDiagnosticEventListener` is adding to the Hot Chocolate GraphQL server a listener designed to listen for events that happen while the server is processing requests.  Typically, these are diagnostic events that give us the ability to do things like capture GraphQL queries and variables while at the same time, doing something useful with them (like log them to the console).
 
-Our `ConsoleQueryLogger` receives as an injected service, the logger itself, that uses the <a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging" target="_blank">ASP.NET Core Logging API</a> and the built in Console logging provider, `AddConsole`.
+Our `ConsoleQueryLogger` receives as an injected service, the logger itself, that uses the <a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging" target="_blank">ASP.NET Core Logging API</a>, and the built in Console logging provider, `AddConsole`.
 
 You will need to make sure that in your `program.cs` you've added `ConfigureLogging` to your `CreateHostBuilder` method.  It should look similar to this.
 
 ```csharp
-public static IHostBuilder CreateHostBuilder(string[] args) =>
+public static IHostBuilder 
+  CreateHostBuilder(string[] args) =>
     Host.CreateDefaultBuilder(args)
         .ConfigureLogging(c => c.AddConsole())
         .ConfigureWebHostDefaults(webBuilder =>
@@ -225,13 +223,13 @@ public static IHostBuilder CreateHostBuilder(string[] args) =>
             webBuilder.UseStartup<Startup>();
         });
 ```
-Back to our `ConsoleQueryLogger` class. The entire purpose of this class is to hook into the Hot Chocolate GraphQL processing pipeline such that we can start a timer before the query starts processing, and then output at that processing completion, the query details themselves, as well as the time spent in milliseconds for that query to process.
+Back to our `ConsoleQueryLogger` class. The entire purpose of this class is to hook into the Hot Chocolate GraphQL processing pipeline such that we can start a timer before the query starts processing. Then, at that processing completion, the query details, the variables associated with the query and the execution time are logged.
 
-Because this method implements the Hot Chocolate `DiagnosticEventListener`, we can override the `ExecuteRequest` method which gives us a way to hook into the processing pipeline.  That "hook in" is by way of Dependency Injection.  By making the first parameter of that method an `IRequestContext`, we can get passed into this method our GraphQL context for this request.  That contains all the details about the request including the query itself and it's associated request variables.
+Because this method implements the Hot Chocolate `DiagnosticEventListener`, we can override the `ExecuteRequest` method which gives us a way to hook into the processing pipeline.  That "hook in" is by way of Dependency Injection.  By making the first parameter of that method an `IRequestContext`, we can get passed into this method, our GraphQL context for this request.  That context contains all the details about the request including the query itself and its associated request variables.
 
 From here, we create a new `RequestScope`, that will track our entire request from start to finish in the Hot Chocolate GraphQL server.  We pass into that `RequestScope`, our console logger and our newly acquired GraphQL context.  
 
-Essentially, this new `RequestScope` tracks our GraphQL query from start to finish.  We make use of `System.Diagnostics.Stopwatch` to time our request.  We start the timer in the constructor, and we stop it in the `Dispose` method.  Because we have access to our request details, as well as the logger class, we can output our complete query to our logger class right here on the completion of the request processing pipeline. Here is our Dispose method (same as above) that does exactly that.
+Essentially, this new `RequestScope` tracks our GraphQL query from start to finish.  We make use of `System.Diagnostics.Stopwatch` to time our request.  We start the timer in the `RequestScope`'s constructor, and we stop it in its `Dispose` method.  Because we have access to our request details, as well as the logger class, we can output our complete query to our logger on the completion of the request processing. 
 
 ```csharp
 public void Dispose()
@@ -241,7 +239,7 @@ public void Dispose()
 }
 ```
 
-You don't really need to understand all these details to use the logger, and likely, in the future you would probably get this from another nuget package, or it might even be built in to the server, but for now, it's interesting to see how straight forward it is to hook directly into the processing of your GraphQL request.
+You don't really need to understand all these details to use the logger, and likely, in the future you would probably get this from another `nuget` package. For now, it's interesting to see how straight forward it is to hook directly into the processing of your GraphQL request.
 
 # Logging Requests to MiniProfiler 
 
@@ -251,21 +249,25 @@ The idea is that you get a URL route you can secure on your website that lists t
 
 ![MiniProfiler Index Web Page](MiniProfiler-Index-640.png)
 
-and you can drill down on each one and see the actual query as well as the passed in variables with their associated data.
+You can drill down on each one if these queries, and see the actual query as well as the passed in variables along with their associated input data.
 
 ![MiniProfiler Detail Web Page](MiniProfiler-Detail-640.png)
 
-Just like for the `ConsoleQueryLogger` class, we need to create a similar class for our MiniProfiler to work. I've done that in our example repository and named the class `MiniProfilerQueryLogger`.  It also implements `DiagosticEventListener`, gets passed in the request context, but instead of logging to the console with the `ILogger` interface and the `ConsoleLoggerExtension`, it simply calls the MiniProfiler API directly.
+Just like for the `ConsoleQueryLogger` class, we need to create a similar class for our MiniProfiler to work. I've done that in our example repository and named the class `MiniProfilerQueryLogger`.
 
-I could have implemented it with the ILogger interface and that would have given a lot more flexibility to our logging, but that also would have added a lot more complexity so for now, if you want to log to MiniProfiler, add the middleware to your GraphQL.
+https://github.com/pkellner/hot-chocolate-query-logging/blob/main/MiniProfilerQueryLogger.cs
+
+It also implements `DiagosticEventListener` just like `ConsoleQueryLogger` did. It gets passed in the request context, but instead of logging to the console with the `ILogger` interface and the `ConsoleLoggerExtension`, it simply calls the MiniProfiler API directly.
+
+I could have implemented it with the ILogger interface and that would have given a lot more flexibility to our logging, but that also would have added a lot more complexity, so for now, if you want to log to MiniProfiler, add this middleware to your GraphQL.
 
 We do need to install the MiniProfiler package for ASP.NET Core so let's do that at the command line with `nuget`.  That command is:
 
-```powershell
+```dos
 dotnet add package MiniProfiler.AspNetCore.Mvc
 ```
 
-Then, to our `startup.cs`, we need to add several things.  They are in order:
+Then, to our `startup.cs`, we need to add several things.  They are:
 
 In `ConfigureServices`
 
@@ -277,7 +279,7 @@ In `Configure`
 
 1. Add to our app builder `useMiniProfiler`
 
-Our final `Startup.cs` looks like this now:
+Here is our final `startup.cs`.
 
 ```csharp
 using Microsoft.AspNetCore.Builder;
@@ -290,7 +292,8 @@ namespace logging
 {
     public class Startup
     {
-        public void ConfigureServices(IServiceCollection services)
+        public void ConfigureServices
+           (IServiceCollection services)
         {
             services.AddControllersWithViews();
             services
@@ -299,7 +302,8 @@ namespace logging
                 .AddQueryType<Query>()
                 .AddDiagnosticEventListener(sp =>
                     new ConsoleQueryLogger
-                        (sp.GetApplicationService<ILogger<ConsoleQueryLogger>>()))
+                        (sp.GetApplicationService
+                           <ILogger<ConsoleQueryLogger>>()))
                 .AddDiagnosticEventListener(sp =>
                     new MiniProfilerQueryLogger());
             services.AddMiniProfiler(options => 
@@ -316,7 +320,8 @@ namespace logging
 
             app.UseRouting();
             app.UseMiniProfiler();
-            app.UseEndpoints(endpoints => { endpoints.MapGraphQL(); });
+            app.UseEndpoints(endpoints => 
+              { endpoints.MapGraphQL(); });
         }
     }
 }
@@ -328,11 +333,11 @@ Just a side note.  You can run both the console logger and the MiniProfiler at t
 
 # Possibilities For Logging SQL and Entity Framework
 
-It's worth mentioning that MiniProfiler has been around for a long time and there are many configuring profiles available including ones for ADO.NET as well as Entity Framework Core.  
+It's worth mentioning that <a href="https://miniprofiler.com" target="_blank">MiniProfiler</a> has been around for a long time and there are many configuring profiles available including ones for <a href="https://docs.microsoft.com/en-us/dotnet/framework/data/adonet/ado-net-overview" target="_blank">ADO.NET</a> as well as <a href="https://docs.microsoft.com/en-us/ef/" target="_blank">Entity Framework Core</a>.  
 
 If you've gotten everything working, it's trivial to add Entity Framework support so that inside  your GraphQL requests, you can see the actual SQL sent to the server and the associated timing.  Literally, all you have to do is install one `nuget` package
 
-```powershell
+```dos
 dotnet add package MiniProfiler.EntityFrameworkCore    
 ```
 
@@ -349,26 +354,8 @@ Then, when you execute a GraphQL query that uses Entity Framework Core, you'll g
 
 ![](MiniProfiler-Detail-EF-640.png)
 
-
 # Wrap
 
 Once you have logging enabled in your Hot Chocolate GraphQL server, you'll wonder how you ever worked without it.  It's easy to setup and does not get in the way at all while you're building your apps.  
 
-Stay Safe
-
-<hr/><hr/>
-# BIO PIECE LIKE TELERIK BLOG
-
-![bio](replace-bio-impage-with-markup-doing-same-like-telerik-blog.png)
-<hr/><hr/>
-# BOTTOM PIECE? 
-
-***Last but not least we must subscribe to the Green Donut DiagnosticSource.***
-
-*NOT SURE IF YOU WANT THIS ON THE BLOG OR THIS SHOULD BE ON THE FOOTER OF THE BLOG PAGE*
-If you want to get into contact with us head over to our [slack channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q) and join our community.
-
-[hot chocolate]: https://hotchocolate.io
-[hot chocolate source code]: https://github.com/ChilliCream/hotchocolate
-
-
+Stay Safe.
