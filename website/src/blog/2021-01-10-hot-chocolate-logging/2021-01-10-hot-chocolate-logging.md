@@ -249,14 +249,11 @@ Console logs are nice, but can get pretty cluttered and become unmanageable quic
 
 The idea is that you get a URL route you can secure on your website that lists the queries you've run and how long each one took.  Typically it's something like <u>http://localhost:5000/profiler/results-index</u>.  Here is an example of us running the query we wrote earlier, multiple times.
 
-![MiniProfiler-Index-1280.png](MiniProfiler-Index-640.png)
+![MiniProfiler Index Web Page](MiniProfiler-Index-640.png)
 
 and you can drill down on each one and see the actual query as well as the passed in variables with their associated data.
 
-![](MiniProfiler-Detail1280.png)
-
-
-![](MiniProfiler-Detail-640.png)
+![MiniProfiler Detail Web Page](MiniProfiler-Detail-640.png)
 
 Just like for the `ConsoleQueryLogger` class, we need to create a similar class for our MiniProfiler to work. I've done that in our example repository and named the class `MiniProfilerQueryLogger`.  It also implements `DiagosticEventListener`, gets passed in the request context, but instead of logging to the console with the `ILogger` interface and the `ConsoleLoggerExtension`, it simply calls the MiniProfiler API directly.
 
