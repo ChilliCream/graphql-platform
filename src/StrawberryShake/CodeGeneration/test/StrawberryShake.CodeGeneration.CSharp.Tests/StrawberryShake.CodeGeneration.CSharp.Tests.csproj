@@ -1,4 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>StrawberryShake.CodeGeneration.CSharp.Tests</AssemblyName>
+    <RootNamespace>StrawberryShake</RootNamespace>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
 
   <PropertyGroup>
       <AssemblyName>StrawberryShake.CodeGeneration.CSharp.Tests</AssemblyName>
@@ -7,6 +12,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\CodeGeneration.CSharp\StrawberryShake.CodeGeneration.CSharp.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Other\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Remove="Other\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -22,5 +34,5 @@
   <ItemGroup>
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
   </ItemGroup>
-
+  
 </Project>

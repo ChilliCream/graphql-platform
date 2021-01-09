@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
+using StrawberryShake.CodeGeneration.Extensions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -11,15 +12,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         protected override Task WriteAsync(CodeWriter writer, TypeDescriptor typeDescriptor)
         {
-            if (writer is null)
-            {
-                throw new ArgumentNullException(nameof(writer));
-            }
-
-            if (typeDescriptor is null)
-            {
-                throw new ArgumentNullException(nameof(typeDescriptor));
-            }
+            AssertNonNull(
+                writer,
+                typeDescriptor
+            );
 
             ClassBuilder
                 .SetName(NamingConventions.ResultFactoryNameFromTypeName(typeDescriptor.Name))
@@ -29,7 +25,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetTypeName(typeDescriptor.Name)
                 .SetAccessModifier(AccessModifier.Public);
 
-            ConstructorAssignedField(
+            AddConstructorAssignedField(
                 WellKnownNames.IEntityStore,
                 StoreParamName
             );
@@ -37,19 +33,19 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             var mappersToInject = typeDescriptor.IsInterface
                 ? typeDescriptor.IsImplementedBy
-                : new[] {typeDescriptor.Name};
+                : new[] {typeDescriptor};
 
             foreach (var mapperType in mappersToInject)
             {
                 var typeName = TypeReferenceBuilder
                     .New()
                     .SetName(WellKnownNames.IEntityMapper)
-                    .AddGeneric(NamingConventions.EntityTypeNameFromTypeName(mapperType))
-                    .AddGeneric(mapperType);
+                    .AddGeneric(NamingConventions.EntityTypeNameFromTypeName(mapperType.Name))
+                    .AddGeneric(mapperType.Name);
 
-                ConstructorAssignedField(
+                AddConstructorAssignedField(
                     typeName,
-                    NamingConventions.MapperNameFromTypeName(mapperType).ToFieldName()
+                    NamingConventions.MapperNameFromTypeName(mapperType.Name).ToFieldName()
                 );
             }
 

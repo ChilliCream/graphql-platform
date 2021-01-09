@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
+using StrawberryShake.CodeGeneration.Extensions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -9,22 +10,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
     {
         protected override Task WriteAsync(CodeWriter writer, ClientDescriptor clientDescriptor)
         {
-            if (writer is null)
-            {
-                throw new ArgumentNullException(nameof(writer));
-            }
+            AssertNonNull(writer, clientDescriptor);
 
-            if (clientDescriptor is null)
-            {
-                throw new ArgumentNullException(nameof(clientDescriptor));
-            }
 
             ClassBuilder.SetName(clientDescriptor.Name);
             ConstructorBuilder.SetTypeName(clientDescriptor.Name);
 
             foreach (OperationDescriptor operation in clientDescriptor.Operations)
             {
-                ConstructorAssignedField(
+                AddConstructorAssignedField(
                     operation.Name,
                     operation.Name.ToFieldName()
                 );

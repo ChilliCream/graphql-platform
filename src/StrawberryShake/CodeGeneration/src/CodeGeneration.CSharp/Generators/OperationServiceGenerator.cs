@@ -11,28 +11,24 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         protected override Task WriteAsync(CodeWriter writer, OperationDescriptor operationDescriptor)
         {
-            if (writer is null)
-            {
-                throw new ArgumentNullException(nameof(writer));
-            }
+            AssertNonNull(
+                writer,
+                operationDescriptor
+            );
 
-            if (operationDescriptor is null)
-            {
-                throw new ArgumentNullException(nameof(operationDescriptor));
-            }
 
             ClassBuilder.SetName(operationDescriptor.Name);
             ConstructorBuilder.SetTypeName(operationDescriptor.Name);
 
-            ConstructorAssignedField(
+            AddConstructorAssignedField(
                 WellKnownNames.IOperationStore,
                 OperationStoreFieldName
             );
 
-            ConstructorAssignedField(
+            AddConstructorAssignedField(
                 TypeReferenceBuilder.New()
                     .SetName(WellKnownNames.IOperationExecutor)
-                    .AddGeneric(operationDescriptor.ResultTypeReference.Name),
+                    .AddGeneric(operationDescriptor.ResultTypeReference.TypeName),
                 OperationExecutorFieldName
             );
 
@@ -41,14 +37,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 executeMethod = MethodBuilder.New()
                     .SetReturnType(
-                        $"async Task<{WellKnownNames.IOperationResult}<{operationDescriptor.ResultTypeReference.Name}>>"
+                        $"async Task<{WellKnownNames.IOperationResult}<{operationDescriptor.ResultTypeReference.TypeName}>>"
                     )
                     .SetAccessModifier(AccessModifier.Public)
                     .SetName(WellKnownNames.Execute);
             }
 
             var watchMethod = MethodBuilder.New()
-                .SetReturnType($"IOperationObservable<{operationDescriptor.ResultTypeReference.Name}>")
+                .SetReturnType($"IOperationObservable<{operationDescriptor.ResultTypeReference.TypeName}>")
                 .SetAccessModifier(AccessModifier.Public)
                 .SetName(WellKnownNames.Watch);
 
@@ -59,7 +55,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetName(keyValuePair.Key)
                     .SetType(
                         TypeReferenceBuilder.New()
-                            .SetName(paramType.Name)
+                            .SetName(paramType.TypeName)
                             .SetIsNullable(paramType.IsNullable)
                             .SetListType(paramType.ListType)
                     );
@@ -91,14 +87,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             foreach (var keyValuePair in operationDescriptor.Arguments)
             {
-                var line = CodeLineBuilder.New();
-                line.SetLine("request.Variables.Add(\"");
-                line.AppendToLine(keyValuePair.Key);
-                line.AppendToLine("\"");
-                line.AppendToLine(", ");
-                line.AppendToLine(keyValuePair.Key);
-                line.AppendToLine(");");
-                requestBuilder.AddCode(line);
+                requestBuilder.AddCode(
+                    CodeLineBuilder.New().SetLine(
+                        $"request.Variables.Add(\"{keyValuePair.Key}\", {keyValuePair.Key}, );"
+                    )
+                );
             }
 
             executeMethod?.AddCode(

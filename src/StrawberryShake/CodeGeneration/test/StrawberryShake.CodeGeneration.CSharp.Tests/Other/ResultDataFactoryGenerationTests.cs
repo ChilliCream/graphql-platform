@@ -1,10 +1,11 @@
-using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using Snapshooter.Xunit;
+using StrawberryShake.CodeGeneration;
+using StrawberryShake.CodeGeneration.CSharp;
 using Xunit;
 
-namespace StrawberryShake.CodeGeneration.CSharp.Tests
+namespace StrawberryShake.Other
 {
     public class ResultDataFactoryGenerationTests
     {
@@ -30,15 +31,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
                     new string[] { },
                     new[]
                     {
-                        new TypePropertyDescriptor(
-                            new TypeReferenceDescriptor(
-                                "string",
-                                false,
-                                ListType.NoList,
-                                false
-                            ),
-                            "SomeText"
-                        )
+                        TestHelper.GetNamedNonNullStringTypeReference("SomeText")
                     }
                 )
             );

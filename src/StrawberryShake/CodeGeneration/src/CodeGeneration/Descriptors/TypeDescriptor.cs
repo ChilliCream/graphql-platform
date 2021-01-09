@@ -16,7 +16,7 @@ namespace StrawberryShake.CodeGeneration
         /// <summary>
         /// The properties that result from the requested fields of the operation this ResultType is generated for.
         /// </summary>
-        public IReadOnlyList<TypePropertyDescriptor> Properties { get; }
+        public IReadOnlyList<NamedTypeReferenceDescriptor> Properties { get; }
 
         /// <summary>
         /// A list of interface names the ResultType implements
@@ -38,20 +38,27 @@ namespace StrawberryShake.CodeGeneration
         /// This list must only contain the most specific, concrete classes (that implement this interface),
         /// but no other interfaces.
         /// </summary>
-        public IReadOnlyList<string> IsImplementedBy { get; }
+        public IReadOnlyList<TypeDescriptor> IsImplementedBy { get; }
+
+        /// <summary>
+        /// What is the Kind of the described Type?
+        /// </summary>
+        public TypeKind Kind { get; }
 
         public TypeDescriptor(
             string name,
             string @namespace,
-            IReadOnlyList<string> implements,
-            IReadOnlyList<TypePropertyDescriptor> properties,
-            IReadOnlyList<string>? isImplementedBy = null)
+            IReadOnlyList<string>? implements = null,
+            IReadOnlyList<NamedTypeReferenceDescriptor>? properties = null,
+            IReadOnlyList<TypeDescriptor>? isImplementedBy = null,
+            TypeKind kind = TypeKind.Scalar)
         {
             Name = name;
-            Properties = properties;
             Namespace = @namespace;
-            Implements = implements;
-            IsImplementedBy = isImplementedBy ?? new string[] { };
+            Implements = implements ?? new List<string>();
+            Properties = properties ?? new List<NamedTypeReferenceDescriptor>();
+            IsImplementedBy = isImplementedBy ?? new TypeDescriptor[] { };
+            Kind = kind;
         }
     }
 }

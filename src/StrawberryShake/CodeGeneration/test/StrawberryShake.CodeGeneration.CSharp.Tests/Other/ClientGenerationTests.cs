@@ -2,9 +2,11 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using Snapshooter.Xunit;
+using StrawberryShake.CodeGeneration;
+using StrawberryShake.CodeGeneration.CSharp;
 using Xunit;
 
-namespace StrawberryShake.CodeGeneration.CSharp.Tests
+namespace StrawberryShake.Other
 {
     public class ClientGenerationTests
     {
@@ -30,10 +32,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
                     {
                         new QueryOperationDescriptor(
                             new TypeReferenceDescriptor(
-                                "GetFoo",
+                                new TypeDescriptor(
+                                    "Foo",
+                                    "FooNamespace"
+                                ),
                                 false,
-                                ListType.NoList,
-                                true
+                                ListType.NoList
                             ),
                             new Dictionary<string, TypeReferenceDescriptor>()
                         )
@@ -55,19 +59,23 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
                     {
                         new QueryOperationDescriptor(
                             new TypeReferenceDescriptor(
-                                "GetFoo",
+                                new TypeDescriptor(
+                                    "GetFoo",
+                                    "FooNamespace"
+                                ),
                                 false,
-                                ListType.NoList,
-                                true
+                                ListType.NoList
                             ),
                             new Dictionary<string, TypeReferenceDescriptor>()
                         ),
                         new MutationOperationDescriptor(
                             new TypeReferenceDescriptor(
-                                "UpdateFoo",
+                                new TypeDescriptor(
+                                    "UpdateFoo",
+                                    "FooNamespace"
+                                ),
                                 false,
-                                ListType.NoList,
-                                true
+                                ListType.NoList
                             ),
                             new Dictionary<string, TypeReferenceDescriptor>()
                         )

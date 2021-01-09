@@ -12,7 +12,7 @@ namespace StrawberryShake.CodeGeneration
             string name,
             string serializationType,
             string runtimeType,
-            IReadOnlyList<TypePropertyDescriptor> runtimeTypeComponents,
+            IReadOnlyList<TypeReferenceDescriptor> runtimeTypeComponents,
             ValueSerializerDescriptor serializer)
         {
             Name = name;
@@ -38,7 +38,7 @@ namespace StrawberryShake.CodeGeneration
         /// The type components describing the type structure of the type
         /// deserialized by this deserializer.
         /// </summary>
-        public IReadOnlyList<TypePropertyDescriptor> RuntimeTypeComponents { get; }
+        public IReadOnlyList<TypeReferenceDescriptor> RuntimeTypeComponents { get; }
 
         /// <summary>
         /// The serializer that can deserialize the leaf type

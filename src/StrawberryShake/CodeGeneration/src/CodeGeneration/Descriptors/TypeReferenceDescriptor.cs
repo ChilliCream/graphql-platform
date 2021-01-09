@@ -7,9 +7,9 @@ namespace StrawberryShake.CodeGeneration
         : ICodeDescriptor
     {
         /// <summary>
-        /// The name of the referenced type
+        /// The referenced type
         /// </summary>
-        public string Name { get; }
+        public TypeDescriptor Type { get; }
 
         /// <summary>
         /// Describes whether or not it is a nullable type reference
@@ -21,17 +21,17 @@ namespace StrawberryShake.CodeGeneration
         /// </summary>
         public ListType ListType { get; }
 
-        /// <summary>
-        /// Is the referenced type a reference type or a value type?
-        /// </summary>
-        public bool IsReferenceType { get; }
+        public string TypeName => Type.Name;
+        public bool IsEntityType => Type.Kind == TypeKind.EntityType;
 
-        public TypeReferenceDescriptor(string name, bool isNullable, ListType listType, bool isReferenceType)
+        public TypeReferenceDescriptor(
+            TypeDescriptor type,
+            bool isNullable,
+            ListType listType)
         {
-            Name = name;
+            Type = type;
             IsNullable = isNullable;
             ListType = listType;
-            IsReferenceType = isReferenceType;
         }
     }
 }

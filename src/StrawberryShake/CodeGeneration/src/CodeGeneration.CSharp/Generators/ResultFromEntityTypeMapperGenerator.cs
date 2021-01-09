@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
+using StrawberryShake.CodeGeneration.Extensions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -14,15 +15,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         protected override Task WriteAsync(CodeWriter writer, ResultFromEntityTypeMapperDescriptor descriptor)
         {
-            if (writer is null)
-            {
-                throw new ArgumentNullException(nameof(writer));
-            }
-
-            if (descriptor is null)
-            {
-                throw new ArgumentNullException(nameof(descriptor));
-            }
+            AssertNonNull(writer, descriptor);
 
             // Setup class
             ClassBuilder
@@ -31,7 +24,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             ConstructorBuilder.SetTypeName(descriptor.Name);
 
-            ConstructorAssignedField(
+            AddConstructorAssignedField(
                 WellKnownNames.IEntityStore,
                 StoreFieldName
             );
@@ -53,28 +46,28 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             var mapperSet = new HashSet<string>();
 
-            foreach (TypePropertyDescriptor propertyDescriptor in descriptor.ResultType.Properties)
+            foreach (NamedTypeReferenceDescriptor propertyDescriptor in descriptor.ResultType.Properties)
             {
-                if (propertyDescriptor.TypeReference.IsReferenceType)
+                if (propertyDescriptor.IsEntityType)
                 {
                     var propertyMapperName =
-                        NamingConventions.MapperNameFromTypeName(propertyDescriptor.TypeReference.Name);
+                        NamingConventions.MapperNameFromTypeName(propertyDescriptor.TypeName);
                     var propertyMapperTypeName =
-                        $"IEntityMapper<{NamingConventions.EntityTypeNameFromTypeName(propertyDescriptor.TypeReference.Name)}, {propertyDescriptor.TypeReference.Name}>";
+                        $"IEntityMapper<{NamingConventions.EntityTypeNameFromTypeName(propertyDescriptor.TypeName)}, {propertyDescriptor.TypeName}>";
                     var propertyMapperFieldName = propertyMapperName.ToFieldName();
 
                     if (!mapperSet.Contains(propertyMapperName))
                     {
                         mapperSet.Add(propertyMapperName);
 
-                        ConstructorAssignedField(
+                        AddConstructorAssignedField(
                             propertyMapperTypeName,
                             propertyMapperFieldName
                         );
                     }
 
                     MethodCallBuilder entityMapperMethod;
-                    if (propertyDescriptor.TypeReference.ListType == ListType.NoList)
+                    if (propertyDescriptor.ListType == ListType.NoList)
                     {
                         entityMapperMethod = MethodCallBuilder.New()
                             .SetDetermineStatement(false)
@@ -89,7 +82,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                 + "."
                                 + nameof(IEntityStore.GetEntity)
                                 + "<" + NamingConventions.EntityTypeNameFromTypeName(
-                                    propertyDescriptor.TypeReference.Name
+                                    propertyDescriptor.TypeName
                                 ) + ">"
                             );
                         entityGetterMethod
@@ -126,11 +119,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         entityMapperMethod = new MethodCallBuilder()
                             .SetMethodName(
                                 StoreFieldName + "." +
-                                (propertyDescriptor.TypeReference.ListType != ListType.NoList
+                                (propertyDescriptor.ListType != ListType.NoList
                                     ? nameof(IEntityStore.GetEntities)
                                     : nameof(IEntityStore.GetEntity))
                                 + "<" + NamingConventions.EntityTypeNameFromTypeName(
-                                    propertyDescriptor.TypeReference.Name
+                                    propertyDescriptor.TypeName
                                 ) + ">"
                             )
                             .SetDetermineStatement(false)

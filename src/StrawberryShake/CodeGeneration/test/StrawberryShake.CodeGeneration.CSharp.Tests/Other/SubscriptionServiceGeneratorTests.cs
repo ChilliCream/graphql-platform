@@ -2,17 +2,19 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using Snapshooter.Xunit;
+using StrawberryShake.CodeGeneration;
+using StrawberryShake.CodeGeneration.CSharp;
 using Xunit;
 
-namespace StrawberryShake.CodeGeneration.CSharp.Tests
+namespace StrawberryShake.Other
 {
-    public class QueryServiceGeneratorTests
+    public class SubscriptionServiceGeneratorTests
     {
         readonly StringBuilder _stringBuilder;
         readonly CodeWriter _codeWriter;
         readonly OperationServiceGenerator _generator;
 
-        public QueryServiceGeneratorTests()
+        public SubscriptionServiceGeneratorTests()
         {
             _stringBuilder = new StringBuilder();
             _codeWriter = new CodeWriter(_stringBuilder);
@@ -24,12 +26,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
         {
             await _generator.WriteAsync(
                 _codeWriter,
-                new QueryOperationDescriptor(
+                new SubscriptionOperationDescriptor(
                     new TypeReferenceDescriptor(
-                        "Foo",
+                        new TypeDescriptor(
+                            "Foo",
+                            "FooNamespace"
+                        ),
                         false,
-                        ListType.NoList,
-                        true
+                        ListType.NoList
                     ),
                     new Dictionary<string, TypeReferenceDescriptor>()
                 )
@@ -43,16 +47,18 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
         {
             await _generator.WriteAsync(
                 _codeWriter,
-                new QueryOperationDescriptor(
+                new SubscriptionOperationDescriptor(
                     new TypeReferenceDescriptor(
-                        "Foo",
+                        new TypeDescriptor(
+                            "Foo",
+                            "FooNamespace"
+                        ),
                         false,
-                        ListType.NoList,
-                        true
+                        ListType.NoList
                     ),
                     new Dictionary<string, TypeReferenceDescriptor>()
                     {
-                        {"name", new TypeReferenceDescriptor("string", false, ListType.NoList, false)}
+                        {"name", TestHelper.GetNonNullStringTypeReference()}
                     }
                 )
             );
@@ -65,16 +71,27 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
         {
             await _generator.WriteAsync(
                 _codeWriter,
-                new QueryOperationDescriptor(
+                new SubscriptionOperationDescriptor(
                     new TypeReferenceDescriptor(
-                        "Foo",
+                        new TypeDescriptor(
+                            "Foo",
+                            "FooNamespace"
+                        ),
                         false,
-                        ListType.NoList,
-                        true
+                        ListType.NoList
                     ),
                     new Dictionary<string, TypeReferenceDescriptor>()
                     {
-                        {"bar", new TypeReferenceDescriptor("BarInput", true, ListType.NoList, true)}
+                        {
+                            "bar", new TypeReferenceDescriptor(
+                                new TypeDescriptor(
+                                    "BarInput",
+                                    "BarInputNamespace"
+                                ),
+                                true,
+                                ListType.NoList
+                            )
+                        }
                     }
                 )
             );
@@ -87,17 +104,28 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
         {
             await _generator.WriteAsync(
                 _codeWriter,
-                new QueryOperationDescriptor(
+                new SubscriptionOperationDescriptor(
                     new TypeReferenceDescriptor(
-                        "Foo",
+                        new TypeDescriptor(
+                            "Foo",
+                            "FooNamespace"
+                        ),
                         false,
-                        ListType.NoList,
-                        true
+                        ListType.NoList
                     ),
                     new Dictionary<string, TypeReferenceDescriptor>()
                     {
-                        {"name", new TypeReferenceDescriptor("string", false, ListType.NoList, false)},
-                        {"a", new TypeReferenceDescriptor("BarInput", true, ListType.NoList, true)}
+                        {"name", TestHelper.GetNonNullStringTypeReference()},
+                        {
+                            "a", new TypeReferenceDescriptor(
+                                new TypeDescriptor(
+                                    "BarInput",
+                                    "BarInputNamespace"
+                                ),
+                                true,
+                                ListType.NoList
+                            )
+                        }
                     }
                 )
             );

@@ -1,9 +1,11 @@
 using System.Text;
 using System.Threading.Tasks;
 using Snapshooter.Xunit;
+using StrawberryShake.CodeGeneration;
+using StrawberryShake.CodeGeneration.CSharp;
 using Xunit;
 
-namespace StrawberryShake.CodeGeneration.CSharp.Tests
+namespace StrawberryShake.Other
 {
     public class EntityTypeGenerationTests
     {
@@ -27,18 +29,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
                     NamingConventions.EntityTypeNameFromTypeName("Foo"),
                     "FooBarNamespace",
                     new string[] { },
-                    new[]
-                    {
-                        new TypePropertyDescriptor(
-                            new TypeReferenceDescriptor(
-                                "string",
-                                false,
-                                ListType.NoList,
-                                false
-                            ),
-                            "SomeText"
-                        )
-                    }
+                    new[] {TestHelper.GetNamedNonNullStringTypeReference("SomeText")}
                 )
             );
             _stringBuilder.ToString().MatchSnapshot();
@@ -55,13 +46,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
                     new string[] { },
                     new[]
                     {
-                        new TypePropertyDescriptor(
-                            new TypeReferenceDescriptor(
+                        new NamedTypeReferenceDescriptor(
+                            new TypeDescriptor(
                                 "Bar",
-                                false,
-                                ListType.NoList,
-                                true
+                                "BarNamespace"
                             ),
+                            false,
+                            ListType.NoList,
                             "Bar"
                         )
                     }
@@ -81,31 +72,22 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
                     new string[] { },
                     new[]
                     {
-                        new TypePropertyDescriptor(
-                            new TypeReferenceDescriptor(
-                                "string",
-                                false,
-                                ListType.NoList,
-                                false
-                            ),
-                            "Id"
-                        ),
-                        new TypePropertyDescriptor(
-                            new TypeReferenceDescriptor(
+                        TestHelper.GetNamedNonNullStringTypeReference("Id"), new NamedTypeReferenceDescriptor(
+                            new TypeDescriptor(
                                 "Bar",
-                                false,
-                                ListType.List,
-                                true
+                                "BarNamespace"
                             ),
+                            false,
+                            ListType.List,
                             "Bars"
                         ),
-                        new TypePropertyDescriptor(
-                            new TypeReferenceDescriptor(
+                        new NamedTypeReferenceDescriptor(
+                            new TypeDescriptor(
                                 "Baz",
-                                true,
-                                ListType.NoList,
-                                true
+                                "BazNamespace"
                             ),
+                            true,
+                            ListType.NoList,
                             "Baz"
                         ),
                     }
