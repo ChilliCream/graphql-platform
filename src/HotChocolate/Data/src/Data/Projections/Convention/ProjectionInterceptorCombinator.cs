@@ -9,15 +9,15 @@ namespace HotChocolate.Data.Projections.Handlers
         : IProjectionFieldInterceptor<T>
         where T : IProjectionVisitorContext
     {
-        private readonly IProjectionFieldInterceptor _first;
-        private readonly IProjectionFieldInterceptor _second;
+        private readonly IProjectionFieldInterceptor _current;
+        private readonly IProjectionFieldInterceptor _next;
 
         public ProjectionInterceptorCombinator(
-            IProjectionFieldInterceptor first,
-            IProjectionFieldInterceptor second)
+            IProjectionFieldInterceptor current,
+            IProjectionFieldInterceptor next)
         {
-            _first = first;
-            _second = second;
+            _current = current;
+            _next = next;
         }
 
         public bool CanHandle(ISelection selection) => true;
@@ -26,27 +26,27 @@ namespace HotChocolate.Data.Projections.Handlers
             T context,
             ISelection selection)
         {
-            if (_first is IProjectionFieldInterceptor<T> firstHandler)
+            if (_current is IProjectionFieldInterceptor<T> currentHandler)
             {
-                firstHandler.BeforeProjection(context, selection);
+                currentHandler.BeforeProjection(context, selection);
             }
 
-            if (_second is IProjectionFieldInterceptor<T> secondHandler)
+            if (_next is IProjectionFieldInterceptor<T> nextHandler)
             {
-                secondHandler.BeforeProjection(context, selection);
+                nextHandler.BeforeProjection(context, selection);
             }
         }
 
         public void AfterProjection(T context, ISelection selection)
         {
-            if (_first is IProjectionFieldInterceptor<T> firstHandler)
+            if (_next is IProjectionFieldInterceptor<T> nextHandler)
             {
-                firstHandler.AfterProjection(context, selection);
+                nextHandler.AfterProjection(context, selection);
             }
 
-            if (_second is IProjectionFieldInterceptor<T> secondHandler)
+            if (_current is IProjectionFieldInterceptor<T> currentHandler)
             {
-                secondHandler.AfterProjection(context, selection);
+                currentHandler.AfterProjection(context, selection);
             }
         }
     }
