@@ -1,10 +1,9 @@
-using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace StrawberryShake.CodeGeneration.CSharp.Tests
+namespace StrawberryShake.CodeGeneration.CSharp.Tests.Other
 {
     public class ResultDataFactoryGenerationTests
     {

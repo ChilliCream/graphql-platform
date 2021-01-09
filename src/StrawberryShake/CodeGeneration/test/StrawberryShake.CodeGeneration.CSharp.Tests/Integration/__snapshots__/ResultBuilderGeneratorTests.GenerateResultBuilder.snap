@@ -1,0 +1,90 @@
+﻿namespace StarWarsClient
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetHeroResultBuilder
+        : IOperationResultBuilder<JsonElement, GetHeroResult>
+    {
+        private readonly IEntityStore _entityStore;
+        private readonly Func<JsonElement, EntityId> _extractId;
+        private readonly IOperationResultDataFactory<GetHeroResult> _resultDataFactory;
+        private ILeafValueParser<string, string> _stringParser;
+
+        public GetHeroResultBuilder(
+            IEntityStore entityStore,
+            Func<JsonElement, EntityId> extractId,
+            IOperationResultDataFactory<GetHeroResult> resultDataFactory,
+            ISerializerResolver serializerResolver)
+        {
+            _entityStore = entityStore
+                 ?? throw new ArgumentNullException(nameof(entityStore));
+            _extractId = extractId
+                 ?? throw new ArgumentNullException(nameof(extractId));
+            _resultDataFactory = resultDataFactory
+                 ?? throw new ArgumentNullException(nameof(resultDataFactory));
+            _stringParser = serializerResolver.GetLeafValueParser<string, string>("String")
+                 ?? throw new ArgumentNullException(nameof(serializerResolver.GetLeafValueParser<string, string>("String")));
+        }
+
+        public IOperationResult<GetHeroResult> Build(Response<JsonDocument> response)
+        {
+            (GetHeroResult Result, GetHeroResultInfo Info)? data = null;
+
+            if (response.Body is not null
+                && response.Body.RootElement.TryGetProperty("data", out JsonElement obj))
+            {
+                data = BuildData(obj);
+            }
+
+            return new OperationResult<GetHeroResult>(
+                data?.Result,
+                data?.Info,
+                _resultDataFactory,
+                null
+            );
+        }
+
+        private (GetHeroResult, GetHeroResultInfo) BuildData(JsonElement obj)
+        {
+            using IEntityUpdateSession session = _entityStore.BeginUpdate();
+            var entityIds = new HashSet<EntityId>();
+
+            EntityId HeroId = UpdateHeroEntity(
+                obj.GetProperty("hero"),
+                entityIds
+            );
+
+            var resultInfo = new GetHeroResultInfo(
+                HeroId,
+                DeserializeNonNullablestring(
+                    obj,
+                    "version"
+                ),
+                entityIds,
+                session.Version
+            );
+
+            return (_resultDataFactory.Create(resultInfo), resultInfo);
+        }
+
+        private EntityId UpdateIHeroEntity(
+            JsonElement obj,
+            ISet<EntityId> entityIds)
+        {
+            EntityId entityId = _extractId(obj);
+            entityIds.Add(entityId)
+
+            if (entityId.Name.Equals("HumanHero", StringComparison.Ordinal))
+            {
+            }
+
+            if (entityId.Name.Equals("DroidHero", StringComparison.Ordinal))
+            {
+            }
+
+
+
+
+            throw new NENENENE NotSupportedException();
+        }
+    }
+}

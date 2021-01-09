@@ -11,7 +11,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         protected override Task WriteAsync(CodeWriter writer, TypeDescriptor typeDescriptor)
         {
-            AssertNonNull(writer, typeDescriptor);
+            AssertNonNull(
+                writer,
+                typeDescriptor
+            );
 
             ClassBuilder
                 .SetName(NamingConventions.ResultFactoryNameFromTypeName(typeDescriptor.Name))
@@ -29,19 +32,19 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             var mappersToInject = typeDescriptor.IsInterface
                 ? typeDescriptor.IsImplementedBy
-                : new[] {typeDescriptor.Name};
+                : new[] {typeDescriptor};
 
             foreach (var mapperType in mappersToInject)
             {
                 var typeName = TypeReferenceBuilder
                     .New()
                     .SetName(WellKnownNames.IEntityMapper)
-                    .AddGeneric(NamingConventions.EntityTypeNameFromTypeName(mapperType))
-                    .AddGeneric(mapperType);
+                    .AddGeneric(NamingConventions.EntityTypeNameFromTypeName(mapperType.Name))
+                    .AddGeneric(mapperType.Name);
 
                 AddConstructorAssignedField(
                     typeName,
-                    NamingConventions.MapperNameFromTypeName(mapperType).ToFieldName()
+                    NamingConventions.MapperNameFromTypeName(mapperType.Name).ToFieldName()
                 );
             }
 

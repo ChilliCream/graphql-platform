@@ -1,10 +1,9 @@
 using System.Text;
 using System.Threading.Tasks;
 using Snapshooter.Xunit;
-using StrawberryShake.CodeGeneration.CSharp.Tests;
 using Xunit;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Tests.Other
 {
     public class ResultFromEntityTypeMapperGeneratorTests
     {

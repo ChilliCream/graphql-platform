@@ -4,15 +4,15 @@ using System.Threading.Tasks;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace StrawberryShake.CodeGeneration.CSharp.Tests
+namespace StrawberryShake.CodeGeneration.CSharp.Tests.Other
 {
-    public class QueryServiceGeneratorTests
+    public class SubscriptionServiceGeneratorTests
     {
         readonly StringBuilder _stringBuilder;
         readonly CodeWriter _codeWriter;
         readonly OperationServiceGenerator _generator;
 
-        public QueryServiceGeneratorTests()
+        public SubscriptionServiceGeneratorTests()
         {
             _stringBuilder = new StringBuilder();
             _codeWriter = new CodeWriter(_stringBuilder);
@@ -24,7 +24,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
         {
             await _generator.WriteAsync(
                 _codeWriter,
-                new QueryOperationDescriptor(
+                new SubscriptionOperationDescriptor(
                     new TypeReferenceDescriptor(
                         new TypeDescriptor(
                             "Foo",
@@ -45,7 +45,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
         {
             await _generator.WriteAsync(
                 _codeWriter,
-                new QueryOperationDescriptor(
+                new SubscriptionOperationDescriptor(
                     new TypeReferenceDescriptor(
                         new TypeDescriptor(
                             "Foo",
@@ -56,10 +56,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
                     ),
                     new Dictionary<string, TypeReferenceDescriptor>()
                     {
-                        {
-                            "name",
-                            TestHelper.GetNonNullStringTypeReference()
-                        }
+                        {"name", TestHelper.GetNonNullStringTypeReference()}
                     }
                 )
             );
@@ -72,7 +69,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
         {
             await _generator.WriteAsync(
                 _codeWriter,
-                new QueryOperationDescriptor(
+                new SubscriptionOperationDescriptor(
                     new TypeReferenceDescriptor(
                         new TypeDescriptor(
                             "Foo",
@@ -105,7 +102,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
         {
             await _generator.WriteAsync(
                 _codeWriter,
-                new QueryOperationDescriptor(
+                new SubscriptionOperationDescriptor(
                     new TypeReferenceDescriptor(
                         new TypeDescriptor(
                             "Foo",
@@ -116,10 +113,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
                     ),
                     new Dictionary<string, TypeReferenceDescriptor>()
                     {
-                        {
-                            "name",
-                            TestHelper.GetNonNullStringTypeReference()
-                        },
+                        {"name", TestHelper.GetNonNullStringTypeReference()},
                         {
                             "a", new TypeReferenceDescriptor(
                                 new TypeDescriptor(

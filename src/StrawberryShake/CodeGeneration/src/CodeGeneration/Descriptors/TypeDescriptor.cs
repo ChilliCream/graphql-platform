@@ -38,7 +38,7 @@ namespace StrawberryShake.CodeGeneration
         /// This list must only contain the most specific, concrete classes (that implement this interface),
         /// but no other interfaces.
         /// </summary>
-        public IReadOnlyList<string> IsImplementedBy { get; }
+        public IReadOnlyList<TypeDescriptor> IsImplementedBy { get; }
 
         /// <summary>
         /// Is the type a known EntityType?
@@ -50,14 +50,14 @@ namespace StrawberryShake.CodeGeneration
             string @namespace,
             IReadOnlyList<string>? implements = null,
             IReadOnlyList<NamedTypeReferenceDescriptor>? properties = null,
-            IReadOnlyList<string>? isImplementedBy = null,
+            IReadOnlyList<TypeDescriptor>? isImplementedBy = null,
             bool isEntityType = false)
         {
             Name = name;
             Namespace = @namespace;
             Implements = implements ?? new List<string>();
             Properties = properties ?? new List<NamedTypeReferenceDescriptor>();
-            IsImplementedBy = isImplementedBy ?? new string[] { };
+            IsImplementedBy = isImplementedBy ?? new TypeDescriptor[] { };
             IsEntityType = isEntityType;
         }
     }

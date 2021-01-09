@@ -17,6 +17,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
+        public IfBuilder SetCondition(string condition)
+        {
+            _condition = ConditionBuilder.New().Set(condition);
+            return this;
+        }
+
         public IfBuilder AddCode(string code)
         {
             _lines.Add(CodeLineBuilder.New().SetLine(code));

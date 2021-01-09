@@ -53,5 +53,12 @@ namespace StrawberryShake.CodeGeneration
             ret += namedTypeReferenceDescriptor.Type.Name;
             return ret;
         }
+
+        public static string TypeUpdateMethodNameFromTypeName(NamedTypeReferenceDescriptor namedTypeReferenceDescriptor)
+        {
+            var ret = "Update";
+            ret += EntityTypeNameFromTypeName(namedTypeReferenceDescriptor.Type.Name);
+            return ret;
+        }
     }
 }

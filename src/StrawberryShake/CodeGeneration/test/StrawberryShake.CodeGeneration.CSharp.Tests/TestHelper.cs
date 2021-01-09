@@ -15,6 +15,19 @@ namespace StrawberryShake.CodeGeneration.CSharp.Tests
             );
         }
 
+        public static NamedTypeReferenceDescriptor GetNamedNonNullIntTypeReference(string referenceName)
+        {
+            return new NamedTypeReferenceDescriptor(
+                new TypeDescriptor(
+                    "int",
+                    "System"
+                ),
+                false,
+                ListType.NoList,
+                referenceName
+            );
+        }
+
         public static TypeReferenceDescriptor GetNonNullStringTypeReference()
         {
             return new TypeReferenceDescriptor(

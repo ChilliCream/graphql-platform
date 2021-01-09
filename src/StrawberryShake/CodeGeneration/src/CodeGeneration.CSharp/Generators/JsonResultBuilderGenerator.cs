@@ -96,9 +96,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             AddBuildDataMethod(resultTypeDescriptor);
 
-            foreach (var property in resultBuilderDescriptor.ResultType.Properties.Where(
-                prop => prop.Type.IsEntityType
-            ))
+            foreach (var property in resultBuilderDescriptor.ResultType.Properties.Where(prop => prop.Type.IsEntityType)
+            )
             {
                 AddUpdateMethod(property);
             }
@@ -263,7 +262,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             var entityIdsParamName = "entityIds";
             var updateEntityMethod = MethodBuilder.New()
                 .SetAccessModifier(AccessModifier.Private)
-                .SetName(NamingConventions.TypeDeserializeMethodNameFromTypeName(namedTypeReferenceDescriptor))
+                .SetName(NamingConventions.TypeUpdateMethodNameFromTypeName(namedTypeReferenceDescriptor))
                 .SetReturnType(WellKnownNames.EntityId)
                 .AddParameter(
                     ParameterBuilder.New()
@@ -277,12 +276,25 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 );
 
             var entityIdVarName = "entityId";
-            updateEntityMethod.AddCode($"{WellKnownNames.EntityId} {entityIdVarName} = {ExtractIdFieldName}({objParamName});");
+            updateEntityMethod.AddCode(
+                $"{WellKnownNames.EntityId} {entityIdVarName} = {ExtractIdFieldName}({objParamName});"
+            );
             updateEntityMethod.AddCode($"{entityIdsParamName}.Add({entityIdVarName})");
 
+            foreach (TypeDescriptor concreteType in namedTypeReferenceDescriptor.Type.IsImplementedBy)
+            {
+                updateEntityMethod.AddEmptyLine();
+                updateEntityMethod.AddCode(
+                    IfBuilder.New()
+                        .SetCondition($"entityId.Name.Equals(\"{concreteType.Name}\", StringComparison.Ordinal)")
+                );
+            }
 
             updateEntityMethod.AddEmptyLine();
-            updateEntityMethod.AddCode("throw new NotSupportedException();");
+            updateEntityMethod.AddEmptyLine();
+            updateEntityMethod.AddEmptyLine();
+            updateEntityMethod.AddEmptyLine();
+            updateEntityMethod.AddCode("throw new NENENENE NotSupportedException();");
 
             ClassBuilder.AddMethod(updateEntityMethod);
         }
