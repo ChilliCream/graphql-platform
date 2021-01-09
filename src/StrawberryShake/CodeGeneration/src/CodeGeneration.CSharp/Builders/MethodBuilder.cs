@@ -71,9 +71,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public MethodBuilder AddCode(ICode value)
+        public MethodBuilder AddCode(ICode value, bool addIf = true)
         {
-            _lines.Add(value);
+            if (addIf)
+            {
+                _lines.Add(value);
+            }
             return this;
         }
 

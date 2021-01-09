@@ -1,0 +1,74 @@
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using StrawberryShake.CodeGeneration.CSharp.Builders;
+using StrawberryShake.CodeGeneration.Extensions;
+
+namespace StrawberryShake.CodeGeneration.CSharp
+{
+    public partial class JsonResultBuilderGenerator
+    {
+        private void AddUpdateEntityMethod(NamedTypeReferenceDescriptor typeReference)
+        {
+            var updateEntityMethod = MethodBuilder.New()
+                .SetAccessModifier(AccessModifier.Private)
+                .SetName(NamingConventions.TypeUpdateMethodNameFromTypeName(typeReference))
+                .SetReturnType(WellKnownNames.EntityId)
+                .AddParameter(
+                    ParameterBuilder.New()
+                        .SetType("JsonElement")
+                        .SetName(objParamName)
+                )
+                .AddParameter(
+                    ParameterBuilder.New()
+                        .SetType($"ISet<{WellKnownNames.EntityId}>")
+                        .SetName(EntityIdsParam)
+                );
+
+            updateEntityMethod.AddCode(
+                EnsureJsonValueIsNotNull(),
+                !typeReference.IsNullable
+            );
+
+            var entityIdVarName = "entityId";
+            updateEntityMethod.AddCode(
+                $"{WellKnownNames.EntityId} {entityIdVarName} = {ExtractIdFieldName}({objParamName});"
+            );
+            updateEntityMethod.AddCode($"{EntityIdsParam}.Add({entityIdVarName});");
+
+            // If the type is an interface
+            foreach (TypeDescriptor concreteType in typeReference.Type.IsImplementedBy)
+            {
+                updateEntityMethod.AddEmptyLine();
+                var ifStatement = IfBuilder.New()
+                    .SetCondition($"entityId.Name.Equals(\"{concreteType.Name}\", StringComparison.Ordinal)");
+
+                var entityTypeName = NamingConventions.EntityTypeNameFromTypeName(concreteType.Name);
+
+                var entityVarName = "entity";
+                ifStatement.AddCode(
+                    $"{entityTypeName} {entityTypeName} = {EntityStoreFieldName}.GetOrCreate<{entityTypeName}>({entityIdVarName});"
+                );
+                foreach (NamedTypeReferenceDescriptor property in concreteType.Properties)
+                {
+                    ifStatement.AddCode(
+                        AssignmentBuilder.New()
+                            .SetLefthandSide($"{entityVarName}.{property.Name}")
+                            .SetRighthandSide(BuildUpdateMethodCall(property, $"{objParamName}.GetProperty(\"{property.Name.WithLowerFirstChar()}\")"))
+                    );
+                }
+
+                ifStatement.AddEmptyLine();
+                ifStatement.AddCode($"return {entityIdVarName};");
+                updateEntityMethod.AddCode(ifStatement);
+            }
+
+
+            updateEntityMethod.AddEmptyLine();
+            updateEntityMethod.AddCode("throw new NotSupportedException();");
+
+            ClassBuilder.AddMethod(updateEntityMethod);
+            AddRequiredDeserializeMethods(typeReference.Type);
+        }
+    }
+}

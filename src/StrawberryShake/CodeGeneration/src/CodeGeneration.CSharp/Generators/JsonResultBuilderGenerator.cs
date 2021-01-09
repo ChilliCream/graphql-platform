@@ -1,26 +1,33 @@
 using System;
 using System.Linq;
-using System.Reflection.Emit;
 using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
-using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Extensions;
-using FieldBuilder = StrawberryShake.CodeGeneration.CSharp.Builders.FieldBuilder;
-using MethodBuilder = StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder;
-using ParameterBuilder = StrawberryShake.CodeGeneration.CSharp.Builders.ParameterBuilder;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuilderDescriptor>
+    public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuilderDescriptor>
     {
         private const string EntityStoreFieldName = "_entityStore";
         private const string ExtractIdFieldName = "_extractId";
         private const string ResultDataFactoryFieldName = "_resultDataFactory";
         private const string SerializerResolverParamName = "serializerResolver";
         private const string TransportResultRootTypeName = "JsonElement";
+        private const string EntityIdsParam = "entityIds";
+        private const string PropertyNameParam = "propertyName";
+        private const string objParamName = "obj";
+
 
         private string GetUpdateMethodName(NamedTypeReferenceDescriptor namedTypeReference) =>
             $"Update{namedTypeReference.TypeName}Entity";
+
+        private string TypeDeserializeMethodNameFromTypeName(TypeReferenceDescriptor namedTypeReferenceDescriptor)
+        {
+            var ret = "Deserialize";
+            ret += namedTypeReferenceDescriptor.IsNullable ? "Nullable" : "NonNullable";
+            ret += namedTypeReferenceDescriptor.Type.Name.WithCapitalFirstChar();
+            return ret;
+        }
 
         protected override Task WriteAsync(CodeWriter writer, ResultBuilderDescriptor resultBuilderDescriptor)
         {
@@ -119,7 +126,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         AddDataTypeDeserializerMethod(property);
                         break;
                     case TypeKind.EntityType:
-                        AddUpdateMethod(property);
+                        AddUpdateEntityMethod(property);
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -210,21 +217,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
             );
 
             buildDataMethod.AddEmptyLine();
-            foreach (NamedTypeReferenceDescriptor typePropertyDescriptor in resultType.Properties.Where(
-                prop => prop.IsEntityType
-            ))
+            foreach (NamedTypeReferenceDescriptor property in resultType.Properties.Where(prop => prop.IsEntityType))
             {
                 buildDataMethod.AddCode(
                     AssignmentBuilder.New()
-                        .SetLefthandSide($"{WellKnownNames.EntityId} {typePropertyDescriptor.Name}Id")
+                        .SetLefthandSide($"{WellKnownNames.EntityId} {property.Name}Id")
                         .SetRighthandSide(
-                            MethodCallBuilder.New()
-                                .SetDetermineStatement(false)
-                                .SetMethodName(GetUpdateMethodName(typePropertyDescriptor))
-                                .AddArgument(
-                                    $"{objParameter}.GetProperty(\"{typePropertyDescriptor.Name.WithLowerFirstChar()}\")"
-                                )
-                                .AddArgument(entityIdsName)
+                            BuildUpdateMethodCall(
+                                property,
+                                objParameter
+                            )
                         )
                 );
             }
@@ -234,22 +236,19 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetMethodName($"new {NamingConventions.ResultInfoNameFromTypeName(resultType.Name)}")
                 .SetDetermineStatement(false);
 
-            foreach (NamedTypeReferenceDescriptor typePropertyDescriptor in resultType.Properties)
+            foreach (NamedTypeReferenceDescriptor property in resultType.Properties)
             {
-                if (typePropertyDescriptor.IsEntityType)
+                if (property.IsEntityType)
                 {
-                    resultInfoConstructor.AddArgument($"{typePropertyDescriptor.Name}Id");
+                    resultInfoConstructor.AddArgument($"{property.Name}Id");
                 }
                 else
                 {
                     resultInfoConstructor.AddArgument(
-                        MethodCallBuilder.New()
-                            .SetDetermineStatement(false)
-                            .SetMethodName(
-                                NamingConventions.TypeDeserializeMethodNameFromTypeName(typePropertyDescriptor)
-                            )
-                            .AddArgument(objParameter)
-                            .AddArgument($"\"{typePropertyDescriptor.Name.WithLowerFirstChar()}\"")
+                        BuildUpdateMethodCall(
+                            property,
+                            objParameter
+                        )
                     );
                 }
             }
@@ -273,118 +272,56 @@ namespace StrawberryShake.CodeGeneration.CSharp
             ClassBuilder.AddMethod(buildDataMethod);
         }
 
-        private void AddUpdateMethod(NamedTypeReferenceDescriptor namedTypeReference)
-        {
-            var objParamName = "obj";
-            var entityIdsParamName = "entityIds";
-            var updateEntityMethod = MethodBuilder.New()
-                .SetAccessModifier(AccessModifier.Private)
-                .SetName(NamingConventions.TypeUpdateMethodNameFromTypeName(namedTypeReference))
-                .SetReturnType(WellKnownNames.EntityId)
-                .AddParameter(
-                    ParameterBuilder.New()
-                        .SetType("JsonElement")
-                        .SetName(objParamName)
-                )
-                .AddParameter(
-                    ParameterBuilder.New()
-                        .SetType($"ISet<{WellKnownNames.EntityId}>")
-                        .SetName(entityIdsParamName)
-                );
-
-            var entityIdVarName = "entityId";
-            updateEntityMethod.AddCode(
-                $"{WellKnownNames.EntityId} {entityIdVarName} = {ExtractIdFieldName}({objParamName});"
-            );
-            updateEntityMethod.AddCode($"{entityIdsParamName}.Add({entityIdVarName});");
-
-            foreach (TypeDescriptor concreteType in namedTypeReference.Type.IsImplementedBy)
-            {
-                updateEntityMethod.AddEmptyLine();
-                var ifStatement = IfBuilder.New()
-                    .SetCondition($"entityId.Name.Equals(\"{concreteType.Name}\", StringComparison.Ordinal)");
-
-                var entityTypeName = NamingConventions.EntityTypeNameFromTypeName(concreteType.Name);
-
-                var entityVarName = "entity";
-                ifStatement.AddCode(
-                    $"{entityTypeName} {entityTypeName} = {EntityStoreFieldName}.GetOrCreate<{entityTypeName}>({entityIdVarName});"
-                );
-                foreach (NamedTypeReferenceDescriptor property in concreteType.Properties.Where(
-                    prop => !prop.IsEntityType
-                ))
-                {
-                    var passEntityIdsCode = property.Type.Kind == TypeKind.DataType ? $", {entityIdsParamName}" : "";
-                    ifStatement.AddCode(
-                        AssignmentBuilder.New()
-                            .SetLefthandSide($"{entityVarName}.{property.Name}")
-                            .SetRighthandSide(
-                                $"{NamingConventions.TypeDeserializeMethodNameFromTypeName(property)}({objParamName}{passEntityIdsCode}, \"{property.Name.WithLowerFirstChar()}\")"
-                            )
-                    );
-                }
-
-                ifStatement.AddEmptyLine();
-                ifStatement.AddCode($"return {entityIdVarName};");
-                updateEntityMethod.AddCode(ifStatement);
-            }
-
-            updateEntityMethod.AddEmptyLine();
-            updateEntityMethod.AddCode("throw new NotSupportedException();");
-
-            ClassBuilder.AddMethod(updateEntityMethod);
-            AddRequiredDeserializeMethods(namedTypeReference.Type);
-        }
-
-        private void AddDataTypeDeserializerMethod(TypeReferenceDescriptor type)
-        {
-            var objParamName = "obj";
-            var entityIds = "entityIds";
-            var propertyNameParamName = "propertyName";
-
-            var dateDeserializer = MethodBuilder.New()
-                .SetName(NamingConventions.TypeDeserializeMethodNameFromTypeName(type))
-                .AddParameter(ParameterBuilder.New().SetType("JsonElement").SetName(objParamName))
-                .AddParameter(ParameterBuilder.New().SetType($"ISet<{WellKnownNames.EntityId}>").SetName(entityIds))
-                .AddParameter(ParameterBuilder.New().SetType("string").SetName(propertyNameParamName));
-
-            // dateDeserializer.AddCode(
-            //     IfBuilder.New()
-            //         .SetCondition(ConditionBuilder.New()
-            //             .Set($"{entityIds}.TryGetProperty({propertyNameParamName}, out JsonElement property)")
-            //             .And("property.ValueKind != JsonValueKind.Null", !type.IsNullable))
-            //         .AddCode($"return {type.TypeName.ToFieldName()}Parser.Parse(property.Get{type.TypeName.WithCapitalFirstChar()}()!);")
-            // );
-
-            dateDeserializer.AddEmptyLine();
-            dateDeserializer.AddCode("throw new InvalidOperationException();");
-
-            ClassBuilder.AddMethod(dateDeserializer);
-            AddRequiredDeserializeMethods(type.Type);
-        }
 
         private void AddScalarTypeDeserializerMethod(TypeReferenceDescriptor type)
         {
-            var objParamName = "obj";
-            var propertyNameParamName = "propertyName";
-
             var scalarDeserializer = MethodBuilder.New()
-                .SetName(NamingConventions.TypeDeserializeMethodNameFromTypeName(type))
-                .AddParameter(ParameterBuilder.New().SetType("JsonElement").SetName(objParamName))
-                .AddParameter(ParameterBuilder.New().SetType("string").SetName(propertyNameParamName));
+                .SetName(TypeDeserializeMethodNameFromTypeName(type))
+                .SetReturnType(type.TypeName)
+                .AddParameter(ParameterBuilder.New().SetType("JsonElement").SetName(objParamName));
 
             scalarDeserializer.AddCode(
-                IfBuilder.New()
-                    .SetCondition(ConditionBuilder.New()
-                        .Set($"{objParamName}.TryGetProperty({propertyNameParamName}, out JsonElement property)")
-                        .And("property.ValueKind != JsonValueKind.Null", !type.IsNullable))
-                    .AddCode($"return {type.TypeName.ToFieldName()}Parser.Parse(property.Get{type.TypeName.WithCapitalFirstChar()}()!);")
+                EnsureJsonValueIsNotNull(),
+                !type.IsNullable
             );
 
-            scalarDeserializer.AddEmptyLine();
-            scalarDeserializer.AddCode("throw new InvalidOperationException();");
+            scalarDeserializer.AddCode(
+                $"return {type.TypeName.ToFieldName()}Parser.Parse({objParamName}.Get{type.TypeName.WithCapitalFirstChar()}()!);"
+            );
 
             ClassBuilder.AddMethod(scalarDeserializer);
+        }
+
+        private CodeBlockBuilder EnsureJsonValueIsNotNull()
+        {
+            return CodeBlockBuilder.New().AddCode(
+                    IfBuilder.New()
+                        .SetCondition(
+                            ConditionBuilder.New()
+                                .Set($"{objParamName}.ValueKind == JsonValueKind.Null")
+                        ).AddCode("throw new InvalidOperationException();")
+                )
+                .AddEmptyLine();
+        }
+
+        private MethodCallBuilder BuildUpdateMethodCall(NamedTypeReferenceDescriptor property, string firstArg)
+        {
+            var deserializeMethodCaller = MethodCallBuilder.New()
+                .SetDetermineStatement(false)
+                .SetMethodName(
+                    property.IsEntityType
+                        ? GetUpdateMethodName(property)
+                        : TypeDeserializeMethodNameFromTypeName(property)
+                );
+
+            deserializeMethodCaller.AddArgument(firstArg);
+
+            if (property.IsEntityType || property.IsDataType)
+            {
+                deserializeMethodCaller.AddArgument(EntityIdsParam);
+            }
+
+            return deserializeMethodCaller;
         }
     }
 }

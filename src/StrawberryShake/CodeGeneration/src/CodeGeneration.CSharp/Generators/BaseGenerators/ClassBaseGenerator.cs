@@ -5,6 +5,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public abstract class ClassBaseGenerator<T>: CSharpBaseGenerator<T> where T : ICodeDescriptor
     {
+        protected ClassBuilder ClassBuilder { get; } = ClassBuilder.New();
+        protected ConstructorBuilder ConstructorBuilder { get; } = ConstructorBuilder.New();
+
         protected ClassBaseGenerator()
         {
             ClassBuilder.AddConstructor(ConstructorBuilder);

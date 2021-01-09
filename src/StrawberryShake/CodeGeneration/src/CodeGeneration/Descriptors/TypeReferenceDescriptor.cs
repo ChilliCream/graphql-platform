@@ -23,6 +23,8 @@ namespace StrawberryShake.CodeGeneration
 
         public string TypeName => Type.Name;
         public bool IsEntityType => Type.Kind == TypeKind.EntityType;
+        public bool IsDataType => Type.Kind == TypeKind.DataType;
+        public bool IsScalarType => Type.Kind == TypeKind.Scalar;
 
         public TypeReferenceDescriptor(
             TypeDescriptor type,

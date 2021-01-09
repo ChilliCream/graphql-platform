@@ -48,19 +48,18 @@ namespace StrawberryShake.CodeGeneration
             return typeName + "Builder";
         }
 
-        public static string TypeDeserializeMethodNameFromTypeName(TypeReferenceDescriptor namedTypeReferenceDescriptor)
-        {
-            var ret = "Deserialize";
-            ret += namedTypeReferenceDescriptor.IsNullable ? "Nullable" : "NonNullable";
-            ret += namedTypeReferenceDescriptor.Type.Name.WithCapitalFirstChar();
-            return ret;
-        }
+
 
         public static string TypeUpdateMethodNameFromTypeName(TypeReferenceDescriptor namedTypeReferenceDescriptor)
         {
             var ret = "Update";
             ret += EntityTypeNameFromTypeName(namedTypeReferenceDescriptor.Type.Name);
             return ret;
+        }
+
+        public static string DataTypeNameFromTypeName(string typeName)
+        {
+            return typeName + "Data";
         }
     }
 }

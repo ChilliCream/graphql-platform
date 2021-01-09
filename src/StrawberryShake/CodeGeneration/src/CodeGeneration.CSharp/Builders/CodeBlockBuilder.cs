@@ -35,6 +35,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
+        public CodeBlockBuilder AddEmptyLine()
+        {
+            _blockParts.Add(CodeLineBuilder.New());
+            return this;
+        }
+
         public async Task BuildAsync(CodeWriter writer)
         {
             if (writer is null)

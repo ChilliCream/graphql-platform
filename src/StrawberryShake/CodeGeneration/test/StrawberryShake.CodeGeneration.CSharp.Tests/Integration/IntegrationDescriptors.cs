@@ -44,11 +44,7 @@ namespace StrawberryShake.Integration
             properties: new[]
             {
                 new NamedTypeReferenceDescriptor(
-                    new TypeDescriptor(
-                        ICharacterDescriptor.Name,
-                        "StarWarsClient",
-                        kind: TypeKind.EntityType
-                    ),
+                    ICharacterDescriptor,
                     false,
                     ListType.List,
                     "Nodes"
@@ -82,7 +78,7 @@ namespace StrawberryShake.Integration
         );
 
         public static TypeDescriptor IHeroDescriptor => new(
-            "IHero",
+            IHeroName,
             "StarWarsClient",
             new[] {ICharacterName},
             new[] {friendsReferenceDescriptor},
