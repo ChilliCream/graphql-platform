@@ -249,13 +249,99 @@ Console logs are nice, but can get pretty cluttered and become unmanageable quic
 
 The idea is that you get a URL route you can secure on your website that lists the queries you've run and how long each one took.  Typically it's something like <u>http://localhost:5000/profiler/results-index</u>.  Here is an example of us running the query we wrote earlier, multiple times.
 
-![](MiniProfiler-Index-640.png)
+![MiniProfiler-Index-1280.png](MiniProfiler-Index-640.png)
 
 and you can drill down on each one and see the actual query as well as the passed in variables with their associated data.
 
-![](MiniProfiler-Detail1.png)
+![](MiniProfiler-Detail1280.png)
+
+
+![](MiniProfiler-Detail-640.png)
+
+Just like for the `ConsoleQueryLogger` class, we need to create a similar class for our MiniProfiler to work. I've done that in our example repository and named the class `MiniProfilerQueryLogger`.  It also implements `DiagosticEventListener`, gets passed in the request context, but instead of logging to the console with the `ILogger` interface and the `ConsoleLoggerExtension`, it simply calls the MiniProfiler API directly.
+
+I could have implemented it with the ILogger interface and that would have given a lot more flexibility to our logging, but that also would have added a lot more complexity so for now, if you want to log to MiniProfiler, add the middleware to your GraphQL.
+
+We do need to install the MiniProfiler package for ASP.NET Core so let's do that at the command line with `nuget`.  That command is:
+
+```powershell
+dotnet add package MiniProfiler.AspNetCore.Mvc
+```
+
+Then, to our `startup.cs`, we need to add several things.  They are in order:
+
+In `ConfigureServices`
+
+1. Add MVC to our app by adding the service `AddControllersWithViews`
+2. Add the `MiniProfilerQueryLogger` service
+3. Add the `MiniProfiler` itself to the our services.
+
+In `Configure`
+
+1. Add to our app builder `useMiniProfiler`
+
+Our final `Startup.cs` looks like this now:
+
+```csharp
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+
+namespace logging
+{
+    public class Startup
+    {
+        public void ConfigureServices(IServiceCollection services)
+        {
+            services.AddControllersWithViews();
+            services
+                .AddRouting()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .AddDiagnosticEventListener(sp =>
+                    new ConsoleQueryLogger
+                        (sp.GetApplicationService<ILogger<ConsoleQueryLogger>>()))
+                .AddDiagnosticEventListener(sp =>
+                    new MiniProfilerQueryLogger());
+            services.AddMiniProfiler(options => 
+                { options.RouteBasePath = "/profiler"; });
+        }
+
+        public void Configure(IApplicationBuilder app, 
+            IWebHostEnvironment env)
+        {
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+
+            app.UseRouting();
+            app.UseMiniProfiler();
+            app.UseEndpoints(endpoints => { endpoints.MapGraphQL(); });
+        }
+    }
+}
+```
+
+That's it!  Now, when you run your app and do some GraphQL queries, you can browse to the URL <u>http://localhost:5000/profiler/index-results</u> and that will give you a list of all your GraphQL requests.  You can drill down on any request and see both the query itself, as well as any variables passed in with the associated value and type.
+
+Just a side note.  You can run both the console logger and the MiniProfiler at the same time and both logs will work as adding listeners is additive.
 
 # Possibilities For Logging SQL and Entity Framework
+
+It's worth mentioning that MiniProfiler has been around for a long time and there are many configuring profiles available including ones for ADO.NET as well as Entity Framework Core.  
+
+If you've gotten everything working, it's trivial to add Entity Framework support so that inside  your GraphQL requests, you can see the actual SQL sent to the server and the associated timing.  Literally, all you have to do is install one nuget package
+
+```powershell
+
+```
+
+And, in your `startup.cs`, change the line that adds MiniProfile as follows:
+
+
 
 # Wrap
 
