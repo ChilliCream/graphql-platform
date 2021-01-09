@@ -291,10 +291,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
 
             updateEntityMethod.AddEmptyLine();
-            updateEntityMethod.AddEmptyLine();
-            updateEntityMethod.AddEmptyLine();
-            updateEntityMethod.AddEmptyLine();
-            updateEntityMethod.AddCode("throw new NENENENE NotSupportedException();");
+            updateEntityMethod.AddCode("throw new NotSupportedException();");
 
             ClassBuilder.AddMethod(updateEntityMethod);
         }

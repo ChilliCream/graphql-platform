@@ -1,4 +1,6 @@
-namespace StrawberryShake.CodeGeneration.CSharp.Tests
+using StrawberryShake.CodeGeneration;
+
+namespace StrawberryShake
 {
     public static class TestHelper
     {

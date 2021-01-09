@@ -2,9 +2,11 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using Snapshooter.Xunit;
+using StrawberryShake.CodeGeneration;
+using StrawberryShake.CodeGeneration.CSharp;
 using Xunit;
 
-namespace StrawberryShake.CodeGeneration.CSharp.Tests.Other
+namespace StrawberryShake.Other
 {
     public class MutationServiceGeneratorTests
     {

@@ -1,4 +1,6 @@
-namespace StrawberryShake.CodeGeneration.CSharp.Tests.Integration
+using StrawberryShake.CodeGeneration;
+
+namespace StrawberryShake.Integration
 {
     public static class IntegrationDescriptors
     {
