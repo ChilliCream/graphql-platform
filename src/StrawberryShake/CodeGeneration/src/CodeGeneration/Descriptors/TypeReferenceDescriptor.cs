@@ -22,7 +22,7 @@ namespace StrawberryShake.CodeGeneration
         public ListType ListType { get; }
 
         public string TypeName => Type.Name;
-        public bool IsEntityType => Type.IsEntityType;
+        public bool IsEntityType => Type.Kind == TypeKind.EntityType;
 
         public TypeReferenceDescriptor(
             TypeDescriptor type,

@@ -1,4 +1,4 @@
-namespace StrawberryShake.CodeGeneration.CSharp.Extensions
+namespace StrawberryShake.CodeGeneration.Extensions
 {
     public static class StringExtensions
     {
@@ -10,6 +10,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
         public static string WithLowerFirstChar(this string rawString)
         {
             return char.ToLower(rawString[0]) + rawString.Substring(1);
+        }
+
+        public static string WithCapitalFirstChar(this string rawString)
+        {
+            return char.ToUpper(rawString[0]) + rawString.Substring(1);
         }
     }
 }

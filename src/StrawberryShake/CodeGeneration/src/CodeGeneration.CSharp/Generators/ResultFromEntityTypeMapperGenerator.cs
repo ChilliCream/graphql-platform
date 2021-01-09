@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
+using StrawberryShake.CodeGeneration.Extensions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -47,7 +48,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             foreach (NamedTypeReferenceDescriptor propertyDescriptor in descriptor.ResultType.Properties)
             {
-                if (propertyDescriptor.Type.IsEntityType)
+                if (propertyDescriptor.IsEntityType)
                 {
                     var propertyMapperName =
                         NamingConventions.MapperNameFromTypeName(propertyDescriptor.TypeName);

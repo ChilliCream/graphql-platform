@@ -18,7 +18,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             // Add Properties to class
             foreach (var prop in typeDescriptor.Properties)
             {
-                if (prop.Type.IsEntityType)
+                if (prop.IsEntityType)
                 {
                     PropertyBuilder referencePropertyBuilder = PropertyBuilder
                         .New()

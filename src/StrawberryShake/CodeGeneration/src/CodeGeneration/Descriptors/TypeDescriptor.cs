@@ -41,9 +41,9 @@ namespace StrawberryShake.CodeGeneration
         public IReadOnlyList<TypeDescriptor> IsImplementedBy { get; }
 
         /// <summary>
-        /// Is the type a known EntityType?
+        /// What is the Kind of the described Type?
         /// </summary>
-        public bool IsEntityType { get; }
+        public TypeKind Kind { get; }
 
         public TypeDescriptor(
             string name,
@@ -51,14 +51,14 @@ namespace StrawberryShake.CodeGeneration
             IReadOnlyList<string>? implements = null,
             IReadOnlyList<NamedTypeReferenceDescriptor>? properties = null,
             IReadOnlyList<TypeDescriptor>? isImplementedBy = null,
-            bool isEntityType = false)
+            TypeKind kind = TypeKind.Scalar)
         {
             Name = name;
             Namespace = @namespace;
             Implements = implements ?? new List<string>();
             Properties = properties ?? new List<NamedTypeReferenceDescriptor>();
             IsImplementedBy = isImplementedBy ?? new TypeDescriptor[] { };
-            IsEntityType = isEntityType;
+            Kind = kind;
         }
     }
 }

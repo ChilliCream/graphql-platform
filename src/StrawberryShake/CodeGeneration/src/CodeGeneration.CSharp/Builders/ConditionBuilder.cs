@@ -21,9 +21,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public ConditionBuilder And(string condition)
+        public ConditionBuilder And(string condition, bool applyIf = true)
         {
-            return And(CodeInlineBuilder.New().SetText(condition));
+            return applyIf ? And(CodeInlineBuilder.New().SetText(condition)) : this;
         }
 
         public ConditionBuilder And(ICode condition)
