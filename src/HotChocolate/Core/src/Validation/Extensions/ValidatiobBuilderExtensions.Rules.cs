@@ -36,7 +36,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IValidationBuilder AddArgumentRules(
             this IValidationBuilder builder)
         {
-            return builder.TryAddValidationRule<ArgumentVisitor>();
+            return builder.TryAddValidationVisitor<ArgumentVisitor>();
         }
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IValidationBuilder AddDirectiveRules(
             this IValidationBuilder builder)
         {
-            return builder.TryAddValidationRule<DirectiveVisitor>();
+            return builder.TryAddValidationVisitor<DirectiveVisitor>();
         }
 
         /// <summary>
@@ -121,7 +121,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IValidationBuilder AddFieldRules(
             this IValidationBuilder builder)
         {
-            return builder.TryAddValidationRule<FieldVisitor>();
+            return builder.TryAddValidationVisitor<FieldVisitor>();
         }
 
         /// <summary>
@@ -186,7 +186,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IValidationBuilder AddFragmentRules(
             this IValidationBuilder builder)
         {
-            return builder.TryAddValidationRule<FragmentVisitor>();
+            return builder.TryAddValidationVisitor<FragmentVisitor>();
         }
 
         /// <summary>
@@ -224,7 +224,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IValidationBuilder AddValueRules(
             this IValidationBuilder builder)
         {
-            return builder.TryAddValidationRule<ValueVisitor>();
+            return builder.TryAddValidationVisitor<ValueVisitor>();
         }
 
         /// <summary>
@@ -272,7 +272,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IValidationBuilder AddVariableRules(
             this IValidationBuilder builder)
         {
-            return builder.TryAddValidationRule<VariableVisitor>();
+            return builder.TryAddValidationVisitor<VariableVisitor>();
         }
 
         /// <summary>
@@ -297,7 +297,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IValidationBuilder AddOperationRules(
             this IValidationBuilder builder)
         {
-            return builder.TryAddValidationRule<OperationVisitor>();
+            return builder.TryAddValidationVisitor<OperationVisitor>();
         }
 
         public static IValidationBuilder AddMaxComplexityRule(
@@ -305,7 +305,7 @@ namespace Microsoft.Extensions.DependencyInjection
             int maxAllowedComplexity)
         {
             return builder
-                .TryAddValidationRule((s, o) => new MaxComplexityVisitor(o))
+                .TryAddValidationVisitor((s, o) => new MaxComplexityVisitor(o))
                 .SetAllowedComplexity(maxAllowedComplexity);
         }
 
@@ -314,7 +314,7 @@ namespace Microsoft.Extensions.DependencyInjection
             int maxAllowedExecutionDepth)
         {
             return builder
-                .TryAddValidationRule((s, o) => new MaxExecutionDepthVisitor(o))
+                .TryAddValidationVisitor((s, o) => new MaxExecutionDepthVisitor(o))
                 .SetAllowedExecutionDepth(maxAllowedExecutionDepth);
         }
     }

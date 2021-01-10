@@ -1,5 +1,4 @@
 using System;
-using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Stitching.Delegation.ScopedVariables;
@@ -19,7 +18,7 @@ namespace HotChocolate.Stitching.Delegation
                 "type Query { foo(a: String = \"bar\") : String }",
                 c =>
                 {
-                    c.Use(next => context => default);
+                    c.Use(_ => _ => default);
                     c.Options.StrictValidation = false;
                 });
 
@@ -36,7 +35,7 @@ namespace HotChocolate.Stitching.Delegation
 
             // act
             var resolver = new ArgumentScopedVariableResolver();
-            VariableValue value = resolver.Resolve(
+            ScopedVariableValue value = resolver.Resolve(
                 context.Object,
                 scopedVariable,
                 schema.GetType<StringType>("String"));
@@ -45,7 +44,7 @@ namespace HotChocolate.Stitching.Delegation
             Assert.Equal("bar", Assert.IsType<StringValueNode>(value.DefaultValue).Value);
             Assert.Equal("__arguments_a", value.Name);
             Assert.Equal("String", Assert.IsType<NamedTypeNode>(value.Type).Name.Value);
-            Assert.Equal("baz", value.Value.Value);
+            Assert.Equal("baz", value.Value!.Value);
         }
 
         [Fact]
@@ -56,7 +55,7 @@ namespace HotChocolate.Stitching.Delegation
                 "type Query { foo(a: String = \"bar\") : String }",
                 c =>
                 {
-                    c.Use(next => context => default);
+                    c.Use(_ => _ => default);
                     c.Options.StrictValidation = false;
                 });
 
@@ -65,7 +64,7 @@ namespace HotChocolate.Stitching.Delegation
                 schema.GetType<ObjectType>("Query").Fields["foo"]);
             context.Setup(t => t.ArgumentValue<object>(It.IsAny<NameString>()))
                 .Returns("Baz");
-            context.Setup(t => t.FieldSelection)
+            context.Setup(t => t.Selection.SyntaxNode)
                 .Returns(new FieldNode(
                     null,
                     new NameNode("foo"),
@@ -101,7 +100,7 @@ namespace HotChocolate.Stitching.Delegation
                 "type Query { foo(a: String = \"bar\") : String }",
                 c =>
                 {
-                    c.Use(next => context => default);
+                    c.Use(_ => _ => default);
                     c.Options.StrictValidation = false;
                 });
 
@@ -113,7 +112,7 @@ namespace HotChocolate.Stitching.Delegation
             // act
             var resolver = new ArgumentScopedVariableResolver();
             Action a = () => resolver.Resolve(
-                null,
+                null!,
                 scopedVariable,
                 schema.GetType<StringType>("String"));
 
@@ -130,7 +129,7 @@ namespace HotChocolate.Stitching.Delegation
                 "type Query { foo(a: String = \"bar\") : String }",
                 c =>
                 {
-                    c.Use(next => context => default);
+                    c.Use(_ => _ => default);
                     c.Options.StrictValidation = false;
                 });
 
@@ -144,7 +143,7 @@ namespace HotChocolate.Stitching.Delegation
             var resolver = new ArgumentScopedVariableResolver();
             Action a = () => resolver.Resolve(
                 context.Object,
-                null,
+                null!,
                 schema.GetType<StringType>("String"));
 
             // assert
@@ -160,7 +159,7 @@ namespace HotChocolate.Stitching.Delegation
                 "type Query { foo(a: String = \"bar\") : String }",
                 c =>
                 {
-                    c.Use(next => context => default);
+                    c.Use(_ => _ => default);
                     c.Options.StrictValidation = false;
                 });
 

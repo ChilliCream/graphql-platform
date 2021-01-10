@@ -29,7 +29,7 @@ namespace HotChocolate.Types.Pagination
             IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
             IPagingHandler pagingHandler = pagingProvider.CreateHandler(sourceType, default);
 
-            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
+            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g" };
 
             var pagingDetails = new CursorPagingArguments(2);
             var context = new MockContext(pagingDetails);
@@ -61,6 +61,41 @@ namespace HotChocolate.Types.Pagination
 
 
         [Fact]
+        public async Task TakeLastSingle()
+        {
+            // arrange
+            var typeInspector = new DefaultTypeInspector();
+            IExtendedType sourceType = typeInspector.GetType(typeof(List<string>));
+
+            IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
+            IPagingHandler pagingHandler = pagingProvider.CreateHandler(sourceType, default);
+
+            var list = new List<string> { "f", "g" };
+
+            var pagingDetails = new CursorPagingArguments(last: 1);
+            var context = new MockContext(pagingDetails);
+
+            // act
+            var connection = (Connection)await pagingHandler.SliceAsync(context, list);
+
+            // assert
+            Assert.Collection(connection.Edges,
+                t =>
+                {
+                    Assert.Equal("g", t.Node);
+                    Assert.Equal(1, GetPositionFromCursor(t.Cursor));
+                });
+
+            Assert.True(
+                connection.Info.HasPreviousPage,
+                "HasPreviousPage");
+
+            Assert.False(
+                connection.Info.HasNextPage,
+                "HasNextPage");
+        }
+
+        [Fact]
         public async Task TakeLast()
         {
             // arrange
@@ -70,7 +105,7 @@ namespace HotChocolate.Types.Pagination
             IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
             IPagingHandler pagingHandler = pagingProvider.CreateHandler(sourceType, default);
 
-            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
+            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g" };
 
             var pagingDetails = new CursorPagingArguments(last: 2);
             var context = new MockContext(pagingDetails);
@@ -110,7 +145,7 @@ namespace HotChocolate.Types.Pagination
             IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
             IPagingHandler pagingHandler = pagingProvider.CreateHandler(sourceType, default);
 
-            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
+            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g" };
 
             var pagingDetails = new CursorPagingArguments();
             var context = new MockContext(pagingDetails);
@@ -154,7 +189,7 @@ namespace HotChocolate.Types.Pagination
             IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
             IPagingHandler pagingHandler = pagingProvider.CreateHandler(sourceType, default);
 
-            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
+            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g" };
 
             var pagingDetails = new CursorPagingArguments(first: 5);
             var context = new MockContext(pagingDetails);
@@ -198,7 +233,7 @@ namespace HotChocolate.Types.Pagination
             IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
             IPagingHandler pagingHandler = pagingProvider.CreateHandler(sourceType, default);
 
-            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
+            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g" };
 
             var pagingDetails = new CursorPagingArguments(first: 5);
             var context = new MockContext(pagingDetails);
@@ -220,7 +255,7 @@ namespace HotChocolate.Types.Pagination
             IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
             IPagingHandler pagingHandler = pagingProvider.CreateHandler(sourceType, default);
 
-            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
+            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g" };
 
             var pagingDetails = new CursorPagingArguments(first: 7);
             var context = new MockContext(pagingDetails);
@@ -242,7 +277,7 @@ namespace HotChocolate.Types.Pagination
             IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
             IPagingHandler pagingHandler = pagingProvider.CreateHandler(sourceType, default);
 
-            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
+            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g" };
 
             var pagingDetails = new CursorPagingArguments(first: 1);
             var context = new MockContext(pagingDetails);
@@ -268,7 +303,7 @@ namespace HotChocolate.Types.Pagination
             IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
             IPagingHandler pagingHandler = pagingProvider.CreateHandler(sourceType, default);
 
-            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
+            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g" };
 
             var pagingDetails = new CursorPagingArguments(first: 1);
             var context = new MockContext(pagingDetails);
@@ -408,9 +443,13 @@ namespace HotChocolate.Types.Pagination
 
             public FieldNode FieldSelection => throw new NotImplementedException();
 
+            public IFieldSelection Selection => throw new NotImplementedException();
+
             public NameString ResponseName => throw new NotImplementedException();
 
             public Path Path => throw new NotImplementedException();
+
+            public bool HasErrors => throw new NotImplementedException();
 
             public IImmutableDictionary<string, object> ScopedContextData
             {
@@ -457,7 +496,7 @@ namespace HotChocolate.Types.Pagination
                     case "first":
                         if (_arguments.First is null)
                         {
-                            return default;
+                            return default!;
                         }
                         if (_arguments.First is T first)
                         {
@@ -467,7 +506,7 @@ namespace HotChocolate.Types.Pagination
                     case "last":
                         if (_arguments.Last is null)
                         {
-                            return default;
+                            return default!;
                         }
                         if (_arguments.Last is T last)
                         {
@@ -477,7 +516,7 @@ namespace HotChocolate.Types.Pagination
                     case "after":
                         if (_arguments.After is null)
                         {
-                            return default;
+                            return default!;
                         }
                         if (_arguments.After is T after)
                         {
@@ -487,7 +526,7 @@ namespace HotChocolate.Types.Pagination
                     case "before":
                         if (_arguments.Before is null)
                         {
-                            return default;
+                            return default!;
                         }
                         if (_arguments.Before is T before)
                         {
@@ -501,7 +540,7 @@ namespace HotChocolate.Types.Pagination
 
             public IReadOnlyList<IFieldSelection> GetSelections(
                 ObjectType typeContext,
-                SelectionSetNode selectionSet = null,
+                SelectionSetNode? selectionSet = null,
                 bool allowInternals = false)
             {
                 throw new NotImplementedException();
@@ -552,17 +591,17 @@ namespace HotChocolate.Types.Pagination
 
             public ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
             {
-                return new ValueTask<IList>(_source.ToList());
+                return new(_source.ToList());
             }
 
             public ValueTask<object?> FirstOrDefaultAsync(CancellationToken cancellationToken)
             {
-                return new ValueTask<object?>(_source.FirstOrDefault());
+                return new(_source.FirstOrDefault());
             }
 
             public ValueTask<object?> SingleOrDefaultAsync(CancellationToken cancellationToken)
             {
-                return new ValueTask<object?>(_source.SingleOrDefault());
+                return new(_source.SingleOrDefault());
             }
 
             public string Print()

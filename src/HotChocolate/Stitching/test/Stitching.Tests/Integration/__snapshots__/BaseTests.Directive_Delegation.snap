@@ -1,0 +1,27 @@
+﻿{
+  "data": {
+    "customer": {
+      "name": "Freddy Freeman",
+      "consultant": {
+        "name": "Jordan Belfort"
+      },
+      "contracts": [
+        {
+          "id": "TGlmZUluc3VyYW5jZUNvbnRyYWN0CmQx",
+          "premium": 123456.11
+        },
+        {
+          "id": "TGlmZUluc3VyYW5jZUNvbnRyYWN0CmQy",
+          "premium": 456789.12
+        },
+        {
+          "id": "U29tZU90aGVyQ29udHJhY3QKZDE=",
+          "expiryDate": "2015-02-01T00:00:00.000Z"
+        }
+      ]
+    },
+    "consultant": {
+      "name": "Jordan Belfort"
+    }
+  }
+}

@@ -62,7 +62,9 @@ namespace HotChocolate
                 // TODO : lets rework the serializer to align it with the query result serializer
                 using (var stream = new MemoryStream())
                 {
-                    await _streamSerializer.SerializeAsync(responseStream, stream);
+                    await _streamSerializer
+                        .SerializeAsync(responseStream, stream)
+                        .ConfigureAwait(false);
                     return Encoding.UTF8.GetString(stream.ToArray());
                 }
             }

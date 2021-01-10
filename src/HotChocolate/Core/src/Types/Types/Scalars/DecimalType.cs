@@ -1,46 +1,51 @@
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
-    public sealed class DecimalType
-        : FloatTypeBase<decimal>
+    public sealed class DecimalType : FloatTypeBase<decimal>
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DecimalType"/> class.
+        /// </summary>
         public DecimalType()
             : this(decimal.MinValue, decimal.MaxValue)
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DecimalType"/> class.
+        /// </summary>
         public DecimalType(decimal min, decimal max)
-            : this(ScalarNames.Decimal, min, max)
-        {
-            Description = TypeResources.DecimalType_Description;
-        }
-
-        public DecimalType(NameString name)
-            : this(name, decimal.MinValue, decimal.MaxValue)
-        {
-        }
-
-        public DecimalType(NameString name, decimal min, decimal max)
-            : base(name, min, max, BindingBehavior.Implicit)
+            : this(
+                ScalarNames.Decimal,
+                TypeResources.DecimalType_Description,
+                min,
+                max,
+                BindingBehavior.Implicit)
         {
         }
 
-        public DecimalType(NameString name, string description, decimal min, decimal max)
-            : base(name, min, max, BindingBehavior.Implicit)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DecimalType"/> class.
+        /// </summary>
+        public DecimalType(
+            NameString name,
+            string? description = null,
+            decimal min = decimal.MinValue,
+            decimal max = decimal.MaxValue,
+            BindingBehavior bind = BindingBehavior.Explicit)
+            : base(name, min, max, bind)
         {
             Description = description;
         }
 
-        protected override decimal ParseLiteral(IFloatValueLiteral valueSyntax)
-        {
-            return valueSyntax.ToDecimal();
-        }
+        protected override decimal ParseLiteral(IFloatValueLiteral valueSyntax) =>
+            valueSyntax.ToDecimal();
 
-        protected override FloatValueNode ParseValue(decimal runtimeValue)
-        {
-            return new FloatValueNode(runtimeValue);
-        }
+        protected override FloatValueNode ParseValue(decimal runtimeValue) =>
+            new(runtimeValue);
     }
 }

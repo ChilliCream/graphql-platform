@@ -21,7 +21,7 @@ using HotChocolate.Stitching.SchemaDefinitions;
 using HotChocolate.Stitching.Utilities;
 using HotChocolate.Utilities;
 using HotChocolate.Utilities.Introspection;
-using ThrowHelper = HotChocolate.Stitching.ThrowHelper;
+using static HotChocolate.Stitching.ThrowHelper;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -349,6 +349,68 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder;
         }
 
+        public static IRequestExecutorBuilder AddLocalSchema(
+            this IRequestExecutorBuilder builder,
+            NameString schemaName,
+            bool ignoreRootTypes = false)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            schemaName.EnsureNotEmpty(nameof(schemaName));
+
+            // Next, we will register a request executor proxy with the stitched schema,
+            // that the stitching runtime will use to send requests to the schema representing
+            // the downstream service.
+            builder
+                .ConfigureSchemaAsync(async (services, schemaBuilder, cancellationToken) =>
+                {
+                    IInternalRequestExecutorResolver noLockExecutorResolver =
+                        services.GetRequiredService<IInternalRequestExecutorResolver>();
+
+                    IRequestExecutor executor = await noLockExecutorResolver
+                        .GetRequestExecutorNoLockAsync(schemaName, cancellationToken)
+                        .ConfigureAwait(false);
+
+                    var autoProxy = AutoUpdateRequestExecutorProxy.Create(
+                        new RequestExecutorProxy(
+                            services.GetRequiredService<IRequestExecutorResolver>(),
+                            schemaName),
+                        executor);
+
+                    schemaBuilder
+                        .AddRemoteExecutor(schemaName, autoProxy)
+                        .TryAddSchemaInterceptor<StitchingSchemaInterceptor>()
+                        .TryAddTypeInterceptor<StitchingTypeInterceptor>();
+
+                    schemaBuilder.AddTypeRewriter(
+                        new RemoveFieldRewriter(
+                            new FieldReference(
+                                autoProxy.Schema.QueryType.Name,
+                                SchemaDefinitionFieldNames.SchemaDefinitionField),
+                            schemaName));
+
+                    schemaBuilder.AddDocumentRewriter(
+                        new RemoveTypeRewriter(
+                            SchemaDefinitionType.Names.SchemaDefinition,
+                            schemaName));
+                });
+
+            // Last but not least, we will setup the stitching context which will
+            // provide access to the remote executors which in turn use the just configured
+            // request executor proxies to send requests to the downstream services.
+            builder.Services.TryAddScoped<IStitchingContext, StitchingContext>();
+
+            if (ignoreRootTypes)
+            {
+                builder.AddDocumentRewriter(new RemoveRootTypeRewriter(schemaName));
+            }
+
+            return builder;
+        }
+
         /// <summary>
         /// Add a type merge rule in order to define how a type is merged.
         /// </summary>
@@ -622,7 +684,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
                     if (stream is null)
                     {
-                        throw ThrowHelper.RequestExecutorBuilder_ResourceNotFound(key);
+                        throw RequestExecutorBuilder_ResourceNotFound(key);
                     }
 
 #if NET5_0
@@ -980,31 +1042,20 @@ namespace Microsoft.Extensions.DependencyInjection
 
         private static string GetArgumentValue(DirectiveNode directive, string argumentName)
         {
-            ArgumentNode? type = directive.Arguments
-                .FirstOrDefault(a => a.Name.Value.EqualsOrdinal(
-                    DirectiveFieldNames.RemoveType_TypeName));
+            ArgumentNode? argument = directive.Arguments
+                .FirstOrDefault(a => a.Name.Value.EqualsOrdinal(argumentName));
 
-            if (type is null)
+            if (argument is null)
             {
-                // TODO : throw helper
-                throw new SchemaException(SchemaErrorBuilder.New()
-                    .SetMessage(
-                        "`{0}` is not specified.",
-                        argumentName)
-                    .Build());
+                throw RequestExecutorBuilder_ArgumentWithNameWasNotFound(argumentName);
             }
 
-            if (type.Value is StringValueNode sv)
+            if (argument.Value is StringValueNode sv)
             {
                 return sv.Value;
             }
 
-            // TODO : throw helper
-            throw new SchemaException(SchemaErrorBuilder.New()
-                .SetMessage(
-                    "`{0}` must have a string value.",
-                    argumentName)
-                .Build());
+            throw RequestExecutorBuilder_ArgumentValueWasNotAStringValue(argumentName);
         }
     }
 }

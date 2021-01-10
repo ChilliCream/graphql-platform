@@ -84,5 +84,29 @@ namespace HotChocolate.Stitching
                         "The resource `{0}` was not found!",
                         key)
                     .Build());
+
+        public static SchemaException RequestExecutorBuilder_ArgumentWithNameWasNotFound(
+            string argument) =>
+            new(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        "`{0}` is not specified.",
+                        argument)
+                    .Build());
+
+        public static SchemaException RequestExecutorBuilder_ArgumentValueWasNotAStringValue(
+            string argument) =>
+            new(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        "`{0}` must have a string value.",
+                        argument)
+                    .Build());
+
+        public static InvalidOperationException RequestExecutorBuilder_RemoteExecutorNotFound() =>
+            new("The mandatory remote executors have not been found.");
+
+        public static InvalidOperationException RequestExecutorBuilder_NameLookupNotFound() =>
+            new("A stitched schema must provide a name lookup");
     }
 }

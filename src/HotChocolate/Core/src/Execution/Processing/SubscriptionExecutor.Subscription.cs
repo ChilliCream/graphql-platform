@@ -57,7 +57,9 @@ namespace HotChocolate.Execution.Processing
                     rootSelections,
                     diagnosicEvents);
 
-                subscription._sourceStream = await subscription.SubscribeAsync();
+                subscription._sourceStream =  await subscription
+                    .SubscribeAsync()
+                    .ConfigureAwait(false);
 
                 return subscription;
             }
