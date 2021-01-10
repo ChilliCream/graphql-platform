@@ -1,3 +1,4 @@
+using System;
 using StrawberryShake.CodeGeneration.Extensions;
 
 namespace StrawberryShake.CodeGeneration
@@ -18,6 +19,7 @@ namespace StrawberryShake.CodeGeneration
         {
             return typeName + "Subscription";
         }
+
         public static string QueryServiceNameFromTypeName(string typeName)
         {
             return typeName + "Query";
@@ -48,12 +50,38 @@ namespace StrawberryShake.CodeGeneration
             return typeName + "Builder";
         }
 
-
-
-        public static string TypeUpdateMethodNameFromTypeName(TypeReferenceDescriptor namedTypeReferenceDescriptor)
+        public static string DeserializerMethodNameFromTypeName(TypeReferenceDescriptor typeDescriptor)
         {
             var ret = "Update";
-            ret += EntityTypeNameFromTypeName(namedTypeReferenceDescriptor.Type.Name);
+            if (typeDescriptor.IsNullable)
+            {
+                ret += "Nullable";
+            }
+            else
+            {
+                ret += "NonNullable";
+            }
+
+            ret += typeDescriptor.Type.Kind switch
+            {
+                TypeKind.Scalar => typeDescriptor.Type.Name.WithCapitalFirstChar(),
+                TypeKind.DataType => DataTypeNameFromTypeName(typeDescriptor.Type.Name),
+                TypeKind.EntityType => EntityTypeNameFromTypeName(typeDescriptor.Type.Name),
+                _ => throw new ArgumentOutOfRangeException()
+            };
+
+            if (!typeDescriptor.IsListType) return ret;
+
+
+            ret += typeDescriptor.ListType switch
+            {
+                ListType.NullableList => "Nullable",
+                ListType.List => "NonNullable",
+                _ => throw new ArgumentOutOfRangeException()
+            };
+
+            ret += "Array";
+
             return ret;
         }
 

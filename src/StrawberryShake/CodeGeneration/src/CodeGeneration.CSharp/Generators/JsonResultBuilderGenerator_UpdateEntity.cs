@@ -12,7 +12,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             var updateEntityMethod = MethodBuilder.New()
                 .SetAccessModifier(AccessModifier.Private)
-                .SetName(NamingConventions.TypeUpdateMethodNameFromTypeName(typeReference))
+                .SetName(NamingConventions.DeserializerMethodNameFromTypeName(typeReference))
                 .SetReturnType(WellKnownNames.EntityId)
                 .AddParameter(
                     ParameterBuilder.New()
@@ -54,7 +54,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     ifStatement.AddCode(
                         AssignmentBuilder.New()
                             .SetLefthandSide($"{entityVarName}.{property.Name}")
-                            .SetRighthandSide(BuildUpdateMethodCall(property, $"{objParamName}.GetProperty(\"{property.Name.WithLowerFirstChar()}\")"))
+                            .SetRighthandSide(BuildUpdateMethodCall(property))
                     );
                 }
 

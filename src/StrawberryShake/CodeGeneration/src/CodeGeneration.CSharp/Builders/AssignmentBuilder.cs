@@ -7,6 +7,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private ICode _leftHandSide { get; set; }
         private ICode _rightHandSide { get; set; }
         private bool _assertNonNull { get; set; }
+        private string? _nonNullAssertTypeNameOverride { get; set; }
 
         public static AssignmentBuilder New() => new AssignmentBuilder();
 
@@ -34,8 +35,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public AssignmentBuilder AssertNonNull()
+        public AssignmentBuilder AssertNonNull(string? nonNullAssertTypeNameOverride = null)
         {
+            _nonNullAssertTypeNameOverride = nonNullAssertTypeNameOverride;
             return SetAssertNonNull(true);
         }
 
@@ -60,7 +62,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                     await writer.WriteIndentAsync().ConfigureAwait(false);
                     await writer.WriteAsync(" ?? ").ConfigureAwait(false);
                     await writer.WriteAsync("throw new ArgumentNullException(nameof(").ConfigureAwait(false);
-                    await _rightHandSide.BuildAsync(writer).ConfigureAwait(false);
+                    if (_nonNullAssertTypeNameOverride is not null)
+                    {
+                        await writer.WriteAsync(_nonNullAssertTypeNameOverride).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        await _rightHandSide.BuildAsync(writer).ConfigureAwait(false);
+                    }
                     await writer.WriteAsync("))").ConfigureAwait(false);
                 }
             }

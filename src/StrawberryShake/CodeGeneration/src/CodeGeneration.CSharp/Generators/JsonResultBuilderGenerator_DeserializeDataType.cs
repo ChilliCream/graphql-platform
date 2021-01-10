@@ -12,7 +12,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             var dateDeserializer = MethodBuilder.New()
                 .SetReturnType(typeReference.TypeName)
-                .SetName(TypeDeserializeMethodNameFromTypeName(typeReference))
+                .SetName(NamingConventions.DeserializerMethodNameFromTypeName(typeReference))
                 .AddParameter(ParameterBuilder.New().SetType("JsonElement").SetName(objParamName))
                 .AddParameter(
                     ParameterBuilder.New().SetType($"ISet<{WellKnownNames.EntityId}>").SetName(EntityIdsParam)
@@ -29,34 +29,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             foreach (NamedTypeReferenceDescriptor property in typeReference.Type.Properties)
             {
-                // If the property type  is a list type, we must
-                if (property.IsListType)
-                {
-                    var listVarName = property.Name.WithLowerFirstChar();
-                    dateDeserializer.AddCode(
-                        $"var {listVarName} = new List<{(property.IsEntityType ? WellKnownNames.EntityId : property.TypeName)}>();"
-                    );
-
-                    dateDeserializer.AddCode(
-                        ForEachBuilder.New()
-                            .SetLoopHeader(
-                                $"JsonElement child in {objParamName}.GetProperty(\"{listVarName}\").EnumerateArray()"
-                            )
-                            .AddCode(
-                                MethodCallBuilder.New()
-                                    .SetPrefix($"{listVarName}.")
-                                    .SetMethodName("Add")
-                                    .AddArgument(BuildUpdateMethodCall(property, "child"))
-                            )
-                    );
-
-                    dateDeserializer.AddEmptyLine();
-                    returnStatement.AddArgument(listVarName);
-                }
-                else
-                {
-                    returnStatement.AddArgument(BuildUpdateMethodCall(property, objParamName));
-                }
+                returnStatement.AddArgument(BuildUpdateMethodCall(property));
             }
 
             dateDeserializer.AddCode(returnStatement);

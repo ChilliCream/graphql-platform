@@ -3,22 +3,29 @@ using System.Threading.Tasks;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
-    public class ForEachBuilder: ICode
+    public class ForEachBuilder : ICode
     {
         private string _loopHeader;
         private readonly List<ICode> _lines = new List<ICode>();
 
         public static ForEachBuilder New() => new();
 
-        public ForEachBuilder AddCode(string code)
+        public ForEachBuilder AddCode(string code, bool addIfTrue = true)
         {
-            _lines.Add(CodeLineBuilder.New().SetLine(code));
+            AddCode(
+                CodeLineBuilder.New().SetLine(code),
+                addIfTrue
+            );
             return this;
         }
 
-        public ForEachBuilder AddCode(ICode code)
+        public ForEachBuilder AddCode(ICode code, bool addIfTrue = true)
         {
-            _lines.Add(code);
+            if (addIfTrue)
+            {
+                _lines.Add(code);
+            }
+
             return this;
         }
 
@@ -44,6 +51,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                     await line.BuildAsync(writer).ConfigureAwait(false);
                 }
             }
+
             await writer.WriteIndentAsync().ConfigureAwait(false);
             await writer.WriteLineAsync("}");
         }
