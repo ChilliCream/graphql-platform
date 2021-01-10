@@ -55,6 +55,11 @@ namespace HotChocolate.Types
                 return _enumValues.ContainsKey(ev.Value);
             }
 
+            if (valueSyntax is StringValueNode sv)
+            {
+                return _enumValues.ContainsKey(sv.Value);
+            }
+
             return false;
         }
 
@@ -75,6 +80,12 @@ namespace HotChocolate.Types
 
             if (valueSyntax is EnumValueNode evn &&
                 _enumValues.TryGetValue(evn.Value, out IEnumValue? ev))
+            {
+                return ev.Value;
+            }
+
+            if (valueSyntax is StringValueNode svn &&
+                _enumValues.TryGetValue(svn.Value, out ev))
             {
                 return ev.Value;
             }
