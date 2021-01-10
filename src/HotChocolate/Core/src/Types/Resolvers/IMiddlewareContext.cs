@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using HotChocolate.Types;
 
 #nullable enable
@@ -33,5 +34,13 @@ namespace HotChocolate.Resolvers
         /// Returns the resolved field value.
         /// </returns>
         ValueTask<T> ResolveAsync<T>();
+
+        /// <summary>
+        /// Register cleanup tasks that will be executed after resolver execution is finished.
+        /// </summary>
+        /// <param name="action">
+        /// Cleanup action.
+        /// </param>
+        void RegisterForCleanup(Action action);
     }
 }

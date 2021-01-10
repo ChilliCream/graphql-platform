@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using HotChocolate.Fetching;
 using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.Execution.ThrowHelper;
@@ -7,6 +8,7 @@ namespace HotChocolate.Execution.Processing
 {
     internal sealed partial class OperationContext
     {
+        private readonly ConcurrentBag<Action> _cleanupActions = new();
         private readonly ExecutionContext _executionContext;
         private readonly ResultHelper _resultHelper;
         private IRequestContext _requestContext = default!;
@@ -47,6 +49,11 @@ namespace HotChocolate.Execution.Processing
 
         public void Clean()
         {
+            while (_cleanupActions.TryTake(out var clean))
+            {
+                clean();
+            }
+
             _executionContext.Clean();
             _resultHelper.Clear();
             _requestContext = default!;
