@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using HotChocolate.Data.Neo4J.Language;
 
-namespace HotChocolate.Data.Neo4J
+namespace HotChocolate.Data.Neo4J.Language
 {
     public partial class CypherVisitor
     {
@@ -57,17 +54,46 @@ namespace HotChocolate.Data.Neo4J
             _writer.Write(nodeLabel.GetValue());
         }
 
-        public void EnterVisitable(Properties props)
+        public void EnterVisitable(PropertyLookup propertyLookup)
         {
-            _writer.Write(" {");
-            _writer.Write(string.Join(
-                ", ",
-                props.Props.Select(i => $" {i.Key}: {i.Value.AsString()} ")).TrimEnd(' ', ','));
+            _writer.Write(".");
+            _writer.Write(propertyLookup.GetPropertyKeyName());
         }
 
-        public void LeaveVistable(Properties properties)
+        public void EnterVisitable(Operator op)
+        {
+            Operator.Type type = op.GetType();
+            if (type == Operator.Type.Label) {
+                return;
+            }
+            if (type != Operator.Type.Prefix && op != Operator.Exponent) {
+                _writer.Write(" ");
+            }
+            _writer.Write(op.GetRepresentation());
+            if (type != Operator.Type.Postfix && op != Operator.Exponent) {
+                _writer.Write(" ");
+            }
+        }
+
+        public void EnterVisitable(MapExpression map)
+        {
+            _writer.Write(" {");
+        }
+
+        public void EnterVisitable(KeyValueMapEntry map)
+        {
+            _writer.Write(map.GetKey());
+            _writer.Write(": ");
+        }
+
+        public void LeaveVistable(MapExpression map)
         {
             _writer.Write(" }");
+        }
+
+        public void EnterVisitable(ILiteral literal)
+        {
+            _writer.Write(literal.AsString());
         }
     }
 }

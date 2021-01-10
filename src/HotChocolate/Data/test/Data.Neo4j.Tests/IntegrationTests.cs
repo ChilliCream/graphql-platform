@@ -27,24 +27,19 @@ namespace HotChocolate.Data.Neo4J.Tests
                 Node movie1 = Cypher.Node("Movie")
                     .Named("m")
                     .WithProperties(
-                        new Dictionary<string, ILiteral>()
-                        {
-                            {"Released", Cypher.LiteralTrue()},
-                            {"Title", Cypher.StringLiteral("The Matrix")},
-                            {"ReleaseYear", Cypher.Null()}
-                        });
+                        "Released", Cypher.LiteralTrue(),
+                            "Title", Cypher.LiteralOf("The Matrix"),
+                            "ReleaseYear", Cypher.Null()
+                        );
 
                 Node movie2 = Cypher.Node("Movie")
                     .Named("m")
                     .WithProperties(
-                        new Dictionary<string, ILiteral>()
-                        {
-                            {"Released", Cypher.LiteralTrue()},
-                            {"Title", Cypher.StringLiteral("The Matrix")},
-                            {"ReleaseYear", Cypher.Null()}
-                        });
 
-
+                            "Released", Cypher.LiteralTrue(),
+                            "Title", Cypher.LiteralOf("The Matrix"),
+                            "ReleaseYear", Cypher.Null()
+                        );
             }
             finally
             {

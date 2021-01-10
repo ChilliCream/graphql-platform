@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace HotChocolate.Data.Neo4J.Extensions
+﻿namespace HotChocolate.Data.Neo4J.Extensions
 {
     public static class StringExtensions
     {
@@ -11,10 +9,7 @@ namespace HotChocolate.Data.Neo4J.Extensions
 
         public static bool IsIdentifier(this string str)
         {
-            if (str.Length == 0)
-                return false;
-
-            return true;
+            return str.Length != 0;
         }
     }
 }

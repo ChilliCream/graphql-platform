@@ -2,6 +2,9 @@ namespace HotChocolate.Data.Neo4J.Language
 {
     public abstract class Literal<T> : Expression, ILiteral
     {
+        /// <summary>
+        /// Represents a literal with an optional content.
+        /// </summary>
         public override ClauseKind Kind => ClauseKind.Literal;
         /// <summary>
         /// The content of this literal.
@@ -17,7 +20,7 @@ namespace HotChocolate.Data.Neo4J.Language
             _content = content;
         }
 
-        public T GetContent() => _content;
+        protected T GetContent() => _content;
 
         /// <summary>
         /// The string representation should be designed in such a way the a renderer can use it correctly in

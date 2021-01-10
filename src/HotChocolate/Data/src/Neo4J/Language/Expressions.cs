@@ -5,9 +5,9 @@ namespace HotChocolate.Data.Neo4J.Language
     /// <summary>
     /// Utility methods for dealing with expressions.
     /// </summary>
-    public sealed class Expressions
+    public static class Expressions
     {
-        private Expressions() { }
+        //private Expressions() { }
         public static Expression NameOrExpression<T>(T expression) where T : Expression
         {
             if (expression is Named named)

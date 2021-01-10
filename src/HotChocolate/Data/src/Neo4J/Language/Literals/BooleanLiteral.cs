@@ -5,21 +5,14 @@ namespace HotChocolate.Data.Neo4J.Language
     public sealed class BooleanLiteral : Literal<bool>
     {
 
-        public static readonly BooleanLiteral True = new BooleanLiteral(true);
-        public static readonly BooleanLiteral False = new BooleanLiteral(false);
+        public static readonly BooleanLiteral True = new (true);
+        public static readonly BooleanLiteral False = new (false);
 
         private BooleanLiteral(bool context) : base(context) { }
 
         public static Literal<bool> Of(bool value)
         {
-            if (value)
-            {
-                return True;
-            }
-            else
-            {
-                return False;
-            }
+            return value ? True : False;
         }
 
         public override string AsString() => GetContent().ToString(CultureInfo.InvariantCulture);

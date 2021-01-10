@@ -3,7 +3,7 @@
     /// <summary>
     /// Symbols used during Cypher rendering.
     /// </summary>
-    internal static class Symbol
+    public static class Symbol
     {
         public const string NodeLabelStart = ":";
         public const string RelationshipTypeStart = ":";

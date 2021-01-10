@@ -2,7 +2,7 @@
 {
     public sealed class NullLiteral : Literal<string>
     {
-        public readonly static NullLiteral Instance = new NullLiteral();
+        public static readonly NullLiteral Instance = new();
 
         private NullLiteral() : base("null") { }
 

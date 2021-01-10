@@ -1,6 +1,6 @@
 using System;
 
-namespace HotChocolate.Data.Neo4J
+namespace HotChocolate.Data.Neo4J.Language
 {
     public partial class CypherVisitor : IDisposable
     {

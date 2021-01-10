@@ -1,6 +1,4 @@
-using HotChocolate.Data.Neo4J.Language;
-
-namespace HotChocolate.Data.Neo4J
+namespace HotChocolate.Data.Neo4J.Language
 {
     public partial class CypherVisitor
     {
@@ -18,7 +16,7 @@ namespace HotChocolate.Data.Neo4J
                     LeaveVistable((Node)visitable);
                     break;
                 case ClauseKind.Properties:
-                    LeaveVistable((Properties)visitable);
+                    LeaveVistable((MapExpression)visitable);
                     break;
                 case 0:
                     break;

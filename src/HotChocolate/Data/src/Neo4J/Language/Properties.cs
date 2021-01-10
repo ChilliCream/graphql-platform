@@ -8,24 +8,17 @@ namespace HotChocolate.Data.Neo4J.Language
     public class Properties : Visitable
     {
         public override ClauseKind Kind => ClauseKind.Properties;
-        private readonly Dictionary<string, ILiteral> _properties;
+        private readonly MapExpression _properties;
 
-        // public Properties(MapExpression properties)
-        // {
-        //     _properties = properties;
-        // }
-
-        public Properties(Dictionary<string, ILiteral> properties)
+        public Properties(MapExpression properties)
         {
             _properties = properties;
         }
 
-        public Dictionary<string, ILiteral> Props => _properties;
-
         public new void Visit(CypherVisitor visitor)
         {
             visitor.Enter(this);
-            //_properties.Visit(visitor);
+            _properties.Visit(visitor);
             visitor.Leave(this);
         }
     }

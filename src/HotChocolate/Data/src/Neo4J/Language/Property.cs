@@ -7,7 +7,7 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class Property : Expression
     {
-        public override ClauseKind Kind => ClauseKind.Default;
+        public override ClauseKind Kind => ClauseKind.Property;
         private readonly Expression _container;
         private readonly PropertyLookup _name;
 
@@ -17,12 +17,12 @@ namespace HotChocolate.Data.Neo4J.Language
             _name = name;
         }
 
-        public static Property Create(Named parentContainer, string name)
+        public static Property Create(INamed parentContainer, string name)
         {
-            SymbolicName requiredSymbolicName;
+            SymbolicName? requiredSymbolicName;
             try
             {
-                requiredSymbolicName = parentContainer.GetRequiredSymbolicName();
+                requiredSymbolicName = parentContainer.GetSymbolicName();
             }
             catch (Exception e)
             {
@@ -31,11 +31,11 @@ namespace HotChocolate.Data.Neo4J.Language
             return new Property(requiredSymbolicName, new PropertyLookup(name));
         }
 
-        public static Property Create(Expression container, string name) => new Property(container, new PropertyLookup(name));
+        public static Property Create(Expression container, string name) => new (container, new PropertyLookup(name));
 
         //public Operation To(Expression expression) => Operations.Set(this, expression);
 
-        public new void Visit(CypherVisitor visitor)
+        public override void Visit(CypherVisitor visitor)
         {
             visitor.Enter(this);
             _container.Visit(visitor);

@@ -14,8 +14,8 @@ namespace HotChocolate.Data.Neo4J.Language
             _expression = expression;
         }
 
-        public static MapProjection Create(SymbolicName name, object[] content) =>
-            new(name, MapExpression.WithEnteries(CreateNewContent(content)));
+        // public static MapProjection Create(SymbolicName name, object[] content) =>
+        //    new(name, MapExpression.WithEnteries(CreateNewContent(content)));
 
     }
 }

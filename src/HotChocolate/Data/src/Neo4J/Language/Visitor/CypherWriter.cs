@@ -2,7 +2,7 @@
 using System.Text;
 using Microsoft.Extensions.ObjectPool;
 
-namespace HotChocolate.Data.Neo4J
+namespace HotChocolate.Data.Neo4J.Language
 {
     /// <summary>
     /// Responsible for abstracting the logic of building cypher query text.

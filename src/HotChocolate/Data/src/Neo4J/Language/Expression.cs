@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Data.Neo4J.Utils;
 
 namespace HotChocolate.Data.Neo4J.Language
