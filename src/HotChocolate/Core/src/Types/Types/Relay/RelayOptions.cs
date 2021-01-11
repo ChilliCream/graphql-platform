@@ -6,8 +6,8 @@ namespace HotChocolate.Types.Relay
     public class RelayOptions
     {
         /// <summary>
-        /// If set to <c>true</c> the mutation payloads are rewritten to expose
-        /// a query field that gives access to the query root type.
+        /// If set to <c>true</c> the mutation payloads are rewritten to provide access to
+        /// the query root type to allow better capabilities refetch data.
         /// </summary>
         public bool AddQueryFieldsToMutations { get; set; }
 
