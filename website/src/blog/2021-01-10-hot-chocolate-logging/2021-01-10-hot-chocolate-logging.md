@@ -5,7 +5,7 @@ title: "Log Your Queries While Building a GraphQL Server"
 tags: ["hotchocolate", "graphql", "dotnet", "aspnetcore"]
 featuredImage: "hot-chocolate-11-banner.png"
 author: Peter Kellner
-authorUrl: https://github.com/pkellner
+authorUrl: https://peterkellner.net
 authorImageUrl: https://avatars3.githubusercontent.com/u/241170?s=60&v=4
 ---
 
