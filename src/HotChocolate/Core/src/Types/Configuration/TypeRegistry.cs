@@ -21,8 +21,6 @@ namespace HotChocolate.Configuration
 
         public IReadOnlyList<RegisteredType> Types => _types;
 
-        public IReadOnlyCollection<ITypeReference> AllTypeRefs => _typeRegister.Keys;
-
         public IReadOnlyDictionary<ExtendedTypeReference, ITypeReference> RuntimeTypeRefs =>
             _runtimeTypeRefs;
 

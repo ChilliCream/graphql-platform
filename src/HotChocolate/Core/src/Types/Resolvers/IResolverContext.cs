@@ -264,7 +264,15 @@ namespace HotChocolate.Resolvers
             SelectionSetNode? selectionSet = null,
             bool allowInternals = false);
 
-
+        /// <summary>
+        /// Get the query root instance.
+        /// </summary>
+        /// <typeparam name="T">
+        /// The type of the query root.
+        /// </typeparam>
+        /// <returns>
+        /// Returns the query root instance.
+        /// </returns>
         T GetQueryRoot<T>();
     }
 }
