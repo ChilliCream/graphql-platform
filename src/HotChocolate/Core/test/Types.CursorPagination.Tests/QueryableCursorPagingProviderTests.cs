@@ -449,6 +449,8 @@ namespace HotChocolate.Types.Pagination
 
             public Path Path => throw new NotImplementedException();
 
+            public bool HasErrors => throw new NotImplementedException();
+
             public IImmutableDictionary<string, object> ScopedContextData
             {
                 get => throw new NotImplementedException();
@@ -540,6 +542,11 @@ namespace HotChocolate.Types.Pagination
                 ObjectType typeContext,
                 SelectionSetNode? selectionSet = null,
                 bool allowInternals = false)
+            {
+                throw new NotImplementedException();
+            }
+
+            public T GetQueryRoot<T>()
             {
                 throw new NotImplementedException();
             }

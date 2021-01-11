@@ -6,8 +6,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Configuration
 {
-    internal sealed class AggregateTypeInterceptor
-        : ITypeInterceptor
+    internal sealed class AggregateTypeInterceptor : ITypeInterceptor
     {
         private readonly IReadOnlyCollection<ITypeInitializationInterceptor> _initInterceptors;
         private readonly IReadOnlyCollection<ITypeInitializationInterceptor> _agrInterceptors;

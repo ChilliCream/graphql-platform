@@ -28,6 +28,7 @@ namespace HotChocolate.Configuration
                 },
                 new List<Type>(),
                 null,
+                t => t is FooType,
                 t => t is FooType);
 
             // act
@@ -74,7 +75,8 @@ namespace HotChocolate.Configuration
                 },
                 new List<Type>(),
                 null,
-                t => t is ObjectType<Foo>);
+                t => t is ObjectType<Foo>,
+                t => t is FooType);
 
             // act
             typeInitializer.Initialize(() => null, new SchemaOptions());
@@ -120,7 +122,8 @@ namespace HotChocolate.Configuration
                 },
                 new List<Type>(),
                 null!,
-                t => t is ObjectType<Foo>);
+                t => t is ObjectType<Foo>,
+                t => t is FooType);
 
             // act
             void Action() => typeInitializer.Initialize(null!, new SchemaOptions());
@@ -146,7 +149,8 @@ namespace HotChocolate.Configuration
                 },
                 new List<Type>(),
                 null!,
-                t => t is ObjectType<Foo>);
+                t => t is ObjectType<Foo>,
+                t => t is FooType);
 
             // act
             void Action() => typeInitializer.Initialize(() => null, null!);

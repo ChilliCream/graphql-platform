@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
@@ -1746,6 +1747,18 @@ namespace HotChocolate.Types
                 .MatchSnapshot();
         }
 
+        [Fact]
+        public void ResolveWith_NonGeneric()
+        {
+            SchemaBuilder.New()
+                .AddQueryType<ResolveWithNonGenericObjectType>()
+                .Create()
+                .MakeExecutable()
+                .Execute("{ foo }")
+                .ToJson()
+                .MatchSnapshot();
+        }
+
         public class GenericFoo<T>
         {
             public T Value { get; }
@@ -1940,6 +1953,20 @@ namespace HotChocolate.Types
                 descriptor.Field("baz").ResolveWith<ResolveWithQueryResolver>(t => t.Bar);
             }
         }
+
+       public class ResolveWithNonGenericObjectType : ObjectType
+       {
+            protected override void Configure(IObjectTypeDescriptor descriptor)
+            {
+                Type type = typeof(ResolveWithQuery);
+
+                descriptor.Name("ResolveWithQuery");
+
+                descriptor.Field("foo")
+                    .Type<IntType>()
+                    .ResolveWith(type.GetProperty("Foo"));
+            }
+       }
 
         public class AnnotatedNestedList
         {

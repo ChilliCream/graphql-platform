@@ -77,6 +77,11 @@ namespace HotChocolate.Resolvers
         Path Path { get; }
 
         /// <summary>
+        /// Indicates that the context has errors. To report new errors use <see cref="ReportError(IError)"/>
+        /// </summary>
+        bool HasErrors { get; }
+
+        /// <summary>
         /// The scoped context data dictionary can be used by middlewares and
         /// resolvers to store and retrieve data during execution scoped to the
         /// hierarchy
@@ -258,5 +263,16 @@ namespace HotChocolate.Resolvers
             ObjectType typeContext,
             SelectionSetNode? selectionSet = null,
             bool allowInternals = false);
+
+        /// <summary>
+        /// Get the query root instance.
+        /// </summary>
+        /// <typeparam name="T">
+        /// The type of the query root.
+        /// </typeparam>
+        /// <returns>
+        /// Returns the query root instance.
+        /// </returns>
+        T GetQueryRoot<T>();
     }
 }

@@ -62,6 +62,9 @@ namespace HotChocolate.Execution.Processing
         public Path Path =>
             _middlewareContext.Path;
 
+        public bool HasErrors =>
+            _middlewareContext.HasErrors;
+
         public CancellationToken CancellationToken =>
             RequestAborted;
 
@@ -122,6 +125,9 @@ namespace HotChocolate.Execution.Processing
         public ValueTask<T> ResolveAsync<T>() =>
             _middlewareContext.ResolveAsync<T>();
 
+        public void RegisterForCleanup(Action action) =>
+            _middlewareContext.RegisterForCleanup(action);
+
         public ValueKind ArgumentKind(NameString name) =>
             _middlewareContext.ArgumentKind(name);
 
@@ -139,5 +145,7 @@ namespace HotChocolate.Execution.Processing
             SelectionSetNode? selectionSet = null,
             bool allowInternals = false) =>
             _middlewareContext.GetSelections(typeContext, selectionSet, allowInternals);
+
+        public T GetQueryRoot<T>() => _middlewareContext.GetQueryRoot<T>();
     }
 }

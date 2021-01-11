@@ -13,7 +13,7 @@ interface GeoJSONInterface {
 
 type GeoJSONPointType implements GeoJSONInterface {
   "The \"coordinates\" field is a single position."
-  coordinates: [Position]
+  coordinates: Position
   "The geometry type of the GeoJson object"
   type: GeoJSONGeometryType!
   "The minimum bounding box around the geometry object"

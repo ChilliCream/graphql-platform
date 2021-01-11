@@ -190,7 +190,91 @@ Let's get back to where the approaches differentiate—the `Startup` class, whic
 
 # Resolver Arguments
 
-A resolver argument, not to be confused with a field argument in GraphQL, can be a field argument value, a DataLoader, a DI service, state, or even context like a parent value.
+A resolver argument, not to be confused with a field argument in GraphQL, can be a field argument value, a DataLoader, a DI service, state, or even context like a parent value. We will go through a couple of examples where we see all types of resolver argument in action. For that, we will use the annotation-based approach because it makes no difference.
+
+## Field argument example
+
+```csharp
+// Query.cs
+public class Query
+{
+    public string Say(string name) => $"Hello {name}!";
+}
+
+// Startup.cs
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddRouting()
+            .AddGraphQLServer()
+            .AddQueryType<Query>();
+    }
+
+    // Omitted code for brevity
+}
+```
+
+```sdl
+type Query {
+  say(name: String!): String!
+}
+```
+
+## DataLoader argument example
+
+```csharp
+// Query.cs
+public class Query
+{
+    public Task<Person> GetPerson(int id, MyDataLoader dataLoader) => dataLoader.LoadAsync(id);
+}
+
+// Person.cs
+public record Person(string name);
+
+// MyDataLoader.cs
+public class MyDataLoader
+    : DataLoaderBase<int, Person>
+{
+    public MyDataLoader(IBatchScheduler scheduler)
+        : base(scheduler)
+    { }
+
+    protected override ValueTask<IReadOnlyList<Result<Person>>> FetchAsync(
+        IReadOnlyList<int> keys,
+        CancellationToken cancellationToken)
+    {
+        // Omitted code for brevity
+    }
+}
+
+// Startup.cs
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddRouting()
+            .AddGraphQLServer()
+            .AddQueryType<Query>()
+            .AddDataLoader<MyDataLoader>();
+    }
+
+    // Omitted code for brevity
+}
+```
+
+```sdl
+type Query {
+  person(id: Int!): Person!
+}
+
+type Person {
+  name: String!
+}
+```
 
 # Naming Rules
 

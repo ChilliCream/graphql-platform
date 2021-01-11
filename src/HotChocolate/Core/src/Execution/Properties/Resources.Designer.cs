@@ -302,5 +302,11 @@ namespace HotChocolate.Execution.Properties {
                 return ResourceManager.GetString("RootValueResolver_Resolve_CannotCreateInstance", resourceCulture);
             }
         }
+        
+        internal static string OperationContext_GetQueryRoot_InvalidCast {
+            get {
+                return ResourceManager.GetString("OperationContext_GetQueryRoot_InvalidCast", resourceCulture);
+            }
+        }
     }
 }
