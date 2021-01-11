@@ -58,29 +58,5 @@ namespace HotChocolate.Data.Neo4J.Tests
 
             visitor.Print().MatchSnapshot();
         }
-
-        [Fact]
-        public void Comparison()
-        {
-            var visitor = new CypherVisitor();
-
-            Node movie = Node.Create("Movie").Named("m");
-
-            Comparison comparison = new(movie.Property("Title"), Operator.Equality, (Cypher.LiteralOf("The Matrix")));
-            comparison.Visit(visitor);
-            visitor.Print().MatchSnapshot();
-        }
-
-        [Fact]
-        public void Condition()
-        {
-            var visitor = new CypherVisitor();
-
-            Node movie = Node.Create("Movie").Named("m");
-
-            Condition statement = movie.Property("Title").IsEqualTo(Cypher.LiteralOf("The Matrix"));
-            statement.Visit(visitor);
-            visitor.Print().MatchSnapshot();
-        }
     }
 }

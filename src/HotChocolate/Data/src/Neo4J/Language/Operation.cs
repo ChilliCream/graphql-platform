@@ -7,7 +7,7 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class Operation : Expression
     {
-        public override ClauseKind Kind => ClauseKind.Default;
+        public override ClauseKind Kind => ClauseKind.Operation;
         private readonly Expression _left;
         private readonly Operator _op;
         private readonly Visitable _right;
@@ -22,6 +22,13 @@ namespace HotChocolate.Data.Neo4J.Language
         }
 
         public Operation(Expression left, Operator op, Expression right)
+        {
+            _left = left;
+            _op = op;
+            _right = right;
+        }
+
+        public Operation(Expression left, Operator op, NodeLabels right)
         {
             _left = left;
             _op = op;

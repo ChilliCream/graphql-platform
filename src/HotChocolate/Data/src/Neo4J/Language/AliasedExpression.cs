@@ -20,7 +20,7 @@ namespace HotChocolate.Data.Neo4J.Language
         public string GetAlias() => _alias;
         public Expression GetExpression() => _expression;
 
-        new public AliasedExpression As(string newAlias)
+        public new AliasedExpression As(string newAlias)
         {
             _ = newAlias ??
                 throw new ArgumentNullException(nameof(newAlias));

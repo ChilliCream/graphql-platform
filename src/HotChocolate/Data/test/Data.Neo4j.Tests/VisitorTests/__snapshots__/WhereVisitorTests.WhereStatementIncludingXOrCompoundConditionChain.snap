@@ -1,1 +1,0 @@
-﻿WHERE (m.Title = 'The Matrix' XOR m.Rating = 3.2)

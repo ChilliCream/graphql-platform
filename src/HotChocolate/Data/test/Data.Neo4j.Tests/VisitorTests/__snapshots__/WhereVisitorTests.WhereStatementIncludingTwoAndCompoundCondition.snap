@@ -1,1 +1,0 @@
-﻿WHERE ((m.Title = 'The Matrix' OR m.Rating = 3.2) AND b.Broken = True)
