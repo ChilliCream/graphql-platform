@@ -12,7 +12,7 @@ namespace HotChocolate.Types.Relay
         public bool AddQueryFieldsToMutations { get; set; }
 
         /// <summary>
-        /// The name of the query field on a mutation payload.
+        /// The name of the query field on a mutation payload (default: query).
         /// </summary>
         public NameString? QueryFieldName { get; set; }
     }
