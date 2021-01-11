@@ -70,14 +70,130 @@ namespace HotChocolate.Types.Relay
 
     internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
     {
-        public override void OnBeforeCompleteType(
+        private const string _defaultFieldName = "query";
+        private readonly Dictionary<IType, TypeInfo> _types = new();
+
+        public override bool TriggerAggregations => true;
+
+        public override void OnAfterCompleteName(
             ITypeCompletionContext completionContext,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData)
         {
+            if (completionContext.Type is ObjectType objectType &&
+                definition is ObjectTypeDefinition objectTypeDefinition)
+            {
+                var typeInfo = new TypeInfo(completionContext, objectType, objectTypeDefinition);
+                _types.Add(typeInfo.Type, typeInfo);
+            }
+        }
+
+        public override void OnTypesCompletedName(
+            IReadOnlyCollection<ITypeCompletionContext> discoveryContexts)
+        {
+            TypeInfo query = _types.Values.FirstOrDefault(t => t.IsQuery);
+            TypeInfo mutation = _types.Values.FirstOrDefault(t => t.IsMutation);
+
+            if (query is { Context: not null } && mutation is { Context: not null })
+            {
+                RelayOptions options = query.Context.DescriptorContext.GetRelayOptions();
+                options.QueryFieldName ??= _defaultFieldName;
+
+                foreach (var field in mutation.Definition.Fields)
+                {
+                    if (mutation.Context.TryGetType(field.Type, out IType type) &&
+                        type.NamedType() is ObjectType objectType &&
+                        objectType.Name.Value.EndsWith("Payload") &&
+                        _types.TryGetValue(objectType, out TypeInfo typeInfo))
+                    {
 
 
 
+                    }
+                }
+            }
+        }
+
+
+        private void Foo(TypeInfo payload, TypeInfo query, NameString queryFieldName)
+        {
+            var descriptor = ObjectFieldDescriptor.New(
+                payload.Context.DescriptorContext,
+                queryFieldName);
+
+            descriptor
+                .Type(new NonNullType(query.Type))
+                .Resolver();
+
+            descriptor
+                .Argument(Id, a => a.Type<NonNullType<IdType>>().ID())
+                .Type<NodeType>()
+                .Resolve(async ctx =>
+                {
+                    StringValueNode id = ctx.ArgumentLiteral<StringValueNode>(Id);
+                    IdValue deserializedId = serializer.Deserialize(id.Value);
+
+                    ctx.SetLocalValue(NodeId, id.Value);
+                    ctx.SetLocalValue(InternalId, deserializedId.Value);
+                    ctx.SetLocalValue(InternalType, deserializedId.TypeName);
+                    ctx.SetLocalValue(WellKnownContextData.IdValue, deserializedId);
+
+                    if (ctx.Schema.TryGetType(deserializedId.TypeName, out ObjectType type) &&
+                        type.ContextData.TryGetValue(NodeResolver, out object? o) &&
+                        o is FieldResolverDelegate resolver)
+                    {
+                        return await resolver.Invoke(ctx).ConfigureAwait(false);
+                    }
+
+                    return null;
+                });
+
+            objectTypeDefinition.Fields.Insert(index, descriptor.CreateDefinition());
+        }
+
+        private readonly struct TypeInfo
+        {
+            public TypeInfo(
+                ITypeCompletionContext context,
+                ObjectType type,
+                ObjectTypeDefinition definition)
+            {
+                Context = context;
+                Type = type;
+                Definition = definition;
+            }
+
+            public ITypeCompletionContext Context { get; }
+
+            public ObjectType Type { get; }
+
+            public ObjectTypeDefinition Definition { get; }
+
+            public bool IsQuery => Context.IsMutationType ?? false;
+
+            public bool IsMutation => Context.IsMutationType ?? false;
+        }
+    }
+
+    internal static class RelayHelper
+    {
+        public static RelayOptions GetRelayOptions(
+            this IDescriptorContext context)
+        {
+            if (context.ContextData.TryGetValue(typeof(RelayOptions).FullName!, out object? o) &&
+                o is RelayOptions casted)
+            {
+                return casted;
+            }
+
+            return new RelayOptions();
+        }
+
+        public static void SetRelayOptions(
+            this ISchemaBuilder schemaBuilder,
+            RelayOptions options)
+        {
+            schemaBuilder.SetContextData(typeof(RelayOptions).FullName!, options);
         }
     }
 }

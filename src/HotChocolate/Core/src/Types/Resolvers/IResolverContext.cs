@@ -263,5 +263,8 @@ namespace HotChocolate.Resolvers
             ObjectType typeContext,
             SelectionSetNode? selectionSet = null,
             bool allowInternals = false);
+
+
+        T GetQueryRoot<T>();
     }
 }

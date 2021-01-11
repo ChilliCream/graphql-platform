@@ -145,7 +145,7 @@ namespace HotChocolate.Configuration
         /// The type discovery contexts that can be handled by this interceptor.
         /// </param>
         void OnTypesCompletedName(
-            IReadOnlyCollection<ITypeCompletionContext> completionContext);
+            IReadOnlyCollection<ITypeCompletionContext> discoveryContexts);
 
         /// <summary>
         /// This event is called before the type system member is fully completed.
@@ -188,6 +188,6 @@ namespace HotChocolate.Configuration
         /// The type discovery contexts that can be handled by this interceptor.
         /// </param>
         void OnTypesCompleted(
-            IReadOnlyCollection<ITypeCompletionContext> completionContext);
+            IReadOnlyCollection<ITypeCompletionContext> discoveryContexts);
     }
 }

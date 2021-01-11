@@ -131,12 +131,12 @@ namespace HotChocolate.Configuration
             throw new NotImplementedException();
         }
 
-        public void OnTypesCompletedName(IReadOnlyCollection<ITypeCompletionContext> completionContext)
+        public void OnTypesCompletedName(IReadOnlyCollection<ITypeCompletionContext> discoveryContexts)
         {
             throw new NotImplementedException();
         }
 
-        public void OnTypesCompleted(IReadOnlyCollection<ITypeCompletionContext> completionContext)
+        public void OnTypesCompleted(IReadOnlyCollection<ITypeCompletionContext> discoveryContexts)
         {
             throw new NotImplementedException();
         }

@@ -79,5 +79,16 @@ namespace HotChocolate.Execution.Processing
         /// Cleanup action.
         /// </param>
         void RegisterForCleanup(Action action);
+
+        /// <summary>
+        /// Get the query root instance.
+        /// </summary>
+        /// <typeparam name="T">
+        /// The type of the query root.
+        /// </typeparam>
+        /// <returns>
+        /// Returns the query root instance.
+        /// </returns>
+        T GetQueryRoot<T>();
     }
 }

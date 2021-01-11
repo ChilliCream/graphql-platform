@@ -10,5 +10,10 @@ namespace HotChocolate.Types.Relay
         /// a query field that gives access to the query root type.
         /// </summary>
         public bool AddQueryFieldsToMutations { get; set; }
+
+        /// <summary>
+        /// The name of the query field on a mutation payload.
+        /// </summary>
+        public NameString? QueryFieldName { get; set; }
     }
 }

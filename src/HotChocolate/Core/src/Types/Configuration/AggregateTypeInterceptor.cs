@@ -148,7 +148,7 @@ namespace HotChocolate.Configuration
         }
 
         public void OnTypesCompletedName(
-            IReadOnlyCollection<ITypeCompletionContext> completionContexts)
+            IReadOnlyCollection<ITypeCompletionContext> discoveryContexts)
         {
             if (_agrInterceptors.Count > 0)
             {
@@ -158,7 +158,7 @@ namespace HotChocolate.Configuration
                 {
                     list.Clear();
 
-                    foreach (ITypeCompletionContext completionContext in completionContexts)
+                    foreach (ITypeCompletionContext completionContext in discoveryContexts)
                     {
                         if (interceptor.CanHandle(completionContext))
                         {
@@ -216,7 +216,7 @@ namespace HotChocolate.Configuration
         }
 
         public void OnTypesCompleted(
-            IReadOnlyCollection<ITypeCompletionContext> completionContexts)
+            IReadOnlyCollection<ITypeCompletionContext> discoveryContexts)
         {
             if (_agrInterceptors.Count > 0)
             {
@@ -226,7 +226,7 @@ namespace HotChocolate.Configuration
                 {
                     list.Clear();
 
-                    foreach (ITypeCompletionContext completionContext in completionContexts)
+                    foreach (ITypeCompletionContext completionContext in discoveryContexts)
                     {
                         if (interceptor.CanHandle(completionContext))
                         {

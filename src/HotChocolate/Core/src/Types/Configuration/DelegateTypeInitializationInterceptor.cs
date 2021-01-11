@@ -98,12 +98,12 @@ namespace HotChocolate.Configuration
         }
 
         public void OnTypesCompletedName(
-            IReadOnlyCollection<ITypeCompletionContext> completionContext)
+            IReadOnlyCollection<ITypeCompletionContext> discoveryContexts)
         {
         }
 
         public void OnTypesCompleted(
-            IReadOnlyCollection<ITypeCompletionContext> completionContext)
+            IReadOnlyCollection<ITypeCompletionContext> discoveryContexts)
         {
         }
     }
