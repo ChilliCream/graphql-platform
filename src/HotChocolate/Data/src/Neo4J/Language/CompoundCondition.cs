@@ -1,38 +1,50 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace HotChocolate.Data.Neo4J.Language
 {
     public class CompoundCondition : Condition
     {
-        public override ClauseKind Kind => ClauseKind.Default;
-        public readonly static CompoundCondition EmptyCondition =
-            new CompoundCondition(null);
-        public readonly static HashSet<Operator> ValidOperations =
-            new HashSet<Operator> { Operator.And, Operator.Or, Operator.XOr };
+        public override ClauseKind Kind => ClauseKind.CompoundCondition;
 
+        private static readonly CompoundCondition _emptyCondition =
+            new (null);
 
-        private readonly Operator _operator;
+        private static readonly HashSet<Operator> _validOperations =
+            new() { Operator.And, Operator.Or, Operator.XOr };
+
+        private readonly Operator? _operator;
         private readonly List<Condition> _conditions;
 
-        public CompoundCondition(Operator op)
+        public new Condition And(Condition condition) {
+            return Add(Operator.And, condition);
+        }
+
+        static CompoundCondition Empty() {
+            return _emptyCondition;
+        }
+
+        public CompoundCondition(Operator? op)
         {
             _operator = op;
             _conditions = new List<Condition>();
         }
 
-        public static CompoundCondition Create(Condition left, Operator op, Condition right) =>
-            new CompoundCondition(op).Add(op, left).Add(op, right);
+        public static CompoundCondition Create(Condition left, Operator op, Condition right)
+        {
+            return new CompoundCondition(op).Add(op, left).Add(op, right);
+        }
 
-        public static CompoundCondition Empty => EmptyCondition;
 
         private CompoundCondition Add(Operator chainingOperator, Condition condition)
         {
-            if (this == EmptyCondition)
+            if (this == _emptyCondition)
             {
                 return new CompoundCondition(chainingOperator).Add(chainingOperator, condition);
             }
 
-            if (condition == EmptyCondition)
+            if (condition == _emptyCondition)
             {
                 return this;
             }
@@ -71,7 +83,6 @@ namespace HotChocolate.Data.Neo4J.Language
 
         private bool CanBeFlattenedWith(Operator operatorBefore)
         {
-
             foreach (Condition c in _conditions)
             {
                 if (c is CompoundCondition condition && condition._operator != operatorBefore)
@@ -82,9 +93,9 @@ namespace HotChocolate.Data.Neo4J.Language
             return true;
         }
 
-        public new void Visit(CypherVisitor visitor)
+        public override void Visit(CypherVisitor visitor)
         {
-            if (_conditions.Count == 0)
+            if (!_conditions.Any())
             {
                 return;
             }
@@ -97,25 +108,21 @@ namespace HotChocolate.Data.Neo4J.Language
 
             AcceptVisitorWithOperatorForChildCondition(visitor, null, _conditions[0]);
 
-            if (hasManyConditions)
+            if (!hasManyConditions) return;
+            foreach (Condition condition in _conditions.Skip(1))
             {
-                foreach (Condition condition in _conditions.GetRange(1, _conditions.Count))
-                {
-                    // This takes care of a potential inner compound condition that got added with a different operator
-                    // and thus forms a tree.
-                    Operator actualOperator = condition is CompoundCondition condition1 ?
-
+                // This takes care of a potential inner compound condition that got added with a different operator
+                // and thus forms a tree.
+                Operator? actualOperator = condition is CompoundCondition condition1 ?
                     condition1._operator :
                     _operator;
-                    AcceptVisitorWithOperatorForChildCondition(visitor, actualOperator, condition);
-                }
-                visitor.Leave(this);
+                AcceptVisitorWithOperatorForChildCondition(visitor, actualOperator, condition);
             }
-
+            visitor.Leave(this);
         }
 
         private static void AcceptVisitorWithOperatorForChildCondition(
-            CypherVisitor visitor, Operator op, Condition condition)
+            CypherVisitor visitor, IVisitable? op, IVisitable condition)
         {
             op?.Visit(visitor);
             condition.Visit(visitor);

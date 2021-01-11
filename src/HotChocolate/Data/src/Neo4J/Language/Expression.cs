@@ -8,8 +8,6 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public abstract class Expression : Visitable
     {
-        public override ClauseKind Kind => ClauseKind.Expression;
-
         /// <summary>
         /// Creates an expression with an alias. This expression does not track which or
         /// how many aliases have been created.

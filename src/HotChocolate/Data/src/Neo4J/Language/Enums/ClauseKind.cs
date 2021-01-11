@@ -11,9 +11,12 @@ namespace HotChocolate.Data.Neo4J.Language
         ExcludePattern,
         Operator,
         StatementPrefix,
+        Comparison,
+        CompoundCondition,
 
         KeyValueMapEntry,
         MapExpression,
+        MapProjection,
         Properties,
         KeyValueSeparator,
         Property,

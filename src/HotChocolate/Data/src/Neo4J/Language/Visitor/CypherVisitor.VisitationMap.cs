@@ -20,7 +20,7 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public void EnterVisitable(Where where)
         {
-            _writer.Write(" WHERE ");
+            _writer.Write("WHERE ");
         }
 
         public void EnterVisitable(Create create)
@@ -94,6 +94,16 @@ namespace HotChocolate.Data.Neo4J.Language
         public void EnterVisitable(ILiteral literal)
         {
             _writer.Write(literal.AsString());
+        }
+
+        private void EnterVisitable(CompoundCondition compoundCondition)
+        {
+            _writer.Write("(");
+        }
+
+        private void LeaveVisitable(CompoundCondition compoundCondition)
+        {
+            _writer.Write(")");
         }
     }
 }

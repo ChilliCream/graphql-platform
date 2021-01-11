@@ -5,6 +5,7 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class MapProjection : Expression
     {
+        public override ClauseKind Kind => ClauseKind.MapProjection;
         private readonly SymbolicName _name;
         private readonly MapExpression _expression;
 

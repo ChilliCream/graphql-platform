@@ -29,7 +29,7 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public SymbolicName AsName() => SymbolicName.Of(GetAlias());
 
-        public new void Visit(CypherVisitor visitor)
+        public override void Visit(CypherVisitor visitor)
         {
             visitor.Enter(this);
             Expressions.NameOrExpression(_expression).Visit(visitor);

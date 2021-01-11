@@ -5,10 +5,10 @@
     /// </summary>
     public class Comparison : Condition
     {
-        public override ClauseKind Kind => ClauseKind.Default;
-        private readonly Expression _left;
+        public override ClauseKind Kind => ClauseKind.Comparison;
+        private readonly Expression? _left;
         private readonly Operator _operator;
-        private readonly Expression _right;
+        private readonly Expression? _right;
 
         public Comparison(Expression left, Operator op, Expression right)
         {
@@ -31,16 +31,14 @@
         private static Expression NestedIfCondition(Expression expression) =>
             expression is Condition ? new NestedExpression(expression) : expression;
 
-        public new void Visit(CypherVisitor visitor)
+        public override void Visit(CypherVisitor visitor)
         {
             visitor.Enter(this);
             if (_left != null)
-                _left.Visit(visitor);
-                //Expressions.NameOrExpression(_left).Visit(visitor);
+                Expressions.NameOrExpression(_left).Visit(visitor);
             _operator.Visit(visitor);
             if (_right != null)
-                _right.Visit(visitor);
-                //Expressions.NameOrExpression(_right).Visit(visitor);
+                Expressions.NameOrExpression(_right).Visit(visitor);
             visitor.Leave(this);
         }
     }

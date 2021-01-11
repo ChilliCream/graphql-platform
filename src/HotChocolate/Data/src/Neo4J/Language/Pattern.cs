@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace HotChocolate.Data.Neo4J.Language
 {
@@ -19,7 +20,13 @@ namespace HotChocolate.Data.Neo4J.Language
             _patternElements = patternElements;
         }
 
-        public new void Visit(CypherVisitor visitor)
+        public Pattern(params PatternElement[] patternElements)
+        {
+
+            _patternElements = patternElements.ToList();
+        }
+
+        public override void Visit(CypherVisitor visitor)
         {
             visitor.Enter(this);
             _patternElements.ForEach(element => element.Visit(visitor));

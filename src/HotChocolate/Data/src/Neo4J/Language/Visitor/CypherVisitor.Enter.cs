@@ -39,6 +39,9 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.Literal:
                     EnterVisitable((ILiteral)visitable);
                     break;
+                case ClauseKind.CompoundCondition:
+                    EnterVisitable((CompoundCondition)visitable);
+                    break;
                 case 0:
                     break;
             }

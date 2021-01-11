@@ -20,7 +20,7 @@
 
         public bool IsOptional() => _optional;
 
-        public new void Visit(CypherVisitor visitor)
+        public override void Visit(CypherVisitor visitor)
         {
             visitor.Enter(this);
             _pattern.Visit(visitor);

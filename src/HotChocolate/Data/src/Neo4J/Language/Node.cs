@@ -100,7 +100,7 @@ namespace HotChocolate.Data.Neo4J.Language
         public Relationship RelationshipFrom(Node other, params string[] types) => new Relationship();
         public Relationship RelationshipBetween(Node other, params string[] types) => new Relationship();
 
-        public new void Visit(CypherVisitor visitor)
+        public override void Visit(CypherVisitor visitor)
         {
             visitor.Enter(this);
             _symbolicName?.Visit(visitor);
