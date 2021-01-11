@@ -125,7 +125,10 @@ namespace HotChocolate.Types.Relay
 
             descriptor
                 .Type(new NonNullType(query.Type))
-                .Resolver(ctx => ctx.GetQueryRoot<object>());
+                .Resolver(ctx =>
+                {
+                    return ctx.GetQueryRoot<object>();
+                });
 
             payload.Definition.Fields.Add(descriptor.CreateDefinition());
         }
@@ -148,7 +151,7 @@ namespace HotChocolate.Types.Relay
 
             public ObjectTypeDefinition Definition { get; }
 
-            public bool IsQuery => Context.IsMutationType ?? false;
+            public bool IsQuery => Context.IsQueryType ?? false;
 
             public bool IsMutation => Context.IsMutationType ?? false;
         }

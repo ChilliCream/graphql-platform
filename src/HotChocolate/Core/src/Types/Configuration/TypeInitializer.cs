@@ -480,15 +480,6 @@ namespace HotChocolate.Configuration
                 }
             }
 
-            var x = new List<object>();
-            foreach (ITypeReference test in _typeRegistry.AllTypeRefs)
-            {
-                if (processed.Add(test))
-                {
-                    x.Add(test);
-                }
-            }
-
             if (!failed && processed.Count < _typeRegistry.Count)
             {
                 foreach (RegisteredType type in _typeRegistry.Types

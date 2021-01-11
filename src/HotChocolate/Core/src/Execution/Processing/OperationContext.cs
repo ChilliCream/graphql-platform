@@ -1,4 +1,5 @@
 using System;
+using System.Security.Cryptography;
 using HotChocolate.Execution.Properties;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -84,7 +85,16 @@ namespace HotChocolate.Execution.Processing
         {
             AssertNotPooled();
 
-            if (_resolveQueryRootValue() is T casted)
+            object? query = _resolveQueryRootValue();
+
+            if (query is null &&
+                typeof(T) == typeof(object) &&
+                new object() is T dummy)
+            {
+                return dummy;
+            }
+
+            if (query is T casted)
             {
                 return casted;
             }
