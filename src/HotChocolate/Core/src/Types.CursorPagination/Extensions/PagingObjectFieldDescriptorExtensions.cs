@@ -121,7 +121,7 @@ namespace HotChocolate.Types
             PagingOptions options)
         {
             // first we will try and infer the schema type of the collection.
-            IExtendedType schemaType = PagingHelper.GetSchemaType(
+            IExtendedType schemaType = PagingHelper.GetSchemaElementType(
                 context.TypeInspector,
                 resolverMember,
                 type);

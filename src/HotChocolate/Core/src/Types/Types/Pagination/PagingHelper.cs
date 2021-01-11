@@ -16,10 +16,32 @@ namespace HotChocolate.Types.Pagination
 {
     public static class PagingHelper
     {
+        /// <summary>
+        /// Applies the paging middleware to the current field.
+        /// </summary>
+        /// <param name="descriptor">
+        /// The object field descriptor.
+        /// </param>
+        /// <param name="schemaElementType">
+        /// The schema type representation of the element type.
+        /// </param>
+        /// <param name="runtimeElementType">
+        /// The .NET element type representation.
+        /// </param>
+        /// <param name="resolvePagingProvider">
+        /// A delegate allowing to dynamically define a paging resolver for a field.
+        /// </param>
+        /// <param name="options">
+        /// The paging settings that shall be applied to this field.
+        /// </param>
+        /// <returns>
+        /// Returns the field descriptor for chaining in other configurations.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"></exception>
         public static IObjectFieldDescriptor UsePaging(
             IObjectFieldDescriptor descriptor,
-            Type? type,
-            Type? entityType = null,
+            Type? schemaElementType,
+            Type? runtimeElementType = null,
             GetPagingProvider? resolvePagingProvider = null,
             PagingOptions options = default)
         {
@@ -36,14 +58,14 @@ namespace HotChocolate.Types.Pagination
                 .OnBeforeCreate((c, d) =>
                 {
                     MemberInfo? member = d.ResolverMember ?? d.Member;
-                    IExtendedType schemaType = GetSchemaType(c.TypeInspector, member, type);
+                    IExtendedType schemaType = GetSchemaElementType(c.TypeInspector, member, schemaElementType);
 
                     var configuration = new TypeConfiguration<ObjectFieldDefinition>
                     {
                         Definition = d,
                         On = ApplyConfigurationOn.Completion,
                         Configure = (c, d) => ApplyConfiguration(
-                            c, d, entityType, resolvePagingProvider, options, placeholder)
+                            c, d, runtimeElementType, resolvePagingProvider, options, placeholder)
                     };
 
                     configuration.Dependencies.Add(
@@ -60,16 +82,16 @@ namespace HotChocolate.Types.Pagination
         private static void ApplyConfiguration(
             ITypeCompletionContext context,
             ObjectFieldDefinition definition,
-            Type? entityType,
+            Type? elementType,
             GetPagingProvider? resolvePagingProvider,
             PagingOptions options,
             FieldMiddleware placeholder)
         {
             options = context.GetSettings(options);
-            entityType ??= context.GetType<IOutputType>(definition.Type).ToRuntimeType();
+            elementType ??= context.GetType<IOutputType>(definition.Type).ToRuntimeType();
             resolvePagingProvider ??= ResolvePagingProvider;
 
-            IExtendedType sourceType = GetSourceType(context.TypeInspector, definition, entityType);
+            IExtendedType sourceType = GetSourceType(context.TypeInspector, definition, elementType);
             IPagingProvider pagingProvider = resolvePagingProvider(context.Services, sourceType);
             IPagingHandler pagingHandler = pagingProvider.CreateHandler(sourceType, options);
             FieldMiddleware middleware = CreateMiddleware(pagingHandler);
@@ -81,7 +103,7 @@ namespace HotChocolate.Types.Pagination
         private static IExtendedType GetSourceType(
             ITypeInspector typeInspector,
             ObjectFieldDefinition definition,
-            Type entityType)
+            Type elementType)
         {
             // if an explicit result type is defined we will type it since it expresses the
             // intend.
@@ -99,7 +121,7 @@ namespace HotChocolate.Types.Pagination
 
             // if we were not able to resolve the source type we will assume that it is
             // an enumerable of the entity type.
-            return typeInspector.GetType(typeof(IEnumerable<>).MakeGenericType(entityType));
+            return typeInspector.GetType(typeof(IEnumerable<>).MakeGenericType(elementType));
         }
 
         private static FieldMiddleware CreateMiddleware(
@@ -108,12 +130,12 @@ namespace HotChocolate.Types.Pagination
                 typeof(PagingMiddleware),
                 (typeof(IPagingHandler), handler));
 
-        public static IExtendedType GetSchemaType(
+        public static IExtendedType GetSchemaElementType(
             ITypeInspector typeInspector,
             MemberInfo? member,
-            Type? type)
+            Type? schemaElementType)
         {
-            if (type is null &&
+            if (schemaElementType is null &&
                 member is not null &&
                 typeInspector.GetOutputReturnTypeRef(member) is ExtendedTypeReference r &&
                 typeInspector.TryCreateTypeInfo(r.Type, out ITypeInfo? typeInfo))
@@ -126,10 +148,10 @@ namespace HotChocolate.Types.Pagination
                     return r.Type.ElementType!;
                 }
 
-                // if the member type is unknown we will try to infer it by extracting 
-                // the named type component from it and running the type inference. 
-                // It might be that we either are unable to infer or get the wrong type 
-                // in special cases. In the case we are getting it wrong the user has 
+                // if the member type is unknown we will try to infer it by extracting
+                // the named type component from it and running the type inference.
+                // It might be that we either are unable to infer or get the wrong type
+                // in special cases. In the case we are getting it wrong the user has
                 // to explicitly bind the type.
                 if (SchemaTypeResolver.TryInferSchemaType(
                     typeInspector,
@@ -160,12 +182,12 @@ namespace HotChocolate.Types.Pagination
                 }
             }
 
-            if (type is null || !typeof(IType).IsAssignableFrom(type))
+            if (schemaElementType is null || !typeof(IType).IsAssignableFrom(schemaElementType))
             {
                 throw ThrowHelper.UsePagingAttribute_NodeTypeUnknown(member);
             }
 
-            return typeInspector.GetType(type);
+            return typeInspector.GetType(schemaElementType);
         }
 
         public static PagingOptions GetSettings(
