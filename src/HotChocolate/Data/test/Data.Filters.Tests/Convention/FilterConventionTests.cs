@@ -399,6 +399,56 @@ namespace HotChocolate.Data.Filters
             exception.Message.MatchSnapshot();
         }
 
+        [Fact]
+        public async Task FilterConvention_Should_NotAdd()
+        {
+            // arrange
+            var convention = new FilterConvention(
+                descriptor =>
+                {
+                    descriptor.AddDefaults();
+                    descriptor.AllowAnd(false);
+                });
+
+            IRequestExecutorBuilder builder = new ServiceCollection()
+                .AddGraphQL()
+                .AddConvention<IFilterConvention>(convention)
+                .AddFiltering()
+                .AddQueryType(
+                    x => x.Name("Query").Field("foos").UseFiltering().Resolve(new List<Foo>()));
+
+            //act
+            ISchema schema = await builder.BuildSchemaAsync();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task FilterConvention_Should_NotAddOr()
+        {
+            // arrange
+            var convention = new FilterConvention(
+                descriptor =>
+                {
+                    descriptor.AddDefaults();
+                    descriptor.AllowOr(false);
+                });
+
+            IRequestExecutorBuilder builder = new ServiceCollection()
+                .AddGraphQL()
+                .AddConvention<IFilterConvention>(convention)
+                .AddFiltering()
+                .AddQueryType(
+                    x => x.Name("Query").Field("foos").UseFiltering().Resolve(new List<Foo>()));
+
+            //act
+            ISchema schema = await builder.BuildSchemaAsync();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         protected ISchema CreateSchemaWithTypes(
             IFilterInputType type,
             FilterConvention convention,

@@ -176,6 +176,18 @@ namespace HotChocolate.Data.Filters
             return this;
         }
 
+        public IFilterConventionDescriptor AllowOr(bool allow = true)
+        {
+            Definition.UseOr = allow;
+            return this;
+        }
+
+        public IFilterConventionDescriptor AllowAnd(bool allow = true)
+        {
+            Definition.UseAnd = allow;
+            return this;
+        }
+
         /// <summary>
         /// Creates a new descriptor for <see cref="FilterConvention"/>
         /// </summary>

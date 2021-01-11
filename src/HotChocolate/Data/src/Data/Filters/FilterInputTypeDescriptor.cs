@@ -27,6 +27,8 @@ namespace HotChocolate.Data.Filters
             Definition.Description = Convention.GetTypeDescription(entityType);
             Definition.Fields.BindingBehavior = context.Options.DefaultBindingBehavior;
             Definition.Scope = scope;
+            Definition.UseAnd = Convention.IsAndAllowed();
+            Definition.UseOr = Convention.IsOrAllowed();
         }
 
         protected FilterInputTypeDescriptor(
@@ -52,19 +54,15 @@ namespace HotChocolate.Data.Filters
 
         protected IFilterConvention Convention { get; }
 
-        protected override FilterInputTypeDefinition Definition { get; set; } =
-            new FilterInputTypeDefinition();
+        protected override FilterInputTypeDefinition Definition { get; set; } = new();
 
-        protected BindableList<FilterFieldDescriptor> Fields { get; } =
-            new BindableList<FilterFieldDescriptor>();
+        protected BindableList<FilterFieldDescriptor> Fields { get; } = new();
 
-        protected BindableList<FilterOperationFieldDescriptor> Operations { get; } =
-            new BindableList<FilterOperationFieldDescriptor>();
+        protected BindableList<FilterOperationFieldDescriptor> Operations { get; } = new();
 
         Type IHasRuntimeType.RuntimeType => Definition.RuntimeType;
 
-        protected override void OnCreateDefinition(
-            FilterInputTypeDefinition definition)
+        protected override void OnCreateDefinition(FilterInputTypeDefinition definition)
         {
             if (Definition.EntityType is { })
             {
@@ -100,15 +98,13 @@ namespace HotChocolate.Data.Filters
         }
 
         /// <inheritdoc />
-        public IFilterInputTypeDescriptor Description(
-            string? value)
+        public IFilterInputTypeDescriptor Description(string? value)
         {
             Definition.Description = value;
             return this;
         }
 
-        protected IFilterInputTypeDescriptor BindFields(
-            BindingBehavior bindingBehavior)
+        protected IFilterInputTypeDescriptor BindFields(BindingBehavior bindingBehavior)
         {
             Definition.Fields.BindingBehavior = bindingBehavior;
             return this;
@@ -206,8 +202,7 @@ namespace HotChocolate.Data.Filters
         }
 
         /// <inheritdoc />
-        public IFilterInputTypeDescriptor Directive<TDirective>(
-            TDirective directive)
+        public IFilterInputTypeDescriptor Directive<TDirective>(TDirective directive)
             where TDirective : class
         {
             Definition.AddDirective(directive, Context.TypeInspector);

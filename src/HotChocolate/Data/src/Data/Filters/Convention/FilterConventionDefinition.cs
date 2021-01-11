@@ -17,8 +17,7 @@ namespace HotChocolate.Data.Filters
 
         public IFilterProvider? ProviderInstance { get; set; }
 
-        public List<FilterOperationConventionDefinition> Operations { get; } =
-            new List<FilterOperationConventionDefinition>();
+        public List<FilterOperationConventionDefinition> Operations { get; } = new();
 
         public IDictionary<Type, Type> Bindings { get; } = new Dictionary<Type, Type>();
 
@@ -26,9 +25,12 @@ namespace HotChocolate.Data.Filters
             new Dictionary<ITypeReference, List<ConfigureFilterInputType>>(
                 TypeReferenceComparer.Default);
 
-        public List<IFilterProviderExtension> ProviderExtensions { get; } =
-            new List<IFilterProviderExtension>();
+        public List<IFilterProviderExtension> ProviderExtensions { get; } = new();
 
-        public List<Type> ProviderExtensionsTypes { get; } = new List<Type>();
+        public List<Type> ProviderExtensionsTypes { get; } = new();
+
+        public bool UseOr { get; set; } = true;
+
+        public bool UseAnd { get; set; } = true;
     }
 }

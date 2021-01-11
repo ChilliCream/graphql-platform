@@ -32,6 +32,8 @@ namespace HotChocolate.Data.Filters
         private NameString _argumentName;
         private IFilterProvider _provider = default!;
         private ITypeInspector _typeInspector = default!;
+        private bool _useAnd;
+        private bool _useOr;
 
         protected FilterConvention()
         {
@@ -94,6 +96,8 @@ namespace HotChocolate.Data.Filters
             _bindings = Definition.Bindings;
             _configs = Definition.Configurations;
             _argumentName = Definition.ArgumentName;
+            _useAnd = Definition.UseAnd;
+            _useOr = Definition.UseOr;
 
             if (_provider is IFilterProviderConvention init)
             {
@@ -257,6 +261,16 @@ namespace HotChocolate.Data.Filters
 
         public virtual void ConfigureField(IObjectFieldDescriptor descriptor) =>
             _provider.ConfigureField(_argumentName, descriptor);
+
+        public bool IsAndAllowed()
+        {
+            return _useAnd;
+        }
+
+        public bool IsOrAllowed()
+        {
+            return _useOr;
+        }
 
         public bool TryGetHandler(
             ITypeCompletionContext context,

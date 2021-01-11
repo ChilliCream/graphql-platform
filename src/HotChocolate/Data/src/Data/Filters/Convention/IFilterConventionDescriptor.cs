@@ -111,5 +111,22 @@ namespace HotChocolate.Data.Filters
         /// <typeparam name="TExtension">The filter provider extension type.</typeparam>
         IFilterConventionDescriptor AddProviderExtension<TExtension>(TExtension provider)
             where TExtension : class, IFilterProviderExtension;
+
+        /// <summary>
+        /// Defines if OR-combinators are allowed for filtering.
+        /// </summary>
+        /// <param name="allow">
+        /// Specifies if OR-combinators are allowed or disallowed.
+        /// </param>
+        IFilterConventionDescriptor AllowOr(bool allow = true);
+
+        /// <summary>
+        /// Defines if AND-combinators are allowed for filtering.
+        /// </summary>
+        /// <param name="allow">
+        /// Specifies if AND-combinators are allowed or disallowed.
+        /// </param>
+        IFilterConventionDescriptor AllowAnd(bool allow = true);
+
     }
 }
