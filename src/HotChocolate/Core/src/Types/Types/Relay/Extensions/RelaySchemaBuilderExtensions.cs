@@ -10,12 +10,20 @@ namespace HotChocolate
         /// </summary>
         public static ISchemaBuilder EnableRelaySupport(
             this ISchemaBuilder schemaBuilder,
-            RelayOptions options = null) =>
-            schemaBuilder
+            RelayOptions options = null)
+        {
+            options ??= new();
+
+            if (options.AddQueryFieldsToMutations)
+            {
+                schemaBuilder.TryAddTypeInterceptor<QueryFieldTypeInterceptor>();
+            }
+
+            return schemaBuilder
                 .SetContextData(IsRelaySupportEnabled, 1)
-                .SetRelayOptions(options ?? new RelayOptions())
+                .SetRelayOptions(options)
                 .TryAddTypeInterceptor<NodeFieldTypeInterceptor>()
-                .TryAddTypeInterceptor<QueryFieldTypeInterceptor>()
                 .AddType<NodeType>();
+        }
     }
 }
