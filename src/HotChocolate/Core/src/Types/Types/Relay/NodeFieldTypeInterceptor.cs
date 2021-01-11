@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -64,6 +65,19 @@ namespace HotChocolate.Types.Relay
 
                 objectTypeDefinition.Fields.Insert(index, descriptor.CreateDefinition());
             }
+        }
+    }
+
+    internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
+    {
+        public override void OnBeforeCompleteType(
+            ITypeCompletionContext completionContext,
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
+        {
+
+
+
         }
     }
 }
