@@ -6,8 +6,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Configuration
 {
-    internal sealed class AggregateTypeInterceptor
-        : ITypeInterceptor
+    internal sealed class AggregateTypeInterceptor : ITypeInterceptor
     {
         private readonly IReadOnlyCollection<ITypeInitializationInterceptor> _initInterceptors;
         private readonly IReadOnlyCollection<ITypeInitializationInterceptor> _agrInterceptors;
@@ -148,7 +147,7 @@ namespace HotChocolate.Configuration
         }
 
         public void OnTypesCompletedName(
-            IReadOnlyCollection<ITypeCompletionContext> discoveryContexts)
+            IReadOnlyCollection<ITypeCompletionContext> completionContexts)
         {
             if (_agrInterceptors.Count > 0)
             {
@@ -158,7 +157,7 @@ namespace HotChocolate.Configuration
                 {
                     list.Clear();
 
-                    foreach (ITypeCompletionContext completionContext in discoveryContexts)
+                    foreach (ITypeCompletionContext completionContext in completionContexts)
                     {
                         if (interceptor.CanHandle(completionContext))
                         {
@@ -216,7 +215,7 @@ namespace HotChocolate.Configuration
         }
 
         public void OnTypesCompleted(
-            IReadOnlyCollection<ITypeCompletionContext> discoveryContexts)
+            IReadOnlyCollection<ITypeCompletionContext> completionContexts)
         {
             if (_agrInterceptors.Count > 0)
             {
@@ -226,7 +225,7 @@ namespace HotChocolate.Configuration
                 {
                     list.Clear();
 
-                    foreach (ITypeCompletionContext completionContext in discoveryContexts)
+                    foreach (ITypeCompletionContext completionContext in completionContexts)
                     {
                         if (interceptor.CanHandle(completionContext))
                         {

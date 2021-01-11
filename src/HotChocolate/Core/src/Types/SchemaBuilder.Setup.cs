@@ -190,7 +190,9 @@ namespace HotChocolate
                 TypeRegistry typeRegistry)
             {
                 Dictionary<OperationType, ITypeReference> operations =
-                    builder._operations.ToDictionary(t => t.Key, t => t.Value(context.TypeInspector));
+                    builder._operations.ToDictionary(
+                        t => t.Key,
+                        t => t.Value(context.TypeInspector));
 
                 var initializer = new TypeInitializer(
                     context,

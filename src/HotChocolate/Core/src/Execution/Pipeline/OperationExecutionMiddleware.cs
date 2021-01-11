@@ -184,7 +184,7 @@ namespace HotChocolate.Execution.Pipeline
             RootValueResolver.Resolve(
                 context,
                 context.Services,
-                context.Schema.MutationType,
+                context.Schema.MutationType!,
                 ref _cachedMutation);
 
         private bool IsOperationAllowed(IRequestContext context)

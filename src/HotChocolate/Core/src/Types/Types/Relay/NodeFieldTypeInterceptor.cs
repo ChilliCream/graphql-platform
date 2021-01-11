@@ -89,7 +89,7 @@ namespace HotChocolate.Types.Relay
         }
 
         public override void OnTypesCompletedName(
-            IReadOnlyCollection<ITypeCompletionContext> discoveryContexts)
+            IReadOnlyCollection<ITypeCompletionContext> completionContexts)
         {
             TypeInfo query = _types.Values.FirstOrDefault(t => t.IsQuery);
             TypeInfo mutation = _types.Values.FirstOrDefault(t => t.IsMutation);
