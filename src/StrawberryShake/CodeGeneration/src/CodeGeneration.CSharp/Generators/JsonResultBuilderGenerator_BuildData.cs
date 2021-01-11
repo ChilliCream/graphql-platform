@@ -36,7 +36,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             );
 
             buildDataMethod.AddEmptyLine();
-            foreach (NamedTypeReferenceDescriptor property in resultType.Properties.Where(prop => prop.IsEntityType))
+            foreach (NamedTypeReferenceDescriptor property in resultType.Properties.Where(prop => prop.Type.IsEntityType))
             {
                 buildDataMethod.AddCode(
                     AssignmentBuilder.New()
@@ -54,7 +54,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             foreach (NamedTypeReferenceDescriptor property in resultType.Properties)
             {
-                if (property.IsEntityType)
+                if (property.Type.IsEntityType)
                 {
                     resultInfoConstructor.AddArgument($"{property.Name}Id");
                 }

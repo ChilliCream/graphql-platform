@@ -50,41 +50,6 @@ namespace StrawberryShake.CodeGeneration
             return typeName + "Builder";
         }
 
-        public static string DeserializerMethodNameFromTypeName(TypeReferenceDescriptor typeDescriptor)
-        {
-            var ret = "Update";
-            if (typeDescriptor.IsNullable)
-            {
-                ret += "Nullable";
-            }
-            else
-            {
-                ret += "NonNullable";
-            }
-
-            ret += typeDescriptor.Type.Kind switch
-            {
-                TypeKind.Scalar => typeDescriptor.Type.Name.WithCapitalFirstChar(),
-                TypeKind.DataType => DataTypeNameFromTypeName(typeDescriptor.Type.Name),
-                TypeKind.EntityType => EntityTypeNameFromTypeName(typeDescriptor.Type.Name),
-                _ => throw new ArgumentOutOfRangeException()
-            };
-
-            if (!typeDescriptor.IsListType) return ret;
-
-
-            ret += typeDescriptor.ListType switch
-            {
-                ListType.NullableList => "Nullable",
-                ListType.List => "NonNullable",
-                _ => throw new ArgumentOutOfRangeException()
-            };
-
-            ret += "Array";
-
-            return ret;
-        }
-
         public static string DataTypeNameFromTypeName(string typeName)
         {
             return typeName + "Data";

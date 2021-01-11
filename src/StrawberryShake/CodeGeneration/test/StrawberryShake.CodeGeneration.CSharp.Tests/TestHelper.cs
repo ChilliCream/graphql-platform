@@ -7,38 +7,30 @@ namespace StrawberryShake
         public static NamedTypeReferenceDescriptor GetNamedNonNullStringTypeReference(string referenceName)
         {
             return new NamedTypeReferenceDescriptor(
+                referenceName,
                 new TypeDescriptor(
                     "string",
                     "System"
-                ),
-                false,
-                ListType.NoList,
-                referenceName
+                )
             );
         }
 
         public static NamedTypeReferenceDescriptor GetNamedNonNullIntTypeReference(string referenceName)
         {
             return new NamedTypeReferenceDescriptor(
+                referenceName,
                 new TypeDescriptor(
                     "int",
                     "System"
-                ),
-                false,
-                ListType.NoList,
-                referenceName
+                )
             );
         }
 
-        public static TypeReferenceDescriptor GetNonNullStringTypeReference()
+        public static TypeDescriptor GetNonNullStringTypeReference()
         {
-            return new TypeReferenceDescriptor(
-                new TypeDescriptor(
-                    "string",
-                    "System"
-                ),
-                false,
-                ListType.NoList
+            return new TypeDescriptor(
+                "string",
+                "System"
             );
         }
     }

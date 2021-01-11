@@ -44,10 +44,8 @@ namespace StrawberryShake.Integration
             properties: new[]
             {
                 new NamedTypeReferenceDescriptor(
-                    ICharacterDescriptor,
-                    false,
-                    ListType.List,
-                    "Nodes"
+                    "Nodes",
+                    new ListTypeDescriptor(false, ICharacterDescriptor)
                 ),
                 TestHelper.GetNamedNonNullIntTypeReference("TotalCount")
             },
@@ -55,10 +53,8 @@ namespace StrawberryShake.Integration
         );
 
         private static NamedTypeReferenceDescriptor friendsReferenceDescriptor => new(
-            FriendsConnectionDescriptor,
-            false,
-            ListType.NoList,
-            "Friends"
+            "Friends",
+            FriendsConnectionDescriptor
         );
 
         public static TypeDescriptor HumanHeroTypeDescriptor => new(
@@ -96,10 +92,8 @@ namespace StrawberryShake.Integration
             new[]
             {
                 new NamedTypeReferenceDescriptor(
-                    IHeroDescriptor,
-                    false,
-                    ListType.NoList,
-                    "Hero"
+                    "Hero",
+                    IHeroDescriptor
                 ),
                 TestHelper.GetNamedNonNullStringTypeReference("Version")
             }

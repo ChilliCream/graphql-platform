@@ -16,16 +16,16 @@ namespace StrawberryShake.CodeGeneration
         /// <summary>
         /// The type the operation returns
         /// </summary>
-        public TypeReferenceDescriptor ResultTypeReference { get; }
+        public ITypeDescriptor ResultTypeReference { get; }
 
         /// <summary>
         /// The arguments the operation takes.
         /// </summary>
-        public IReadOnlyDictionary<string, TypeReferenceDescriptor> Arguments { get; }
+        public IReadOnlyList<NamedTypeReferenceDescriptor> Arguments { get; }
 
         public OperationDescriptor(
-            TypeReferenceDescriptor resultTypeReference,
-            IReadOnlyDictionary<string, TypeReferenceDescriptor> arguments)
+            ITypeDescriptor resultTypeReference,
+            IReadOnlyList<NamedTypeReferenceDescriptor> arguments)
         {
             ResultTypeReference = resultTypeReference;
             Arguments = arguments;

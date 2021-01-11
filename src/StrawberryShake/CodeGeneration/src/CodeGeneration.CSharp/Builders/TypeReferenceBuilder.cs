@@ -9,13 +9,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
     {
         private string? _name;
         private List<string> _genericTypeArguments = new List<string>();
-        private ListType _isList = ListType.NoList;
+        private TypeReferenceBuilder? _listInnerType;
         private bool _isNullable = false;
         public static TypeReferenceBuilder New() => new TypeReferenceBuilder();
 
-        public TypeReferenceBuilder SetListType(ListType isList)
+        public TypeReferenceBuilder SetListType(TypeReferenceBuilder innerType)
         {
-            _isList = isList;
+            _listInnerType = innerType;
             return this;
         }
 
@@ -39,7 +39,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
         public async Task BuildAsync(CodeWriter writer)
         {
-            await writer.WriteAsync(_isList.IfListPrint("IReadOnlyList<")).ConfigureAwait(false);;
+            if (_listInnerType is not null)
+            {
+                await writer.WriteAsync("IReadOnlyList<").ConfigureAwait(false);;
+            }
             await writer.WriteAsync(_name).ConfigureAwait(false);;
             if (_genericTypeArguments.Count > 0)
             {
@@ -59,7 +62,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             {
                 await writer.WriteAsync("?").ConfigureAwait(false);;
             }
-            await writer.WriteAsync($"{_isList.IfListPrint(">")}{_isList.IfNullableListPrint("?")}").ConfigureAwait(false);
+
+            if (_listInnerType is not null)
+            {
+                await writer.WriteAsync(">").ConfigureAwait(false);;
+                if (_listInnerType._isNullable)
+                {
+                    await writer.WriteAsync("?").ConfigureAwait(false);;
+                }
+            }
             await writer.WriteSpaceAsync().ConfigureAwait(false);
         }
     }

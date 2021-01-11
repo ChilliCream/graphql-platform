@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using HotChocolate.Types;
 
 namespace StrawberryShake.CodeGeneration
 {
@@ -7,11 +8,11 @@ namespace StrawberryShake.CodeGeneration
     /// </summary>
     public class SubscriptionOperationDescriptor: OperationDescriptor
     {
-        public override string Name => NamingConventions.SubscriptionServiceNameFromTypeName(ResultTypeReference.Type.Name);
+        public override string Name => NamingConventions.SubscriptionServiceNameFromTypeName(ResultTypeReference.Name);
 
         public SubscriptionOperationDescriptor(
-            TypeReferenceDescriptor resultTypeReference,
-            IReadOnlyDictionary<string, TypeReferenceDescriptor> arguments) : base(resultTypeReference, arguments)
+            ITypeDescriptor resultTypeReference,
+            IReadOnlyList<NamedTypeReferenceDescriptor> arguments) : base(resultTypeReference, arguments)
         {
         }
     }

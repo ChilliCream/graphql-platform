@@ -7,11 +7,11 @@ namespace StrawberryShake.CodeGeneration
     /// </summary>
     public class MutationOperationDescriptor: OperationDescriptor
     {
-        public override string Name => NamingConventions.MutationServiceNameFromTypeName(ResultTypeReference.Type.Name);
+        public override string Name => NamingConventions.MutationServiceNameFromTypeName(ResultTypeReference.Name);
 
         public MutationOperationDescriptor(
-            TypeReferenceDescriptor resultTypeReference,
-            IReadOnlyDictionary<string, TypeReferenceDescriptor> arguments) : base(resultTypeReference, arguments)
+            ITypeDescriptor resultTypeReference,
+            IReadOnlyList<NamedTypeReferenceDescriptor> arguments) : base(resultTypeReference, arguments)
         {
         }
     }

@@ -7,11 +7,11 @@ namespace StrawberryShake.CodeGeneration
     /// </summary>
     public class QueryOperationDescriptor : OperationDescriptor
     {
-        public override string Name => NamingConventions.QueryServiceNameFromTypeName(ResultTypeReference.Type.Name);
+        public override string Name => NamingConventions.QueryServiceNameFromTypeName(ResultTypeReference.Name);
 
         public QueryOperationDescriptor(
-            TypeReferenceDescriptor resultTypeReference,
-            IReadOnlyDictionary<string, TypeReferenceDescriptor> arguments) : base(resultTypeReference, arguments)
+            ITypeDescriptor resultTypeReference,
+            IReadOnlyList<NamedTypeReferenceDescriptor> arguments) : base(resultTypeReference, arguments)
         {
         }
     }

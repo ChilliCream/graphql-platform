@@ -8,11 +8,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public partial class JsonResultBuilderGenerator
     {
-        private void AddDataTypeDeserializerMethod(TypeReferenceDescriptor typeReference)
+        private void AddDataTypeDeserializerMethod(TypeDescriptor typeDescriptor)
         {
             var dateDeserializer = MethodBuilder.New()
-                .SetReturnType(typeReference.TypeName)
-                .SetName(NamingConventions.DeserializerMethodNameFromTypeName(typeReference))
+                .SetReturnType(typeDescriptor.Name)
+                .SetName(DeserializerMethodNameFromTypeName(typeDescriptor))
                 .AddParameter(ParameterBuilder.New().SetType("JsonElement").SetName(objParamName))
                 .AddParameter(
                     ParameterBuilder.New().SetType($"ISet<{WellKnownNames.EntityId}>").SetName(EntityIdsParam)
@@ -20,22 +20,22 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             dateDeserializer.AddCode(
                 EnsureJsonValueIsNotNull(),
-                !typeReference.IsNullable
+                !typeDescriptor.IsNullable
             );
 
             var returnStatement = MethodCallBuilder.New()
                 .SetPrefix("return new ")
-                .SetMethodName(NamingConventions.DataTypeNameFromTypeName(typeReference.TypeName));
+                .SetMethodName(NamingConventions.DataTypeNameFromTypeName(typeDescriptor.Name));
 
-            foreach (NamedTypeReferenceDescriptor property in typeReference.Type.Properties)
+            foreach (NamedTypeReferenceDescriptor property in typeDescriptor.Properties)
             {
                 returnStatement.AddArgument(BuildUpdateMethodCall(property));
             }
 
-            dateDeserializer.AddCode(returnStatement);
 
+            dateDeserializer.AddCode(returnStatement);
             ClassBuilder.AddMethod(dateDeserializer);
-            AddRequiredDeserializeMethods(typeReference.Type);
+            AddRequiredDeserializeMethods(typeDescriptor);
         }
     }
 }

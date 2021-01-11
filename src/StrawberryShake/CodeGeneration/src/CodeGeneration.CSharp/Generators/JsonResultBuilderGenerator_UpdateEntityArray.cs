@@ -8,11 +8,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public partial class JsonResultBuilderGenerator
     {
-        private void AddUpdateEntityArrayMethod(NamedTypeReferenceDescriptor typeReference)
+        private void AddUpdateEntityArrayMethod(ListTypeDescriptor listTypeDescriptor)
         {
             var updateEntityMethod = MethodBuilder.New()
                 .SetAccessModifier(AccessModifier.Private)
-                .SetName(NamingConventions.DeserializerMethodNameFromTypeName(typeReference))
+                .SetName(DeserializerMethodNameFromTypeName(listTypeDescriptor))
                 .SetReturnType($"IList<{WellKnownNames.EntityId}>")
                 .AddParameter(
                     ParameterBuilder.New()
@@ -27,25 +27,25 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             updateEntityMethod.AddCode(
                 EnsureJsonValueIsNotNull(),
-                typeReference.ListType == ListType.List
+                !listTypeDescriptor.IsNullable
             );
 
-            var listVarName = typeReference.Name.WithLowerFirstChar();
+            var listVarName = listTypeDescriptor.Name.WithLowerFirstChar();
             updateEntityMethod.AddCode(
-                $"var {listVarName} = new List<{(typeReference.IsEntityType ? WellKnownNames.EntityId : typeReference.TypeName)}>();"
+                $"var {listVarName} = new List<{(listTypeDescriptor.IsEntityType ? WellKnownNames.EntityId : listTypeDescriptor.InnerType.Name)}>();"
             );
 
             updateEntityMethod.AddCode(
                 ForEachBuilder.New()
                     .SetLoopHeader(
-                        $"JsonElement child in {objParamName}.GetProperty(\"{listVarName}\").EnumerateArray()"
+                        $"JsonElement child in {objParamName}.EnumerateArray()"
                     )
-                    .AddCode(EnsureJsonValueIsNotNull("child"), !typeReference.IsNullable)
+                    .AddCode(EnsureJsonValueIsNotNull("child"), !listTypeDescriptor.IsNullable)
                     .AddCode(
                         MethodCallBuilder.New()
                             .SetPrefix($"{listVarName}.")
                             .SetMethodName("Add")
-                            .AddArgument(BuildUpdateMethodCall(typeReference, "child"))
+                            .AddArgument(BuildUpdateMethodCall(listTypeDescriptor.InnerType, "child"))
                     )
             );
 
@@ -53,7 +53,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
             updateEntityMethod.AddCode($"return {listVarName};");
 
             ClassBuilder.AddMethod(updateEntityMethod);
-            AddRequiredDeserializeMethods(typeReference.Type);
+
+            AddDeserializeMethod(listTypeDescriptor.InnerType);
         }
     }
 }

@@ -5,13 +5,17 @@ namespace StrawberryShake.CodeGeneration
     /// <summary>
     /// Describes a type, which may be a concrete class or an interface.
     /// </summary>
-    public class TypeDescriptor
-        : ICodeDescriptor
+    public class TypeDescriptor: ITypeDescriptor
     {
         /// <summary>
         /// Gets the .NET type name.
         /// </summary>
         public string Name { get; }
+
+        /// <summary>
+        /// Describes whether or not it is a nullable type reference
+        /// </summary>
+        public bool IsNullable { get; }
 
         /// <summary>
         /// The properties that result from the requested fields of the operation this ResultType is generated for.
@@ -45,13 +49,17 @@ namespace StrawberryShake.CodeGeneration
         /// </summary>
         public TypeKind Kind { get; }
 
+        public bool IsScalarType => Kind == TypeKind.Scalar;
+        public bool IsEntityType => Kind == TypeKind.EntityType;
+
         public TypeDescriptor(
             string name,
             string @namespace,
             IReadOnlyList<string>? implements = null,
             IReadOnlyList<NamedTypeReferenceDescriptor>? properties = null,
             IReadOnlyList<TypeDescriptor>? isImplementedBy = null,
-            TypeKind kind = TypeKind.Scalar)
+            TypeKind kind = TypeKind.Scalar,
+            bool isNullable = false)
         {
             Name = name;
             Namespace = @namespace;
@@ -59,6 +67,7 @@ namespace StrawberryShake.CodeGeneration
             Properties = properties ?? new List<NamedTypeReferenceDescriptor>();
             IsImplementedBy = isImplementedBy ?? new TypeDescriptor[] { };
             Kind = kind;
+            IsNullable = isNullable;
         }
     }
 }

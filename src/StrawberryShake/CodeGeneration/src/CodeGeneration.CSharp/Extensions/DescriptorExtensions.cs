@@ -4,16 +4,33 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
 {
     public static class DescriptorExtensions
     {
-        public static TypeReferenceBuilder ToBuilder(this TypeReferenceDescriptor typeReferenceDescriptor) =>
-            new TypeReferenceBuilder()
-                .SetName(typeReferenceDescriptor.TypeName)
-                .SetIsNullable(typeReferenceDescriptor.IsNullable)
-                .SetListType(typeReferenceDescriptor.ListType);
+        public static TypeReferenceBuilder ToBuilder(this ITypeDescriptor typeReferenceDescriptor)
+        {
+            var ret = new TypeReferenceBuilder()
+                .SetName(typeReferenceDescriptor.Name)
+                .SetIsNullable(typeReferenceDescriptor.IsNullable);
 
-        public static TypeReferenceBuilder ToEntityIdBuilder(this TypeReferenceDescriptor typeReferenceDescriptor) =>
-            new TypeReferenceBuilder()
-                .SetName(typeReferenceDescriptor.IsEntityType ? WellKnownNames.EntityId : typeReferenceDescriptor.TypeName)
+            if (typeReferenceDescriptor is ListTypeDescriptor listTypeDescriptor)
+            {
+                ret.SetListType(listTypeDescriptor.InnerType.ToBuilder());
+            }
+
+            return ret;
+        }
+
+        public static TypeReferenceBuilder ToEntityIdBuilder(this ITypeDescriptor typeReferenceDescriptor)
+        {
+            var ret = new TypeReferenceBuilder()
+                .SetName(
+                    typeReferenceDescriptor.IsEntityType ? WellKnownNames.EntityId : typeReferenceDescriptor.TypeName
+                )
                 .SetIsNullable(typeReferenceDescriptor.IsNullable)
-                .SetListType(typeReferenceDescriptor.ListType);
+            if (typeReferenceDescriptor is ListTypeDescriptor listTypeDescriptor)
+            {
+                ret.SetListType(listTypeDescriptor.InnerType.ToBuilder());
+            }
+
+            return ret;
+        }
     }
 }

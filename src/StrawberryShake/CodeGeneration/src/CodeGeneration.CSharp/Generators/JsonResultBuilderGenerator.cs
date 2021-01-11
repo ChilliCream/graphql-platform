@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Extensions;
@@ -16,6 +15,43 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private const string EntityIdsParam = "entityIds";
         private const string PropertyNameParam = "propertyName";
         private const string objParamName = "obj";
+
+        private static string DeserializerMethodNameFromTypeName(ITypeDescriptor typeDescriptor)
+        {
+            var ret = typeDescriptor.IsEntityType ? "Update" : "Deserialize";
+
+            if (typeDescriptor.IsNullable)
+            {
+                ret += "Nullable";
+            }
+            else
+            {
+                ret += "NonNullable";
+            }
+
+            ret += typeDescriptor.Kind switch
+            {
+                TypeKind.Scalar => typeDescriptor.Name.WithCapitalFirstChar(),
+                TypeKind.DataType => NamingConventions.DataTypeNameFromTypeName(typeDescriptor.Name),
+                TypeKind.EntityType => NamingConventions.EntityTypeNameFromTypeName(typeDescriptor.Name),
+                _ => throw new ArgumentOutOfRangeException()
+            };
+
+            if (typeDescriptor is ListTypeDescriptor listTypeDescriptor)
+            {
+                ret += typeDescriptor.IsNullable switch
+                {
+                    true => "Nullable",
+                    false => "NonNullable",
+                };
+
+                ret += "Array";
+            };
+
+
+
+            return ret;
+        }
 
         protected override Task WriteAsync(CodeWriter writer, ResultBuilderDescriptor resultBuilderDescriptor)
         {
@@ -100,31 +136,42 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .BuildAsync(writer);
         }
 
+        /// <summary>
+        /// Adds all required deserializers of the given type descriptors properties
+        /// </summary>
         private void AddRequiredDeserializeMethods(TypeDescriptor typeDescriptor)
         {
             foreach (var property in typeDescriptor.Properties)
             {
-                switch (property.Type.Kind)
-                {
-                    case TypeKind.Scalar:
-                        AddScalarTypeDeserializerMethod(property);
-                        break;
-                    case TypeKind.DataType:
-                        AddDataTypeDeserializerMethod(property);
-                        break;
-                    case TypeKind.EntityType:
-                        if (property.IsListType)
-                        {
-                            AddUpdateEntityArrayMethod(property);
-                        }
-                        else
-                        {
-                            AddUpdateEntityMethod(property);
-                        }
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
+                AddDeserializeMethod(property.Type);
+            }
+        }
+
+        private void AddDeserializeMethod(ITypeDescriptor typeReference)
+        {
+            switch (typeReference)
+            {
+                case ListTypeDescriptor listTypeDescriptor:
+                    AddUpdateEntityArrayMethod(listTypeDescriptor);
+                    break;
+                case TypeDescriptor typeDescriptor:
+                    switch (typeDescriptor.Kind)
+                    {
+                        case TypeKind.Scalar:
+                            AddScalarTypeDeserializerMethod(typeDescriptor);
+                            break;
+                        case TypeKind.DataType:
+                            AddDataTypeDeserializerMethod(typeDescriptor);
+                            break;
+                        case TypeKind.EntityType:
+                            AddUpdateEntityMethod(typeDescriptor);
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(typeReference));
             }
         }
 
@@ -183,11 +230,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
             ClassBuilder.AddMethod(buildMethod);
         }
 
-        private void AddScalarTypeDeserializerMethod(TypeReferenceDescriptor type)
+        private void AddScalarTypeDeserializerMethod(TypeDescriptor type)
         {
             var scalarDeserializer = MethodBuilder.New()
-                .SetName(NamingConventions.DeserializerMethodNameFromTypeName(type))
-                .SetReturnType(type.TypeName)
+                .SetName(DeserializerMethodNameFromTypeName(type))
+                .SetReturnType(type.Name)
                 .AddParameter(ParameterBuilder.New().SetType("JsonElement").SetName(objParamName));
 
             scalarDeserializer.AddCode(
@@ -196,7 +243,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             );
 
             scalarDeserializer.AddCode(
-                $"return {type.TypeName.ToFieldName()}Parser.Parse({objParamName}.Get{type.TypeName.WithCapitalFirstChar()}()!);"
+                $"return {type.Name.ToFieldName()}Parser.Parse({objParamName}.Get{type.Name.WithCapitalFirstChar()}()!);"
             );
 
             ClassBuilder.AddMethod(scalarDeserializer);
@@ -214,15 +261,31 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .AddEmptyLine();
         }
 
-        private MethodCallBuilder BuildUpdateMethodCall(NamedTypeReferenceDescriptor property, string? firstArg = null)
+        private MethodCallBuilder BuildUpdateMethodCall(NamedTypeReferenceDescriptor property)
         {
             var deserializeMethodCaller = MethodCallBuilder.New()
                 .SetDetermineStatement(false)
-                .SetMethodName(NamingConventions.DeserializerMethodNameFromTypeName(property));
+                .SetMethodName(DeserializerMethodNameFromTypeName(property.Type));
 
-            deserializeMethodCaller.AddArgument(firstArg ?? $"{objParamName}.GetProperty(\"{property.Name.WithLowerFirstChar()}\")");
+            deserializeMethodCaller.AddArgument($"{objParamName}.GetPropertyOrNull(\"{property.Name.WithLowerFirstChar()}\")");
 
-            if (property.IsEntityType || property.IsDataType)
+            if (!property.Type.IsScalarType)
+            {
+                deserializeMethodCaller.AddArgument(EntityIdsParam);
+            }
+
+            return deserializeMethodCaller;
+        }
+
+        private MethodCallBuilder BuildUpdateMethodCall(ITypeDescriptor property, string firstArg)
+        {
+            var deserializeMethodCaller = MethodCallBuilder.New()
+                .SetDetermineStatement(false)
+                .SetMethodName(DeserializerMethodNameFromTypeName(property));
+
+            deserializeMethodCaller.AddArgument(firstArg);
+
+            if (!property.IsScalarType)
             {
                 deserializeMethodCaller.AddArgument(EntityIdsParam);
             }

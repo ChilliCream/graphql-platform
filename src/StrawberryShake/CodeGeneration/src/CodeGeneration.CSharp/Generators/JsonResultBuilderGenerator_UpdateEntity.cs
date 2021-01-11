@@ -8,11 +8,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public partial class JsonResultBuilderGenerator
     {
-        private void AddUpdateEntityMethod(NamedTypeReferenceDescriptor typeReference)
+        private void AddUpdateEntityMethod(TypeDescriptor typeDescriptor)
         {
             var updateEntityMethod = MethodBuilder.New()
                 .SetAccessModifier(AccessModifier.Private)
-                .SetName(NamingConventions.DeserializerMethodNameFromTypeName(typeReference))
+                .SetName(DeserializerMethodNameFromTypeName(typeDescriptor))
                 .SetReturnType(WellKnownNames.EntityId)
                 .AddParameter(
                     ParameterBuilder.New()
@@ -27,7 +27,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             updateEntityMethod.AddCode(
                 EnsureJsonValueIsNotNull(),
-                !typeReference.IsNullable
+                !typeDescriptor.IsNullable
             );
 
             var entityIdVarName = "entityId";
@@ -37,7 +37,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             updateEntityMethod.AddCode($"{EntityIdsParam}.Add({entityIdVarName});");
 
             // If the type is an interface
-            foreach (TypeDescriptor concreteType in typeReference.Type.IsImplementedBy)
+            foreach (TypeDescriptor concreteType in typeDescriptor.IsImplementedBy)
             {
                 updateEntityMethod.AddEmptyLine();
                 var ifStatement = IfBuilder.New()
@@ -68,7 +68,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             updateEntityMethod.AddCode("throw new NotSupportedException();");
 
             ClassBuilder.AddMethod(updateEntityMethod);
-            AddRequiredDeserializeMethods(typeReference.Type);
+            AddRequiredDeserializeMethods(typeDescriptor);
         }
     }
 }
