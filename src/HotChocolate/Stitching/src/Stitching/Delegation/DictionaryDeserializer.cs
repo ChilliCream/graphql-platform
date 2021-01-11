@@ -41,7 +41,7 @@ namespace HotChocolate.Stitching.Delegation
                     if (inputType.IsListType())
                     {
                         elementType = (IInputType)inputType.ElementType();
-                        runtimeType = elementType.RuntimeType;
+                        runtimeType = inputType.RuntimeType;
                     }
 
                     var deserializedList =
@@ -90,7 +90,7 @@ namespace HotChocolate.Stitching.Delegation
                     if (inputType.IsListType())
                     {
                         elementType = (IInputType)inputType.ElementType();
-                        runtimeType = elementType.RuntimeType;
+                        runtimeType = inputType.RuntimeType;
                     }
 
                     var deserializedList =

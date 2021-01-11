@@ -182,8 +182,8 @@ namespace HotChocolate.Stitching.Delegation
             // assert
             Assert.Collection(
                 Assert.IsType<List<object>>(value)!,
-                x => Assert.Equal(2, (int)x),
-                x => Assert.Equal(3, (int)x));
+                x => Assert.Equal(2L, x),
+                x => Assert.Equal(3L, x));
         }
 
         [Fact]
@@ -212,8 +212,8 @@ namespace HotChocolate.Stitching.Delegation
             // assert
             Assert.Collection(
                 Assert.IsType<List<object>>(Assert.IsType<List<object>>(value)!.First())!,
-                x => Assert.Equal(2, (int)x),
-                x => Assert.Equal(3, (int)x));
+                x => Assert.Equal(2L, x),
+                x => Assert.Equal(3L, x));
         }
 
         public class Query
