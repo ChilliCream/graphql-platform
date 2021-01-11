@@ -75,20 +75,30 @@ namespace HotChocolate.Data.Neo4J.Language
             }
         }
 
-        public void EnterVisitable(MapExpression map)
+        private void EnterVisitable(Properties properties)
         {
-            _writer.Write(" {");
+            _writer.Write(" ");
         }
 
-        public void EnterVisitable(KeyValueMapEntry map)
+        public void EnterVisitable(MapExpression map)
+        {
+            _writer.Write("{");
+        }
+
+        private void EnterVisitable(KeyValueMapEntry map)
         {
             _writer.Write(map.GetKey());
             _writer.Write(": ");
         }
 
-        public void LeaveVistable(MapExpression map)
+        private void EnterVisitable(KeyValueSeparator map)
         {
-            _writer.Write(" }");
+            _writer.Write(", ");
+        }
+
+        private void LeaveVistable(MapExpression map)
+        {
+            _writer.Write("}");
         }
 
         public void EnterVisitable(ILiteral literal)
@@ -102,6 +112,16 @@ namespace HotChocolate.Data.Neo4J.Language
         }
 
         private void LeaveVisitable(CompoundCondition compoundCondition)
+        {
+            _writer.Write(")");
+        }
+
+        private void EnterVisitable(NestedExpression nestedExpression)
+        {
+            _writer.Write("(");
+        }
+
+        private void LeaveVisitable(NestedExpression nestedExpression)
         {
             _writer.Write(")");
         }

@@ -15,11 +15,14 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.Node:
                     LeaveVistable((Node)visitable);
                     break;
-                case ClauseKind.Properties:
+                case ClauseKind.MapExpression:
                     LeaveVistable((MapExpression)visitable);
                     break;
                 case ClauseKind.CompoundCondition:
                     LeaveVisitable((CompoundCondition)visitable);
+                    break;
+                case ClauseKind.NestedExpression:
+                    LeaveVisitable((NestedExpression)visitable);
                     break;
                 case 0:
                     break;

@@ -15,7 +15,7 @@ namespace HotChocolate.Data.Neo4J.Language
             _expressions = expressions;
         }
 
-        public static MapExpression Create(object[] input)
+        public static MapExpression Create(params object[] input)
         {
             var newContent = new List<Expression>();
             var knownKeys = new HashSet<string>();
@@ -43,10 +43,20 @@ namespace HotChocolate.Data.Neo4J.Language
             return new MapExpression(newContent);
         }
 
-        public new void Visit(CypherVisitor visitor)
+        public override void Visit(CypherVisitor visitor)
         {
             visitor.Enter(this);
-            _expressions.ForEach(e => e.Visit(visitor));
+            _expressions.ForEach(e =>
+            {
+                if (_expressions.Count > 1)
+                {
+                    e.Visit(visitor);
+                    KeyValueSeparator.Instance.Visit(visitor);
+                }
+                else
+                    e.Visit(visitor);
+
+            });
             visitor.Leave(this);
         }
     }

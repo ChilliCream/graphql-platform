@@ -13,7 +13,7 @@ namespace HotChocolate.Data.Neo4J.Language
         StatementPrefix,
         Comparison,
         CompoundCondition,
-
+        NestedExpression,
         KeyValueMapEntry,
         MapExpression,
         MapProjection,

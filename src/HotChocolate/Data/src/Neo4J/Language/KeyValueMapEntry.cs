@@ -14,7 +14,7 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public string GetKey() => _key;
 
-        public new void Visit(CypherVisitor visitor)
+        public override void Visit(CypherVisitor visitor)
         {
              visitor.Enter(this);
              _value.Visit(visitor);

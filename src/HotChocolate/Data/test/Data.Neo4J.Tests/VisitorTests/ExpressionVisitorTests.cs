@@ -18,6 +18,17 @@ namespace HotChocolate.Data.Neo4J.Tests
         }
 
         [Fact]
+        public void ExpressionNotIsEqualTo()
+        {
+            var visitor = new CypherVisitor();
+            Node movie = Node.Create("Movie").Named("m");
+
+            Condition statement = movie.Property("Title").IsEqualTo(Cypher.LiteralOf("The Matrix")).Not();
+            statement.Visit(visitor);
+            visitor.Print().MatchSnapshot();
+        }
+
+        [Fact]
         public void ExpressionIsNotEqualTo()
         {
             var visitor = new CypherVisitor();

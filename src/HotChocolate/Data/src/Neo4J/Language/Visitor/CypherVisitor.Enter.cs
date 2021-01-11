@@ -25,6 +25,9 @@ namespace HotChocolate.Data.Neo4J.Language
                     EnterVisitable((NodeLabel)visitable);
                     break;
                 case ClauseKind.Properties:
+                    EnterVisitable((Properties)visitable);
+                    break;
+                case ClauseKind.MapExpression:
                     EnterVisitable((MapExpression)visitable);
                     break;
                 case ClauseKind.PropertyLookup:
@@ -41,6 +44,12 @@ namespace HotChocolate.Data.Neo4J.Language
                     break;
                 case ClauseKind.CompoundCondition:
                     EnterVisitable((CompoundCondition)visitable);
+                    break;
+                case ClauseKind.NestedExpression:
+                    EnterVisitable((NestedExpression)visitable);
+                    break;
+                case ClauseKind.KeyValueSeparator:
+                    EnterVisitable((KeyValueSeparator)visitable);
                     break;
                 case 0:
                     break;
