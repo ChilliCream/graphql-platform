@@ -7,13 +7,13 @@ namespace HotChocolate.Configuration
 {
     /// <summary>
     /// A type initialization interceptors can hook into the various initialization events
-    /// of type system members and change / rewrite them. This is useful in order to transform 
+    /// of type system members and change / rewrite them. This is useful in order to transform
     /// specified types.
     /// </summary>
     public interface ITypeInitializationInterceptor
     {
         /// <summary>
-        /// Defines if the type initialization shall trigger aggregated lifecycle 
+        /// Defines if the type initialization shall trigger aggregated lifecycle
         /// events like OnTypesInitialized, OnTypesCompletedName and OnTypesCompleted.
         /// </summary>
         bool TriggerAggregations { get; }
@@ -25,13 +25,13 @@ namespace HotChocolate.Configuration
         /// The type system context that represents a specific type system member.
         /// </param>
         /// <returns>
-        /// <c>true</c> if this interceptor wants to handle the specified context; 
+        /// <c>true</c> if this interceptor wants to handle the specified context;
         /// otherwise, <c>false</c>.
         /// </returns>
         bool CanHandle(ITypeSystemObjectContext context);
 
         /// <summary>
-        /// This event is triggered after the type instance was created but before 
+        /// This event is triggered after the type instance was created but before
         /// any type definition was initialized.
         /// </summary>
         /// <param name="discoveryContext">
@@ -41,8 +41,8 @@ namespace HotChocolate.Configuration
             ITypeDiscoveryContext discoveryContext);
 
         /// <summary>
-        /// This event is triggered after the type type definition was initialized and 
-        /// after the dependencies of this type have been registered 
+        /// This event is triggered after the type type definition was initialized and
+        /// after the dependencies of this type have been registered
         /// with the type discovery context.
         /// </summary>
         /// <param name="discoveryContext">
@@ -69,7 +69,7 @@ namespace HotChocolate.Configuration
             IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts);
 
         /// <summary>
-        /// This event is called after the type definition is initialized 
+        /// This event is called after the type definition is initialized
         /// but before the type dependencies are reported to the discovery contex.
         /// </summary>
         /// <param name="discoveryContext">
@@ -87,7 +87,7 @@ namespace HotChocolate.Configuration
             IDictionary<string, object?> contextData);
 
         /// <summary>
-        /// This event is called after the type dependencies are reported to the 
+        /// This event is called after the type dependencies are reported to the
         /// type discovery context but before the type definition is fully initialized.
         /// </summary>
         /// <param name="discoveryContext">
@@ -141,11 +141,11 @@ namespace HotChocolate.Configuration
         /// <summary>
         /// This event is called after all type system members have been named.
         /// </summary>
-        /// <param name="discoveryContexts">
+        /// <param name="completionContexts">
         /// The type discovery contexts that can be handled by this interceptor.
         /// </param>
         void OnTypesCompletedName(
-            IReadOnlyCollection<ITypeCompletionContext> completionContext);
+            IReadOnlyCollection<ITypeCompletionContext> completionContexts);
 
         /// <summary>
         /// This event is called before the type system member is fully completed.
@@ -184,10 +184,10 @@ namespace HotChocolate.Configuration
         /// <summary>
         /// This event is called after all type system members have been completed.
         /// </summary>
-        /// <param name="discoveryContexts">
+        /// <param name="completionContexts">
         /// The type discovery contexts that can be handled by this interceptor.
         /// </param>
         void OnTypesCompleted(
-            IReadOnlyCollection<ITypeCompletionContext> completionContext);
+            IReadOnlyCollection<ITypeCompletionContext> completionContexts);
     }
 }

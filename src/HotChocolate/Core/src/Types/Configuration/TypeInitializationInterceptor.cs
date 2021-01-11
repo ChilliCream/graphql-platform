@@ -57,7 +57,7 @@ namespace HotChocolate.Configuration
         }
 
         public virtual void OnTypesCompletedName(
-            IReadOnlyCollection<ITypeCompletionContext> completionContext)
+            IReadOnlyCollection<ITypeCompletionContext> completionContexts)
         {
         }
 
@@ -76,7 +76,7 @@ namespace HotChocolate.Configuration
         }
 
         public virtual void OnTypesCompleted(
-            IReadOnlyCollection<ITypeCompletionContext> completionContext)
+            IReadOnlyCollection<ITypeCompletionContext> completionContexts)
         {
         }
     }
