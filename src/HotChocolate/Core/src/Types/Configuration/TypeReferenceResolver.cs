@@ -44,6 +44,12 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(typeRef));
             }
 
+            if (typeRef is SchemaTypeReference { Type: IType schemaType })
+            {
+                type = schemaType;
+                return true;
+            }
+
             if (!_typeLookup.TryNormalizeReference(typeRef, out ITypeReference? namedTypeRef))
             {
                 type = null;
@@ -53,13 +59,6 @@ namespace HotChocolate.Configuration
             TypeId typeId = CreateId(typeRef, namedTypeRef);
             if (_typeCache.TryGetValue(typeId, out type))
             {
-                return true;
-            }
-
-            if (namedTypeRef is SchemaTypeReference { Type: IType schemaType })
-            {
-                type = schemaType;
-                _typeCache[typeId] = type;
                 return true;
             }
 
