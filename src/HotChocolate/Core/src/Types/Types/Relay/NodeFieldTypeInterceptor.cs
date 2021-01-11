@@ -104,51 +104,30 @@ namespace HotChocolate.Types.Relay
                     if (mutation.Context.TryGetType(field.Type, out IType type) &&
                         type.NamedType() is ObjectType objectType &&
                         objectType.Name.Value.EndsWith("Payload") &&
-                        _types.TryGetValue(objectType, out TypeInfo typeInfo))
+                        _types.TryGetValue(objectType, out TypeInfo payload))
                     {
-
-
-
+                        TryAddQueryField(payload, query, options.QueryFieldName.Value);
                     }
                 }
             }
         }
 
-
-        private void Foo(TypeInfo payload, TypeInfo query, NameString queryFieldName)
+        private void TryAddQueryField(TypeInfo payload, TypeInfo query, NameString queryFieldName)
         {
+            if (payload.Definition.Fields.Any(t => t.Name.Equals(queryFieldName)))
+            {
+                return;
+            }
+
             var descriptor = ObjectFieldDescriptor.New(
                 payload.Context.DescriptorContext,
                 queryFieldName);
 
             descriptor
                 .Type(new NonNullType(query.Type))
-                .Resolver();
+                .Resolver(ctx => ctx.GetQueryRoot<object>());
 
-            descriptor
-                .Argument(Id, a => a.Type<NonNullType<IdType>>().ID())
-                .Type<NodeType>()
-                .Resolve(async ctx =>
-                {
-                    StringValueNode id = ctx.ArgumentLiteral<StringValueNode>(Id);
-                    IdValue deserializedId = serializer.Deserialize(id.Value);
-
-                    ctx.SetLocalValue(NodeId, id.Value);
-                    ctx.SetLocalValue(InternalId, deserializedId.Value);
-                    ctx.SetLocalValue(InternalType, deserializedId.TypeName);
-                    ctx.SetLocalValue(WellKnownContextData.IdValue, deserializedId);
-
-                    if (ctx.Schema.TryGetType(deserializedId.TypeName, out ObjectType type) &&
-                        type.ContextData.TryGetValue(NodeResolver, out object? o) &&
-                        o is FieldResolverDelegate resolver)
-                    {
-                        return await resolver.Invoke(ctx).ConfigureAwait(false);
-                    }
-
-                    return null;
-                });
-
-            objectTypeDefinition.Fields.Insert(index, descriptor.CreateDefinition());
+            payload.Definition.Fields.Add(descriptor.CreateDefinition());
         }
 
         private readonly struct TypeInfo
@@ -189,11 +168,9 @@ namespace HotChocolate.Types.Relay
             return new RelayOptions();
         }
 
-        public static void SetRelayOptions(
+        public static ISchemaBuilder SetRelayOptions(
             this ISchemaBuilder schemaBuilder,
-            RelayOptions options)
-        {
+            RelayOptions options) =>
             schemaBuilder.SetContextData(typeof(RelayOptions).FullName!, options);
-        }
     }
 }

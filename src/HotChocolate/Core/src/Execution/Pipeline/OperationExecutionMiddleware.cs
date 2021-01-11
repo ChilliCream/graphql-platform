@@ -78,7 +78,7 @@ namespace HotChocolate.Execution.Pipeline
             if (operation.Definition.Operation == OperationType.Subscription)
             {
                 context.Result = await _subscriptionExecutor
-                    .ExecuteAsync(context)
+                    .ExecuteAsync(context, () => GetQueryRootValue(context))
                     .ConfigureAwait(false);
 
                 await _next(context).ConfigureAwait(false);
@@ -137,19 +137,16 @@ namespace HotChocolate.Execution.Pipeline
 
             if (operation.Definition.Operation == OperationType.Query)
             {
-                object? query = RootValueResolver.Resolve(
-                    context,
-                    context.Services,
-                    operation.RootType,
-                    ref _cachedQueryValue);
+                object? query = GetQueryRootValue(context);
 
                 operationContext.Initialize(
                     context,
                     context.Services,
                     batchDispatcher,
                     operation,
+                    context.Variables!,
                     query,
-                    context.Variables!);
+                    () => query);
 
                 result = await _queryExecutor
                     .ExecuteAsync(operationContext)
@@ -157,19 +154,16 @@ namespace HotChocolate.Execution.Pipeline
             }
             else if (operation.Definition.Operation == OperationType.Mutation)
             {
-                object? mutation = RootValueResolver.Resolve(
-                    context,
-                    context.Services,
-                    operation.RootType,
-                    ref _cachedMutation);
+                object? mutation = GetMutationRootValue(context);
 
                 operationContext.Initialize(
                     context,
                     context.Services,
                     batchDispatcher,
                     operation,
+                    context.Variables!,
                     mutation,
-                    context.Variables!);
+                    () => GetQueryRootValue(context));
 
                 result = await _mutationExecutor
                     .ExecuteAsync(operationContext)
@@ -178,6 +172,20 @@ namespace HotChocolate.Execution.Pipeline
 
             return result;
         }
+
+        private object? GetQueryRootValue(IRequestContext context) =>
+            RootValueResolver.Resolve(
+                context,
+                context.Services,
+                context.Schema.QueryType,
+                ref _cachedQueryValue);
+
+        private object? GetMutationRootValue(IRequestContext context) =>
+            RootValueResolver.Resolve(
+                context,
+                context.Services,
+                context.Schema.MutationType,
+                ref _cachedMutation);
 
         private bool IsOperationAllowed(IRequestContext context)
         {

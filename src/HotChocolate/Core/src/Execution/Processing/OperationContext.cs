@@ -1,4 +1,5 @@
 using System;
+using HotChocolate.Execution.Properties;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -77,6 +78,21 @@ namespace HotChocolate.Execution.Processing
 
             AssertNotPooled();
             _cleanupActions.Add(action);
+        }
+
+        public T GetQueryRoot<T>()
+        {
+            AssertNotPooled();
+
+            if (_resolveQueryRootValue() is T casted)
+            {
+                return casted;
+            }
+
+            throw new InvalidCastException(
+                string.Format(
+                    Resources.OperationContext_GetQueryRoot_InvalidCast,
+                    typeof(T).FullName ?? typeof(T).Name));
         }
     }
 }
