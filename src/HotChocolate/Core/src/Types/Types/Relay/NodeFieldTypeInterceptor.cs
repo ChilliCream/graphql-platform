@@ -1,13 +1,12 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Introspection;
-using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Types.WellKnownContextData;
 
 #nullable enable

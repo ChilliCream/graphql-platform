@@ -18,11 +18,8 @@ namespace HotChocolate.Types
         : OutputFieldBase<ObjectFieldDefinition>
         , IObjectField
     {
-        private static readonly FieldDelegate _empty = c =>
-            throw new InvalidOperationException();
-
-        private readonly List<IDirective> _executableDirectives =
-            new List<IDirective>();
+        private static readonly FieldDelegate _empty = _ => throw new InvalidOperationException();
+        private readonly List<IDirective> _executableDirectives = new();
 
         internal ObjectField(ObjectFieldDefinition definition, bool sortArgumentsByName = false)
             : base(definition, sortArgumentsByName)

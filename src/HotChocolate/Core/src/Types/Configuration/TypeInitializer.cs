@@ -19,10 +19,9 @@ namespace HotChocolate.Configuration
 {
     internal class TypeInitializer
     {
-        private readonly Dictionary<FieldReference, RegisteredResolver> _resolvers =
-            new Dictionary<FieldReference, RegisteredResolver>();
-        private readonly List<FieldMiddleware> _globalComps = new List<FieldMiddleware>();
-        private readonly List<ISchemaError> _errors = new List<ISchemaError>();
+        private readonly Dictionary<FieldReference, RegisteredResolver> _resolvers = new();
+        private readonly List<FieldMiddleware> _globalComps = new();
+        private readonly List<ISchemaError> _errors = new();
         private readonly IDescriptorContext _context;
         private readonly ITypeInspector _typeInspector;
         private readonly IReadOnlyList<ITypeReference> _initialTypes;
@@ -30,6 +29,7 @@ namespace HotChocolate.Configuration
         private readonly ITypeInterceptor _interceptor;
         private readonly IsOfTypeFallback? _isOfType;
         private readonly Func<TypeSystemObjectBase, bool> _isQueryType;
+        private readonly Func<TypeSystemObjectBase, bool> _isMutationType;
         private readonly TypeRegistry _typeRegistry;
         private readonly TypeLookup _typeLookup;
         private readonly TypeReferenceResolver _typeReferenceResolver;
@@ -40,7 +40,8 @@ namespace HotChocolate.Configuration
             IReadOnlyList<ITypeReference> initialTypes,
             IReadOnlyList<Type> externalResolverTypes,
             IsOfTypeFallback? isOfType,
-            Func<TypeSystemObjectBase, bool> isQueryType)
+            Func<TypeSystemObjectBase, bool> isQueryType,
+            Func<TypeSystemObjectBase, bool> isMutationType)
         {
             _context = descriptorContext ??
                 throw new ArgumentNullException(nameof(descriptorContext));
@@ -53,7 +54,8 @@ namespace HotChocolate.Configuration
             _isOfType = isOfType;
             _isQueryType = isQueryType ??
                 throw new ArgumentNullException(nameof(isQueryType));
-
+            _isMutationType = isMutationType ??
+                throw new ArgumentNullException(nameof(isMutationType));
             _interceptor = descriptorContext.TypeInterceptor;
             _typeInspector = descriptorContext.TypeInspector;
             _typeLookup = new TypeLookup(_typeInspector, _typeRegistry);
@@ -217,6 +219,9 @@ namespace HotChocolate.Configuration
                     _typeRegistry.Register(registeredType.Type.Name, registeredType);
                 }
 
+                TypeCompletionContext context = registeredType.CompletionContext;
+                context.IsQueryType = _isQueryType.Invoke(registeredType.Type);
+                context.IsMutationType = _isMutationType.Invoke(registeredType.Type);
                 return true;
             }
 
@@ -426,6 +431,7 @@ namespace HotChocolate.Configuration
                     TypeCompletionContext context = registeredType.CompletionContext;
                     context.Status = TypeStatus.Named;
                     context.IsQueryType = _isQueryType.Invoke(registeredType.Type);
+                    context.IsMutationType = _isMutationType.Invoke(registeredType.Type);
                     registeredType.Type.CompleteType(context);
                 }
                 return true;
