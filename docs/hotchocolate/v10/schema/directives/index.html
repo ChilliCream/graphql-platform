@@ -1329,7 +1329,7 @@ data-styled.g150[id="doc-page__Button-fuo9s5-5"]{content:"bNEZNP,"}/*!sc*/
 <p>You can specify a directive by inheriting from <code class="language-text">DirectiveType</code>:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="80884733436742090000"
+              data-toaster-id="28932084546695913000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1342,7 +1342,7 @@ data-styled.g150[id="doc-page__Button-fuo9s5-5"]{content:"bNEZNP,"}/*!sc*/
         descriptor.Name(&quot;my&quot;);
         descriptor.Location(DirectiveLocation.Field);
     }
-}`, `80884733436742090000`)"
+}`, `28932084546695913000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1363,14 +1363,14 @@ data-styled.g150[id="doc-page__Button-fuo9s5-5"]{content:"bNEZNP,"}/*!sc*/
 <p>In order to use a directive it has to be registered with the schema.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="87476086529775760000"
+              data-toaster-id="21842868751484470000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`SchemaBuilder.New()
     .AddDirectiveType<MyDirective>()
-    .Create();`, `87476086529775760000`)"
+    .Create();`, `21842868751484470000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1386,14 +1386,14 @@ data-styled.g150[id="doc-page__Button-fuo9s5-5"]{content:"bNEZNP,"}/*!sc*/
 <p>The skip and include directives can be used in queries to in- or exclude fields from your query.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="78755305404381540000"
+              data-toaster-id="93399829551460380000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`query foo(\$hideField: Boolean = false) {
   hello @skip(if: \$hideField)
-}`, `78755305404381540000`)"
+}`, `93399829551460380000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1409,7 +1409,7 @@ data-styled.g150[id="doc-page__Button-fuo9s5-5"]{content:"bNEZNP,"}/*!sc*/
 <p>Directives are by default unique, that means that you can annotate a directive just once to an object. If you want to add a specific directive type multiple times you have to specify the directive as repeatable.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="7713020119175873000"
+              data-toaster-id="94308199436236210000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1423,7 +1423,7 @@ data-styled.g150[id="doc-page__Button-fuo9s5-5"]{content:"bNEZNP,"}/*!sc*/
         descriptor.Location(DirectiveLocation.Field);
         descriptor.Repeatable();
     }
-}`, `7713020119175873000`)"
+}`, `94308199436236210000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1446,7 +1446,7 @@ data-styled.g150[id="doc-page__Button-fuo9s5-5"]{content:"bNEZNP,"}/*!sc*/
 <p>Directive can have arguments that can be used to make them more flexible. So, if we had a directive like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="49197109407829400000"
+              data-toaster-id="47936766070876560000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1460,7 +1460,7 @@ data-styled.g150[id="doc-page__Button-fuo9s5-5"]{content:"bNEZNP,"}/*!sc*/
         descriptor.Argument(&quot;name&quot;).Type<NonNullType<StringType>>();
         descriptor.Location(DirectiveLocation.Object);
     }
-}`, `49197109407829400000`)"
+}`, `47936766070876560000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1482,7 +1482,7 @@ data-styled.g150[id="doc-page__Button-fuo9s5-5"]{content:"bNEZNP,"}/*!sc*/
 <p>We could associate the <code class="language-text">MyDirective</code> with an object like this:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="53410588528642000000"
+              data-toaster-id="6762535617898168000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1496,7 +1496,7 @@ data-styled.g150[id="doc-page__Button-fuo9s5-5"]{content:"bNEZNP,"}/*!sc*/
         descriptor.Directive(&quot;my&quot;, new StringValue(&quot;bar&quot;));
         ...
     }
-}`, `53410588528642000000`)"
+}`, `6762535617898168000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1518,7 +1518,7 @@ data-styled.g150[id="doc-page__Button-fuo9s5-5"]{content:"bNEZNP,"}/*!sc*/
 <p>Adding directives just with their name is not type safe and could lead to runtime errors which can be avoided by using our generic variant of the directive type. The generic directive type declares the .NET type that represents the directive instance.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="89847601357908590000"
+              data-toaster-id="84292742432820560000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1536,7 +1536,7 @@ data-styled.g150[id="doc-page__Button-fuo9s5-5"]{content:"bNEZNP,"}/*!sc*/
 public class MyDirective
 {
     public string Name { get; set; }
-}`, `89847601357908590000`)"
+}`, `84292742432820560000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1563,7 +1563,7 @@ public class MyDirective
 <p>So, with our new directive in place we could now add it to our object type like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="26585664353972650000"
+              data-toaster-id="94858028941184580000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1577,7 +1577,7 @@ public class MyDirective
         descriptor.Directive(new MyDirective { Name = &quot;bar&quot; });
         ...
     }
-}`, `26585664353972650000`)"
+}`, `94858028941184580000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1603,7 +1603,7 @@ public class MyDirective
 <p>In order to add a middleware to a directive you could declare it with the descriptor as a delegate.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="3681894176598765600"
+              data-toaster-id="16213083854613131000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1626,7 +1626,7 @@ public class MyDirective
 public class MyDirective
 {
     public string Name { get; set; }
-}`, `3681894176598765600`)"
+}`, `16213083854613131000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1662,7 +1662,7 @@ public class MyDirective
 <p>The order of middleware pipeline is defined by the order of the directives. Since, executable directives will flow from the object type to its field definitions the directives of the type would be called first in the order that they were annotated.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="58478484714494525000"
+              data-toaster-id="79437304290176730000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1673,7 +1673,7 @@ public class MyDirective
 
 type Bar @a @b {
   baz: String @c @d
-}`, `58478484714494525000`)"
+}`, `79437304290176730000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1693,7 +1693,7 @@ type Bar @a @b {
 <p>If there were more directives in the query, they would be appended to the directives from the type.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="27165494548513247000"
+              data-toaster-id="34997805732786037000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1702,7 +1702,7 @@ type Bar @a @b {
   foo {
     baz @e @f
   }
-}`, `27165494548513247000`)"
+}`, `34997805732786037000`)"
             >
               <div
                 class="gatsby-code-button"
