@@ -67,5 +67,16 @@ namespace HotChocolate.Execution.Processing
             AssertNotPooled();
             return Operation.GetSelectionSet(selectionSet, objectType);
         }
+
+        public void RegisterForCleanup(Action action)
+        {
+            if (action is null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
+
+            AssertNotPooled();
+            _cleanupActions.Add(action);
+        }
     }
 }
