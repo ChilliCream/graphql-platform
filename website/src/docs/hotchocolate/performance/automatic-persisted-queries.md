@@ -1,0 +1,3 @@
+---
+title: "Automatic persisted queries"
+---
