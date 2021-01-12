@@ -332,6 +332,8 @@ directive @inputFieldDefinition on INPUT_FIELD_DEFINITION
 directive @scalar on SCALAR
 ```
 
+The directives from above can be applied like this:
+
 ```sdl
 schema @schema {
     query: Query
