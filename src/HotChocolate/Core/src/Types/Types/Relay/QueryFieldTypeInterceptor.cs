@@ -4,14 +4,14 @@ using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
+#nullable enable
+
 namespace HotChocolate.Types.Relay
 {
     internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
     {
         private const string _defaultFieldName = "query";
         private readonly Dictionary<IType, TypeInfo> _types = new();
-
-        public override bool TriggerAggregations => true;
 
         public override void OnAfterCompleteName(
             ITypeCompletionContext completionContext,
@@ -26,8 +26,7 @@ namespace HotChocolate.Types.Relay
             }
         }
 
-        public override void OnTypesCompletedName(
-            IReadOnlyCollection<ITypeCompletionContext> completionContexts)
+        public override void OnAfterMergeTypeExtensions()
         {
             TypeInfo query = _types.Values.FirstOrDefault(t => t.IsQuery);
             TypeInfo mutation = _types.Values.FirstOrDefault(t => t.IsMutation);
@@ -37,11 +36,11 @@ namespace HotChocolate.Types.Relay
                 RelayOptions options = query.Context.DescriptorContext.GetRelayOptions();
                 options.QueryFieldName ??= _defaultFieldName;
 
-                foreach (var field in mutation.Definition.Fields)
+                foreach (ObjectFieldDefinition field in mutation.Definition.Fields)
                 {
                     if (mutation.Context.TryGetType(field.Type, out IType type) &&
                         type.NamedType() is ObjectType objectType &&
-                        objectType.Name.Value.EndsWith("Payload") &&
+                        options.MutationPayloadPredicate.Invoke(objectType) &&
                         _types.TryGetValue(objectType, out TypeInfo payload))
                     {
                         TryAddQueryField(payload, query, options.QueryFieldName.Value);
@@ -63,10 +62,7 @@ namespace HotChocolate.Types.Relay
 
             descriptor
                 .Type(new NonNullType(query.Type))
-                .Resolver(ctx =>
-                {
-                    return ctx.GetQueryRoot<object>();
-                });
+                .Resolver(ctx => ctx.GetQueryRoot<object>());
 
             payload.Definition.Fields.Add(descriptor.CreateDefinition());
         }

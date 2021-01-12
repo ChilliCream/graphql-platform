@@ -33,6 +33,7 @@ namespace HotChocolate.Configuration
         private readonly TypeRegistry _typeRegistry;
         private readonly TypeLookup _typeLookup;
         private readonly TypeReferenceResolver _typeReferenceResolver;
+        private ITypeInitializationFlowInterceptor? _flowInterceptor;
 
         public TypeInitializer(
             IDescriptorContext descriptorContext,
@@ -61,6 +62,11 @@ namespace HotChocolate.Configuration
             _typeLookup = new TypeLookup(_typeInspector, _typeRegistry);
             _typeReferenceResolver = new TypeReferenceResolver(
                 _typeInspector, _typeRegistry, _typeLookup);
+
+            // if the type interceptor instance also implements the flow interceptor
+            // interface we will accept it and use it as a way to intercept the flow
+            // of the type initialization.
+            _flowInterceptor = _interceptor as ITypeInitializationFlowInterceptor;
         }
 
         public IList<FieldMiddleware> GlobalComponents => _globalComps;
@@ -82,24 +88,7 @@ namespace HotChocolate.Configuration
             }
 
             // first we are going to find and initialize all types that belong to our schema.
-            var typeRegistrar = new TypeDiscoverer(
-                _context,
-                _typeRegistry,
-                _typeLookup,
-                _initialTypes,
-                _interceptor);
-
-            if (typeRegistrar.DiscoverTypes() is { Count: > 0 } errors)
-            {
-                throw new SchemaException(errors);
-            }
-
-            // next lets tell the type interceptors what types we have initialized.
-            if (_interceptor.TriggerAggregations)
-            {
-                _interceptor.OnTypesInitialized(
-                    _typeRegistry.Types.Select(t => t.DiscoveryContext).ToList());
-            }
+            DiscoverTypes();
 
             // before we can start completing type names we need to register the field resolvers.
             RegisterResolvers();
@@ -139,6 +128,32 @@ namespace HotChocolate.Configuration
             {
                 throw new SchemaException(_errors);
             }
+        }
+
+        private void DiscoverTypes()
+        {
+            _flowInterceptor?.OnBeforeDiscoverTypes();
+
+            var typeRegistrar = new TypeDiscoverer(
+                _context,
+                _typeRegistry,
+                _typeLookup,
+                _initialTypes,
+                _interceptor);
+
+            if (typeRegistrar.DiscoverTypes() is { Count: > 0 } errors)
+            {
+                throw new SchemaException(errors);
+            }
+
+            // lets tell the type interceptors what types we have initialized.
+            if (_interceptor.TriggerAggregations)
+            {
+                _interceptor.OnTypesInitialized(
+                    _typeRegistry.Types.Select(t => t.DiscoveryContext).ToList());
+            }
+
+            _flowInterceptor?.OnAfterDiscoverTypes();
         }
 
         private void RegisterResolvers()
@@ -225,6 +240,8 @@ namespace HotChocolate.Configuration
                 return true;
             }
 
+            _flowInterceptor?.OnBeforeCompleteTypeNames();
+
             if (ProcessTypes(TypeDependencyKind.Named, CompleteName) &&
                 _interceptor.TriggerAggregations)
             {
@@ -233,10 +250,14 @@ namespace HotChocolate.Configuration
             }
 
             EnsureNoErrors();
+
+            _flowInterceptor?.OnAfterCompleteTypeNames();
         }
 
         private void MergeTypeExtensions()
         {
+            _flowInterceptor?.OnBeforeMergeTypeExtensions();
+
             var extensions = _typeRegistry.Types
                 .Where(t => t.IsExtension)
                 .ToList();
@@ -259,6 +280,8 @@ namespace HotChocolate.Configuration
                     }
                 }
             }
+
+            _flowInterceptor?.OnAfterMergeTypeExtensions();
         }
 
         private void MergeTypeExtension(
@@ -437,6 +460,8 @@ namespace HotChocolate.Configuration
                 return true;
             }
 
+            _flowInterceptor?.OnBeforeCompleteTypes();
+
             ProcessTypes(TypeDependencyKind.Completed, CompleteType);
             EnsureNoErrors();
 
@@ -445,6 +470,8 @@ namespace HotChocolate.Configuration
                 _interceptor.OnTypesCompleted(
                     _typeRegistry.Types.Select(t => t.CompletionContext).ToList());
             }
+
+            _flowInterceptor?.OnAfterCompleteTypes();
         }
 
         private bool ProcessTypes(
