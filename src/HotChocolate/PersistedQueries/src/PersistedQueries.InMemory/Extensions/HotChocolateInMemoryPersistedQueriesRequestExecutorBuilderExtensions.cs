@@ -7,7 +7,7 @@ namespace Microsoft.Extensions.DependencyInjection
     /// <summary>
     /// Provides utility methods to setup dependency injection.
     /// </summary>
-    public static class HotChocolateFileSystemPersistedQueriesRequestExecutorBuilderExtensions
+    public static class HotChocolateInMemoryPersistedQueriesRequestExecutorBuilderExtensions
     {
         /// <summary>
         /// Adds a file system read and write query storage to the
@@ -19,7 +19,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="cacheDirectory">
         /// The directory path that shall be used to store queries.
         /// </param>
-        public static IRequestExecutorBuilder AddFileSystemQueryStorage(
+        public static IRequestExecutorBuilder AddInMemoryQueryStorage(
             this IRequestExecutorBuilder builder,
             string? cacheDirectory = null)
         {
@@ -29,7 +29,7 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             return builder.ConfigureSchemaServices(
-                s => s.AddFileSystemQueryStorage(cacheDirectory));
+                s => s.AddInMemoryQueryStorage(cacheDirectory));
         }
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="cacheDirectory">
         /// The directory path that shall be used to read queries from.
         /// </param>
-        public static IRequestExecutorBuilder AddReadOnlyFileSystemQueryStorage(
+        public static IRequestExecutorBuilder AddReadOnlyInMemoryQueryStorage(
             this IRequestExecutorBuilder builder,
             string? cacheDirectory = null)
         {
@@ -52,7 +52,7 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             return builder.ConfigureSchemaServices(
-                s => s.AddReadOnlyFileSystemQueryStorage(cacheDirectory));
+                s => s.AddReadOnlyInMemoryQueryStorage(cacheDirectory));
         }
     }
 }
