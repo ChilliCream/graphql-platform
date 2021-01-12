@@ -81,7 +81,10 @@ namespace HotChocolate.AspNetCore.Serialization
 
             try
             {
-                DocumentNode document = Utf8GraphQLParser.Parse(query);
+                DocumentNode? document = string.IsNullOrEmpty(query) 
+                    ? null 
+                    : Utf8GraphQLParser.Parse(query);
+                    
                 IReadOnlyDictionary<string, object?>? variables = null;
 
                 // if we find variables we do need to parse them
