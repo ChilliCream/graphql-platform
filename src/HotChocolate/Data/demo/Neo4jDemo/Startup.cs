@@ -1,27 +1,49 @@
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using HotChocolate;
+using HotChocolate.Data.Neo4J.Language;
+using Neo4j.Driver;
 
 namespace Neo4jDemo
 {
     public class Startup
     {
-        // Book.cs
-        public class Book
+        public class Person
         {
-            public string Title { get; set; }
-
-            public string Author { get; set; }
-
+            public string From { get; set; }
+            public string Name { get; set; }
+            public string Pet { get; set; }
+            public string Hobby { get; set; }
         }
 
-        // Query.cs
         public class Query
         {
-            public Book GetBook() => new Book { Title = "C# in depth", Author = "Jon Skeet" };
+            public async Task<List<Person>> GetPeople()
+            {
+                List<Person> people = new();
+                //Node node = Cypher.Node("Person").Named("p");
+                //StatementBuilder statement = Cypher.Match(book);
+
+                IDriver driver = GraphDatabase.Driver("bolt://localhost:7687", AuthTokens.Basic("neo4j", "test123"));
+                IAsyncSession session = driver.AsyncSession(o => o.WithDatabase("neo4j"));
+                try
+                {
+                    IResultCursor cursor = await session.RunAsync("MATCH (p:Person) RETURN p { .name} ");
+                    var test = await cursor.ToListAsync();
+                    people = await cursor.ToListAsync(record => new Person() {Name = record["name"].As<string>()});
+
+                }
+                finally
+                {
+                    await session.CloseAsync();
+                }
+
+                await driver.CloseAsync();
+                return people;
+            }
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
@@ -29,18 +51,14 @@ namespace Neo4jDemo
         public void ConfigureServices(IServiceCollection services)
         {
             services
+                //.AddSingleton(_ => CreateDriver())
                 .AddGraphQLServer()
-                .AddDocumentFromString(@"
-                    type Query {
-                      book(id: String): Book
-                    }
+                .AddQueryType<Query>();
+        }
 
-                    type Book {
-                      title: String
-                      author: String
-                    }
-                ")
-                .BindComplexType<Query>();
+        private IDriver CreateDriver()
+        {
+            return GraphDatabase.Driver("bolt://localhost:7687", AuthTokens.Basic("neo4j", "password"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -55,11 +73,7 @@ namespace Neo4jDemo
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapGet("/", async context =>
-                {
-                    await context.Response.WriteAsync("Hello World!");
-                });
-                endpoints.MapGraphQL();
+                endpoints.MapGraphQL("/");
             });
         }
     }
