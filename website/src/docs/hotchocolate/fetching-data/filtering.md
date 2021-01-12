@@ -186,6 +186,65 @@ public class Query
 }
 ```
 
+# AND / OR Filter
+
+There are two built in fields.
+
+- `AND`: Every condition has to be valid
+- `OR` : At least one condition has to be valid
+
+Example:
+
+```graphql
+query {
+  posts(
+    first: 5
+    where: { OR: [{ title: {contains: "Doe" }}, { title: {contains: "John" }}] }
+  ) {
+    edges {
+      node {
+        id
+        title
+      }
+    }
+  }
+}
+```
+
+**⚠️ OR does not work when you use it like this: **
+
+```graphql
+query {
+  posts(
+    first: 5
+    where: { title: {contains: "John", OR: { title: {contains: "Doe" }}} }
+  ) {
+    edges {
+      node {
+        id
+        title
+      }
+    }
+  }
+}
+```
+
+In this case the filters are applied like `title.Contains("John") && title.Contains("Doe")` rather than `title.Contains("John") || title.Contains("Doe")` how you probably intended it.
+
+## Removing AND / OR 
+If you do not want to expose `AND` and `OR` you can remove these fields with the descriptor API:
+
+```csharp
+public class PersonFilterType
+    : FilterInputType<Person>
+{
+    protected override void Configure(IFilterInputTypeDescriptor<Person> descriptor)
+    {
+        descriptor.AllowAnd(false).AllowOr(false);
+    }
+}
+```
+
 # Filter Types
 
 ## Boolean Filter
