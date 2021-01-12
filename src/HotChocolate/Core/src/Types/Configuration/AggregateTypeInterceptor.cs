@@ -6,17 +6,21 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Configuration
 {
-    internal sealed class AggregateTypeInterceptor : ITypeInterceptor
+    internal sealed class AggregateTypeInterceptor
+        : ITypeInterceptor
+        , ITypeInitializationFlowInterceptor
     {
         private readonly IReadOnlyCollection<ITypeInitializationInterceptor> _initInterceptors;
         private readonly IReadOnlyCollection<ITypeInitializationInterceptor> _agrInterceptors;
         private readonly IReadOnlyCollection<ITypeScopeInterceptor> _scopeInterceptors;
+        private readonly IReadOnlyCollection<ITypeInitializationFlowInterceptor> _flowInterceptors;
 
         public AggregateTypeInterceptor()
         {
             _initInterceptors = Array.Empty<ITypeInitializationInterceptor>();
             _agrInterceptors = Array.Empty<ITypeInitializationInterceptor>();
             _scopeInterceptors = Array.Empty<ITypeScopeInterceptor>();
+            _flowInterceptors = Array.Empty<ITypeInitializationFlowInterceptor>();
             TriggerAggregations = false;
         }
 
@@ -30,12 +34,29 @@ namespace HotChocolate.Configuration
             _initInterceptors = interceptors.OfType<ITypeInitializationInterceptor>().ToList();
             _agrInterceptors = _initInterceptors.Where(t => t.TriggerAggregations).ToList();
             _scopeInterceptors = interceptors.OfType<ITypeScopeInterceptor>().ToList();
+            _flowInterceptors = interceptors.OfType<ITypeInitializationFlowInterceptor>().ToList();
             TriggerAggregations = _agrInterceptors.Count > 0;
         }
 
         public bool TriggerAggregations { get; }
 
         public bool CanHandle(ITypeSystemObjectContext context) => true;
+
+        public void OnBeforeDiscoverTypes()
+        {
+            foreach (ITypeInitializationFlowInterceptor interceptor in _flowInterceptors)
+            {
+                interceptor.OnBeforeDiscoverTypes();
+            }
+        }
+
+        public void OnAfterDiscoverTypes()
+        {
+            foreach (ITypeInitializationFlowInterceptor interceptor in _flowInterceptors)
+            {
+                interceptor.OnAfterDiscoverTypes();
+            }
+        }
 
         public void OnBeforeInitialize(
             ITypeDiscoveryContext discoveryContext)
@@ -118,6 +139,22 @@ namespace HotChocolate.Configuration
             }
         }
 
+        public void OnBeforeCompleteTypeNames()
+        {
+            foreach (ITypeInitializationFlowInterceptor interceptor in _flowInterceptors)
+            {
+                interceptor.OnBeforeCompleteTypeNames();
+            }
+        }
+
+        public void OnAfterCompleteTypeNames()
+        {
+            foreach (ITypeInitializationFlowInterceptor interceptor in _flowInterceptors)
+            {
+                interceptor.OnAfterCompleteTypeNames();
+            }
+        }
+
         public void OnBeforeCompleteName(
             ITypeCompletionContext completionContext,
             DefinitionBase definition,
@@ -167,6 +204,38 @@ namespace HotChocolate.Configuration
 
                     interceptor.OnTypesCompletedName(list);
                 }
+            }
+        }
+
+        public void OnBeforeMergeTypeExtensions()
+        {
+            foreach (ITypeInitializationFlowInterceptor interceptor in _flowInterceptors)
+            {
+                interceptor.OnBeforeMergeTypeExtensions();
+            }
+        }
+
+        public void OnAfterMergeTypeExtensions()
+        {
+            foreach (ITypeInitializationFlowInterceptor interceptor in _flowInterceptors)
+            {
+                interceptor.OnAfterMergeTypeExtensions();
+            }
+        }
+
+        public void OnBeforeCompleteTypes()
+        {
+            foreach (ITypeInitializationFlowInterceptor interceptor in _flowInterceptors)
+            {
+                interceptor.OnBeforeCompleteTypes();
+            }
+        }
+
+        public void OnAfterCompleteTypes()
+        {
+            foreach (ITypeInitializationFlowInterceptor interceptor in _flowInterceptors)
+            {
+                interceptor.OnAfterCompleteTypes();
             }
         }
 
