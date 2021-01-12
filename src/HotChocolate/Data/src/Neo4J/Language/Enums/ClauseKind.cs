@@ -22,9 +22,12 @@ namespace HotChocolate.Data.Neo4J.Language
         Property,
         PropertyLookup,
 
+        SortItem,
+
         Literal,
         BooleanLiteral,
         StringLiteral,
+        ExpressionList,
 
         Node,
         SymbolicName,

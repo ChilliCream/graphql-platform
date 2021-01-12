@@ -11,10 +11,10 @@ namespace HotChocolate.Data.Neo4J.Language
         private readonly ProjectionBody _projectionBody;
         private readonly Where? _where;
 
-        public WithClause(bool distinct, ExpressionList returnItems, Order order, Skip skip, Limit limit, Where where)
+        public WithClause(bool distinct, ExpressionList returnItems, OrderBy orderBy, Skip skip, Limit limit, Where where)
         {
-            _distinct = distinct ? new Distinct(true) : null;
-            _projectionBody = new ProjectionBody(returnItems, order, skip, limit);
+            _distinct = distinct ? Distinct.Instance : null;
+            _projectionBody = new ProjectionBody(returnItems, orderBy, skip, limit);
             _where = where;
         }
 

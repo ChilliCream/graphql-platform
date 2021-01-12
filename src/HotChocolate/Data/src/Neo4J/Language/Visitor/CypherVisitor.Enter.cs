@@ -51,6 +51,18 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.KeyValueSeparator:
                     EnterVisitable((KeyValueSeparator)visitable);
                     break;
+                case ClauseKind.Return:
+                    EnterVisitable((Return)visitable);
+                    break;
+                case ClauseKind.Distinct:
+                    EnterVisitable((Distinct)visitable);
+                    break;
+                case ClauseKind.Skip:
+                    EnterVisitable((Skip)visitable);
+                    break;
+                case ClauseKind.Limit:
+                    EnterVisitable((Limit)visitable);
+                    break;
                 case 0:
                     break;
             }

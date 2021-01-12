@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Data.Neo4J.Utils;
 
 namespace HotChocolate.Data.Neo4J.Language
@@ -14,11 +15,11 @@ namespace HotChocolate.Data.Neo4J.Language
     {
         public override ClauseKind Kind => ClauseKind.Node;
         private readonly SymbolicName? _symbolicName;
-        private readonly List<NodeLabel> _labels;
+        private readonly List<NodeLabel>? _labels;
         private readonly Properties? _properties;
         public SymbolicName? GetSymbolicName() => _symbolicName;
 
-        private Node(string primaryLabel, Properties? properties, string[]? additionalLabels)
+        private Node(string primaryLabel, Properties? properties, IReadOnlyCollection<string>? additionalLabels)
         {
             _symbolicName = null;
             _labels = new List<NodeLabel>();
@@ -28,7 +29,7 @@ namespace HotChocolate.Data.Neo4J.Language
                 _labels.Add(new NodeLabel(primaryLabel));
             }
 
-            if (!(additionalLabels == null || additionalLabels.Length == 0))
+            if (additionalLabels != null && additionalLabels.Any())
             {
                 foreach (var nodeLabel in additionalLabels)
                 {
@@ -39,7 +40,7 @@ namespace HotChocolate.Data.Neo4J.Language
             _properties = properties;
         }
 
-        private Node(SymbolicName? symbolicName, Properties properties, List<NodeLabel> labels)
+        private Node(SymbolicName? symbolicName, Properties? properties, List<NodeLabel>? labels)
         {
             _symbolicName = symbolicName;
             _properties = properties;
@@ -81,6 +82,13 @@ namespace HotChocolate.Data.Neo4J.Language
             return Language.Property.Create(this, name);
         }
 
+        public MapProjection Project(List<object> enteries) =>
+            Project(enteries.ToArray());
+
+        public MapProjection Project(params object[] entries) =>
+            MapProjection.Create(GetSymbolicName(), entries);
+
+
         public static Node Create(string primaryLabel)
         {
             return new (primaryLabel, null, null);
@@ -96,15 +104,17 @@ namespace HotChocolate.Data.Neo4J.Language
             return new (primaryLabel, properties != null ? new Properties(properties) : null, aditionalLabels);
         }
 
-        public Relationship RelationshipTo(Node other, params string[] types) => new Relationship();
-        public Relationship RelationshipFrom(Node other, params string[] types) => new Relationship();
-        public Relationship RelationshipBetween(Node other, params string[] types) => new Relationship();
+        public Relationship RelationshipTo(Node other, params string[] types) => new ();
+        public Relationship RelationshipFrom(Node other, params string[] types) => new ();
+        public Relationship RelationshipBetween(Node other, params string[] types) => new ();
+
+        public Condition IsEqualTo(Node otherNode) => GetSymbolicName().IsEqualTo(otherNode.GetSymbolicName());
 
         public override void Visit(CypherVisitor visitor)
         {
             visitor.Enter(this);
             _symbolicName?.Visit(visitor);
-            _labels.ForEach(label => label.Visit(visitor));
+            _labels?.ForEach(label => label.Visit(visitor));
             _properties?.Visit(visitor);
             visitor.Leave(this);
         }

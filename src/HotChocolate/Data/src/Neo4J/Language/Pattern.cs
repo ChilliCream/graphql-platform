@@ -22,7 +22,6 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public Pattern(params PatternElement[] patternElements)
         {
-
             _patternElements = patternElements.ToList();
         }
 

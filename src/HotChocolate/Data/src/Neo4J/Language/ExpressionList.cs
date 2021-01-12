@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace HotChocolate.Data.Neo4J.Language
 {
@@ -9,12 +10,28 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </para>
     /// <para>Not to be mixed up with the actual ListExpression, which itself is an expression.</para>
     /// </summary>
-    public class ExpressionList : TypedSubtree<Expression, ExpressionList>
+    public class ExpressionList : Visitable
     {
-        public override ClauseKind Kind => ClauseKind.Default;
-        public ExpressionList(List<Expression> returnItems) : base(returnItems) { }
-        public ExpressionList(Expression[] returnItems) : base(returnItems) { }
+        public override ClauseKind Kind => ClauseKind.ExpressionList;
+        private readonly List<Expression> _expressions;
 
-        public new IVisitable PrepareVisit(Expression child) => Expressions.NameOrExpression(child);
+        public ExpressionList(List<Expression> returnItems)
+        {
+            _expressions = returnItems;
+        }
+
+        public ExpressionList(params Expression[] returnItems)
+        {
+            _expressions = returnItems.ToList();
+        }
+
+
+
+        public override void Visit(CypherVisitor visitor)
+        {
+            visitor.Enter(this);
+            _expressions.ForEach(element => element.Visit(visitor));
+            visitor.Leave(this);
+        }
     }
 }

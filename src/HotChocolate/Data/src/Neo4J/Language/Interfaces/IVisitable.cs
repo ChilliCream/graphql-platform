@@ -1,5 +1,8 @@
 namespace HotChocolate.Data.Neo4J.Language
 {
+    /// <summary>
+    /// The visitable interface declares a set of visiting methods the correspond to the class.
+    /// </summary>
     public interface IVisitable
     {
         /// <summary>

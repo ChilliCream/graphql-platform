@@ -125,5 +125,28 @@ namespace HotChocolate.Data.Neo4J.Language
         {
             _writer.Write(")");
         }
+        private void EnterVisitable(Return @return)
+        {
+            _writer.Write("RETURN ");
+        }
+
+        private void EnterVisitable(Distinct distinct)
+        {
+            _writer.Write("DISTINCT ");
+        }
+        private void EnterVisitable(OrderBy orderBy)
+        {
+            _writer.Write(" ORDER BY ");
+        }
+
+        private void EnterVisitable(Skip skip)
+        {
+            _writer.Write(" SKIP ");
+        }
+
+        private void EnterVisitable(Limit limit)
+        {
+            _writer.Write(" LIMIT ");
+        }
     }
 }

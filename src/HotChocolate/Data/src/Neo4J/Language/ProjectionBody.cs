@@ -7,11 +7,11 @@
     {
         public override ClauseKind Kind => ClauseKind.Default;
         private readonly ExpressionList _returnItems;
-        private readonly Order? _order;
+        private readonly OrderBy? _order;
         private readonly Skip? _skip;
         private readonly Limit? _limit;
 
-        public ProjectionBody(ExpressionList returnItems, Order? order, Skip? skip, Limit? limit)
+        public ProjectionBody(ExpressionList returnItems, OrderBy? order, Skip? skip, Limit? limit)
         {
             _returnItems = returnItems;
             _order = order;

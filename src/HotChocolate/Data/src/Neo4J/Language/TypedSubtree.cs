@@ -27,7 +27,7 @@ namespace HotChocolate.Data.Neo4J.Language
             _children = children.ToList();
         }
 
-        public new void Visit(CypherVisitor visitor)
+        public override void Visit(CypherVisitor visitor)
         {
             visitor.Enter(this);
             _children.ForEach(child => child.Visit(visitor));

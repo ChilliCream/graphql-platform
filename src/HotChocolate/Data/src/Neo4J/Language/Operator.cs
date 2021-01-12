@@ -7,11 +7,11 @@
     public class Operator : Visitable
     {
         // Aggregation
-        public static readonly Operator Distinct = new Operator("DISTINCT");
+        public static readonly Operator Distinct = new ("DISTINCT");
 
         // Mathematical operators
-        public static readonly Operator Addition = new Operator("+");
-        public static readonly Operator Subtraction = new Operator("-");
+        public static readonly Operator Addition = new ("+");
+        public static readonly Operator Subtraction = new ("-");
         public static readonly Operator Multiplication = new Operator("*");
         public static readonly Operator Division = new Operator("/");
         public static readonly Operator Modulo = new Operator("%");

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace HotChocolate.Data.Neo4J.Language
 {
@@ -29,10 +30,8 @@ namespace HotChocolate.Data.Neo4J.Language
             return new MapExpression(newContent);
         }
 
-        public static MapExpression WithEntries(List<Expression> entries)
-        {
-             return new(entries);
-        }
+        public static MapExpression WithEntries(List<Expression> entries) =>
+            new(entries);
 
         public MapExpression AddEntries(IEnumerable<Expression> entries)
         {
@@ -45,18 +44,25 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public override void Visit(CypherVisitor visitor)
         {
+            var singleExpression = _expressions.Any() && !_expressions.Skip(1).Any();
+            var hasManyExpressions = _expressions.Any() && _expressions.Skip(1).Any();
+
             visitor.Enter(this);
-            _expressions.ForEach(e =>
+            if(singleExpression)
+                _expressions.First().Visit(visitor);
+            else if (hasManyExpressions)
             {
-                if (_expressions.Count > 1)
+                foreach (Expression expression in _expressions)
                 {
-                    e.Visit(visitor);
+                    if (_expressions.IndexOf(expression) == _expressions.Count - 1)
+                    {
+                        expression.Visit(visitor);
+                        break;
+                    }
+                    expression.Visit(visitor);
                     KeyValueSeparator.Instance.Visit(visitor);
                 }
-                else
-                    e.Visit(visitor);
-
-            });
+            }
             visitor.Leave(this);
         }
     }

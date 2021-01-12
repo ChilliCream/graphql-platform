@@ -35,11 +35,13 @@ namespace HotChocolate.Data.Neo4J.Language
             };
         }
 
-        //public static StatementBuilder Match(params PatternElement[] pattern) {
+        public static StatementBuilder Match(params PatternElement[] pattern) {
+            return Statement.Builder().Match(pattern);
+        }
 
-        //    return Statement.Builder().Match(pattern);
-        //}
-
+        /*public static StatementBuilder Return(params PatternElement[] pattern) {
+            return Statement.Builder().Return(pattern);
+        */
 
         public static SymbolicName Name(string value) => SymbolicName.Of(value);
         public static Property Property(Expression expression, string name) => Language.Property.Create(expression, name);

@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 namespace HotChocolate.Data.Neo4J.Language
 {
     /// <summary>
@@ -15,8 +18,56 @@ namespace HotChocolate.Data.Neo4J.Language
             _expression = expression;
         }
 
-        // public static MapProjection Create(SymbolicName name, object[] content) =>
-        //    new(name, MapExpression.WithEnteries(CreateNewContent(content)));
+        public static MapProjection Create(SymbolicName name, params object[] content) =>
+            new(name, MapExpression.WithEntries(CreateNewContent(content)));
 
+        private static object? ContentAt(object[] content, int i)
+        {
+            if (content == null) throw new ArgumentNullException(nameof(content));
+
+            object currentObject = content[i];
+            return currentObject switch
+            {
+                Expression expression => Expressions.NameOrExpression(expression),
+                INamed named => named.GetSymbolicName(),
+                _ => currentObject
+            };
+        }
+
+        private static List<Expression> CreateNewContent(params object[] content)
+        {
+            List<Expression> newContent = new();
+            HashSet<string> knownKeys = new();
+
+            string? lastKey = null;
+            Expression? lastExpression = null;
+            int i = 0;
+            while (i < content.Length)
+            {
+                object? next;
+                if (i + 1 >= content.Length)
+                    next = null;
+                else
+                    next = ContentAt(content, i + 1);
+
+                object? current = ContentAt(content, i);
+
+                if (current is string)
+                {
+
+                }
+
+            }
+
+            return newContent;
+        }
+
+        public override void Visit(CypherVisitor visitor)
+        {
+            visitor.Enter(this);
+            _name.Visit(visitor);
+            _expression.Visit(visitor);
+            visitor.Leave(this);
+        }
     }
 }

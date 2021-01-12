@@ -14,14 +14,14 @@ namespace HotChocolate.Data.Neo4J.Language
             {
                 return named.GetSymbolicName();
             }
-            else
-            {
-                return expression;
-            }
+            return expression;
         }
 
-        public static Expression[] CreateSymbolicNames(string[] variables) =>
-            Array.ConvertAll(variables, item => SymbolicName.Of(item));
+        public static Expression[] CreateSymbolicNames(INamed[] variables) =>
+            Array.ConvertAll(variables, i => i.GetSymbolicName());
+
+        public static SymbolicName[] CreateSymbolicNames(string[] variables) =>
+            Array.ConvertAll(variables, SymbolicName.Of);
 
     }
 }
