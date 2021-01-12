@@ -6,11 +6,11 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
 using Microsoft.Extensions.Logging;
 
-namespace logging
+namespace Logging
 {
     public class ConsoleQueryLogger : DiagnosticEventListener
     {
-        private static readonly Stopwatch QueryTimer = new();
+        private static Stopwatch _queryTimer;
         private readonly ILogger<ConsoleQueryLogger> _logger;
 
         public ConsoleQueryLogger(ILogger<ConsoleQueryLogger> logger)
@@ -35,12 +35,13 @@ namespace logging
             {
                 _logger = logger;
                 _context = context;
-                QueryTimer.Start();
+                _queryTimer = new Stopwatch();
+                _queryTimer.Start();
             }
 
             public void Dispose()
             {
-                // when the request is finished it will dispose the activity scope and 
+                // when the request is finished it will dispose the activity scope and
                 // this is when we print the parsed query.
                 if (_context.Document is not null)
                 {
@@ -55,18 +56,41 @@ namespace logging
                         if (variablesConcrete.Count > 0)
                         {
                             stringBuilder.AppendFormat($"Variables {Environment.NewLine}");
-                            foreach (var variableValue in _context.Variables!)
+                            try
                             {
-                                stringBuilder.AppendFormat(
-                                    $"  {variableValue.Name}{"".PadRight(20 - variableValue.Name.Value.Length)} :  {variableValue.Value}{"".PadRight(20 - variableValue.Value.ToString().Length)}: {variableValue.Type}");
+                                foreach (var variableValue in _context.Variables!)
+                                {
+                                    string PadRightHelper(string existingString, int lengthToPadTo)
+                                    {
+                                        if (string.IsNullOrEmpty(existingString))
+                                        {
+                                            return "".PadRight(lengthToPadTo);
+                                        }
+
+                                        if (existingString.Length > lengthToPadTo)
+                                        {
+                                            return existingString.Substring(0, lengthToPadTo);
+                                        }
+
+                                        return existingString + " ".PadRight(lengthToPadTo - existingString.Length);
+                                    }
+                                    stringBuilder.AppendFormat(
+                                        $"  {PadRightHelper(variableValue.Name, 20)} :  {PadRightHelper(variableValue.Value.ToString(), 20)}: {variableValue.Type}");
+                                    stringBuilder.AppendFormat($"{Environment.NewLine}");
+                                }
+                            }
+                            catch
+                            {
+                                // all input type records will land here.
+                                stringBuilder.Append("  Formatting Variables Error. Continuing...");
                                 stringBuilder.AppendFormat($"{Environment.NewLine}");
                             }
                         }
                     }
 
-                    QueryTimer.Stop();
+                    _queryTimer.Stop();
                     stringBuilder.AppendFormat(
-                        $"Ellapsed time for query is {QueryTimer.Elapsed.TotalMilliseconds:0.#} milliseconds.");
+                        $"Ellapsed time for query is {_queryTimer.Elapsed.TotalMilliseconds:0.#} milliseconds.");
                     _logger.LogInformation(stringBuilder.ToString());
                 }
             }

@@ -7,11 +7,11 @@ using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using StackExchange.Profiling;
 
-namespace logging
+namespace Logging
 {
     public class MiniProfilerQueryLogger : DiagnosticEventListener
     {
-        private static MiniProfiler? _miniProfiler; // per MiniProfiler example, initalizing not needed.
+        private static MiniProfiler _miniProfiler;
 
         // this diagnostic event is raised when a request is executed ...
         public override IActivityScope ExecuteRequest(IRequestContext context)
@@ -38,7 +38,7 @@ namespace logging
             {
                 _queryTimer.Stop();
 
-                // when the request is finished it will dispose the activity scope and 
+                // when the request is finished it will dispose the activity scope and
                 // this is when we print the parsed query.
                 var variables = _context.Variables;
                 var queryString = _context.Document;
@@ -53,14 +53,14 @@ namespace logging
                 _miniProfiler?.Stop();
             }
 
-            private string CreateHtmlFromDocument(DocumentNode? queryString, IVariableValueCollection? variables)
+            private string CreateHtmlFromDocument(DocumentNode queryString, IVariableValueCollection variables)
             {
                 StringBuilder htmlText = new();
-                if (queryString is not null)
+                if (_context.Document is not null)
                 {
                     var divWithBorder =
                         "<div style=\"border: 1px solid black;align-items: flex-start;margin-left: 10%;margin-right: 15%; padding: 5px\">";
-                    var lineArray = queryString.ToString(true)
+                    var lineArray = queryString!.ToString(true)
                         .Split(
                             new[] {Environment.NewLine},
                             StringSplitOptions.None
@@ -75,29 +75,39 @@ namespace logging
 
                     htmlText.AppendLine("</div>");
 
-                    if (variables is not null)
+                    if (_context.Variables is not null)
                     {
-                        var variablesConcrete = _context.Variables!.ToList();
-                        if (variablesConcrete.Count > 0)
+                        try
                         {
-                            htmlText.AppendLine(divWithBorder);
-                            htmlText.AppendLine("<b>Variables</b><table>");
-                            foreach (var variableValue in variablesConcrete!)
+                            var variablesConcrete = _context.Variables!.ToList();
+                            if (variablesConcrete.Count > 0)
                             {
-                                htmlText.Append("<tr>");
-                                htmlText.AppendFormat(
-                                    $"<td>&nbsp;&nbsp;{variableValue.Name}</td><td>:</td><td>{variableValue.Value}</td><td>:</td><td>{variableValue.Type}</td>");
-                                htmlText.Append("</tr>");
-                            }
+                                htmlText.AppendLine(divWithBorder);
+                                htmlText.AppendLine("<b>Variables</b><table>");
+                                foreach (var variableValue in variablesConcrete!)
+                                {
+                                    htmlText.Append("<tr>");
+                                    htmlText.AppendFormat(
+                                        $"<td>&nbsp;&nbsp;{variableValue.Name}</td><td>:</td><td>{variableValue.Value}</td><td>:</td><td>{variableValue.Type}</td>");
+                                    htmlText.Append("</tr>");
+                                }
 
-                            htmlText.Append("</table></div>");
+                                htmlText.Append("</table></div>");
+                            }
+                        }
+                        catch
+                        {
+                            // all input type records will land here.
+                            htmlText.AppendLine("  Formatting Variables Error. Continuing...");
                         }
                     }
 
+                    htmlText.AppendLine(divWithBorder);
                     htmlText.AppendFormat(
                         $"Execution time inside query is {_queryTimer.Elapsed.TotalMilliseconds:0.#} milliseconds.");
                     htmlText.AppendLine("</div>");
                 }
+
                 return htmlText.ToString();
             }
         }
