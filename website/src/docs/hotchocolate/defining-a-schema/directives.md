@@ -307,15 +307,11 @@ Every middleware can execute the original resolver function by calling `ResolveA
 
 # Directive Locations
 
-There are two categories of directives. Type system directives and executable directives.
-Type system directives can be used in SDL to annotated type system objects.
-Executable directives can be used to annotate queries, mutations or subscriptions and their fields and fragments.
-A directive can also be both and be used as a type system directive and an executable directive.
-
 ## Type System Directive Locations
 
 The following schema shows where the type system directives can be applied.
-To showcase the directive location for each location a directive is defined:
+
+To showcase where the locations are, we defined the following directives:
 
 ```sdl
 # Type system directives
@@ -332,8 +328,7 @@ directive @inputFieldDefinition on INPUT_FIELD_DEFINITION
 directive @scalar on SCALAR
 ```
 
-The directives from above can be applied like this:
-
+The following schema shows how to use the preciously defined directives:
 ```sdl
 schema @schema {
     query: Query
@@ -385,8 +380,6 @@ scalar JSON @scalar
 
 ## Executable Directive Locations
 
-Executable directives can only be used in GraphQL requests.
-The directives have to be defined in the schema on the server.
 In this example the server defines the following directives:
 
 ```sdl
@@ -399,7 +392,7 @@ directive @mutation on MUTATION
 directive @subscription on SUBSCRIPTION
 ```
 
-The directives from above can be applied like this:
+The following request document shows how to use the previously defined directives:
 
 ```graphql
 query getUsers @query {
