@@ -38,6 +38,21 @@ namespace HotChocolate.Types.Relay
         }
 
         [Fact]
+        public async Task EnableRelay_AddQueryToMutationPayloads_With_Extensions()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .AddMutationType(d => d.Name("Mutation"))
+                .AddTypeExtension<MutationExtension>()
+                .EnableRelaySupport(new RelayOptions { AddQueryFieldsToMutations = true })
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
         public async Task EnableRelay_AddQueryToMutationPayloads_Refetch_SomeId()
         {
             Snapshot.FullName();
@@ -107,6 +122,12 @@ namespace HotChocolate.Types.Relay
         }
 
         public class Mutation
+        {
+            public FooPayload Foo() => new();
+        }
+
+        [ExtendObjectType(Name = "Mutation")]
+        public class MutationExtension
         {
             public FooPayload Foo() => new();
         }

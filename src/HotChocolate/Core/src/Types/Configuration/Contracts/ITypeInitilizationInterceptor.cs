@@ -28,7 +28,8 @@ namespace HotChocolate.Configuration
         /// <c>true</c> if this interceptor wants to handle the specified context;
         /// otherwise, <c>false</c>.
         /// </returns>
-        bool CanHandle(ITypeSystemObjectContext context);
+        bool CanHandle(
+            ITypeSystemObjectContext context);
 
         /// <summary>
         /// This event is triggered after the type instance was created but before
