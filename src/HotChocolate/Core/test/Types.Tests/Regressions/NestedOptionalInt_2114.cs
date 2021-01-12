@@ -26,11 +26,11 @@ namespace HotChocolate.Regressions
 
             const string Query = @"
                 mutation {
-                    eat(topping: { 
-                        pickles: [ { 
-                            butterPickle: { 
-                                size: 5, 
-                                complexAssigned: { value: 3 }, 
+                    eat(topping: {
+                        pickles: [ {
+                            butterPickle: {
+                                size: 5,
+                                complexAssigned: { value: 3 },
                                 complexAssignedNull: null, complexList: [ { value: 2 } ] } } ] })
                 }";
             // act
@@ -128,10 +128,12 @@ namespace HotChocolate.Regressions
         public class MutationType : ObjectType
         {
             private readonly Func<ToppingInput, bool> _onEat;
+
             public MutationType(Func<ToppingInput, bool>? onEat = null)
             {
                 _onEat = onEat ?? (_ => true);
             }
+
             protected override void Configure(IObjectTypeDescriptor descriptor)
             {
                 descriptor.Field("eat")
