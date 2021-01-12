@@ -11,12 +11,23 @@ namespace Neo4jDemo
 {
     public class Startup
     {
-        public class Person
+        public class Movie
         {
-            public string From { get; set; }
+            public string Title { get; set; }
+            public string YearReleased { get; set; }
+            public string Plot { get; set; }
+            public double ImdbRating { get; set; }
+
+            [Relationship("ACTED_IN", RelationshipDirection.Incoming)]
+            public List<Actor> Actors { get; set; }
+        }
+
+        public class Actor
+        {
             public string Name { get; set; }
-            public string Pet { get; set; }
-            public string Hobby { get; set; }
+
+            [Relationship("ACTED_IN", RelationshipDirection.Outgoing)]
+            public List<Movie> ActedIn { get; set; }
         }
 
         public class Query
@@ -52,7 +63,7 @@ namespace Neo4jDemo
         {
             services
                 //.AddSingleton(_ => CreateDriver())
-                .AddGraphQLServer()
+                .AddGraphQLServer();
                 .AddQueryType<Query>();
         }
 
