@@ -239,9 +239,9 @@ Since the directive instance that we have added to our type is now a strong .NET
 
 ## Middleware
 
-What makes directive with Hot Chocolate very useful is the ability to associate a middleware with it. A middleware can alternate the result or even produce the result of a field. A directive middleware is only added to a field middleware pipeline when the directive was annotated to the object definition, the field definition or the field.
+What makes directives with Hot Chocolate very useful is the ability to associate a middleware with them. A middleware can alternate the result or even produce the result of a field. A directive middleware is only added to a field middleware pipeline when the directive was annotated to the object definition, the field definition or the field.
 
-Moreover, of the directive is repeatable the middleware will be added multiple times to the middleware allowing to build a real pipeline with it.
+Moreover, if the directive is repeatable the middleware will be added multiple times to the middleware allowing to build a real pipeline with it.
 
 In order to add a middleware to a directive you could declare it with the descriptor as a delegate.
 
@@ -277,7 +277,7 @@ The resolver pipeline consists of a sequence of directive delegates, called one 
 
 Each delegate can perform operations before and after the next delegate. A delegate can also decide to not pass a resolver request to the next delegate, which is called short-circuiting the resolver pipeline. Short-circuiting is often desirable because it avoids unnecessary work.
 
-The order of middleware pipeline is defined by the order of the directives. Since, executable directives will flow from the object type to its field definitions the directives of the type would be called first in the order that they were annotated.
+The order of the middleware pipeline is defined by the order of the directives. Since, executable directives will flow from the object type to its field definitions the directives of the type would be called first in the order that they were annotated.
 
 ```sdl
 type Query {
@@ -304,3 +304,122 @@ If there were more directives in the query, they would be appended to the direct
 So, now the order would be like the following: `a, b, c, d, e, f`.
 
 Every middleware can execute the original resolver function by calling `ResolveAsync()` on the `IDirectiveContext`.
+
+# Directive Locations
+There are two categories of directives. Type system directives and executable directives.
+Type system directives can be used in SDL to annotated type system objects.
+Executable directives can be used to annotate queries, mutations or subscriptions and their fields and fragments.
+A directive can also be both and be used as a type system directive and an executable directive.
+
+## Type System Directive Locations
+The following schema shows where the type system directives can be applied. 
+To showcase the directive location for each location a directive is defined:
+```sdl
+# Type system directives
+directive @schema on SCHEMA
+directive @object on OBJECT
+directive @argumentDefinition on ARGUMENT_DEFINITION
+directive @fieldDefinition on FIELD_DEFINITION
+directive @interface on INTERFACE
+directive @union on UNION
+directive @enum on ENUM
+directive @enumValue on ENUM_VALUE
+directive @inputObject on INPUT_OBJECT
+directive @inputFieldDefinition on INPUT_FIELD_DEFINITION
+directive @scalar on SCALAR
+```
+
+```sdl
+schema @schema {
+    query: Query
+    mutation: Mutation
+    subscription: Subscription
+}
+
+type Query @object {
+    user(id: ID! @argumentDefinition): User @fieldDefinition
+    search(by: SearchInput): [SearchResult!]!
+}
+
+
+type User implements HasDescription {
+    name: String
+    description: String
+    userKind: UserKind
+}
+
+type Product implements HasDescription {
+    description: String
+}
+
+interface HasDescription @interface {
+    description: String
+}
+
+union SearchResult @union = Product | User
+
+enum UserKind @enum {
+    Administrator @enumValue
+    Moderator
+}
+
+input SearchInput @inputObject {
+    searchTerm: String @inputFieldDefinition
+}
+
+type Mutation {
+    createUser(input: CreateUserInput): CreateUserPayload
+}
+
+type Subscription {
+    onUserChanged(id: ID): UserChangedPayload
+}
+
+scalar JSON @scalar
+```
+## Executable Directive Locations
+Executable directives can only be used in GraphQL requests.
+The directives have to be defined in the schema on the server.
+In this example the server defines the following directives:
+```sdl
+directive @query on QUERY
+directive @field on FIELD
+directive @fragmentSpread on FRAGMENT_SPREAD
+directive @inlineFragment on INLINE_FRAGMENT
+directive @fragmentDefinition on FRAGMENT_DEFINITION
+directive @mutation on MUTATION
+directive @subscription on SUBSCRIPTION
+```
+
+The directives from above can be applied like this:
+```graphql
+query getUsers @query {
+    search(by: {searchTerm: "Foo"}) @field  {
+        ...DescriptionFragment @fragmentSpread
+        ... on User @inlineFragment {
+            userKind
+        }
+    }
+}
+
+fragment DescriptionFragment on HasDescription @fragmentDefinition {
+    description
+
+}
+
+mutation createNewUser @mutation {
+    createUser(input: {name: "Ada Lovelace"}){
+        user {
+            name
+        }
+    }
+}
+
+subscription subscribeToUser @subscription {
+    onUserChanged(id: 1){
+        user {
+            name
+        }
+    }
+}
+```
