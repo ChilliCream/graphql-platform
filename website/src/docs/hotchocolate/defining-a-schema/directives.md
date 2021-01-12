@@ -306,14 +306,17 @@ So, now the order would be like the following: `a, b, c, d, e, f`.
 Every middleware can execute the original resolver function by calling `ResolveAsync()` on the `IDirectiveContext`.
 
 # Directive Locations
+
 There are two categories of directives. Type system directives and executable directives.
 Type system directives can be used in SDL to annotated type system objects.
 Executable directives can be used to annotate queries, mutations or subscriptions and their fields and fragments.
 A directive can also be both and be used as a type system directive and an executable directive.
 
 ## Type System Directive Locations
-The following schema shows where the type system directives can be applied. 
+
+The following schema shows where the type system directives can be applied.
 To showcase the directive location for each location a directive is defined:
+
 ```sdl
 # Type system directives
 directive @schema on SCHEMA
@@ -377,10 +380,13 @@ type Subscription {
 
 scalar JSON @scalar
 ```
+
 ## Executable Directive Locations
+
 Executable directives can only be used in GraphQL requests.
 The directives have to be defined in the schema on the server.
 In this example the server defines the following directives:
+
 ```sdl
 directive @query on QUERY
 directive @field on FIELD
@@ -392,34 +398,34 @@ directive @subscription on SUBSCRIPTION
 ```
 
 The directives from above can be applied like this:
+
 ```graphql
 query getUsers @query {
-    search(by: {searchTerm: "Foo"}) @field  {
-        ...DescriptionFragment @fragmentSpread
-        ... on User @inlineFragment {
-            userKind
-        }
+  search(by: { searchTerm: "Foo" }) @field {
+    ...DescriptionFragment @fragmentSpread
+    ... on User @inlineFragment {
+      userKind
     }
+  }
 }
 
 fragment DescriptionFragment on HasDescription @fragmentDefinition {
-    description
-
+  description
 }
 
 mutation createNewUser @mutation {
-    createUser(input: {name: "Ada Lovelace"}){
-        user {
-            name
-        }
+  createUser(input: { name: "Ada Lovelace" }) {
+    user {
+      name
     }
+  }
 }
 
 subscription subscribeToUser @subscription {
-    onUserChanged(id: 1){
-        user {
-            name
-        }
+  onUserChanged(id: 1) {
+    user {
+      name
     }
+  }
 }
 ```
