@@ -139,14 +139,16 @@
       "type": "HotChocolate.Types.ObjectType<HotChocolate.Configuration.TypeDiscovererTests.Foo>",
       "runtimeType": "HotChocolate.Configuration.TypeDiscovererTests.Foo",
       "references": [
-        "Output: ObjectType<Foo>"
+        "Output: ObjectType<Foo>",
+        "Output: HotChocolate.Types.ObjectType`1[HotChocolate.Configuration.TypeDiscovererTests+Foo]"
       ]
     },
     {
       "type": "HotChocolate.Types.ObjectType<HotChocolate.Configuration.TypeDiscovererTests.Bar>",
       "runtimeType": "HotChocolate.Configuration.TypeDiscovererTests.Bar",
       "references": [
-        "Output: ObjectType<Bar>"
+        "Output: ObjectType<Bar>",
+        "Output: HotChocolate.Types.ObjectType`1[HotChocolate.Configuration.TypeDiscovererTests+Bar]"
       ]
     }
   ],

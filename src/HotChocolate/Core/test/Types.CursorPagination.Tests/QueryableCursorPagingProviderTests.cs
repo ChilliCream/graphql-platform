@@ -546,6 +546,11 @@ namespace HotChocolate.Types.Pagination
                 throw new NotImplementedException();
             }
 
+            public T GetQueryRoot<T>()
+            {
+                throw new NotImplementedException();
+            }
+
             public T Parent<T>()
             {
                 throw new NotImplementedException();
