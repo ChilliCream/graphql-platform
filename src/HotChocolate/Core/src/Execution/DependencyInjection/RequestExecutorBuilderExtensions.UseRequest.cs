@@ -171,6 +171,15 @@ namespace Microsoft.Extensions.DependencyInjection
                 .UseExceptions()
                 .UseDocumentCache()
                 .UseReadPersistedQuery()
+                .UseRequest(next => context =>
+                {
+                    if (context.Document is null && context.Request.Query is null)
+                    {
+                        throw ThrowHelper.ReadPersistedQueryMiddleware_PersistedQueryNotFound();
+                    }
+
+                    return next(context);
+                })
                 .UseWritePersistedQuery()
                 .UseDocumentParser()
                 .UseDocumentValidation()

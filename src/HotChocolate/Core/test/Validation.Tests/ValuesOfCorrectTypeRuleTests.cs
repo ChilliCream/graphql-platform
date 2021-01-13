@@ -619,8 +619,7 @@ namespace HotChocolate.Validation
             ");
         }
 
-        // is this something that we find ok or should we change it back?
-        [Fact(Skip = "We do allow this at the moment.")]
+        [Fact]
         public void BadStringIntoEnum()
         {
             ExpectErrors(@"
