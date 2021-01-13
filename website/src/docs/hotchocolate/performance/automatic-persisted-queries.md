@@ -11,6 +11,10 @@ dotnet package add HotChocolate.AspNetCore
 ```
 
 ```
+dotnet package add HotChocolate.PersistedQueries.InMemory
+```
+
+```
 public void ConfigureServices(IServiceCollection services)
 {
     services
@@ -22,10 +26,13 @@ public void ConfigureServices(IServiceCollection services)
 ```
 
 ```
-services
-    .AddRouting()
-    .AddGraphQLServer()
-    .AddQueryType<Query>()
-    .UseActivePersistedQueryPipeline()
-    .AddInMemoryQueryStorage();
+public void ConfigureServices(IServiceCollection services)
+{
+    services
+        .AddRouting()
+        .AddGraphQLServer()
+        .AddQueryType<Query>()
+        .UseActivePersistedQueryPipeline()
+        .AddInMemoryQueryStorage();
+}
 ```
