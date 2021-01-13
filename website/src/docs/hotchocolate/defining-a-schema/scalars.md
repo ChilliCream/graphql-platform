@@ -28,7 +28,7 @@ In addition to the scalars defined by the specification, HotChocolate also suppo
 | Type        | Description                                                 |
 | ----------- | ----------------------------------------------------------- |
 | `Byte`      |                                                             |
-| `ByteArray` | Base64 encoded Array of Bytes                               |
+| `ByteArray` | Base64 encoded array of bytes                               |
 | `Short`     | Signed 16-bit numeric non-fractional value                  |
 | `Long`      | Signed 64-bit numeric non-fractional value                  |
 | `Decimal`   | .NET Floating Point Type                                    |
@@ -163,7 +163,6 @@ public void ConfigureServices(IServiceCollection services)
 
 # Custom Scalars
 All scalars in HotChocolate are defined though a `ScalarType`
-
 The easiest way to create a custom scalar is to extend `ScalarType<TRuntimeType, TLiteral>`.
 This base class already includes basic serialization and parsing logic.
 
