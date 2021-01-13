@@ -4,7 +4,7 @@
     <PackageId>HotChocolate.PersistedQueries.InMemory</PackageId>
     <AssemblyName>HotChocolate.PersistedQueries.InMemory</AssemblyName>
     <RootNamespace>HotChocolate.PersistedQueries.InMemory</RootNamespace>
-    <Description>An implementation of Hot Chocolate persisted queries using the local file system.</Description>
+    <Description>An implementation of Hot Chocolate persisted queries using Microsoft.Extensions.Caching.Memory.IMemoryCache.</Description>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nullable>enable</Nullable>
   </PropertyGroup>
