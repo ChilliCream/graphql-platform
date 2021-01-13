@@ -16,7 +16,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetReturnType($"IList<{WellKnownNames.EntityId}>")
                 .AddParameter(
                     ParameterBuilder.New()
-                        .SetType("JsonElement")
+                        .SetType(jsonElementParamName)
                         .SetName(objParamName)
                 )
                 .AddParameter(
@@ -30,7 +30,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 !listTypeDescriptor.IsNullable
             );
 
-            var listVarName = listTypeDescriptor.Name.WithLowerFirstChar();
+            var listVarName = listTypeDescriptor.Name.WithLowerFirstChar() + "s";
             updateEntityMethod.AddCode(
                 $"var {listVarName} = new List<{(listTypeDescriptor.IsEntityType ? WellKnownNames.EntityId : listTypeDescriptor.InnerType.Name)}>();"
             );
@@ -40,7 +40,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetLoopHeader(
                         $"JsonElement child in {objParamName}.EnumerateArray()"
                     )
-                    .AddCode(EnsureJsonValueIsNotNull("child"), !listTypeDescriptor.IsNullable)
                     .AddCode(
                         MethodCallBuilder.New()
                             .SetPrefix($"{listVarName}.")

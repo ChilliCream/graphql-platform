@@ -1,0 +1,12 @@
+﻿namespace StarWarsClient
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class HumanEntity
+    {
+        public EntityId Id { get; }
+
+        public string Name { get; set; }
+
+        public FriendsConnectionData Friends { get; set; }
+    }
+}

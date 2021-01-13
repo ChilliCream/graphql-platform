@@ -13,7 +13,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             var dateDeserializer = MethodBuilder.New()
                 .SetReturnType(typeDescriptor.Name)
                 .SetName(DeserializerMethodNameFromTypeName(typeDescriptor))
-                .AddParameter(ParameterBuilder.New().SetType("JsonElement").SetName(objParamName))
+                .AddParameter(ParameterBuilder.New().SetType(jsonElementParamName).SetName(objParamName))
                 .AddParameter(
                     ParameterBuilder.New().SetType($"ISet<{WellKnownNames.EntityId}>").SetName(EntityIdsParam)
                 );

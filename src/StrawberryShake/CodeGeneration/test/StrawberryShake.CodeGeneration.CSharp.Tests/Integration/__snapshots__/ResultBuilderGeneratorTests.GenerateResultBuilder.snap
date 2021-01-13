@@ -8,6 +8,7 @@
         private readonly Func<JsonElement, EntityId> _extractId;
         private readonly IOperationResultDataFactory<GetHeroResult> _resultDataFactory;
         private ILeafValueParser<string, string> _stringParser;
+        private ILeafValueParser<int, int> _intParser;
 
         public GetHeroResultBuilder(
             IEntityStore entityStore,
@@ -22,7 +23,9 @@
             _resultDataFactory = resultDataFactory
                  ?? throw new ArgumentNullException(nameof(resultDataFactory));
             _stringParser = serializerResolver.GetLeafValueParser<string, string>("String")
-                 ?? throw new ArgumentNullException(nameof(serializerResolver.GetLeafValueParser<string, string>("String")));
+                 ?? throw new ArgumentNullException(nameof(_stringParser));
+            _intParser = serializerResolver.GetLeafValueParser<int, int>("Int")
+                 ?? throw new ArgumentNullException(nameof(_intParser));
         }
 
         public IOperationResult<GetHeroResult> Build(Response<JsonDocument> response)
@@ -48,17 +51,14 @@
             using IEntityUpdateSession session = _entityStore.BeginUpdate();
             var entityIds = new HashSet<EntityId>();
 
-            EntityId HeroId = UpdateHeroEntity(
-                obj.GetProperty("hero"),
+            EntityId HeroId = UpdateNonNullableIHeroEntity(
+                obj.GetPropertyOrNull("hero"),
                 entityIds
             );
 
             var resultInfo = new GetHeroResultInfo(
                 HeroId,
-                DeserializeNonNullablestring(
-                    obj,
-                    "version"
-                ),
+                DeserializeNonNullableString(obj.GetPropertyOrNull("version")),
                 entityIds,
                 session.Version
             );
@@ -66,25 +66,133 @@
             return (_resultDataFactory.Create(resultInfo), resultInfo);
         }
 
-        private EntityId UpdateIHeroEntity(
-            JsonElement obj,
+        private EntityId UpdateNonNullableIHeroEntity(
+            JsonElement? obj,
             ISet<EntityId> entityIds)
         {
+            if (obj == null)
+            {
+                throw new InvalidOperationException();
+            }
+
             EntityId entityId = _extractId(obj);
-            entityIds.Add(entityId)
+            entityIds.Add(entityId);
 
             if (entityId.Name.Equals("HumanHero", StringComparison.Ordinal))
             {
+                HumanHeroEntity HumanHeroEntity = _entityStore.GetOrCreate<HumanHeroEntity>(entityId);
+                entity.Name = DeserializeNonNullableString(obj.GetPropertyOrNull("name"));
+                entity.Friends = DeserializeNonNullableFriendsConnectionData(
+                    obj.GetPropertyOrNull("friends"),
+                    entityIds
+                );
+
+                return entityId;
             }
 
             if (entityId.Name.Equals("DroidHero", StringComparison.Ordinal))
             {
+                DroidHeroEntity DroidHeroEntity = _entityStore.GetOrCreate<DroidHeroEntity>(entityId);
+                entity.Name = DeserializeNonNullableString(obj.GetPropertyOrNull("name"));
+                entity.Friends = DeserializeNonNullableFriendsConnectionData(
+                    obj.GetPropertyOrNull("friends"),
+                    entityIds
+                );
+
+                return entityId;
             }
 
+            throw new NotSupportedException();
+        }
 
+        private FriendsConnection DeserializeNonNullableFriendsConnectionData(
+            JsonElement? obj,
+            ISet<EntityId> entityIds)
+        {
+            if (obj == null)
+            {
+                throw new InvalidOperationException();
+            }
 
+            return new FriendsConnectionData(
+                UpdateNonNullableICharacterEntityNonNullableArray(
+                    obj.GetPropertyOrNull("nodes"),
+                    entityIds
+                ),
+                DeserializeNonNullableInt(obj.GetPropertyOrNull("totalCount"))
+            );
+        }
 
-            throw new NENENENE NotSupportedException();
+        private IList<EntityId> UpdateNonNullableICharacterEntityNonNullableArray(
+            JsonElement? obj,
+            ISet<EntityId> entityIds)
+        {
+            if (obj == null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            var iCharacters = new List<EntityId>();
+            foreach (JsonElement child in obj.EnumerateArray())
+            {
+                iCharacters.Add(UpdateNonNullableICharacterEntity(
+                    child,
+                    entityIds
+                ));
+            }
+
+            return iCharacters;
+        }
+
+        private EntityId UpdateNonNullableICharacterEntity(
+            JsonElement? obj,
+            ISet<EntityId> entityIds)
+        {
+            if (obj == null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            EntityId entityId = _extractId(obj);
+            entityIds.Add(entityId);
+
+            if (entityId.Name.Equals("Droid", StringComparison.Ordinal))
+            {
+                DroidEntity DroidEntity = _entityStore.GetOrCreate<DroidEntity>(entityId);
+                entity.Name = DeserializeNonNullableString(obj.GetPropertyOrNull("name"));
+
+                return entityId;
+            }
+
+            if (entityId.Name.Equals("Human", StringComparison.Ordinal))
+            {
+                HumanEntity HumanEntity = _entityStore.GetOrCreate<HumanEntity>(entityId);
+                entity.Name = DeserializeNonNullableString(obj.GetPropertyOrNull("name"));
+
+                return entityId;
+            }
+
+            throw new NotSupportedException();
+        }
+
+        private int DeserializeNonNullableInt(JsonElement obj)
+        {
+            if (obj == null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            return _intParser.Parse(obj.GetInt()!);
+        }
+
+        private string DeserializeNonNullableString(JsonElement obj)
+        {
+            if (obj == null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            return _stringParser.Parse(obj.GetString()!);
         }
     }
 }

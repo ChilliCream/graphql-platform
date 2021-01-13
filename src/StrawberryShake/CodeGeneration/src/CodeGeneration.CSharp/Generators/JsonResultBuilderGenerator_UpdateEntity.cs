@@ -16,7 +16,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetReturnType(WellKnownNames.EntityId)
                 .AddParameter(
                     ParameterBuilder.New()
-                        .SetType("JsonElement")
+                        .SetType(jsonElementParamName)
                         .SetName(objParamName)
                 )
                 .AddParameter(

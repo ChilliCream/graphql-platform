@@ -13,7 +13,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private const string SerializerResolverParamName = "serializerResolver";
         private const string TransportResultRootTypeName = "JsonElement";
         private const string EntityIdsParam = "entityIds";
-        private const string PropertyNameParam = "propertyName";
+        private const string jsonElementParamName = "JsonElement?";
         private const string objParamName = "obj";
 
         private static string DeserializerMethodNameFromTypeName(ITypeDescriptor typeDescriptor)
@@ -255,7 +255,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     IfBuilder.New()
                         .SetCondition(
                             ConditionBuilder.New()
-                                .Set($"{propertyName}.ValueKind == JsonValueKind.Null")
+                                .Set($"{propertyName} == null")
                         ).AddCode("throw new InvalidOperationException();")
                 )
                 .AddEmptyLine();

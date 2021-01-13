@@ -1,42 +1,59 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public class EntityTypeGenerator: CSharpBaseGenerator<TypeDescriptor>
+    public class EntityTypeGenerator : CSharpBaseGenerator<EntityTypeDescriptor>
     {
-        protected override Task WriteAsync(CodeWriter writer, TypeDescriptor typeDescriptor)
+        protected override Task WriteAsync(CodeWriter writer, EntityTypeDescriptor typeDescriptor)
         {
-            AssertNonNull(writer, typeDescriptor);
+            AssertNonNull(
+                writer,
+                typeDescriptor
+            );
 
             // Setup class
             ClassBuilder classBuilder = ClassBuilder.New()
-                .SetName(typeDescriptor.Name);
+                .SetName(NamingConventions.EntityTypeNameFromTypeName(typeDescriptor.GraphQlTypename))
+                .AddProperty(PropertyBuilder.New().SetName("Id").SetType(WellKnownNames.EntityId));
 
             // Add Properties to class
-            foreach (var prop in typeDescriptor.Properties)
+            foreach (var (_, prop) in typeDescriptor.Properties)
             {
-                if (prop.IsEntityType)
+                switch (prop.Type.Kind)
                 {
-                    PropertyBuilder referencePropertyBuilder = PropertyBuilder
-                        .New()
-                        .SetName(prop.Name)
-                        .SetType(prop.ToBuilder().SetName(WellKnownNames.EntityId))
-                        .MakeSettable()
-                        .SetAccessModifier(AccessModifier.Public);
-                    classBuilder.AddProperty(referencePropertyBuilder);
-                }
-                else
-                {
-                    PropertyBuilder propBuilder = PropertyBuilder
-                        .New()
-                        .SetName(prop.Name)
-                        .SetType(prop.ToBuilder())
-                        .MakeSettable()
-                        .SetAccessModifier(AccessModifier.Public);
-                    classBuilder.AddProperty(propBuilder);
+                    case TypeKind.Scalar:
+                        PropertyBuilder propBuilder = PropertyBuilder
+                            .New()
+                            .SetName(prop.Name)
+                            .SetType(prop.Type.ToBuilder())
+                            .MakeSettable()
+                            .SetAccessModifier(AccessModifier.Public);
+                        classBuilder.AddProperty(propBuilder);
+                        break;
+                    case TypeKind.DataType:
+                        PropertyBuilder dataBuilder = PropertyBuilder
+                            .New()
+                            .SetName(prop.Name)
+                            .SetType(prop.Type.ToBuilder(NamingConventions.DataTypeNameFromTypeName(prop.Type.Name)))
+                            .MakeSettable()
+                            .SetAccessModifier(AccessModifier.Public);
+                        classBuilder.AddProperty(dataBuilder);
+                        break;
+                    case TypeKind.EntityType:
+                        PropertyBuilder referencePropertyBuilder = PropertyBuilder
+                            .New()
+                            .SetName(prop.Name)
+                            .SetType(prop.Type.ToBuilder().SetName(WellKnownNames.EntityId))
+                            .MakeSettable()
+                            .SetAccessModifier(AccessModifier.Public);
+                        classBuilder.AddProperty(referencePropertyBuilder);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
             }
 

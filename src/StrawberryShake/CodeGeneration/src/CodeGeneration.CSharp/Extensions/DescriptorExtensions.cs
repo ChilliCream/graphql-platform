@@ -4,10 +4,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
 {
     public static class DescriptorExtensions
     {
-        public static TypeReferenceBuilder ToBuilder(this ITypeDescriptor typeReferenceDescriptor)
+        public static TypeReferenceBuilder ToBuilder(this ITypeDescriptor typeReferenceDescriptor, string? nameOverride = null)
         {
             var ret = new TypeReferenceBuilder()
-                .SetName(typeReferenceDescriptor.Name)
+                .SetName(nameOverride ?? typeReferenceDescriptor.Name)
                 .SetIsNullable(typeReferenceDescriptor.IsNullable);
 
             if (typeReferenceDescriptor is ListTypeDescriptor listTypeDescriptor)
@@ -22,9 +22,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
         {
             var ret = new TypeReferenceBuilder()
                 .SetName(
-                    typeReferenceDescriptor.IsEntityType ? WellKnownNames.EntityId : typeReferenceDescriptor.TypeName
+                    typeReferenceDescriptor.IsEntityType
+                        ? WellKnownNames.EntityId
+                        : typeReferenceDescriptor.Name
                 )
-                .SetIsNullable(typeReferenceDescriptor.IsNullable)
+                .SetIsNullable(typeReferenceDescriptor.IsNullable);
+
             if (typeReferenceDescriptor is ListTypeDescriptor listTypeDescriptor)
             {
                 ret.SetListType(listTypeDescriptor.InnerType.ToBuilder());

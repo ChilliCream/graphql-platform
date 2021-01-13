@@ -23,6 +23,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
+        public PropertyBuilder SetType(string value)
+        {
+            _type = TypeReferenceBuilder.New().SetName(value);
+            return this;
+        }
+
         public PropertyBuilder SetType(TypeReferenceBuilder value)
         {
             _type = value;

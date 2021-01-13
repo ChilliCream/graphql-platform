@@ -13,7 +13,8 @@ namespace StrawberryShake.Integration
             "StarWarsClient",
             new[] {ICharacterName},
             new[] {TestHelper.GetNamedNonNullStringTypeReference("Name")},
-            kind: TypeKind.EntityType
+            kind: TypeKind.EntityType,
+            graphQlTypeName: "Droid"
         );
 
         public static TypeDescriptor HumanTypeDescriptor => new(
@@ -21,7 +22,8 @@ namespace StrawberryShake.Integration
             "StarWarsClient",
             new[] {ICharacterName},
             new[] {TestHelper.GetNamedNonNullStringTypeReference("Name")},
-            kind: TypeKind.EntityType
+            kind: TypeKind.EntityType,
+            graphQlTypeName: "Human"
         );
 
         public static TypeDescriptor ICharacterDescriptor => new(
@@ -45,7 +47,10 @@ namespace StrawberryShake.Integration
             {
                 new NamedTypeReferenceDescriptor(
                     "Nodes",
-                    new ListTypeDescriptor(false, ICharacterDescriptor)
+                    new ListTypeDescriptor(
+                        false,
+                        ICharacterDescriptor
+                    )
                 ),
                 TestHelper.GetNamedNonNullIntTypeReference("TotalCount")
             },
@@ -62,7 +67,8 @@ namespace StrawberryShake.Integration
             "StarWarsClient",
             new[] {IHeroName},
             new[] {TestHelper.GetNamedNonNullStringTypeReference("Name"), friendsReferenceDescriptor},
-            kind: TypeKind.EntityType
+            kind: TypeKind.EntityType,
+            graphQlTypeName: "Human"
         );
 
         public static TypeDescriptor DroidHeroTypeDescriptor => new(
@@ -70,7 +76,8 @@ namespace StrawberryShake.Integration
             "StarWarsClient",
             new[] {IHeroName},
             new[] {TestHelper.GetNamedNonNullStringTypeReference("Name"), friendsReferenceDescriptor},
-            kind: TypeKind.EntityType
+            kind: TypeKind.EntityType,
+            graphQlTypeName: "Droid"
         );
 
         public static TypeDescriptor IHeroDescriptor => new(
@@ -84,6 +91,17 @@ namespace StrawberryShake.Integration
 
         #endregion
 
+        public static EntityTypeDescriptor DroidEntityTypeDescriptor => new(
+            "Droid",
+            "StarWarsClient",
+            new TypeDescriptor[] { DroidTypeDescriptor, DroidHeroTypeDescriptor }
+        );
+
+        public static EntityTypeDescriptor HumanEntityTypeDescriptor => new(
+            "Human",
+            "StarWarsClient",
+            new TypeDescriptor[] { HumanTypeDescriptor, HumanHeroTypeDescriptor }
+        );
 
         public static TypeDescriptor GetHeroResultDescriptor => new(
             "GetHeroResult",
@@ -102,7 +120,8 @@ namespace StrawberryShake.Integration
 
         public static ResultBuilderDescriptor GetHeroResultBuilderDescriptor => new()
         {
-            ResultType = GetHeroResultDescriptor, ValueParsers = new[] {("string", "string", "String")}
+            ResultType = GetHeroResultDescriptor,
+            ValueParsers = new[] {("string", "string", "String"), ("int", "int", "Int")}
         };
     }
 }

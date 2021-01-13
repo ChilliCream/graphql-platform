@@ -124,7 +124,7 @@ namespace StrawberryShake.Integration
 
         private string DeserializeNonNullString(JsonElement obj, string propertyName)
         {
-            if (obj.GetProperty(propertyName, out JsonElement property) &&
+            if (obj.TryGetProperty(propertyName, out JsonElement property) &&
                 property.ValueKind != JsonValueKind.Null)
             {
                 return _stringParser.Parse(property.GetString()!);
