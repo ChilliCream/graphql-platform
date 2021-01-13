@@ -19,9 +19,9 @@
 | HC0017 | Execution         | Variable `xyz` is not an input type.                                                                       |
 | HC0018 | Execution         | Variable `xyz` is required.                                                                                |
 | HC0019 | Execution         | Unable to create an instance for the operation type (initial value).                                       |
-| HC0020 | Data              | The requested field does not support null values                                                           |
 | HC0021 | Data              | List are not supported in sorting                                                                          |
 | HC0022 | Data              | The requested list contained more than one element                                                         |
 | HC0023 | Data              | Filtering could not be projected                                                                           |
 | HC0024 | Data              | Sorting could not be projected                                                                             |
 | HC0025 | Data              | No paging provider for the source was found                                                                |
+| HC0026 | Data              | The requested field does not support null values                                                           |

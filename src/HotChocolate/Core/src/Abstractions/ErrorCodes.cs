@@ -112,7 +112,7 @@ namespace HotChocolate
 
         public static class Data
         {
-            public const string NonNullError = "HC0020";
+            public const string NonNullError = "HC0026";
             public const string ListNotSupported = "HC0021";
             public const string MoreThanOneElement = "HC0022";
             public const string FilteringProjectionFailed = "HC0023";
