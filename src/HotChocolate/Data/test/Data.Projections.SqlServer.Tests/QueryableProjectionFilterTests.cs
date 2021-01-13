@@ -405,6 +405,7 @@ namespace HotChocolate.Data.Projections.Expressions
             public bool? BarBool { get; set; }
 
             [UseFiltering]
+            [UseSorting]
             public List<BarNullableDeep?>? ObjectArray { get; set; }
 
             public BarNullableDeep? NestedObject { get; set; }

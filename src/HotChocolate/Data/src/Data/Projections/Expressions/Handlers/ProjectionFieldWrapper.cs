@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Data.Projections.Handlers;
 using HotChocolate.Execution.Processing;
 
 namespace HotChocolate.Data.Projections.Expressions.Handlers
@@ -22,7 +23,7 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers
             _handler.CanHandle(selection);
 
         public IProjectionFieldHandler Wrap(IProjectionFieldInterceptor interceptor) =>
-            _handler.Wrap(interceptor);
+            _handler.Wrap(new ProjectionInterceptorCombinator<T>(_interceptor, interceptor));
 
         public T OnBeforeEnter(T context, ISelection selection) =>
             _handler.OnBeforeEnter(context, selection);
