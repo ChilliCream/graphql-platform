@@ -263,7 +263,7 @@ By extending `ScalarType` you have full control over serialization and parsing.
                 return stringLiteral.Value;
             }
 
-            throw new ArgumentException(
+            throw new SerializationException(
                 "The specified value has to be a credit card number in the format " +
                 "XXXX XXXX XXXX XXXX",
                 nameof(valueSyntax));
@@ -278,7 +278,7 @@ By extending `ScalarType` you have full control over serialization and parsing.
                 return new StringValueNode(null, s, false);
             }
 
-            throw new ArgumentException(
+            throw new SerializationException(
                 "The specified value has to be a credit card number in the format " +
                 "XXXX XXXX XXXX XXXX");
         }
@@ -291,7 +291,7 @@ By extending `ScalarType` you have full control over serialization and parsing.
                 return new StringValueNode(null, s, false);
             }
 
-            throw new ArgumentException(
+            throw new SerializationException(
                 "The specified value has to be a credit card number in the format " +
                 "XXXX XXXX XXXX XXXX");
         }
