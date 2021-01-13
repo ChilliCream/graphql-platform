@@ -1335,7 +1335,7 @@ data-styled.g150[id="doc-page__Button-fuo9s5-5"]{content:"bNEZNP,"}/*!sc*/
 <p>So, if we wanted to create the query root type we would simply write a <code class="language-text">Query</code> class.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="72465019487014050000"
+              data-toaster-id="58676037954724030000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1343,7 +1343,7 @@ data-styled.g150[id="doc-page__Button-fuo9s5-5"]{content:"bNEZNP,"}/*!sc*/
               onClick="copyToClipboard(`public class Query
 {
     public string Hello() => &quot;world&quot;;
-}`, `72465019487014050000`)"
+}`, `58676037954724030000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1359,14 +1359,14 @@ data-styled.g150[id="doc-page__Button-fuo9s5-5"]{content:"bNEZNP,"}/*!sc*/
 <p>Now let us create a new schema with that root type.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="87069477878809300000"
+              data-toaster-id="83280689237862680000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`var schema = SchemaBuilder.New()
   .AddQueryType<Query>()
-  .Create();`, `87069477878809300000`)"
+  .Create();`, `83280689237862680000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1381,14 +1381,14 @@ data-styled.g150[id="doc-page__Button-fuo9s5-5"]{content:"bNEZNP,"}/*!sc*/
 <p>We now have registered an object type with our new schema that is based on our <code class="language-text">Query</code> class. The schema would look like the following (if nullable reference type are turned on):</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="42577350679535940000"
+              data-toaster-id="70941340485845836000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`type Query {
   hello: String!
-}`, `42577350679535940000`)"
+}`, `70941340485845836000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1406,7 +1406,7 @@ data-styled.g150[id="doc-page__Button-fuo9s5-5"]{content:"bNEZNP,"}/*!sc*/
 <p>For this we have something called <em>descriptor attributes</em> so applying filtering to a field would look like the following example:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="73809910515942970000"
+              data-toaster-id="29188873343765100000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1418,7 +1418,7 @@ data-styled.g150[id="doc-page__Button-fuo9s5-5"]{content:"bNEZNP,"}/*!sc*/
     {
         ...
     }
-}`, `73809910515942970000`)"
+}`, `29188873343765100000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1444,7 +1444,7 @@ data-styled.g150[id="doc-page__Button-fuo9s5-5"]{content:"bNEZNP,"}/*!sc*/
 <p>Schema types can be created either by using the schema builder and add the configuration where we add the type ...</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="87614979606653000000"
+              data-toaster-id="34992929114683190000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1453,7 +1453,7 @@ data-styled.g150[id="doc-page__Button-fuo9s5-5"]{content:"bNEZNP,"}/*!sc*/
     .AddQueryType<Query>(d => d
         .Field(f => f.Hello())
         .Type<NonNullType<StringType>>())
-    .Create();`, `87614979606653000000`)"
+    .Create();`, `34992929114683190000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1470,7 +1470,7 @@ data-styled.g150[id="doc-page__Button-fuo9s5-5"]{content:"bNEZNP,"}/*!sc*/
 <p>.. or, since these fluent chains could get very long and unreadable we could also opt to declare a new class <code class="language-text">QueryType</code> that extends <code class="language-text">ObjectType&lt;Query&gt;</code> and add it to our schema like the following.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="45571247403509950000"
+              data-toaster-id="77596018721048080000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1485,7 +1485,7 @@ data-styled.g150[id="doc-page__Button-fuo9s5-5"]{content:"bNEZNP,"}/*!sc*/
 
 var schema = SchemaBuilder.New()
     .AddQueryType<QueryType>()
-    .Create();`, `45571247403509950000`)"
+    .Create();`, `77596018721048080000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1508,7 +1508,7 @@ var schema = SchemaBuilder.New()
 <p>Furthermore, we can add fields that are not based on our .NET type <code class="language-text">Query</code>.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="85707228542463150000"
+              data-toaster-id="76792780852521480000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1520,7 +1520,7 @@ var schema = SchemaBuilder.New()
         descriptor.Field(f => f.Hello()).Type<NonNullType<StringType>>();
         descriptor.Field(&quot;foo&quot;).Type<StringType>().Resolver(() => &quot;bar&quot;);
     }
-}`, `85707228542463150000`)"
+}`, `76792780852521480000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1540,7 +1540,7 @@ var schema = SchemaBuilder.New()
 <p>Our new resulting schema would now look like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="17827552668248758000"
+              data-toaster-id="26014307172412064000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1548,7 +1548,7 @@ var schema = SchemaBuilder.New()
               onClick="copyToClipboard(`type Query {
   hello: String!
   foo: String
-}`, `17827552668248758000`)"
+}`, `26014307172412064000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1566,7 +1566,7 @@ var schema = SchemaBuilder.New()
 <p>If we add a parameter to our <code class="language-text">Hello</code> method, the <code class="language-text">SchemaBuilder</code> will translate that into a GraphQL field argument.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="98637068750543210000"
+              data-toaster-id="30712220471760564000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1574,7 +1574,7 @@ var schema = SchemaBuilder.New()
               onClick="copyToClipboard(`public class Query
 {
     public string Hello(string name) => \$&quot;Greetings {name}&quot;;
-}`, `98637068750543210000`)"
+}`, `30712220471760564000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1589,14 +1589,14 @@ var schema = SchemaBuilder.New()
 <span class="token punctuation">}</span></code></pre></div>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="26653809337951320000"
+              data-toaster-id="49428337186407050000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`type Query {
   hello(name: String!): String!
-}`, `26653809337951320000`)"
+}`, `49428337186407050000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1611,7 +1611,7 @@ var schema = SchemaBuilder.New()
 <p>In order to get access to the resolver context in our resolver, we can just add the <code class="language-text">IResolverContext</code> as a method parameter and the query engine will automatically inject the context:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="3597196263618274300"
+              data-toaster-id="60831519014804910000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1620,7 +1620,7 @@ var schema = SchemaBuilder.New()
 {
     public string Hello(IResolverContext context, string name) =>
         \$&quot;Greetings {name} {context.Service<FooService>().GetBar()}&quot;;
-}`, `3597196263618274300`)"
+}`, `60831519014804910000`)"
             >
               <div
                 class="gatsby-code-button"
