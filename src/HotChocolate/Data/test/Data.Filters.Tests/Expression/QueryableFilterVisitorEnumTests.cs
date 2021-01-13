@@ -6,7 +6,6 @@ using Xunit;
 
 namespace HotChocolate.Data.Filters.Expressions
 {
-
     public class QueryableFilterVisitorEnumTests
         : FilterVisitorTestBase
     {
@@ -177,6 +176,50 @@ namespace HotChocolate.Data.Filters.Expressions
         }
 
         [Fact]
+        public void Create_NonNullOnNullableTypes_Attributes()
+        {
+            // arrange
+            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+                "{ nonNullOnNullableTypes: { eq: THIRD }}");
+            ExecutorBuilder? tester = CreateProviderTester(new FilterInputType<AttributeTest>());
+
+            // act
+            Func<AttributeTest, bool>? func = tester.Build<AttributeTest>(value);
+
+            // assert
+            var a = new AttributeTest { NonNullOnNullableTypes = TestEnum.Third };
+            Assert.True(func(a));
+
+            var b = new AttributeTest { NonNullOnNullableTypes = TestEnum.First};
+            Assert.False(func(b));
+
+            var c = new AttributeTest { NonNullOnNullableTypes = null };
+            Assert.False(func(c));
+        }
+
+        [Fact]
+        public void Create_NonNullOnNullable_Attributes()
+        {
+            // arrange
+            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+                "{ nonNullOnNullable: { eq: THIRD }}");
+            ExecutorBuilder? tester = CreateProviderTester(new FilterInputType<AttributeTest>());
+
+            // act
+            Func<AttributeTest, bool>? func = tester.Build<AttributeTest>(value);
+
+            // assert
+            var a = new AttributeTest { NonNullOnNullable = TestEnum.Third };
+            Assert.True(func(a));
+
+            var b = new AttributeTest { NonNullOnNullable = TestEnum.First};
+            Assert.False(func(b));
+
+            var c = new AttributeTest { NonNullOnNullable = null };
+            Assert.False(func(c));
+        }
+
+        [Fact]
         public void Overwrite_Enum_Filter_Type_With_Attribute()
         {
             // arrange
@@ -226,5 +269,27 @@ namespace HotChocolate.Data.Filters.Expressions
             public short? BarEnum { get; set; }
         }
 
+        public enum TestEnum
+        {
+            None,
+            First,
+            Second,
+            Third
+        }
+
+        public class AttributeTest
+        {
+            [GraphQLType(typeof(NonNullType<EnumType<TestEnum>>))]
+            public TestEnum? NonNullOnNullableTypes { get; set; }
+
+            [GraphQLNonNullType]
+            public TestEnum? NonNullOnNullable { get; set; }
+
+            [GraphQLType(typeof(EnumType<TestEnum>))]
+            public TestEnum NullableOnNullableType { get; set; }
+
+            [GraphQLNonNullType]
+            public TestEnum NullableOnNNonullableType { get; set; }
+        }
     }
 }

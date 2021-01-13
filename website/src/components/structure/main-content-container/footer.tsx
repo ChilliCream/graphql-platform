@@ -1,15 +1,15 @@
 import { graphql, useStaticQuery } from "gatsby";
 import React, { FunctionComponent } from "react";
 import styled from "styled-components";
-import { GetFooterDataQuery } from "../../../graphql-types";
-import { IconContainer } from "../misc/icon-container";
-import { Link } from "../misc/link";
+import { GetFooterDataQuery } from "../../../../graphql-types";
+import { IconContainer } from "../../misc/icon-container";
+import { Link } from "../../misc/link";
 
-import GithubIconSvg from "../../images/github.svg";
-import LogoIconSvg from "../../images/chillicream.svg";
-import LogoTextSvg from "../../images/chillicream-text.svg";
-import SlackIconSvg from "../../images/slack.svg";
-import TwitterIconSvg from "../../images/twitter.svg";
+import GithubIconSvg from "../../../images/github.svg";
+import LogoIconSvg from "../../../images/chillicream.svg";
+import LogoTextSvg from "../../../images/chillicream-text.svg";
+import SlackIconSvg from "../../../images/slack.svg";
+import TwitterIconSvg from "../../../images/twitter.svg";
 
 export const Footer: FunctionComponent = () => {
   const data = useStaticQuery<GetFooterDataQuery>(graphql`
@@ -116,14 +116,11 @@ export const Footer: FunctionComponent = () => {
 };
 
 const Container = styled.footer`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
-  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+
   padding: 40px 20px 60px;
   width: 100%;
-  min-height: 300px;
   background-color: #252d3c;
   color: #c6c6ce;
 

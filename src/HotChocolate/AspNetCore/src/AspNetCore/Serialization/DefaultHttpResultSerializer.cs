@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -83,6 +82,14 @@ namespace HotChocolate.AspNetCore.Serialization
                 {
                     return HttpStatusCode.MethodNotAllowed;
                 }
+            }
+
+            // if a persisted query is not found when using the active persisted query pipeline
+            // is used we will return a success status code.
+            if (result.Errors is { Count: 1 } &&
+                result.Errors[0] is { Code: ErrorCodes.Execution.PersistedQueryNotFound })
+            {
+                return HttpStatusCode.OK;
             }
 
             return HttpStatusCode.InternalServerError;

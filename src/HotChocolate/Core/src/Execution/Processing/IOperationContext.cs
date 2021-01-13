@@ -7,6 +7,9 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution.Processing
 {
+    /// <summary>
+    /// The internal operation execution context.
+    /// </summary>
     internal interface IOperationContext : IHasContextData
     {
         /// <summary>
@@ -63,13 +66,48 @@ namespace HotChocolate.Execution.Processing
         /// <value></value>
         ITypeConverter Converter { get; }
 
+        /// <summary>
+        /// The result helper which provides utilities to build up the result.
+        /// </summary>
         IResultHelper Result { get; }
 
+        /// <summary>
+        /// The execution context proved the processing state.
+        /// </summary>
         IExecutionContext Execution { get; }
 
-        // TODO : documentation -> remember this are the raw collected fields without visibility
+        /// <summary>
+        /// Get the fields for the specified selection set according to the execution plan.
+        /// The selection set will show all possibilities and needs to be pre-processed.
+        /// </summary>
+        /// <param name="selectionSet">
+        /// The selection set syntax for which we want to get the compiled selection set.
+        /// </param>
+        /// <param name="typeContext">
+        /// The type context.
+        /// </param>
+        /// <returns></returns>
         ISelectionSet CollectFields(
             SelectionSetNode selectionSet,
             ObjectType typeContext);
+
+        /// <summary>
+        /// Register cleanup tasks that will be executed after resolver execution is finished.
+        /// </summary>
+        /// <param name="action">
+        /// Cleanup action.
+        /// </param>
+        void RegisterForCleanup(Action action);
+
+        /// <summary>
+        /// Get the query root instance.
+        /// </summary>
+        /// <typeparam name="T">
+        /// The type of the query root.
+        /// </typeparam>
+        /// <returns>
+        /// Returns the query root instance.
+        /// </returns>
+        T GetQueryRoot<T>();
     }
 }

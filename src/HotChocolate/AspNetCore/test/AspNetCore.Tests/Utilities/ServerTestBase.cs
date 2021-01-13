@@ -7,6 +7,7 @@ using Xunit;
 using System;
 using HotChocolate.AspNetCore.Extensions;
 using HotChocolate.AspNetCore.Serialization;
+using HotChocolate.Execution;
 
 namespace HotChocolate.AspNetCore.Utilities
 {
@@ -33,6 +34,14 @@ namespace HotChocolate.AspNetCore.Utilities
                         .AddExportDirectiveType()
                         .AddStarWarsRepositories()
                         .AddInMemorySubscriptions()
+                        .UseActivePersistedQueryPipeline()
+                        .ConfigureSchemaServices(services => 
+                            services
+                                .AddSingleton<PersistedQueryCache>()
+                                .AddSingleton<IReadStoredQueries>(
+                                    c => c.GetService<PersistedQueryCache>())
+                                .AddSingleton<IWriteStoredQueries>(
+                                    c => c.GetService<PersistedQueryCache>()))
                     .AddGraphQLServer("evict")
                         .AddQueryType(d => d.Name("Query"))
                         .AddTypeExtension<QueryExtension>()
