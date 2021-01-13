@@ -1,7 +1,7 @@
 import { graphql } from "gatsby";
 import React, { FunctionComponent } from "react";
 import styled from "styled-components";
-import { Link } from "./link";
+import { Link } from "../misc/link";
 
 interface BlogArticleTagsProperties {
   tags: string[];

@@ -18,13 +18,13 @@ namespace HotChocolate.Stitching.Delegation
         {
             if (context.Result is SerializedData s)
             {
-                context.Result = s.Data is IDictionary<string, object> d
+                context.Result = s.Data is IReadOnlyDictionary<string, object> d
                     ? d
                     : DictionaryDeserializer.DeserializeResult(context.Field.Type, s.Data);
             }
             else if (context.Result is null &&
                 !context.Field.Directives.Contains(DirectiveNames.Computed) &&
-                context.Parent<object>() is IDictionary<string, object> dict)
+                context.Parent<object>() is IReadOnlyDictionary<string, object> dict)
             {
                 string responseName = context.Selection.SyntaxNode.Alias == null
                     ? context.Selection.SyntaxNode.Name.Value

@@ -12,8 +12,7 @@ namespace HotChocolate.Execution.Processing
 {
     internal sealed partial class SubscriptionExecutor
     {
-        private sealed class Subscription
-            : IAsyncDisposable
+        private sealed class Subscription : IAsyncDisposable
         {
             private readonly ObjectPool<OperationContext> _operationContextPool;
             private readonly QueryExecutor _queryExecutor;
@@ -21,8 +20,9 @@ namespace HotChocolate.Execution.Processing
             private readonly IRequestContext _requestContext;
             private readonly ObjectType _subscriptionType;
             private readonly ISelectionSet _rootSelections;
+            private readonly Func<object> _resolveQueryRootValue;
             private ISourceStream _sourceStream = default!;
-            private object? _cachedRootValue = null;
+            private object? _cachedRootValue;
             private bool _disposed;
 
             private Subscription(
@@ -31,6 +31,7 @@ namespace HotChocolate.Execution.Processing
                 IRequestContext requestContext,
                 ObjectType subscriptionType,
                 ISelectionSet rootSelections,
+                Func<object> resolveQueryRootValue,
                 IDiagnosticEvents diagnosticEvents)
             {
                 _operationContextPool = operationContextPool;
@@ -38,6 +39,7 @@ namespace HotChocolate.Execution.Processing
                 _requestContext = requestContext;
                 _subscriptionType = subscriptionType;
                 _rootSelections = rootSelections;
+                _resolveQueryRootValue = resolveQueryRootValue;
                 _diagnosticEvents = diagnosticEvents;
             }
 
@@ -47,7 +49,8 @@ namespace HotChocolate.Execution.Processing
                 IRequestContext requestContext,
                 ObjectType subscriptionType,
                 ISelectionSet rootSelections,
-                IDiagnosticEvents diagnosicEvents)
+                Func<object> resolveQueryRootValue,
+                IDiagnosticEvents diagnosticsEvents)
             {
                 var subscription = new Subscription(
                     operationContextPool,
@@ -55,7 +58,8 @@ namespace HotChocolate.Execution.Processing
                     requestContext,
                     subscriptionType,
                     rootSelections,
-                    diagnosicEvents);
+                    resolveQueryRootValue,
+                    diagnosticsEvents);
 
                 subscription._sourceStream =  await subscription
                     .SubscribeAsync()
@@ -116,8 +120,9 @@ namespace HotChocolate.Execution.Processing
                         eventServices,
                         dispatcher,
                         _requestContext.Operation!,
+                        _requestContext.Variables!,
                         rootValue,
-                        _requestContext.Variables!);
+                        _resolveQueryRootValue);
 
                     return await _queryExecutor
                         .ExecuteAsync(operationContext, scopedContext)
@@ -147,15 +152,16 @@ namespace HotChocolate.Execution.Processing
 
                     // next we need to initialize our operation context so that we have access to
                     // variables services and other things.
-                    // The subscribe resolver will use a noop dispatcher and all DataLoader are 
+                    // The subscribe resolver will use a noop dispatcher and all DataLoader are
                     // dispatched immediately.
                     operationContext.Initialize(
                         _requestContext,
                         _requestContext.Services,
                         NoopBatchDispatcher.Default,
                         _requestContext.Operation!,
+                        _requestContext.Variables!,
                         rootValue,
-                        _requestContext.Variables!);
+                        _resolveQueryRootValue);
 
                     // next we need a result map so that we can store the subscribe temporarily
                     // while executing the subscribe pipeline.

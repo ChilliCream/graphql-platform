@@ -3,7 +3,7 @@ import { useCookies } from "react-cookie";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
 import { State } from "../../state";
-import { Link } from "./link";
+import { Link } from "../misc/link";
 import { hideLegacyDocHeader, showLegacyDocInfo } from "../../state/common";
 
 import TimesIconSvg from "../../images/times.svg";

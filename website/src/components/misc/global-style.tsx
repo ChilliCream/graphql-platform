@@ -2,23 +2,43 @@ import { createGlobalStyle } from "styled-components";
 
 export const GlobalStyle = createGlobalStyle`
   html {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+    height: 100%;
+
     font-family: sans-serif;
     -ms-text-size-adjust: 100%;
     -webkit-text-size-adjust: 100%;
   }
 
   body {
-    width: 100vw;
-    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+    height: 100%;
+    margin: 0;
+
     font-size: 18px;
     line-height: 30px;
-    background-color: #252d3c;
     color: #667;
-    overflow-x: hidden;
     scroll-behavior: smooth;
 
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+
+    > div {
+      height: 100%;
+      display: block;
+      > div {
+        height: 100%;
+        display: grid;
+        grid-template-rows: 60px auto;
+        grid-template-columns: 1fr;
+      }
+    }
   }
 
   * {

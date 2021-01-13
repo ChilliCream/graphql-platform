@@ -349,6 +349,68 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder;
         }
 
+        public static IRequestExecutorBuilder AddLocalSchema(
+            this IRequestExecutorBuilder builder,
+            NameString schemaName,
+            bool ignoreRootTypes = false)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            schemaName.EnsureNotEmpty(nameof(schemaName));
+
+            // Next, we will register a request executor proxy with the stitched schema,
+            // that the stitching runtime will use to send requests to the schema representing
+            // the downstream service.
+            builder
+                .ConfigureSchemaAsync(async (services, schemaBuilder, cancellationToken) =>
+                {
+                    IInternalRequestExecutorResolver noLockExecutorResolver =
+                        services.GetRequiredService<IInternalRequestExecutorResolver>();
+
+                    IRequestExecutor executor = await noLockExecutorResolver
+                        .GetRequestExecutorNoLockAsync(schemaName, cancellationToken)
+                        .ConfigureAwait(false);
+
+                    var autoProxy = AutoUpdateRequestExecutorProxy.Create(
+                        new RequestExecutorProxy(
+                            services.GetRequiredService<IRequestExecutorResolver>(),
+                            schemaName),
+                        executor);
+
+                    schemaBuilder
+                        .AddRemoteExecutor(schemaName, autoProxy)
+                        .TryAddSchemaInterceptor<StitchingSchemaInterceptor>()
+                        .TryAddTypeInterceptor<StitchingTypeInterceptor>();
+
+                    schemaBuilder.AddTypeRewriter(
+                        new RemoveFieldRewriter(
+                            new FieldReference(
+                                autoProxy.Schema.QueryType.Name,
+                                SchemaDefinitionFieldNames.SchemaDefinitionField),
+                            schemaName));
+
+                    schemaBuilder.AddDocumentRewriter(
+                        new RemoveTypeRewriter(
+                            SchemaDefinitionType.Names.SchemaDefinition,
+                            schemaName));
+                });
+
+            // Last but not least, we will setup the stitching context which will
+            // provide access to the remote executors which in turn use the just configured
+            // request executor proxies to send requests to the downstream services.
+            builder.Services.TryAddScoped<IStitchingContext, StitchingContext>();
+
+            if (ignoreRootTypes)
+            {
+                builder.AddDocumentRewriter(new RemoveRootTypeRewriter(schemaName));
+            }
+
+            return builder;
+        }
+
         /// <summary>
         /// Add a type merge rule in order to define how a type is merged.
         /// </summary>
