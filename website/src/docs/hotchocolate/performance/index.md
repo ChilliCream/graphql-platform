@@ -1,5 +1,5 @@
 ---
-title: "Performance"
+title: "Overview"
 ---
 
 # Persisted queries and automatic persisted queries
