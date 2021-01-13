@@ -5,7 +5,6 @@ import { GetHeaderDataQuery } from "../../../graphql-types";
 import { IconContainer } from "../misc/icon-container";
 import { Link } from "../misc/link";
 import { Search } from "../misc/search";
-import { useScroll } from "../misc/useScroll";
 
 import BarsIconSvg from "../../images/bars.svg";
 import GithubIconSvg from "../../images/github.svg";
@@ -14,9 +13,14 @@ import LogoTextSvg from "../../images/chillicream-text.svg";
 import SlackIconSvg from "../../images/slack.svg";
 import TimesIconSvg from "../../images/times.svg";
 import TwitterIconSvg from "../../images/twitter.svg";
+import { useSelector } from "react-redux";
+import { State } from "../../state";
 
 export const Header: FunctionComponent = () => {
-  const [enableShadow, setEnableShadow] = useState<boolean>(false);
+  const showShadow = useSelector<State, boolean>(
+    (state) => state.common.yScrollPosition > 0
+  );
+
   const [topNavOpen, setTopNavOpen] = useState<boolean>(false);
   const data = useStaticQuery<GetHeaderDataQuery>(graphql`
     query getHeaderData {
@@ -46,12 +50,8 @@ export const Header: FunctionComponent = () => {
     setTopNavOpen(false);
   };
 
-  useScroll((top) => {
-    setEnableShadow(top > 0);
-  });
-
   return (
-    <Container enableShadow={enableShadow}>
+    <Container enableShadow={showShadow}>
       <BodyStyle disableScrolling={topNavOpen} />
       <ContainerWrapper>
         <LogoLink to="/">
@@ -112,7 +112,7 @@ export const Header: FunctionComponent = () => {
 
 const Container = styled.header<{ enableShadow: boolean }>`
   position: fixed;
-  z-index: 20;
+  z-index: 30;
   width: 100vw;
   height: 60px;
   background-color: #f40010;
