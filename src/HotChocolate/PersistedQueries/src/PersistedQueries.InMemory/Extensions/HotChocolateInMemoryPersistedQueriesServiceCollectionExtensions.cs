@@ -3,6 +3,7 @@ using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.PersistedQueries.FileSystem;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace HotChocolate
 {
@@ -22,8 +23,7 @@ namespace HotChocolate
         /// The directory path that shall be used to store queries.
         /// </param>
         public static IServiceCollection AddInMemoryQueryStorage(
-            this IServiceCollection services,
-            string? cacheDirectory = null)
+            this IServiceCollection services)
         {
             if (services is null)
             {
@@ -31,7 +31,7 @@ namespace HotChocolate
             }
 
             return services
-                .AddReadOnlyInMemoryQueryStorage(cacheDirectory)
+                .AddReadOnlyInMemoryQueryStorage()
                 .AddSingleton<IWriteStoredQueries>(
                     sp => sp.GetRequiredService<InMemoryQueryStorage>());
         }
@@ -47,8 +47,7 @@ namespace HotChocolate
         /// The directory path that shall be used to read queries from.
         /// </param>
         public static IServiceCollection AddReadOnlyInMemoryQueryStorage(
-            this IServiceCollection services,
-            string? cacheDirectory = null)
+            this IServiceCollection services)
         {
             if (services is null)
             {
@@ -58,7 +57,9 @@ namespace HotChocolate
             return services
                 .RemoveService<IReadStoredQueries>()
                 .RemoveService<IWriteStoredQueries>()
-                .AddSingleton<InMemoryQueryStorage>()
+                .AddSingleton(c => new InMemoryQueryStorage(
+                    c.GetService<IMemoryCache>() ?? 
+                    c.GetApplicationService<IMemoryCache>()))
                 .AddSingleton<IReadStoredQueries>(
                     sp => sp.GetRequiredService<InMemoryQueryStorage>());
         }

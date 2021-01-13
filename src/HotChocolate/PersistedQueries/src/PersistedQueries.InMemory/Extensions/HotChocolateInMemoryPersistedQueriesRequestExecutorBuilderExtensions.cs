@@ -20,8 +20,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// The directory path that shall be used to store queries.
         /// </param>
         public static IRequestExecutorBuilder AddInMemoryQueryStorage(
-            this IRequestExecutorBuilder builder,
-            string? cacheDirectory = null)
+            this IRequestExecutorBuilder builder)
         {
             if (builder is null)
             {
@@ -29,7 +28,7 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             return builder.ConfigureSchemaServices(
-                s => s.AddInMemoryQueryStorage(cacheDirectory));
+                s => s.AddInMemoryQueryStorage());
         }
 
         /// <summary>
@@ -43,8 +42,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// The directory path that shall be used to read queries from.
         /// </param>
         public static IRequestExecutorBuilder AddReadOnlyInMemoryQueryStorage(
-            this IRequestExecutorBuilder builder,
-            string? cacheDirectory = null)
+            this IRequestExecutorBuilder builder)
         {
             if (builder is null)
             {
@@ -52,7 +50,7 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             return builder.ConfigureSchemaServices(
-                s => s.AddReadOnlyInMemoryQueryStorage(cacheDirectory));
+                s => s.AddReadOnlyInMemoryQueryStorage());
         }
     }
 }
