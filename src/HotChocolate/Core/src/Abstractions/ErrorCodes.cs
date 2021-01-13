@@ -114,5 +114,15 @@ namespace HotChocolate
             public const string TypeNotDefined = "STITCHING_TYPE_NOT_DEFINED";
             public const string ArgumentNotFound = "STITCHING_DEL_ARGUMENT_NOT_FOUND";
         }
+
+        public static class Data
+        {
+            public const string NonNullError = "HC0026";
+            public const string ListNotSupported = "HC0021";
+            public const string MoreThanOneElement = "HC0022";
+            public const string FilteringProjectionFailed = "HC0023";
+            public const string SortingProjectionFailed = "HC0024";
+            public const string NoPagingationProviderFound = "HC0025";
+        }
     }
 }
