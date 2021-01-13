@@ -34,7 +34,6 @@ namespace HotChocolate.Data.Filters
             _configure = Configure;
         }
 
-
         /// <inheritdoc />
         public FilterProvider(Action<IFilterProviderDescriptor<TContext>> configure)
         {
