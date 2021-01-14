@@ -17,7 +17,7 @@ This can be done by extracting the queries from your client application at build
 
 Strawberry Shake, [Relay](https://relay.dev/docs/en/persisted-queries), and Apollo client all support this approach.
 
-Read more on how to set up your server for persisted queries [here]().
+Read more on how to set up your server for persisted queries [here](persisted-queries.md).
 
 ## Automatic persisted queries
 
