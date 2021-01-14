@@ -8,6 +8,18 @@ namespace HotChocolate
     /// </summary>
     public readonly struct FieldCoordinate : IEquatable<FieldCoordinate>
     {
+        /// <summary>
+        /// Initializes a new instance of <see cref="FieldCoordinate"/>.
+        /// </summary>
+        /// <param name="typeName">
+        /// The type name.
+        /// </param>
+        /// <param name="fieldName">
+        /// The field name.
+        /// </param>
+        /// <param name="argumentName">
+        /// The optional argument name.
+        /// </param>
         public FieldCoordinate(
             NameString typeName,
             NameString fieldName,
@@ -19,6 +31,9 @@ namespace HotChocolate
             HasValue = true;
         }
 
+        /// <summary>
+        /// Deconstructs this type into its parts
+        /// </summary>
         public void Deconstruct(
             out NameString typeName,
             out NameString fieldName,
@@ -37,10 +52,8 @@ namespace HotChocolate
         /// <returns></returns>
         public static FieldCoordinate CreateWithoutType(
             NameString fieldName,
-            NameString? argumentName = null)
-        {
-            return new FieldCoordinate("__Empty", fieldName, argumentName);
-        }
+            NameString? argumentName = null) =>
+            new("__Empty", fieldName, argumentName);
 
         /// <summary>
         /// Defines if this field coordinate is empty.
@@ -96,11 +109,27 @@ namespace HotChocolate
                    Nullable.Equals(ArgumentName, other.ArgumentName);
         }
 
+        /// <summary>
+        /// Indicates whether this instance and a specified object are equal.
+        /// </summary>
+        /// <param name="obj">
+        /// The object to compare with the current instance.
+        /// </param>
+        /// <returns>
+        /// true if <paramref name="obj">obj</paramref> and this instance
+        /// are the same type and represent the same value; otherwise, false.
+        /// </returns>
         public override bool Equals(object obj)
         {
             return obj is FieldCoordinate other && Equals(other);
         }
 
+        /// <summary>
+        /// Returns the hash code for this instance.
+        /// </summary>
+        /// <returns>
+        /// A 32-bit signed integer that is the hash code for this instance.
+        /// </returns>
         public override int GetHashCode()
         {
             unchecked
@@ -112,6 +141,12 @@ namespace HotChocolate
             }
         }
 
+        /// <summary>
+        /// Returns the string representation of this field coordinate.
+        /// </summary>
+        /// <returns>
+        /// A fully qualified field reference string.
+        /// </returns>
         public override string ToString()
         {
             if (ArgumentName is null)
