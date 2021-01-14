@@ -93,7 +93,7 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
-## Step 3: Verify our setup
+## Step 3: Verify server setup
 
 Now that our server is set up with automatic persisted queries, let us verify that it works as expected. We can do that by just using our console and a tool called `curl`. For our example, we will use a dummy query `{__typename}` with an MD5 hash serialized to base64 as a query id `71yeex4k3iYWQgg9TilDIg==`. We will test the full automatic persisted query flow and walk you through the responses.
 
@@ -281,15 +281,15 @@ curl -g 'http://localhost:5000/graphql/?query={__typename}&extensions={"persiste
 }
 ```
 
-1. Stop your GraphQL server.
+6. Stop your GraphQL server.
 
-1. Start your GraphQL server again.
+7. Start your GraphQL server again.
 
 ```bash
 dotnet run
 ```
 
-1. let us execute the optimized query to see if our query was correctly stored on our Redis cache.
+8. Let us execute the optimized query to see if our query was correctly stored on our Redis cache.
 
 **Request**
 
