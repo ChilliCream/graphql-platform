@@ -1,0 +1,42 @@
+﻿namespace StarWarsClient
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetHeroResultInfo
+        : IOperationResultDataInfoInfo
+    {
+        private readonly IReadOnlyCollection<EntityId> _entityIds;
+        private readonly ulong _version;
+
+        public GetHeroResultInfo(
+            EntityId hero,
+            string version,
+            IReadOnlyCollection<EntityId> entityIds,
+            ulong version)
+        {
+            Hero = hero;
+            Version = version;
+            _entityIds = entityIds
+                 ?? throw new ArgumentNullException(nameof(entityIds));
+            _version = version
+                 ?? throw new ArgumentNullException(nameof(version));
+        }
+
+        public EntityId Hero { get; }
+
+        public string Version { get; }
+
+        public IReadOnlyCollection<EntityId> IOperationResultDataInfo.EntityIds => _entityIds;
+
+        public ulong IOperationResultDataInfo.Version => _version;
+
+        public GetHeroResultInfo IOperationResultDataInfo.WithVersion(ulong version)
+        {
+            return new GetHeroResultInfo(
+                Hero,
+                Version,
+                _entityIds,
+                _version
+            );
+        }
+    }
+}

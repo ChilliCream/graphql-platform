@@ -16,8 +16,6 @@
     <Compile Remove="Generators\OperationServiceGenerator.cs" />
     <Compile Remove="Generators\ResultDataFactoryGenerator.cs" />
     <Compile Remove="Generators\ResultFromEntityTypeMapperGenerator.cs" />
-    <Compile Remove="Generators\ResultInfoGenerator.cs" />
-    <Compile Remove="Generators\ResultTypeGenerator.cs" />
   </ItemGroup>
 
   <ItemGroup>
