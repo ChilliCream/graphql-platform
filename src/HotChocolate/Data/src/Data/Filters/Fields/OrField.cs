@@ -13,7 +13,7 @@ namespace HotChocolate.Data.Filters
         internal OrField(
             IDescriptorContext context,
             string? scope)
-            : base(CreateDefinition(context, scope))
+            : base(CreateDefinition(context, scope), default)
         {
         }
 
@@ -25,6 +25,8 @@ namespace HotChocolate.Data.Filters
             ITypeCompletionContext context,
             InputFieldDefinition definition)
         {
+            Coordinate = Coordinate.With(typeName: context.Type.Name);
+
             definition.Type = TypeReference.Create(
                 new ListTypeNode(
                     new NonNullTypeNode(

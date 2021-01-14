@@ -11,7 +11,7 @@ namespace HotChocolate.Data.Filters
         , IFilterField
     {
         internal FilterField(FilterFieldDefinition definition)
-            : base(definition)
+            : base(definition, default)
         {
             Member = definition.Member;
             Handler = definition.Handler;
