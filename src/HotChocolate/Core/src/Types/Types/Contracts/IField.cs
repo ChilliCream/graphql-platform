@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
-
-#nullable enable
+﻿#nullable enable
 
 namespace HotChocolate.Types
 {
+    /// <summary>
+    /// Represents a field or argument of input- or output-types.
+    /// </summary>
     public interface IField
         : IHasName
         , IHasDescription
