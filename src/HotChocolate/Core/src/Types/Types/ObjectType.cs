@@ -98,7 +98,11 @@ namespace HotChocolate.Types
 
                 // create fields with the specified sorting settings ...
                 var sortByName = context.DescriptorContext.Options.SortFieldsByName;
-                var fields = definition.Fields.Select(t => new ObjectField(t, sortByName)).ToList();
+                var fields = definition.Fields.Select(
+                    t => new ObjectField(
+                        t,
+                        new FieldCoordinate(Name, t.Name),
+                        sortByName)).ToList();
                 Fields = new FieldCollection<ObjectField>(fields, sortByName);
 
                 // resolve interface references

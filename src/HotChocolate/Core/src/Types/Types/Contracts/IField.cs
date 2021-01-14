@@ -10,12 +10,16 @@ namespace HotChocolate.Types
         , IHasDirectives
         , IHasSyntaxNode
         , IHasRuntimeType
+        , IHasReadOnlyContextData
     {
         /// <summary>
-        /// The type of which declares this field.
+        /// Gets the type of which declares this field.
         /// </summary>
         ITypeSystemObject DeclaringType { get; }
 
-        IReadOnlyDictionary<string, object?> ContextData { get; }
+        /// <summary>
+        /// Field coordinate help with pointing to a field or argument in the schema.
+        /// </summary>
+        FieldCoordinate Coordinate { get; }
     }
 }
