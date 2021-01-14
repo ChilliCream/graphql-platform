@@ -23,7 +23,8 @@ namespace HotChocolate.Execution.Processing
         }
 
         public async Task<IExecutionResult> ExecuteAsync(
-            IRequestContext requestContext)
+            IRequestContext requestContext,
+            Func<object> resolveQueryValue)
         {
             if (requestContext is null)
             {
@@ -57,6 +58,7 @@ namespace HotChocolate.Execution.Processing
                     requestContext,
                     requestContext.Operation.RootType,
                     selectionSet,
+                    resolveQueryValue,
                     _diagnosticEvents)
                     .ConfigureAwait(false);
 

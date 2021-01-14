@@ -54,12 +54,13 @@ namespace HotChocolate.Stitching.Delegation
                     reversePath = ImmutableStack.CreateRange(path);
                 }
 
-                IReadOnlyQueryRequest request =
+                IQueryRequest request =
                     CreateQuery(context, delegateDirective.Schema, path, reversePath);
 
-                IReadOnlyQueryResult result = await ExecuteQueryAsync(
+                IQueryResult result = await ExecuteQueryAsync(
                     context, request, delegateDirective.Schema)
                     .ConfigureAwait(false);
+                context.RegisterForCleanup(result.Dispose);
 
                 UpdateContextData(context, result, delegateDirective);
 
@@ -76,7 +77,7 @@ namespace HotChocolate.Stitching.Delegation
 
         private void UpdateContextData(
             IResolverContext context,
-            IReadOnlyQueryResult result,
+            IQueryResult result,
             DelegateDirective delegateDirective)
         {
             if (result.ContextData is { Count: > 0 })
@@ -113,12 +114,12 @@ namespace HotChocolate.Stitching.Delegation
                 schemaName, context.Document, context.Operation,
                 context.Selection, context.ObjectType);
 
-            IEnumerable<VariableValue> scopedVariables =
+            IEnumerable<ScopedVariableValue> scopedVariables =
                 ResolveScopedVariables(
                     context, schemaName, operationType,
                     reversePath, fieldRewriter);
 
-            IReadOnlyCollection<VariableValue> variableValues =
+            IReadOnlyCollection<ScopedVariableValue> variableValues =
                 CreateVariableValues(
                     context, schemaName, scopedVariables,
                     extractedField, fieldRewriter);
@@ -154,7 +155,7 @@ namespace HotChocolate.Stitching.Delegation
 
         private static async Task<IReadOnlyQueryResult> ExecuteQueryAsync(
             IResolverContext context,
-            IReadOnlyQueryRequest request,
+            IQueryRequest request,
             string schemaName)
         {
             IStitchingContext stitchingContext = context.Service<IStitchingContext>();
@@ -306,7 +307,7 @@ namespace HotChocolate.Stitching.Delegation
 
                 current = fieldPath;
 
-                for (int i = 0; i < paths.Length; i++)
+                for (var i = 0; i < paths.Length; i++)
                 {
                     if (paths[i] is IndexerPathSegment index)
                     {
@@ -329,21 +330,21 @@ namespace HotChocolate.Stitching.Delegation
         private static bool IsHttpError(IError error) =>
             error.Code == ErrorCodes.Stitching.HttpRequestException;
 
-        private static IReadOnlyCollection<VariableValue> CreateVariableValues(
+        private static IReadOnlyCollection<ScopedVariableValue> CreateVariableValues(
             IMiddlewareContext context,
             NameString schemaName,
-            IEnumerable<VariableValue> scopedVariables,
+            IEnumerable<ScopedVariableValue> scopedVariables,
             ExtractedField extractedField,
             ExtractFieldQuerySyntaxRewriter rewriter)
         {
-            var values = new Dictionary<string, VariableValue>();
+            var values = new Dictionary<string, ScopedVariableValue>();
 
-            foreach (VariableValue value in scopedVariables)
+            foreach (ScopedVariableValue value in scopedVariables)
             {
                 values[value.Name] = value;
             }
 
-            foreach (VariableValue value in ResolveUsedRequestVariables(
+            foreach (ScopedVariableValue value in ResolveUsedRequestVariables(
                 context.Schema, schemaName, extractedField,
                 context.Variables, rewriter))
             {
@@ -353,14 +354,14 @@ namespace HotChocolate.Stitching.Delegation
             return values.Values;
         }
 
-        private static IReadOnlyList<VariableValue> ResolveScopedVariables(
+        private static IReadOnlyList<ScopedVariableValue> ResolveScopedVariables(
             IResolverContext context,
             NameString schemaName,
             OperationType operationType,
             IImmutableStack<SelectionPathComponent> reversePath,
             ExtractFieldQuerySyntaxRewriter rewriter)
         {
-            var variables = new List<VariableValue>();
+            var variables = new List<ScopedVariableValue>();
 
             IStitchingContext stitchingContext = context.Service<IStitchingContext>();
             ISchema remoteSchema = stitchingContext.GetRemoteSchema(schemaName);
@@ -415,7 +416,7 @@ namespace HotChocolate.Stitching.Delegation
                 NameString schemaName,
                 SelectionPathComponent component,
                 IOutputField field,
-                ICollection<VariableValue> variables,
+                ICollection<ScopedVariableValue> variables,
                 ExtractFieldQuerySyntaxRewriter rewriter)
         {
             foreach (ArgumentNode argument in component.Arguments)
@@ -434,7 +435,7 @@ namespace HotChocolate.Stitching.Delegation
 
                 if (argument.Value is ScopedVariableNode sv)
                 {
-                    VariableValue variable = _resolvers.Resolve(context, sv, arg.Type);
+                    ScopedVariableValue variable = _resolvers.Resolve(context, sv, arg.Type);
                     IValueNode value = rewriter.RewriteValueNode(
                         schemaName, arg.Type, variable.Value!);
                     variables.Add(variable.WithValue(value));
@@ -442,7 +443,7 @@ namespace HotChocolate.Stitching.Delegation
             }
         }
 
-        private static IEnumerable<VariableValue> ResolveUsedRequestVariables(
+        private static IEnumerable<ScopedVariableValue> ResolveUsedRequestVariables(
             ISchema schema,
             NameString schemaName,
             ExtractedField extractedField,
@@ -465,7 +466,7 @@ namespace HotChocolate.Stitching.Delegation
                     (IInputType)variable.Type.ToType(namedType),
                     value);
 
-                yield return new VariableValue
+                yield return new ScopedVariableValue
                 (
                     name,
                     variable.Type,
@@ -478,7 +479,7 @@ namespace HotChocolate.Stitching.Delegation
         private static void AddVariables(
             IQueryRequestBuilder builder,
             DocumentNode query,
-            IEnumerable<VariableValue> variableValues)
+            IEnumerable<ScopedVariableValue> variableValues)
         {
             OperationDefinitionNode operation =
                 query.Definitions.OfType<OperationDefinitionNode>().First();
@@ -487,7 +488,7 @@ namespace HotChocolate.Stitching.Delegation
                 operation.VariableDefinitions.Select(t =>
                     t.Variable.Name.Value));
 
-            foreach (VariableValue variableValue in variableValues)
+            foreach (ScopedVariableValue variableValue in variableValues)
             {
                 if (usedVariables.Contains(variableValue.Name))
                 {
@@ -497,11 +498,11 @@ namespace HotChocolate.Stitching.Delegation
         }
 
         private static IReadOnlyList<VariableDefinitionNode> CreateVariableDefs(
-            IReadOnlyCollection<VariableValue> variableValues)
+            IReadOnlyCollection<ScopedVariableValue> variableValues)
         {
             var definitions = new List<VariableDefinitionNode>();
 
-            foreach (VariableValue variableValue in variableValues)
+            foreach (ScopedVariableValue variableValue in variableValues)
             {
                 definitions.Add(new VariableDefinitionNode(
                     null,

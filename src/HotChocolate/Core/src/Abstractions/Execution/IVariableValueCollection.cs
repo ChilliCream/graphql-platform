@@ -1,4 +1,6 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 #nullable enable
 
@@ -7,7 +9,7 @@ namespace HotChocolate.Execution
     /// <summary>
     /// Represents a collection of coerced variables.
     /// </summary>
-    public interface IVariableValueCollection
+    public interface IVariableValueCollection : IEnumerable<VariableValue>
     {
         /// <summary>
         /// Gets a coerced variable value from the collection.
@@ -34,6 +36,6 @@ namespace HotChocolate.Execution
         /// <c>true</c> if a coerced variable exists and can be converted
         /// to the requested type; otherwise, <c>false</c> will be returned.
         /// </returns>
-        bool TryGetVariable<T>(NameString name, [NotNullWhen(true)]out T value);
+        bool TryGetVariable<T>(NameString name, [NotNullWhen(true)] out T value);
     }
 }

@@ -23,6 +23,11 @@ namespace HotChocolate
             public const string MustBeInputType = "HC0017";
             public const string InvalidType = "HC0016";
             public const string QueryNotFound = "HC0015";
+
+            /// <summary>
+            /// A persisted query was not found when using the active persisted query pipeline.
+            /// </summary>
+            public const string PersistedQueryNotFound = "HC0020";
             public const string TaskProcessingError = "HC0008";
             public const string SyntaxError = "HC0014";
             public const string CannotCreateRootValue = "HC0019";

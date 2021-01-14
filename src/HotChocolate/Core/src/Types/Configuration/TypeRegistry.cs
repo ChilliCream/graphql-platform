@@ -11,14 +11,11 @@ namespace HotChocolate.Configuration
 {
     internal sealed class TypeRegistry
     {
-        private readonly Dictionary<ITypeReference, RegisteredType> _typeRegister =
-            new Dictionary<ITypeReference, RegisteredType>();
+        private readonly Dictionary<ITypeReference, RegisteredType> _typeRegister = new();
         private readonly Dictionary<ExtendedTypeReference, ITypeReference> _runtimeTypeRefs =
-            new Dictionary<ExtendedTypeReference, ITypeReference>(
-                new ExtendedTypeReferenceEqualityComparer());
-        private readonly Dictionary<NameString, ITypeReference> _nameRefs =
-            new Dictionary<NameString, ITypeReference>();
-        private readonly List<RegisteredType> _types = new List<RegisteredType>();
+            new(new ExtendedTypeReferenceEqualityComparer());
+        private readonly Dictionary<NameString, ITypeReference> _nameRefs = new();
+        private readonly List<RegisteredType> _types = new();
 
         public int Count => _typeRegister.Count;
 
@@ -191,14 +188,26 @@ namespace HotChocolate.Configuration
 
         public void CompleteDiscovery()
         {
+            var refs = new List<ITypeReference>();
+
             foreach (RegisteredType registeredType in _types)
             {
-                _typeRegister[TypeReference.Create(registeredType.Type)] = registeredType;
+                refs.Clear();
+
+                ITypeReference reference = TypeReference.Create(registeredType.Type);
+                refs.Add(reference);
+
+                _typeRegister[reference] = registeredType;
 
                 if (registeredType.Type.Scope is { } s)
                 {
-                    _typeRegister[TypeReference.Create(registeredType.Type, s)] = registeredType;
+                    reference = TypeReference.Create(registeredType.Type, s);
+                    refs.Add(reference);
+
+                    _typeRegister[reference] = registeredType;
                 }
+
+                registeredType.AddReferences(refs);
             }
         }
     }

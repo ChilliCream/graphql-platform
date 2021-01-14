@@ -594,10 +594,26 @@ namespace HotChocolate.Types.Descriptors
                 typeof(ListType<NonNullType<StringType>>));
 
             // act
-            bool?[] nullability = typeInspector.CollectNullability(extendedType);
+            var nullability = typeInspector.CollectNullability(extendedType);
 
             // assert
-            Assert.Collection(nullability, item => Assert.True(item), item => Assert.False(item));
+            Assert.Collection(nullability, Assert.True, Assert.False);
+        }
+
+        [Fact]
+        public void EnsureOnlyThingsWeUnderstandAreInferred()
+        {
+            // arrange
+            var typeInspector = new DefaultTypeInspector();
+
+            // act
+            var members = typeInspector.GetMembers(typeof(DoNotInfer)).ToList();
+
+            // assert
+            Assert.Collection(
+                members.OrderBy(t => t.Name),
+                member => Assert.Equal("AsyncEnumerable", member.Name),
+                member => Assert.Equal("DoInfer", member.Name));
         }
 
         public class ObjectPropWithTypeAttribute
@@ -713,6 +729,58 @@ namespace HotChocolate.Types.Descriptors
         {
             Bar,
             Baz
+        }
+
+        public class DoNotInfer
+        {
+            private string _s = "";
+
+            public string DoInfer() => "abc";
+
+            public void ReturnsVoid() {}
+
+            public object ObjectProp { get; } = null;
+
+            public string ByRefParameter(ref string s) => s;
+
+            public string ByRefInParameter(in string s) => s;
+
+            public string OutParameter(out string s)
+            {
+                s = "";
+                return "";
+            }
+
+            public ref string ByRefReturn()
+            {
+                return ref _s;
+            }
+
+            public string TypeParameter(Type type) => "abc";
+
+            public string TypeParameter(ParameterInfo type) => "abc";
+
+            public string TypeParameter(MemberInfo type) => "abc";
+
+            public string ActionParam(Action action) => "abc";
+
+            public Type GetMyType() => typeof(Foo);
+
+            public IAsyncResult GetSomeAsyncResult() => null;
+
+            public async void GetAsyncVoid() { }
+
+#if !NETCOREAPP2_1
+            public string RefStruct(ReadOnlySpan<byte> bytes) => "";
+#endif
+
+            public Action Action { get; }
+
+            public async IAsyncEnumerable<string> AsyncEnumerable()
+            {
+                await Task.Delay(10);
+                yield return "abc";
+            }
         }
     }
 }

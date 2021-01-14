@@ -382,6 +382,12 @@ namespace HotChocolate.Validation.Rules
                 return true;
             }
 
+            if (inputType.IsEnumType() &&
+                value is StringValueNode)
+            {
+                return false;
+            }
+
             return internalType.IsInstanceOfType(value);
         }
 

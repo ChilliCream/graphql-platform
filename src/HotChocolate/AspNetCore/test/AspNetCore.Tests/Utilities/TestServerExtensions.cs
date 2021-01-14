@@ -172,6 +172,57 @@ namespace HotChocolate.AspNetCore.Utilities
             return result;
         }
 
+        public static async Task<ClientQueryResult> GetActivePersistedQueryAsync(
+            this TestServer testServer,
+            string hashName,
+            string hash,
+            string path = "/graphql")
+        {
+            HttpResponseMessage response =
+                await SendGetRequestAsync(
+                    testServer,
+                    $"extensions={{\"persistedQuery\":{{\"version\":1,\"{hashName}\":\"{hash}\"}}}}",
+                    path);
+
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return new ClientQueryResult { StatusCode = HttpStatusCode.NotFound };
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+            ClientQueryResult result = JsonConvert.DeserializeObject<ClientQueryResult>(json);
+            result.StatusCode = response.StatusCode;
+            result.ContentType = response.Content.Headers.ContentType.ToString();
+            return result;
+        }
+
+        public static async Task<ClientQueryResult> GetStoreActivePersistedQueryAsync(
+            this TestServer testServer,
+            string query,
+            string hashName,
+            string hash,
+            string path = "/graphql")
+        {
+            HttpResponseMessage response =
+                await SendGetRequestAsync(
+                    testServer,
+                    $"query={query}&" +
+                    "extensions={\"persistedQuery\":{\"version\":1," +
+                    $"\"{hashName}\":\"{hash}\"}}}}",
+                    path);
+
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return new ClientQueryResult { StatusCode = HttpStatusCode.NotFound };
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+            ClientQueryResult result = JsonConvert.DeserializeObject<ClientQueryResult>(json);
+            result.StatusCode = response.StatusCode;
+            result.ContentType = response.Content.Headers.ContentType.ToString();
+            return result;
+        }
+
         public static Task<HttpResponseMessage> SendPostRequestAsync<TObject>(
             this TestServer testServer, TObject requestBody, string path = "/graphql")
         {
@@ -203,7 +254,7 @@ namespace HotChocolate.AspNetCore.Utilities
             this TestServer testServer, string query, string path = null)
         {
             return testServer.CreateClient()
-                .GetAsync($"{CreateUrl(path)}?{query}");
+                .GetAsync($"{CreateUrl(path)}/?{query}");
         }
 
         public static string CreateUrl(string path)
