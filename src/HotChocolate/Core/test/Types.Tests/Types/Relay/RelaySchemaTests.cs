@@ -32,7 +32,22 @@ namespace HotChocolate.Types.Relay
                 .AddGraphQL()
                 .AddQueryType<QueryType>()
                 .AddMutationType<Mutation>()
-                .EnableRelaySupport(new RelayOptions { AddQueryFieldsToMutations = true })
+                .EnableRelaySupport(new RelayOptions { AddQueryFieldToMutationPayloads = true })
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task EnableRelay_AddQueryToMutationPayloads_With_Extensions()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .AddMutationType(d => d.Name("Mutation"))
+                .AddTypeExtension<MutationExtension>()
+                .EnableRelaySupport(new RelayOptions { AddQueryFieldToMutationPayloads = true })
                 .BuildSchemaAsync()
                 .MatchSnapshotAsync();
         }
@@ -46,7 +61,7 @@ namespace HotChocolate.Types.Relay
                 .AddGraphQL()
                 .AddQueryType<QueryType>()
                 .AddMutationType<Mutation>()
-                .EnableRelaySupport(new RelayOptions { AddQueryFieldsToMutations = true })
+                .EnableRelaySupport(new RelayOptions { AddQueryFieldToMutationPayloads = true })
                 .ExecuteRequestAsync("mutation { foo { query { some { id } } } }")
                 .MatchSnapshotAsync();
         }
@@ -60,7 +75,7 @@ namespace HotChocolate.Types.Relay
                 .AddGraphQL()
                 .AddQueryType<Query>()
                 .AddMutationType<Mutation>()
-                .EnableRelaySupport(new RelayOptions { AddQueryFieldsToMutations = true })
+                .EnableRelaySupport(new RelayOptions { AddQueryFieldToMutationPayloads = true })
                 .ExecuteRequestAsync("mutation { foo { query { some { id } } } }")
                 .MatchSnapshotAsync();
         }
@@ -107,6 +122,12 @@ namespace HotChocolate.Types.Relay
         }
 
         public class Mutation
+        {
+            public FooPayload Foo() => new();
+        }
+
+        [ExtendObjectType(Name = "Mutation")]
+        public class MutationExtension
         {
             public FooPayload Foo() => new();
         }

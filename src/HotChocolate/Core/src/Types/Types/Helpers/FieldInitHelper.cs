@@ -12,22 +12,25 @@ namespace HotChocolate.Types
     {
         public static IValueNode CreateDefaultValue(
             ITypeCompletionContext context,
-            ArgumentDefinition definition,
-            IInputType fieldType)
+            ArgumentDefinition argumentDefinition,
+            IInputType argumentType,
+            FieldCoordinate argumentCoordinate)
         {
             try
             {
-                return definition.NativeDefaultValue != null
-                    ? fieldType.ParseValue(definition.NativeDefaultValue)
-                    : definition.DefaultValue;
+                return argumentDefinition.NativeDefaultValue != null
+                    ? argumentType.ParseValue(argumentDefinition.NativeDefaultValue)
+                    : argumentDefinition.DefaultValue;
             }
             catch (Exception ex)
             {
                 context.ReportError(SchemaErrorBuilder.New()
-                    .SetMessage(TypeResources.FieldInitHelper_InvalidDefaultValue)
+                    .SetMessage(
+                        TypeResources.FieldInitHelper_InvalidDefaultValue,
+                        argumentCoordinate)
                     .SetCode(ErrorCodes.Schema.MissingType)
                     .SetTypeSystemObject(context.Type)
-                    .AddSyntaxNode(definition.SyntaxNode)
+                    .AddSyntaxNode(argumentDefinition.SyntaxNode)
                     .SetException(ex)
                     .Build());
                 return NullValueNode.Default;

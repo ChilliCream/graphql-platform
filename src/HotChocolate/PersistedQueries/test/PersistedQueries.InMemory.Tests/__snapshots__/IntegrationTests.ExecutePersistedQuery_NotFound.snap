@@ -1,0 +1,10 @@
+﻿{
+  "errors": [
+    {
+      "message": "The query request contains no document.",
+      "extensions": {
+        "code": "HC0015"
+      }
+    }
+  ]
+}
