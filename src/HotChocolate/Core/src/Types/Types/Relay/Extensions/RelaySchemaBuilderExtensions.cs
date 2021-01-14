@@ -14,7 +14,7 @@ namespace HotChocolate
         {
             options ??= new();
 
-            if (options.AddQueryFieldsToMutations)
+            if (options.AddQueryFieldToMutationPayloads)
             {
                 schemaBuilder.TryAddTypeInterceptor<QueryFieldTypeInterceptor>();
             }

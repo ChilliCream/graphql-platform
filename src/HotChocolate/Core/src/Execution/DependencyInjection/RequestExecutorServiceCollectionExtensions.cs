@@ -136,26 +136,32 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
         public static IServiceCollection AddMD5DocumentHashProvider(
-            this IServiceCollection services)
+            this IServiceCollection services,
+            HashFormat format = HashFormat.Base64)
         {
             services.RemoveAll<IDocumentHashProvider>();
-            services.AddSingleton<IDocumentHashProvider, MD5DocumentHashProvider>();
+            services.AddSingleton<IDocumentHashProvider>(
+                new MD5DocumentHashProvider(format));
             return services;
         }
 
         public static IServiceCollection AddSha1DocumentHashProvider(
-            this IServiceCollection services)
+            this IServiceCollection services,
+            HashFormat format = HashFormat.Base64)
         {
             services.RemoveAll<IDocumentHashProvider>();
-            services.AddSingleton<IDocumentHashProvider, Sha1DocumentHashProvider>();
+            services.AddSingleton<IDocumentHashProvider>(
+                new Sha1DocumentHashProvider(format));
             return services;
         }
 
         public static IServiceCollection AddSha256DocumentHashProvider(
-            this IServiceCollection services)
+            this IServiceCollection services,
+            HashFormat format = HashFormat.Base64)
         {
             services.RemoveAll<IDocumentHashProvider>();
-            services.AddSingleton<IDocumentHashProvider, Sha256DocumentHashProvider>();
+            services.AddSingleton<IDocumentHashProvider>(
+                new Sha256DocumentHashProvider(format));
             return services;
         }
 

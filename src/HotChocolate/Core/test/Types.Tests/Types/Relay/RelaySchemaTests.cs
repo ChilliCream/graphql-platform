@@ -32,7 +32,7 @@ namespace HotChocolate.Types.Relay
                 .AddGraphQL()
                 .AddQueryType<QueryType>()
                 .AddMutationType<Mutation>()
-                .EnableRelaySupport(new RelayOptions { AddQueryFieldsToMutations = true })
+                .EnableRelaySupport(new RelayOptions { AddQueryFieldToMutationPayloads = true })
                 .BuildSchemaAsync()
                 .MatchSnapshotAsync();
         }
@@ -47,7 +47,7 @@ namespace HotChocolate.Types.Relay
                 .AddQueryType<QueryType>()
                 .AddMutationType(d => d.Name("Mutation"))
                 .AddTypeExtension<MutationExtension>()
-                .EnableRelaySupport(new RelayOptions { AddQueryFieldsToMutations = true })
+                .EnableRelaySupport(new RelayOptions { AddQueryFieldToMutationPayloads = true })
                 .BuildSchemaAsync()
                 .MatchSnapshotAsync();
         }
@@ -61,7 +61,7 @@ namespace HotChocolate.Types.Relay
                 .AddGraphQL()
                 .AddQueryType<QueryType>()
                 .AddMutationType<Mutation>()
-                .EnableRelaySupport(new RelayOptions { AddQueryFieldsToMutations = true })
+                .EnableRelaySupport(new RelayOptions { AddQueryFieldToMutationPayloads = true })
                 .ExecuteRequestAsync("mutation { foo { query { some { id } } } }")
                 .MatchSnapshotAsync();
         }
@@ -75,7 +75,7 @@ namespace HotChocolate.Types.Relay
                 .AddGraphQL()
                 .AddQueryType<Query>()
                 .AddMutationType<Mutation>()
-                .EnableRelaySupport(new RelayOptions { AddQueryFieldsToMutations = true })
+                .EnableRelaySupport(new RelayOptions { AddQueryFieldToMutationPayloads = true })
                 .ExecuteRequestAsync("mutation { foo { query { some { id } } } }")
                 .MatchSnapshotAsync();
         }

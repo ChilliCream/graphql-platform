@@ -206,7 +206,7 @@ namespace HotChocolate.AspNetCore.Utilities
             HttpResponseMessage response =
                 await SendGetRequestAsync(
                     testServer,
-                    $"query={query}&" + 
+                    $"query={query}&" +
                     "extensions={\"persistedQuery\":{\"version\":1," +
                     $"\"{hashName}\":\"{hash}\"}}}}",
                     path);
@@ -254,7 +254,7 @@ namespace HotChocolate.AspNetCore.Utilities
             this TestServer testServer, string query, string path = null)
         {
             return testServer.CreateClient()
-                .GetAsync($"{CreateUrl(path)}?{query}");
+                .GetAsync($"{CreateUrl(path)}/?{query}");
         }
 
         public static string CreateUrl(string path)
