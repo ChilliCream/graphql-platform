@@ -99,8 +99,8 @@
             ]
           },
           {
-            "path": "api-reference",
-            "title": "API Reference",
+            "path": "performance",
+            "title": "Performance",
             "items": [
               {
                 "path": "index",
