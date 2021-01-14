@@ -12,6 +12,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private string? _backingField;
         private ICode? _getCode;
         private ICode? _setCode;
+        private string? _lambdaResolver;
         private TypeReferenceBuilder? _type;
         private string? _name;
 
@@ -20,6 +21,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         public PropertyBuilder SetAccessModifier(AccessModifier value)
         {
             _accessModifier = value;
+            return this;
+        }
+
+        public PropertyBuilder AsLambda(string resolveCode)
+        {
+            _lambdaResolver = resolveCode;
             return this;
         }
 
@@ -88,7 +95,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             string modifier = _accessModifier.ToString().ToLowerInvariant();
             string setterModifier = string.Empty;
 
-            if(_setterAccessModifier.HasValue)
+            if (_setterAccessModifier.HasValue)
             {
                 setterModifier = _setterAccessModifier.Value
                     .ToString().ToLowerInvariant() + " ";
@@ -100,6 +107,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             await _type.BuildAsync(writer).ConfigureAwait(false);
             await writer.WriteAsync(_name).ConfigureAwait(false);
 
+            if (_lambdaResolver is not null)
+            {
+                await writer.WriteAsync(" => ").ConfigureAwait(false);
+                await writer.WriteAsync(_lambdaResolver).ConfigureAwait(false);
+                await writer.WriteAsync(";").ConfigureAwait(false);
+                await writer.WriteLineAsync().ConfigureAwait(false);
+                return;
+            }
+
             if (_isAutoProperty)
             {
                 if (_backingField is null)
@@ -107,11 +123,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                     await writer.WriteAsync(" { get; ").ConfigureAwait(false);
                     if (!_isReadOnly)
                     {
-
-                        await writer.WriteAsync(
-                            $"{setterModifier}set; ")
+                        await writer.WriteAsync($"{setterModifier}set; ")
                             .ConfigureAwait(false);
                     }
+
                     await writer.WriteAsync("}").ConfigureAwait(false);
                     await writer.WriteLineAsync().ConfigureAwait(false);
                     return;
@@ -124,8 +139,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             {
                 if (_getCode is null)
                 {
-                    await writer.WriteIndentedLineAsync(
-                        $"get => {_backingField}")
+                    await writer.WriteIndentedLineAsync($"get => {_backingField}")
                         .ConfigureAwait(false);
                 }
                 else
@@ -137,6 +151,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                     {
                         await _getCode.BuildAsync(writer).ConfigureAwait(false);
                     }
+
                     await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
                 }
 
@@ -144,24 +159,24 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 {
                     if (_setCode is null)
                     {
-                        await writer.WriteIndentedLineAsync(
-                            $"{setterModifier}set => { _backingField} = value;")
+                        await writer.WriteIndentedLineAsync($"{setterModifier}set => {_backingField} = value;")
                             .ConfigureAwait(false);
                     }
                     else
                     {
-                        await writer.WriteIndentedLineAsync(
-                            $"{setterModifier}set")
+                        await writer.WriteIndentedLineAsync($"{setterModifier}set")
                             .ConfigureAwait(false);
                         await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
                         using (writer.IncreaseIndent())
                         {
                             await _setCode.BuildAsync(writer).ConfigureAwait(false);
                         }
+
                         await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
                     }
                 }
             }
+
             await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
         }
     }

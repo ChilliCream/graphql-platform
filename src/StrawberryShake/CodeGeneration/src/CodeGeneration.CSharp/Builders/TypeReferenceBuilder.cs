@@ -41,9 +41,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         {
             if (_listInnerType is not null)
             {
-                await writer.WriteAsync("IReadOnlyList<").ConfigureAwait(false);;
+                await writer.WriteAsync("IReadOnlyList<").ConfigureAwait(false);
+                await _listInnerType.BuildAsync(writer);
             }
-            await writer.WriteAsync(_name).ConfigureAwait(false);;
+            else
+            {
+                await writer.WriteAsync(_name).ConfigureAwait(false);;
+            }
             if (_genericTypeArguments.Count > 0)
             {
                 await writer.WriteAsync("<").ConfigureAwait(false);;
