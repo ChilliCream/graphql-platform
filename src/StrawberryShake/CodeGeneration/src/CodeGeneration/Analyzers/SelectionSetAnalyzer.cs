@@ -207,7 +207,6 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
             while (
                 current is not null &&
-                current.Nodes.Count == 1 &&
                 DoesTypeApply(current.Fragment.TypeCondition, type))
             {
                 selected = current;
@@ -217,7 +216,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     break;
                 }
 
-                current = current.Nodes[0];
+                current = current.Nodes.SingleOrDefault();
             }
 
             return selected;
