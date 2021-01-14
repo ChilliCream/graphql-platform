@@ -1,5 +1,3 @@
-using HotChocolate.Language;
-using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models2;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
@@ -22,11 +20,13 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     returnTypeFragment,
                     fieldSelection.Path);
 
-            return CreateClassModel(
+            CreateClassModel(
                 context,
                 fieldSelection,
                 returnTypeFragment,
                 returnType);
+
+            return returnType;
         }
     }
 }

@@ -41,11 +41,10 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 GetInterfaceName(fragmentNode.Fragment.Name),
                 fragmentNode.Fragment.SelectionSet);
 
-            OutputTypeModel? typeModel;
-            // if (context.TryGetModel(name, out OutputTypeModel? typeModel))
-            // {
-            //     return typeModel;
-            // }
+            if (context.TryGetModel(name, out OutputTypeModel? typeModel))
+            {
+                return typeModel;
+            }
 
             ISet<string> implementedFields = levels.Peek();
             IReadOnlyList<OutputFieldModel> fieldModels = Array.Empty<OutputFieldModel>();
@@ -64,7 +63,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     fragmentNode.Fragment.SelectionSet.Selections,
                     type,
                     path,
-                    name => implementedFields.Add(name));
+                    implementedFields.Add);
             }
 
             typeModel = new OutputTypeModel(
@@ -75,6 +74,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 fragmentNode.Fragment.SelectionSet,
                 fieldModels,
                 implements);
+            context.RegisterModel(name, typeModel);
 
             return typeModel;
         }
@@ -132,6 +132,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     (IComplexOutputType)returnTypeFragment.Fragment.TypeCondition,
                     fieldSelection.Path),
                 new[] { returnType });
+            context.RegisterModel(modelClass.Name, modelClass);
 
             return modelClass;
         }
@@ -201,16 +202,22 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             FragmentNode fragmentNode,
             INamedType type)
         {
-            (SelectionSetNode s, IReadOnlyList<FragmentNode> f) current =
-                (fragmentNode.Fragment.SelectionSet, fragmentNode.Nodes);
             FragmentNode selected = fragmentNode;
+            FragmentNode? current = fragmentNode.Nodes.SingleOrDefault();
 
-            while (!current.s.Selections.OfType<FieldNode>().Any()
-                && current.f.Count == 1
-                && DoesTypeApply(current.f[0].Fragment.TypeCondition, type))
+            while (
+                current is not null &&
+                current.Nodes.Count == 1 &&
+                DoesTypeApply(current.Fragment.TypeCondition, type))
             {
-                selected = current.f[0];
-                current = (selected.Fragment.SelectionSet, selected.Nodes);
+                selected = current;
+
+                if (current.Fragment.TypeCondition == type)
+                {
+                    break;
+                }
+
+                current = current.Nodes[0];
             }
 
             return selected;

@@ -23,39 +23,33 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     .AddStarWars()
                     .BuildSchemaAsync();
 
-            var character = schema.GetType<InterfaceType>("Character");
-
             var document =
                 Utf8GraphQLParser.Parse(@"
-                    {
+                    query GetHero {
                         hero(episode: NEW_HOPE) {
                             name
                         }
                     }");
 
-            var operation = document
-                .Definitions
-                .OfType<OperationDefinitionNode>()
-                .First();
-
-            SelectionSetVariants selectionSetVariants =
-                new FieldCollector(schema, document)
-                    .CollectFields(operation.SelectionSet, schema.QueryType, Path.New("OP"));
-
+            var context = new DocumentAnalyzerContext(schema, document);
+            SelectionSetVariants selectionSetVariants = context.CollectFields();
             FieldSelection fieldSelection = selectionSetVariants.ReturnType.Fields.First();
-
-            selectionSetVariants =
-                new FieldCollector(schema, document)
-                    .CollectFields(fieldSelection.SyntaxNode.SelectionSet!, character, Path.Root);
+            selectionSetVariants = context.CollectFields(fieldSelection);
 
             // act
             var analyzer = new ObjectTypeSelectionSetAnalyzer();
-            analyzer.Analyze(null, fieldSelection, selectionSetVariants);
+            var result = analyzer.Analyze(context, fieldSelection, selectionSetVariants);
 
             // assert
+            Assert.Equal("IGetHero_Hero", result.Name);
+
             Assert.Collection(
-                selectionSetVariants.ReturnType.Fields,
-                field => Assert.Equal("hero", field.ResponseName));
+                context.GetImplementations(result),
+                model => Assert.Equal("GetHero_Hero", model.Name));
+
+            Assert.Collection(
+                result.Fields,
+                field => Assert.Equal("name", field.Name));
         }
 
         [Fact]
@@ -76,7 +70,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                             ... Hero
                         }
                     }
-                    
+
                     fragment Hero on Character {
                         name
                     }");
@@ -88,12 +82,18 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
             // act
             var analyzer = new ObjectTypeSelectionSetAnalyzer();
-            analyzer.Analyze(context, fieldSelection, selectionSetVariants);
+            var result = analyzer.Analyze(context, fieldSelection, selectionSetVariants);
 
             // assert
+            Assert.Equal("IHero", result.Name);
+
             Assert.Collection(
-                selectionSetVariants.ReturnType.Fields,
-                field => Assert.Equal("hero", field.ResponseName));
+                context.GetImplementations(result),
+                model => Assert.Equal("Hero", model.Name));
+
+            Assert.Collection(
+                result.Fields,
+                field => Assert.Equal("name", field.Name));
         }
     }
 }

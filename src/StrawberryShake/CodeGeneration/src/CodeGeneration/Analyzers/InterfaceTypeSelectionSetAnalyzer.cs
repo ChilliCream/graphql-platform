@@ -1,8 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using HotChocolate;
-using HotChocolate.Language;
-using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models2;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
@@ -30,32 +25,46 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 context,
                 fieldSelection,
                 selectionVariants,
-                returnTypeFragment,
                 returnType);
 
-            return null;
+            return returnType;
         }
 
         private void CreateClassModels(
             IDocumentAnalyzerContext context,
             FieldSelection fieldSelection,
             SelectionSetVariants selectionSetVariants,
-            FragmentNode returnTypeFragment,
             OutputTypeModel returnType)
         {
-            foreach (SelectionSet modelSelectionSet in selectionSetVariants.Variants)
+            if (selectionSetVariants.Variants.Count == 0)
             {
                 FragmentNode modelTypeFragment =
                     ResolveReturnType(
                         fieldSelection,
-                        modelSelectionSet,
-                        true);
+                        selectionSetVariants.ReturnType);
 
-                var x = CreateClassModel(
+                CreateClassModel(
                     context,
                     fieldSelection,
                     modelTypeFragment,
                     returnType);
+            }
+            else
+            {
+                foreach (SelectionSet modelSelectionSet in selectionSetVariants.Variants)
+                {
+                    FragmentNode modelTypeFragment =
+                        ResolveReturnType(
+                            fieldSelection,
+                            modelSelectionSet,
+                            true);
+
+                    CreateClassModel(
+                        context,
+                        fieldSelection,
+                        modelTypeFragment,
+                        returnType);
+                }
             }
         }
     }

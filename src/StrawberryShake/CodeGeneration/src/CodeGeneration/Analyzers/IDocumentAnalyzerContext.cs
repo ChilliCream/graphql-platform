@@ -1,13 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using StrawberryShake.CodeGeneration.Analyzers.Models2;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
 {
-    internal interface IDocumentAnalyzerContext 
+    internal interface IDocumentAnalyzerContext
     {
         ISchema Schema { get; }
 
@@ -31,18 +33,38 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             SelectionSetNode selectionSet,
             INamedOutputType type,
             Path path);
+
+        bool TryGetModel<T>(
+            NameString name,
+            [NotNullWhen(true)] out T? typeModel)
+            where T : ITypeModel;
+
+        void RegisterModel(NameString name, ITypeModel typeModel);
+
+        IEnumerable<OutputTypeModel> GetImplementations(OutputTypeModel outputTypeModel);
     }
 
     public class DocumentAnalyzerContext : IDocumentAnalyzerContext
     {
-        private HashSet<NameString> _takenNames = new();
-        private Dictionary<ISyntaxNode, NameString> _syntaxNodeNames = new();
+        private readonly HashSet<NameString> _takenNames = new();
+        private readonly Dictionary<ISyntaxNode, HashSet<NameString>> _syntaxNodeNames = new();
+        private readonly Dictionary<NameString, ITypeModel> _typeModels = new();
         private readonly FieldCollector _fieldCollector;
 
         public DocumentAnalyzerContext(
-            ISchema schema, 
+            ISchema schema,
             DocumentNode document)
         {
+            if (schema is null)
+            {
+                throw new ArgumentNullException(nameof(document));
+            }
+
+            if (document is null)
+            {
+                throw new ArgumentNullException(nameof(document));
+            }
+
             Schema = schema;
             OperationDefinition = document.Definitions.OfType<OperationDefinitionNode>().First();
             OperationType = schema.GetOperationType(OperationDefinition.Operation);
@@ -59,12 +81,12 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
         public NameString OperationName { get; }
 
-        public Queue<FieldSelection> Fields { get; } = new Queue<FieldSelection>();
+        public Queue<FieldSelection> Fields { get; } = new();
 
         public SelectionSetVariants CollectFields() =>
             _fieldCollector.CollectFields(
-                OperationDefinition.SelectionSet, 
-                OperationType, 
+                OperationDefinition.SelectionSet,
+                OperationType,
                 Path.New(OperationName));
 
         public SelectionSetVariants CollectFields(
@@ -79,9 +101,38 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             INamedOutputType type,
             Path path) =>
             _fieldCollector.CollectFields(
-                selectionSet, 
-                type, 
+                selectionSet,
+                type,
                 path);
+
+        public bool TryGetModel<T>(NameString name, out T? typeModel) where T : ITypeModel
+        {
+            if (_typeModels.TryGetValue(name, out ITypeModel? model) &&
+                model is T casted)
+            {
+                typeModel = casted;
+                return true;
+            }
+
+            typeModel = default;
+            return false;
+        }
+
+        public void RegisterModel(NameString name, ITypeModel typeModel)
+        {
+            _typeModels.Add(name, typeModel);
+        }
+
+        public IEnumerable<OutputTypeModel> GetImplementations(OutputTypeModel outputTypeModel)
+        {
+            foreach (var model in _typeModels.Values.OfType<OutputTypeModel>())
+            {
+                if (model.Implements.Contains(outputTypeModel))
+                {
+                    yield return model;
+                }
+            }
+        }
 
         public NameString ResolveTypeName(
             NameString proposedName)
@@ -94,22 +145,35 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             ISyntaxNode syntaxNode,
             IReadOnlyList<string>? additionalNamePatterns = null)
         {
-            if (_syntaxNodeNames.TryGetValue(syntaxNode, out var takenName))
-            {
-                return takenName;
-            }
-
-            if (_takenNames.Add(proposedName))
+            if (_syntaxNodeNames.TryGetValue(syntaxNode, out var takenNames) &&
+                takenNames.Contains(proposedName))
             {
                 return proposedName;
             }
 
-            for (int i = 1; i < 1000; i++)
+            if (!_syntaxNodeNames.TryGetValue(syntaxNode, out takenNames))
+            {
+                takenNames = new HashSet<NameString>();
+            }
+
+            if (_takenNames.Add(proposedName))
+            {
+                takenNames.Add(proposedName);
+                return proposedName;
+            }
+
+            for (var i = 1; i < 1000; i++)
             {
                 NameString alternativeName = proposedName + "_" + i;
 
+                if (_takenNames.Contains(alternativeName))
+                {
+                    return alternativeName;
+                }
+
                 if (_takenNames.Add(alternativeName))
                 {
+                    takenNames.Add(alternativeName);
                     return alternativeName;
                 }
             }
