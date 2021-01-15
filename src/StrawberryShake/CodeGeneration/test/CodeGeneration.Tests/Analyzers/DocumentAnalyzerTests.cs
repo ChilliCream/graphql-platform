@@ -5,13 +5,14 @@ using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
 using Xunit;
+using StrawberryShake.CodeGeneration.Analyzers.Models;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
 {
-    public class ObjectTypeSelectionSetAnalyzerTests
+    public class DocumentAnalyzerTests
     {
         [Fact]
-        public async Task Object_With_Default_Names()
+        public async Task One_Document_One_Op_One_Field_No_Fragments()
         {
             // arrange
             var schema =
@@ -29,25 +30,28 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                         }
                     }");
 
-            var context = new DocumentAnalyzerContext(schema, document);
-            SelectionSetVariants selectionSetVariants = context.CollectFields();
-            FieldSelection fieldSelection = selectionSetVariants.ReturnType.Fields.First();
-            selectionSetVariants = context.CollectFields(fieldSelection);
-
             // act
-            var analyzer = new ObjectTypeSelectionSetAnalyzer();
-            var result = analyzer.Analyze(context, fieldSelection, selectionSetVariants);
+            ClientModel clientModel =
+                DocumentAnalyzer
+                    .New()
+                    .SetSchema(schema)
+                    .AddDocument(document)
+                    .Analyze();
 
             // assert
-            Assert.Equal("IGetHero_Hero", result.Name);
+            Assert.Empty(
+                clientModel.InputObjectTypes);
 
             Assert.Collection(
-                context.GetImplementations(result),
-                model => Assert.Equal("GetHero_Hero", model.Name));
+                clientModel.LeafTypes,
+                type => Assert.Equal("String", type.Name));
 
             Assert.Collection(
-                result.Fields,
-                field => Assert.Equal("name", field.Name));
+                clientModel.Operations,
+                op =>
+                {
+                    Assert.Equal("IGetHero_Hero", op.ResultType.Name);
+                });
         }
 
         [Fact]
