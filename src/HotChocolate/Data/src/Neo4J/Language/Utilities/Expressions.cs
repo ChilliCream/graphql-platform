@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace HotChocolate.Data.Neo4J.Language
 {
@@ -17,7 +18,7 @@ namespace HotChocolate.Data.Neo4J.Language
             return expression;
         }
 
-        public static Expression[] CreateSymbolicNames(INamed[] variables) =>
+        public static IEnumerable<SymbolicName?> CreateSymbolicNames(INamed[] variables) =>
             Array.ConvertAll(variables, i => i.GetSymbolicName());
 
         public static SymbolicName[] CreateSymbolicNames(string[] variables) =>

@@ -15,9 +15,5 @@ namespace HotChocolate.Data.Neo4J.Language
         }
 
         public string GetValue() => _value;
-
-        public override string ToString() => "NodeLabel{" +
-            "value='" + _value + '\'' +
-            '}';
     }
 }

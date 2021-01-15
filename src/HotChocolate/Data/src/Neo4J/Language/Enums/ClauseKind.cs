@@ -46,6 +46,7 @@ namespace HotChocolate.Data.Neo4J.Language
         Where,
         YieldItems,
 
+        Exists,
         Distinct,
         OrderBy,
         Skip,

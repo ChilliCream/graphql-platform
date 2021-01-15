@@ -25,11 +25,11 @@ namespace HotChocolate.Data.Neo4J.Language
         }
 
         // public StatementBuilder Return(params PatternElement[] elements) =>
-        //     Return(false, elements);
-        // public StatementBuilder ReturnDistinct(params PatternElement[] elements) =>
-        //     Return(true, elements);
+        //      Return(false, elements);
+        //  public StatementBuilder ReturnDistinct(params PatternElement[] elements) =>
+        //      Return(true, elements);
         //
-        // private StatementBuilder Return(bool distinct, params INamed[] elements)
+        //  private StatementBuilder Return(bool distinct, params Expression elements)
         // {
         //     _return = new Return(distinct, elements);
         //     return this;

@@ -15,4 +15,9 @@
     <PackageReference Include="Neo4j.Driver" Version="4.2.0" />
     <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="5.0.1" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Language\Clauses" />
+    <Folder Include="Language\Expressions" />
+  </ItemGroup>
 </Project>

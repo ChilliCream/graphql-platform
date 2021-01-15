@@ -1,0 +1,1 @@
+﻿WHERE ((m.Title = 'The Matrix' XOR (m.Rating = 3.2 AND m.Age = 2)) OR NOT ((m.Name = 'Peter' OR m.Name = 'Tim')))

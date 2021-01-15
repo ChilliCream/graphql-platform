@@ -26,7 +26,7 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public string GetVariable() => _variable;
 
-        public new void Visit(CypherVisitor visitor)
+        public override void Visit(CypherVisitor visitor)
         {
             visitor.Enter(this);
             _expressionToUnwind.Visit(visitor);

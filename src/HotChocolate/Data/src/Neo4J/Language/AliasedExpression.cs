@@ -8,8 +8,9 @@ namespace HotChocolate.Data.Neo4J.Language
     public class AliasedExpression : Expression, IAliased
     {
         public override ClauseKind Kind => ClauseKind.AliasedExpression;
-        private readonly Expression _expression;
+
         private readonly string _alias;
+        private readonly Expression _expression;
 
         public AliasedExpression(Expression expression, string alias)
         {
@@ -18,6 +19,8 @@ namespace HotChocolate.Data.Neo4J.Language
         }
 
         public string GetAlias() => _alias;
+
+        public SymbolicName AsName() => SymbolicName.Of(GetAlias());
         public Expression GetExpression() => _expression;
 
         public new AliasedExpression As(string newAlias)
@@ -26,8 +29,6 @@ namespace HotChocolate.Data.Neo4J.Language
                 throw new ArgumentNullException(nameof(newAlias));
             return new AliasedExpression(_expression, newAlias);
         }
-
-        public SymbolicName AsName() => SymbolicName.Of(GetAlias());
 
         public override void Visit(CypherVisitor visitor)
         {

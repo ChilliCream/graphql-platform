@@ -15,6 +15,34 @@ namespace HotChocolate.Execution
                 type Query {
                     test: String
                     testProp: String
+                    book: Book
+                }
+
+type Book {
+                      title: String
+                      author: String
+                    }",
+                c => c.BindType<Query>());
+
+            // act
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync(
+                    "{ test testProp }");
+
+            // assert
+            Assert.Null(result.Errors);
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task BindComplexType()
+        {
+            // arrange
+            var schema = Schema.Create(
+                @"
+                type Query {
+                    test: String
+                    testProp: String
                 }",
                 c => c.BindType<Query>());
 
@@ -155,12 +183,20 @@ namespace HotChocolate.Execution
 
         public class Query
         {
+            public Book GetBook() => new Book { Title  = "C# in depth", Author = "Jon Skeet" };
+
             public string GetTest()
             {
                 return "Hello World 1!";
             }
 
             public string TestProp => "Hello World 2!";
+        }
+
+        public class Book
+        {
+            public string Title { get; set; }
+            public string Author { get; set; }
         }
 
         public class FooQuery

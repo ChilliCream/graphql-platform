@@ -1,8 +1,7 @@
 namespace HotChocolate.Data.Neo4J.Language
 {
     /// <summary>
-    /// Create, Merge, Delete, Set, Remove
-    /// https://s3.amazonaws.com/artifacts.opencypher.org/M15/railroad/SinglePartQuery.html#UpdatingClause
+    /// A interface for a clause that will be writing to the database.
     /// </summary>
     public interface IUpdatingClause : IVisitable { }
 }

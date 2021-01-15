@@ -1,4 +1,6 @@
-﻿namespace HotChocolate.Data.Neo4J.Language
+﻿using System.Collections.Generic;
+
+namespace HotChocolate.Data.Neo4J.Language
 {
     /// <summary>
     /// Delete = [(D,E,T,A,C,H), SP], (D,E,L,E,T,E), [SP], Expression, { [SP], ',', [SP], Expression } ;
@@ -7,10 +9,10 @@
     public class Delete : Visitable, IUpdatingClause
     {
         public override ClauseKind Kind => ClauseKind.Delete;
-        private readonly ExpressionList _deleteItems;
+        private readonly List<Expression> _deleteItems;
         private readonly bool _detach;
 
-        public Delete(ExpressionList deleteItems, bool detatch)
+        public Delete(List<Expression> deleteItems, bool detatch)
         {
             _deleteItems = deleteItems;
             _detach = detatch;
@@ -18,11 +20,15 @@
 
         public bool IsDetach => _detach;
 
-        public new void Visit(CypherVisitor visitor)
+        public override void Visit(CypherVisitor visitor)
         {
             visitor.Enter(this);
-            _deleteItems.Visit(visitor);
+            _deleteItems.ForEach(i => PrepareVisit(i).Visit(visitor));
             visitor.Leave(this);
+        }
+
+        private static Visitable PrepareVisit(Expression child) {
+            return Expressions.NameOrExpression(child);
         }
     }
 }

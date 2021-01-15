@@ -1,3 +1,5 @@
+using System;
+
 namespace HotChocolate.Data.Neo4J.Language
 {
     public partial class CypherVisitor
@@ -57,14 +59,82 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.Distinct:
                     EnterVisitable((Distinct)visitable);
                     break;
+                case ClauseKind.OrderBy:
+                    EnterVisitable((OrderBy)visitable);
+                    break;
                 case ClauseKind.Skip:
                     EnterVisitable((Skip)visitable);
                     break;
                 case ClauseKind.Limit:
                     EnterVisitable((Limit)visitable);
                     break;
-                case 0:
+                case ClauseKind.Exists:
+                    EnterVisitable((Exists)visitable);
                     break;
+                case ClauseKind.Expression:
+                    break;
+                case ClauseKind.AliasedExpression:
+                    break;
+                case ClauseKind.Visitable:
+                    break;
+                case ClauseKind.TypedSubtree:
+                    break;
+                case ClauseKind.Pattern:
+                    break;
+                case ClauseKind.ExcludePattern:
+                    break;
+                case ClauseKind.StatementPrefix:
+                    break;
+                case ClauseKind.Comparison:
+                    break;
+                case ClauseKind.MapProjection:
+                    break;
+                case ClauseKind.Property:
+                    break;
+                case ClauseKind.SortItem:
+                    break;
+                case ClauseKind.BooleanLiteral:
+                    break;
+                case ClauseKind.StringLiteral:
+                    break;
+                case ClauseKind.ExpressionList:
+                    break;
+                case ClauseKind.NodeLabels:
+                    break;
+                case ClauseKind.Operation:
+                    break;
+                case ClauseKind.Relationship:
+                    break;
+                case ClauseKind.OptionalMatch:
+                    break;
+                case ClauseKind.With:
+                    break;
+                case ClauseKind.Unwind:
+                    break;
+                case ClauseKind.YieldItems:
+                    break;
+                case ClauseKind.Delete:
+                    break;
+                case ClauseKind.Set:
+                    break;
+                case ClauseKind.Remove:
+                    break;
+                case ClauseKind.Foreach:
+                    break;
+                case ClauseKind.Merge:
+                    break;
+                case ClauseKind.Union:
+                    break;
+                case ClauseKind.Use:
+                    break;
+                case ClauseKind.LoadCsv:
+                    break;
+                case ClauseKind.Condition:
+                    break;
+                case ClauseKind.Default:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
         }
     }

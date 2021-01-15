@@ -15,7 +15,7 @@ namespace HotChocolate.Data.Neo4J.Language
             _pattern = pattern;
         }
 
-        public new void Visit(CypherVisitor visitor)
+        public override void Visit(CypherVisitor visitor)
         {
             visitor.Enter(this);
             _pattern.Visit(visitor);

@@ -25,13 +25,15 @@ namespace HotChocolate.Data.Neo4J.Language
             _expressions = returnItems.ToList();
         }
 
-
-
         public override void Visit(CypherVisitor visitor)
         {
             visitor.Enter(this);
-            _expressions.ForEach(element => element.Visit(visitor));
+            _expressions.ForEach(e => PrepareVisit(e).Visit(visitor));
             visitor.Leave(this);
+        }
+
+        protected static Visitable PrepareVisit(Expression child) {
+            return Expressions.NameOrExpression(child);
         }
     }
 }

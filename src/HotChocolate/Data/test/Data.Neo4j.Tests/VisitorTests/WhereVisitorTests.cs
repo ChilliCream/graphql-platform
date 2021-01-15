@@ -112,10 +112,40 @@ namespace HotChocolate.Data.Neo4J.Tests
             var visitor = new CypherVisitor();
             Node movie = Node.Create("Movie").Named("m");
 
-            Condition condition1 = movie.Property("Title").IsEqualTo(Cypher.LiteralOf("The Matrix"));
-            Condition condition2 = movie.Property("Rating").IsEqualTo(Cypher.LiteralOf(3.2));
-            Condition compoundCondition = condition1.XOr(condition2);
-            Where where = new(compoundCondition);
+            Where where = new(
+                movie.Property("Title").IsEqualTo(Cypher.LiteralOf("The Matrix"))
+                    .XOr(movie.Property("Rating").IsEqualTo(Cypher.LiteralOf(3.2))));
+            where.Visit(visitor);
+            visitor.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public void WhereStatementIncludingXOrCompoundConditionChainMutiple()
+        {
+            var visitor = new CypherVisitor();
+            Node movie = Node.Create("Movie").Named("m");
+
+            Where where = new(
+                movie.Property("Title").IsEqualTo(Cypher.LiteralOf("The Matrix"))
+                    .XOr(movie.Property("Rating").IsEqualTo(Cypher.LiteralOf(3.2))
+                        .And(movie.Property("Age").IsEqualTo(Cypher.LiteralOf(2)))));
+            where.Visit(visitor);
+            visitor.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public void WhereStatementIncludingXOrLargeChain()
+        {
+            var visitor = new CypherVisitor();
+            Node movie = Node.Create("Movie").Named("m");
+
+            Condition property1 = movie.Property("Title").IsEqualTo(Cypher.LiteralOf("The Matrix"));
+            Condition property2 = movie.Property("Rating").IsEqualTo(Cypher.LiteralOf(3.2));
+            Condition property3 = movie.Property("Age").IsEqualTo(Cypher.LiteralOf(2));
+            Condition property4 = movie.Property("Name").IsEqualTo(Cypher.LiteralOf("Peter"));
+            Condition property5 = movie.Property("Name").IsEqualTo(Cypher.LiteralOf("Tim"));
+
+            Where where = new(property1.XOr(property2.And(property3)).Or(property4.Or(property5).Not()));
             where.Visit(visitor);
             visitor.Print().MatchSnapshot();
         }

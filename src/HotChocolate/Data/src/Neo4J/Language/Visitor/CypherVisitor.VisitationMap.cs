@@ -23,6 +23,11 @@ namespace HotChocolate.Data.Neo4J.Language
             _writer.Write("WHERE ");
         }
 
+        public void EnterVisitable(Exists exists)
+        {
+            _writer.Write(" EXISTS ");
+        }
+
         public void EnterVisitable(Create create)
         {
             _writer.Write("CREATE ");

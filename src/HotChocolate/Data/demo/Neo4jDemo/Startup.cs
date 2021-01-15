@@ -11,7 +11,7 @@ namespace Neo4jDemo
 {
     public class Startup
     {
-        public class Movie
+        /*public class Movie
         {
             public string Title { get; set; }
             public string YearReleased { get; set; }
@@ -29,12 +29,12 @@ namespace Neo4jDemo
             [Relationship("ACTED_IN", RelationshipDirection.Outgoing)]
             public List<Movie> ActedIn { get; set; }
         }
+        */
 
-        public class Query
+        /*public class Query
         {
             public async Task<List<Person>> GetPeople()
-            {
-                List<Person> people = new();
+            {/List<Person> people = new();
                 //Node node = Cypher.Node("Person").Named("p");
                 //StatementBuilder statement = Cypher.Match(book);
 
@@ -44,7 +44,7 @@ namespace Neo4jDemo
                 {
                     IResultCursor cursor = await session.RunAsync("MATCH (p:Person) RETURN p { .name} ");
                     var test = await cursor.ToListAsync();
-                    people = await cursor.ToListAsync(record => new Person() {Name = record["name"].As<string>()});
+                    //people = await cursor.ToListAsync(record => new Person() {Name = record["name"].As<string>()});
 
                 }
                 finally
@@ -55,6 +55,17 @@ namespace Neo4jDemo
                 await driver.CloseAsync();
                 return people;
             }
+        }*/
+
+        public class Book
+        {
+            public string Title { get; set; }
+            public string Author { get; set; }
+        }
+
+        public class Query
+        {
+            public Book GetBook() => new() {Title = "C# in depth", Author = "Jon Skeet"};
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
@@ -63,8 +74,18 @@ namespace Neo4jDemo
         {
             services
                 //.AddSingleton(_ => CreateDriver())
-                .AddGraphQLServer();
-                .AddQueryType<Query>();
+
+                .AddGraphQLServer()
+                .AddDocumentFromString(@"
+                    type Query {
+                        book: Book
+                    }
+                    type Book {
+                        Title: String
+                        Author: String
+                    }
+                ")
+                .BindComplexType<Query>(c => c.To("Query").Field(t => t.GetBook()).Name("book"));
         }
 
         private IDriver CreateDriver()

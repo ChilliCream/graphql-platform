@@ -8,15 +8,23 @@
     {
         public override ClauseKind Kind => ClauseKind.Where;
         private readonly Condition _condition;
+        private readonly Exists? _exists;
 
         public Where(Condition condition)
         {
+            _exists = null;
+            _condition = condition;
+        }
+        public Where(bool exists, Condition condition)
+        {
+            _exists = exists ? Exists.Instance : null;
             _condition = condition;
         }
 
-        public new void Visit(CypherVisitor visitor)
+        public override void Visit(CypherVisitor visitor)
         {
             visitor.Enter(this);
+            _exists?.Visit(visitor);
             _condition.Visit(visitor);
             visitor.Leave(this);
         }
