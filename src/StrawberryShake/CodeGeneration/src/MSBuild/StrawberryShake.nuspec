@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>StrawberryShake</id>
+    <version>11.1.0</version>
+    <authors>ChilliCream authors and contributors</authors>
+    <owners>ChilliCream authors and contributors</owners>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <licenseUrl>https://github.com/ChilliCream/hotchocolate/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://hotchocolate.io/</projectUrl>
+    <iconUrl>https://chillicream.com/resources/strawberryshake-signet.png</iconUrl>
+    <description>Package Description</description>
+    <releaseNotes>Release notes: https://github.com/ChilliCream/hotchocolate/releases/</releaseNotes>
+    <copyright>Copyright © 2019 ChilliCream (Michael &amp; Rafael Staib)</copyright>
+    <tags>GraphQL ChilliCream</tags>
+    <dependencies>
+      <dependency id="StrawberryShake.Core" version="11.1.0" />
+      <dependency id="StrawberryShake.Transport.Http" version="11.1.0" />
+      <dependency id="StrawberryShake.StrawberryShake.CodeGeneration.CSharp" version="11.1.0" />
+      <dependency id="StrawberryShake.StrawberryShake.CodeGeneration.CSharp.Analyzers" version="11.1.0" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="GraphQL.xaml" target="build\GraphQL.xaml" />
+    <file src="StrawberryShake.props" target="build\StrawberryShake.props" />
+    <file src="StrawberryShake.targets" target="build\StrawberryShake.targets" />
+  </files>
+</package>

@@ -1,0 +1,22 @@
+<ProjectSchemaDefinitions xmlns="http://schemas.microsoft.com/build/2009/properties">
+  <FileExtension Name=".graphql" ContentType="GraphQL" />
+
+  <ContentType Name="GraphQL" DisplayName="GraphQL query or schema file" ItemType="GraphQL" />
+
+  <ItemType Name="GraphQL" DisplayName="GraphQL compiler" />
+
+  <Rule Name="GraphQL" DisplayName="file Properties" PageTemplate="generic" Description="File Properties">
+    <Rule.DataSource>
+      <DataSource Persistence="ProjectFile" Label="Configuration" ItemType="GraphQL" HasConfigurationCondition="false" SourceOfDefaultValue="AfterContext" />
+    </Rule.DataSource>
+
+    <Rule.Categories>
+      <Category Name="General" DisplayName="General" />
+    </Rule.Categories>
+
+    <EnumProperty Name="Access" DisplayName="Access Modifier">
+      <EnumValue Name="Public" DisplayName="Public"/>
+      <EnumValue Name="Internal" DisplayName="Internal"/>
+    </EnumProperty>
+  </Rule>
+</ProjectSchemaDefinitions>

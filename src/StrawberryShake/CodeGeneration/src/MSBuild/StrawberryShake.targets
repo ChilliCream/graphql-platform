@@ -1,0 +1,16 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <ItemDefinitionGroup>
+    <GraphQL>
+      <Generator>MSBuild:GraphQL_Compile</Generator>
+    </GraphQL>
+  </ItemDefinitionGroup>
+
+  <ItemGroup>
+    <PropertyPageSchema Include="$(GraphQLPropertyPageSchema)">
+      <Context>File;BrowseObject</Context>
+    </PropertyPageSchema>
+    <AvailableItemName Include="GraphQL" />
+  </ItemGroup>
+
+</Project>
