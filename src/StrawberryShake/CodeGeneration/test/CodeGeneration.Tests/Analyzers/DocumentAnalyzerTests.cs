@@ -1,13 +1,12 @@
-using System.Linq;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
-using Xunit;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
-using System.Collections.Generic;
-using HotChocolate;
+using Xunit;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
 {
