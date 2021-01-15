@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using HotChocolate;
 using HotChocolate.Types;
 
 namespace StrawberryShake.CodeGeneration.Analyzers.Models
@@ -8,30 +10,39 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
     /// </summary>
     public sealed class EnumTypeModel : LeafTypeModel
     {
+        /// <summary>
+        /// Initialize new instance of <see cref="EnumTypeModel"/>.
+        /// </summary>
+        /// <param name="name">
+        /// The name of the enum type.
+        /// </param>
+        /// <param name="description">
+        /// The description of the enum type.
+        /// </param>
+        /// <param name="type">
+        /// The enum type.
+        /// </param>
+        /// <param name="underlyingType">
+        /// The underlying runtime type.
+        /// </param>
+        /// <param name="values">
+        /// The enum values.
+        /// </param>
         public EnumTypeModel(
-            string name,
+            NameString name,
             string? description,
             EnumType type,
             string? underlyingType,
             IReadOnlyList<EnumValueModel> values)
             : base(name, description, type, TypeNames.SystemString, name)
         {
-            Name = name;
-            Description = description;
-            Type = type;
-            UnderlyingType = underlyingType;
-            Values = values;
+            Type = type ?? 
+                throw new ArgumentNullException(nameof(type));
+            UnderlyingType = underlyingType ?? 
+                throw new ArgumentNullException(nameof(underlyingType));
+            Values = values ?? 
+                throw new ArgumentNullException(nameof(values));
         }
-
-        /// <summary>
-        /// Gets the enum name.
-        /// </summary>
-        public string Name { get; }
-
-        /// <summary>
-        /// Gets the enum xml documentation summary.
-        /// </summary>
-        public string? Description { get; }
 
         /// <summary>
         /// Gets the enum type.
