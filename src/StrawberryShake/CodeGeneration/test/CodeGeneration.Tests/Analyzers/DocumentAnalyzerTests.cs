@@ -6,6 +6,8 @@ using HotChocolate.Language;
 using HotChocolate.StarWars;
 using Xunit;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
+using System.Collections.Generic;
+using HotChocolate;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
 {
@@ -20,6 +22,9 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     .AddStarWarsRepositories()
                     .AddGraphQL()
                     .AddStarWars()
+                    .TryAddTypeInterceptor(
+                        new LeafTypeInterceptor(
+                            new Dictionary<NameString, ScalarInfo>()))
                     .BuildSchemaAsync();
 
             var document =
@@ -50,52 +55,12 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 clientModel.Operations,
                 op =>
                 {
-                    Assert.Equal("IGetHero_Hero", op.ResultType.Name);
+                    Assert.Equal("IGetHero", op.ResultType.Name);
+
+                    Assert.Collection(
+                        op.GetImplementations(op.ResultType),
+                        model => Assert.Equal("GetHero", model.Name));
                 });
-        }
-
-        [Fact]
-        public async Task Object_With_Fragment_Definition()
-        {
-            // arrange
-            var schema =
-                await new ServiceCollection()
-                    .AddStarWarsRepositories()
-                    .AddGraphQL()
-                    .AddStarWars()
-                    .BuildSchemaAsync();
-
-            var document =
-                Utf8GraphQLParser.Parse(@"
-                    query GetHero {
-                        hero(episode: NEW_HOPE) {
-                            ... Hero
-                        }
-                    }
-
-                    fragment Hero on Character {
-                        name
-                    }");
-
-            var context = new DocumentAnalyzerContext(schema, document);
-            SelectionSetVariants selectionSetVariants = context.CollectFields();
-            FieldSelection fieldSelection = selectionSetVariants.ReturnType.Fields.First();
-            selectionSetVariants = context.CollectFields(fieldSelection);
-
-            // act
-            var analyzer = new ObjectTypeSelectionSetAnalyzer();
-            var result = analyzer.Analyze(context, fieldSelection, selectionSetVariants);
-
-            // assert
-            Assert.Equal("IHero", result.Name);
-
-            Assert.Collection(
-                context.GetImplementations(result),
-                model => Assert.Equal("Hero", model.Name));
-
-            Assert.Collection(
-                result.Fields,
-                field => Assert.Equal("name", field.Name));
         }
     }
 }

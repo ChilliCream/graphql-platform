@@ -53,7 +53,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             IType currentType = _typeContext.Peek();
 
             if (currentType is IComplexOutputType complexType
-                && complexType.Fields.TryGetField(node.Name.Value, out IOutputField field))
+                && complexType.Fields.TryGetField(node.Name.Value, out IOutputField? field))
             {
                 INamedType fieldType = field.Type.NamedType();
                 if (fieldType is IInputType inputType)

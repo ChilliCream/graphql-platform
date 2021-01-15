@@ -26,7 +26,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 CreateOperationArguments(context),
                 GetResultType(context),
                 context.TypeModels.OfType<LeafTypeModel>().ToList(),
-                context.TypeModels.OfType<InputObjectTypeModel>().ToList());
+                context.TypeModels.OfType<InputObjectTypeModel>().ToList(),
+                context.TypeModels.OfType<OutputTypeModel>().ToList());
         }
 
         private static OutputTypeModel GetResultType(
@@ -127,11 +128,21 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             Path selectionPath,
             Queue<FieldSelection> backlog)
         {
-            foreach (SelectionSet selectionSet in selectionSetVariants.Variants)
+            if (selectionSetVariants.Variants.Count == 0)
             {
-                foreach (FieldSelection fieldSelection in selectionSet.Fields)
+                foreach (FieldSelection fieldSelection in selectionSetVariants.ReturnType.Fields)
                 {
                     backlog.Enqueue(fieldSelection.WithPath(selectionPath));
+                }
+            }
+            else
+            {
+                foreach (SelectionSet selectionSet in selectionSetVariants.Variants)
+                {
+                    foreach (FieldSelection fieldSelection in selectionSet.Fields)
+                    {
+                        backlog.Enqueue(fieldSelection.WithPath(selectionPath));
+                    }
                 }
             }
         }

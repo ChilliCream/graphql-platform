@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -8,7 +9,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
     public sealed class OutputTypeModel : ITypeModel
     {
         public OutputTypeModel(
-            string name,
+            NameString name,
             string? description,
             bool isInterface,
             INamedType type,
@@ -16,16 +17,19 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
             IReadOnlyList<OutputFieldModel> fields,
             IReadOnlyList<OutputTypeModel>? implements = null)
         {
-            Name = name;
+            Name = name.EnsureNotEmpty(nameof(name));
             Description = description;
             IsInterface = isInterface;
-            Type = type;
-            SelectionSet = selectionSet;
-            Fields = fields;
+            Type = type ?? 
+                throw new ArgumentNullException(nameof(type));
+            SelectionSet = selectionSet ?? 
+                throw new ArgumentNullException(nameof(selectionSet));
+            Fields = fields ?? 
+                throw new ArgumentNullException(nameof(fields));
             Implements = implements ?? Array.Empty<OutputTypeModel>();
         }
 
-        public string Name { get; }
+        public NameString Name { get; }
 
         public string? Description { get; }
 

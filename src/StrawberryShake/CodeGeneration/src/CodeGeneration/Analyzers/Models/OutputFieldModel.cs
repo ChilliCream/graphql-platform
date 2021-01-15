@@ -1,3 +1,4 @@
+using System;
 using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -7,22 +8,22 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
     public class OutputFieldModel : IFieldModel
     {
         public OutputFieldModel(
-            string name,
+            NameString name,
             string? description,
             IOutputField field,
             IOutputType type,
             FieldNode syntaxNode,
             Path path)
         {
-            Name = name;
+            Name = name.EnsureNotEmpty(nameof(name));
             Description = description;
-            Field = field;
-            SyntaxNode = syntaxNode;
-            Path = path;
-            Type = type;
+            Field = field ?? throw new ArgumentNullException(nameof(field));
+            SyntaxNode = syntaxNode ?? throw new ArgumentNullException(nameof(syntaxNode));
+            Path = path ?? throw new ArgumentNullException(nameof(path));
+            Type = type ?? throw new ArgumentNullException(nameof(type));
         }
 
-        public string Name { get; }
+        public NameString Name { get; }
 
         public string? Description { get; }
 
