@@ -1,12 +1,11 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using Xunit;
+using System.Linq;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
 {
@@ -21,10 +20,16 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     .AddStarWarsRepositories()
                     .AddGraphQL()
                     .AddStarWars()
-                    .TryAddTypeInterceptor(
-                        new LeafTypeInterceptor(
-                            new Dictionary<NameString, ScalarInfo>()))
                     .BuildSchemaAsync();
+
+            schema =
+                SchemaHelper.Load(
+                    new[]
+                    {
+                        schema.ToDocument(),
+                        Utf8GraphQLParser.Parse(
+                            @"extend scalar String @runtimeType(name: ""Abc"")")
+                    });
 
             var document =
                 Utf8GraphQLParser.Parse(@"
@@ -48,7 +53,11 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
             Assert.Collection(
                 clientModel.LeafTypes,
-                type => Assert.Equal("String", type.Name));
+                type => 
+                {
+                    Assert.Equal("String", type.Name);
+                    Assert.Equal("Abc", type.RuntimeType);
+                });
 
             Assert.Collection(
                 clientModel.Operations,

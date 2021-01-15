@@ -1,23 +1,23 @@
-using System;
 using HotChocolate;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
 {
     public readonly struct ScalarInfo
     {
-        public ScalarInfo(NameString typeName, string serializationType, string runtimeTypeType)
+        public ScalarInfo(
+            NameString typeName,
+            string? runtimeTypeType,
+            string? serializationType)
         {
             TypeName = typeName.EnsureNotEmpty(nameof(typeName));
-            SerializationType = serializationType ?? 
-                throw new ArgumentNullException(nameof(serializationType));
-            RuntimeTypeType = runtimeTypeType ?? 
-                throw new ArgumentNullException(nameof(runtimeTypeType));
+            RuntimeTypeType = runtimeTypeType ?? TypeNames.SystemString;
+            SerializationType = serializationType ?? TypeNames.SystemString;
         }
 
         public NameString TypeName { get; }
 
-        public string SerializationType { get; }
-
         public string RuntimeTypeType { get; }
+
+        public string SerializationType { get; }
     }
 }
