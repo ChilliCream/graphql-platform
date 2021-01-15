@@ -149,6 +149,10 @@
                 "title": "Executable"
               },
               {
+                "path": "apollo-client-subscriptions",
+                "title": "Apollo Client Subscriptions"
+              },
+              {
                 "path": "migrate-from-10-to-11",
                 "title": "Migrate from 10.5 to 11.0"
               }
