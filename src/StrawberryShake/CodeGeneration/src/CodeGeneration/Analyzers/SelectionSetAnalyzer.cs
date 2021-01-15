@@ -20,7 +20,6 @@ namespace StrawberryShake.CodeGeneration.Analyzers
            FieldSelection fieldSelection,
            SelectionSetVariants selectionSetVariants);
 
-
         protected OutputTypeModel CreateInterfaceModel(
             IDocumentAnalyzerContext context,
             FragmentNode returnTypeFragment,
