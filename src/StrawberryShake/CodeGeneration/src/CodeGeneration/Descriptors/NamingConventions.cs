@@ -30,7 +30,7 @@ namespace StrawberryShake.CodeGeneration
             return typeName + "Entity";
         }
 
-        public static string MapperNameFromTypeName(string typeName)
+        public static string MapperNameFromGraphQlTypeName(string typeName)
         {
             return typeName + "From" + EntityTypeNameFromTypeName(typeName) + "Mapper";
         }

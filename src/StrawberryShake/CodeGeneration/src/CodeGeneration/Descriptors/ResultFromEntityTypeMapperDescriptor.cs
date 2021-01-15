@@ -6,7 +6,7 @@ namespace StrawberryShake.CodeGeneration
     public class ResultFromEntityTypeMapperDescriptor
         : ICodeDescriptor
     {
-        public string Name => NamingConventions.MapperNameFromTypeName(ResultType.Name);
+        public string Name => NamingConventions.MapperNameFromGraphQlTypeName(ResultType.Name);
 
         /// <summary>
         /// The EntityType from which the target type shall be created
