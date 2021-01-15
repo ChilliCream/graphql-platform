@@ -1,36 +1,26 @@
 using System.Collections.Generic;
-using System.Linq;
-using HotChocolate.Language;
 
 namespace StrawberryShake.CodeGeneration.Analyzers.Models
 {
-    /// <summary>
-    /// Represents all models that are needed to generate a client.
-    /// </summary>
-    public sealed class ClientModel
+    public class ClientModel
     {
-        /// <summary>
-        /// Initializes a new instance of <see cref="ClientModel" />
-        /// </summary>
-        /// <param name="documents">The document models.</param>
-        /// <param name="types">The type models.</param>
         public ClientModel(
-            IReadOnlyList<DocumentModel> documents,
-            IReadOnlyList<ITypeModel> types)
+            IReadOnlyList<OperationModel> operations,
+            IReadOnlyList<LeafTypeModel> leafTypes,
+            IReadOnlyList<InputObjectTypeModel> inputObjectTypes)
         {
-            Documents = documents;
-            Types = types;
-            HasSubscriptions =
-                documents.SelectMany(t => t.Operations)
-                    .Select(t => t.Operation.Operation)
-                    .Any(t => t == OperationType.Subscription);
-
+            Operations = operations;
+            LeafTypes = leafTypes;
+            InputObjectTypes = inputObjectTypes;
         }
 
-        public IReadOnlyList<DocumentModel> Documents { get; }
+        public IReadOnlyList<OperationModel> Operations { get; }
 
-        public IReadOnlyList<ITypeModel> Types { get; }
+        /// <summary>
+        /// Gets the leaf types that are used by this operation.
+        /// </summary>
+        public IReadOnlyList<LeafTypeModel> LeafTypes { get; }
 
-        public bool HasSubscriptions { get; }
+        public IReadOnlyList<InputObjectTypeModel> InputObjectTypes { get; }
     }
 }

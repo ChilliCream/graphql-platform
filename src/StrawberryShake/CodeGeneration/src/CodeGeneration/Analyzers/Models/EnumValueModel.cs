@@ -6,21 +6,21 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
     {
         public EnumValueModel(
             string name,
-            IEnumValue value,
             string? description,
+            IEnumValue value,
             string? underlyingValue)
         {
             Name = name;
-            Value = value;
             Description = description;
+            Value = value;
             UnderlyingValue = underlyingValue;
         }
 
         public string Name { get; }
 
-        public IEnumValue Value { get; }
-
         public string? Description { get; }
+
+        public IEnumValue Value { get; }
 
         public string? UnderlyingValue { get; }
     }

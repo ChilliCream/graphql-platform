@@ -5,13 +5,12 @@ using HotChocolate.Types;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
 {
-    internal sealed class EnumTypeUsageAnalyzer
-        : QuerySyntaxWalker<object?>
+    internal sealed class EnumTypeUsageAnalyzer : QuerySyntaxWalker<object?>
     {
-        private readonly HashSet<EnumType> _enumTypes = new HashSet<EnumType>();
-        private readonly HashSet<IInputType> _visitedTypes = new HashSet<IInputType>();
-        private readonly Stack<IType> _typeContext = new Stack<IType>();
-        private readonly Stack<IOutputField> _fieldContext = new Stack<IOutputField>();
+        private readonly HashSet<EnumType> _enumTypes = new();
+        private readonly HashSet<IInputType> _visitedTypes = new();
+        private readonly Stack<IType> _typeContext = new();
+        private readonly Stack<IOutputField> _fieldContext = new();
         private readonly ISchema _schema;
 
         public EnumTypeUsageAnalyzer(ISchema schema)

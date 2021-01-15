@@ -2,7 +2,7 @@ using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace StrawberryShake.CodeGeneration.Analyzers.Models2
+namespace StrawberryShake.CodeGeneration.Analyzers.Models
 {
     public class OutputFieldModel : IFieldModel
     {
@@ -11,13 +11,13 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models2
             string? description,
             IOutputField field,
             IOutputType type,
-            FieldNode syntaxNode,
+            FieldNode selection,
             Path path)
         {
             Name = name;
             Description = description;
             Field = field;
-            SyntaxNode = syntaxNode;
+            Selection = selection;
             Path = path;
             Type = type;
         }
@@ -34,7 +34,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models2
 
         IType IFieldModel.Type => Type;
 
-        public FieldNode SyntaxNode { get; }
+        public FieldNode Selection { get; }
 
         public Path Path { get; }
     }

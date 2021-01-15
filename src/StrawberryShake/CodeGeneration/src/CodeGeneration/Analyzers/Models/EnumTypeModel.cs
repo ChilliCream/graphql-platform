@@ -6,7 +6,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
     /// <summary>
     /// Represents an enum type model.
     /// </summary>
-    public sealed class EnumTypeModel : ITypeModel
+    public sealed class EnumTypeModel : LeafTypeModel
     {
         public EnumTypeModel(
             string name,
@@ -14,6 +14,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
             EnumType type,
             string? underlyingType,
             IReadOnlyList<EnumValueModel> values)
+            : base(name, description, type, TypeNames.SystemString, name)
         {
             Name = name;
             Description = description;
@@ -35,9 +36,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
         /// <summary>
         /// Gets the enum type.
         /// </summary>
-        public EnumType Type { get; }
-
-        INamedType ITypeModel.Type => Type;
+        public new EnumType Type { get; }
 
         /// <summary>
         /// Gets the underlying type name.

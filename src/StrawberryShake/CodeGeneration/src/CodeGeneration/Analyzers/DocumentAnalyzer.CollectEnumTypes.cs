@@ -1,6 +1,5 @@
 using System.Collections.Generic;
-using System.Linq;
-using HotChocolate.Language;
+using HotChocolate;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Analyzers.Types;
@@ -11,11 +10,10 @@ namespace StrawberryShake.CodeGeneration.Analyzers
     public partial class DocumentAnalyzer
     {
         private static void CollectEnumTypes(
-            IDocumentAnalyzerContext2 context,
-            DocumentNode document)
+            IDocumentAnalyzerContext context)
         {
             var analyzer = new EnumTypeUsageAnalyzer(context.Schema);
-            analyzer.Analyze(document);
+            analyzer.Analyze(context.Document);
 
             foreach (EnumType enumType in analyzer.EnumTypes)
             {
@@ -31,8 +29,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
                     values.Add(new EnumValueModel(
                         GetClassName(rename?.Name ?? enumValue.Name),
-                        enumValue,
                         enumValue.Description,
+                        enumValue,
                         value?.Value));
                 }
 
@@ -41,12 +39,17 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 SerializationTypeDirective? serializationType =
                     enumType.Directives.SingleOrDefault<SerializationTypeDirective>();
 
-                context.Register(new EnumTypeModel(
-                    GetClassName(rename?.Name ?? enumType.Name),
-                    enumType.Description,
-                    enumType,
-                    serializationType?.Name,
-                    values));
+                NameString typeName = context.ResolveTypeName(
+                    GetClassName(rename?.Name ?? enumType.Name));
+
+                context.RegisterModel(
+                    typeName,
+                    new EnumTypeModel(
+                        typeName,
+                        enumType.Description,
+                        enumType,
+                        serializationType?.Name,
+                        values));
             }
         }
     }

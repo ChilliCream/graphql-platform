@@ -5,12 +5,10 @@ using HotChocolate.Types;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
 {
-    internal sealed class InputObjectTypeUsageAnalyzer
-        : QuerySyntaxWalker<object?>
+    internal sealed class InputObjectTypeUsageAnalyzer : QuerySyntaxWalker<object?>
     {
-        private readonly HashSet<InputObjectType> _inputObjectTypes =
-            new HashSet<InputObjectType>();
-        private readonly HashSet<IInputType> _visitedTypes = new HashSet<IInputType>();
+        private readonly HashSet<InputObjectType> _inputObjectTypes = new();
+        private readonly HashSet<IInputType> _visitedTypes = new();
         private readonly ISchema _schema;
 
         public InputObjectTypeUsageAnalyzer(ISchema schema)

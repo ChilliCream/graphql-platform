@@ -7,8 +7,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
     public class FieldSelection
     {
         public FieldSelection(
-            IOutputField field, 
-            FieldNode syntaxNode, 
+            IOutputField field,
+            FieldNode syntaxNode,
             Path path,
             bool isConditional = true)
         {
@@ -30,6 +30,6 @@ namespace StrawberryShake.CodeGeneration.Analyzers
         public bool IsConditional { get; }
 
         public FieldSelection WithPath(Path path) =>
-            new FieldSelection(Field, SyntaxNode, Path, IsConditional);
+            new(Field, SyntaxNode, path, IsConditional);
     }
 }

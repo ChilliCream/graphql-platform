@@ -1,23 +1,19 @@
 using System.Collections.Generic;
 using HotChocolate;
-using HotChocolate.Language;
 using HotChocolate.Types;
-using StrawberryShake.CodeGeneration.Analyzers.Models2;
+using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Analyzers.Types;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
 {
-    public partial class DocumentAnalyzer2
+    public partial class DocumentAnalyzer
     {
-        private static IReadOnlyList<InputObjectTypeModel> CollectInputObjectTypes(
-            ISchema schema,
-            DocumentNode document)
+        private static void CollectInputObjectTypes(
+            IDocumentAnalyzerContext context)
         {
-            var inputObjectTypes = new List<InputObjectTypeModel>();
-
-            var analyzer = new InputObjectTypeUsageAnalyzer(schema);
-            analyzer.Analyze(document);
+            var analyzer = new InputObjectTypeUsageAnalyzer(context.Schema);
+            analyzer.Analyze(context.Document);
 
             foreach (InputObjectType inputObjectType in analyzer.InputObjectTypes)
             {
@@ -37,14 +33,17 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
                 rename = inputObjectType.Directives.SingleOrDefault<RenameDirective>();
 
-                inputObjectTypes.Add(new InputObjectTypeModel(
-                    GetClassName(rename?.Name ?? inputObjectType.Name),
-                    inputObjectType.Description,
-                    inputObjectType,
-                    fields));
-            }
+                NameString typeName = context.ResolveTypeName(
+                    GetClassName(rename?.Name ?? inputObjectType.Name));
 
-            return inputObjectTypes;
+                context.RegisterModel(
+                    typeName,
+                    new InputObjectTypeModel(
+                        GetClassName(rename?.Name ?? inputObjectType.Name),
+                        inputObjectType.Description,
+                        inputObjectType,
+                        fields));
+            }
         }
     }
 }

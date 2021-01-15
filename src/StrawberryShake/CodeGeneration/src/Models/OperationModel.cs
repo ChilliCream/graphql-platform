@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace StrawberryShake.CodeGeneration.Analyzers.Models2
+namespace StrawberryShake.CodeGeneration.Analyzers.Models
 {
     public class OperationModel
     {
@@ -11,19 +11,15 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models2
             ObjectType type,
             DocumentNode document,
             OperationDefinitionNode operation,
-            IReadOnlyList<ArgumentModel> arguments,
-            OutputTypeModel resultType,
-            IReadOnlyList<LeafTypeModel> leafTypes,
-            IReadOnlyList<InputObjectTypeModel> inputObjectTypes)
+            ParserModel parser,
+            IReadOnlyList<ArgumentModel> arguments)
         {
             Name = name;
             Type = type;
             Document = document;
             Operation = operation;
+            Parser = parser;
             Arguments = arguments;
-            ResultType = resultType;
-            LeafTypes = leafTypes;
-            InputObjectTypes = inputObjectTypes;
         }
 
         public string Name { get; }
@@ -34,12 +30,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models2
 
         public OperationDefinitionNode Operation { get; }
 
+        public ParserModel Parser { get; }
+
         public IReadOnlyList<ArgumentModel> Arguments { get; }
-
-        public OutputTypeModel ResultType { get; }
-
-        public IReadOnlyList<LeafTypeModel> LeafTypes { get; }
-
-        public IReadOnlyList<InputObjectTypeModel> InputObjectTypes { get; }
     }
 }

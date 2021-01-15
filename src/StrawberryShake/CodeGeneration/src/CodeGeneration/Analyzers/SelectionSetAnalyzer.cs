@@ -5,7 +5,7 @@ using System.Text;
 using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using StrawberryShake.CodeGeneration.Analyzers.Models2;
+using StrawberryShake.CodeGeneration.Analyzers.Models;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 using static StrawberryShake.CodeGeneration.Utilities.TypeHelpers;
 
@@ -13,7 +13,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 {
     internal abstract class SelectionSetAnalyzer
     {
-        private readonly StringBuilder _nameBuilder = new StringBuilder();
+        private readonly StringBuilder _nameBuilder = new();
 
         public abstract OutputTypeModel Analyze(
            IDocumentAnalyzerContext context,
@@ -113,7 +113,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
         protected OutputTypeModel CreateClassModel(
             IDocumentAnalyzerContext context,
-            FieldSelection fieldSelection,
+            SelectionSetNode selectionSetSyntax,
+            Path selectionPath,
             FragmentNode returnTypeFragment,
             OutputTypeModel returnType)
         {
@@ -128,14 +129,26 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 returnTypeFragment.Fragment.TypeCondition,
                 returnTypeFragment.Fragment.SelectionSet,
                 CreateFields(
-                    fieldSelection.SyntaxNode.SelectionSet!.Selections,
+                    selectionSetSyntax.Selections,
                     (IComplexOutputType)returnTypeFragment.Fragment.TypeCondition,
-                    fieldSelection.Path),
+                    selectionPath),
                 new[] { returnType });
             context.RegisterModel(modelClass.Name, modelClass);
 
             return modelClass;
         }
+
+        protected OutputTypeModel CreateClassModel(
+            IDocumentAnalyzerContext context,
+            FieldSelection fieldSelection,
+            FragmentNode returnTypeFragment,
+            OutputTypeModel returnType) =>
+            CreateClassModel(
+                context,
+                fieldSelection.SyntaxNode.SelectionSet!,
+                fieldSelection.Path,
+                returnTypeFragment,
+                returnType);
 
         private static IReadOnlyList<OutputFieldModel> CreateFields(
             IEnumerable<ISelectionNode> selections,
@@ -203,7 +216,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             INamedType type)
         {
             FragmentNode selected = fragmentNode;
-            FragmentNode? current = fragmentNode.Nodes.SingleOrDefault();
+            FragmentNode? current = fragmentNode.Nodes.SingleOrDefault(
+                t => t.Fragment.Kind == FragmentKind.Named);
 
             while (
                 current is not null &&
@@ -216,7 +230,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     break;
                 }
 
-                current = current.Nodes.SingleOrDefault();
+                current = current.Nodes.SingleOrDefault(
+                    t => t.Fragment.Kind == FragmentKind.Named);
             }
 
             return selected;
@@ -224,11 +239,16 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
         protected string CreateName(
             FieldSelection fieldSelection,
+            Func<string, string> nameFormatter) =>
+            CreateName(fieldSelection.Path, nameFormatter);
+
+        protected string CreateName(
+            Path selectionPath,
             Func<string, string> nameFormatter)
         {
             _nameBuilder.Clear();
 
-            Path? current = fieldSelection.Path;
+            Path? current = selectionPath;
 
             do
             {
@@ -247,7 +267,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             }
             while (current is not null && current != Path.Root);
 
-            return _nameBuilder.ToString();
+            return nameFormatter(_nameBuilder.ToString());
         }
     }
 }

@@ -84,7 +84,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             // assert
             Assert.Equal("IGetHero_Hero", result.Name);
 
-            Assert.Collection(
+             Assert.Collection(
                 context.GetImplementations(result),
                 model => Assert.Equal("GetHero_Hero_Human", model.Name),
                 model => Assert.Equal("GetHero_Hero_Droid", model.Name));
@@ -191,6 +191,65 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             Assert.Collection(
                 result.Fields,
                 field => Assert.Equal("name", field.Name));
+        }
+
+        [Fact]
+        public async Task Union_With_Fragment_Definition_Two_Models()
+        {
+            // arrange
+            var schema =
+                await new ServiceCollection()
+                    .AddStarWarsRepositories()
+                    .AddGraphQL()
+                    .AddStarWars()
+                    .BuildSchemaAsync();
+
+            var document =
+                Utf8GraphQLParser.Parse(@"
+                    query GetHero {
+                        search(text: ""hello"") {
+                            ... Hero
+                            ... Starship
+                        }
+                    }
+
+                    fragment Hero on Character {
+                        name
+                        ... Human
+                        ... Droid
+                    }
+
+                    fragment Human on Human {
+                        homePlanet
+                    }
+
+                    fragment Droid on Droid {
+                        primaryFunction
+                    }
+
+                    fragment Starship on Starship {
+                        length
+                    }");
+
+            var context = new DocumentAnalyzerContext(schema, document);
+            SelectionSetVariants selectionSetVariants = context.CollectFields();
+            FieldSelection fieldSelection = selectionSetVariants.ReturnType.Fields.First();
+            selectionSetVariants = context.CollectFields(fieldSelection);
+
+            // act
+            var analyzer = new InterfaceTypeSelectionSetAnalyzer();
+            var result = analyzer.Analyze(context, fieldSelection, selectionSetVariants);
+
+            // assert
+            Assert.Equal("IGetHero_Search", result.Name);
+
+            Assert.Collection(
+                context.GetImplementations(result),
+                model => Assert.Equal("Starship", model.Name),
+                model => Assert.Equal("Human", model.Name),
+                model => Assert.Equal("Droid", model.Name));
+
+            Assert.Empty(result.Fields);
         }
     }
 }

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -8,9 +7,9 @@ namespace StrawberryShake.CodeGeneration.Analyzers
     public class SelectionSet
     {
         public SelectionSet(
-            INamedType type, 
-            SelectionSetNode syntaxNode, 
-            IReadOnlyList<FieldSelection> fields, 
+            INamedType type,
+            SelectionSetNode syntaxNode,
+            IReadOnlyList<FieldSelection> fields,
             IReadOnlyList<FragmentNode> fragmentNodes)
         {
             Type = type;

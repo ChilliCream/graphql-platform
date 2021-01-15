@@ -1,7 +1,7 @@
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace StrawberryShake.CodeGeneration.Analyzers.Models2
+namespace StrawberryShake.CodeGeneration.Analyzers.Models
 {
     /// <summary>
     /// Represents a model for an operation argument (GraphQL variable declaration).

@@ -1,4 +1,4 @@
-namespace StrawberryShake.CodeGeneration.Analyzers.Models2
+namespace StrawberryShake.CodeGeneration.Analyzers.Models
 {
     internal static class TypeNames
     {

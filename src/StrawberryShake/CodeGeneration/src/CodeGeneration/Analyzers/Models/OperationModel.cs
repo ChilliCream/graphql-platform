@@ -11,15 +11,19 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
             ObjectType type,
             DocumentNode document,
             OperationDefinitionNode operation,
-            ParserModel parser,
-            IReadOnlyList<ArgumentModel> arguments)
+            IReadOnlyList<ArgumentModel> arguments,
+            OutputTypeModel resultType,
+            IReadOnlyList<LeafTypeModel> leafTypes,
+            IReadOnlyList<InputObjectTypeModel> inputObjectTypes)
         {
             Name = name;
             Type = type;
             Document = document;
             Operation = operation;
-            Parser = parser;
             Arguments = arguments;
+            ResultType = resultType;
+            LeafTypes = leafTypes;
+            InputObjectTypes = inputObjectTypes;
         }
 
         public string Name { get; }
@@ -30,8 +34,12 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
 
         public OperationDefinitionNode Operation { get; }
 
-        public ParserModel Parser { get; }
-
         public IReadOnlyList<ArgumentModel> Arguments { get; }
+
+        public OutputTypeModel ResultType { get; }
+
+        public IReadOnlyList<LeafTypeModel> LeafTypes { get; }
+
+        public IReadOnlyList<InputObjectTypeModel> InputObjectTypes { get; }
     }
 }

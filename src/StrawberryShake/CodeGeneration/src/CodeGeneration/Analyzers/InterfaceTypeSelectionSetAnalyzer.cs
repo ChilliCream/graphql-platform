@@ -1,14 +1,13 @@
-using StrawberryShake.CodeGeneration.Analyzers.Models2;
+using StrawberryShake.CodeGeneration.Analyzers.Models;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
 {
-    internal class InterfaceTypeSelectionSetAnalyzer
-        : SelectionSetAnalyzer
+    internal class InterfaceTypeSelectionSetAnalyzer : SelectionSetAnalyzer
     {
         public override OutputTypeModel Analyze(
-           IDocumentAnalyzerContext context,
-           FieldSelection fieldSelection,
-           SelectionSetVariants selectionVariants)
+            IDocumentAnalyzerContext context,
+            FieldSelection fieldSelection,
+            SelectionSetVariants selectionVariants)
         {
             FragmentNode returnTypeFragment =
                 ResolveReturnType(

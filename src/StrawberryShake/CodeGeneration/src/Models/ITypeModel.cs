@@ -1,6 +1,6 @@
 using HotChocolate.Types;
 
-namespace StrawberryShake.CodeGeneration.Analyzers.Models2
+namespace StrawberryShake.CodeGeneration.Analyzers.Models
 {
     /// <summary>
     /// Represents a model that is bound to a specific GraphQL schema type.
