@@ -4,9 +4,10 @@ using HotChocolate;
 using HotChocolate.Configuration;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
+using StrawberryShake.CodeGeneration.Analyzers;
 using static StrawberryShake.CodeGeneration.Analyzers.WellKnownContextData;
 
-namespace StrawberryShake.CodeGeneration.Analyzers
+namespace StrawberryShake.CodeGeneration.Utilities
 {
     public class LeafTypeInterceptor : TypeInterceptor
     {

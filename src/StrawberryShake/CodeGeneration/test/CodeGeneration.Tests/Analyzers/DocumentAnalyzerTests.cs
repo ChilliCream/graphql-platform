@@ -4,8 +4,8 @@ using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
+using StrawberryShake.CodeGeneration.Utilities;
 using Xunit;
-using System.Linq;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
 {
@@ -53,7 +53,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
             Assert.Collection(
                 clientModel.LeafTypes,
-                type => 
+                type =>
                 {
                     Assert.Equal("String", type.Name);
                     Assert.Equal("Abc", type.RuntimeType);

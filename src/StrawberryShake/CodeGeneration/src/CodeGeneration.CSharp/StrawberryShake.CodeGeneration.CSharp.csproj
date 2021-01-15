@@ -11,19 +11,4 @@
     <ProjectReference Include="..\CodeGeneration\StrawberryShake.CodeGeneration.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Remove="_old\**" />
-    <Compile Remove="Generators\OperationServiceGenerator.cs" />
-    <Compile Remove="Generators\ResultDataFactoryGenerator.cs" />
-    <Compile Remove="Generators\ResultFromEntityTypeMapperGenerator.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Remove="_old\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="_old\**" />
-  </ItemGroup>
-
 </Project>

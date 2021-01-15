@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>StrawberryShake.CodeGeneration.CSharp.Analyzers</PackageId>
+    <AssemblyName>StrawberryShake.CodeGeneration.CSharp.Analyzers</AssemblyName>
+    <RootNamespace>StrawberryShake.CodeGeneration.CSharp.Analyzers</RootNamespace>
+  </PropertyGroup>
+
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Client\src\Core\StrawberryShake.Core.csproj" />
+    <ProjectReference Include="..\CodeGeneration\StrawberryShake.CodeGeneration.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.9.0-2.final" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2" PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>
