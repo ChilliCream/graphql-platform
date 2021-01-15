@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using HotChocolate;
 using HotChocolate.Types;
 
 namespace StrawberryShake.CodeGeneration.Analyzers.Models
@@ -16,21 +18,21 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
         /// <param name="type">The input object type.</param>
         /// <param name="fields">The field models of this input type.</param>
         public InputObjectTypeModel(
-            string name,
+            NameString name,
             string? description,
             InputObjectType type,
             IReadOnlyList<InputFieldModel> fields)
         {
-            Name = name;
+            Name = name.EnsureNotEmpty(nameof(name));
             Description = description;
-            Type = type;
-            Fields = fields;
+            Type = type ?? throw new ArgumentNullException(nameof(type));
+            Fields = fields ?? throw new ArgumentNullException(nameof(fields));
         }
 
         /// <summary>
         /// Gets the class name.
         /// </summary>
-        public string Name { get; }
+        public NameString Name { get; }
 
         /// <summary>
         /// Gets the class xml documentation summary.

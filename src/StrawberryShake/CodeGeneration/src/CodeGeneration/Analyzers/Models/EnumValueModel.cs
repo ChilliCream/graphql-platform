@@ -1,3 +1,5 @@
+using System;
+using HotChocolate;
 using HotChocolate.Types;
 
 namespace StrawberryShake.CodeGeneration.Analyzers.Models
@@ -5,18 +7,18 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
     public sealed class EnumValueModel
     {
         public EnumValueModel(
-            string name,
+            NameString name,
             string? description,
             IEnumValue value,
             string? underlyingValue)
         {
-            Name = name;
+            Name = name.EnsureNotEmpty(nameof(name));
             Description = description;
-            Value = value;
+            Value = value ?? throw new ArgumentNullException(nameof(value));
             UnderlyingValue = underlyingValue;
         }
 
-        public string Name { get; }
+        public NameString Name { get; }
 
         public string? Description { get; }
 

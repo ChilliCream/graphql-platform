@@ -1,3 +1,4 @@
+using HotChocolate;
 using HotChocolate.Types;
 
 namespace StrawberryShake.CodeGeneration.Analyzers.Models
@@ -10,7 +11,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
         /// <summary>
         /// Gets the member name.
         /// </summary>
-        string Name { get; }
+        NameString Name { get; }
 
         /// <summary>
         /// Gets the member xml documentation summary.

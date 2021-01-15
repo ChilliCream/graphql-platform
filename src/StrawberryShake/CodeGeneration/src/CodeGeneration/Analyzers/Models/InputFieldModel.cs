@@ -1,3 +1,5 @@
+using System;
+using HotChocolate;
 using HotChocolate.Types;
 
 namespace StrawberryShake.CodeGeneration.Analyzers.Models
@@ -15,21 +17,21 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
         /// <param name="field"></param>
         /// <param name="type"></param>
         public InputFieldModel(
-            string name,
+            NameString name,
             string? description,
             IInputField field,
             IInputType type)
         {
-            Name = name;
+            Name = name.EnsureNotEmpty(nameof(name));
             Description = description;
-            Field = field;
-            Type = type;
+            Field = field ?? throw new ArgumentNullException(nameof(field));
+            Type = type ?? throw new ArgumentNullException(nameof(type));
         }
 
         /// <summary>
         /// Gets the property name.
         /// </summary>
-        public string Name { get; }
+        public NameString Name { get; }
 
         /// <summary>
         /// Gets the property xml documentation summary.
