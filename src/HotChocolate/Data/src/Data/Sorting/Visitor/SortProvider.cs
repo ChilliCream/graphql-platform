@@ -6,10 +6,14 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using static HotChocolate.Data.DataResources;
 using static HotChocolate.Data.ThrowHelper;
-using static HotChocolate.Data.ErrorHelper;
 
 namespace HotChocolate.Data.Sorting
 {
+    /// <summary>
+    /// A <see cref="SortProvider{TContext}"/> translates a incoming query to another
+    /// object structure at runtime
+    /// </summary>
+    /// <typeparam name="TContext">The type of the context</typeparam>
     public abstract class SortProvider<TContext>
         : Convention<SortProviderDefinition>,
           ISortProvider,
@@ -37,8 +41,10 @@ namespace HotChocolate.Data.Sorting
 
         internal new SortProviderDefinition? Definition => base.Definition;
 
+        /// <inheritdoc />
         public IReadOnlyCollection<ISortFieldHandler> FieldHandlers => _fieldHandlers;
 
+        /// <inheritdoc />
         public IReadOnlyCollection<ISortOperationHandler> OperationHandlers => _operationHandlers;
 
         public new void Initialize(IConventionContext context)
@@ -46,6 +52,7 @@ namespace HotChocolate.Data.Sorting
             base.Initialize(context);
         }
 
+        /// <inheritdoc />
         protected override SortProviderDefinition CreateDefinition(IConventionContext context)
         {
             if (_configure is null)
@@ -66,12 +73,13 @@ namespace HotChocolate.Data.Sorting
             base.Initialize(context);
         }
 
-        void ISortProviderConvention.OnComplete(IConventionContext context)
+        void ISortProviderConvention.Complete(IConventionContext context)
         {
-            OnComplete(context);
+            Complete(context);
         }
 
-        protected override void OnComplete(IConventionContext context)
+        /// <inheritdoc />
+        protected override void Complete(IConventionContext context)
         {
             if (Definition?.Handlers.Count == 0)
             {
@@ -102,7 +110,7 @@ namespace HotChocolate.Data.Sorting
 
                     case null:
                         throw SortProvider_UnableToCreateFieldHandler(this, handler.Type);
-                        
+
                     case ISortFieldHandler<TContext> casted:
                         _fieldHandlers.Add(casted);
                         break;
@@ -122,7 +130,7 @@ namespace HotChocolate.Data.Sorting
 
                     case null:
                         throw SortProvider_UnableToCreateOperationHandler(this, handler.Type);
-                        
+
                     case ISortOperationHandler<TContext> casted:
                         _operationHandlers.Add(casted);
                         break;
@@ -130,10 +138,35 @@ namespace HotChocolate.Data.Sorting
             }
         }
 
+        /// <summary>
+        /// This method is called on initialization of the provider but before the provider is
+        /// completed. The default implementation of this method does nothing. It can be overriden
+        /// by a derived class such that the provider can be further configured before it is
+        /// completed
+        /// </summary>
+        /// <param name="descriptor">
+        /// The descriptor that can be used to configure the provider
+        /// </param>
         protected virtual void Configure(ISortProviderDescriptor<TContext> descriptor) { }
 
+        /// <summary>
+        /// Creates the executor that is attached to the middleware pipeline of the field
+        /// </summary>
+        /// <param name="argumentName">
+        /// The argument name specified in the <see cref="SortConvention"/>
+        /// </param>
+        /// <typeparam name="TEntityType">The runtime type of the entity</typeparam>
+        /// <returns>A middleware</returns>
         public abstract FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName);
 
+        /// <summary>
+        /// Is called on each field that sorting is applied to. This method can be used to
+        /// customize a field.
+        /// </summary>
+        /// <param name="argumentName">
+        /// The argument name specified in the <see cref="SortConvention"/>
+        /// </param>
+        /// <param name="descriptor">The descriptor of the field</param>
         public virtual void ConfigureField(
             NameString argumentName,
             IObjectFieldDescriptor descriptor)

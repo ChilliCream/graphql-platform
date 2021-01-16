@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using HotChocolate.AspNetCore.Serialization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,7 +24,7 @@ namespace HotChocolate.Stitching.Integration
             ServerFactory.Create(
                 services => services
                     .AddRouting()
-                    .AddHttpRequestSerializer(HttpResultSerialization.JsonArray)
+                    .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                     .AddGraphQLServer()
                     .AddCustomerSchema(),
                 app => app
@@ -35,7 +36,7 @@ namespace HotChocolate.Stitching.Integration
             ServerFactory.Create(
                 services => services
                     .AddRouting()
-                    .AddHttpRequestSerializer(HttpResultSerialization.JsonArray)
+                    .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                     .AddGraphQLServer()
                     .AddContractSchema(),
                 app => app

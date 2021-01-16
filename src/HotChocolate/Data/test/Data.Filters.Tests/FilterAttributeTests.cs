@@ -11,7 +11,7 @@ namespace HotChocolate.Data.Filters
     public class FilterAttributeTests
     {
         [Fact]
-        public void Create_Schema_With_FilterType()
+        public void Create_Schema_With_FilterInput()
         {
             // arrange
             // act
@@ -25,7 +25,7 @@ namespace HotChocolate.Data.Filters
         }
 
         [Fact]
-        public void Create_Schema_With_FilterType_With_Fluent_API_Ctor_Param()
+        public void Create_Schema_With_FilterInput_With_Fluent_API_Ctor_Param()
         {
             // arrange
             // act
@@ -39,7 +39,7 @@ namespace HotChocolate.Data.Filters
         }
 
         [Fact]
-        public void Create_Schema_With_FilterType_With_Fluent_API()
+        public void Create_Schema_With_FilterInput_With_Fluent_API()
         {
             // arrange
             // act
@@ -83,7 +83,7 @@ namespace HotChocolate.Data.Filters
 
         public class Query2
         {
-            [UseFiltering(Type = typeof(FooFilterType))]
+            [UseFiltering(Type = typeof(FooFilterInput))]
             public IEnumerable<Foo> Foos { get; } = new[]
             {
                 new Foo { Bar = "aa", Baz = 1, Qux = 1 },
@@ -98,7 +98,7 @@ namespace HotChocolate.Data.Filters
 
         public class Query3
         {
-            [UseFiltering(typeof(FooFilterType))]
+            [UseFiltering(typeof(FooFilterInput))]
             public IEnumerable<Foo> Foos { get; } = new[]
             {
                 new Foo { Bar = "aa", Baz = 1, Qux = 1 },
@@ -124,7 +124,7 @@ namespace HotChocolate.Data.Filters
             };
         }
 
-        public class FooFilterType : FilterInputType<Foo>
+        public class FooFilterInput : FilterInputType<Foo>
         {
             protected override void Configure(IFilterInputTypeDescriptor<Foo> descriptor)
             {

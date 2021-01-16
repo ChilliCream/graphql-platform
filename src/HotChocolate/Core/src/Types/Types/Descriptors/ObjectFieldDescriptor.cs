@@ -291,7 +291,7 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public IObjectFieldDescriptor ResolveWith<TResolver>(
-            Expression<Func<TResolver, object>> propertyOrMethod)
+            Expression<Func<TResolver, object?>> propertyOrMethod)
         {
             if (propertyOrMethod is null)
             {
@@ -333,6 +333,7 @@ namespace HotChocolate.Types.Descriptors
                 Definition.ResolverMember = propertyOrMethod;
                 Definition.Resolver = null;
                 Definition.ResultType = propertyOrMethod.GetReturnType();
+                return this;
             }
 
             throw new ArgumentException(

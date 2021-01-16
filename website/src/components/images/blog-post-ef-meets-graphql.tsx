@@ -7,14 +7,14 @@ import { GetBlogPostEfMeetsGraphQlImageQuery } from "../../../graphql-types";
 export const BlogPostEFMeetsGraphQL: FunctionComponent = () => {
   const data = useStaticQuery<GetBlogPostEfMeetsGraphQlImageQuery>(graphql`
     query getBlogPostEFMeetsGraphQLImage {
-      placeholderImage: file(
+      file(
         relativePath: {
           eq: "2020-03-18-entity-framework/banner-entityframework.png"
         }
         sourceInstanceName: { eq: "blog" }
       ) {
         childImageSharp {
-          fluid(maxWidth: 1200) {
+          fluid(maxWidth: 1200, pngQuality: 90) {
             ...GatsbyImageSharpFluid
           }
         }
@@ -24,7 +24,7 @@ export const BlogPostEFMeetsGraphQL: FunctionComponent = () => {
 
   return (
     <Container>
-      <Img fluid={data.placeholderImage?.childImageSharp?.fluid as any} />
+      <Img fluid={data.file?.childImageSharp?.fluid as any} />
     </Container>
   );
 };

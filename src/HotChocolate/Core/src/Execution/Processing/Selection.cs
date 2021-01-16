@@ -13,10 +13,9 @@ namespace HotChocolate.Execution.Processing
     {
         private static readonly ArgumentMap _emptyArguments =
             new ArgumentMap(new Dictionary<NameString, ArgumentValue>());
-
-        private static readonly IReadOnlyList<FieldNode> _emptySelections = new FieldNode[0];
         private List<SelectionIncludeCondition>? _includeConditions;
         private List<FieldNode>? _selections;
+        private IReadOnlyList<FieldNode>? _syntaxNodes;
         private bool _isReadOnly;
 
         public Selection(
@@ -44,7 +43,6 @@ namespace HotChocolate.Execution.Processing
             Arguments = arguments is null
                 ? _emptyArguments
                 : new ArgumentMap(arguments);
-            SyntaxNodes = _emptySelections;
             InclusionKind = internalSelection
                 ? SelectionInclusionKind.Internal
                 : SelectionInclusionKind.Always;
@@ -64,7 +62,8 @@ namespace HotChocolate.Execution.Processing
             DeclaringType = selection.DeclaringType;
             Field = selection.Field;
             SyntaxNode = selection.SyntaxNode;
-            SyntaxNodes = selection.SyntaxNodes;
+            _selections = selection._selections;
+            _syntaxNodes = selection._syntaxNodes;
             ResponseName = selection.ResponseName;
             ResolverPipeline = selection.ResolverPipeline;
             Arguments = selection.Arguments;
@@ -83,7 +82,17 @@ namespace HotChocolate.Execution.Processing
         public SelectionSetNode? SelectionSet => SyntaxNode.SelectionSet;
 
         /// <inheritdoc />
-        public IReadOnlyList<FieldNode> SyntaxNodes { get; private set; }
+        public IReadOnlyList<FieldNode> SyntaxNodes
+        {
+            get
+            {
+                if (_syntaxNodes is null)
+                {
+                    _syntaxNodes = _selections ?? (IReadOnlyList<FieldNode>)new[] { SyntaxNode };
+                }
+                return _syntaxNodes;
+            }
+        }
 
         IReadOnlyList<FieldNode> IFieldSelection.Nodes => SyntaxNodes;
 
@@ -192,7 +201,6 @@ namespace HotChocolate.Execution.Processing
 
             _isReadOnly = true;
             SyntaxNode = MergeField(SyntaxNode, _selections);
-            SyntaxNodes = _selections ?? _emptySelections;
         }
 
         private static FieldNode MergeField(

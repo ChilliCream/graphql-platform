@@ -24,15 +24,25 @@ namespace HotChocolate
             {
                 var lazySchema = new LazySchema();
                 DescriptorContext context = CreateContext(builder, lazySchema);
-                IBindingLookup bindingLookup = builder._bindingCompiler.Compile(context);
 
-                IReadOnlyList<ITypeReference> typeReferences =
-                    CreateTypeReferences(builder, context, bindingLookup);
+                try
+                {
+                    IBindingLookup bindingLookup = builder._bindingCompiler.Compile(context);
 
-                TypeRegistry typeRegistry =
-                    InitializeTypes(builder, context, bindingLookup, typeReferences, lazySchema);
+                    IReadOnlyList<ITypeReference> typeReferences =
+                        CreateTypeReferences(builder, context, bindingLookup);
 
-                return CompleteSchema(builder, context, lazySchema, typeRegistry);
+                    TypeRegistry typeRegistry =
+                        InitializeTypes(builder, context, bindingLookup, typeReferences,
+                            lazySchema);
+
+                    return CompleteSchema(builder, context, lazySchema, typeRegistry);
+                }
+                catch (Exception ex)
+                {
+                    context.SchemaInterceptor.OnError(context, ex);
+                    throw;
+                }
             }
 
             private static DescriptorContext CreateContext(
@@ -154,7 +164,7 @@ namespace HotChocolate
                 {
                     builder._operations.Add(
                         operation,
-                        ti => TypeReference.Create(typeName, TypeContext.Output));
+                        _ => TypeReference.Create(typeName, TypeContext.Output));
                 }
             }
 
@@ -180,7 +190,9 @@ namespace HotChocolate
                 TypeRegistry typeRegistry)
             {
                 Dictionary<OperationType, ITypeReference> operations =
-                    builder._operations.ToDictionary(t => t.Key, t => t.Value(context.TypeInspector));
+                    builder._operations.ToDictionary(
+                        t => t.Key,
+                        t => t.Value(context.TypeInspector));
 
                 var initializer = new TypeInitializer(
                     context,
@@ -188,7 +200,8 @@ namespace HotChocolate
                     typeReferences,
                     builder._resolverTypes,
                     builder._isOfType,
-                    type => IsQueryType(context.TypeInspector, type, operations));
+                    type => IsQueryType(context.TypeInspector, type, operations),
+                    type => IsMutationType(context.TypeInspector, type, operations));
 
                 foreach (FieldMiddleware component in builder._globalComponents)
                 {
@@ -261,20 +274,20 @@ namespace HotChocolate
             {
                 if (type is ObjectType objectType)
                 {
-                    if (operations.TryGetValue(OperationType.Query, out ITypeReference? reference))
+                    if (operations.TryGetValue(OperationType.Query, out ITypeReference? typeRef))
                     {
-                        if (reference is SchemaTypeReference sr)
+                        if (typeRef is SchemaTypeReference sr)
                         {
                             return sr.Type == objectType;
                         }
 
-                        if (reference is ExtendedTypeReference cr)
+                        if (typeRef is ExtendedTypeReference cr)
                         {
                             return cr.Type == typeInspector.GetType(objectType.GetType())
-                                   || cr.Type == typeInspector.GetType(objectType.RuntimeType);
+                                || cr.Type == typeInspector.GetType(objectType.RuntimeType);
                         }
 
-                        if (reference is SyntaxTypeReference str)
+                        if (typeRef is SyntaxTypeReference str)
                         {
                             return objectType.Name.Equals(str.Type.NamedType().Name.Value);
                         }
@@ -282,6 +295,40 @@ namespace HotChocolate
                     else
                     {
                         return type.Name.Equals(WellKnownTypes.Query);
+                    }
+                }
+
+                return false;
+            }
+
+            private static bool IsMutationType(
+                ITypeInspector typeInspector,
+                TypeSystemObjectBase type,
+                Dictionary<OperationType, ITypeReference> operations)
+            {
+                if (type is ObjectType objectType)
+                {
+                    if (operations.TryGetValue(OperationType.Mutation, out ITypeReference? typeRef))
+                    {
+                        if (typeRef is SchemaTypeReference sr)
+                        {
+                            return sr.Type == objectType;
+                        }
+
+                        if (typeRef is ExtendedTypeReference cr)
+                        {
+                            return cr.Type == typeInspector.GetType(objectType.GetType())
+                                || cr.Type == typeInspector.GetType(objectType.RuntimeType);
+                        }
+
+                        if (typeRef is SyntaxTypeReference str)
+                        {
+                            return objectType.Name.Equals(str.Type.NamedType().Name.Value);
+                        }
+                    }
+                    else
+                    {
+                        return type.Name.Equals(WellKnownTypes.Mutation);
                     }
                 }
 
@@ -402,24 +449,11 @@ namespace HotChocolate
             {
                 if (builder._options.RemoveUnreachableTypes)
                 {
-                    var trimmer = new TypeTrimmer(typeRegistry);
-
-                    if (definition.QueryType is { })
-                    {
-                        trimmer.VisitRoot(definition.QueryType);
-                    }
-
-                    if (definition.MutationType is { })
-                    {
-                        trimmer.VisitRoot(definition.MutationType);
-                    }
-
-                    if (definition.SubscriptionType is { })
-                    {
-                        trimmer.VisitRoot(definition.SubscriptionType);
-                    }
-
-                    return trimmer.Types;
+                    var trimmer = new TypeTrimmer(typeRegistry.Types.Select(t => t.Type));
+                    trimmer.AddOperationType(definition.QueryType);
+                    trimmer.AddOperationType(definition.MutationType);
+                    trimmer.AddOperationType(definition.SubscriptionType);
+                    return trimmer.Trim();
                 }
 
                 return typeRegistry.Types.Select(t => t.Type).ToList();

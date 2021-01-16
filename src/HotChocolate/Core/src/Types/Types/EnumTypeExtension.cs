@@ -2,6 +2,7 @@ using System;
 using System.Globalization;
 using System.Linq;
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -94,6 +95,8 @@ namespace HotChocolate.Types
                     }
                     else
                     {
+                        TypeExtensionHelper.MergeContextData(enumValue, existingValue);
+
                         TypeExtensionHelper.MergeDirectives(
                             context,
                             enumValue.Directives,

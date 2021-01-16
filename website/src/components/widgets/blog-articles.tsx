@@ -3,9 +3,9 @@ import Img, { FluidObject } from "gatsby-image";
 import React, { FunctionComponent } from "react";
 import styled from "styled-components";
 import { BlogArticlesFragment } from "../../../graphql-types";
-import { ArticleTitle } from "../misc/article-elements";
-import { BlogArticleMetadata } from "../misc/blog-article-metadata";
-import { BlogArticleTags } from "../misc/blog-article-tags";
+import { ArticleTitle } from "../articles/article-elements";
+import { BlogArticleMetadata } from "../blog-article/blog-article-metadata";
+import { BlogArticleTags } from "../blog-article/blog-article-tags";
 import { Link } from "../misc/link";
 import { Pagination } from "../misc/pagination";
 
@@ -63,7 +63,7 @@ export const BlogArticlesGraphQLFragment = graphql`
         frontmatter {
           featuredImage {
             childImageSharp {
-              fluid(maxWidth: 800) {
+              fluid(maxWidth: 800, pngQuality: 90) {
                 ...GatsbyImageSharpFluid
               }
             }

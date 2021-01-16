@@ -6,6 +6,6 @@ namespace HotChocolate.Data.Projections
     {
         internal void Initialize(IConventionContext context);
 
-        internal void OnComplete(IConventionContext context);
+        internal void Complete(IConventionContext context);
     }
 }

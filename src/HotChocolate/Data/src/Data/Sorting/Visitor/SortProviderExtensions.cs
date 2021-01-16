@@ -28,9 +28,9 @@ namespace HotChocolate.Data.Sorting
             base.Initialize(context);
         }
 
-        void ISortProviderConvention.OnComplete(IConventionContext context)
+        void ISortProviderConvention.Complete(IConventionContext context)
         {
-            OnComplete(context);
+            Complete(context);
         }
 
         protected override SortProviderDefinition CreateDefinition(IConventionContext context)

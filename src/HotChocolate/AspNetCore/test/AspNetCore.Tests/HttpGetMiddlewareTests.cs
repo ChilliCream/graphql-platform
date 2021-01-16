@@ -1,7 +1,12 @@
 using System.Collections.Generic;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Utilities;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
+using HotChocolate.AspNetCore.Utilities;
+using HotChocolate.Execution;
+using HotChocolate.Language;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
@@ -270,7 +275,12 @@ namespace HotChocolate.AspNetCore
         public async Task SingleRequest_CreateReviewForEpisode_With_ObjectVariable()
         {
             // arrange
-            TestServer server = CreateStarWarsServer();
+            TestServer server = CreateStarWarsServer(
+                configureConventions: e => e.WithOptions(
+                    new GraphQLServerOptions
+                    {
+                        AllowedGetOperations = AllowedGetOperations.QueryAndMutation
+                    }));
 
             // act
             ClientQueryResult result =
@@ -307,7 +317,12 @@ namespace HotChocolate.AspNetCore
         public async Task SingleRequest_CreateReviewForEpisode_Omit_NonNull_Variable()
         {
             // arrange
-            TestServer server = CreateStarWarsServer();
+            TestServer server = CreateStarWarsServer(
+                configureConventions: e => e.WithOptions(
+                    new GraphQLServerOptions
+                    {
+                        AllowedGetOperations = AllowedGetOperations.QueryAndMutation
+                    }));
 
             // act
             ClientQueryResult result =
@@ -343,7 +358,12 @@ namespace HotChocolate.AspNetCore
         public async Task SingleRequest_CreateReviewForEpisode_Variables_In_ObjectValue()
         {
             // arrange
-            TestServer server = CreateStarWarsServer();
+            TestServer server = CreateStarWarsServer(
+                configureConventions: e => e.WithOptions(
+                    new GraphQLServerOptions
+                    {
+                        AllowedGetOperations = AllowedGetOperations.QueryAndMutation
+                    }));
 
             // act
             ClientQueryResult result =
@@ -458,10 +478,7 @@ namespace HotChocolate.AspNetCore
                             name
                         }
                     }",
-                    Variables = new Dictionary<string, object>
-                    {
-                        { "episode", "NEW_HOPE" }
-                    }
+                    Variables = new Dictionary<string, object> {{"episode", "NEW_HOPE"}}
                 });
 
             // assert
@@ -488,6 +505,169 @@ namespace HotChocolate.AspNetCore
 
             // assert
             result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SingleRequest_Mutation_ByDefault_NotAllowed_OnGet()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            // act
+            ClientQueryResult result =
+                await server.GetAsync(new ClientQueryRequest
+                {
+                    Query = @"
+                        mutation CreateReviewForEpisode(
+                            $ep: Episode!
+                            $review: ReviewInput!) {
+                            createReview(episode: $ep, review: $review) {
+                                stars
+                                commentary
+                            }
+                        }",
+                    Variables = new Dictionary<string, object>
+                    {
+                        { "ep", "EMPIRE" },
+                        {
+                            "review",
+                            new Dictionary<string, object>
+                            {
+                                { "stars", 5 },
+                                { "commentary", "This is a great movie!" },
+                            }
+                        }
+                    }
+                });
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+         [Fact]
+        public async Task SingleRequest_Mutation_Set_To_Be_Allowed_on_Get()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer(
+                configureConventions: e => e.WithOptions(
+                    new GraphQLServerOptions
+                    {
+                        AllowedGetOperations = AllowedGetOperations.QueryAndMutation
+                    }));
+
+            // act
+            ClientQueryResult result =
+                await server.GetAsync(new ClientQueryRequest
+                {
+                    Query = @"
+                        mutation CreateReviewForEpisode(
+                            $ep: Episode!
+                            $review: ReviewInput!) {
+                            createReview(episode: $ep, review: $review) {
+                                stars
+                                commentary
+                            }
+                        }",
+                    Variables = new Dictionary<string, object>
+                    {
+                        { "ep", "EMPIRE" },
+                        {
+                            "review",
+                            new Dictionary<string, object>
+                            {
+                                { "stars", 5 },
+                                { "commentary", "This is a great movie!" },
+                            }
+                        }
+                    }
+                });
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Get_Middleware_Is_Disabled()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer(
+                configureConventions: e => e.WithOptions(
+                    new GraphQLServerOptions
+                    {
+                        EnableGetRequests = false
+                    }));
+
+            // act
+            ClientQueryResult result =
+                await server.GetAsync(new ClientQueryRequest
+                {
+                    Query = @"
+                    {
+                        hero {
+                            name
+                        }
+                    }"
+                });
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Get_ActivePersistedQuery()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            // act
+            ClientQueryResult result =
+                await server.GetActivePersistedQueryAsync("md5Hash", "60ddx/GGk4FDObSa6eK0sg==");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Get_ActivePersistedQuery_NotFound()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            // act
+            ClientQueryResult result =
+                await server.GetActivePersistedQueryAsync("md5Hash", "abc");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Get_ActivePersistedQuery_AddQuery()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            DocumentNode document = Utf8GraphQLParser.Parse("{ __typename }");
+
+            var hashProvider = new MD5DocumentHashProvider();
+            string hash = hashProvider.ComputeHash(
+                Encoding.UTF8.GetBytes(document.ToString(false)));
+
+            // act
+            ClientQueryResult resultA =
+                await server.GetStoreActivePersistedQueryAsync(
+                    document.ToString(false), 
+                    "md5Hash", 
+                    hash);
+
+            ClientQueryResult resultB =
+                await server.GetActivePersistedQueryAsync("md5Hash", hash);
+
+            // assert
+            new[] {
+                resultA,
+                resultB
+            }.MatchSnapshot();
         }
     }
 }

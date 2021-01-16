@@ -2,84 +2,14 @@
 title: "Unions and Interfaces"
 ---
 
-Use this section as an introduction to explain what a reader can expect of this document.
+Hi,
 
-# Headlines
+We're currently working on the version 11 documentation. Probably right now at this very moment. However, this is an open-source project, and we need any help we can get! You can jump in at any time and help us improve the documentation for hundreds or even thousands of developers!
 
-Use headlines to separate a document into several sections. First level headlines will appear in the left hand navigation. This will help the reader to quickly skip sections or jump to a particular section.
+In case you might need help, check out our [Slack channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q) and get immediate help from the core contributors or the community itself.
 
-# Use Diagrams
+Sorry for any inconvenience, and thank you for being patient!
 
-Use [mermaid diagrams](https://mermaid-js.github.io/mermaid) to help a reader understand complex problems. Jump over to the [mermaid playground](https://mermaid-js.github.io/mermaid-live-editor) to test your diagrams.
+The ChilliCream Team
 
-```mermaid
-graph TD
-  A[Christmas] -->|Get money| B(Go shopping)
-  B --> C{Let me think}
-  C -->|One| D[Laptop]
-  C -->|Two| E[iPhone]
-  C -->|Three| F[fa:fa-car Car]
-```
-
-# Use Code Examples
-
-A code example is another tool to help readers following the document and understanding the problem. Here is an list of code blocks that are used often with the ChilliCream GraphQL platform.
-
-Use `sdl` to describe GraphQL schemas.
-
-```sdl
-type Author {
-  name: String!
-}
-```
-
-Use `graphql` to describe GraphQL operations.
-
-```graphql
-query {
-  author(id: 1) {
-    name
-  }
-}
-```
-
-Use `json` for everything JSON related for example a GraphQL result.
-
-```json
-{
-  "data": {
-    "author": {
-      "name": "ChilliCream"
-    }
-  }
-}
-```
-
-Use `sql` for SQL queries.
-
-```sql
-SELECT id FROM Authors WHERE id = 1
-```
-
-Use `csharp` for C# code.
-
-```csharp
-public interface Author
-{
-    int Id { get; }
-
-    string Name { get; }
-}
-```
-
-# Use Images
-
-When using images make sure it's a PNG file which is at least 800 pixels wide.
-
-# Use Tables
-
-When using tables make sure you always use titles.
-
-| Name        | Description        |
-| ----------- | ------------------ |
-| ChilliCream | A GraphQL platform |
+<br><br><br>

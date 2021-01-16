@@ -137,15 +137,27 @@ namespace HotChocolate.Stitching.Delegation
             }
 
             FieldNode requestField = _requestField;
-            if (_additionalFields.Count != 0 && requestField.SelectionSet is not null)
-            {
-                var selections = new List<ISelectionNode>(requestField.SelectionSet.Selections);
-                selections.AddRange(_additionalFields);
-                requestField = requestField.WithSelectionSet(
-                    requestField.SelectionSet.WithSelections(selections));
-            }
 
-            return CreateDelegationQuery(targetSchema, nameLookup, _operation, _path, requestField);
+            if (_additionalFields.Count == 0)
+            {
+                return CreateDelegationQuery(
+                    targetSchema, 
+                    nameLookup, 
+                    _operation, 
+                    _path, 
+                    new[] { requestField });
+            }
+            
+            var fields = new List<FieldNode>();
+            fields.Add(_requestField);
+            fields.AddRange(_additionalFields);
+
+            return CreateDelegationQuery(
+                targetSchema, 
+                nameLookup, 
+                _operation, 
+                _path, 
+                fields);
         }
 
         private DocumentNode CreateDelegationQuery(
@@ -153,27 +165,36 @@ namespace HotChocolate.Stitching.Delegation
             IReadOnlyDictionary<(NameString Type, NameString Schema), NameString> nameLookup,
             OperationType operation,
             IImmutableStack<SelectionPathComponent> path,
-            FieldNode requestedField)
+            IEnumerable<FieldNode> requestedFields)
         {
-            if (path.IsEmpty)
-            {
-                path = path.Push(
-                    new SelectionPathComponent(
-                        requestedField.Name,
-                        Array.Empty<ArgumentNode>()));
-            }
-
-            FieldNode current = CreateRequestedField(requestedField, ref path);
-
-            while (!path.IsEmpty)
-            {
-                path = path.Pop(out SelectionPathComponent component);
-                current = CreateSelection(current, component);
-            }
-
             var usedVariables = new HashSet<string>();
-            _usedVariables.CollectUsedVariables(current, usedVariables);
-            _usedVariables.CollectUsedVariables(_fragments, usedVariables);
+            var fields = new List<FieldNode>();
+            
+            foreach (FieldNode requestedField in requestedFields)
+            {
+                IImmutableStack<SelectionPathComponent> currentPath = path;
+
+                if (currentPath.IsEmpty)
+                {
+                    currentPath = currentPath.Push(
+                        new SelectionPathComponent(
+                            requestedField.Name,
+                            Array.Empty<ArgumentNode>()));
+                }
+
+                FieldNode current = CreateRequestedField(requestedField, ref currentPath);
+
+                while (!currentPath.IsEmpty)
+                {
+                    currentPath = currentPath.Pop(out SelectionPathComponent component);
+                    current = CreateSelection(current, component);
+                }
+
+                _usedVariables.CollectUsedVariables(current, usedVariables);
+                _usedVariables.CollectUsedVariables(_fragments, usedVariables);
+
+                fields.Add(current);
+            }
 
             List<VariableDefinitionNode> variables = _variables
                 .Where(t => usedVariables.Contains(t.Variable.Name.Value))
@@ -191,8 +212,6 @@ namespace HotChocolate.Stitching.Delegation
                 }
             }
 
-            FieldNode[] fields = { current };
-
             OperationDefinitionNode operationDefinition =
                 CreateOperation(_operationName, operation, fields, variables);
 
@@ -207,7 +226,7 @@ namespace HotChocolate.Stitching.Delegation
             if (type is NonNullTypeNode nonNullType)
             {
                 return new NonNullTypeNode(
-                    (INullableTypeNode )RewriteType(nonNullType.Type, typeName));
+                    (INullableTypeNode)RewriteType(nonNullType.Type, typeName));
             }
 
             if (type is ListTypeNode listTypeNode)

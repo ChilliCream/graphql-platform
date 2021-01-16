@@ -49,7 +49,9 @@ namespace HotChocolate.Data.Projections
                         .ConfigureAwait(false);
                     break;
                 case IExecutable ex:
-                    context.Result = await ex.FirstOrDefaultAsync(context.RequestAborted);
+                    context.Result = await ex
+                        .FirstOrDefaultAsync(context.RequestAborted)
+                        .ConfigureAwait(false);
                     break;
             }
         }

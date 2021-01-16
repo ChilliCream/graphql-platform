@@ -11,8 +11,23 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers
         : QueryableProjectionHandlerBase
     {
         public override bool CanHandle(ISelection selection) =>
-            selection.Field.Member is {} &&
+            selection.Field.Member is { } &&
             selection.SelectionSet is null;
+
+        public override bool TryHandleEnter(
+            QueryableProjectionContext context,
+            ISelection selection,
+            out ISelectionVisitorAction? action)
+        {
+            if (selection.Field.Member is PropertyInfo { CanWrite: true })
+            {
+                action = SelectionVisitor.SkipAndLeave;
+                return true;
+            }
+
+            action = SelectionVisitor.Skip;
+            return true;
+        }
 
         public override bool TryHandleLeave(
             QueryableProjectionContext context,

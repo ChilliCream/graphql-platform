@@ -23,8 +23,14 @@ namespace HotChocolate
             public const string MustBeInputType = "HC0017";
             public const string InvalidType = "HC0016";
             public const string QueryNotFound = "HC0015";
+
+            /// <summary>
+            /// A persisted query was not found when using the active persisted query pipeline.
+            /// </summary>
+            public const string PersistedQueryNotFound = "HC0020";
             public const string TaskProcessingError = "HC0008";
             public const string SyntaxError = "HC0014";
+            public const string CannotCreateRootValue = "HC0019";
         }
 
         public static class Server
@@ -107,6 +113,16 @@ namespace HotChocolate
             public const string ScopeNotDefined = "STITCHING_SCOPE_NOT_DEFINED";
             public const string TypeNotDefined = "STITCHING_TYPE_NOT_DEFINED";
             public const string ArgumentNotFound = "STITCHING_DEL_ARGUMENT_NOT_FOUND";
+        }
+
+        public static class Data
+        {
+            public const string NonNullError = "HC0026";
+            public const string ListNotSupported = "HC0021";
+            public const string MoreThanOneElement = "HC0022";
+            public const string FilteringProjectionFailed = "HC0023";
+            public const string SortingProjectionFailed = "HC0024";
+            public const string NoPagingationProviderFound = "HC0025";
         }
     }
 }

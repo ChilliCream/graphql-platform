@@ -8,11 +8,23 @@ using HotChocolate.Language.Visitors;
 
 namespace HotChocolate.Data.Filters.Expressions
 {
+    /// <summary>
+    /// The default handler for all <see cref="FilterField"/> for the
+    /// <see cref="QueryableFilterProvider"/>
+    /// </summary>
     public class QueryableDefaultFieldHandler
         : FilterFieldHandler<QueryableFilterContext, Expression>
     {
+        /// <summary>
+        /// Checks if the field not a filter operations field and if the member is defined on this
+        /// field
+        /// </summary>
+        /// <param name="context">The current context</param>
+        /// <param name="typeDefinition">The definition of the type that declares the field</param>
+        /// <param name="fieldDefinition">The definition of the field</param>
+        /// <returns>True in case the field can be handled</returns>
         public override bool CanHandle(
-            ITypeDiscoveryContext context,
+            ITypeCompletionContext context,
             IFilterInputTypeDefinition typeDefinition,
             IFilterFieldDefinition fieldDefinition) =>
             !(fieldDefinition is FilterOperationFieldDefinition) &&
@@ -80,7 +92,8 @@ namespace HotChocolate.Data.Filters.Expressions
             if (context.InMemory)
             {
                 condition = FilterExpressionBuilder.NotNullAndAlso(
-                    context.GetInstance(), condition);
+                    context.GetInstance(),
+                    condition);
             }
 
             context.GetLevel().Enqueue(condition);

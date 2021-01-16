@@ -13,7 +13,7 @@ namespace HotChocolate.Language
         public void ParseSimpleShortHandFormQuery()
         {
             // arrange
-            byte[] sourceText = Encoding.UTF8.GetBytes("{ x { y } }");
+            var sourceText = Encoding.UTF8.GetBytes("{ x { y } }");
 
             // act
             var parser = new Utf8GraphQLParser(
@@ -66,7 +66,7 @@ namespace HotChocolate.Language
         public void ParserSimpleQuery(string operation, OperationType expectedOperation)
         {
             // arrange
-            byte[] sourceText = Encoding.UTF8.GetBytes(
+            var sourceText = Encoding.UTF8.GetBytes(
                 operation + " a($s : String = \"hello\") { x { y } }");
 
             // act
@@ -124,7 +124,7 @@ namespace HotChocolate.Language
         public void ParseQueryWithFragment()
         {
             // arrange
-            byte[] sourceText = Encoding.UTF8.GetBytes(
+            var sourceText = Encoding.UTF8.GetBytes(
                 "query a { x { ... y } } fragment y on Type { z } ");
 
             // act
@@ -187,7 +187,7 @@ namespace HotChocolate.Language
         public void QueryWithComments()
         {
             // arrange
-            byte[] sourceText = Encoding.UTF8.GetBytes(
+            var sourceText = Encoding.UTF8.GetBytes(
                 @"{
                 hero {
                     name
@@ -205,15 +205,14 @@ namespace HotChocolate.Language
 
             // assert
             document.MatchSnapshot();
-            QuerySyntaxSerializer.Serialize(document)
-                .MatchSnapshot(new SnapshotNameExtension("serialized"));
+            document.ToString().MatchSnapshot(new SnapshotNameExtension("serialized"));
         }
 
         [Fact]
         public void IntrospectionQuery()
         {
             // arrange
-            byte[] sourceText = Encoding.UTF8.GetBytes(
+            var sourceText = Encoding.UTF8.GetBytes(
                 FileResource.Open("IntrospectionQuery.graphql")
                     .NormalizeLineBreaks());
 
@@ -230,7 +229,7 @@ namespace HotChocolate.Language
         public void KitchenSinkQueryQuery()
         {
             // arrange
-            byte[] sourceText = Encoding.UTF8.GetBytes(
+            var sourceText = Encoding.UTF8.GetBytes(
                 FileResource.Open("kitchen-sink.graphql")
                     .NormalizeLineBreaks());
 
@@ -247,7 +246,7 @@ namespace HotChocolate.Language
         public void QueryWithStringArg()
         {
             // arrange
-            byte[] sourceText = Encoding.UTF8.GetBytes(
+            var sourceText = Encoding.UTF8.GetBytes(
                 FileResource.Open("QueryWithStringArg.graphql")
                     .NormalizeLineBreaks());
 
@@ -265,7 +264,7 @@ namespace HotChocolate.Language
         public void StringArg()
         {
             // arrange
-            byte[] sourceText = Encoding.UTF8.GetBytes(
+            var sourceText = Encoding.UTF8.GetBytes(
                 "{ a(b:\"Q3VzdG9tZXIteDE=\") }");
 
             // act
@@ -288,7 +287,7 @@ namespace HotChocolate.Language
         public void IntArg(string arg)
         {
             // arrange
-            byte[] sourceText = Encoding.UTF8.GetBytes(
+            var sourceText = Encoding.UTF8.GetBytes(
                 "{ a(b:" + arg + ") }");
 
             // act
@@ -313,7 +312,7 @@ namespace HotChocolate.Language
         public void FloatArg(string arg)
         {
             // arrange
-            byte[] sourceText = Encoding.UTF8.GetBytes(
+            var sourceText = Encoding.UTF8.GetBytes(
                 "{ a(b:" + arg + ") }");
 
             // act
@@ -336,7 +335,7 @@ namespace HotChocolate.Language
         public void BooleanArg(string arg, bool expected)
         {
             // arrange
-            byte[] sourceText = Encoding.UTF8.GetBytes(
+            var sourceText = Encoding.UTF8.GetBytes(
                 "{ a(b:" + arg + ") }");
 
             // act
@@ -359,7 +358,7 @@ namespace HotChocolate.Language
         public void EnumArg(string arg)
         {
             // arrange
-            byte[] sourceText = Encoding.UTF8.GetBytes(
+            var sourceText = Encoding.UTF8.GetBytes(
                 "{ a(b:" + arg + ") }");
 
             // acts
@@ -380,7 +379,7 @@ namespace HotChocolate.Language
         public void NullArg()
         {
             // arrange
-            byte[] sourceText = Encoding.UTF8.GetBytes(
+            var sourceText = Encoding.UTF8.GetBytes(
                 "{ a(b:null) }");
 
             // acts
@@ -399,7 +398,7 @@ namespace HotChocolate.Language
         public void ParseDirectiveOnVariableDefinition()
         {
             // arrange
-            byte[] sourceText = Encoding.UTF8.GetBytes(
+            var sourceText = Encoding.UTF8.GetBytes(
                 "query queryName($foo: ComplexType @foo) { bar }");
 
             // act
@@ -419,7 +418,7 @@ namespace HotChocolate.Language
         public void StringArgumentIsEmpty()
         {
             // arrange
-            byte[] sourceText = Encoding.UTF8.GetBytes(
+            var sourceText = Encoding.UTF8.GetBytes(
                 "{ foo(bar: \"\") }");
 
             // act
@@ -442,7 +441,7 @@ namespace HotChocolate.Language
         {
             // arrange
             var s = new string('s', 2048);
-            byte[] sourceText = Encoding.UTF8.GetBytes(
+            var sourceText = Encoding.UTF8.GetBytes(
                 "{ foo(bar: \"" + s + "\") }");
 
             // act
@@ -464,9 +463,27 @@ namespace HotChocolate.Language
         public void RussianLiterals()
         {
             // arrange
-            byte[] sourceText = Encoding.UTF8.GetBytes(
+            var sourceText = Encoding.UTF8.GetBytes(
                 FileResource.Open("russian-literals.graphql")
                     .NormalizeLineBreaks());
+
+            // act
+            var parser = new Utf8GraphQLParser(
+                sourceText, ParserOptions.Default);
+            DocumentNode document = parser.Parse();
+
+            // assert
+            document.MatchSnapshot();
+        }
+
+        [Fact(Skip = "Implement Parse Variable Directives")]
+        public void ParseVariablesWithDirective()
+        {
+            // arrange
+            var sourceText = Encoding.UTF8.GetBytes(
+                @"query ($a: String! @foo)
+                    a(a: $a)
+                ");
 
             // act
             var parser = new Utf8GraphQLParser(

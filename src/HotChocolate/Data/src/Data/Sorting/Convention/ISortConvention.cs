@@ -128,13 +128,13 @@ namespace HotChocolate.Data.Sorting
             ISortEnumTypeDescriptor descriptor);
 
         bool TryGetFieldHandler(
-            ITypeDiscoveryContext context,
+            ITypeCompletionContext context,
             ISortInputTypeDefinition typeDefinition,
             ISortFieldDefinition fieldDefinition,
             [NotNullWhen(true)] out ISortFieldHandler? handler);
 
         bool TryGetOperationHandler(
-            ITypeDiscoveryContext context,
+            ITypeCompletionContext context,
             EnumTypeDefinition typeDefinition,
             SortEnumValueDefinition fieldDefinition,
             [NotNullWhen(true)] out ISortOperationHandler? handler);

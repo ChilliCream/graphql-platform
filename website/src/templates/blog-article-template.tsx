@@ -3,7 +3,7 @@ import React, { FunctionComponent } from "react";
 import { BlogArticleFragment } from "../../graphql-types";
 import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
-import { BlogArticle } from "../components/widgets/blog-article";
+import { BlogArticle } from "../components/blog-article/blog-article";
 
 interface BlogArticleTemplateProperties {
   data: BlogArticleFragment;
@@ -14,7 +14,15 @@ const BlogArticleTemplate: FunctionComponent<BlogArticleTemplateProperties> = ({
 }) => {
   return (
     <Layout>
-      <SEO title={data.markdownRemark!.frontmatter!.title!} />
+      <SEO
+        description={data.markdownRemark!.excerpt || undefined}
+        imageUrl={
+          data.markdownRemark!.frontmatter!.featuredImage?.childImageSharp!
+            .fluid!.src
+        }
+        isArticle
+        title={data.markdownRemark!.frontmatter!.title!}
+      />
       <BlogArticle data={data} />
     </Layout>
   );

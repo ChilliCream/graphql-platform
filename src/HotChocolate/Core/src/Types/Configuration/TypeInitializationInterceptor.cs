@@ -7,10 +7,19 @@ namespace HotChocolate.Configuration
 {
     public class TypeInterceptor
         : ITypeInitializationInterceptor
+        , ITypeInitializationFlowInterceptor
     {
         public virtual bool TriggerAggregations => false;
 
         public virtual bool CanHandle(ITypeSystemObjectContext context) => true;
+
+        public virtual void OnBeforeDiscoverTypes()
+        {
+        }
+
+        public virtual void OnAfterDiscoverTypes()
+        {
+        }
 
         public virtual void OnBeforeInitialize(
             ITypeDiscoveryContext discoveryContext)
@@ -23,7 +32,7 @@ namespace HotChocolate.Configuration
             IDictionary<string, object?> contextData)
         {
         }
-        
+
         public virtual void OnTypesInitialized(
             IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
         {
@@ -43,6 +52,14 @@ namespace HotChocolate.Configuration
         {
         }
 
+        public virtual void OnBeforeCompleteTypeNames()
+        {
+        }
+
+        public virtual void OnAfterCompleteTypeNames()
+        {
+        }
+
         public virtual void OnBeforeCompleteName(
             ITypeCompletionContext completionContext,
             DefinitionBase? definition,
@@ -58,7 +75,23 @@ namespace HotChocolate.Configuration
         }
 
         public virtual void OnTypesCompletedName(
-            IReadOnlyCollection<ITypeCompletionContext> completionContext)
+            IReadOnlyCollection<ITypeCompletionContext> completionContexts)
+        {
+        }
+
+        public virtual void OnBeforeMergeTypeExtensions()
+        {
+        }
+
+        public virtual void OnAfterMergeTypeExtensions()
+        {
+        }
+
+        public virtual void OnBeforeCompleteTypes()
+        {
+        }
+
+        public virtual void OnAfterCompleteTypes()
         {
         }
 
@@ -77,7 +110,7 @@ namespace HotChocolate.Configuration
         }
 
         public virtual void OnTypesCompleted(
-            IReadOnlyCollection<ITypeCompletionContext> completionContext)
+            IReadOnlyCollection<ITypeCompletionContext> completionContexts)
         {
         }
     }

@@ -20,37 +20,30 @@ namespace HotChocolate.Types
         /// Initializes a new instance of the <see cref="StringType"/> class.
         /// </summary>
         public StringType()
-            : base(ScalarNames.String, BindingBehavior.Implicit)
-        {
-            Description = TypeResources.StringType_Description;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="StringType"/> class.
-        /// </summary>
-        public StringType(NameString name)
-            : base(name, BindingBehavior.Implicit)
+            : this(
+                ScalarNames.String,
+                TypeResources.StringType_Description,
+                BindingBehavior.Implicit)
         {
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="StringType"/> class.
         /// </summary>
-        public StringType(NameString name, string description)
-            : base(name, BindingBehavior.Implicit)
+        public StringType(
+            NameString name,
+            string? description = null,
+            BindingBehavior bind = BindingBehavior.Explicit)
+            : base(name, bind)
         {
             Description = description;
         }
 
-        protected override string ParseLiteral(StringValueNode valueSyntax)
-        {
-            return valueSyntax.Value;
-        }
+        protected override string ParseLiteral(StringValueNode valueSyntax) =>
+            valueSyntax.Value;
 
-        protected override StringValueNode ParseValue(string runtimeValue)
-        {
-            return new StringValueNode(runtimeValue);
-        }
+        protected override StringValueNode ParseValue(string runtimeValue) =>
+            new(runtimeValue);
 
         public override IValueNode ParseResult(object? resultValue) =>
             ParseValue(resultValue);

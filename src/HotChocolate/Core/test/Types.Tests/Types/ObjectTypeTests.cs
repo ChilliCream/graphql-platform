@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
@@ -634,7 +635,7 @@ namespace HotChocolate.Types
 
             // assert
             ObjectType type = schema.GetType<ObjectType>("C");
-            Assert.Equal(2, type.Interfaces.Count);
+            Assert.Equal(2, type.Implements.Count);
         }
 
         [Fact]
@@ -667,7 +668,7 @@ namespace HotChocolate.Types
 
             // assert
             ObjectType type = schema.GetType<ObjectType>("C");
-            Assert.Equal(2, type.Interfaces.Count);
+            Assert.Equal(2, type.Implements.Count);
         }
 
         [Fact]
@@ -1190,7 +1191,7 @@ namespace HotChocolate.Types
 
             // assert
             Assert.IsType<InterfaceType<IFoo>>(
-                fooType.Interfaces[0]);
+                fooType.Implements[0]);
         }
 
         [Fact]
@@ -1672,9 +1673,16 @@ namespace HotChocolate.Types
         public void Inferred_Interfaces_From_Type_Extensions_Are_Merged()
         {
             SchemaBuilder.New()
-                .AddDocumentFromString("type Query { some: Some } type Some { foo: String }")
+                .AddDocumentFromString(
+                    @"type Query {
+                        some: Some
+                    }
+
+                    type Some {
+                        foo: String
+                    }")
                 .AddType<SomeTypeExtensionWithInterface>()
-                .Use(next => context => default(ValueTask))
+                .Use(_ => _ => default)
                 .EnableRelaySupport()
                 .Create()
                 .ToString()
@@ -1735,6 +1743,18 @@ namespace HotChocolate.Types
                 .Create()
                 .MakeExecutable()
                 .Execute("{ foo baz }")
+                .ToJson()
+                .MatchSnapshot();
+        }
+
+        [Fact]
+        public void ResolveWith_NonGeneric()
+        {
+            SchemaBuilder.New()
+                .AddQueryType<ResolveWithNonGenericObjectType>()
+                .Create()
+                .MakeExecutable()
+                .Execute("{ foo }")
                 .ToJson()
                 .MatchSnapshot();
         }
@@ -1903,8 +1923,7 @@ namespace HotChocolate.Types
         }
 
         [ExtendObjectType(Name = "Some")]
-        public class SomeTypeExtensionWithInterface
-            : INode
+        public class SomeTypeExtensionWithInterface : INode
         {
             [GraphQLType(typeof(NonNullType<IdType>))]
             public string Id { get; }
@@ -1913,13 +1932,7 @@ namespace HotChocolate.Types
         public class QueryWithNestedList
         {
             public List<List<FooIgnore>> FooMatrix =>
-                new List<List<FooIgnore>>
-                {
-                    new List<FooIgnore>
-                    {
-                        new FooIgnore()
-                    }
-                };
+                new() { new() { new() } };
         }
 
         public class ResolveWithQuery
@@ -1940,6 +1953,20 @@ namespace HotChocolate.Types
                 descriptor.Field("baz").ResolveWith<ResolveWithQueryResolver>(t => t.Bar);
             }
         }
+
+       public class ResolveWithNonGenericObjectType : ObjectType
+       {
+            protected override void Configure(IObjectTypeDescriptor descriptor)
+            {
+                Type type = typeof(ResolveWithQuery);
+
+                descriptor.Name("ResolveWithQuery");
+
+                descriptor.Field("foo")
+                    .Type<IntType>()
+                    .ResolveWith(type.GetProperty("Foo"));
+            }
+       }
 
         public class AnnotatedNestedList
         {

@@ -11,7 +11,7 @@ namespace HotChocolate.Stitching.Delegation.ScopedVariables
 {
     internal class ArgumentScopedVariableResolver : IScopedVariableResolver
     {
-        public VariableValue Resolve(
+        public ScopedVariableValue Resolve(
             IResolverContext context,
             ScopedVariableNode variable,
             IInputType targetType)
@@ -40,11 +40,11 @@ namespace HotChocolate.Stitching.Delegation.ScopedVariables
             {
                 throw ArgumentScopedVariableResolver_InvalidArgumentName(
                     variable.Name.Value,
-                    context.FieldSelection,
+                    context.Selection.SyntaxNode,
                     context.Path);
             }
 
-            return new VariableValue
+            return new ScopedVariableValue
             (
                 variable.ToVariableName(),
                 argument.Type.ToTypeNode(),

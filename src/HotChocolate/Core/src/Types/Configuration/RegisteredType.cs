@@ -76,8 +76,16 @@ namespace HotChocolate.Configuration
 
         public void AddReferences(IEnumerable<ITypeReference> references)
         {
-            var merged = References.ToList();
-            merged.AddRange(references);
+            var merged = _references.ToList();
+
+            foreach (var reference in references)
+            {
+                if (!merged.Contains(reference))
+                {
+                    merged.Add(reference);
+                }
+            }
+
             _references = merged;
         }
 

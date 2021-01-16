@@ -1,6 +1,8 @@
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     /// <summary>
@@ -12,44 +14,48 @@ namespace HotChocolate.Types
     /// http://facebook.github.io/graphql/June2018/#sec-Float
     /// </summary>
     [SpecScalar]
-    public sealed class FloatType
-        : FloatTypeBase<double>
+    public sealed class FloatType : FloatTypeBase<double>
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FloatType"/> class.
+        /// </summary>
         public FloatType()
             : this(double.MinValue, double.MaxValue)
         {
+
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FloatType"/> class.
+        /// </summary>
         public FloatType(double min, double max)
-            : this(ScalarNames.Float, min, max)
-        {
-            Description = TypeResources.FloatType_Description;
-        }
-
-        public FloatType(NameString name)
-            : this(name, double.MinValue, double.MaxValue)
-        {
-        }
-
-        public FloatType(NameString name, double min, double max)
-            : base(name, min, max, BindingBehavior.Implicit)
+            : this(
+                ScalarNames.Float,
+                TypeResources.FloatType_Description,
+                min,
+                max,
+                BindingBehavior.Implicit)
         {
         }
 
-        public FloatType(NameString name, string description, double min, double max)
-            : base(name, min, max, BindingBehavior.Implicit)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FloatType"/> class.
+        /// </summary>
+        public FloatType(
+            NameString name,
+            string? description = null,
+            double min = double.MinValue,
+            double max = double.MaxValue,
+            BindingBehavior bind = BindingBehavior.Explicit)
+            : base(name, min, max, bind)
         {
             Description = description;
         }
 
-        protected override double ParseLiteral(IFloatValueLiteral valueSyntax)
-        {
-            return valueSyntax.ToDouble();
-        }
+        protected override double ParseLiteral(IFloatValueLiteral valueSyntax) =>
+            valueSyntax.ToDouble();
 
-        protected override FloatValueNode ParseValue(double runtimeValue)
-        {
-            return new FloatValueNode(runtimeValue);
-        }
+        protected override FloatValueNode ParseValue(double runtimeValue) =>
+            new(runtimeValue);
     }
 }

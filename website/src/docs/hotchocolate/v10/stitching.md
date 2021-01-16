@@ -152,7 +152,7 @@ dotnet add package HotChocolate.Stitching
 
 and Subscription package if using AspNetCore
 
-```
+```bash
 dotnet add package HotChocolate.AspNetCore.Subscriptions
 ```
 

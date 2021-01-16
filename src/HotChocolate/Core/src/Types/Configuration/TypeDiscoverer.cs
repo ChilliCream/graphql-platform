@@ -13,8 +13,8 @@ namespace HotChocolate.Configuration
 {
     internal sealed class TypeDiscoverer
     {
-        private readonly List<ITypeReference> _unregistered = new List<ITypeReference>();
-        private readonly List<ISchemaError> _errors = new List<ISchemaError>();
+        private readonly List<ITypeReference> _unregistered = new();
+        private readonly List<ISchemaError> _errors = new();
         private readonly TypeRegistry _typeRegistry;
         private readonly TypeRegistrar _typeRegistrar;
         private readonly ITypeRegistrarHandler[] _handlers;
@@ -183,6 +183,7 @@ namespace HotChocolate.Configuration
                                 TypeResources.TypeRegistrar_TypesInconsistent,
                                 unresolvedReference)
                             .SetExtension(
+
                                 TypeErrorFields.Reference,
                                 unresolvedReference)
                             .SetCode(ErrorCodes.Schema.UnresolvedTypes);

@@ -209,7 +209,7 @@ namespace HotChocolate.Types.Descriptors
                     out XDocument document))
                 {
                     MemberName name = GetMemberElementName(member);
-                    XElement element = document.XPathSelectElements(name.Path)
+                    XElement? element = document.XPathSelectElements(name.Path)
                         .FirstOrDefault();
 
                     ReplaceInheritdocElements(member, element);
@@ -268,7 +268,7 @@ namespace HotChocolate.Types.Descriptors
 
         private void ReplaceInheritdocElements(
             MemberInfo member,
-            XElement element)
+            XElement? element)
         {
             if (element is null)
             {
@@ -356,9 +356,8 @@ namespace HotChocolate.Types.Descriptors
         {
             char prefixCode;
 
-            string memberName =
-                member is Type memberType
-                    && !string.IsNullOrEmpty(memberType.FullName)
+            string? memberName =
+                member is Type { FullName: { Length: > 0 } } memberType
                 ? memberType.FullName
                 : member.DeclaringType is null
                     ? member.Name
@@ -367,7 +366,7 @@ namespace HotChocolate.Types.Descriptors
             switch (member.MemberType)
             {
                 case MemberTypes.Constructor:
-                    memberName = memberName.Replace(".ctor", "#ctor");
+                    memberName = memberName?.Replace(".ctor", "#ctor");
                     goto case MemberTypes.Method;
 
                 case MemberTypes.Method:
@@ -376,7 +375,7 @@ namespace HotChocolate.Types.Descriptors
                     var paramTypesList = string.Join(",",
                         ((MethodBase)member).GetParameters()
                         .Select(x => Regex
-                            .Replace(x.ParameterType.FullName,
+                            .Replace(x.ParameterType.FullName!,
                                 "(`[0-9]+)|(, .*?PublicKeyToken=[0-9a-z]*)",
                                 string.Empty)
                             .Replace("[[", "{")
@@ -399,7 +398,7 @@ namespace HotChocolate.Types.Descriptors
                     break;
 
                 case MemberTypes.NestedType:
-                    memberName = memberName.Replace('+', '.');
+                    memberName = memberName?.Replace('+', '.');
                     goto case MemberTypes.TypeInfo;
 
                 case MemberTypes.TypeInfo:
@@ -417,7 +416,7 @@ namespace HotChocolate.Types.Descriptors
             }
 
             return new MemberName(
-                $"{prefixCode}:{memberName.Replace("+", ".")}");
+                $"{prefixCode}:{memberName?.Replace("+", ".")}");
         }
 
         private ref struct MemberName

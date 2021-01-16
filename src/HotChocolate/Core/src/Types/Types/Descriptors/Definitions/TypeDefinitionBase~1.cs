@@ -21,11 +21,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
             get => _clrType;
             set
             {
-                if (value is null)
-                {
-                    throw new ArgumentNullException(nameof(value));
-                }
-                _clrType = value;
+                _clrType = value ?? throw new ArgumentNullException(nameof(value));
             }
         }
 

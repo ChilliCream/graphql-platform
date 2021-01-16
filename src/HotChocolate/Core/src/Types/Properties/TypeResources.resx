@@ -644,4 +644,38 @@ Type: `{0}`</value>
   <data name="NodeDescriptor_IdField_MustBePropertyOrMethod" xml:space="preserve">
     <value>The ID field must be a property or a method.</value>
   </data>
+  <data name="DeprecatedDirectiveType_TypeDescription" xml:space="preserve">
+    <value>The @deprecated directive is used within the type system definition language to indicate deprecated portions of a GraphQL service’s schema,such as deprecated fields on a type or deprecated enum values.</value>
+  </data>
+  <data name="DeprecatedDirectiveType_ReasonDescription" xml:space="preserve">
+    <value>Deprecations include a reason for why it is deprecated, which is formatted using Markdown syntax (as specified by CommonMark).</value>
+  </data>
+  <data name="IncludeDirectiveType_TypeDescription" xml:space="preserve">
+    <value>Directs the executor to include this field or fragment only when the `if` argument is true.</value>
+  </data>
+  <data name="IncludeDirectiveType_IfDescription" xml:space="preserve">
+    <value>Included when true.</value>
+  </data>
+  <data name="SkipDirectiveType_TypeDescription" xml:space="preserve">
+    <value>Directs the executor to skip this field or fragment when the `if` argument is true.</value>
+  </data>
+  <data name="SkipDirectiveType_IfDescription" xml:space="preserve">
+    <value>Skipped when true.</value>
+  </data>
+  <data name="SpecifiedByDirectiveType_TypeDescription" xml:space="preserve">
+    <value>The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions.</value>
+  </data>
+  <data name="SpecifiedByDirectiveType_UrlDescription" xml:space="preserve">
+    <value>The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types.</value>
+  </data>
+  <data name="NodeType_TypeDescription" xml:space="preserve">
+    <value>The node interface is implemented by entities that have a global unique identifier.</value>
+  </data>
+  <data name="AnyType_CycleInObjectGraph" xml:space="preserve">
+    <value>Cycle in object graph detected.</value>
+  </data>
+  <data name="UuidType_FormatUnknown" xml:space="preserve">
+    <value>Unknown format. Guid supports the following format chars: {{ `N`, `D`, `B`, `P` }}.
+ https://docs.microsoft.com/en-us/dotnet/api/system.buffers.text.utf8parser.tryparse?view=netcore-3.1#System_Buffers_Text_Utf8Parser_TryParse_System_ReadOnlySpan_System_Byte__System_Guid__System_Int32__System_Char</value>
+  </data>
 </root>

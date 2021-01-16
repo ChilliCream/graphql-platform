@@ -1,0 +1,16 @@
+﻿{
+  "data": {
+    "root": [
+      {
+        "method": {
+          "barString": "Worked"
+        }
+      },
+      {
+        "method": {
+          "barString": "Worked"
+        }
+      }
+    ]
+  }
+}

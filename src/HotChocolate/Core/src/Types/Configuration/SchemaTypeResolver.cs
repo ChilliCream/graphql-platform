@@ -62,7 +62,8 @@ namespace HotChocolate.Configuration
             }
             else if (Scalars.TryGetScalar(unresolvedType.Type.Type, out Type scalarType))
             {
-                schemaType = unresolvedType.With(type: typeInspector.GetType(scalarType));
+                schemaType = unresolvedType.With(
+                    type: typeInspector.GetType(scalarType));
             }
             else
             {

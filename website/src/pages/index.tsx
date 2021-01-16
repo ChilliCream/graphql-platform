@@ -22,17 +22,30 @@ import { Hero, Intro } from "../components/misc/page-elements";
 import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
 
+// Logos
 import AeiLogoSvg from "../images/companies/aei.svg";
 import AtminaLogoSvg from "../images/companies/atmina.svg";
 import AutoguruLogoSvg from "../images/companies/autoguru.svg";
+import BeyableLogoSvg from "../images/companies/beyable.svg";
+import BiqhLogoSvg from "../images/companies/biqh.svg";
 import CarmmunityLogoSvg from "../images/companies/carmmunity.svg";
+import CompassLogoSvg from "../images/companies/compass.svg";
 import E2mLogoSvg from "../images/companies/e2m.svg";
+import ExlrtLogoSvg from "../images/companies/exlrt.svg";
+import EzeepLogoSvg from "../images/companies/ezeep.svg";
 import GiaLogoSvg from "../images/companies/gia.svg";
+import IncloudLogoSvg from "../images/companies/incloud.svg";
 import MotiviewLogoSvg from "../images/companies/motiview.svg";
 import PushpayLogoSvg from "../images/companies/pushpay.svg";
 import Seven2OneLogoSvg from "../images/companies/seven-2-one.svg";
+import SolyticLogoSvg from "../images/companies/solytic.svg";
+import SonikaLogoSvg from "../images/companies/sonika.svg";
+import SweetGeeksLogoSvg from "../images/companies/sweetgeeks.svg";
 import SwissLifeLogoSvg from "../images/companies/swiss-life.svg";
+import SytadelleLogoSvg from "../images/companies/sytadelle.svg";
 import ZioskLogoSvg from "../images/companies/ziosk.svg";
+
+// Images
 import ContactUsSvg from "../images/contact-us.svg";
 import DashboardSvg from "../images/dashboard.svg";
 import GetStartedSvg from "../images/get-started.svg";
@@ -63,7 +76,7 @@ const IndexPage: FunctionComponent = () => {
             frontmatter {
               featuredImage {
                 childImageSharp {
-                  fluid(maxWidth: 800) {
+                  fluid(maxWidth: 800, pngQuality: 90) {
                     ...GatsbyImageSharpFluid
                   }
                 }
@@ -95,6 +108,11 @@ const IndexPage: FunctionComponent = () => {
           showThumbs={false}
         >
           <Slide>
+            <Link to="/blog/2020/11/23/hot-chocolate-11">
+              <BlogPostVersion11 />
+            </Link>
+          </Slide>
+          <Slide>
             <Link to="/docs/bananacakepop">
               <BananaCakePop />
               <SlideContent>
@@ -115,11 +133,6 @@ const IndexPage: FunctionComponent = () => {
                   Get started with Hot Chocolate and Entity Framework
                 </SlideDescription>
               </SlideContent>
-            </Link>
-          </Slide>
-          <Slide>
-            <Link to="/blog/2020/07/16/version-11">
-              <BlogPostVersion11 />
             </Link>
           </Slide>
           <Slide>
@@ -209,9 +222,24 @@ const IndexPage: FunctionComponent = () => {
                   <AutoguruLogoSvg />
                 </Link>
               </Logo>
+              <Logo width={150}>
+                <Link to="https://www.beyable.com">
+                  <BeyableLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={100}>
+                <Link to="https://www.biqh.com">
+                  <BiqhLogoSvg />
+                </Link>
+              </Logo>
               <Logo width={180}>
                 <Link to="https://carmmunity.io">
                   <CarmmunityLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={180}>
+                <Link to="https://www.compass.education">
+                  <CompassLogoSvg />
                 </Link>
               </Logo>
               <Logo width={90}>
@@ -219,9 +247,24 @@ const IndexPage: FunctionComponent = () => {
                   <E2mLogoSvg />
                 </Link>
               </Logo>
+              <Logo width={130}>
+                <Link to="https://www.exlrt.com">
+                  <ExlrtLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={100}>
+                <Link to="https://www.ezeep.com">
+                  <EzeepLogoSvg />
+                </Link>
+              </Logo>
               <Logo width={120}>
                 <Link to="https://gia.ch">
                   <GiaLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={160}>
+                <Link to="https://www.incloud.de/">
+                  <IncloudLogoSvg />
                 </Link>
               </Logo>
               <Logo width={160}>
@@ -239,9 +282,29 @@ const IndexPage: FunctionComponent = () => {
                   <Seven2OneLogoSvg />
                 </Link>
               </Logo>
+              <Logo width={150}>
+                <Link to="https://www.solytic.com">
+                  <SolyticLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={130}>
+                <Link to="https://sonika.se">
+                  <SonikaLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={120}>
+                <Link to="https://sweetgeeks.dk">
+                  <SweetGeeksLogoSvg />
+                </Link>
+              </Logo>
               <Logo width={110}>
                 <Link to="https://www.swisslife.ch">
                   <SwissLifeLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={160}>
+                <Link to="https://www.sytadelle.fr">
+                  <SytadelleLogoSvg />
                 </Link>
               </Logo>
               <Logo width={120}>

@@ -5,6 +5,9 @@ using HotChocolate.StarWars;
 using HotChocolate.Types;
 using Xunit;
 using System;
+using HotChocolate.AspNetCore.Extensions;
+using HotChocolate.AspNetCore.Serialization;
+using HotChocolate.Execution;
 
 namespace HotChocolate.AspNetCore.Utilities
 {
@@ -19,18 +22,26 @@ namespace HotChocolate.AspNetCore.Utilities
 
         protected virtual TestServer CreateStarWarsServer(
             string pattern = "/graphql",
-            Action<IEndpointConventionBuilder> configureConventions = default)
+            Action<GraphQLEndpointConventionBuilder> configureConventions = default)
         {
             return ServerFactory.Create(
                 services => services
                     .AddRouting()
-                    .AddHttpRequestSerializer(HttpResultSerialization.JsonArray)
+                    .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                     .AddGraphQLServer()
                         .AddStarWarsTypes()
                         .AddTypeExtension<QueryExtension>()
                         .AddExportDirectiveType()
                         .AddStarWarsRepositories()
                         .AddInMemorySubscriptions()
+                        .UseActivePersistedQueryPipeline()
+                        .ConfigureSchemaServices(services => 
+                            services
+                                .AddSingleton<PersistedQueryCache>()
+                                .AddSingleton<IReadStoredQueries>(
+                                    c => c.GetService<PersistedQueryCache>())
+                                .AddSingleton<IWriteStoredQueries>(
+                                    c => c.GetService<PersistedQueryCache>()))
                     .AddGraphQLServer("evict")
                         .AddQueryType(d => d.Name("Query"))
                         .AddTypeExtension<QueryExtension>()
@@ -57,13 +68,9 @@ namespace HotChocolate.AspNetCore.Utilities
                     .UseRouting()
                     .UseEndpoints(endpoints =>
                     {
-                        IEndpointConventionBuilder builder = endpoints.MapGraphQL(pattern);
+                        GraphQLEndpointConventionBuilder builder = endpoints.MapGraphQL(pattern);
 
-                        if (configureConventions is { })
-                        {
-                            configureConventions(builder);
-                        }
-
+                        configureConventions?.Invoke(builder);
                         endpoints.MapGraphQL("/evict", "evict");
                         endpoints.MapGraphQL("/arguments", "arguments");
                     }));

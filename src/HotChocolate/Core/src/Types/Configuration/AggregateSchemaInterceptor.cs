@@ -45,5 +45,18 @@ namespace HotChocolate.Configuration
                 interceptor.OnAfterCreate(context, schema);
             }
         }
+
+        public void OnError(IDescriptorContext context, Exception exception)
+        {
+            if (_interceptors.Count == 0)
+            {
+                return;
+            }
+
+            foreach (ISchemaInterceptor interceptor in _interceptors)
+            {
+                interceptor.OnError(context, exception);
+            }
+        }
     }
 }

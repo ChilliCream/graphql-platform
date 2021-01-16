@@ -10,7 +10,7 @@ namespace HotChocolate.Data.Filters.Expressions
             CanBeNull = false;
         }
 
-        protected override int Operation => DefaultOperations.StartsWith;
+        protected override int Operation => DefaultFilterOperations.StartsWith;
 
         public override Expression HandleOperation(
             QueryableFilterContext context,

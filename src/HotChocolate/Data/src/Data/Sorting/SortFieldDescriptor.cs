@@ -38,6 +38,14 @@ namespace HotChocolate.Data.Sorting
             Definition.Scope = scope;
         }
 
+        protected internal SortFieldDescriptor(
+            IDescriptorContext context,
+            string? scope)
+            : base(context)
+        {
+            Definition.Scope = scope;
+        }
+
         protected internal new SortFieldDefinition Definition
         {
             get => base.Definition;

@@ -2,6 +2,8 @@ using System;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Execution;
+using HotChocolate.Types.Introspection;
+using Microsoft.VisualBasic.CompilerServices;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -111,7 +113,7 @@ namespace HotChocolate
                 await executor.ExecuteAsync("{ hello }");
             result.ToJson().MatchSnapshot();
         }
-        
+
         [Fact]
         public async Task SchemaBuilder_AddResolver()
         {

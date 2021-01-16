@@ -1,0 +1,5 @@
+﻿SELECT "d"."Id", "f"."Id" IS NOT NULL, "f"."Id", "f"."BarEnum", "b"."Id" IS NOT NULL, "f0"."Id" IS NOT NULL, "f0"."BarString"
+FROM "Data" AS "d"
+LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
+LEFT JOIN "BarNullableDeep" AS "b" ON "f"."NestedObjectId" = "b"."Id"
+LEFT JOIN "FooDeep" AS "f0" ON "b"."FooId" = "f0"."Id"

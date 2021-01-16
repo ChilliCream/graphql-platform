@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Language.Utilities;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
@@ -711,7 +712,7 @@ namespace HotChocolate.Types
             IValueNode valueNode = type.ParseValue((object)null);
 
             // assert
-            QuerySyntaxSerializer.Serialize(valueNode).MatchSnapshot();
+            valueNode.Print().MatchSnapshot();
         }
 
         [Fact]
@@ -740,7 +741,7 @@ namespace HotChocolate.Types
                 });
 
             // assert
-            QuerySyntaxSerializer.Serialize(valueNode).MatchSnapshot();
+            valueNode.Print().MatchSnapshot();
         }
 
         [Fact]
@@ -940,9 +941,10 @@ namespace HotChocolate.Types
                 schema.GetType<InputObjectType>("SimpleInput");
 
             // act
-            bool result = type.TryDeserialize(null, out object value);
+            var result = type.TryDeserialize(null, out object value);
 
             // assert
+            Assert.True(result);
             Assert.Null(value);
         }
 
@@ -964,7 +966,7 @@ namespace HotChocolate.Types
                 schema.GetType<InputObjectType>("SimpleInput");
 
             // act
-            bool result = type.TryDeserialize(
+            var result = type.TryDeserialize(
                 new Dictionary<string, object>
                 {
                     { "name", "foo" }
@@ -972,6 +974,7 @@ namespace HotChocolate.Types
                 out object value);
 
             // assert
+            Assert.True(result);
             Assert.Equal("foo", Assert.IsType<SimpleInput>(value).Name);
         }
 
@@ -995,7 +998,7 @@ namespace HotChocolate.Types
                 schema.GetType<InputObjectType>("Bar");
 
             // act
-            bool result = type.TryDeserialize(
+            var result = type.TryDeserialize(
                 new Dictionary<string, object>
                 {
                     { "name", "foo" }
@@ -1003,6 +1006,7 @@ namespace HotChocolate.Types
                 out object value);
 
             // assert
+            Assert.True(result);
             Assert.IsType<Dictionary<string, object>>(value);
         }
 

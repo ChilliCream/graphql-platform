@@ -7,8 +7,7 @@ using HotChocolate.Properties;
 
 namespace HotChocolate.Types.Relay
 {
-    public sealed class IdSerializer
-        : IIdSerializer
+    public sealed class IdSerializer : IIdSerializer
     {
         private const int _stackallocThreshold = 256;
         private const int _divisor = 4;
@@ -204,7 +203,7 @@ namespace HotChocolate.Types.Relay
 
                 Span<byte> decoded = serialized.Slice(0, bytesWritten);
 
-                NameString schemaName;
+                NameString schemaName = null;
 
                 if (decoded[0] == _schema)
                 {

@@ -39,7 +39,7 @@ namespace HotChocolate.Data.Filters
             IDescriptorContext context,
             string? scope) =>
             FilterOperationFieldDescriptor
-                .New(context, DefaultOperations.Or, scope)
+                .New(context, DefaultFilterOperations.Or, scope)
                 .CreateDefinition();
     }
 }

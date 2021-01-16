@@ -2,11 +2,11 @@
 title: "Visitors"
 ---
 
-_Hot Chocolate_ creates an abstract syntax tree for every incoming request. [Here you find more information about the Abstract Syntax Tree (AST)](http://TODOADDLINK). The execution engine evaluates this syntax tree in many different ways. Validation is a good example. Every incoming request has to be validated. The execution engine has to be sure that the semantic of the requested document is correct. A set of rules is applied to the syntax tree, to find potential semantic flaws.
+Hot Chocolate creates an abstract syntax tree for every incoming request. [Here you find more information about the Abstract Syntax Tree (AST)](http://TODOADDLINK). The execution engine evaluates this syntax tree in many different ways. Validation is a good example. Every incoming request has to be validated. The execution engine has to be sure that the semantic of the requested document is correct. A set of rules is applied to the syntax tree, to find potential semantic flaws.
 
 Usually, you do not have to access the _AST_ directly. The AST only becomes significant, when you want to change execution behavior based on the structure of the query. For example features like _Fitlering_, _Sorting_, or _Selection_, analyze the incoming query and generate expressions based on it.
 
-_Hot Chocolate_ provides you with different APIs that support you to traverse these trees. The `SyntaxWalker` is a visitor that has built-in all the logic to _walk down a syntax tree_.
+Hot Chocolate provides you with different APIs that support you to traverse these trees. The `SyntaxWalker` is a visitor that has built-in all the logic to _walk down a syntax tree_.
 
 The `SyntaxWalker` is completely stateless. All the state is on a context object that is passed along. The generic argument `TContext` of `SyntaxWalker<TContext>` denotes the type of the context.
 

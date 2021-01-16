@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Types;
@@ -8,18 +9,47 @@ namespace HotChocolate.Configuration
 {
     internal sealed class TypeTrimmer
     {
-        private readonly HashSet<TypeSystemObjectBase> _touched =
-            new HashSet<TypeSystemObjectBase>();
-        private readonly TypeRegistry _discoveredTypes;
+        private readonly HashSet<TypeSystemObjectBase> _touched = new();
+        private readonly List<ObjectType> _rootTypes = new();
+        private readonly List<TypeSystemObjectBase> _discoveredTypes;
 
-        public TypeTrimmer(TypeRegistry discoveredTypes)
+        public TypeTrimmer(IEnumerable<TypeSystemObjectBase> discoveredTypes)
         {
-            _discoveredTypes = discoveredTypes;
+            if (discoveredTypes is null)
+            {
+                throw new ArgumentNullException(nameof(discoveredTypes));
+            }
+
+            _discoveredTypes = discoveredTypes.ToList();
         }
 
-        public IReadOnlyCollection<TypeSystemObjectBase> Types => _touched;
+        public void AddOperationType(ObjectType? operationType)
+        {
+            if (operationType is not null)
+            {
+                _rootTypes.Add(operationType);
+            }
+        }
 
-        public void VisitRoot(ObjectType rootType)
+        public IReadOnlyCollection<TypeSystemObjectBase> Trim()
+        {
+            foreach (var directiveType in _discoveredTypes.OfType<DirectiveType>())
+            {
+                if (directiveType.IsExecutableDirective)
+                {
+                    _touched.Add(directiveType);
+                }
+            }
+
+            foreach (ObjectType rootType in _rootTypes)
+            {
+                VisitRoot(rootType);
+            }
+
+            return _touched;
+        }
+
+        private void VisitRoot(ObjectType rootType)
         {
             Visit(rootType);
         }
@@ -63,6 +93,7 @@ namespace HotChocolate.Configuration
 
         private void VisitScalar(ScalarType type)
         {
+            VisitDirectives(type);
         }
 
         private void VisitEnum(EnumType type)
@@ -79,9 +110,9 @@ namespace HotChocolate.Configuration
         {
             VisitDirectives(type);
 
-            foreach (InterfaceType interfaceType in type.Interfaces)
+            foreach (InterfaceType interfaceType in type.Implements)
             {
-                VisitInterface(interfaceType, true);
+                VisitInterface(interfaceType);
             }
 
             foreach (ObjectField field in type.Fields)
@@ -107,7 +138,7 @@ namespace HotChocolate.Configuration
             }
         }
 
-        private void VisitInterface(InterfaceType type, bool implements = false)
+        private void VisitInterface(InterfaceType type)
         {
             VisitDirectives(type);
 
@@ -123,12 +154,12 @@ namespace HotChocolate.Configuration
                 }
             }
 
-            foreach (ObjectType objectType in
-                _discoveredTypes.Types.Select(t => t.Type).OfType<ObjectType>())
+            foreach (IComplexOutputType complexType in
+                _discoveredTypes.OfType<IComplexOutputType>())
             {
-                if (objectType.IsImplementing(type))
+                if (complexType.IsImplementing(type))
                 {
-                    Visit(objectType);
+                    Visit((TypeSystemObjectBase)complexType);
                 }
             }
         }

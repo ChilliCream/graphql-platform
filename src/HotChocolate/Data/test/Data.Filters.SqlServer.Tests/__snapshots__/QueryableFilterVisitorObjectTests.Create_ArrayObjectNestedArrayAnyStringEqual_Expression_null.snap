@@ -1,7 +1,7 @@
 ﻿{
   "errors": [
     {
-      "message": "The provided value for filter \u0060any\u0060 of type ListFilterInputOfBarFilterTypeFilterInput is invalid. Null values are not supported.",
+      "message": "The provided value for filter \u0060any\u0060 of type ListBarFilterInput is invalid. Null values are not supported.",
       "locations": [
         {
           "line": 1,
@@ -12,8 +12,9 @@
         "root"
       ],
       "extensions": {
+        "code": "HC0026",
         "expectedType": "Boolean!",
-        "filterType": "ListFilterInputOfBarFilterTypeFilterInput"
+        "filterType": "ListBarFilterInput"
       }
     }
   ],

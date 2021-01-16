@@ -3,6 +3,8 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Resolvers.CodeGeneration;
 
+#nullable enable
+
 namespace HotChocolate.Resolvers.Expressions.Parameters
 {
     internal sealed class SetLocalStateCompiler<T>
@@ -11,11 +13,11 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
     {
         private static readonly MethodInfo _setScopedState =
             typeof(ExpressionHelper).GetMethod(
-                nameof(ExpressionHelper.SetLocalState));
+                nameof(ExpressionHelper.SetLocalState))!;
 
         private static readonly MethodInfo _setScopedStateGeneric =
             typeof(ExpressionHelper).GetMethod(
-                nameof(ExpressionHelper.SetLocalStateGeneric));
+                nameof(ExpressionHelper.SetLocalStateGeneric))!;
 
         public override bool CanHandle(
             ParameterInfo parameter,
@@ -42,7 +44,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
                 key);
         }
 
-        protected override string GetKey(ParameterInfo parameter) =>
-            parameter.GetCustomAttribute<LocalStateAttribute>().Key;
+        protected override string? GetKey(ParameterInfo parameter) =>
+            parameter.GetCustomAttribute<LocalStateAttribute>()?.Key;
     }
 }

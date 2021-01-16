@@ -1,13 +1,30 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using HotChocolate.Data.Filters;
 
-namespace HotChocolate.Data.Filters
+namespace HotChocolate.Data
 {
     public static class FilterConventionDescriptorExtensions
     {
+        /// <summary>
+        /// Initializes the default configuration for <see cref="IQueryable"/> and
+        /// <see cref="IEnumerable{T}"/> on the convention
+        /// </summary>
+        /// <param name="descriptor">The descriptor where the handlers are registered</param>
+        /// <returns>The descriptor that was passed in as a parameter</returns>
         public static IFilterConventionDescriptor AddDefaults(
             this IFilterConventionDescriptor descriptor) =>
             descriptor.AddDefaultOperations().BindDefaultTypes().UseQueryableProvider();
 
+        /// <summary>
+        /// Adds default operations to the descriptor
+        /// </summary>
+        /// <param name="descriptor">The descriptor where the handlers are registered</param>
+        /// <returns>The descriptor that was passed in as a parameter</returns>
+        /// <exception cref="ArgumentNullException">
+        /// Throws in case the argument <paramref name="descriptor"/> is null
+        /// </exception>
         public static IFilterConventionDescriptor AddDefaultOperations(
             this IFilterConventionDescriptor descriptor)
         {
@@ -16,35 +33,43 @@ namespace HotChocolate.Data.Filters
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            descriptor.Operation(DefaultOperations.Equals).Name("eq");
-            descriptor.Operation(DefaultOperations.NotEquals).Name("neq");
-            descriptor.Operation(DefaultOperations.GreaterThan).Name("gt");
-            descriptor.Operation(DefaultOperations.NotGreaterThan).Name("ngt");
-            descriptor.Operation(DefaultOperations.GreaterThanOrEquals).Name("gte");
-            descriptor.Operation(DefaultOperations.NotGreaterThanOrEquals).Name("ngte");
-            descriptor.Operation(DefaultOperations.LowerThan).Name("lt");
-            descriptor.Operation(DefaultOperations.NotLowerThan).Name("nlt");
-            descriptor.Operation(DefaultOperations.LowerThanOrEquals).Name("lte");
-            descriptor.Operation(DefaultOperations.NotLowerThanOrEquals).Name("nlte");
-            descriptor.Operation(DefaultOperations.Contains).Name("contains");
-            descriptor.Operation(DefaultOperations.NotContains).Name("ncontains");
-            descriptor.Operation(DefaultOperations.In).Name("in");
-            descriptor.Operation(DefaultOperations.NotIn).Name("nin");
-            descriptor.Operation(DefaultOperations.StartsWith).Name("startsWith");
-            descriptor.Operation(DefaultOperations.NotStartsWith).Name("nstartsWith");
-            descriptor.Operation(DefaultOperations.EndsWith).Name("endsWith");
-            descriptor.Operation(DefaultOperations.NotEndsWith).Name("nendsWith");
-            descriptor.Operation(DefaultOperations.All).Name("all");
-            descriptor.Operation(DefaultOperations.None).Name("none");
-            descriptor.Operation(DefaultOperations.Some).Name("some");
-            descriptor.Operation(DefaultOperations.Any).Name("any");
-            descriptor.Operation(DefaultOperations.And).Name("and");
-            descriptor.Operation(DefaultOperations.Or).Name("or");
-            descriptor.Operation(DefaultOperations.Data).Name("data");
+            descriptor.Operation(DefaultFilterOperations.Equals).Name("eq");
+            descriptor.Operation(DefaultFilterOperations.NotEquals).Name("neq");
+            descriptor.Operation(DefaultFilterOperations.GreaterThan).Name("gt");
+            descriptor.Operation(DefaultFilterOperations.NotGreaterThan).Name("ngt");
+            descriptor.Operation(DefaultFilterOperations.GreaterThanOrEquals).Name("gte");
+            descriptor.Operation(DefaultFilterOperations.NotGreaterThanOrEquals).Name("ngte");
+            descriptor.Operation(DefaultFilterOperations.LowerThan).Name("lt");
+            descriptor.Operation(DefaultFilterOperations.NotLowerThan).Name("nlt");
+            descriptor.Operation(DefaultFilterOperations.LowerThanOrEquals).Name("lte");
+            descriptor.Operation(DefaultFilterOperations.NotLowerThanOrEquals).Name("nlte");
+            descriptor.Operation(DefaultFilterOperations.Contains).Name("contains");
+            descriptor.Operation(DefaultFilterOperations.NotContains).Name("ncontains");
+            descriptor.Operation(DefaultFilterOperations.In).Name("in");
+            descriptor.Operation(DefaultFilterOperations.NotIn).Name("nin");
+            descriptor.Operation(DefaultFilterOperations.StartsWith).Name("startsWith");
+            descriptor.Operation(DefaultFilterOperations.NotStartsWith).Name("nstartsWith");
+            descriptor.Operation(DefaultFilterOperations.EndsWith).Name("endsWith");
+            descriptor.Operation(DefaultFilterOperations.NotEndsWith).Name("nendsWith");
+            descriptor.Operation(DefaultFilterOperations.All).Name("all");
+            descriptor.Operation(DefaultFilterOperations.None).Name("none");
+            descriptor.Operation(DefaultFilterOperations.Some).Name("some");
+            descriptor.Operation(DefaultFilterOperations.Any).Name("any");
+            descriptor.Operation(DefaultFilterOperations.And).Name("and");
+            descriptor.Operation(DefaultFilterOperations.Or).Name("or");
+            descriptor.Operation(DefaultFilterOperations.Data).Name("data");
 
             return descriptor;
         }
 
+        /// <summary>
+        /// Binds common runtime types to the according <see cref="FilterInputType"/>
+        /// </summary>
+        /// <param name="descriptor">The descriptor where the handlers are registered</param>
+        /// <returns>The descriptor that was passed in as a parameter</returns>
+        /// <exception cref="ArgumentNullException">
+        /// Throws in case the argument <paramref name="descriptor"/> is null
+        /// </exception>
         public static IFilterConventionDescriptor BindDefaultTypes(
             this IFilterConventionDescriptor descriptor)
         {
@@ -54,31 +79,33 @@ namespace HotChocolate.Data.Filters
             }
 
             descriptor
-                .BindRuntimeType<string, StringOperationFilterInput>()
-                .BindRuntimeType<bool, BooleanOperationFilterInput>()
-                .BindRuntimeType<byte, ComparableOperationFilterInput<byte>>()
-                .BindRuntimeType<short, ComparableOperationFilterInput<short>>()
-                .BindRuntimeType<int, ComparableOperationFilterInput<int>>()
-                .BindRuntimeType<long, ComparableOperationFilterInput<long>>()
-                .BindRuntimeType<float, ComparableOperationFilterInput<float>>()
-                .BindRuntimeType<double, ComparableOperationFilterInput<double>>()
-                .BindRuntimeType<decimal, ComparableOperationFilterInput<decimal>>()
-                .BindRuntimeType<Guid, ComparableOperationFilterInput<Guid>>()
-                .BindRuntimeType<DateTime, ComparableOperationFilterInput<DateTime>>()
-                .BindRuntimeType<DateTimeOffset, ComparableOperationFilterInput<DateTimeOffset>>()
-                .BindRuntimeType<TimeSpan, ComparableOperationFilterInput<TimeSpan>>()
-                .BindRuntimeType<bool?, BooleanOperationFilterInput>()
-                .BindRuntimeType<byte?, ComparableOperationFilterInput<byte?>>()
-                .BindRuntimeType<short?, ComparableOperationFilterInput<short?>>()
-                .BindRuntimeType<int?, ComparableOperationFilterInput<int?>>()
-                .BindRuntimeType<long?, ComparableOperationFilterInput<long?>>()
-                .BindRuntimeType<float?, ComparableOperationFilterInput<float?>>()
-                .BindRuntimeType<double?, ComparableOperationFilterInput<double?>>()
-                .BindRuntimeType<decimal?, ComparableOperationFilterInput<decimal?>>()
-                .BindRuntimeType<Guid?, ComparableOperationFilterInput<Guid?>>()
-                .BindRuntimeType<DateTime?, ComparableOperationFilterInput<DateTime?>>()
-                .BindRuntimeType<DateTimeOffset?, ComparableOperationFilterInput<DateTimeOffset?>>()
-                .BindRuntimeType<TimeSpan?, ComparableOperationFilterInput<TimeSpan?>>();
+                .BindRuntimeType<string, StringOperationFilterInputType>()
+                .BindRuntimeType<bool, BooleanOperationFilterInputType>()
+                .BindRuntimeType<byte, ComparableOperationFilterInputType<byte>>()
+                .BindRuntimeType<short, ComparableOperationFilterInputType<short>>()
+                .BindRuntimeType<int, ComparableOperationFilterInputType<int>>()
+                .BindRuntimeType<long, ComparableOperationFilterInputType<long>>()
+                .BindRuntimeType<float, ComparableOperationFilterInputType<float>>()
+                .BindRuntimeType<double, ComparableOperationFilterInputType<double>>()
+                .BindRuntimeType<decimal, ComparableOperationFilterInputType<decimal>>()
+                .BindRuntimeType<Guid, ComparableOperationFilterInputType<Guid>>()
+                .BindRuntimeType<DateTime, ComparableOperationFilterInputType<DateTime>>()
+                .BindRuntimeType<DateTimeOffset,
+                    ComparableOperationFilterInputType<DateTimeOffset>>()
+                .BindRuntimeType<TimeSpan, ComparableOperationFilterInputType<TimeSpan>>()
+                .BindRuntimeType<bool?, BooleanOperationFilterInputType>()
+                .BindRuntimeType<byte?, ComparableOperationFilterInputType<byte?>>()
+                .BindRuntimeType<short?, ComparableOperationFilterInputType<short?>>()
+                .BindRuntimeType<int?, ComparableOperationFilterInputType<int?>>()
+                .BindRuntimeType<long?, ComparableOperationFilterInputType<long?>>()
+                .BindRuntimeType<float?, ComparableOperationFilterInputType<float?>>()
+                .BindRuntimeType<double?, ComparableOperationFilterInputType<double?>>()
+                .BindRuntimeType<decimal?, ComparableOperationFilterInputType<decimal?>>()
+                .BindRuntimeType<Guid?, ComparableOperationFilterInputType<Guid?>>()
+                .BindRuntimeType<DateTime?, ComparableOperationFilterInputType<DateTime?>>()
+                .BindRuntimeType<DateTimeOffset?,
+                    ComparableOperationFilterInputType<DateTimeOffset?>>()
+                .BindRuntimeType<TimeSpan?, ComparableOperationFilterInputType<TimeSpan?>>();
 
             return descriptor;
         }
