@@ -17,7 +17,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Filtering\Handlers\List" />
+    <Folder Include="Filtering\Handlers\String" />
     <Folder Include="Language\Clauses" />
     <Folder Include="Language\Expressions" />
+    <Folder Include="Projections" />
+    <Folder Include="Sorting" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Abstractions\HotChocolate.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
+    <ProjectReference Include="..\Data\HotChocolate.Data.csproj" />
   </ItemGroup>
 </Project>

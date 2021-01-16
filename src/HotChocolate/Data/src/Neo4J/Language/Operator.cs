@@ -44,6 +44,7 @@
 
         // List operators
         public static readonly Operator In = new Operator("IN");
+        public static readonly Operator NotIn = new Operator("NOT IN");
 
         // Property operators
         public static readonly Operator Set = new Operator("=", Type.Property);
