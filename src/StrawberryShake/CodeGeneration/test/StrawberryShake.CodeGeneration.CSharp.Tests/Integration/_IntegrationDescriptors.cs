@@ -118,7 +118,23 @@ namespace StrawberryShake.Integration
             }
         );
 
-        public static QueryOperationDescriptor GetHeroQueryDescriptor => new(GetHeroResultDescriptor, "StarWarsClient", new Collection<NamedTypeReferenceDescriptor>());
+        public static QueryOperationDescriptor GetHeroQueryDescriptor => new(GetHeroResultDescriptor, "StarWarsClient", new Collection<NamedTypeReferenceDescriptor>(),
+            @"query GetHero {
+                hero {
+                    __typename
+                    id
+                    name
+                    friends {
+                        nodes {
+                            __typename
+                            id
+                            name
+                        }
+                        totalCount
+                    }
+                }
+                version
+            }");
 
         public static ResultBuilderDescriptor GetHeroResultBuilderDescriptor => new()
         {

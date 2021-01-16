@@ -13,6 +13,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private string? _name;
         private string? _value;
         private bool _useDefaultInitializer;
+        private bool _beginValueWithNewline;
 
         public static FieldBuilder New() => new FieldBuilder();
 
@@ -66,9 +67,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public FieldBuilder SetValue(string? value)
+        public FieldBuilder SetValue(string? value, bool beginValueWithNewline = false)
         {
             _value = value;
+            _beginValueWithNewline = beginValueWithNewline;
             _useDefaultInitializer = false;
             return this;
         }
@@ -118,7 +120,17 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
             if (_value is { })
             {
-                await writer.WriteAsync($" = {_value}").ConfigureAwait(false);
+                await writer.WriteAsync(" = ").ConfigureAwait(false);
+                if (_beginValueWithNewline)
+                {
+                    await writer.WriteLineAsync().ConfigureAwait(false);
+                    using (writer.IncreaseIndent())
+                    {
+                        await writer.WriteIndentAsync().ConfigureAwait(false);
+                    }
+                }
+
+                await writer.WriteAsync($"{_value}").ConfigureAwait(false);
             }
             else if (_useDefaultInitializer)
             {

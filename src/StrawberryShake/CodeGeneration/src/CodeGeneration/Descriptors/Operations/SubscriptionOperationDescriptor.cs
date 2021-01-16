@@ -10,10 +10,10 @@ namespace StrawberryShake.CodeGeneration
     {
         public override string Name => NamingConventions.SubscriptionServiceNameFromTypeName(ResultTypeReference.Name);
 
-        public SubscriptionOperationDescriptor(
-            ITypeDescriptor resultTypeReference,
+        public SubscriptionOperationDescriptor(ITypeDescriptor resultTypeReference,
             string @namespace,
-            IReadOnlyList<NamedTypeReferenceDescriptor> arguments) : base(resultTypeReference, @namespace, arguments)
+            IReadOnlyList<NamedTypeReferenceDescriptor> arguments,
+            string bodyString) : base(resultTypeReference, @namespace, arguments, bodyString)
         {
         }
     }

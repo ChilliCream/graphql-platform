@@ -9,10 +9,10 @@ namespace StrawberryShake.CodeGeneration
     {
         public override string Name => NamingConventions.QueryServiceNameFromTypeName(ResultTypeReference.Name);
 
-        public QueryOperationDescriptor(
-            ITypeDescriptor resultTypeReference,
+        public QueryOperationDescriptor(ITypeDescriptor resultTypeReference,
             string @namespace,
-            IReadOnlyList<NamedTypeReferenceDescriptor> arguments) : base(resultTypeReference, @namespace, arguments)
+            IReadOnlyList<NamedTypeReferenceDescriptor> arguments,
+            string bodyString) : base(resultTypeReference, @namespace, arguments, bodyString)
         {
         }
     }

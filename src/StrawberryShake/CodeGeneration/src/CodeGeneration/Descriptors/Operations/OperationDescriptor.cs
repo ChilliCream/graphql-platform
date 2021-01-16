@@ -20,6 +20,8 @@ namespace StrawberryShake.CodeGeneration
         /// </summary>
         public ITypeDescriptor ResultTypeReference { get; }
 
+        public string BodyString { get; }
+
         /// <summary>
         /// The arguments the operation takes.
         /// </summary>
@@ -28,10 +30,12 @@ namespace StrawberryShake.CodeGeneration
         public OperationDescriptor(
             ITypeDescriptor resultTypeReference,
             string @namespace,
-            IReadOnlyList<NamedTypeReferenceDescriptor> arguments)
+            IReadOnlyList<NamedTypeReferenceDescriptor> arguments,
+            string bodyString)
         {
             ResultTypeReference = resultTypeReference;
             Arguments = arguments;
+            BodyString = bodyString;
             Namespace = @namespace;
         }
     }

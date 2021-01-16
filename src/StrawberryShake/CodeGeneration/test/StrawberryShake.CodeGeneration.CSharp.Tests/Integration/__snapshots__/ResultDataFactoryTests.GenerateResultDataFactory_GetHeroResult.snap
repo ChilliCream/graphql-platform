@@ -5,20 +5,20 @@
         : IOperationResultDataFactory<GetHeroResult>
     {
         private readonly IEntityStore _entityStore;
-        private readonly IEntityMapper<HumanEntity, HumanHero> _humanFromHumanEntityMapper;
-        private readonly IEntityMapper<DroidEntity, DroidHero> _droidFromDroidEntityMapper;
+        private readonly IEntityMapper<HumanEntity, HumanHero> _humanHeroFromHumanEntityMapper;
+        private readonly IEntityMapper<DroidEntity, DroidHero> _droidHeroFromDroidEntityMapper;
 
         public GetHeroResultFactory(
             IEntityStore entityStore,
-            IEntityMapper<HumanEntity, HumanHero> humanFromHumanEntityMapper,
-            IEntityMapper<DroidEntity, DroidHero> droidFromDroidEntityMapper)
+            IEntityMapper<HumanEntity, HumanHero> humanHeroFromHumanEntityMapper,
+            IEntityMapper<DroidEntity, DroidHero> droidHeroFromDroidEntityMapper)
         {
             _entityStore = entityStore
                  ?? throw new ArgumentNullException(nameof(entityStore));
-            _humanFromHumanEntityMapper = humanFromHumanEntityMapper
-                 ?? throw new ArgumentNullException(nameof(humanFromHumanEntityMapper));
-            _droidFromDroidEntityMapper = droidFromDroidEntityMapper
-                 ?? throw new ArgumentNullException(nameof(droidFromDroidEntityMapper));
+            _humanHeroFromHumanEntityMapper = humanHeroFromHumanEntityMapper
+                 ?? throw new ArgumentNullException(nameof(humanHeroFromHumanEntityMapper));
+            _droidHeroFromDroidEntityMapper = droidHeroFromDroidEntityMapper
+                 ?? throw new ArgumentNullException(nameof(droidHeroFromDroidEntityMapper));
         }
 
         public GetHeroResult Create(IOperationResultDataInfo dataInfo)
@@ -32,7 +32,7 @@
                     StringComparison.Ordinal
                 ))
                 {
-                    hero = HumanFromHumanEntityMapper(_entityStore.GetEntity<HumanEntity>(info.HeroId));
+                    hero = HumanHeroFromHumanEntityMapper(_entityStore.GetEntity<HumanEntity>(info.HeroId));
                 }
 
                 if (info.HeroId.Name.Equals(
@@ -40,7 +40,7 @@
                     StringComparison.Ordinal
                 ))
                 {
-                    hero = DroidFromDroidEntityMapper(_entityStore.GetEntity<DroidEntity>(info.HeroId));
+                    hero = DroidHeroFromDroidEntityMapper(_entityStore.GetEntity<DroidEntity>(info.HeroId));
                 }
 
                 return new GetHeroResult(

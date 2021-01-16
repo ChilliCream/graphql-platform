@@ -9,10 +9,10 @@ namespace StrawberryShake.CodeGeneration
     {
         public override string Name => NamingConventions.MutationServiceNameFromTypeName(ResultTypeReference.Name);
 
-        public MutationOperationDescriptor(
-            ITypeDescriptor resultTypeReference,
+        public MutationOperationDescriptor(ITypeDescriptor resultTypeReference,
             string @namespace,
-            IReadOnlyList<NamedTypeReferenceDescriptor> arguments) : base(resultTypeReference, @namespace, arguments)
+            IReadOnlyList<NamedTypeReferenceDescriptor> arguments,
+            string bodyString) : base(resultTypeReference, @namespace, arguments, bodyString)
         {
         }
     }

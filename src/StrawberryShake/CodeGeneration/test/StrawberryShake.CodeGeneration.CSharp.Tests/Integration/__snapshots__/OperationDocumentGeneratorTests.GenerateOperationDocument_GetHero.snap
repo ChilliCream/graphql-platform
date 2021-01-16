@@ -1,0 +1,40 @@
+﻿namespace StarWarsClient
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetHeroResultQueryDocument
+    {
+        private const string _bodyString = 
+            @"query GetHero {
+                hero {
+                    __typename
+                    id
+                    name
+                    friends {
+                        nodes {
+                            __typename
+                            id
+                            name
+                        }
+                        totalCount
+                    }
+                }
+                version
+            }";
+        private static readonly byte[] _body = Encoding.UTF8.GetBytes(_bodyString);
+
+        private GetHeroResultQueryDocument()
+        {
+        }
+
+        public GetHeroQueryDocument Instance { get; } = new();
+
+        public OperationKind Kind => OperationKind.Query;
+
+        public ReadOnlySpan<byte> Body => _body;
+
+        private override string ToString()
+        {
+            return _bodyString;
+        }
+    }
+}

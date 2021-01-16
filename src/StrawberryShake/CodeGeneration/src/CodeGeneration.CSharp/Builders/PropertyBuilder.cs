@@ -6,15 +6,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
     public class PropertyBuilder : ICodeBuilder
     {
         private AccessModifier _accessModifier;
-        private AccessModifier? _setterAccessModifier;
         private bool _isAutoProperty = true;
         private bool _isReadOnly = true;
-        private string? _backingField;
-        private ICode? _getCode;
-        private ICode? _setCode;
         private string? _lambdaResolver;
         private TypeReferenceBuilder? _type;
         private string? _name;
+        private string? _value;
 
         public static PropertyBuilder New() => new PropertyBuilder();
 
@@ -48,29 +45,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public PropertyBuilder SetBackingField(string value)
+        public PropertyBuilder SetValue(string value)
         {
-            _backingField = value;
-            return this;
-        }
-
-        public PropertyBuilder SetSetter(ICode value)
-        {
-            _setCode = value;
-            _isAutoProperty = _setCode is null && _getCode is null;
-            return this;
-        }
-
-        public PropertyBuilder SetSetterAccessModifier(AccessModifier value)
-        {
-            _setterAccessModifier = value;
-            return this;
-        }
-
-        public PropertyBuilder SetGetter(ICode value)
-        {
-            _getCode = value;
-            _isAutoProperty = _setCode is null && _getCode is null;
+            _value = value;
             return this;
         }
 
@@ -93,13 +70,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             }
 
             string modifier = _accessModifier.ToString().ToLowerInvariant();
-            string setterModifier = string.Empty;
-
-            if (_setterAccessModifier.HasValue)
-            {
-                setterModifier = _setterAccessModifier.Value
-                    .ToString().ToLowerInvariant() + " ";
-            }
 
             await writer.WriteIndentAsync().ConfigureAwait(false);
             await writer.WriteAsync(modifier).ConfigureAwait(false);
@@ -116,68 +86,22 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 return;
             }
 
-            if (_isAutoProperty)
+            await writer.WriteAsync(" {").ConfigureAwait(false);
+            await writer.WriteAsync(" get;").ConfigureAwait(false);
+            if (!_isReadOnly)
             {
-                if (_backingField is null)
-                {
-                    await writer.WriteAsync(" { get; ").ConfigureAwait(false);
-                    if (!_isReadOnly)
-                    {
-                        await writer.WriteAsync($"{setterModifier}set; ")
-                            .ConfigureAwait(false);
-                    }
+                await writer.WriteAsync(" set;").ConfigureAwait(false);
+            }
+            await writer.WriteAsync(" }").ConfigureAwait(false);
 
-                    await writer.WriteAsync("}").ConfigureAwait(false);
-                    await writer.WriteLineAsync().ConfigureAwait(false);
-                    return;
-                }
+            if (_value is not null)
+            {
+                await writer.WriteAsync(" = ").ConfigureAwait(false);
+                await writer.WriteAsync(_value).ConfigureAwait(false);
+                await writer.WriteAsync(";").ConfigureAwait(false);
             }
 
             await writer.WriteLineAsync().ConfigureAwait(false);
-            await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
-            using (writer.IncreaseIndent())
-            {
-                if (_getCode is null)
-                {
-                    await writer.WriteIndentedLineAsync($"get => {_backingField}")
-                        .ConfigureAwait(false);
-                }
-                else
-                {
-                    await writer.WriteIndentedLineAsync("get")
-                        .ConfigureAwait(false);
-                    await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
-                    using (writer.IncreaseIndent())
-                    {
-                        await _getCode.BuildAsync(writer).ConfigureAwait(false);
-                    }
-
-                    await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
-                }
-
-                if (!_isReadOnly)
-                {
-                    if (_setCode is null)
-                    {
-                        await writer.WriteIndentedLineAsync($"{setterModifier}set => {_backingField} = value;")
-                            .ConfigureAwait(false);
-                    }
-                    else
-                    {
-                        await writer.WriteIndentedLineAsync($"{setterModifier}set")
-                            .ConfigureAwait(false);
-                        await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
-                        using (writer.IncreaseIndent())
-                        {
-                            await _setCode.BuildAsync(writer).ConfigureAwait(false);
-                        }
-
-                        await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
-                    }
-                }
-            }
-
-            await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
         }
     }
 }
