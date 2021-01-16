@@ -1,23 +1,21 @@
-﻿using System.Collections.Generic;
-
-namespace HotChocolate.Data.Neo4J
+﻿namespace HotChocolate.Data.Neo4J
 {
     public class CypherQuery
     {
         /// <summary>
-        /// Gets if query is a read or write.
+        /// Is the query is a read or write.
         /// </summary>
-        public bool IsWrite { get; }
+        private readonly bool _isWrite;
 
         /// <summary>
-        /// Gets the query's text.
+        /// The query's text.
         /// </summary>
-        public string Text { get; }
+        private readonly string _text;
 
         /// <summary>
-        /// Gets the query's parameters.
+        /// The query's parameters.
         /// </summary>
-        public IDictionary<string, object> Parameters { get; }
+        private CypherQueryParameters _parameters;
 
         /// <summary>
         /// Create a query
@@ -27,14 +25,16 @@ namespace HotChocolate.Data.Neo4J
         /// <param name="isWrite">If the query will be a write or read.</param>
         public CypherQuery(
             string text,
-            IDictionary<string, object> parameters,
+            CypherQueryParameters parameters,
             bool isWrite = false)
         {
-            Text = text;
-            Parameters = parameters ?? new Dictionary<string, object>();
-            IsWrite = isWrite;
+            _text = text;
+            _parameters = parameters ?? new CypherQueryParameters();
+            _isWrite = isWrite;
         }
 
-        public override string ToString() => Text;
+        public bool IsWrite() => _isWrite;
+
+        public override string ToString() => _text;
     }
 }

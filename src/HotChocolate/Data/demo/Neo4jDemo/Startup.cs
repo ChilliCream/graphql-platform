@@ -1,5 +1,7 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using HotChocolate.Data.Neo4J;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,41 +13,43 @@ namespace Neo4jDemo
 {
     public class Startup
     {
-        /*public class Movie
+        public class Movie
         {
             public string Title { get; set; }
-            public string YearReleased { get; set; }
+            public int? YearReleased { get; set; }
             public string Plot { get; set; }
-            public double ImdbRating { get; set; }
+            public double? ImdbRating { get; set; }
 
-            [Relationship("ACTED_IN", RelationshipDirection.Incoming)]
-            public List<Actor> Actors { get; set; }
+            //[Relationship("ACTED_IN", RelationshipDirection.Incoming)]
+            //public List<Actor> Actors { get; set; }
         }
 
         public class Actor
         {
             public string Name { get; set; }
 
-            [Relationship("ACTED_IN", RelationshipDirection.Outgoing)]
+            //[Relationship("ACTED_IN", RelationshipDirection.Outgoing)]
             public List<Movie> ActedIn { get; set; }
         }
-        */
 
-        /*public class Query
+
+        public class Query
         {
-            public async Task<List<Person>> GetPeople()
-            {/List<Person> people = new();
-                //Node node = Cypher.Node("Person").Named("p");
-                //StatementBuilder statement = Cypher.Match(book);
+            public async Task<Movie> GetMovies()
+            {
+                Movie movies;
 
                 IDriver driver = GraphDatabase.Driver("bolt://localhost:7687", AuthTokens.Basic("neo4j", "test123"));
                 IAsyncSession session = driver.AsyncSession(o => o.WithDatabase("neo4j"));
+
                 try
                 {
-                    IResultCursor cursor = await session.RunAsync("MATCH (p:Person) RETURN p { .name} ");
-                    var test = await cursor.ToListAsync();
-                    //people = await cursor.ToListAsync(record => new Person() {Name = record["name"].As<string>()});
+                    var cursor = await session.RunAsync(@"
+                        MATCH (m:Movie)
+                        RETURN m
+                    ");
 
+                    movies = await cursor.MapSingleAsync<Movie>();
                 }
                 finally
                 {
@@ -53,19 +57,9 @@ namespace Neo4jDemo
                 }
 
                 await driver.CloseAsync();
-                return people;
+
+                return movies;
             }
-        }*/
-
-        public class Book
-        {
-            public string Title { get; set; }
-            public string Author { get; set; }
-        }
-
-        public class Query
-        {
-            public Book GetBook() => new() {Title = "C# in depth", Author = "Jon Skeet"};
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
@@ -78,14 +72,17 @@ namespace Neo4jDemo
                 .AddGraphQLServer()
                 .AddDocumentFromString(@"
                     type Query {
-                        book: Book
+                        movies: Movie
                     }
-                    type Book {
-                        Title: String
-                        Author: String
+                    type Movie {
+                        title: String
+                        yearReleased: Int
+                        plot: String
+                        imdbRating: Float
                     }
                 ")
-                .BindComplexType<Query>(c => c.To("Query").Field(t => t.GetBook()).Name("book"));
+                .BindComplexType<Query>()
+                .BindComplexType<Movie>();
         }
 
         private IDriver CreateDriver()
