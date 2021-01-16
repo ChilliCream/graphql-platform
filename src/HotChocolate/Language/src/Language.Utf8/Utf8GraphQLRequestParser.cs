@@ -103,14 +103,9 @@ namespace HotChocolate.Language
                 ParseRequestProperty(ref request);
             }
 
-            if (!request.HasQuery && request.QueryId == null)
+            if (!request.HasQuery && request.QueryId is null)
             {
-                if (_useCache
-                    && request.Extensions != null
-                    && request.Extensions.TryGetValue(_persistedQuery, out object? obj)
-                    && obj is IReadOnlyDictionary<string, object> persistedQuery
-                    && persistedQuery.TryGetValue(_hashProvider!.Name, out obj)
-                    && obj is string hash)
+                if (_useCache && TryExtractHash(request.Extensions, _hashProvider, out var hash))
                 {
                     request.QueryId = hash;
                 }

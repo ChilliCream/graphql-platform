@@ -10,17 +10,28 @@ namespace HotChocolate.Execution.Processing
             IOperationContext operationContext)
         {
             var proposedTaskCount = operationContext.Operation.ProposedTaskCount;
-            var tasks = new Task[proposedTaskCount];
 
-            for (var i = 0; i < proposedTaskCount; i++)
+            if (proposedTaskCount == 1)
             {
-                tasks[i] = StartExecutionTaskAsync(
+                await StartExecutionTaskAsync(
                     operationContext.Execution,
                     HandleError,
                     operationContext.RequestAborted);
             }
+            else
+            {
+                var tasks = new Task[proposedTaskCount];
 
-            await Task.WhenAll(tasks).ConfigureAwait(false);
+                for (var i = 0; i < proposedTaskCount; i++)
+                {
+                    tasks[i] = StartExecutionTaskAsync(
+                        operationContext.Execution,
+                        HandleError,
+                        operationContext.RequestAborted);
+                }
+
+                await Task.WhenAll(tasks).ConfigureAwait(false);
+            }
 
             void HandleError(Exception exception)
             {

@@ -9,16 +9,30 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Configuration
 {
-    public interface ITypeCompletionContext
-        : ITypeSystemObjectContext
+    /// <summary>
+    /// Represents the type completion context which gives access to data available while
+    /// the type is being completed.
+    /// </summary>
+    public interface ITypeCompletionContext : ITypeSystemObjectContext
     {
         /// <summary>
         /// Defines if the type that is being completed is the query type.
         /// </summary>
         bool? IsQueryType { get; }
 
+        /// <summary>
+        /// Defines if the type that is being completed is the mutation type.
+        /// </summary>
+        bool? IsMutationType { get; }
+
+        /// <summary>
+        /// Global middleware components.
+        /// </summary>
         IReadOnlyList<FieldMiddleware> GlobalComponents { get; }
 
+        /// <summary>
+        /// The fallback object to type resolver.
+        /// </summary>
         IsOfTypeFallback? IsOfType { get; }
 
         /// <summary>
