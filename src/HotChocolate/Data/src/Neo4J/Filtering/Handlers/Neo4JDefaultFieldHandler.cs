@@ -36,8 +36,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
         {
             if (node.Value.IsNull())
             {
-                // TODO: Implement error
-                //context.ReportError(ErrorHelper.CreateNonNullError(field, node.Value, context));
+                context.ReportError(ErrorHelper.CreateNonNullError(field, node.Value, context));
 
                 action = SyntaxVisitor.Skip;
                 return true;

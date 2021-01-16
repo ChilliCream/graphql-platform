@@ -1,4 +1,4 @@
-using HotChocolate.Data.Neo4J.Filtering.Convention.Extensions;
+using HotChocolate.Data.Neo4J.Filtering;
 
 namespace HotChocolate.Data.Neo4J
 {
@@ -13,6 +13,9 @@ namespace HotChocolate.Data.Neo4J
         /// <param name="builder">
         /// The <see cref="ISchemaBuilder"/>.
         /// </param>
+        /// <param name="name">
+        /// The filtering convention name.
+        /// </param>
         /// <returns>
         /// Returns the <see cref="ISchemaBuilder"/>.
         /// </returns>
@@ -21,32 +24,40 @@ namespace HotChocolate.Data.Neo4J
             string? name = null) =>
             builder.AddFiltering(x => x.AddNeo4JDefaults(), name);
 
+        // TODO: Implement Sorting Schema Builder Extension
         /// <summary>
         /// Adds sorting support.
         /// </summary>
         /// <param name="builder">
         /// The <see cref="ISchemaBuilder"/>.
         /// </param>
+        /// <param name="name">
+        /// The sorting convention name.
+        /// </param>
         /// <returns>
         /// Returns the <see cref="ISchemaBuilder"/>.
         /// </returns>
-        public static ISchemaBuilder AddNeo4JSorting(
-            this ISchemaBuilder builder,
-            string? name = null) =>
-            builder.AddSorting(x => x.AddNeo4JDefaults(), name);
+        // public static ISchemaBuilder AddNeo4JSorting(
+        //     this ISchemaBuilder builder,
+        //     string? name = null) =>
+        //     builder.AddSorting(x => x.AddNeo4JDefaults(), name);
 
+        // TODO: Implement Projection Schema Builder Extension
         /// <summary>
         /// Adds projections support.
         /// </summary>
         /// <param name="builder">
         /// The <see cref="ISchemaBuilder"/>.
         /// </param>
+        /// <param name="name">
+        /// The projections convention name.
+        /// </param>
         /// <returns>
         /// Returns the <see cref="ISchemaBuilder"/>.
         /// </returns>
-        public static ISchemaBuilder AddNeo4JProjections(
-            this ISchemaBuilder builder,
-            string? name = null) =>
-            builder.AddProjections(x => x.AddNeo4JDefaults(), name);
+        // public static ISchemaBuilder AddNeo4JProjections(
+        //     this ISchemaBuilder builder,
+        //     string? name = null) =>
+        //     builder.AddProjections(x => x.AddNeo4JDefaults(), name);
     }
 }

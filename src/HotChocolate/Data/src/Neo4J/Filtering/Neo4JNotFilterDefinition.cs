@@ -1,4 +1,4 @@
-namespace HotChocolate.Data.Neo4J.Driver
+namespace HotChocolate.Data.Neo4J.Filtering
 {
     public class Neo4JNotFilterDefinition : Neo4JFilterDefinition
     {

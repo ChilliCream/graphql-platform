@@ -1,4 +1,4 @@
-namespace HotChocolate.Data.Neo4J
+namespace HotChocolate.Data.Neo4J.Filtering
 {
     public class Neo4JFilterOperation : Neo4JFilterDefinition
     {

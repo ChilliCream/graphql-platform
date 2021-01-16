@@ -17,17 +17,28 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Filtering\Handlers\List" />
-    <Folder Include="Filtering\Handlers\String" />
     <Folder Include="Language\Clauses" />
     <Folder Include="Language\Expressions" />
-    <Folder Include="Projections" />
-    <Folder Include="Sorting" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Core\src\Abstractions\HotChocolate.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
     <ProjectReference Include="..\Data\HotChocolate.Data.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Neo4JResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Neo4JResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Neo4JResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Neo4JResources.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
 </Project>

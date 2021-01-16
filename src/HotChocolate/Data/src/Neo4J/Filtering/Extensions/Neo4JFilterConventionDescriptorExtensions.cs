@@ -1,7 +1,7 @@
 using System;
 using HotChocolate.Data.Filters;
 
-namespace HotChocolate.Data.Neo4J.Filtering.Convention.Extensions
+namespace HotChocolate.Data.Neo4J.Filtering
 {
     public static class Neo4JFilterConventionDescriptorExtensions
     {
