@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
+using HotChocolate.Language.Utilities;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
@@ -11,7 +13,7 @@ namespace HotChocolate.Data.Projections.Handlers
     public class QueryablePagingProjectionOptimizer : IProjectionOptimizer
     {
         public bool CanHandle(ISelection field) =>
-            field.Field.Member is {} &&
+            field.Field.Member is { } &&
             field.DeclaringType is IPageType &&
             field.Field.Name.Value is "edges";
 
@@ -40,10 +42,8 @@ namespace HotChocolate.Data.Projections.Handlers
                     {
                         foreach (var nodeField in edgeSubFieldNode.SelectionSet.Selections)
                         {
-                            if (nodeField is FieldNode nodeFieldNode)
-                            {
-                                selections.Add(nodeFieldNode);
-                            }
+                            selections.Add(
+                                CloneSelectionSetVisitor.Default.RewriteSelectionNode(nodeField));
                         }
                     }
                 }
@@ -73,7 +73,7 @@ namespace HotChocolate.Data.Projections.Handlers
             }
             else
             {
-                if (nodeSelection.SelectionSet?.Selections is {})
+                if (nodeSelection.SelectionSet?.Selections is { })
                 {
                     selections.AddRange(nodeSelection.SelectionSet.Selections);
                 }
@@ -89,6 +89,25 @@ namespace HotChocolate.Data.Projections.Handlers
 
             context.Fields["nodes"] = nodeSelection;
             return selection;
+        }
+
+        private class CloneSelectionSetVisitor : QuerySyntaxRewriter<object>
+        {
+            private static readonly object _context = new();
+
+            protected override SelectionSetNode RewriteSelectionSet(
+                SelectionSetNode node,
+                object context)
+            {
+                return new(node.Selections);
+            }
+
+            public ISelectionNode RewriteSelectionNode(ISelectionNode selection)
+            {
+                return RewriteSelection(selection, _context);
+            }
+
+            public static readonly CloneSelectionSetVisitor Default = new();
         }
     }
 }
