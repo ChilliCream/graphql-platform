@@ -7,6 +7,7 @@ using HotChocolate.Language.Utilities;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
+using static HotChocolate.Data.Projections.WellKnownProjectionFields;
 
 namespace HotChocolate.Data.Projections.Handlers
 {
@@ -27,12 +28,54 @@ namespace HotChocolate.Data.Projections.Handlers
                 throw new InvalidOperationException();
             }
 
-            context.Fields.TryGetValue("nodes", out Selection? nodeSelection);
-            context.Fields.TryGetValue("edges", out Selection? edgeSelection);
+            IReadOnlyList<ISelectionNode>? selections = CollectSelection(context);
 
+            context.Fields[CombinedEdgeField] =
+                CreateCombinedSelection(context, selection, itemType, pageType, selections);
 
+            return selection;
+        }
+
+        private Selection CreateCombinedSelection(
+            SelectionOptimizerContext context,
+            ISelection selection,
+            IObjectType itemType,
+            IPageType pageType,
+            IReadOnlyList<ISelectionNode> selections)
+        {
+            IObjectField nodesField = pageType.Fields["nodes"];
+            var combinedField = new FieldNode(
+                null,
+                new NameNode("nodes"),
+                new NameNode(CombinedEdgeField),
+                Array.Empty<DirectiveNode>(),
+                Array.Empty<ArgumentNode>(),
+                new SelectionSetNode(selections));
+
+            FieldDelegate nodesPipeline =
+                context.CompileResolverPipeline(nodesField, combinedField);
+
+            return new Selection(
+                itemType,
+                nodesField,
+                combinedField,
+                nodesPipeline,
+                arguments: selection.Arguments,
+                internalSelection: true);
+        }
+
+        private IReadOnlyList<ISelectionNode> CollectSelection(SelectionOptimizerContext context)
+        {
             var selections = new List<ISelectionNode>();
-            if (edgeSelection?.SelectionSet is not null)
+            if (context.Fields.TryGetValue("nodes", out Selection? nodeSelection))
+            {
+                foreach (var nodeField in nodeSelection.SelectionSet.Selections)
+                {
+                    selections.Add(CloneSelectionSetVisitor.Default.CloneSelectionNode(nodeField));
+                }
+            }
+
+            if (context.Fields.TryGetValue("edges", out Selection? edgeSelection))
             {
                 foreach (var edgeSubField in edgeSelection.SelectionSet.Selections)
                 {
@@ -43,52 +86,13 @@ namespace HotChocolate.Data.Projections.Handlers
                         foreach (var nodeField in edgeSubFieldNode.SelectionSet.Selections)
                         {
                             selections.Add(
-                                CloneSelectionSetVisitor.Default.RewriteSelectionNode(nodeField));
+                                CloneSelectionSetVisitor.Default.CloneSelectionNode(nodeField));
                         }
                     }
                 }
             }
 
-            if (nodeSelection is null)
-            {
-                IObjectField nodesField = pageType.Fields["nodes"];
-                var nodesFieldNode = new FieldNode(
-                    null,
-                    new NameNode("nodes"),
-                    null,
-                    Array.Empty<DirectiveNode>(),
-                    Array.Empty<ArgumentNode>(),
-                    new SelectionSetNode(selections));
-
-                FieldDelegate nodesPipeline =
-                    context.CompileResolverPipeline(nodesField, nodesFieldNode);
-
-                nodeSelection = new Selection(
-                    itemType,
-                    nodesField,
-                    nodesFieldNode,
-                    nodesPipeline,
-                    arguments: selection.Arguments,
-                    internalSelection: true);
-            }
-            else
-            {
-                if (nodeSelection.SelectionSet?.Selections is { })
-                {
-                    selections.AddRange(nodeSelection.SelectionSet.Selections);
-                }
-
-                nodeSelection = new Selection(
-                    itemType,
-                    nodeSelection.Field,
-                    nodeSelection.SyntaxNode.WithSelectionSet(new SelectionSetNode(selections)),
-                    nodeSelection.ResolverPipeline,
-                    arguments: selection.Arguments,
-                    internalSelection: false);
-            }
-
-            context.Fields["nodes"] = nodeSelection;
-            return selection;
+            return selections;
         }
 
         private class CloneSelectionSetVisitor : QuerySyntaxRewriter<object>
@@ -102,7 +106,7 @@ namespace HotChocolate.Data.Projections.Handlers
                 return new(node.Selections);
             }
 
-            public ISelectionNode RewriteSelectionNode(ISelectionNode selection)
+            public ISelectionNode CloneSelectionNode(ISelectionNode selection)
             {
                 return RewriteSelection(selection, _context);
             }

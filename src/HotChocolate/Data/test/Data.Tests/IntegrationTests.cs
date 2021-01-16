@@ -265,6 +265,43 @@ namespace HotChocolate.Data
             result.ToJson().MatchSnapshot();
         }
 
+        [Fact]
+        public async Task ExecuteAsync_Should_ProjectAndPage_When_BothAreAppliedAndProvided()
+        {
+            // arrange
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddFiltering()
+                .EnableRelaySupport()
+                .AddSorting()
+                .AddProjections()
+                .AddQueryType<PagingAndProjection>()
+                .AddObjectType<Book>(x =>
+                    x.ImplementsNode().IdField(x => x.Id).ResolveNode(x => default!))
+                .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                {
+                    books {
+                        nodes {
+                            id
+                        }
+                        edges {
+                            node {
+                                title
+                            }
+                        }
+
+                    }
+                }
+                ");
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
         public class PagingAndProjection
         {
             [UsePaging]
