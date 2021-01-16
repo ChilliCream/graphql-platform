@@ -13,6 +13,8 @@ namespace StrawberryShake.CodeGeneration
         /// </summary>
         public abstract string Name { get; }
 
+        public string Namespace { get; }
+
         /// <summary>
         /// The type the operation returns
         /// </summary>
@@ -25,10 +27,12 @@ namespace StrawberryShake.CodeGeneration
 
         public OperationDescriptor(
             ITypeDescriptor resultTypeReference,
+            string @namespace,
             IReadOnlyList<NamedTypeReferenceDescriptor> arguments)
         {
             ResultTypeReference = resultTypeReference;
             Arguments = arguments;
+            Namespace = @namespace;
         }
     }
 }

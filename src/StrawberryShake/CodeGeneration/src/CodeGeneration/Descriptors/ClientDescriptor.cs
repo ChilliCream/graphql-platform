@@ -12,15 +12,18 @@ namespace StrawberryShake.CodeGeneration
         /// </summary>
         public string Name { get; }
 
+        public string Namespace { get; }
+
         /// <summary>
         /// The operations that are contained in this client class
         /// </summary>
         public List<OperationDescriptor> Operations { get; }
 
-        public ClientDescriptor(string name, List<OperationDescriptor> operations)
+        public ClientDescriptor(string name, string @namespace, List<OperationDescriptor> operations)
         {
             Name = name;
             Operations = operations;
+            Namespace = @namespace;
         }
     }
 }

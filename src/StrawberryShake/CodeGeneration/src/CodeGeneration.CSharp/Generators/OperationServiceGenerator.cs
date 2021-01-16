@@ -1,13 +1,13 @@
-using System;
 using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
+using StrawberryShake.CodeGeneration.Extensions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
     public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
     {
-        private const string OperationStoreFieldName = "_operationStore";
         private const string OperationExecutorFieldName = "_operationExecutor";
+        private const string CreateRequestMethodName = "CreateRequest";
 
         protected override Task WriteAsync(CodeWriter writer, OperationDescriptor operationDescriptor)
         {
@@ -21,14 +21,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
             ConstructorBuilder.SetTypeName(operationDescriptor.Name);
 
             AddConstructorAssignedField(
-                WellKnownNames.IOperationStore,
-                OperationStoreFieldName
-            );
-
-            AddConstructorAssignedField(
                 TypeReferenceBuilder.New()
                     .SetName(WellKnownNames.IOperationExecutor)
-                    .AddGeneric(operationDescriptor.ResultTypeReference.TypeName),
+                    .AddGeneric(operationDescriptor.ResultTypeReference.Name),
                 OperationExecutorFieldName
             );
 
@@ -37,27 +32,36 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 executeMethod = MethodBuilder.New()
                     .SetReturnType(
-                        $"async Task<{WellKnownNames.IOperationResult}<{operationDescriptor.ResultTypeReference.TypeName}>>"
+                        $"async Task<{WellKnownNames.IOperationResult}<{operationDescriptor.ResultTypeReference.Name}>>"
                     )
                     .SetAccessModifier(AccessModifier.Public)
                     .SetName(WellKnownNames.Execute);
             }
 
+            var strategyVariableName = "strategy";
             var watchMethod = MethodBuilder.New()
-                .SetReturnType($"IOperationObservable<{operationDescriptor.ResultTypeReference.TypeName}>")
+                .SetReturnType($"IOperationObservable<{operationDescriptor.ResultTypeReference.Name}>")
                 .SetAccessModifier(AccessModifier.Public)
-                .SetName(WellKnownNames.Watch);
+                .SetName(WellKnownNames.Watch)
+                .AddParameter(
+                    ParameterBuilder.New()
+                        .SetName(strategyVariableName)
+                        .SetType(
+                            TypeReferenceBuilder.New()
+                                .SetIsNullable(true)
+                                .SetName(WellKnownNames.ExecutionStrategy)
+                        )
+                        .SetDefault("null")
+                );
 
-            foreach (var keyValuePair in operationDescriptor.Arguments)
+            foreach (var arg in operationDescriptor.Arguments)
             {
-                var paramType = keyValuePair.Value;
                 var paramBuilder = ParameterBuilder.New()
-                    .SetName(keyValuePair.Key)
+                    .SetName(arg.Name.WithLowerFirstChar())
                     .SetType(
                         TypeReferenceBuilder.New()
-                            .SetName(paramType.TypeName)
-                            .SetIsNullable(paramType.IsNullable)
-                            .SetListType(paramType.ListType)
+                            .SetName(arg.Type.Name)
+                            .SetIsNullable(arg.Type.IsNullable)
                     );
 
                 executeMethod?.AddParameter(paramBuilder);
@@ -78,19 +82,19 @@ namespace StrawberryShake.CodeGeneration.CSharp
             requestBuilder
                 .AddCode(
                     CodeLineBuilder.New()
-                        .SetLine(
-                            $"var {requestVariableName} = new {NamingConventions.RequestNameFromOperationServiceName(operationDescriptor.Name)}();"
-                        )
+                        .SetLine($"var {requestVariableName} = {CreateRequestMethodName}();")
                 );
 
             executeMethod?.AddCode(requestBuilder);
+            watchMethod?.AddCode(requestBuilder);
+            watchMethod?.AddCode(
+                $"return {OperationExecutorFieldName}.Watch({requestVariableName}, {strategyVariableName});"
+            );
 
-            foreach (var keyValuePair in operationDescriptor.Arguments)
+            foreach (var arg in operationDescriptor.Arguments)
             {
                 requestBuilder.AddCode(
-                    CodeLineBuilder.New().SetLine(
-                        $"request.Variables.Add(\"{keyValuePair.Key}\", {keyValuePair.Key}, );"
-                    )
+                    CodeLineBuilder.New().SetLine($"request.Variables.Add(\"{arg.Name}\", {arg.Name}, );")
                 );
             }
 
@@ -119,8 +123,26 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             if (executeMethod is not null) ClassBuilder.AddMethod(executeMethod);
             ClassBuilder.AddMethod(watchMethod);
+            ClassBuilder.AddMethod(CreateRequestMethod(operationDescriptor));
 
-            return ClassBuilder.BuildAsync(writer);
+            return CodeFileBuilder.New()
+                .SetNamespace(operationDescriptor.Namespace)
+                .AddType(ClassBuilder)
+                .BuildAsync(writer);
+        }
+
+        private MethodBuilder CreateRequestMethod(OperationDescriptor operationDescriptor)
+        {
+            return MethodBuilder.New()
+                .SetName(CreateRequestMethodName)
+                .SetReturnType(WellKnownNames.OperationRequest)
+                .AddCode(
+                    MethodCallBuilder.New()
+                        .SetPrefix("return ")
+                        .SetMethodName("new")
+                        .AddArgument($"\"{operationDescriptor.ResultTypeReference.Name}\"")
+                        .AddArgument($"{NamingConventions.DocumentTypeNameFromOperationName(operationDescriptor.Name)}.Instance")
+                );
         }
     }
 }

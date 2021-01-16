@@ -21,5 +21,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         public const string Execute = "Execute";
         public const string Watch = "Watch";
         public const string Response = "Response";
+        public const string OperationRequest = "OperationRequest";
+        public const string ExecutionStrategy = "ExecutionStrategy";
     }
 }

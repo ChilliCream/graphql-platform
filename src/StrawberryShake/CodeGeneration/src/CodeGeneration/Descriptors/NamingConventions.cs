@@ -25,14 +25,24 @@ namespace StrawberryShake.CodeGeneration
             return typeName + "Query";
         }
 
-        public static string EntityTypeNameFromTypeName(string typeName)
+        public static string EntityTypeNameFromGraphQlTypeName(string typeName)
         {
             return typeName + "Entity";
         }
 
-        public static string MapperNameFromGraphQlTypeName(string typeName)
+        public static string DocumentTypeNameFromOperationName(string typeName)
         {
-            return typeName + "From" + EntityTypeNameFromTypeName(typeName) + "Mapper";
+            return typeName + "Document";
+        }
+
+        public static string DataMapperNameFromGraphQlTypeName(string typeName, string graphqlTypename)
+        {
+            return typeName + "From" + DataTypeNameFromTypeName(graphqlTypename) + "Mapper";
+        }
+
+        public static string EntityMapperNameFromGraphQlTypeName(string typeName, string graphqlTypename)
+        {
+            return typeName + "From" + EntityTypeNameFromGraphQlTypeName(graphqlTypename) + "Mapper";
         }
 
         public static string RequestNameFromOperationServiceName(string operationServiceName)

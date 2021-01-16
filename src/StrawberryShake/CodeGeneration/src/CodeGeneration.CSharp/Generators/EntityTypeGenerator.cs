@@ -17,7 +17,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             // Setup class
             ClassBuilder classBuilder = ClassBuilder.New()
-                .SetName(NamingConventions.EntityTypeNameFromTypeName(typeDescriptor.GraphQlTypename))
+                .SetName(NamingConventions.EntityTypeNameFromGraphQlTypeName(typeDescriptor.GraphQlTypename))
                 .AddProperty(PropertyBuilder.New().SetName("Id").SetType(WellKnownNames.EntityId));
 
             // Add Properties to class

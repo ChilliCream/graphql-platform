@@ -1,0 +1,30 @@
+﻿namespace StarWarsClient
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class DroidHeroFromDroidEntityMapper
+        : IEntityMapper<DroidEntity, DroidHero>
+    {
+        private readonly IEntityStore _entityStore;
+        private readonly IEntityMapper<FriendsConnectionData, FriendsConnection> _friendsConnectionFromDataMapper;
+
+        public DroidHeroFromDroidEntityMapper(
+            IEntityStore entityStore,
+            IEntityMapper<FriendsConnectionData, FriendsConnection> friendsConnectionFromDataMapper)
+        {
+            _entityStore = entityStore
+                 ?? throw new ArgumentNullException(nameof(entityStore));
+            _friendsConnectionFromDataMapper = friendsConnectionFromDataMapper
+                 ?? throw new ArgumentNullException(nameof(friendsConnectionFromDataMapper));
+        }
+
+        public DroidHero Map(DroidEntity entity)
+        {
+            var friends = _friendsConnectionFromDataMapper.Map(entity.Friends);
+
+            return new DroidHero(
+                entity.Name,
+                friends
+            );
+        }
+    }
+}

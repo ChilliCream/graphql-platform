@@ -42,12 +42,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 var typeName = TypeReferenceBuilder
                     .New()
                     .SetName(WellKnownNames.IEntityMapper)
-                    .AddGeneric(NamingConventions.EntityTypeNameFromTypeName(gqlTypename))
+                    .AddGeneric(NamingConventions.EntityTypeNameFromGraphQlTypeName(gqlTypename))
                     .AddGeneric(mapperType.Name);
 
                 AddConstructorAssignedField(
                     typeName,
-                    NamingConventions.MapperNameFromGraphQlTypeName(gqlTypename).ToFieldName()
+                    NamingConventions.EntityMapperNameFromGraphQlTypeName(mapperType.Name, gqlTypename).ToFieldName()
                 );
             }
 
@@ -156,10 +156,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private MethodCallBuilder GetMappingCall(TypeDescriptor typeDescriptor, string idName)
         {
             return MethodCallBuilder.New()
-                .SetMethodName(NamingConventions.MapperNameFromGraphQlTypeName(typeDescriptor.GraphQlTypeName))
+                .SetMethodName(NamingConventions.EntityMapperNameFromGraphQlTypeName(typeDescriptor.Name, typeDescriptor.GraphQlTypeName))
                 .SetDetermineStatement(false)
                 .AddArgument(
-                    $"{StoreParamName}.GetEntity<{NamingConventions.EntityTypeNameFromTypeName(typeDescriptor.GraphQlTypeName)}>(info.{idName})"
+                    $"{StoreParamName}.GetEntity<{NamingConventions.EntityTypeNameFromGraphQlTypeName(typeDescriptor.GraphQlTypeName)}>(info.{idName})"
                 );
         }
 

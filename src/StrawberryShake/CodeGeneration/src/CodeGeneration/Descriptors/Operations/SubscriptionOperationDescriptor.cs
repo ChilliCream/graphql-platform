@@ -12,7 +12,8 @@ namespace StrawberryShake.CodeGeneration
 
         public SubscriptionOperationDescriptor(
             ITypeDescriptor resultTypeReference,
-            IReadOnlyList<NamedTypeReferenceDescriptor> arguments) : base(resultTypeReference, arguments)
+            string @namespace,
+            IReadOnlyList<NamedTypeReferenceDescriptor> arguments) : base(resultTypeReference, @namespace, arguments)
         {
         }
     }

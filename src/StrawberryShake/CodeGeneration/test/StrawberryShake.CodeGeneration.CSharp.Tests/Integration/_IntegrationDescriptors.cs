@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using StrawberryShake.CodeGeneration;
 
 namespace StrawberryShake.Integration
@@ -117,6 +118,7 @@ namespace StrawberryShake.Integration
             }
         );
 
+        public static QueryOperationDescriptor GetHeroQueryDescriptor => new(GetHeroResultDescriptor, "StarWarsClient", new Collection<NamedTypeReferenceDescriptor>());
 
         public static ResultBuilderDescriptor GetHeroResultBuilderDescriptor => new()
         {

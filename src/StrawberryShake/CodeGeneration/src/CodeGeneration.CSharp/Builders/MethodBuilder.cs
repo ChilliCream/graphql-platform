@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
-    public class MethodBuilder : ICodeBuilder
+    public class MethodBuilder : ICodeContainer<MethodBuilder>
     {
         private AccessModifier _accessModifier = AccessModifier.Private;
         private Inheritance _inheritance = Inheritance.None;

@@ -32,7 +32,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 );
             }
 
-            return ClassBuilder.BuildAsync(writer);
+            return CodeFileBuilder.New()
+                .SetNamespace(clientDescriptor.Namespace)
+                .AddType(ClassBuilder)
+                .BuildAsync(writer);
         }
     }
 }

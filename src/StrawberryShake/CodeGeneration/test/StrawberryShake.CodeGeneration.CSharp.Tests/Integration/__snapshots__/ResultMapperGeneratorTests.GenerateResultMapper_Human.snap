@@ -1,0 +1,20 @@
+﻿namespace StarWarsClient
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class HumanFromHumanEntityMapper
+        : IEntityMapper<HumanEntity, Human>
+    {
+        private readonly IEntityStore _entityStore;
+
+        public HumanFromHumanEntityMapper(IEntityStore entityStore)
+        {
+            _entityStore = entityStore
+                 ?? throw new ArgumentNullException(nameof(entityStore));
+        }
+
+        public Human Map(HumanEntity entity)
+        {
+            return new Human(entity.Name);
+        }
+    }
+}

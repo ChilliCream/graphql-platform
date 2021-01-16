@@ -1,0 +1,20 @@
+﻿namespace StarWarsClient
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class DroidFromDroidEntityMapper
+        : IEntityMapper<DroidEntity, Droid>
+    {
+        private readonly IEntityStore _entityStore;
+
+        public DroidFromDroidEntityMapper(IEntityStore entityStore)
+        {
+            _entityStore = entityStore
+                 ?? throw new ArgumentNullException(nameof(entityStore));
+        }
+
+        public Droid Map(DroidEntity entity)
+        {
+            return new Droid(entity.Name);
+        }
+    }
+}

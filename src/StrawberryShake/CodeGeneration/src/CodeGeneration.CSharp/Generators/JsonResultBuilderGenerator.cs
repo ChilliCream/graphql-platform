@@ -33,7 +33,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 TypeKind.Scalar => typeDescriptor.Name.WithCapitalFirstChar(),
                 TypeKind.DataType => NamingConventions.DataTypeNameFromTypeName(typeDescriptor.Name),
-                TypeKind.EntityType => NamingConventions.EntityTypeNameFromTypeName(typeDescriptor.Name),
+                TypeKind.EntityType => NamingConventions.EntityTypeNameFromGraphQlTypeName(typeDescriptor.Name),
                 _ => throw new ArgumentOutOfRangeException()
             };
 

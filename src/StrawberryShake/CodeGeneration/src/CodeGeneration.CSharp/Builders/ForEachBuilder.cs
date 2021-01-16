@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
-    public class ForEachBuilder : ICode
+    public class ForEachBuilder : ICodeContainer<ForEachBuilder>
     {
         private string _loopHeader;
         private readonly List<ICode> _lines = new List<ICode>();
@@ -19,13 +19,24 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public ForEachBuilder AddCode(ICode code, bool addIfTrue = true)
+        public ForEachBuilder AddCode(ICode code, bool addIf = true)
         {
-            if (addIfTrue)
+            if (addIf)
             {
                 _lines.Add(code);
             }
 
+            return this;
+        }
+
+        public ForEachBuilder AddCode(string value)
+        {
+            _lines.Add(CodeLineBuilder.New().SetLine(value));
+            return this;
+        }
+        public ForEachBuilder AddEmptyLine()
+        {
+            _lines.Add(CodeLineBuilder.New());
             return this;
         }
 

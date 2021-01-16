@@ -1,0 +1,40 @@
+﻿namespace StarWarsClient
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetHeroResultQuery
+    {
+        private readonly IOperationExecutor<GetHeroResult> _operationExecutor;
+
+        public GetHeroResultQuery(IOperationExecutor<GetHeroResult> operationExecutor)
+        {
+            _operationExecutor = operationExecutor
+                 ?? throw new ArgumentNullException(nameof(operationExecutor));
+        }
+
+        public async Task<IOperationResult<GetHeroResult>> Execute(CancellationToken cancellationToken = default)
+        {
+            var request = CreateRequest();
+            
+            return await _operationExecutor
+                .ExecuteAsync(
+                    request,
+                    cancellationToken
+                )
+                .ConfigureAwait(false);
+        }
+
+        public IOperationObservable<GetHeroResult> Watch(ExecutionStrategy? strategy = null)
+        {
+            var request = CreateRequest();
+            return _operationExecutor.Watch(request, strategy);
+        }
+
+        private OperationRequest CreateRequest()
+        {
+            return new(
+                "GetHeroResult",
+                GetHeroResultQueryDocument.Instance
+            );
+        }
+    }
+}
