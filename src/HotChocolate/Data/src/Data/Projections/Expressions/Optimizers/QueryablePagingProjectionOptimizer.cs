@@ -83,22 +83,18 @@ namespace HotChocolate.Data.Projections.Handlers
         private IReadOnlyList<ISelectionNode> CollectSelection(SelectionOptimizerContext context)
         {
             var selections = new List<ISelectionNode>();
-            if (context.Fields.TryGetValue("nodes", out Selection? nodeSelection))
-            {
-                foreach (var nodeField in nodeSelection.SelectionSet.Selections)
-                {
-                    selections.Add(CloneSelectionSetVisitor.Default.CloneSelectionNode(nodeField));
-                }
-            }
 
-            if (context.Fields.TryGetValue("items", out Selection? itemSelection))
-            {
-                foreach (var nodeField in itemSelection.SelectionSet.Selections)
-                {
-                    selections.Add(CloneSelectionSetVisitor.Default.CloneSelectionNode(nodeField));
-                }
-            }
+            CollectSelectionOfNodes(context, selections);
+            CollectSelectionOfItems(context, selections);
+            CollectSelectionOfEdges(context, selections);
 
+            return selections;
+        }
+
+        private static void CollectSelectionOfEdges(
+            SelectionOptimizerContext context,
+            List<ISelectionNode> selections)
+        {
             if (context.Fields.TryGetValue("edges", out Selection? edgeSelection))
             {
                 foreach (var edgeSubField in edgeSelection.SelectionSet.Selections)
@@ -115,8 +111,32 @@ namespace HotChocolate.Data.Projections.Handlers
                     }
                 }
             }
+        }
 
-            return selections;
+        private static void CollectSelectionOfItems(
+            SelectionOptimizerContext context,
+            List<ISelectionNode> selections)
+        {
+            if (context.Fields.TryGetValue("items", out Selection? itemSelection))
+            {
+                foreach (var nodeField in itemSelection.SelectionSet.Selections)
+                {
+                    selections.Add(CloneSelectionSetVisitor.Default.CloneSelectionNode(nodeField));
+                }
+            }
+        }
+
+        private static void CollectSelectionOfNodes(
+            SelectionOptimizerContext context,
+            List<ISelectionNode> selections)
+        {
+            if (context.Fields.TryGetValue("nodes", out Selection? nodeSelection))
+            {
+                foreach (var nodeField in nodeSelection.SelectionSet.Selections)
+                {
+                    selections.Add(CloneSelectionSetVisitor.Default.CloneSelectionNode(nodeField));
+                }
+            }
         }
 
         private class CloneSelectionSetVisitor : QuerySyntaxRewriter<object>
