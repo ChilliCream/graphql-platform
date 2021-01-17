@@ -145,7 +145,7 @@ public class PersonType
     {
         descriptor.Field(t => t.Name).Type<NonNullType<StringType>>();
         descriptor.Field("friends")
-            .Type<ListType<NonNullType<StringType>>>()
+            .Type<ListType<NonNullType<PersonType>>>()
             .Resolver(context =>
                 context.Service<IPersonRepository>().GetFriends(
                     context.Parent<Person>().Id));
@@ -229,7 +229,7 @@ public class PersonType
     {
         descriptor.Field(t => t.Name).Type<NonNullType<StringType>>();
         descriptor.Field<PersonResolvers>(t => t.GetFriends(default, default))
-            .Type<ListType<NonNullType<StringType>>>();
+            .Type<ListType<NonNullType<PersonType>>>();
     }
 }
 ```
