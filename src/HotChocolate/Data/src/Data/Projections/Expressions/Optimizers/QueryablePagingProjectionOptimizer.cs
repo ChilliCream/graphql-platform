@@ -14,9 +14,8 @@ namespace HotChocolate.Data.Projections.Handlers
     public class QueryablePagingProjectionOptimizer : IProjectionOptimizer
     {
         public bool CanHandle(ISelection field) =>
-            field.Field.Member is { } &&
             field.DeclaringType is IPageType &&
-            field.Field.Name.Value is "edges";
+            field.Field.Name.Value is "edges" or "items" or "nodes";
 
         public Selection RewriteSelection(
             SelectionOptimizerContext context,
@@ -28,7 +27,7 @@ namespace HotChocolate.Data.Projections.Handlers
                 throw new InvalidOperationException();
             }
 
-            IReadOnlyList<ISelectionNode>? selections = CollectSelection(context);
+            IReadOnlyList<ISelectionNode> selections = CollectSelection(context);
 
             context.Fields[CombinedEdgeField] =
                 CreateCombinedSelection(context, selection, itemType, pageType, selections);
@@ -43,10 +42,11 @@ namespace HotChocolate.Data.Projections.Handlers
             IPageType pageType,
             IReadOnlyList<ISelectionNode> selections)
         {
-            IObjectField nodesField = pageType.Fields["nodes"];
+            (string? fieldName, IObjectField? nodesField) = TryGetObjectField(pageType);
+
             var combinedField = new FieldNode(
                 null,
-                new NameNode("nodes"),
+                new NameNode(fieldName),
                 new NameNode(CombinedEdgeField),
                 Array.Empty<DirectiveNode>(),
                 Array.Empty<ArgumentNode>(),
@@ -64,12 +64,36 @@ namespace HotChocolate.Data.Projections.Handlers
                 internalSelection: true);
         }
 
+        private (string filedName, IObjectField field) TryGetObjectField(IPageType type)
+        {
+            if (type.Fields.ContainsField("nodes"))
+            {
+                return ("nodes", type.Fields["nodes"]);
+            }
+
+            if (type.Fields.ContainsField("items"))
+            {
+                return ("items", type.Fields["items"]);
+            }
+
+            throw new GraphQLException(
+                ErrorHelper.ProjectionVisitor_NodeFieldWasNotFound(type));
+        }
+
         private IReadOnlyList<ISelectionNode> CollectSelection(SelectionOptimizerContext context)
         {
             var selections = new List<ISelectionNode>();
             if (context.Fields.TryGetValue("nodes", out Selection? nodeSelection))
             {
                 foreach (var nodeField in nodeSelection.SelectionSet.Selections)
+                {
+                    selections.Add(CloneSelectionSetVisitor.Default.CloneSelectionNode(nodeField));
+                }
+            }
+
+            if (context.Fields.TryGetValue("items", out Selection? itemSelection))
+            {
+                foreach (var nodeField in itemSelection.SelectionSet.Selections)
                 {
                     selections.Add(CloneSelectionSetVisitor.Default.CloneSelectionNode(nodeField));
                 }
@@ -103,7 +127,7 @@ namespace HotChocolate.Data.Projections.Handlers
                 SelectionSetNode node,
                 object context)
             {
-                return new(node.Selections);
+                return new(base.RewriteSelectionSet(node, context).Selections);
             }
 
             public ISelectionNode CloneSelectionNode(ISelectionNode selection)
