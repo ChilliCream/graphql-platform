@@ -256,7 +256,6 @@ namespace HotChocolate.Data
                                 }
                             }
                         }
-
                     }
                 }
                 ");
@@ -293,7 +292,6 @@ namespace HotChocolate.Data
                                 title
                             }
                         }
-
                     }
                 }
                 ");
