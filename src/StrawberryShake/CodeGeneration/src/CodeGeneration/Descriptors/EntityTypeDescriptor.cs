@@ -9,29 +9,39 @@ namespace StrawberryShake.CodeGeneration
         /// <summary>
         ///
         /// </summary>
-        /// <param name="operationTypes">The types that are subsets of the EntityType represented by this descriptor</param>
-        /// <param name="graphQLTypename"></param>
+        /// <param name="graphQLTypeName">
+        ///
+        /// </param>
+        /// <param name="namespace">
+        ///
+        /// </param>
+        /// <param name="operationTypes">
+        /// The types that are subsets of the EntityType represented by this descriptor.
+        /// </param>
         public EntityTypeDescriptor(
-            string graphQLTypename,
-            string @nameSpace,
-            IReadOnlyList<TypeDescriptor> operationTypes
-        )
+            string graphQLTypeName,
+            string @namespace,
+            IReadOnlyList<TypeDescriptor> operationTypes)
         {
             var allProperties = new Dictionary<string, NamedTypeReferenceDescriptor>();
-            foreach (NamedTypeReferenceDescriptor namedTypeReferenceDescriptor in operationTypes.SelectMany(operationType => operationType.Properties))
+
+            foreach (NamedTypeReferenceDescriptor namedTypeReferenceDescriptor in
+                operationTypes.SelectMany(operationType => operationType.Properties))
             {
                 if (!allProperties.ContainsKey(namedTypeReferenceDescriptor.Name))
                 {
-                    allProperties.Add(namedTypeReferenceDescriptor.Name, namedTypeReferenceDescriptor);
+                    allProperties.Add(
+                        namedTypeReferenceDescriptor.Name,
+                        namedTypeReferenceDescriptor);
                 }
             }
 
             Properties = allProperties;
-            GraphQLTypename = graphQLTypename;
-            Namespace = @nameSpace;
+            GraphQLTypeName = graphQLTypeName;
+            Namespace = @namespace;
         }
 
-        public string GraphQLTypename { get; }
+        public string GraphQLTypeName { get; }
 
         public string Namespace { get; }
 

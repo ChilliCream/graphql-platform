@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.CSharp.Mappers;
 
@@ -9,13 +11,19 @@ namespace StrawberryShake.CodeGeneration.CSharp
     {
         private const string DefaultNamespace = "StrawberryShake.Generated";
 
-        public void GenerateCSharpClient(ClientModel clientModel)
+        public void Generate(ClientModel clientModel)
         {
+            if (clientModel == null)
+            {
+                throw new ArgumentNullException(nameof(clientModel));
+            }
 
+            var types = new Dictionary<NameString, ICodeDescriptor>();
+            GenerateEnums(types, )
         }
 
         public void GenerateEnums(
-            IDictionary<string, ICodeDescriptor> types,
+            IDictionary<NameString, ICodeDescriptor> types,
             ClientModel clientModel)
         {
             foreach (LeafTypeModel leafTypeModel in clientModel.LeafTypes)

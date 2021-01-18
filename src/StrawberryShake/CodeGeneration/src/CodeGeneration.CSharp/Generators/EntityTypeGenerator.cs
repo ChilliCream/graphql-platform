@@ -12,12 +12,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             AssertNonNull(
                 writer,
-                typeDescriptor
-            );
+                typeDescriptor);
 
             // Setup class
             ClassBuilder classBuilder = ClassBuilder.New()
-                .SetName(EntityTypeNameFromGraphQLTypeName(typeDescriptor.GraphQLTypename))
+                .SetName(EntityTypeNameFromGraphQLTypeName(typeDescriptor.GraphQLTypeName))
                 .AddProperty(PropertyBuilder.New().SetName("Id").SetType(WellKnownNames.EntityId));
 
             // Add Properties to class
