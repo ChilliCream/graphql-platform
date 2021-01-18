@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using HotChocolate.Types;
-
 namespace StrawberryShake.CodeGeneration
 {
     /// <summary>
@@ -8,6 +5,12 @@ namespace StrawberryShake.CodeGeneration
     /// </summary>
     public class NamedTypeReferenceDescriptor
     {
+        public NamedTypeReferenceDescriptor(string name, ITypeDescriptor type)
+        {
+            Name = name;
+            Type = type;
+        }
+
         /// <summary>
         /// The name of the property
         /// </summary>
@@ -17,11 +20,5 @@ namespace StrawberryShake.CodeGeneration
         /// The referenced type
         /// </summary>
         public ITypeDescriptor Type { get; }
-
-        public NamedTypeReferenceDescriptor(string name, ITypeDescriptor type)
-        {
-            Name = name;
-            Type = type;
-        }
     }
 }

@@ -7,6 +7,13 @@ namespace StrawberryShake.CodeGeneration
     /// </summary>
     public class ClientDescriptor : ICodeDescriptor
     {
+        public ClientDescriptor(string name, string @namespace, List<OperationDescriptor> operations)
+        {
+            Name = name;
+            Operations = operations;
+            Namespace = @namespace;
+        }
+
         /// <summary>
         /// The name of the client
         /// </summary>
@@ -18,12 +25,5 @@ namespace StrawberryShake.CodeGeneration
         /// The operations that are contained in this client class
         /// </summary>
         public List<OperationDescriptor> Operations { get; }
-
-        public ClientDescriptor(string name, string @namespace, List<OperationDescriptor> operations)
-        {
-            Name = name;
-            Operations = operations;
-            Namespace = @namespace;
-        }
     }
 }

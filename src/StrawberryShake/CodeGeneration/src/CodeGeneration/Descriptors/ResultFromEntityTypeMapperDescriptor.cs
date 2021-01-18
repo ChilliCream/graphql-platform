@@ -1,12 +1,20 @@
-using System.Collections.Generic;
-using HotChocolate.Types.Descriptors;
-
 namespace StrawberryShake.CodeGeneration
 {
     public class ResultFromEntityTypeMapperDescriptor
         : ICodeDescriptor
     {
-        public string Name => NamingConventions.EntityMapperNameFromGraphQLTypeName(ResultType.Name, ResultType.GraphQLTypeName);
+        public ResultFromEntityTypeMapperDescriptor(
+            TypeDescriptor entityType,
+            TypeDescriptor resultType)
+        {
+            EntityType = entityType;
+            ResultType = resultType;
+        }
+
+        public string Name =>
+            NamingConventions.EntityMapperNameFromGraphQLTypeName(
+                ResultType.Name,
+                ResultType.GraphQLTypeName);
 
         /// <summary>
         /// The EntityType from which the target type shall be created
@@ -17,12 +25,5 @@ namespace StrawberryShake.CodeGeneration
         /// The target Result type, which is the return type of the mapper
         /// </summary>
         public TypeDescriptor ResultType { get; }
-
-        public ResultFromEntityTypeMapperDescriptor(TypeDescriptor entityType, TypeDescriptor resultType)
-        {
-            EntityType = entityType;
-            ResultType = resultType;
-        }
-
     }
 }

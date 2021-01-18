@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 namespace StrawberryShake.CodeGeneration
@@ -8,6 +7,18 @@ namespace StrawberryShake.CodeGeneration
     /// </summary>
     public abstract class OperationDescriptor : ICodeDescriptor
     {
+        public OperationDescriptor(
+            ITypeDescriptor resultTypeReference,
+            string @namespace,
+            IReadOnlyList<NamedTypeReferenceDescriptor> arguments,
+            string bodyString)
+        {
+            ResultTypeReference = resultTypeReference;
+            Arguments = arguments;
+            BodyString = bodyString;
+            Namespace = @namespace;
+        }
+
         /// <summary>
         /// The name of the operation
         /// </summary>
@@ -26,17 +37,5 @@ namespace StrawberryShake.CodeGeneration
         /// The arguments the operation takes.
         /// </summary>
         public IReadOnlyList<NamedTypeReferenceDescriptor> Arguments { get; }
-
-        public OperationDescriptor(
-            ITypeDescriptor resultTypeReference,
-            string @namespace,
-            IReadOnlyList<NamedTypeReferenceDescriptor> arguments,
-            string bodyString)
-        {
-            ResultTypeReference = resultTypeReference;
-            Arguments = arguments;
-            BodyString = bodyString;
-            Namespace = @namespace;
-        }
     }
 }

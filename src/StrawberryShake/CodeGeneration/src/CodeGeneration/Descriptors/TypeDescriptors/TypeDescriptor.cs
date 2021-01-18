@@ -5,8 +5,28 @@ namespace StrawberryShake.CodeGeneration
     /// <summary>
     /// Describes a type, which may be a concrete class or an interface.
     /// </summary>
-    public class TypeDescriptor: ITypeDescriptor
+    public class TypeDescriptor : ITypeDescriptor
     {
+        public TypeDescriptor(
+            string name,
+            string @namespace,
+            IReadOnlyList<string>? implements = null,
+            IReadOnlyList<NamedTypeReferenceDescriptor>? properties = null,
+            IReadOnlyList<TypeDescriptor>? isImplementedBy = null,
+            TypeKind kind = TypeKind.Scalar,
+            bool isNullable = false,
+            string? graphQLTypeName = null)
+        {
+            Name = name;
+            Namespace = @namespace;
+            GraphQLTypeName = graphQLTypeName;
+            Implements = implements ?? new List<string>();
+            Properties = properties ?? new List<NamedTypeReferenceDescriptor>();
+            IsImplementedBy = isImplementedBy ?? new TypeDescriptor[] { };
+            Kind = kind;
+            IsNullable = isNullable;
+        }
+
         /// <summary>
         /// Gets the .NET type name.
         /// </summary>
@@ -52,26 +72,7 @@ namespace StrawberryShake.CodeGeneration
         public TypeKind Kind { get; }
 
         public bool IsScalarType => Kind == TypeKind.Scalar;
-        public bool IsEntityType => Kind == TypeKind.EntityType;
 
-        public TypeDescriptor(
-            string name,
-            string @namespace,
-            IReadOnlyList<string>? implements = null,
-            IReadOnlyList<NamedTypeReferenceDescriptor>? properties = null,
-            IReadOnlyList<TypeDescriptor>? isImplementedBy = null,
-            TypeKind kind = TypeKind.Scalar,
-            bool isNullable = false,
-            string? graphQLTypeName  = null)
-        {
-            Name = name;
-            Namespace = @namespace;
-            GraphQLTypeName = graphQLTypeName;
-            Implements = implements ?? new List<string>();
-            Properties = properties ?? new List<NamedTypeReferenceDescriptor>();
-            IsImplementedBy = isImplementedBy ?? new TypeDescriptor[] { };
-            Kind = kind;
-            IsNullable = isNullable;
-        }
+        public bool IsEntityType => Kind == TypeKind.EntityType;
     }
 }

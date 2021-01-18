@@ -4,12 +4,8 @@ using System.Linq;
 
 namespace StrawberryShake.CodeGeneration
 {
-    public class EntityTypeDescriptor: ICodeDescriptor
+    public class EntityTypeDescriptor : ICodeDescriptor
     {
-        public string GraphQLTypename { get; }
-        public string Namespace { get; }
-        public Dictionary<string, NamedTypeReferenceDescriptor> Properties { get; }
-
         /// <summary>
         ///
         /// </summary>
@@ -34,5 +30,11 @@ namespace StrawberryShake.CodeGeneration
             GraphQLTypename = graphQLTypename;
             Namespace = @nameSpace;
         }
+
+        public string GraphQLTypename { get; }
+
+        public string Namespace { get; }
+
+        public Dictionary<string, NamedTypeReferenceDescriptor> Properties { get; }
     }
 }
