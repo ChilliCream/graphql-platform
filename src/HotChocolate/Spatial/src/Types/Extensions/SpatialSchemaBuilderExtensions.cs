@@ -1,5 +1,6 @@
 using System;
 using HotChocolate.Types.Spatial;
+using Microsoft.Extensions.DependencyInjection;
 using NetTopologySuite.Geometries;
 
 namespace HotChocolate
@@ -15,13 +16,18 @@ namespace HotChocolate
         /// <param name="builder">
         /// The <see cref="ISchemaBuilder"/>.
         /// </param>
+        /// <param name="conventionFactory">
+        /// Creates the convention for spatial types
+        /// </param>
         /// <returns>
         /// The <see cref="ISchemaBuilder"/>.
         /// </returns>
         /// <exception cref="ArgumentNullException">
         /// The <paramref name="builder"/> is <c>null</c>.
         /// </exception>
-        public static ISchemaBuilder AddSpatialTypes(this ISchemaBuilder builder)
+        public static ISchemaBuilder AddSpatialTypes(
+            this ISchemaBuilder builder,
+            Func<SpatialConvention> conventionFactory)
         {
             if (builder == null)
             {
@@ -29,6 +35,7 @@ namespace HotChocolate
             }
 
             return builder
+                .TryAddConvention<ISpatialConvention>(conventionFactory())
                 .AddType<GeoJsonInterfaceType>()
                 .AddType<GeoJsonGeometryType>()
                 .AddType<GeoJsonPointInputType>()
@@ -46,6 +53,46 @@ namespace HotChocolate
                 .AddType<GeoJsonGeometryEnumType>()
                 .AddType<GeometryType>()
                 .BindClrType<Coordinate, GeoJsonPositionType>();
+        }
+
+        /// <summary>
+        /// Adds GeoJSON compliant spatial types.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="ISchemaBuilder"/>.
+        /// </param>
+        /// <param name="descriptor">
+        /// Configure the spatial convention
+        /// </param>
+        /// <returns>
+        /// The <see cref="ISchemaBuilder"/>.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// The <paramref name="builder"/> is <c>null</c>.
+        /// </exception>
+        public static ISchemaBuilder AddSpatialTypes(
+            this ISchemaBuilder builder,
+            Action<ISpatialConventionDescriptor> descriptor)
+        {
+            return builder.AddSpatialTypes(() => new SpatialConvention(descriptor));
+        }
+
+        /// <summary>
+        /// Adds GeoJSON compliant spatial types.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="ISchemaBuilder"/>.
+        /// </param>
+        /// <returns>
+        /// The <see cref="ISchemaBuilder"/>.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// The <paramref name="builder"/> is <c>null</c>.
+        /// </exception>
+        public static ISchemaBuilder AddSpatialTypes(this ISchemaBuilder builder)
+        {
+            return builder.AddSpatialTypes(() =>
+                new SpatialConvention(x => x.AddDefaultSerializers()));
         }
     }
 }
