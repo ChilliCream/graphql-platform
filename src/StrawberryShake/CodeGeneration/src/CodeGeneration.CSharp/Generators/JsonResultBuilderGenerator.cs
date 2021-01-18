@@ -254,7 +254,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .AddEmptyLine();
         }
 
-        private MethodCallBuilder BuildUpdateMethodCall(NamedTypeReferenceDescriptor property)
+        private MethodCallBuilder BuildUpdateMethodCall(TypeMemberDescriptor property)
         {
             var deserializeMethodCaller = MethodCallBuilder.New()
                 .SetDetermineStatement(false)

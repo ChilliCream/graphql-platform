@@ -10,9 +10,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
     {
         protected override Task WriteAsync(CodeWriter writer, EntityTypeDescriptor typeDescriptor)
         {
-            AssertNonNull(
-                writer,
-                typeDescriptor);
+            AssertNonNull(writer, typeDescriptor);
 
             // Setup class
             ClassBuilder classBuilder = ClassBuilder.New()

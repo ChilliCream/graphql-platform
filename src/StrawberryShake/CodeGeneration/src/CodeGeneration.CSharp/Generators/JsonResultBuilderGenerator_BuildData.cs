@@ -34,7 +34,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetLine($"var {entityIdsName} = new HashSet<{WellKnownNames.EntityId}>();"));
 
             buildDataMethod.AddEmptyLine();
-            foreach (NamedTypeReferenceDescriptor property in 
+            foreach (TypeMemberDescriptor property in 
                 resultType.Properties.Where(prop => prop.Type.IsEntityType))
             {
                 buildDataMethod.AddCode(
@@ -48,7 +48,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetMethodName($"new {ResultInfoNameFromTypeName(resultType.Name)}")
                 .SetDetermineStatement(false);
 
-            foreach (NamedTypeReferenceDescriptor property in resultType.Properties)
+            foreach (TypeMemberDescriptor property in resultType.Properties)
             {
                 if (property.Type.IsEntityType)
                 {

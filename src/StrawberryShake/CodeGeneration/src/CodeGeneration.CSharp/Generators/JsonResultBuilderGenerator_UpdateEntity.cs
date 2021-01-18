@@ -46,7 +46,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     $"{entityTypeName} {entityTypeName} = {EntityStoreFieldName}" + 
                     $".GetOrCreate<{entityTypeName}>({entityIdVarName});");
 
-                foreach (NamedTypeReferenceDescriptor property in concreteType.Properties)
+                foreach (TypeMemberDescriptor property in concreteType.Properties)
                 {
                     ifStatement.AddCode(
                         AssignmentBuilder.New()

@@ -9,7 +9,7 @@ namespace StrawberryShake.CodeGeneration
     {
         public MutationOperationDescriptor(ITypeDescriptor resultTypeReference,
             string @namespace,
-            IReadOnlyList<NamedTypeReferenceDescriptor> arguments,
+            IReadOnlyList<TypeMemberDescriptor> arguments,
             string bodyString)
             : base(resultTypeReference, @namespace, arguments, bodyString)
         {

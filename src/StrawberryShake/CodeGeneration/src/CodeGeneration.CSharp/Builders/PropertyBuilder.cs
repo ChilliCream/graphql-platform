@@ -13,7 +13,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private string? _name;
         private string? _value;
 
-        public static PropertyBuilder New() => new PropertyBuilder();
+        public static PropertyBuilder New() => new();
 
         public PropertyBuilder SetAccessModifier(AccessModifier value)
         {

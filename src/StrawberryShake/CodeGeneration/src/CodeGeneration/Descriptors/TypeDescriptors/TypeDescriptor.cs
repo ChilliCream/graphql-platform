@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using HotChocolate;
 
 namespace StrawberryShake.CodeGeneration
 {
@@ -10,8 +11,8 @@ namespace StrawberryShake.CodeGeneration
         public TypeDescriptor(
             string name,
             string @namespace,
-            IReadOnlyList<string>? implements = null,
-            IReadOnlyList<NamedTypeReferenceDescriptor>? properties = null,
+            IReadOnlyList<NameString>? implements = null,
+            IReadOnlyList<TypeMemberDescriptor>? properties = null,
             IReadOnlyList<TypeDescriptor>? isImplementedBy = null,
             TypeKind kind = TypeKind.Scalar,
             bool isNullable = false,
@@ -20,8 +21,8 @@ namespace StrawberryShake.CodeGeneration
             Name = name;
             Namespace = @namespace;
             GraphQLTypeName = graphQLTypeName;
-            Implements = implements ?? new List<string>();
-            Properties = properties ?? new List<NamedTypeReferenceDescriptor>();
+            Implements = implements ?? new List<NameString>();
+            Properties = properties ?? new List<TypeMemberDescriptor>();
             IsImplementedBy = isImplementedBy ?? new TypeDescriptor[] { };
             Kind = kind;
             IsNullable = isNullable;
@@ -30,9 +31,9 @@ namespace StrawberryShake.CodeGeneration
         /// <summary>
         /// Gets the .NET type name.
         /// </summary>
-        public string Name { get; }
+        public NameString Name { get; }
 
-        public string? GraphQLTypeName { get; }
+        public NameString? GraphQLTypeName { get; }
 
         /// <summary>
         /// Describes whether or not it is a nullable type reference
@@ -42,12 +43,12 @@ namespace StrawberryShake.CodeGeneration
         /// <summary>
         /// The properties that result from the requested fields of the operation this ResultType is generated for.
         /// </summary>
-        public IReadOnlyList<NamedTypeReferenceDescriptor> Properties { get; }
+        public IReadOnlyList<TypeMemberDescriptor> Properties { get; private set; }
 
         /// <summary>
         /// A list of interface names the ResultType implements
         /// </summary>
-        public IReadOnlyList<string> Implements { get; }
+        public IReadOnlyList<NameString> Implements { get; }
 
         /// <summary>
         /// The name of the namespace the generated type shall reside in
@@ -74,5 +75,10 @@ namespace StrawberryShake.CodeGeneration
         public bool IsScalarType => Kind == TypeKind.Scalar;
 
         public bool IsEntityType => Kind == TypeKind.EntityType;
+
+        public void Complete(IReadOnlyList<TypeMemberDescriptor> properties)
+        {
+            Properties = properties;
+        }
     }
 }

@@ -58,7 +58,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             var constructorCall = new MethodCallBuilder()
                 .SetMethodName($"return new {descriptor.Name}");
 
-            foreach (NamedTypeReferenceDescriptor propertyDescriptor in descriptor.Properties)
+            foreach (TypeMemberDescriptor propertyDescriptor in descriptor.Properties)
             {
                 if (propertyDescriptor.Type.IsScalarType)
                 {
@@ -85,7 +85,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private void TypeMapper(
             MethodBuilder mapMethod,
             MethodCallBuilder constructorCall,
-            NamedTypeReferenceDescriptor propertyDescriptor)
+            TypeMemberDescriptor propertyDescriptor)
         {
             switch (propertyDescriptor.Type)
             {

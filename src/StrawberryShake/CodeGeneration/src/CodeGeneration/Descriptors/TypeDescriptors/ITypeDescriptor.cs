@@ -1,8 +1,10 @@
+using HotChocolate;
+
 namespace StrawberryShake.CodeGeneration
 {
     public interface ITypeDescriptor : ICodeDescriptor
     {
-        public string Name { get; }
+        public NameString Name { get; }
 
         public TypeKind Kind { get; }
 

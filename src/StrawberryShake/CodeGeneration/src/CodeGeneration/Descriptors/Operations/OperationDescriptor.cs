@@ -10,7 +10,7 @@ namespace StrawberryShake.CodeGeneration
         public OperationDescriptor(
             ITypeDescriptor resultTypeReference,
             string @namespace,
-            IReadOnlyList<NamedTypeReferenceDescriptor> arguments,
+            IReadOnlyList<TypeMemberDescriptor> arguments,
             string bodyString)
         {
             ResultTypeReference = resultTypeReference;
@@ -36,6 +36,6 @@ namespace StrawberryShake.CodeGeneration
         /// <summary>
         /// The arguments the operation takes.
         /// </summary>
-        public IReadOnlyList<NamedTypeReferenceDescriptor> Arguments { get; }
+        public IReadOnlyList<TypeMemberDescriptor> Arguments { get; }
     }
 }

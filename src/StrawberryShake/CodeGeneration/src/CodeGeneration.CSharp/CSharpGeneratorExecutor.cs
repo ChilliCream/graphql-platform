@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
-using StrawberryShake.CodeGeneration.CSharp.Mappers;
+using StrawberryShake.CodeGeneration.Mappers;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {

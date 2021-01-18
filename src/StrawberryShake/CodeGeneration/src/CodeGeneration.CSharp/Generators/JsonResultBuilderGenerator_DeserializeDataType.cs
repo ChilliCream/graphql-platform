@@ -25,7 +25,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetPrefix("return new ")
                 .SetMethodName(DataTypeNameFromTypeName(typeDescriptor.Name));
 
-            foreach (NamedTypeReferenceDescriptor property in typeDescriptor.Properties)
+            foreach (TypeMemberDescriptor property in typeDescriptor.Properties)
             {
                 returnStatement.AddArgument(BuildUpdateMethodCall(property));
             }

@@ -35,7 +35,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
                 throw new ArgumentNullException(nameof(leafTypes));
             InputObjectTypes = inputObjectTypes ??
                 throw new ArgumentNullException(nameof(inputObjectTypes));
-            OutputTypeModels = outputTypeModels ??
+            OutputTypes = outputTypeModels ??
                 throw new ArgumentNullException(nameof(outputTypeModels));
         }
 
@@ -55,18 +55,18 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
 
         public IReadOnlyList<InputObjectTypeModel> InputObjectTypes { get; }
 
-        public IReadOnlyList<OutputTypeModel> OutputTypeModels { get; }
+        public IReadOnlyList<OutputTypeModel> OutputTypes { get; }
 
-        public IEnumerable<OutputTypeModel> GetImplementations(OutputTypeModel outputTypeModel)
+        public IEnumerable<OutputTypeModel> GetImplementations(OutputTypeModel outputType)
         {
-            if (outputTypeModel is null)
+            if (outputType is null)
             {
-                throw new ArgumentNullException(nameof(outputTypeModel));
+                throw new ArgumentNullException(nameof(outputType));
             }
 
-            foreach (var model in OutputTypeModels)
+            foreach (var model in OutputTypes)
             {
-                if (model.Implements.Contains(outputTypeModel))
+                if (model.Implements.Contains(outputType))
                 {
                     yield return model;
                 }
@@ -80,7 +80,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
                 throw new ArgumentNullException(nameof(fieldSyntax));
             }
 
-            return OutputTypeModels.First(
+            return OutputTypes.First(
                 t => t.IsInterface && t.SelectionSet == fieldSyntax.SelectionSet);
         }
     }

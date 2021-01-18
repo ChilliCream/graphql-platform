@@ -45,7 +45,7 @@ namespace StrawberryShake.Integration
             "StarWarsClient",
             properties: new[]
             {
-                new NamedTypeReferenceDescriptor(
+                new TypeMemberDescriptor(
                     "Nodes",
                     new ListTypeDescriptor(
                         false,
@@ -57,7 +57,7 @@ namespace StrawberryShake.Integration
             kind: TypeKind.DataType
         );
 
-        private static NamedTypeReferenceDescriptor friendsReferenceDescriptor => new(
+        private static TypeMemberDescriptor FriendsMemberDescriptor => new(
             "Friends",
             FriendsConnectionDescriptor
         );
@@ -66,7 +66,7 @@ namespace StrawberryShake.Integration
             "HumanHero",
             "StarWarsClient",
             new[] {IHeroName},
-            new[] {TestHelper.GetNamedNonNullStringTypeReference("Name"), friendsReferenceDescriptor},
+            new[] {TestHelper.GetNamedNonNullStringTypeReference("Name"), FriendsMemberDescriptor},
             kind: TypeKind.EntityType,
             graphQLTypeName: "Human"
         );
@@ -75,7 +75,7 @@ namespace StrawberryShake.Integration
             "DroidHero",
             "StarWarsClient",
             new[] {IHeroName},
-            new[] {TestHelper.GetNamedNonNullStringTypeReference("Name"), friendsReferenceDescriptor},
+            new[] {TestHelper.GetNamedNonNullStringTypeReference("Name"), FriendsMemberDescriptor},
             kind: TypeKind.EntityType,
             graphQLTypeName: "Droid"
         );
@@ -84,7 +84,7 @@ namespace StrawberryShake.Integration
             IHeroName,
             "StarWarsClient",
             new[] {ICharacterName},
-            new[] {friendsReferenceDescriptor},
+            new[] {FriendsMemberDescriptor},
             new[] {HumanHeroTypeDescriptor, DroidHeroTypeDescriptor},
             TypeKind.EntityType
         );
@@ -108,7 +108,7 @@ namespace StrawberryShake.Integration
             new string[] { },
             new[]
             {
-                new NamedTypeReferenceDescriptor(
+                new TypeMemberDescriptor(
                     "Hero",
                     IHeroDescriptor
                 ),
@@ -119,7 +119,7 @@ namespace StrawberryShake.Integration
             new(
                 GetHeroResultDescriptor,
                 "StarWarsClient",
-                new Collection<NamedTypeReferenceDescriptor>(),
+                new Collection<TypeMemberDescriptor>(),
                 @"query GetHero {
                     hero {
                         __typename

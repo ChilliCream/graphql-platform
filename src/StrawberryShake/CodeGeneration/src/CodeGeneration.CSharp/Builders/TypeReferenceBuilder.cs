@@ -8,10 +8,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
     public class TypeReferenceBuilder : ICodeBuilder
     {
         private string? _name;
-        private List<string> _genericTypeArguments = new List<string>();
+        private readonly List<string> _genericTypeArguments = new();
         private TypeReferenceBuilder? _listInnerType;
-        private bool _isNullable = false;
-        public static TypeReferenceBuilder New() => new TypeReferenceBuilder();
+        private bool _isNullable;
+
+        public static TypeReferenceBuilder New() => new();
 
         public TypeReferenceBuilder SetListType(TypeReferenceBuilder innerType)
         {
@@ -48,6 +49,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             {
                 await writer.WriteAsync(_name).ConfigureAwait(false);;
             }
+
             if (_genericTypeArguments.Count > 0)
             {
                 await writer.WriteAsync("<").ConfigureAwait(false);;
@@ -75,6 +77,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                     await writer.WriteAsync("?").ConfigureAwait(false);;
                 }
             }
+
             await writer.WriteSpaceAsync().ConfigureAwait(false);
         }
     }

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using HotChocolate;
 
 namespace StrawberryShake.CodeGeneration
 {
@@ -19,13 +20,13 @@ namespace StrawberryShake.CodeGeneration
         /// The types that are subsets of the EntityType represented by this descriptor.
         /// </param>
         public EntityTypeDescriptor(
-            string graphQLTypeName,
+            NameString graphQLTypeName,
             string @namespace,
             IReadOnlyList<TypeDescriptor> operationTypes)
         {
-            var allProperties = new Dictionary<string, NamedTypeReferenceDescriptor>();
+            var allProperties = new Dictionary<string, TypeMemberDescriptor>();
 
-            foreach (NamedTypeReferenceDescriptor namedTypeReferenceDescriptor in
+            foreach (TypeMemberDescriptor namedTypeReferenceDescriptor in
                 operationTypes.SelectMany(operationType => operationType.Properties))
             {
                 if (!allProperties.ContainsKey(namedTypeReferenceDescriptor.Name))
@@ -41,10 +42,19 @@ namespace StrawberryShake.CodeGeneration
             Namespace = @namespace;
         }
 
-        public string GraphQLTypeName { get; }
+        /// <summary>
+        /// Gets the GraphQL type name which this entity represents.
+        /// </summary>
+        public NameString GraphQLTypeName { get; }
 
+        /// <summary>
+        /// Gets the namespace of the generated code file.
+        /// </summary>
         public string Namespace { get; }
 
-        public Dictionary<string, NamedTypeReferenceDescriptor> Properties { get; }
+        /// <summary>
+        /// Gets the properties of this entity.
+        /// </summary>
+        public Dictionary<string, TypeMemberDescriptor> Properties { get; }
     }
 }

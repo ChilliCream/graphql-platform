@@ -102,7 +102,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private void GenerateMappingAssignment(
             IfBuilder codeContainer,
             MethodCallBuilder returnBuilder,
-            NamedTypeReferenceDescriptor prop)
+            TypeMemberDescriptor prop)
         {
             switch (prop.Type)
             {
