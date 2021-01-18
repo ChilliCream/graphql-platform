@@ -19,7 +19,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
 
             var types = new Dictionary<NameString, ICodeDescriptor>();
-            GenerateEnums(types, )
+            // GenerateEnums(types, )
         }
 
         public void GenerateEnums(

@@ -10,7 +10,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             AssertNonNull(writer, clientDescriptor);
 
-
             ClassBuilder.SetName(clientDescriptor.Name);
             ConstructorBuilder.SetTypeName(clientDescriptor.Name);
 
