@@ -1,26 +1,23 @@
-using System;
 using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Extensions;
+using static StrawberryShake.CodeGeneration.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
     public class ResultInfoGenerator : ClassBaseGenerator<TypeDescriptor>
     {
-        private const string EntityIdsPropertyName = "EntityIds";
-
         protected override Task WriteAsync(CodeWriter writer, TypeDescriptor typeDescriptor)
         {
             AssertNonNull(
                 writer,
-                typeDescriptor
-            );
+                typeDescriptor);
 
-            var className = NamingConventions.ResultInfoNameFromTypeName(typeDescriptor.Name);
+            var className = ResultInfoNameFromTypeName(typeDescriptor.Name);
 
             ClassBuilder
-                .AddImplements(NamingConventions.ResultInfoNameFromTypeName(WellKnownNames.IOperationResultDataInfo))
+                .AddImplements(ResultInfoNameFromTypeName(WellKnownNames.IOperationResultDataInfo))
                 .SetName(className);
 
             ConstructorBuilder
@@ -42,12 +39,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
             foreach (var prop in typeDescriptor.Properties)
             {
                 var propTypeBuilder = prop.Type.ToEntityIdBuilder();
+                
                 // Add Property to class
                 var propBuilder = PropertyBuilder
                     .New()
                     .SetName(prop.Name)
                     .SetType(propTypeBuilder)
                     .SetAccessModifier(AccessModifier.Public);
+                
                 ClassBuilder.AddProperty(propBuilder);
                 constructorCaller.AddArgument(prop.Name);
 
@@ -56,6 +55,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 ParameterBuilder parameterBuilder = ParameterBuilder.New()
                     .SetName(paramName)
                     .SetType(propTypeBuilder);
+                
                 ConstructorBuilder.AddParameter(parameterBuilder);
                 ConstructorBuilder.AddCode(prop.Name + " = " + paramName + ";");
             }
@@ -63,15 +63,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
             ClassBuilder.AddProperty(PropertyBuilder.New()
                 .SetName("IOperationResultDataInfo.EntityIds")
                 .SetType("IReadOnlyCollection<EntityId>")
-                .AsLambda("_entityIds")
-            );
+                .AsLambda("_entityIds"));
 
             ClassBuilder.AddProperty(PropertyBuilder.New()
                 .SetName("IOperationResultDataInfo.Version")
                 .SetType("ulong")
-                .AsLambda("_version")
-            );
-
+                .AsLambda("_version"));
 
             AddConstructorAssignedField("IReadOnlyCollection<EntityId>", "_entityIds");
             constructorCaller.AddArgument("_entityIds");

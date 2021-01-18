@@ -10,8 +10,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Mappers
             return new (
                 enumTypeModel.Name,
                 @namespace,
-                enumTypeModel.Values.Select(enumValue => new EnumElementDescriptor(enumValue.Name)).ToList()
-            );
+                enumTypeModel.Values.Select(
+                    enumValue => new EnumElementDescriptor(enumValue.Name)).ToList());
         }
     }
 }

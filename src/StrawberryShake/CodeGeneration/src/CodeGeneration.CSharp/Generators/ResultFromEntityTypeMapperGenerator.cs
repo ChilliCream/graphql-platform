@@ -24,7 +24,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             // Setup class
             ClassBuilder
                 .AddImplements(
-                    "IEntityMapper<" + 
+                    "IEntityMapper<" +
                     $"{EntityTypeNameFromGraphQLTypeName(descriptor.GraphQLTypeName)}, " +
                     $"{descriptor.Name}>")
                 .SetName(
@@ -58,7 +58,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
             var constructorCall = new MethodCallBuilder()
                 .SetMethodName($"return new {descriptor.Name}");
 
-
             foreach (NamedTypeReferenceDescriptor propertyDescriptor in descriptor.Properties)
             {
                 if (propertyDescriptor.Type.IsScalarType)
@@ -73,7 +72,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         propertyDescriptor);
                 }
             }
-            
+
             mapMethod.AddCode(constructorCall);
             ClassBuilder.AddMethod(mapMethod);
 
@@ -96,26 +95,28 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     mapMethod.AddCode(
                         AssignmentBuilder.New()
                             .SetLefthandSide($"var {listVar}")
-                            .SetRighthandSide($"new List<{propertyDescriptor.Type.Name}>()")
-                    );
+                            .SetRighthandSide($"new List<{propertyDescriptor.Type.Name}>()"));
 
                     var loopItem = $"{listVar}Item";
                     var foreachBuilder = ForEachBuilder.New()
-                        .SetLoopHeader($"var {loopItem} in {EntityParamName}.{propertyDescriptor.Name}");
+                        .SetLoopHeader(
+                            $"var {loopItem} in {EntityParamName}.{propertyDescriptor.Name}");
+
                     switch (listTypeDescriptor.InnerType)
                     {
                         case ListTypeDescriptor listTypeDescriptor1:
                             throw new NotImplementedException();
+
                         case TypeDescriptor typeDescriptor:
                             var mappedItemName = "mappedItem";
                             MapTypeDescriptor(
                                 foreachBuilder,
                                 mappedItemName,
                                 loopItem,
-                                typeDescriptor
-                            );
+                                typeDescriptor);
                             foreachBuilder.AddCode($"{listVar}.Add({mappedItemName});");
                             break;
+
                         default:
                             throw new ArgumentOutOfRangeException();
                     }
@@ -124,17 +125,18 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     mapMethod.AddEmptyLine();
                     constructorCall.AddArgument(listVar);
                     break;
+
                 case TypeDescriptor typeDescriptor:
                     var mappedType = propertyDescriptor.Name.WithLowerFirstChar();
                     MapTypeDescriptor(
                         mapMethod,
                         mappedType,
                         propertyDescriptor.Name,
-                        typeDescriptor
-                    );
+                        typeDescriptor);
 
                     constructorCall.AddArgument(mappedType);
                     break;
+
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -154,26 +156,29 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     var dataMapperName =
                         NamingConventions.DataMapperNameFromGraphQLTypeName(
                             typeDescriptor.Name,
-                            typeDescriptor.GraphQLTypeName
-                        );
+                            typeDescriptor.GraphQLTypeName);
+
                     var dataMapperType =
-                        $"IEntityMapper<{NamingConventions.DataTypeNameFromTypeName(typeDescriptor.Name)}, {typeDescriptor.Name}>";
+                        $"IEntityMapper<" +
+                        $"{DataTypeNameFromTypeName(typeDescriptor.Name)}, " +
+                        $"{typeDescriptor.Name}>";
+
                     var dataMapperField = dataMapperName.ToFieldName();
 
                     var dataMapperCall = MappingCall(
                         dataMapperType,
                         dataMapperName,
                         dataMapperField,
-                        $"{EntityParamName}.{mappingArgument}"
-                    );
+                        $"{EntityParamName}.{mappingArgument}");
 
                     var dataItemVariable = $"{mappingArgument.WithLowerFirstChar()}";
                     method.AddCode(
-                        AssignmentBuilder.New().SetLefthandSide($"var {dataItemVariable}")
-                            .SetRighthandSide(dataMapperCall)
-                    );
+                        AssignmentBuilder.New()
+                            .SetLefthandSide($"var {dataItemVariable}")
+                            .SetRighthandSide(dataMapperCall));
                     method.AddEmptyLine();
                     break;
+
                 case TypeKind.EntityType:
                     if (typeDescriptor.IsInterface)
                     {
@@ -181,8 +186,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                             method,
                             variableName,
                             mappingArgument,
-                            typeDescriptor
-                        );
+                            typeDescriptor);
                     }
                     else
                     {
@@ -190,16 +194,19 @@ namespace StrawberryShake.CodeGeneration.CSharp
                             method,
                             variableName,
                             mappingArgument,
-                            typeDescriptor
-                        );
+                            typeDescriptor);
                     }
                     break;
+
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
 
-        private void MapInterface<T>(ICodeContainer<T> method, string variableName, string mappingArgument,
+        private void MapInterface<T>(
+            ICodeContainer<T> method,
+            string variableName,
+            string mappingArgument,
             TypeDescriptor typeDescriptor)
         {
             method.AddCode($"{typeDescriptor.Name} {variableName} = default!;");
@@ -213,7 +220,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 ifChain.AddIfElse(singleIf);
             }
 
-            ifChain.AddElse(new CodeInlineBuilder().SetText("throw new NotSupportedException();"));
+            ifChain.AddElse(CodeInlineBuilder.New().SetText("throw new NotSupportedException();"));
 
             method.AddCode(ifChain);
 
@@ -221,16 +228,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 var ifCorrectType = IfBuilder.New()
                     .SetCondition(
-                        $"{mappingArgument}.Name.Equals(\"{interfaceImplementee.GraphQLTypeName}\", StringComparison.Ordinal)"
-                    );
+                        $"{mappingArgument}.Name.Equals(\"" +
+                        $"{interfaceImplementee.GraphQLTypeName}\", StringComparison.Ordinal)");
 
                 MapConcreteType(
                     ifCorrectType,
                     variableName,
                     mappingArgument,
                     interfaceImplementee,
-                    false
-                );
+                    false);
+
                 return ifCorrectType;
             }
         }
@@ -245,27 +252,31 @@ namespace StrawberryShake.CodeGeneration.CSharp
             var entityMapperName =
                 NamingConventions.EntityMapperNameFromGraphQLTypeName(
                     typeDescriptor.Name,
-                    typeDescriptor.GraphQLTypeName
-                );
+                    typeDescriptor.GraphQLTypeName);
+            
             var entityMapperType =
-                $"IEntityMapper<{NamingConventions.EntityTypeNameFromGraphQLTypeName(typeDescriptor.Name)}, {typeDescriptor.Name}>";
+                $"IEntityMapper<" +
+                $"{NamingConventions.EntityTypeNameFromGraphQLTypeName(typeDescriptor.Name)}, " +
+                $"{typeDescriptor.Name}>";
+
             var entityMapperField = entityMapperName.ToFieldName();
 
             var mappingArgument = typeDescriptor.Kind == TypeKind.EntityType
-                ? $"{StoreFieldName}.GetEntity<{NamingConventions.EntityTypeNameFromGraphQLTypeName(typeDescriptor.GraphQLTypeName)}>({argumentName})"
+                ? $"{StoreFieldName}.GetEntity<" +
+                    $"{EntityTypeNameFromGraphQLTypeName(typeDescriptor.GraphQLTypeName)}" + 
+                    $">({argumentName})"
                 : argumentName;
 
             var entityMapperCall = MappingCall(
                 entityMapperType,
                 entityMapperName,
                 entityMapperField,
-                mappingArgument
-            );
+                mappingArgument);
 
             method.AddCode(
-                AssignmentBuilder.New().SetLefthandSide($"{(createNewVar ? "var " : "")}{variableName}")
-                    .SetRighthandSide(entityMapperCall)
-            );
+                AssignmentBuilder.New()
+                    .SetLefthandSide($"{(createNewVar ? "var " : string.Empty)}{variableName}")
+                    .SetRighthandSide(entityMapperCall));
             method.AddEmptyLine();
         }
 
@@ -273,8 +284,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             string mapperType,
             string mapperName,
             string mapperFieldName,
-            string mappingArgumentName
-        )
+            string mappingArgumentName)
         {
             var mapperSet = new HashSet<string>();
             if (!mapperSet.Contains(mapperName))
@@ -283,15 +293,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
                 AddConstructorAssignedField(
                     mapperType,
-                    mapperFieldName
-                );
+                    mapperFieldName);
             }
 
             var mapCallMethod = new MethodCallBuilder()
-                .SetMethodName(
-                    mapperFieldName + "." +
-                    MapMethodName
-                )
+                .SetMethodName(mapperFieldName + "." +MapMethodName)
                 .SetDetermineStatement(false)
                 .AddArgument(mappingArgumentName);
 
