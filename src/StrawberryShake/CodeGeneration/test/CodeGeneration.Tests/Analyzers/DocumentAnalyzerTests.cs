@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
@@ -68,6 +69,10 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     Assert.Collection(
                         op.GetImplementations(op.ResultType),
                         model => Assert.Equal("GetHero", model.Name));
+
+                    OutputTypeModel fieldResultType =
+                        op.GetFieldResultType(op.ResultType.Fields.Single().SyntaxNode);
+                    Assert.Equal("IGetHero_Hero", fieldResultType.Name);
                 });
         }
     }

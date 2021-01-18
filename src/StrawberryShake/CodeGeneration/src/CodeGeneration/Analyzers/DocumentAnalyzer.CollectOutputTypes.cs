@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
@@ -64,7 +63,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     context.OperationType,
                     context.RootPath);
 
-            EnqueueFields(selectionSetVariants, context.RootPath, backlog);
+            EnqueueFields(selectionSetVariants, backlog);
 
             return _objectSelectionAnalyzer.AnalyzeOperation(
                 context,
@@ -84,7 +83,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     namedType,
                     fieldSelection.Path);
 
-            EnqueueFields(selectionSetVariants, fieldSelection.Path, backlog);
+            EnqueueFields(selectionSetVariants, backlog);
 
             if (namedType is UnionType or InterfaceType)
             {
@@ -125,14 +124,13 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
         private static void EnqueueFields(
             SelectionSetVariants selectionSetVariants,
-            Path selectionPath,
             Queue<FieldSelection> backlog)
         {
             if (selectionSetVariants.Variants.Count == 0)
             {
                 foreach (FieldSelection fieldSelection in selectionSetVariants.ReturnType.Fields)
                 {
-                    backlog.Enqueue(fieldSelection.WithPath(selectionPath));
+                    backlog.Enqueue(fieldSelection);
                 }
             }
             else
@@ -141,7 +139,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 {
                     foreach (FieldSelection fieldSelection in selectionSet.Fields)
                     {
-                        backlog.Enqueue(fieldSelection.WithPath(selectionPath));
+                        backlog.Enqueue(fieldSelection);
                     }
                 }
             }

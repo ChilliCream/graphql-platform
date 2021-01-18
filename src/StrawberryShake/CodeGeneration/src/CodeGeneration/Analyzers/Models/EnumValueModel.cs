@@ -4,6 +4,9 @@ using HotChocolate.Types;
 
 namespace StrawberryShake.CodeGeneration.Analyzers.Models
 {
+    /// <summary>
+    /// Represents an enum value.
+    /// </summary>
     public sealed class EnumValueModel
     {
         public EnumValueModel(
@@ -18,6 +21,9 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
             UnderlyingValue = underlyingValue;
         }
 
+        /// <summary>
+        /// The enum value name. This is the string that is being used to
+        /// </summary>
         public NameString Name { get; }
 
         public string? Description { get; }

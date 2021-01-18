@@ -21,21 +21,21 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
             IReadOnlyList<OutputTypeModel> outputTypeModels)
         {
             Name = name.EnsureNotEmpty(nameof(name));
-            Type = type ?? 
+            Type = type ??
                 throw new ArgumentNullException(nameof(type));
-            Document = document ?? 
+            Document = document ??
                 throw new ArgumentNullException(nameof(document));
-            Operation = operation ?? 
+            Operation = operation ??
                 throw new ArgumentNullException(nameof(operation));
-            Arguments = arguments ?? 
+            Arguments = arguments ??
                 throw new ArgumentNullException(nameof(arguments));
-            ResultType = resultType ?? 
+            ResultType = resultType ??
                 throw new ArgumentNullException(nameof(resultType));
-            LeafTypes = leafTypes ?? 
+            LeafTypes = leafTypes ??
                 throw new ArgumentNullException(nameof(leafTypes));
-            InputObjectTypes = inputObjectTypes ?? 
+            InputObjectTypes = inputObjectTypes ??
                 throw new ArgumentNullException(nameof(inputObjectTypes));
-            OutputTypeModels = outputTypeModels ?? 
+            OutputTypeModels = outputTypeModels ??
                 throw new ArgumentNullException(nameof(outputTypeModels));
         }
 
@@ -73,5 +73,15 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
             }
         }
 
+        public OutputTypeModel GetFieldResultType(FieldNode fieldSyntax)
+        {
+            if (fieldSyntax is null)
+            {
+                throw new ArgumentNullException(nameof(fieldSyntax));
+            }
+
+            return OutputTypeModels.First(
+                t => t.IsInterface && t.SelectionSet == fieldSyntax.SelectionSet);
+        }
     }
 }
