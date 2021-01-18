@@ -12,6 +12,7 @@ Various libraries, packages, etc. that developers can add to their own project a
 
 - [FairyBread](https://github.com/benmccallum/fairybread) - Input validation for Hot Chocolate
 - [FluentChoco](https://github.com/dalrankov/FluentChoco) - FluentValidation middleware for Hot Chocolate
+- [AppAny.HotChocolate.FluentValidation](https://github.com/appany/AppAny.HotChocolate.FluentValidation) - Input field HotChocolate + FluentValidation integration
 
 ### Data access
 
