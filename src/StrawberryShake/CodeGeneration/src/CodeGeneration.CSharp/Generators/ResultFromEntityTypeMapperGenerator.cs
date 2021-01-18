@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Extensions;
+using static StrawberryShake.CodeGeneration.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -23,27 +24,23 @@ namespace StrawberryShake.CodeGeneration.CSharp
             // Setup class
             ClassBuilder
                 .AddImplements(
-                    $"IEntityMapper<{NamingConventions.EntityTypeNameFromGraphQLTypeName(descriptor.GraphQLTypeName)}, {descriptor.Name}>"
-                )
+                    "IEntityMapper<" + 
+                    $"{EntityTypeNameFromGraphQLTypeName(descriptor.GraphQLTypeName)}, " +
+                    $"{descriptor.Name}>")
                 .SetName(
                     descriptor.Kind == TypeKind.EntityType
                         ? NamingConventions.EntityMapperNameFromGraphQLTypeName(
                             descriptor.Name,
-                            descriptor.GraphQLTypeName
-                        )
+                            descriptor.GraphQLTypeName)
                         : NamingConventions.DataMapperNameFromGraphQLTypeName(
                             descriptor.Name,
-                            descriptor.GraphQLTypeName
-                        )
-                );
+                            descriptor.GraphQLTypeName));
 
             ConstructorBuilder.SetTypeName(descriptor.Name);
 
             AddConstructorAssignedField(
                 WellKnownNames.IEntityStore,
-                StoreFieldName
-            );
-
+                StoreFieldName);
 
             // Define map method
             MethodBuilder mapMethod = MethodBuilder.New()
@@ -54,11 +51,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     ParameterBuilder.New()
                         .SetType(
                             descriptor.Kind == TypeKind.EntityType
-                                ? NamingConventions.EntityTypeNameFromGraphQLTypeName(descriptor.GraphQLTypeName)
-                                : NamingConventions.DataTypeNameFromTypeName(descriptor.Name)
-                        )
-                        .SetName(EntityParamName)
-                );
+                                ? EntityTypeNameFromGraphQLTypeName(descriptor.GraphQLTypeName)
+                                : DataTypeNameFromTypeName(descriptor.Name))
+                        .SetName(EntityParamName));
 
             var constructorCall = new MethodCallBuilder()
                 .SetMethodName($"return new {descriptor.Name}");
@@ -75,12 +70,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     TypeMapper(
                         mapMethod,
                         constructorCall,
-                        propertyDescriptor
-                    );
+                        propertyDescriptor);
                 }
             }
-
-
+            
             mapMethod.AddCode(constructorCall);
             ClassBuilder.AddMethod(mapMethod);
 

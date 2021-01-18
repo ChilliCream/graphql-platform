@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Extensions;
+using static StrawberryShake.CodeGeneration.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -9,13 +10,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private const string OperationExecutorFieldName = "_operationExecutor";
         private const string CreateRequestMethodName = "CreateRequest";
 
-        protected override Task WriteAsync(CodeWriter writer, OperationDescriptor operationDescriptor)
+        protected override Task WriteAsync(
+            CodeWriter writer,
+            OperationDescriptor operationDescriptor)
         {
             AssertNonNull(
                 writer,
-                operationDescriptor
-            );
-
+                operationDescriptor);
 
             ClassBuilder.SetName(operationDescriptor.Name);
             ConstructorBuilder.SetTypeName(operationDescriptor.Name);
@@ -24,23 +25,23 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 TypeReferenceBuilder.New()
                     .SetName(WellKnownNames.IOperationExecutor)
                     .AddGeneric(operationDescriptor.ResultTypeReference.Name),
-                OperationExecutorFieldName
-            );
+                OperationExecutorFieldName);
 
             MethodBuilder? executeMethod = null;
             if (operationDescriptor is not SubscriptionOperationDescriptor)
             {
                 executeMethod = MethodBuilder.New()
                     .SetReturnType(
-                        $"async Task<{WellKnownNames.IOperationResult}<{operationDescriptor.ResultTypeReference.Name}>>"
-                    )
+                        $"async Task<{WellKnownNames.IOperationResult}<" +
+                        $"{operationDescriptor.ResultTypeReference.Name}>>")
                     .SetAccessModifier(AccessModifier.Public)
                     .SetName(WellKnownNames.Execute);
             }
 
             var strategyVariableName = "strategy";
             var watchMethod = MethodBuilder.New()
-                .SetReturnType($"IOperationObservable<{operationDescriptor.ResultTypeReference.Name}>")
+                .SetReturnType(
+                    $"IOperationObservable<{operationDescriptor.ResultTypeReference.Name}>")
                 .SetAccessModifier(AccessModifier.Public)
                 .SetName(WellKnownNames.Watch)
                 .AddParameter(
@@ -49,10 +50,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         .SetType(
                             TypeReferenceBuilder.New()
                                 .SetIsNullable(true)
-                                .SetName(WellKnownNames.ExecutionStrategy)
-                        )
-                        .SetDefault("null")
-                );
+                                .SetName(WellKnownNames.ExecutionStrategy))
+                        .SetDefault("null"));
 
             foreach (var arg in operationDescriptor.Arguments)
             {
@@ -61,8 +60,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetType(
                         TypeReferenceBuilder.New()
                             .SetName(arg.Type.Name)
-                            .SetIsNullable(arg.Type.IsNullable)
-                    );
+                            .SetIsNullable(arg.Type.IsNullable));
 
                 executeMethod?.AddParameter(paramBuilder);
                 watchMethod.AddParameter(paramBuilder);
@@ -75,33 +73,30 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 ParameterBuilder.New()
                     .SetType("CancellationToken")
                     .SetName(cancellationTokenVariableName)
-                    .SetDefault()
-            );
+                    .SetDefault());
 
             var requestBuilder = CodeBlockBuilder.New();
             requestBuilder
                 .AddCode(
                     CodeLineBuilder.New()
-                        .SetLine($"var {requestVariableName} = {CreateRequestMethodName}();")
-                );
+                        .SetLine($"var {requestVariableName} = {CreateRequestMethodName}();"));
 
             executeMethod?.AddCode(requestBuilder);
             watchMethod?.AddCode(requestBuilder);
             watchMethod?.AddCode(
-                $"return {OperationExecutorFieldName}.Watch({requestVariableName}, {strategyVariableName});"
-            );
+                $"return {OperationExecutorFieldName}" +
+                $".Watch({requestVariableName}, {strategyVariableName});");
 
             foreach (var arg in operationDescriptor.Arguments)
             {
                 requestBuilder.AddCode(
-                    CodeLineBuilder.New().SetLine($"request.Variables.Add(\"{arg.Name}\", {arg.Name}, );")
-                );
+                    CodeLineBuilder.New()
+                        .SetLine($"request.Variables.Add(\"{arg.Name}\", {arg.Name}, );"));
             }
 
             executeMethod?.AddCode(
                 CodeLineBuilder.New()
-                    .SetLine("")
-            );
+                    .SetLine(string.Empty));
 
             executeMethod?.AddCode(
                 MethodCallBuilder.New()
@@ -111,18 +106,23 @@ namespace StrawberryShake.CodeGeneration.CSharp
                             .SetDetermineStatement(false)
                             .SetMethodName("ExecuteAsync")
                             .AddArgument(requestVariableName)
-                            .AddArgument(cancellationTokenVariableName)
-                    )
+                            .AddArgument(cancellationTokenVariableName))
                     .AddChainedCode(
                         MethodCallBuilder.New()
                             .SetDetermineStatement(false)
                             .SetMethodName("ConfigureAwait")
-                            .AddArgument("false")
-                    )
-            );
+                            .AddArgument("false")));
 
-            if (executeMethod is not null) ClassBuilder.AddMethod(executeMethod);
-            ClassBuilder.AddMethod(watchMethod);
+            if (executeMethod is not null)
+            {
+                ClassBuilder.AddMethod(executeMethod);
+            }
+
+            if (watchMethod is not null)
+            {
+                ClassBuilder.AddMethod(watchMethod);
+            }
+
             ClassBuilder.AddMethod(CreateRequestMethod(operationDescriptor));
 
             return CodeFileBuilder.New()
@@ -133,6 +133,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         private MethodBuilder CreateRequestMethod(OperationDescriptor operationDescriptor)
         {
+            string typeName = DocumentTypeNameFromOperationName(operationDescriptor.Name);
+
             return MethodBuilder.New()
                 .SetName(CreateRequestMethodName)
                 .SetReturnType(WellKnownNames.OperationRequest)
@@ -141,8 +143,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         .SetPrefix("return ")
                         .SetMethodName("new")
                         .AddArgument($"\"{operationDescriptor.ResultTypeReference.Name}\"")
-                        .AddArgument($"{NamingConventions.DocumentTypeNameFromOperationName(operationDescriptor.Name)}.Instance")
-                );
+                        .AddArgument($"{typeName}.Instance"));
         }
     }
 }

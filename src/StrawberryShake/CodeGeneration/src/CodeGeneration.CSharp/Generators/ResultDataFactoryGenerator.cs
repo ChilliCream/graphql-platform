@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
-using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Extensions;
+using static StrawberryShake.CodeGeneration.NamingConventions;
+using static StrawberryShake.CodeGeneration.CSharp.WellKnownNames;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -16,12 +17,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             AssertNonNull(
                 writer,
-                typeDescriptor
-            );
+                typeDescriptor);
 
             ClassBuilder
-                .SetName(NamingConventions.ResultFactoryNameFromTypeName(typeDescriptor.Name))
-                .AddImplements($"{WellKnownNames.IOperationResultDataFactory}<{typeDescriptor.Name}>");
+                .SetName(ResultFactoryNameFromTypeName(typeDescriptor.Name))
+                .AddImplements($"{IOperationResultDataFactory}<{typeDescriptor.Name}>");
 
             ConstructorBuilder
                 .SetTypeName(typeDescriptor.Name)
@@ -29,25 +29,25 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             AddConstructorAssignedField(
                 WellKnownNames.IEntityStore,
-                StoreParamName
-            );
+                StoreParamName);
 
-
-            var mappersToInject = typeDescriptor.Properties.Where(prop => !prop.Type.IsScalarType)
+            var mappersToInject = typeDescriptor.Properties
+                .Where(prop => !prop.Type.IsScalarType)
                 .SelectMany(prop => GetMappers(prop.Type));
 
             foreach (var mapperType in mappersToInject)
             {
-                var gqlTypename = mapperType.GraphQLTypeName ?? throw new ArgumentNullException();
+                var gqlTypeName = mapperType.GraphQLTypeName ?? throw new ArgumentNullException();
+
                 var typeName = TypeReferenceBuilder
                     .New()
                     .SetName(WellKnownNames.IEntityMapper)
-                    .AddGeneric(NamingConventions.EntityTypeNameFromGraphQLTypeName(gqlTypename))
+                    .AddGeneric(EntityTypeNameFromGraphQLTypeName(gqlTypeName))
                     .AddGeneric(mapperType.Name);
 
                 AddConstructorAssignedField(
                     typeName,
-                    NamingConventions.EntityMapperNameFromGraphQLTypeName(mapperType.Name, gqlTypename).ToFieldName()
+                    EntityMapperNameFromGraphQLTypeName(mapperType.Name, gqlTypeName).ToFieldName()
                 );
             }
 
@@ -66,7 +66,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetMethodName(typeDescriptor.Name);
 
             var ifHasCorrectType = IfBuilder.New()
-                .SetCondition($"dataInfo is {NamingConventions.ResultInfoNameFromTypeName(typeDescriptor.Name)} info");
+                .SetCondition(
+                    $"dataInfo is {ResultInfoNameFromTypeName(typeDescriptor.Name)} info");
 
             foreach (var prop in typeDescriptor.Properties)
             {
@@ -79,8 +80,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     GenerateMappingAssignment(
                         ifHasCorrectType,
                         returnStatement,
-                        prop
-                    );
+                        prop);
                 }
             }
 
@@ -88,8 +88,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
             createMethod.AddCode(ifHasCorrectType);
             createMethod.AddEmptyLine();
             createMethod.AddCode(
-                $"throw new ArgumentException(\"{NamingConventions.ResultInfoNameFromTypeName(typeDescriptor.Name)} expected.\");"
-            );
+                "throw new ArgumentException(\"" +
+                $"{ResultInfoNameFromTypeName(typeDescriptor.Name)} expected.\");");
+
             ClassBuilder.AddMethod(createMethod);
 
             return CodeFileBuilder.New()
@@ -108,6 +109,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 case ListTypeDescriptor listTypeDescriptor:
                     // TODO
                     break;
+
                 case TypeDescriptor typeDescriptor1:
                     var idName = $"{prop.Name}Id";
                     var varName = prop.Name.WithLowerFirstChar();
@@ -119,21 +121,18 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         foreach (TypeDescriptor implementee in typeDescriptor1.IsImplementedBy)
                         {
                             codeContainer.AddCode(
-                                IfBuilder.New().SetCondition(
-                                    ConditionBuilder.New()
-                                        .Set(
+                                IfBuilder.New()
+                                    .SetCondition(
+                                        ConditionBuilder.New().Set(
                                             MethodCallBuilder.New()
                                                 .SetDetermineStatement(false)
                                                 .SetMethodName($"info.{idName}.Name.Equals")
                                                 .AddArgument($"\"{implementee.GraphQLTypeName}\"")
-                                                .AddArgument("StringComparison.Ordinal")
-                                        )
-                                ).AddCode(
-                                    AssignmentBuilder.New()
+                                                .AddArgument("StringComparison.Ordinal")))
+                                    .AddCode(AssignmentBuilder.New()
                                         .SetLefthandSide(varName)
-                                        .SetRighthandSide(GetMappingCall(implementee, idName))
-                                )
-                            );
+                                        .SetRighthandSide(GetMappingCall(implementee, idName))));
+
                             codeContainer.AddEmptyLine();
                         }
 
@@ -146,8 +145,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                             returnBuilder.AddArgument(GetMappingCall(nonList, idName));
                         }
                     }
-
                     break;
+
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -156,21 +155,29 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private MethodCallBuilder GetMappingCall(TypeDescriptor typeDescriptor, string idName)
         {
             return MethodCallBuilder.New()
-                .SetMethodName(NamingConventions.EntityMapperNameFromGraphQLTypeName(typeDescriptor.Name, typeDescriptor.GraphQLTypeName))
+                .SetMethodName(
+                    EntityMapperNameFromGraphQLTypeName(
+                        typeDescriptor.Name,
+                        typeDescriptor.GraphQLTypeName))
                 .SetDetermineStatement(false)
                 .AddArgument(
-                    $"{StoreParamName}.GetEntity<{NamingConventions.EntityTypeNameFromGraphQLTypeName(typeDescriptor.GraphQLTypeName)}>(info.{idName})"
-                );
+                    $"{StoreParamName}.GetEntity<" +
+                    $"{EntityTypeNameFromGraphQLTypeName(typeDescriptor.GraphQLTypeName)}>" +
+                    $"(info.{idName})");
         }
 
         private IEnumerable<TypeDescriptor> GetMappers(ITypeDescriptor typeDescriptor)
         {
             return typeDescriptor switch
             {
-                ListTypeDescriptor listTypeDescriptor => GetMappers(listTypeDescriptor.InnerType),
-                TypeDescriptor typeDescriptor1 => typeDescriptor1.IsInterface
-                    ? typeDescriptor1.IsImplementedBy
-                    : new[] {typeDescriptor1},
+                ListTypeDescriptor listTypeDescriptor =>
+                    GetMappers(listTypeDescriptor.InnerType),
+
+                TypeDescriptor typeDescriptor1 =>
+                    typeDescriptor1.IsInterface
+                        ? typeDescriptor1.IsImplementedBy
+                        : new[] { typeDescriptor1 },
+
                 _ => throw new ArgumentOutOfRangeException()
             };
         }

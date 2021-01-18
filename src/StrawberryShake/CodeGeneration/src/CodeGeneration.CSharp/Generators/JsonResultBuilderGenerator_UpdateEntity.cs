@@ -1,8 +1,5 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
-using StrawberryShake.CodeGeneration.Extensions;
+using static StrawberryShake.CodeGeneration.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -17,23 +14,20 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .AddParameter(
                     ParameterBuilder.New()
                         .SetType(jsonElementParamName)
-                        .SetName(objParamName)
-                )
+                        .SetName(objParamName))
                 .AddParameter(
                     ParameterBuilder.New()
                         .SetType($"ISet<{WellKnownNames.EntityId}>")
-                        .SetName(EntityIdsParam)
-                );
+                        .SetName(EntityIdsParam));
 
             updateEntityMethod.AddCode(
                 EnsureJsonValueIsNotNull(),
-                !typeDescriptor.IsNullable
-            );
+                !typeDescriptor.IsNullable);
 
             var entityIdVarName = "entityId";
             updateEntityMethod.AddCode(
-                $"{WellKnownNames.EntityId} {entityIdVarName} = {ExtractIdFieldName}({objParamName});"
-            );
+                $"{WellKnownNames.EntityId} {entityIdVarName} = " + 
+                $"{ExtractIdFieldName}({objParamName});");
             updateEntityMethod.AddCode($"{EntityIdsParam}.Add({entityIdVarName});");
 
             // If the type is an interface
@@ -41,28 +35,29 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 updateEntityMethod.AddEmptyLine();
                 var ifStatement = IfBuilder.New()
-                    .SetCondition($"entityId.Name.Equals(\"{concreteType.Name}\", StringComparison.Ordinal)");
+                    .SetCondition(
+                        $"entityId.Name.Equals(\"{concreteType.Name}\", " + 
+                        "StringComparison.Ordinal)");
 
-                var entityTypeName = NamingConventions.EntityTypeNameFromGraphQLTypeName(concreteType.Name);
+                var entityTypeName = EntityTypeNameFromGraphQLTypeName(concreteType.Name);
 
                 var entityVarName = "entity";
                 ifStatement.AddCode(
-                    $"{entityTypeName} {entityTypeName} = {EntityStoreFieldName}.GetOrCreate<{entityTypeName}>({entityIdVarName});"
-                );
+                    $"{entityTypeName} {entityTypeName} = {EntityStoreFieldName}" + 
+                    $".GetOrCreate<{entityTypeName}>({entityIdVarName});");
+
                 foreach (NamedTypeReferenceDescriptor property in concreteType.Properties)
                 {
                     ifStatement.AddCode(
                         AssignmentBuilder.New()
                             .SetLefthandSide($"{entityVarName}.{property.Name}")
-                            .SetRighthandSide(BuildUpdateMethodCall(property))
-                    );
+                            .SetRighthandSide(BuildUpdateMethodCall(property)));
                 }
 
                 ifStatement.AddEmptyLine();
                 ifStatement.AddCode($"return {entityIdVarName};");
                 updateEntityMethod.AddCode(ifStatement);
             }
-
 
             updateEntityMethod.AddEmptyLine();
             updateEntityMethod.AddCode("throw new NotSupportedException();");

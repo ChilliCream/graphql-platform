@@ -1,19 +1,21 @@
 using System;
 using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
+using static StrawberryShake.CodeGeneration.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
     public class OperationDocumentGenerator: ClassBaseGenerator<OperationDescriptor>
     {
-        protected override Task WriteAsync(CodeWriter writer, OperationDescriptor operationDescriptor)
+        protected override Task WriteAsync(
+            CodeWriter writer, 
+            OperationDescriptor operationDescriptor)
         {
             AssertNonNull(
                 writer,
-                operationDescriptor
-            );
+                operationDescriptor);
 
-            ClassBuilder.SetName(NamingConventions.DocumentTypeNameFromOperationName(operationDescriptor.Name));
+            ClassBuilder.SetName(DocumentTypeNameFromOperationName(operationDescriptor.Name));
             ConstructorBuilder.SetAccessModifier(AccessModifier.Private);
 
             ClassBuilder.AddField(
@@ -22,8 +24,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetConst()
                     .SetType("string")
                     .SetName("_bodyString")
-                    .SetValue($"@\"{operationDescriptor.BodyString}\"", true)
-            );
+                    .SetValue($"@\"{operationDescriptor.BodyString}\"", true));
 
             ClassBuilder.AddField(
                 FieldBuilder.New()
@@ -31,8 +32,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetReadOnly()
                     .SetType("byte[]")
                     .SetName("_body")
-                    .SetValue("Encoding.UTF8.GetBytes(_bodyString)")
-            );
+                    .SetValue("Encoding.UTF8.GetBytes(_bodyString)"));
 
             string operationKind;
             switch (operationDescriptor)
@@ -54,27 +54,23 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 PropertyBuilder.New()
                     .SetType("GetHeroQueryDocument")
                     .SetName("Instance")
-                    .SetValue($"new()")
-            );
+                    .SetValue($"new()"));
 
             ClassBuilder.AddProperty(
                 PropertyBuilder.New()
                     .SetType("OperationKind")
-                    .SetName("Kind").AsLambda($"OperationKind.{operationKind}")
-            );
+                    .SetName("Kind").AsLambda($"OperationKind.{operationKind}"));
 
             ClassBuilder.AddProperty(
                 PropertyBuilder.New()
                     .SetType("ReadOnlySpan<byte>")
-                    .SetName("Body").AsLambda("_body")
-            );
+                    .SetName("Body").AsLambda("_body"));
 
             ClassBuilder.AddMethod(
                 MethodBuilder.New()
                     .SetReturnType("override string")
                     .SetName("ToString")
-                    .AddCode("return _bodyString;")
-            );
+                    .AddCode("return _bodyString;"));
 
             return CodeFileBuilder.New()
                 .SetNamespace(operationDescriptor.Namespace)

@@ -1,6 +1,3 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Extensions;
 
@@ -17,36 +14,34 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .AddParameter(
                     ParameterBuilder.New()
                         .SetType(jsonElementParamName)
-                        .SetName(objParamName)
-                )
+                        .SetName(objParamName))
                 .AddParameter(
                     ParameterBuilder.New()
                         .SetType($"ISet<{WellKnownNames.EntityId}>")
-                        .SetName(EntityIdsParam)
-                );
+                        .SetName(EntityIdsParam));
 
             updateEntityMethod.AddCode(
                 EnsureJsonValueIsNotNull(),
-                !listTypeDescriptor.IsNullable
-            );
+                !listTypeDescriptor.IsNullable);
 
             var listVarName = listTypeDescriptor.Name.WithLowerFirstChar() + "s";
+            
+            string elementType = listTypeDescriptor.IsEntityType 
+                ? WellKnownNames.EntityId 
+                : listTypeDescriptor.InnerType.Name;
+            
             updateEntityMethod.AddCode(
-                $"var {listVarName} = new List<{(listTypeDescriptor.IsEntityType ? WellKnownNames.EntityId : listTypeDescriptor.InnerType.Name)}>();"
-            );
+                $"var {listVarName} = new List<{elementType}>();");
 
             updateEntityMethod.AddCode(
                 ForEachBuilder.New()
-                    .SetLoopHeader(
-                        $"JsonElement child in {objParamName}.EnumerateArray()"
-                    )
+                    .SetLoopHeader($"JsonElement child in {objParamName}.EnumerateArray()")
                     .AddCode(
                         MethodCallBuilder.New()
                             .SetPrefix($"{listVarName}.")
                             .SetMethodName("Add")
-                            .AddArgument(BuildUpdateMethodCall(listTypeDescriptor.InnerType, "child"))
-                    )
-            );
+                            .AddArgument(
+                                BuildUpdateMethodCall(listTypeDescriptor.InnerType, "child"))));
 
             updateEntityMethod.AddEmptyLine();
             updateEntityMethod.AddCode($"return {listVarName};");

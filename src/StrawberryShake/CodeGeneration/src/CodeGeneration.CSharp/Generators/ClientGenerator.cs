@@ -1,7 +1,5 @@
-using System;
 using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
-using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Extensions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
@@ -20,16 +18,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 AddConstructorAssignedField(
                     operation.Name,
-                    operation.Name.ToFieldName()
-                );
+                    operation.Name.ToFieldName());
 
                 ClassBuilder.AddMethod(
                     MethodBuilder.New()
                         .SetAccessModifier(AccessModifier.Public)
                         .SetReturnType(operation.Name)
                         .SetName(operation.Name)
-                        .AddCode($"return {operation.Name.ToFieldName()};")
-                );
+                        .AddCode($"return {operation.Name.ToFieldName()};"));
             }
 
             return CodeFileBuilder.New()

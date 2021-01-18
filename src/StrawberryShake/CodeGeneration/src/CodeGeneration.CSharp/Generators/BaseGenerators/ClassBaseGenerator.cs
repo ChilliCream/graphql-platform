@@ -3,15 +3,16 @@ using StrawberryShake.CodeGeneration.CSharp.Builders;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public abstract class ClassBaseGenerator<T>: CSharpBaseGenerator<T> where T : ICodeDescriptor
+    public abstract class ClassBaseGenerator<T> : CSharpBaseGenerator<T> where T : ICodeDescriptor
     {
-        protected ClassBuilder ClassBuilder { get; } = ClassBuilder.New();
-        protected ConstructorBuilder ConstructorBuilder { get; } = ConstructorBuilder.New();
-
         protected ClassBaseGenerator()
         {
             ClassBuilder.AddConstructor(ConstructorBuilder);
         }
+
+        protected ClassBuilder ClassBuilder { get; } = ClassBuilder.New();
+
+        protected ConstructorBuilder ConstructorBuilder { get; } = ConstructorBuilder.New();
 
         protected void AddConstructorAssignedField(TypeReferenceBuilder type, string fieldName)
         {
@@ -41,8 +42,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             AddConstructorAssignedField(
                 TypeReferenceBuilder.New().SetName(typename),
-                fieldName
-            );
+                fieldName);
         }
     }
 }

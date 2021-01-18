@@ -1,8 +1,5 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
-using StrawberryShake.CodeGeneration.Extensions;
+using static StrawberryShake.CodeGeneration.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -13,25 +10,25 @@ namespace StrawberryShake.CodeGeneration.CSharp
             var dateDeserializer = MethodBuilder.New()
                 .SetReturnType(typeDescriptor.Name)
                 .SetName(DeserializerMethodNameFromTypeName(typeDescriptor))
-                .AddParameter(ParameterBuilder.New().SetType(jsonElementParamName).SetName(objParamName))
-                .AddParameter(
-                    ParameterBuilder.New().SetType($"ISet<{WellKnownNames.EntityId}>").SetName(EntityIdsParam)
-                );
+                .AddParameter(ParameterBuilder.New()
+                    .SetType(jsonElementParamName)
+                    .SetName(objParamName))
+                .AddParameter(ParameterBuilder.New()
+                    .SetType($"ISet<{WellKnownNames.EntityId}>")
+                    .SetName(EntityIdsParam));
 
             dateDeserializer.AddCode(
                 EnsureJsonValueIsNotNull(),
-                !typeDescriptor.IsNullable
-            );
+                !typeDescriptor.IsNullable);
 
             var returnStatement = MethodCallBuilder.New()
                 .SetPrefix("return new ")
-                .SetMethodName(NamingConventions.DataTypeNameFromTypeName(typeDescriptor.Name));
+                .SetMethodName(DataTypeNameFromTypeName(typeDescriptor.Name));
 
             foreach (NamedTypeReferenceDescriptor property in typeDescriptor.Properties)
             {
                 returnStatement.AddArgument(BuildUpdateMethodCall(property));
             }
-
 
             dateDeserializer.AddCode(returnStatement);
             ClassBuilder.AddMethod(dateDeserializer);

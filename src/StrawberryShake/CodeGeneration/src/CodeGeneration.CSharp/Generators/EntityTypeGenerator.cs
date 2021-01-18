@@ -1,8 +1,8 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
+using static StrawberryShake.CodeGeneration.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -17,7 +17,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             // Setup class
             ClassBuilder classBuilder = ClassBuilder.New()
-                .SetName(NamingConventions.EntityTypeNameFromGraphQLTypeName(typeDescriptor.GraphQLTypename))
+                .SetName(EntityTypeNameFromGraphQLTypeName(typeDescriptor.GraphQLTypename))
                 .AddProperty(PropertyBuilder.New().SetName("Id").SetType(WellKnownNames.EntityId));
 
             // Add Properties to class
@@ -34,15 +34,17 @@ namespace StrawberryShake.CodeGeneration.CSharp
                             .SetAccessModifier(AccessModifier.Public);
                         classBuilder.AddProperty(propBuilder);
                         break;
+
                     case TypeKind.DataType:
                         PropertyBuilder dataBuilder = PropertyBuilder
                             .New()
                             .SetName(prop.Name)
-                            .SetType(prop.Type.ToBuilder(NamingConventions.DataTypeNameFromTypeName(prop.Type.Name)))
+                            .SetType(prop.Type.ToBuilder(DataTypeNameFromTypeName(prop.Type.Name)))
                             .MakeSettable()
                             .SetAccessModifier(AccessModifier.Public);
                         classBuilder.AddProperty(dataBuilder);
                         break;
+
                     case TypeKind.EntityType:
                         PropertyBuilder referencePropertyBuilder = PropertyBuilder
                             .New()
@@ -52,6 +54,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                             .SetAccessModifier(AccessModifier.Public);
                         classBuilder.AddProperty(referencePropertyBuilder);
                         break;
+
                     default:
                         throw new ArgumentOutOfRangeException();
                 }

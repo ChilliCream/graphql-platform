@@ -23,8 +23,8 @@ namespace StrawberryShake.CodeGeneration.Utilities
             }
 
             if (context.AllFragments.TryGetValue(
-                    node.Name.Value,
-                    out FragmentDefinitionNode? fragment) &&
+                node.Name.Value,
+                out FragmentDefinitionNode? fragment) &&
                 context.VisitedFragments.Add(fragment.Name.Value))
             {
                 if (Visit(fragment, node, context).IsBreak())
