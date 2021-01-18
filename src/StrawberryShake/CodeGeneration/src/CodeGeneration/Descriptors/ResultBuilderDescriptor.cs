@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Net;
 
 namespace StrawberryShake.CodeGeneration
 {
@@ -9,7 +8,7 @@ namespace StrawberryShake.CodeGeneration
     public class ResultBuilderDescriptor : ICodeDescriptor
     {
         public ResultBuilderDescriptor(
-            TypeDescriptor resultType, 
+            TypeDescriptor resultType,
             IReadOnlyCollection<ValueParserDescriptor> valueParsers)
         {
             ResultType = resultType;
@@ -27,7 +26,7 @@ namespace StrawberryShake.CodeGeneration
 
         /// <summary>
         /// A set of all type tuples, that represent the required
-        /// <see cref="ILeafValueParser{serializedType, runtimeType}" /> of this
+        /// <see cref="ILeafValueParser{TSerialized,TRuntime}" /> of this
         /// <see cref="ResultBuilderDescriptor" />.
         /// </summary>
         public IReadOnlyCollection<ValueParserDescriptor> ValueParsers { get; }

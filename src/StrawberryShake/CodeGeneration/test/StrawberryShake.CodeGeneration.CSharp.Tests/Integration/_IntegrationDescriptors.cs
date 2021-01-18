@@ -36,7 +36,6 @@ namespace StrawberryShake.Integration
 
         #endregion
 
-
         #region IHero
 
         private const string IHeroName = "IHero";
@@ -95,14 +94,13 @@ namespace StrawberryShake.Integration
         public static EntityTypeDescriptor DroidEntityTypeDescriptor => new(
             "Droid",
             "StarWarsClient",
-            new TypeDescriptor[] { DroidTypeDescriptor, DroidHeroTypeDescriptor }
+            new[] { DroidTypeDescriptor, DroidHeroTypeDescriptor }
         );
 
         public static EntityTypeDescriptor HumanEntityTypeDescriptor => new(
             "Human",
             "StarWarsClient",
-            new TypeDescriptor[] { HumanTypeDescriptor, HumanHeroTypeDescriptor }
-        );
+            new[] { HumanTypeDescriptor, HumanHeroTypeDescriptor });
 
         public static TypeDescriptor GetHeroResultDescriptor => new(
             "GetHeroResult",
@@ -115,31 +113,37 @@ namespace StrawberryShake.Integration
                     IHeroDescriptor
                 ),
                 TestHelper.GetNamedNonNullStringTypeReference("Version")
-            }
-        );
+            });
 
-        public static QueryOperationDescriptor GetHeroQueryDescriptor => new(GetHeroResultDescriptor, "StarWarsClient", new Collection<NamedTypeReferenceDescriptor>(),
-            @"query GetHero {
-                hero {
-                    __typename
-                    id
-                    name
-                    friends {
-                        nodes {
-                            __typename
-                            id
-                            name
+        public static QueryOperationDescriptor GetHeroQueryDescriptor =>
+            new(
+                GetHeroResultDescriptor,
+                "StarWarsClient",
+                new Collection<NamedTypeReferenceDescriptor>(),
+                @"query GetHero {
+                    hero {
+                        __typename
+                        id
+                        name
+                        friends {
+                            nodes {
+                                __typename
+                                id
+                                name
+                            }
+                            totalCount
                         }
-                        totalCount
                     }
-                }
-                version
-            }");
+                    version
+                }");
 
-        public static ResultBuilderDescriptor GetHeroResultBuilderDescriptor => new()
-        {
-            ResultType = GetHeroResultDescriptor,
-            ValueParsers = new[] {("string", "string", "String"), ("int", "int", "Int")}
-        };
+        public static ResultBuilderDescriptor GetHeroResultBuilderDescriptor =>
+            new(
+                GetHeroResultDescriptor,
+                new[]
+                {
+                    new ValueParserDescriptor("string", "string", "String"),
+                    new ValueParserDescriptor("int", "int", "Int")
+                });
     }
 }

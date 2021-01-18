@@ -1,7 +1,3 @@
-namespace StrawberryShake.CodeGeneration.Properties
-{
-    public class InternalsVisibleTo
-    {
-        
-    }
-}
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("StrawberryShake.CodeGeneration.Tests")]
