@@ -19,6 +19,6 @@ namespace StrawberryShake.CodeGeneration
         /// <summary>
         /// A set of all type tuples, that represent the required ILeafValueParser<serializedType, runtimeType> of this ResultBuilderDescriptor.
         /// </summary>
-        public IReadOnlyCollection<(string serializedType, string runtimeType, string graphQlTypeName)> ValueParsers { get; set; }
+        public IReadOnlyCollection<(string serializedType, string runtimeType, string graphQLTypeName)> ValueParsers { get; set; }
     }
 }

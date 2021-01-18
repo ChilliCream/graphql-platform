@@ -38,16 +38,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             foreach (var mapperType in mappersToInject)
             {
-                var gqlTypename = mapperType.GraphQlTypeName ?? throw new ArgumentNullException();
+                var gqlTypename = mapperType.GraphQLTypeName ?? throw new ArgumentNullException();
                 var typeName = TypeReferenceBuilder
                     .New()
                     .SetName(WellKnownNames.IEntityMapper)
-                    .AddGeneric(NamingConventions.EntityTypeNameFromGraphQlTypeName(gqlTypename))
+                    .AddGeneric(NamingConventions.EntityTypeNameFromGraphQLTypeName(gqlTypename))
                     .AddGeneric(mapperType.Name);
 
                 AddConstructorAssignedField(
                     typeName,
-                    NamingConventions.EntityMapperNameFromGraphQlTypeName(mapperType.Name, gqlTypename).ToFieldName()
+                    NamingConventions.EntityMapperNameFromGraphQLTypeName(mapperType.Name, gqlTypename).ToFieldName()
                 );
             }
 
@@ -125,7 +125,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                             MethodCallBuilder.New()
                                                 .SetDetermineStatement(false)
                                                 .SetMethodName($"info.{idName}.Name.Equals")
-                                                .AddArgument($"\"{implementee.GraphQlTypeName}\"")
+                                                .AddArgument($"\"{implementee.GraphQLTypeName}\"")
                                                 .AddArgument("StringComparison.Ordinal")
                                         )
                                 ).AddCode(
@@ -156,10 +156,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private MethodCallBuilder GetMappingCall(TypeDescriptor typeDescriptor, string idName)
         {
             return MethodCallBuilder.New()
-                .SetMethodName(NamingConventions.EntityMapperNameFromGraphQlTypeName(typeDescriptor.Name, typeDescriptor.GraphQlTypeName))
+                .SetMethodName(NamingConventions.EntityMapperNameFromGraphQLTypeName(typeDescriptor.Name, typeDescriptor.GraphQLTypeName))
                 .SetDetermineStatement(false)
                 .AddArgument(
-                    $"{StoreParamName}.GetEntity<{NamingConventions.EntityTypeNameFromGraphQlTypeName(typeDescriptor.GraphQlTypeName)}>(info.{idName})"
+                    $"{StoreParamName}.GetEntity<{NamingConventions.EntityTypeNameFromGraphQLTypeName(typeDescriptor.GraphQLTypeName)}>(info.{idName})"
                 );
         }
 

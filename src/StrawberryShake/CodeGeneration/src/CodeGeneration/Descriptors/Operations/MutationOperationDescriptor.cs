@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace StrawberryShake.CodeGeneration
 {
     /// <summary>
-    /// Describes a GraphQl mutation
+    /// Describes a GraphQL mutation
     /// </summary>
     public class MutationOperationDescriptor: OperationDescriptor
     {

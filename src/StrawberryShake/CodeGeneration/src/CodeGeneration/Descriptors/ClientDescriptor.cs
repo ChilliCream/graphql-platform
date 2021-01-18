@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace StrawberryShake.CodeGeneration
 {
     /// <summary>
-    /// Describes a GraphQl client class, that bundles all operations defined in a single class.
+    /// Describes a GraphQL client class, that bundles all operations defined in a single class.
     /// </summary>
     public class ClientDescriptor : ICodeDescriptor
     {

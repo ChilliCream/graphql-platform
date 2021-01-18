@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace StrawberryShake.CodeGeneration
 {
     /// <summary>
-    /// Describes a GraphQl operation
+    /// Describes a GraphQL operation
     /// </summary>
     public abstract class OperationDescriptor : ICodeDescriptor
     {

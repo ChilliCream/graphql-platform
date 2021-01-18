@@ -38,9 +38,8 @@ namespace HotChocolate.Types
 
             Type? propertyType = definition.Property?.PropertyType;
 
-            if (propertyType is { }
-                && propertyType.IsGenericType
-                && propertyType.GetGenericTypeDefinition() == typeof(Optional<>))
+            if (propertyType is { IsGenericType: true } &&
+                propertyType.GetGenericTypeDefinition() == typeof(Optional<>))
             {
                 IsOptional = true;
             }

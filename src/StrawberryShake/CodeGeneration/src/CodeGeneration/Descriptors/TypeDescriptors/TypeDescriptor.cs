@@ -12,7 +12,7 @@ namespace StrawberryShake.CodeGeneration
         /// </summary>
         public string Name { get; }
 
-        public string? GraphQlTypeName { get; }
+        public string? GraphQLTypeName { get; }
 
         /// <summary>
         /// Describes whether or not it is a nullable type reference
@@ -62,11 +62,11 @@ namespace StrawberryShake.CodeGeneration
             IReadOnlyList<TypeDescriptor>? isImplementedBy = null,
             TypeKind kind = TypeKind.Scalar,
             bool isNullable = false,
-            string? graphQlTypeName  = null)
+            string? graphQLTypeName  = null)
         {
             Name = name;
             Namespace = @namespace;
-            GraphQlTypeName = graphQlTypeName;
+            GraphQLTypeName = graphQLTypeName;
             Implements = implements ?? new List<string>();
             Properties = properties ?? new List<NamedTypeReferenceDescriptor>();
             IsImplementedBy = isImplementedBy ?? new TypeDescriptor[] { };

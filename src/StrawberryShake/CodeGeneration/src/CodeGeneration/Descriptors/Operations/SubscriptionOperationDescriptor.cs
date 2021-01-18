@@ -4,7 +4,7 @@ using HotChocolate.Types;
 namespace StrawberryShake.CodeGeneration
 {
     /// <summary>
-    /// Describes a GraphQl subscription
+    /// Describes a GraphQL subscription
     /// </summary>
     public class SubscriptionOperationDescriptor: OperationDescriptor
     {

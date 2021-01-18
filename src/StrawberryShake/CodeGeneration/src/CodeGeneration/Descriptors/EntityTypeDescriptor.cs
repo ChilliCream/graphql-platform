@@ -6,7 +6,7 @@ namespace StrawberryShake.CodeGeneration
 {
     public class EntityTypeDescriptor: ICodeDescriptor
     {
-        public string GraphQlTypename { get; }
+        public string GraphQLTypename { get; }
         public string Namespace { get; }
         public Dictionary<string, NamedTypeReferenceDescriptor> Properties { get; }
 
@@ -14,9 +14,9 @@ namespace StrawberryShake.CodeGeneration
         ///
         /// </summary>
         /// <param name="operationTypes">The types that are subsets of the EntityType represented by this descriptor</param>
-        /// <param name="graphQlTypename"></param>
+        /// <param name="graphQLTypename"></param>
         public EntityTypeDescriptor(
-            string graphQlTypename,
+            string graphQLTypename,
             string @nameSpace,
             IReadOnlyList<TypeDescriptor> operationTypes
         )
@@ -31,7 +31,7 @@ namespace StrawberryShake.CodeGeneration
             }
 
             Properties = allProperties;
-            GraphQlTypename = graphQlTypename;
+            GraphQLTypename = graphQLTypename;
             Namespace = @nameSpace;
         }
     }

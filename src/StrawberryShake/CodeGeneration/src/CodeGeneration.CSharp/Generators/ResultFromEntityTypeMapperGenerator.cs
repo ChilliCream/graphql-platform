@@ -23,17 +23,17 @@ namespace StrawberryShake.CodeGeneration.CSharp
             // Setup class
             ClassBuilder
                 .AddImplements(
-                    $"IEntityMapper<{NamingConventions.EntityTypeNameFromGraphQlTypeName(descriptor.GraphQlTypeName)}, {descriptor.Name}>"
+                    $"IEntityMapper<{NamingConventions.EntityTypeNameFromGraphQLTypeName(descriptor.GraphQLTypeName)}, {descriptor.Name}>"
                 )
                 .SetName(
                     descriptor.Kind == TypeKind.EntityType
-                        ? NamingConventions.EntityMapperNameFromGraphQlTypeName(
+                        ? NamingConventions.EntityMapperNameFromGraphQLTypeName(
                             descriptor.Name,
-                            descriptor.GraphQlTypeName
+                            descriptor.GraphQLTypeName
                         )
-                        : NamingConventions.DataMapperNameFromGraphQlTypeName(
+                        : NamingConventions.DataMapperNameFromGraphQLTypeName(
                             descriptor.Name,
-                            descriptor.GraphQlTypeName
+                            descriptor.GraphQLTypeName
                         )
                 );
 
@@ -54,7 +54,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     ParameterBuilder.New()
                         .SetType(
                             descriptor.Kind == TypeKind.EntityType
-                                ? NamingConventions.EntityTypeNameFromGraphQlTypeName(descriptor.GraphQlTypeName)
+                                ? NamingConventions.EntityTypeNameFromGraphQLTypeName(descriptor.GraphQLTypeName)
                                 : NamingConventions.DataTypeNameFromTypeName(descriptor.Name)
                         )
                         .SetName(EntityParamName)
@@ -159,9 +159,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     throw new ArgumentException();
                 case TypeKind.DataType:
                     var dataMapperName =
-                        NamingConventions.DataMapperNameFromGraphQlTypeName(
+                        NamingConventions.DataMapperNameFromGraphQLTypeName(
                             typeDescriptor.Name,
-                            typeDescriptor.GraphQlTypeName
+                            typeDescriptor.GraphQLTypeName
                         );
                     var dataMapperType =
                         $"IEntityMapper<{NamingConventions.DataTypeNameFromTypeName(typeDescriptor.Name)}, {typeDescriptor.Name}>";
@@ -228,7 +228,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 var ifCorrectType = IfBuilder.New()
                     .SetCondition(
-                        $"{mappingArgument}.Name.Equals(\"{interfaceImplementee.GraphQlTypeName}\", StringComparison.Ordinal)"
+                        $"{mappingArgument}.Name.Equals(\"{interfaceImplementee.GraphQLTypeName}\", StringComparison.Ordinal)"
                     );
 
                 MapConcreteType(
@@ -250,16 +250,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
             bool createNewVar = true)
         {
             var entityMapperName =
-                NamingConventions.EntityMapperNameFromGraphQlTypeName(
+                NamingConventions.EntityMapperNameFromGraphQLTypeName(
                     typeDescriptor.Name,
-                    typeDescriptor.GraphQlTypeName
+                    typeDescriptor.GraphQLTypeName
                 );
             var entityMapperType =
-                $"IEntityMapper<{NamingConventions.EntityTypeNameFromGraphQlTypeName(typeDescriptor.Name)}, {typeDescriptor.Name}>";
+                $"IEntityMapper<{NamingConventions.EntityTypeNameFromGraphQLTypeName(typeDescriptor.Name)}, {typeDescriptor.Name}>";
             var entityMapperField = entityMapperName.ToFieldName();
 
             var mappingArgument = typeDescriptor.Kind == TypeKind.EntityType
-                ? $"{StoreFieldName}.GetEntity<{NamingConventions.EntityTypeNameFromGraphQlTypeName(typeDescriptor.GraphQlTypeName)}>({argumentName})"
+                ? $"{StoreFieldName}.GetEntity<{NamingConventions.EntityTypeNameFromGraphQLTypeName(typeDescriptor.GraphQLTypeName)}>({argumentName})"
                 : argumentName;
 
             var entityMapperCall = MappingCall(

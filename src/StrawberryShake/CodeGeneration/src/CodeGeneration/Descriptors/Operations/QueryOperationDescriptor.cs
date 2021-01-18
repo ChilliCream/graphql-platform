@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace StrawberryShake.CodeGeneration
 {
     /// <summary>
-    /// Describes a GraphQl query
+    /// Describes a GraphQL query
     /// </summary>
     public class QueryOperationDescriptor : OperationDescriptor
     {

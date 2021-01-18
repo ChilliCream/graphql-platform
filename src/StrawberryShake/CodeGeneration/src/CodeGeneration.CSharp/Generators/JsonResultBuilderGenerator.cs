@@ -33,7 +33,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 TypeKind.Scalar => typeDescriptor.Name.WithCapitalFirstChar(),
                 TypeKind.DataType => NamingConventions.DataTypeNameFromTypeName(typeDescriptor.Name),
-                TypeKind.EntityType => NamingConventions.EntityTypeNameFromGraphQlTypeName(typeDescriptor.Name),
+                TypeKind.EntityType => NamingConventions.EntityTypeNameFromGraphQLTypeName(typeDescriptor.Name),
                 _ => throw new ArgumentOutOfRangeException()
             };
 
@@ -119,7 +119,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                 .SetMethodName(
                                     $"GetLeafValueParser<{valueParser.serializedType}, {valueParser.runtimeType}>"
                                 )
-                                .AddArgument($"\"{valueParser.graphQlTypeName}\"")
+                                .AddArgument($"\"{valueParser.graphQLTypeName}\"")
                         )
                 );
             }

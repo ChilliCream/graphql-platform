@@ -15,7 +15,7 @@ namespace StrawberryShake.Integration
             new[] {ICharacterName},
             new[] {TestHelper.GetNamedNonNullStringTypeReference("Name")},
             kind: TypeKind.EntityType,
-            graphQlTypeName: "Droid"
+            graphQLTypeName: "Droid"
         );
 
         public static TypeDescriptor HumanTypeDescriptor => new(
@@ -24,7 +24,7 @@ namespace StrawberryShake.Integration
             new[] {ICharacterName},
             new[] {TestHelper.GetNamedNonNullStringTypeReference("Name")},
             kind: TypeKind.EntityType,
-            graphQlTypeName: "Human"
+            graphQLTypeName: "Human"
         );
 
         public static TypeDescriptor ICharacterDescriptor => new(
@@ -69,7 +69,7 @@ namespace StrawberryShake.Integration
             new[] {IHeroName},
             new[] {TestHelper.GetNamedNonNullStringTypeReference("Name"), friendsReferenceDescriptor},
             kind: TypeKind.EntityType,
-            graphQlTypeName: "Human"
+            graphQLTypeName: "Human"
         );
 
         public static TypeDescriptor DroidHeroTypeDescriptor => new(
@@ -78,7 +78,7 @@ namespace StrawberryShake.Integration
             new[] {IHeroName},
             new[] {TestHelper.GetNamedNonNullStringTypeReference("Name"), friendsReferenceDescriptor},
             kind: TypeKind.EntityType,
-            graphQlTypeName: "Droid"
+            graphQLTypeName: "Droid"
         );
 
         public static TypeDescriptor IHeroDescriptor => new(
