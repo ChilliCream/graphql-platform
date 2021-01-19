@@ -109,8 +109,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
                         if (!scalarTypeDescriptors.TryGetValue(leafType.Name, out fieldType))
                         {
-                            string[] runtimeTypeName =
-                                ((string)leafType.ContextData[RuntimeType]!).Split('.');
+                            string[] runtimeTypeName = leafType.GetRuntimeType().Split('.');
 
                             fieldType = new NamedTypeDescriptor(
                                 runtimeTypeName[^1],
