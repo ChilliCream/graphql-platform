@@ -6,7 +6,6 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Extensions;
-using static StrawberryShake.CodeGeneration.Analyzers.WellKnownContextData;
 
 namespace StrawberryShake.CodeGeneration.Mappers
 {
@@ -156,7 +155,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
             throw new InvalidOperationException();
         }
 
-        public static ITypeDescriptor BuildFieldType(
+        private static ITypeDescriptor BuildFieldType(
             this IType original,
             NamedTypeDescriptor namedTypeDescriptor)
         {

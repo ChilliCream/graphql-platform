@@ -6,6 +6,7 @@ using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
+using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.Analyzers.WellKnownContextData;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
@@ -95,16 +96,16 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             {
                 if (!_typeModels.ContainsKey(type.Name))
                 {
-                    string runtimeType = (string)leafType.ContextData[RuntimeType]!;
-                    string serializationType = (string)leafType.ContextData[SerializationType]!;
+                    string runtimeType = leafType.GetRuntimeType();
+                    string serializationType = leafType.GetSerializationType();
 
                     _typeModels.Add(
                         leafType.Name,
                         new LeafTypeModel(
-                            leafType.Name, 
-                            leafType.Description, 
-                            leafType, 
-                            serializationType, 
+                            leafType.Name,
+                            leafType.Description,
+                            leafType,
+                            serializationType,
                             runtimeType));
                 }
             }
