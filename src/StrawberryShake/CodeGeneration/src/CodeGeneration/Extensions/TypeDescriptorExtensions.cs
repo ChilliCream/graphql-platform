@@ -4,7 +4,7 @@ namespace StrawberryShake.CodeGeneration.Extensions
 {
     public static class TypeDescriptorExtensions
     {
-        public static bool IsLeadType(this ITypeDescriptor typeDescriptor)
+        public static bool IsLeafType(this ITypeDescriptor typeDescriptor)
         {
             return typeDescriptor.Kind == TypeKind.LeafType;
         }

@@ -263,7 +263,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             deserializeMethodCaller.AddArgument(
                 $"{_objParamName}.GetPropertyOrNull(\"{property.Name.WithLowerFirstChar()}\")");
 
-            if (!property.Type.IsLeadType())
+            if (!property.Type.IsLeafType())
             {
                 deserializeMethodCaller.AddArgument(_entityIdsParam);
             }
@@ -279,7 +279,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             deserializeMethodCaller.AddArgument(firstArg);
 
-            if (!property.IsLeadType())
+            if (!property.IsLeafType())
             {
                 deserializeMethodCaller.AddArgument(_entityIdsParam);
             }

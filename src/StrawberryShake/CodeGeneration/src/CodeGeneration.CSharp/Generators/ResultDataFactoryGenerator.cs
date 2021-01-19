@@ -32,7 +32,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 StoreParamName);
 
             var mappersToInject = namedTypeDescriptor.Properties
-                .Where(prop => !prop.Type.IsLeadType())
+                .Where(prop => !prop.Type.IsLeafType())
                 .SelectMany(prop => GetMappers(prop.Type));
 
             foreach (var mapperType in mappersToInject)

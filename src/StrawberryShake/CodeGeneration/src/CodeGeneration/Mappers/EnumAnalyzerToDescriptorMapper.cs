@@ -2,9 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate;
+using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
+using static StrawberryShake.CodeGeneration.Analyzers.WellKnownContextData;
 
 namespace StrawberryShake.CodeGeneration.Mappers
 {
@@ -12,14 +13,14 @@ namespace StrawberryShake.CodeGeneration.Mappers
     {
         string Namespace { get; }
 
-        IReadOnlyCollection<ITypeDescriptor> Types { get; }
+        IReadOnlyCollection<NamedTypeDescriptor> Types { get; }
 
-        void Register(NameString codeTypeName, ITypeDescriptor typeDescriptor);
+        void Register(NameString codeTypeName, NamedTypeDescriptor typeDescriptor);
     }
 
     public class MapperContext : IMapperContext
     {
-        private readonly Dictionary<NameString, ITypeDescriptor> _types = new();
+        private readonly Dictionary<NameString, NamedTypeDescriptor> _types = new();
 
         public MapperContext(string ns)
         {
@@ -28,9 +29,9 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
         public string Namespace { get; }
 
-        public IReadOnlyCollection<ITypeDescriptor> Types => _types.Values;
+        public IReadOnlyCollection<NamedTypeDescriptor> Types => _types.Values;
 
-        public void Register(NameString codeTypeName, ITypeDescriptor typeDescriptor)
+        public void Register(NameString codeTypeName, NamedTypeDescriptor typeDescriptor)
         {
             _types.Add(
                 codeTypeName.EnsureNotEmpty(nameof(codeTypeName)),
@@ -45,13 +46,21 @@ namespace StrawberryShake.CodeGeneration.Mappers
             IMapperContext context)
         {
             var typeDescriptors = new Dictionary<NameString, TypeDescriptorModel>();
+            var scalarTypeDescriptors = new Dictionary<NameString, NamedTypeDescriptor>();
+
             CollectTypes(model, context, typeDescriptors);
+            AddProperties(model, context, typeDescriptors, scalarTypeDescriptors);
 
             foreach (TypeDescriptorModel descriptorModel in typeDescriptors.Values)
             {
                 context.Register(
                     descriptorModel.NamedTypeDescriptor.Name,
                     descriptorModel.NamedTypeDescriptor);
+            }
+
+            foreach (NamedTypeDescriptor typeDescriptor in scalarTypeDescriptors.Values)
+            {
+                context.Register(typeDescriptor.Name, typeDescriptor);
             }
         }
 
@@ -98,7 +107,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                                 kind: TypeKind.EntityType,
                                 graphQLTypeName: outputType.Type.Name,
                                 implementedBy: operation
-                                    .GetImplementations(descriptorModel.TypeModel)
+                                    .GetImplementations(outputType)
                                     .Select(t => typeDescriptors[t.Name])
                                     .Select(t => t.NamedTypeDescriptor)
                                     .ToList()));
@@ -107,6 +116,94 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     }
                 }
             }
+        }
+
+        private static void AddProperties(
+            ClientModel model,
+            IMapperContext context,
+            Dictionary<NameString, TypeDescriptorModel> typeDescriptors,
+            Dictionary<NameString, NamedTypeDescriptor> scalarTypeDescriptors)
+        {
+            foreach (TypeDescriptorModel typeDescriptorModel in typeDescriptors.Values.ToList())
+            {
+                var properties = new List<PropertyDescriptor>();
+
+                foreach (var field in typeDescriptorModel.TypeModel.Fields)
+                {
+                    NamedTypeDescriptor? fieldType;
+
+                    if (field.Type.IsLeafType())
+                    {
+                        var leafType = (ILeafType)field.Type.NamedType();
+
+                        if (!scalarTypeDescriptors.TryGetValue(leafType.Name, out fieldType))
+                        {
+                            string[] runtimeTypeName =
+                                ((string)leafType.ContextData[RuntimeType]!).Split('.');
+
+                            fieldType = new NamedTypeDescriptor(
+                                runtimeTypeName[^1],
+                                string.Join(".", runtimeTypeName.Take(runtimeTypeName.Length - 1)),
+                                graphQLTypeName: leafType.Name,
+                                kind: TypeKind.LeafType);
+
+                            scalarTypeDescriptors.Add(runtimeTypeName[^1], fieldType);
+                        }
+                    }
+                    else
+                    {
+                        fieldType = GetFieldTypeDescriptor(
+                            model, field.SyntaxNode, typeDescriptors);
+                    }
+
+                    properties.Add(
+                        new PropertyDescriptor(
+                            field.Name,
+                            BuildFieldType(field.Type, fieldType)));
+                }
+
+                typeDescriptorModel.NamedTypeDescriptor.Complete(properties);
+            }
+        }
+
+        private static NamedTypeDescriptor GetFieldTypeDescriptor(
+            ClientModel model,
+            FieldNode fieldSyntax,
+            Dictionary<NameString, TypeDescriptorModel> typeDescriptors)
+        {
+            foreach (var operation in model.Operations)
+            {
+                if (operation.TryGetFieldResultType(fieldSyntax, out OutputTypeModel? fieldType))
+                {
+                    return typeDescriptors.Values
+                        .First(t => t.TypeModel == fieldType)
+                        .NamedTypeDescriptor;
+                }
+            }
+
+            throw new InvalidOperationException();
+        }
+
+        public static ITypeDescriptor BuildFieldType(
+            this IType original,
+            NamedTypeDescriptor namedTypeDescriptor)
+        {
+            if (original is NonNullType nnt)
+            {
+                return new NonNullTypeDescriptor(BuildFieldType(nnt.Type, namedTypeDescriptor));
+            }
+
+            if (original is ListType lt)
+            {
+                return new ListTypeDescriptor(BuildFieldType(lt.ElementType, namedTypeDescriptor));
+            }
+
+            if (original is INamedType)
+            {
+                return namedTypeDescriptor;
+            }
+
+            throw new NotSupportedException();
         }
 
         private readonly struct TypeDescriptorModel
@@ -166,7 +263,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 {
                     if (!entityModels.TryGetValue(
                         outputType.Type.Name,
-                        out EntityModel entityModel))
+                        out EntityModel? entityModel))
                     {
                         entityModel = new EntityModel(outputType.Name);
                         entityModels.Add(entityModel.Name, entityModel);

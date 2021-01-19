@@ -9,6 +9,11 @@ namespace StrawberryShake.CodeGeneration.Utilities
 {
     public static class SchemaHelper
     {
+        public static ISchema Load(params DocumentNode[] documents)
+        {
+            return Load((IEnumerable<DocumentNode>)documents);
+        }
+
         public static ISchema Load(IEnumerable<DocumentNode> documents)
         {
             if (documents is null)

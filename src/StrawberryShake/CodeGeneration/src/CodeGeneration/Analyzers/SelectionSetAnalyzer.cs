@@ -178,7 +178,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             return fields.Values.Select(t =>
             {
                 return new OutputFieldModel(
-                    t.ResponseName,
+                    GetPropertyName(t.ResponseName),
                     t.Field.Description,
                     t.Field,
                     t.Field.Type,

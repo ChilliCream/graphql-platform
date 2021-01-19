@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using HotChocolate;
 using HotChocolate.Language;
@@ -82,6 +83,20 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
 
             return OutputTypes.First(
                 t => t.IsInterface && t.SelectionSet == fieldSyntax.SelectionSet);
+        }
+
+        public bool TryGetFieldResultType(
+            FieldNode fieldSyntax, 
+            [NotNullWhen(true)]out OutputTypeModel? fieldType)
+        {
+            if (fieldSyntax is null)
+            {
+                throw new ArgumentNullException(nameof(fieldSyntax));
+            }
+
+            fieldType = OutputTypes.FirstOrDefault(
+                t => t.IsInterface && t.SelectionSet == fieldSyntax.SelectionSet);
+            return fieldType is not null;
         }
     }
 }

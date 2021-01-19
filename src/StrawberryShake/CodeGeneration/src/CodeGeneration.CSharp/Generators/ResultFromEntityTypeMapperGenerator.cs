@@ -61,7 +61,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             foreach (PropertyDescriptor propertyDescriptor in descriptor.Properties)
             {
-                if (propertyDescriptor.Type.IsLeadType())
+                if (propertyDescriptor.Type.IsLeafType())
                 {
                     constructorCall.AddArgument(_entityParamName + "." + propertyDescriptor.Name);
                 }
