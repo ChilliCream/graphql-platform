@@ -33,12 +33,12 @@ namespace HotChocolate.AspNetCore.Serialization
         /// should pretty print the JSON which includes:
         /// indenting nested JSON tokens, adding new lines, and adding
         /// white space between property names and values.
-        /// By default, the JSON is written without any extra white space.
+        /// By default, the JSON is written without extra white spaces.
         /// </param>
         public DefaultHttpResultSerializer(
             HttpResultSerialization batchSerialization = HttpResultSerialization.MultiPartChunked,
             HttpResultSerialization deferSerialization = HttpResultSerialization.MultiPartChunked,
-            bool indented = true)
+            bool indented = false)
         {
             _batchSerialization = batchSerialization;
             _deferSerialization = deferSerialization;

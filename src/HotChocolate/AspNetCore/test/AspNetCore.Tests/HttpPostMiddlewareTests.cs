@@ -34,7 +34,8 @@ namespace HotChocolate.AspNetCore
         public async Task Serialize_Payload_With_Whitespaces()
         {
             // arrange
-            TestServer server = CreateStarWarsServer();
+            TestServer server = CreateStarWarsServer(
+                configureServices: sc => sc.AddHttpResultSerializer(indented: true));
 
             // act
             ClientRawResult result = await server.PostRawAsync(

@@ -95,11 +95,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// should pretty print the JSON which includes:
         /// indenting nested JSON tokens, adding new lines, and adding
         /// white space between property names and values.
-        /// By default, the JSON is written with extra white space.
-        /// </param>
-        /// <param name="omitNullValues">
-        /// Defines if <c>null</c> values shall be omitted to reduce the payload size.
-        /// By default, <c>null</c> values are written.
+        /// By default, the JSON is written without extra white spaces.
         /// </param>
         /// <returns>
         /// Returns the <see cref="IServiceCollection"/> so that configuration can be chained.
@@ -108,7 +104,7 @@ namespace Microsoft.Extensions.DependencyInjection
             this IServiceCollection services,
             HttpResultSerialization batchSerialization = HttpResultSerialization.MultiPartChunked,
             HttpResultSerialization deferSerialization = HttpResultSerialization.MultiPartChunked,
-            bool indented = true)
+            bool indented = false)
         {
             services.RemoveAll<IHttpResultSerializer>();
             services.AddSingleton<IHttpResultSerializer>(
