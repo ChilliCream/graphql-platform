@@ -36,12 +36,9 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
             IReadOnlyList<EnumValueModel> values)
             : base(name, description, type, TypeNames.SystemString, name)
         {
-            Type = type ?? 
-                throw new ArgumentNullException(nameof(type));
-            UnderlyingType = underlyingType ?? 
-                throw new ArgumentNullException(nameof(underlyingType));
-            Values = values ?? 
-                throw new ArgumentNullException(nameof(values));
+            Type = type ?? throw new ArgumentNullException(nameof(type));
+            UnderlyingType = underlyingType;
+            Values = values ?? throw new ArgumentNullException(nameof(values));
         }
 
         /// <summary>

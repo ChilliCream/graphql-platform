@@ -33,7 +33,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
 
         public string? Description { get; }
 
-        public bool IsInterface { get; }
+        public bool IsInterface { get; }        
 
         public INamedType Type { get; }
 

@@ -151,15 +151,15 @@ namespace HotChocolate.AspNetCore
                 await server.PostRawAsync(new ClientQueryRequest
                 {
                     Query = @"
-                    { 
-                        hero(episode: NEW_HOPE) 
-                        { 
-                            name 
+                    {
+                        hero(episode: NEW_HOPE)
+                        {
+                            name
                             ... on Droid @defer(label: ""my_id"")
-                            { 
-                                id 
-                            } 
-                        } 
+                            {
+                                id
+                            }
+                        }
                     }"
                 });
 

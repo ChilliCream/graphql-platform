@@ -73,6 +73,33 @@ namespace StrawberryShake.CodeGeneration.Utilities
 #endif
         }
 
+        public static string GetEnumValue(string enumValue)
+        {
+            var value = new StringBuilder();
+            ReadOnlySpan<char> enumValueSpan = enumValue.AsSpan();
+
+            bool upper = true;
+
+            for (int i = 0; i < enumValueSpan.Length; i++)
+            {
+                if (enumValueSpan[i] == '_')
+                {
+                    upper = true;
+                }
+                else if (upper)
+                {
+                    upper = false;
+                    value.Append(char.ToUpperInvariant(enumValueSpan[i]));
+                }
+                else
+                {
+                    value.Append(char.ToLowerInvariant(enumValueSpan[i]));
+                }
+            }
+
+            return value.ToString();
+        }
+
         public static string GetFieldName(params string[] s)
         {
             return GetFieldName(string.Join(string.Empty, s));

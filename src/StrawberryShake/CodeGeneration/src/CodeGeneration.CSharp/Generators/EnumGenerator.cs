@@ -13,7 +13,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             EnumBuilder enumBuilder = EnumBuilder.New()
                 .SetName(descriptor.Name);
 
-            foreach (EnumElementDescriptor element in descriptor.Elements)
+            foreach (EnumValueDescriptor element in descriptor.Values)
             {
                 enumBuilder.AddElement(element.Name, element.Value);
             }

@@ -1,9 +1,8 @@
 namespace StrawberryShake.CodeGeneration
 {
-    public class EnumElementDescriptor
-        : ICodeDescriptor
+    public class EnumValueDescriptor : ICodeDescriptor
     {
-        public EnumElementDescriptor(string name, long? value = null)
+        public EnumValueDescriptor(string name, long? value = null)
         {
             Name = name;
             Value = value;

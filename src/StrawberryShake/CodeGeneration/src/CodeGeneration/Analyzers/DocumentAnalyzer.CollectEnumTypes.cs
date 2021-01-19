@@ -28,7 +28,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                         enumValue.Directives.SingleOrDefault<EnumValueDirective>();
 
                     values.Add(new EnumValueModel(
-                        GetClassName(rename?.Name ?? enumValue.Name),
+                        rename?.Name ?? GetEnumValue(enumValue.Name),
                         enumValue.Description,
                         enumValue,
                         value?.Value));
@@ -40,7 +40,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     enumType.Directives.SingleOrDefault<SerializationTypeDirective>();
 
                 NameString typeName = context.ResolveTypeName(
-                    GetClassName(rename?.Name ?? enumType.Name));
+                    rename?.Name ?? GetClassName(enumType.Name));
 
                 context.RegisterModel(
                     typeName,

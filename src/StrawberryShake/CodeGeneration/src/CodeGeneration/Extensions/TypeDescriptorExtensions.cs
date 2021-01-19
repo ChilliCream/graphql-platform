@@ -1,5 +1,3 @@
-using HotChocolate.Types;
-
 namespace StrawberryShake.CodeGeneration.Extensions
 {
     public static class TypeDescriptorExtensions

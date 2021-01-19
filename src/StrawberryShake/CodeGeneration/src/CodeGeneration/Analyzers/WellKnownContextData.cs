@@ -4,5 +4,6 @@ namespace StrawberryShake.CodeGeneration.Analyzers
     {
         public const string SerializationType = "StrawberryShake.SerializationType";
         public const string RuntimeType = "StrawberryShake.RuntimeType";
+        public const string Entity = "StrawberryShake.Entity";
     }
 }
