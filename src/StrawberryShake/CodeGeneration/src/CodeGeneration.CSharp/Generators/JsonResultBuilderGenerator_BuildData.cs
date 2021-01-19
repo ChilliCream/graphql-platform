@@ -1,5 +1,6 @@
 using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
+using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.NamingConventions;
 using static StrawberryShake.CodeGeneration.CSharp.WellKnownNames;
 
@@ -7,14 +8,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuilderDescriptor>
     {
-        private void AddBuildDataMethod(TypeDescriptor resultType)
+        private void AddBuildDataMethod(NamedTypeDescriptor resultNamedType)
         {
             var objParameter = "obj";
             var buildDataMethod = MethodBuilder.New()
                 .SetAccessModifier(AccessModifier.Private)
                 .SetName("BuildData")
                 .SetReturnType(
-                    $"({resultType.Name}, {ResultInfoNameFromTypeName(resultType.Name)})")
+                    $"({resultNamedType.Name}, {ResultInfoNameFromTypeName(resultNamedType.Name)})")
                 .AddParameter(
                     ParameterBuilder.New()
                         .SetType("JsonElement")
@@ -26,7 +27,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetLine(
                         CodeBlockBuilder.New()
                             .AddCode($"using {WellKnownNames.IEntityUpdateSession} {sessionName} = ")
-                            .AddCode(EntityStoreFieldName + ".BeginUpdate();")));
+                            .AddCode(_entityStoreFieldName + ".BeginUpdate();")));
 
             var entityIdsName = "entityIds";
             buildDataMethod.AddCode(
@@ -34,8 +35,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetLine($"var {entityIdsName} = new HashSet<{WellKnownNames.EntityId}>();"));
 
             buildDataMethod.AddEmptyLine();
-            foreach (TypeMemberDescriptor property in 
-                resultType.Properties.Where(prop => prop.Type.IsEntityType))
+            foreach (PropertyDescriptor property in
+                resultNamedType.Properties.Where(prop => prop.Type.IsEntityType()))
             {
                 buildDataMethod.AddCode(
                     AssignmentBuilder.New()
@@ -45,12 +46,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
 
             var resultInfoConstructor = MethodCallBuilder.New()
-                .SetMethodName($"new {ResultInfoNameFromTypeName(resultType.Name)}")
+                .SetMethodName($"new {ResultInfoNameFromTypeName(resultNamedType.Name)}")
                 .SetDetermineStatement(false);
 
-            foreach (TypeMemberDescriptor property in resultType.Properties)
+            foreach (PropertyDescriptor property in resultNamedType.Properties)
             {
-                if (property.Type.IsEntityType)
+                if (property.Type.IsEntityType())
                 {
                     resultInfoConstructor.AddArgument($"{property.Name}Id");
                 }
@@ -72,7 +73,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             buildDataMethod.AddEmptyLine();
             buildDataMethod.AddCode(
-                $"return ({ResultDataFactoryFieldName}" + 
+                $"return ({_resultDataFactoryFieldName}" +
                 $".Create({resultInfoName}), {resultInfoName});");
 
             ClassBuilder.AddMethod(buildDataMethod);

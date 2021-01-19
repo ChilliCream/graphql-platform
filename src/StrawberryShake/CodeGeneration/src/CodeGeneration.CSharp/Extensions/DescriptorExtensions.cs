@@ -1,4 +1,5 @@
 using StrawberryShake.CodeGeneration.CSharp.Builders;
+using StrawberryShake.CodeGeneration.Extensions;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Extensions
 {
@@ -10,7 +11,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
         {
             var ret = new TypeReferenceBuilder()
                 .SetName(nameOverride ?? typeReferenceDescriptor.Name)
-                .SetIsNullable(typeReferenceDescriptor.IsNullable);
+                .SetIsNullable(typeReferenceDescriptor.IsNullableType());
 
             if (typeReferenceDescriptor is ListTypeDescriptor listTypeDescriptor)
             {
@@ -25,10 +26,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
         {
             var ret = new TypeReferenceBuilder()
                 .SetName(
-                    typeReferenceDescriptor.IsEntityType
+                    typeReferenceDescriptor.IsEntityType()
                         ? WellKnownNames.EntityId
                         : typeReferenceDescriptor.Name)
-                .SetIsNullable(typeReferenceDescriptor.IsNullable);
+                .SetIsNullable(typeReferenceDescriptor.IsNullableType());
 
             if (typeReferenceDescriptor is ListTypeDescriptor listTypeDescriptor)
             {

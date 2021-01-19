@@ -33,9 +33,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     continue;
                 }
 
-                EnumDescriptor enumDescriptor =
-                    EnumAnalyzerToDescriptorMapper.Map(DefaultNamespace, enumTypeModel);
-                types.Add(enumDescriptor.Name, enumDescriptor);
+                // EnumDescriptor enumDescriptor =
+                    // EnumAnalyzerToDescriptorMapper.Map(DefaultNamespace, enumTypeModel);
+                // types.Add(enumDescriptor.Name, enumDescriptor);
             }
         }
     }

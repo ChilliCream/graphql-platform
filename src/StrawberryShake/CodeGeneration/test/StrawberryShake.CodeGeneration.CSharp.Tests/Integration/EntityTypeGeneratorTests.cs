@@ -25,7 +25,7 @@ namespace StrawberryShake.Integration
         {
             await _generator.WriteAsync(
                 _codeWriter,
-                IntegrationDescriptors.DroidEntityTypeDescriptor);
+                IntegrationDescriptors.CreateDroidEntityTypeDescriptor());
 
             _stringBuilder.ToString().MatchSnapshot();
         }
@@ -36,7 +36,7 @@ namespace StrawberryShake.Integration
         {
             await _generator.WriteAsync(
                 _codeWriter,
-                IntegrationDescriptors.HumanEntityTypeDescriptor);
+                IntegrationDescriptors.CreateHumanEntityTypeDescriptor());
 
             _stringBuilder.ToString().MatchSnapshot();
         }

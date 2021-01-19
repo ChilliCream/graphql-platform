@@ -4,19 +4,19 @@ namespace StrawberryShake
 {
     public static class TestHelper
     {
-        public static TypeMemberDescriptor GetNamedNonNullStringTypeReference(
+        public static PropertyDescriptor GetNamedNonNullStringTypeReference(
             string referenceName) =>
             new(
                 referenceName,
-                new TypeDescriptor("string", "System"));
+                new NamedTypeDescriptor("string", "System"));
 
-        public static TypeMemberDescriptor GetNamedNonNullIntTypeReference(
+        public static PropertyDescriptor GetNamedNonNullIntTypeReference(
             string referenceName) =>
             new(
                 referenceName,
-                new TypeDescriptor("int", "System"));
+                new NamedTypeDescriptor("int", "System"));
 
-        public static TypeDescriptor GetNonNullStringTypeReference() =>
+        public static NamedTypeDescriptor GetNonNullStringTypeReference() =>
             new("string", "System");
     }
 }

@@ -1,3 +1,5 @@
+using HotChocolate;
+
 namespace StrawberryShake.CodeGeneration
 {
     public static class NamingConventions
@@ -26,13 +28,13 @@ namespace StrawberryShake.CodeGeneration
             string typeName) =>
             typeName + "Document";
 
-        public static string DataMapperNameFromGraphQLTypeName(
-            string typeName, 
+        public static NameString DataMapperNameFromGraphQLTypeName(
+            string typeName,
             string graphqlTypename) =>
             typeName + "From" + DataTypeNameFromTypeName(graphqlTypename) + "Mapper";
 
-        public static string EntityMapperNameFromGraphQLTypeName(
-            string typeName, 
+        public static NameString EntityMapperNameFromGraphQLTypeName(
+            string typeName,
             string graphqlTypename) =>
             typeName + "From" + EntityTypeNameFromGraphQLTypeName(graphqlTypename) + "Mapper";
 

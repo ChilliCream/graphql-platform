@@ -2,7 +2,7 @@ namespace StrawberryShake.CodeGeneration
 {
     public enum TypeKind
     {
-        Scalar,
+        LeafType,
         DataType,
         EntityType
     }

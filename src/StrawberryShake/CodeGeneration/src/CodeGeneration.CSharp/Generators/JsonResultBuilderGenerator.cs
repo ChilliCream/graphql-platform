@@ -8,20 +8,20 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuilderDescriptor>
     {
-        private const string EntityStoreFieldName = "_entityStore";
-        private const string ExtractIdFieldName = "_extractId";
-        private const string ResultDataFactoryFieldName = "_resultDataFactory";
-        private const string SerializerResolverParamName = "serializerResolver";
-        private const string TransportResultRootTypeName = "JsonElement";
-        private const string EntityIdsParam = "entityIds";
-        private const string jsonElementParamName = "JsonElement?";
-        private const string objParamName = "obj";
+        private const string _entityStoreFieldName = "_entityStore";
+        private const string _extractIdFieldName = "_extractId";
+        private const string _resultDataFactoryFieldName = "_resultDataFactory";
+        private const string _serializerResolverParamName = "serializerResolver";
+        private const string _transportResultRootTypeName = "JsonElement";
+        private const string _entityIdsParam = "entityIds";
+        private const string _jsonElementParamName = "JsonElement?";
+        private const string _objParamName = "obj";
 
         private static string DeserializerMethodNameFromTypeName(ITypeDescriptor typeDescriptor)
         {
-            var ret = typeDescriptor.IsEntityType ? "Update" : "Deserialize";
+            var ret = typeDescriptor.IsEntityType() ? "Update" : "Deserialize";
 
-            if (typeDescriptor.IsNullable)
+            if (typeDescriptor.IsNullableType())
             {
                 ret += "Nullable";
             }
@@ -32,7 +32,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             ret += typeDescriptor.Kind switch
             {
-                TypeKind.Scalar => typeDescriptor.Name.WithCapitalFirstChar(),
+                TypeKind.LeafType => typeDescriptor.Name.WithCapitalFirstChar(),
                 TypeKind.DataType => DataTypeNameFromTypeName(typeDescriptor.Name),
                 TypeKind.EntityType => EntityTypeNameFromGraphQLTypeName(typeDescriptor.Name),
                 _ => throw new ArgumentOutOfRangeException()
@@ -40,7 +40,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             if (typeDescriptor is ListTypeDescriptor listTypeDescriptor)
             {
-                ret += typeDescriptor.IsNullable switch
+                ret += typeDescriptor.IsNullableType() switch
                 {
                     true => "Nullable",
                     false => "NonNullable",
@@ -53,45 +53,45 @@ namespace StrawberryShake.CodeGeneration.CSharp
         }
 
         protected override Task WriteAsync(
-            CodeWriter writer, 
+            CodeWriter writer,
             ResultBuilderDescriptor resultBuilderDescriptor)
         {
             AssertNonNull(
                 writer,
                 resultBuilderDescriptor);
 
-            var resultTypeDescriptor = resultBuilderDescriptor.ResultType;
+            var resultTypeDescriptor = resultBuilderDescriptor.ResultNamedType;
 
             ClassBuilder.SetName(
-                ResultBuilderNameFromTypeName(resultBuilderDescriptor.ResultType.Name));
+                ResultBuilderNameFromTypeName(resultBuilderDescriptor.ResultNamedType.Name));
 
             ConstructorBuilder.SetTypeName(
-                ResultBuilderNameFromTypeName(resultBuilderDescriptor.ResultType.Name));
+                ResultBuilderNameFromTypeName(resultBuilderDescriptor.ResultNamedType.Name));
 
             ClassBuilder.AddImplements(
-                $"{WellKnownNames.IOperationResultBuilder}<{TransportResultRootTypeName}," + 
+                $"{WellKnownNames.IOperationResultBuilder}<{_transportResultRootTypeName}," +
                 $" {resultTypeDescriptor.Name}>");
 
             AddConstructorAssignedField(
                 WellKnownNames.IEntityStore,
-                EntityStoreFieldName);
+                _entityStoreFieldName);
 
             AddConstructorAssignedField(
                 TypeReferenceBuilder.New()
                     .SetName("Func")
-                    .AddGeneric(TransportResultRootTypeName)
+                    .AddGeneric(_transportResultRootTypeName)
                     .AddGeneric(WellKnownNames.EntityId),
-                ExtractIdFieldName);
+                _extractIdFieldName);
 
             AddConstructorAssignedField(
                 TypeReferenceBuilder.New()
                     .SetName(WellKnownNames.IOperationResultDataFactory)
                     .AddGeneric(resultTypeDescriptor.Name),
-                ResultDataFactoryFieldName);
+                _resultDataFactoryFieldName);
 
             ConstructorBuilder.AddParameter(
                 ParameterBuilder.New()
-                    .SetName(SerializerResolverParamName)
+                    .SetName(_serializerResolverParamName)
                     .SetType(WellKnownNames.ISerializerResolver));
 
             foreach (var valueParser in resultBuilderDescriptor.ValueParsers)
@@ -110,10 +110,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         .SetLefthandSide(parserFieldName)
                         .SetRighthandSide(
                             MethodCallBuilder.New()
-                                .SetPrefix(SerializerResolverParamName + ".")
+                                .SetPrefix(_serializerResolverParamName + ".")
                                 .SetDetermineStatement(false)
                                 .SetMethodName(
-                                    $"GetLeafValueParser<{valueParser.SerializedType}, " + 
+                                    $"GetLeafValueParser<{valueParser.SerializedType}, " +
                                     $"{valueParser.RuntimeType}>")
                                 .AddArgument($"\"{valueParser.GraphQLTypeName}\"")));
             }
@@ -122,10 +122,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             AddBuildDataMethod(resultTypeDescriptor);
 
-            AddRequiredDeserializeMethods(resultBuilderDescriptor.ResultType);
+            AddRequiredDeserializeMethods(resultBuilderDescriptor.ResultNamedType);
 
             return CodeFileBuilder.New()
-                .SetNamespace(resultBuilderDescriptor.ResultType.Namespace)
+                .SetNamespace(resultBuilderDescriptor.ResultNamedType.Namespace)
                 .AddType(ClassBuilder)
                 .BuildAsync(writer);
         }
@@ -133,9 +133,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
         /// <summary>
         /// Adds all required deserializers of the given type descriptors properties
         /// </summary>
-        private void AddRequiredDeserializeMethods(TypeDescriptor typeDescriptor)
+        private void AddRequiredDeserializeMethods(NamedTypeDescriptor namedTypeDescriptor)
         {
-            foreach (var property in typeDescriptor.Properties)
+            foreach (var property in namedTypeDescriptor.Properties)
             {
                 AddDeserializeMethod(property.Type);
             }
@@ -149,10 +149,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     AddUpdateEntityArrayMethod(listTypeDescriptor);
                     break;
 
-                case TypeDescriptor typeDescriptor:
+                case NamedTypeDescriptor typeDescriptor:
                     switch (typeDescriptor.Kind)
                     {
-                        case TypeKind.Scalar:
+                        case TypeKind.LeafType:
                             AddScalarTypeDeserializerMethod(typeDescriptor);
                             break;
                         case TypeKind.DataType:
@@ -171,7 +171,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
         }
 
-        private void AddBuildMethod(TypeDescriptor resultType)
+        private void AddBuildMethod(NamedTypeDescriptor resultNamedType)
         {
             var responseParameterName = "response";
             var buildMethod = MethodBuilder.New()
@@ -180,7 +180,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetReturnType(
                     TypeReferenceBuilder.New()
                         .SetName(WellKnownNames.IOperationResult)
-                        .AddGeneric(resultType.Name))
+                        .AddGeneric(resultNamedType.Name))
                 .AddParameter(
                     ParameterBuilder.New()
                         .SetType(
@@ -193,8 +193,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
             buildMethod.AddCode(
                 AssignmentBuilder.New()
                     .SetLefthandSide(
-                        $"({resultType.Name} Result, " + 
-                        $"{NamingConventions.ResultInfoNameFromTypeName(resultType.Name)} " + 
+                        $"({resultNamedType.Name} Result, " +
+                        $"{NamingConventions.ResultInfoNameFromTypeName(resultNamedType.Name)} " +
                         "Info)? data")
                     .SetRighthandSide("null"));
 
@@ -204,7 +204,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetCondition(
                         ConditionBuilder.New()
                             .Set("response.Body is not null")
-                            .And("response.Body.RootElement.TryGetProperty(\"data\"," + 
+                            .And("response.Body.RootElement.TryGetProperty(\"data\"," +
                                 " out JsonElement obj)"))
                     .AddCode("data = BuildData(obj);"));
 
@@ -212,37 +212,37 @@ namespace StrawberryShake.CodeGeneration.CSharp
             buildMethod.AddCode(
                 MethodCallBuilder.New()
                     .SetPrefix("return new ")
-                    .SetMethodName($"{WellKnownNames.OperationResult}<{resultType.Name}>")
+                    .SetMethodName($"{WellKnownNames.OperationResult}<{resultNamedType.Name}>")
                     .AddArgument("data?.Result")
                     .AddArgument("data?.Info")
-                    .AddArgument(ResultDataFactoryFieldName)
+                    .AddArgument(_resultDataFactoryFieldName)
                     .AddArgument("null"));
 
             ClassBuilder.AddMethod(buildMethod);
         }
 
-        private void AddScalarTypeDeserializerMethod(TypeDescriptor type)
+        private void AddScalarTypeDeserializerMethod(NamedTypeDescriptor namedType)
         {
             var scalarDeserializer = MethodBuilder.New()
-                .SetName(DeserializerMethodNameFromTypeName(type))
-                .SetReturnType(type.Name)
+                .SetName(DeserializerMethodNameFromTypeName(namedType))
+                .SetReturnType(namedType.Name)
                 .AddParameter(
                     ParameterBuilder.New()
                         .SetType("JsonElement")
-                        .SetName(objParamName));
+                        .SetName(_objParamName));
 
             scalarDeserializer.AddCode(
                 EnsureJsonValueIsNotNull(),
-                !type.IsNullable);
+                !namedType.IsNullableType());
 
             scalarDeserializer.AddCode(
-                $"return {type.Name.ToFieldName()}Parser.Parse({objParamName}" + 
-                $".Get{type.Name.WithCapitalFirstChar()}()!);");
+                $"return {namedType.Name.ToFieldName()}Parser.Parse({_objParamName}" +
+                $".Get{namedType.Name.WithCapitalFirstChar()}()!);");
 
             ClassBuilder.AddMethod(scalarDeserializer);
         }
 
-        private CodeBlockBuilder EnsureJsonValueIsNotNull(string propertyName = objParamName)
+        private CodeBlockBuilder EnsureJsonValueIsNotNull(string propertyName = _objParamName)
         {
             return CodeBlockBuilder.New()
                 .AddCode(
@@ -254,18 +254,18 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .AddEmptyLine();
         }
 
-        private MethodCallBuilder BuildUpdateMethodCall(TypeMemberDescriptor property)
+        private MethodCallBuilder BuildUpdateMethodCall(PropertyDescriptor property)
         {
             var deserializeMethodCaller = MethodCallBuilder.New()
                 .SetDetermineStatement(false)
                 .SetMethodName(DeserializerMethodNameFromTypeName(property.Type));
 
             deserializeMethodCaller.AddArgument(
-                $"{objParamName}.GetPropertyOrNull(\"{property.Name.WithLowerFirstChar()}\")");
+                $"{_objParamName}.GetPropertyOrNull(\"{property.Name.WithLowerFirstChar()}\")");
 
-            if (!property.Type.IsScalarType)
+            if (!property.Type.IsLeadType())
             {
-                deserializeMethodCaller.AddArgument(EntityIdsParam);
+                deserializeMethodCaller.AddArgument(_entityIdsParam);
             }
 
             return deserializeMethodCaller;
@@ -279,9 +279,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             deserializeMethodCaller.AddArgument(firstArg);
 
-            if (!property.IsScalarType)
+            if (!property.IsLeadType())
             {
-                deserializeMethodCaller.AddArgument(EntityIdsParam);
+                deserializeMethodCaller.AddArgument(_entityIdsParam);
             }
 
             return deserializeMethodCaller;

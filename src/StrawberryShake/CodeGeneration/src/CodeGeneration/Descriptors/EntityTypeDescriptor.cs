@@ -22,11 +22,11 @@ namespace StrawberryShake.CodeGeneration
         public EntityTypeDescriptor(
             NameString graphQLTypeName,
             string @namespace,
-            IReadOnlyList<TypeDescriptor> operationTypes)
+            IReadOnlyList<NamedTypeDescriptor> operationTypes)
         {
-            var allProperties = new Dictionary<string, TypeMemberDescriptor>();
+            var allProperties = new Dictionary<string, PropertyDescriptor>();
 
-            foreach (TypeMemberDescriptor namedTypeReferenceDescriptor in
+            foreach (PropertyDescriptor namedTypeReferenceDescriptor in
                 operationTypes.SelectMany(operationType => operationType.Properties))
             {
                 if (!allProperties.ContainsKey(namedTypeReferenceDescriptor.Name))
@@ -55,6 +55,6 @@ namespace StrawberryShake.CodeGeneration
         /// <summary>
         /// Gets the properties of this entity.
         /// </summary>
-        public Dictionary<string, TypeMemberDescriptor> Properties { get; }
+        public Dictionary<string, PropertyDescriptor> Properties { get; }
     }
 }

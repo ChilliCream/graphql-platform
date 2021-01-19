@@ -22,7 +22,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 switch (prop.Type.Kind)
                 {
-                    case TypeKind.Scalar:
+                    case TypeKind.LeafType:
                         PropertyBuilder propBuilder = PropertyBuilder
                             .New()
                             .SetName(prop.Name)

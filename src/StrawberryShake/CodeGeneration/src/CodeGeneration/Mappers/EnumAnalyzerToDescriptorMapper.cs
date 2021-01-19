@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate;
@@ -11,15 +12,47 @@ namespace StrawberryShake.CodeGeneration.Mappers
     {
         string Namespace { get; }
 
+        IReadOnlyCollection<ITypeDescriptor> Types { get; }
+
         void Register(NameString codeTypeName, ITypeDescriptor typeDescriptor);
+    }
+
+    public class MapperContext : IMapperContext
+    {
+        private readonly Dictionary<NameString, ITypeDescriptor> _types = new();
+
+        public MapperContext(string ns)
+        {
+            Namespace = ns;
+        }
+
+        public string Namespace { get; }
+
+        public IReadOnlyCollection<ITypeDescriptor> Types => _types.Values;
+
+        public void Register(NameString codeTypeName, ITypeDescriptor typeDescriptor)
+        {
+            _types.Add(
+                codeTypeName.EnsureNotEmpty(nameof(codeTypeName)),
+                typeDescriptor ?? throw new ArgumentNullException(nameof(typeDescriptor)));
+        }
     }
 
     public static class TypeDescriptorMapper
     {
-        public static EnumDescriptor Map(
-            EnumTypeModel model,
+        public static void Map(
+            ClientModel model,
             IMapperContext context)
         {
+            var typeDescriptors = new Dictionary<NameString, TypeDescriptorModel>();
+            CollectTypes(model, context, typeDescriptors);
+
+            foreach (TypeDescriptorModel descriptorModel in typeDescriptors.Values)
+            {
+                context.Register(
+                    descriptorModel.NamedTypeDescriptor.Name,
+                    descriptorModel.NamedTypeDescriptor);
+            }
         }
 
         private static void CollectTypes(
@@ -38,12 +71,13 @@ namespace StrawberryShake.CodeGeneration.Mappers
                         // TODO : how do we find out if this is an entity.
                         descriptorModel = new TypeDescriptorModel(
                             outputType,
-                            new TypeDescriptor(
+                            new NamedTypeDescriptor(
                                 outputType.Name,
                                 context.Namespace,
                                 outputType.Implements.Select(t => t.Name).ToList(),
                                 kind: TypeKind.EntityType,
                                 graphQLTypeName: outputType.Type.Name));
+
                         typeDescriptors.Add(outputType.Name, descriptorModel);
                     }
                 }
@@ -57,13 +91,18 @@ namespace StrawberryShake.CodeGeneration.Mappers
                         // TODO : how do we find out if this is an entity.
                         descriptorModel = new TypeDescriptorModel(
                             outputType,
-                            new TypeDescriptor(
+                            new NamedTypeDescriptor(
                                 outputType.Name,
                                 context.Namespace,
                                 outputType.Implements.Select(t => t.Name).ToList(),
                                 kind: TypeKind.EntityType,
                                 graphQLTypeName: outputType.Type.Name,
-                                isImplementedBy: ));
+                                implementedBy: operation
+                                    .GetImplementations(descriptorModel.TypeModel)
+                                    .Select(t => typeDescriptors[t.Name])
+                                    .Select(t => t.NamedTypeDescriptor)
+                                    .ToList()));
+
                         typeDescriptors.Add(outputType.Name, descriptorModel);
                     }
                 }
@@ -72,15 +111,15 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
         private readonly struct TypeDescriptorModel
         {
-            public TypeDescriptorModel(OutputTypeModel typeModel, TypeDescriptor typeDescriptor)
+            public TypeDescriptorModel(OutputTypeModel typeModel, NamedTypeDescriptor namedTypeDescriptor)
             {
                 TypeModel = typeModel;
-                TypeDescriptor = typeDescriptor;
+                NamedTypeDescriptor = namedTypeDescriptor;
             }
 
             public OutputTypeModel TypeModel { get; }
 
-            public TypeDescriptor TypeDescriptor { get; }
+            public NamedTypeDescriptor NamedTypeDescriptor { get; }
         }
     }
 
@@ -111,8 +150,10 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
             foreach (var entityModel in entityModels.Values)
             {
-                yield return new EntityTypeDescriptor
+                // yield return new EntityTypeDescriptor
             }
+
+            yield break;
         }
 
         private static void CollectTypes(

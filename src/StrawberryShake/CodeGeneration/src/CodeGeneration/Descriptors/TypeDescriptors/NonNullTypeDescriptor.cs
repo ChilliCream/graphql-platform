@@ -2,9 +2,9 @@ using HotChocolate;
 
 namespace StrawberryShake.CodeGeneration
 {
-    public class ListTypeDescriptor: ITypeDescriptor
+    public class NonNullTypeDescriptor : ITypeDescriptor
     {
-        public ListTypeDescriptor(ITypeDescriptor innerType)
+        public NonNullTypeDescriptor(ITypeDescriptor innerType)
         {
             InnerType = innerType;
         }

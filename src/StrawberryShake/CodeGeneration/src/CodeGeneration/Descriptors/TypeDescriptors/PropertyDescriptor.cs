@@ -1,11 +1,13 @@
+using HotChocolate;
+
 namespace StrawberryShake.CodeGeneration
 {
     /// <summary>
     /// Describes a type reference like the type of a member, parameter or the return type of a method
     /// </summary>
-    public class TypeMemberDescriptor
+    public class PropertyDescriptor
     {
-        public TypeMemberDescriptor(string name, ITypeDescriptor type)
+        public PropertyDescriptor(NameString name, ITypeDescriptor type)
         {
             Name = name;
             Type = type;
@@ -14,7 +16,7 @@ namespace StrawberryShake.CodeGeneration
         /// <summary>
         /// The name of the property
         /// </summary>
-        public string Name { get; }
+        public NameString Name { get; }
 
         /// <summary>
         /// The referenced type

@@ -13,29 +13,29 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetReturnType($"IList<{WellKnownNames.EntityId}>")
                 .AddParameter(
                     ParameterBuilder.New()
-                        .SetType(jsonElementParamName)
-                        .SetName(objParamName))
+                        .SetType(_jsonElementParamName)
+                        .SetName(_objParamName))
                 .AddParameter(
                     ParameterBuilder.New()
                         .SetType($"ISet<{WellKnownNames.EntityId}>")
-                        .SetName(EntityIdsParam));
+                        .SetName(_entityIdsParam));
 
             updateEntityMethod.AddCode(
                 EnsureJsonValueIsNotNull(),
-                !listTypeDescriptor.IsNullable);
+                !listTypeDescriptor.IsNullableType());
 
             var listVarName = listTypeDescriptor.Name.WithLowerFirstChar() + "s";
-            
-            string elementType = listTypeDescriptor.IsEntityType 
-                ? WellKnownNames.EntityId 
+
+            string elementType = listTypeDescriptor.IsEntityType()
+                ? WellKnownNames.EntityId
                 : listTypeDescriptor.InnerType.Name;
-            
+
             updateEntityMethod.AddCode(
                 $"var {listVarName} = new List<{elementType}>();");
 
             updateEntityMethod.AddCode(
                 ForEachBuilder.New()
-                    .SetLoopHeader($"JsonElement child in {objParamName}.EnumerateArray()")
+                    .SetLoopHeader($"JsonElement child in {_objParamName}.EnumerateArray()")
                     .AddCode(
                         MethodCallBuilder.New()
                             .SetPrefix($"{listVarName}.")

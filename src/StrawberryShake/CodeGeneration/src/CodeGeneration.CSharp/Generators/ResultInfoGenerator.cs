@@ -6,22 +6,22 @@ using static StrawberryShake.CodeGeneration.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public class ResultInfoGenerator : ClassBaseGenerator<TypeDescriptor>
+    public class ResultInfoGenerator : ClassBaseGenerator<NamedTypeDescriptor>
     {
-        protected override Task WriteAsync(CodeWriter writer, TypeDescriptor typeDescriptor)
+        protected override Task WriteAsync(CodeWriter writer, NamedTypeDescriptor namedTypeDescriptor)
         {
             AssertNonNull(
                 writer,
-                typeDescriptor);
+                namedTypeDescriptor);
 
-            var className = ResultInfoNameFromTypeName(typeDescriptor.Name);
+            var className = ResultInfoNameFromTypeName(namedTypeDescriptor.Name);
 
             ClassBuilder
                 .AddImplements(ResultInfoNameFromTypeName(WellKnownNames.IOperationResultDataInfo))
                 .SetName(className);
 
             ConstructorBuilder
-                .SetTypeName(typeDescriptor.Name)
+                .SetTypeName(namedTypeDescriptor.Name)
                 .SetAccessModifier(AccessModifier.Public);
 
             var constructorCaller = MethodCallBuilder.New()
@@ -36,7 +36,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetType("ulong")
                     .SetName("version"));
 
-            foreach (var prop in typeDescriptor.Properties)
+            foreach (var prop in namedTypeDescriptor.Properties)
             {
                 var propTypeBuilder = prop.Type.ToEntityIdBuilder();
                 
@@ -79,7 +79,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             ClassBuilder.AddMethod(withVersion);
 
             return CodeFileBuilder.New()
-                .SetNamespace(typeDescriptor.Namespace)
+                .SetNamespace(namedTypeDescriptor.Namespace)
                 .AddType(ClassBuilder)
                 .BuildAsync(writer);
         }

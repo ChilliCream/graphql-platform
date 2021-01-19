@@ -9,30 +9,30 @@ using static StrawberryShake.CodeGeneration.CSharp.WellKnownNames;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public class ResultDataFactoryGenerator : ClassBaseGenerator<TypeDescriptor>
+    public class ResultDataFactoryGenerator : ClassBaseGenerator<NamedTypeDescriptor>
     {
         const string StoreParamName = "_entityStore";
 
-        protected override Task WriteAsync(CodeWriter writer, TypeDescriptor typeDescriptor)
+        protected override Task WriteAsync(CodeWriter writer, NamedTypeDescriptor namedTypeDescriptor)
         {
             AssertNonNull(
                 writer,
-                typeDescriptor);
+                namedTypeDescriptor);
 
             ClassBuilder
-                .SetName(ResultFactoryNameFromTypeName(typeDescriptor.Name))
-                .AddImplements($"{IOperationResultDataFactory}<{typeDescriptor.Name}>");
+                .SetName(ResultFactoryNameFromTypeName(namedTypeDescriptor.Name))
+                .AddImplements($"{IOperationResultDataFactory}<{namedTypeDescriptor.Name}>");
 
             ConstructorBuilder
-                .SetTypeName(typeDescriptor.Name)
+                .SetTypeName(namedTypeDescriptor.Name)
                 .SetAccessModifier(AccessModifier.Public);
 
             AddConstructorAssignedField(
                 WellKnownNames.IEntityStore,
                 StoreParamName);
 
-            var mappersToInject = typeDescriptor.Properties
-                .Where(prop => !prop.Type.IsScalarType)
+            var mappersToInject = namedTypeDescriptor.Properties
+                .Where(prop => !prop.Type.IsLeadType())
                 .SelectMany(prop => GetMappers(prop.Type));
 
             foreach (var mapperType in mappersToInject)
@@ -47,14 +47,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
                 AddConstructorAssignedField(
                     typeName,
-                    EntityMapperNameFromGraphQLTypeName(mapperType.Name, gqlTypeName).ToFieldName()
-                );
+                    EntityMapperNameFromGraphQLTypeName(mapperType.Name, gqlTypeName)
+                        .ToFieldName());
             }
 
             var createMethod = MethodBuilder.New()
                 .SetAccessModifier(AccessModifier.Public)
                 .SetName("Create")
-                .SetReturnType(typeDescriptor.Name)
+                .SetReturnType(namedTypeDescriptor.Name)
                 .AddParameter(
                     ParameterBuilder.New()
                         .SetName("dataInfo")
@@ -63,15 +63,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             var returnStatement = MethodCallBuilder.New()
                 .SetPrefix("return new ")
-                .SetMethodName(typeDescriptor.Name);
+                .SetMethodName(namedTypeDescriptor.Name);
 
             var ifHasCorrectType = IfBuilder.New()
                 .SetCondition(
-                    $"dataInfo is {ResultInfoNameFromTypeName(typeDescriptor.Name)} info");
+                    $"dataInfo is {ResultInfoNameFromTypeName(namedTypeDescriptor.Name)} info");
 
-            foreach (var prop in typeDescriptor.Properties)
+            foreach (var prop in namedTypeDescriptor.Properties)
             {
-                if (prop.Type.Kind == TypeKind.Scalar)
+                if (prop.Type.Kind == TypeKind.LeafType)
                 {
                     returnStatement.AddArgument($"info.{prop.Name}");
                 }
@@ -89,12 +89,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
             createMethod.AddEmptyLine();
             createMethod.AddCode(
                 "throw new ArgumentException(\"" +
-                $"{ResultInfoNameFromTypeName(typeDescriptor.Name)} expected.\");");
+                $"{ResultInfoNameFromTypeName(namedTypeDescriptor.Name)} expected.\");");
 
             ClassBuilder.AddMethod(createMethod);
 
             return CodeFileBuilder.New()
-                .SetNamespace(typeDescriptor.Namespace)
+                .SetNamespace(namedTypeDescriptor.Namespace)
                 .AddType(ClassBuilder)
                 .BuildAsync(writer);
         }
@@ -102,7 +102,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private void GenerateMappingAssignment(
             IfBuilder codeContainer,
             MethodCallBuilder returnBuilder,
-            TypeMemberDescriptor prop)
+            PropertyDescriptor prop)
         {
             switch (prop.Type)
             {
@@ -110,7 +110,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     // TODO
                     break;
 
-                case TypeDescriptor typeDescriptor1:
+                case NamedTypeDescriptor typeDescriptor1:
                     var idName = $"{prop.Name}Id";
                     var varName = prop.Name.WithLowerFirstChar();
                     if (typeDescriptor1.IsInterface)
@@ -118,7 +118,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         codeContainer.AddCode($"{typeDescriptor1.Name} {varName} = default!;");
                         codeContainer.AddEmptyLine();
 
-                        foreach (TypeDescriptor implementee in typeDescriptor1.IsImplementedBy)
+                        foreach (NamedTypeDescriptor implementee in typeDescriptor1.ImplementedBy)
                         {
                             codeContainer.AddCode(
                                 IfBuilder.New()
@@ -140,7 +140,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     }
                     else
                     {
-                        if (prop.Type is TypeDescriptor nonList)
+                        if (prop.Type is NamedTypeDescriptor nonList)
                         {
                             returnBuilder.AddArgument(GetMappingCall(nonList, idName));
                         }
@@ -152,30 +152,30 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
         }
 
-        private MethodCallBuilder GetMappingCall(TypeDescriptor typeDescriptor, string idName)
+        private MethodCallBuilder GetMappingCall(NamedTypeDescriptor namedTypeDescriptor, string idName)
         {
             return MethodCallBuilder.New()
                 .SetMethodName(
                     EntityMapperNameFromGraphQLTypeName(
-                        typeDescriptor.Name,
-                        typeDescriptor.GraphQLTypeName))
+                        namedTypeDescriptor.Name,
+                        namedTypeDescriptor.GraphQLTypeName))
                 .SetDetermineStatement(false)
                 .AddArgument(
                     $"{StoreParamName}.GetEntity<" +
-                    $"{EntityTypeNameFromGraphQLTypeName(typeDescriptor.GraphQLTypeName)}>" +
+                    $"{EntityTypeNameFromGraphQLTypeName(namedTypeDescriptor.GraphQLTypeName)}>" +
                     $"(info.{idName})");
         }
 
-        private IEnumerable<TypeDescriptor> GetMappers(ITypeDescriptor typeDescriptor)
+        private IEnumerable<NamedTypeDescriptor> GetMappers(ITypeDescriptor typeDescriptor)
         {
             return typeDescriptor switch
             {
                 ListTypeDescriptor listTypeDescriptor =>
                     GetMappers(listTypeDescriptor.InnerType),
 
-                TypeDescriptor typeDescriptor1 =>
+                NamedTypeDescriptor typeDescriptor1 =>
                     typeDescriptor1.IsInterface
-                        ? typeDescriptor1.IsImplementedBy
+                        ? typeDescriptor1.ImplementedBy
                         : new[] { typeDescriptor1 },
 
                 _ => throw new ArgumentOutOfRangeException()

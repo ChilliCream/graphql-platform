@@ -25,8 +25,8 @@ namespace StrawberryShake.Integration
         {
             await _generator.WriteAsync(
                 _codeWriter,
-                IntegrationDescriptors.DroidTypeDescriptor
-            );
+                IntegrationDescriptors.CreateDroidNamedTypeDescriptor());
+
             _stringBuilder.ToString().MatchSnapshot();
         }
 
@@ -35,8 +35,8 @@ namespace StrawberryShake.Integration
         {
             await _generator.WriteAsync(
                 _codeWriter,
-                IntegrationDescriptors.DroidHeroTypeDescriptor
-            );
+                IntegrationDescriptors.CreateDroidHeroNamedTypeDescriptor());
+
             _stringBuilder.ToString().MatchSnapshot();
         }
 
@@ -46,8 +46,8 @@ namespace StrawberryShake.Integration
         {
             await _generator.WriteAsync(
                 _codeWriter,
-                IntegrationDescriptors.HumanTypeDescriptor
-            );
+                IntegrationDescriptors.CreateHumanNamedTypeDescriptor());
+
             _stringBuilder.ToString().MatchSnapshot();
         }
 
@@ -56,8 +56,8 @@ namespace StrawberryShake.Integration
         {
             await _generator.WriteAsync(
                 _codeWriter,
-                IntegrationDescriptors.HumanHeroTypeDescriptor
-            );
+                IntegrationDescriptors.CreateHumanHeroNamedTypeDescriptor());
+
             _stringBuilder.ToString().MatchSnapshot();
         }
 
@@ -66,8 +66,8 @@ namespace StrawberryShake.Integration
         {
             await _generator.WriteAsync(
                 _codeWriter,
-                IntegrationDescriptors.FriendsConnectionDescriptor
-            );
+                IntegrationDescriptors.CreateFriendsConnectionDescriptor());
+
             _stringBuilder.ToString().MatchSnapshot();
         }
     }

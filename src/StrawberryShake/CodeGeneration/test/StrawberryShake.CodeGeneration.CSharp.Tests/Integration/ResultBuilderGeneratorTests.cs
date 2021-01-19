@@ -25,8 +25,8 @@ namespace StrawberryShake.Integration
         {
             await _generator.WriteAsync(
                 _codeWriter,
-                IntegrationDescriptors.GetHeroResultBuilderDescriptor
-            );
+                IntegrationDescriptors.CreateGetHeroResultBuilderDescriptor());
+
             _stringBuilder.ToString().MatchSnapshot();
         }
     }

@@ -1,20 +1,22 @@
+using HotChocolate;
+
 namespace StrawberryShake.CodeGeneration.Extensions
 {
     public static class StringExtensions
     {
-        public static string ToFieldName(this string rawString)
+        public static string ToFieldName(this NameString nameString)
         {
-            return '_' + WithLowerFirstChar(rawString);
+            return '_' + WithLowerFirstChar(nameString);
         }
 
-        public static string WithLowerFirstChar(this string rawString)
+        public static string WithLowerFirstChar(this NameString nameString)
         {
-            return char.ToLower(rawString[0]) + rawString.Substring(1);
+            return char.ToLower(nameString.Value[0]) + nameString.Value.Substring(1);
         }
 
-        public static string WithCapitalFirstChar(this string rawString)
+        public static string WithCapitalFirstChar(this NameString nameString)
         {
-            return char.ToUpper(rawString[0]) + rawString.Substring(1);
+            return char.ToUpper(nameString.Value[0]) + nameString.Value.Substring(1);
         }
     }
 }

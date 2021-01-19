@@ -60,7 +60,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetType(
                         TypeReferenceBuilder.New()
                             .SetName(arg.Type.Name)
-                            .SetIsNullable(arg.Type.IsNullable));
+                            .SetIsNullable(arg.Type.IsNullableType()));
 
                 executeMethod?.AddParameter(paramBuilder);
                 watchMethod.AddParameter(paramBuilder);

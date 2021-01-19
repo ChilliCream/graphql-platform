@@ -5,20 +5,20 @@ using StrawberryShake.CodeGeneration.Extensions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public class ResultTypeGenerator: CSharpBaseGenerator<TypeDescriptor>
+    public class ResultTypeGenerator: CSharpBaseGenerator<NamedTypeDescriptor>
     {
-        protected override Task WriteAsync(CodeWriter writer, TypeDescriptor typeDescriptor)
+        protected override Task WriteAsync(CodeWriter writer, NamedTypeDescriptor namedTypeDescriptor)
         {
-            AssertNonNull(writer, typeDescriptor);
+            AssertNonNull(writer, namedTypeDescriptor);
 
             ClassBuilder classBuilder = ClassBuilder.New()
-                .SetName(typeDescriptor.Name);
+                .SetName(namedTypeDescriptor.Name);
 
             ConstructorBuilder constructorBuilder = ConstructorBuilder.New()
-                .SetTypeName(typeDescriptor.Name)
+                .SetTypeName(namedTypeDescriptor.Name)
                 .SetAccessModifier(AccessModifier.Public);
 
-            foreach (var prop in typeDescriptor.Properties)
+            foreach (var prop in namedTypeDescriptor.Properties)
             {
                 var propTypeBuilder = prop.Type.ToBuilder();
 
@@ -39,7 +39,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 constructorBuilder.AddCode(prop.Name + " = " + paramName + ";");
             }
 
-            foreach (var implement in typeDescriptor.Implements)
+            foreach (var implement in namedTypeDescriptor.Implements)
             {
                 classBuilder.AddImplements(implement);
             }
@@ -47,7 +47,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             classBuilder.AddConstructor(constructorBuilder);
 
             return CodeFileBuilder.New()
-                .SetNamespace(typeDescriptor.Namespace)
+                .SetNamespace(namedTypeDescriptor.Namespace)
                 .AddType(classBuilder)
                 .BuildAsync(writer);
         }

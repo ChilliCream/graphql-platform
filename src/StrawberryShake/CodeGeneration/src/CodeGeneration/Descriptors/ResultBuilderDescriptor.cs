@@ -8,10 +8,10 @@ namespace StrawberryShake.CodeGeneration
     public class ResultBuilderDescriptor : ICodeDescriptor
     {
         public ResultBuilderDescriptor(
-            TypeDescriptor resultType,
+            NamedTypeDescriptor resultNamedType,
             IReadOnlyCollection<ValueParserDescriptor> valueParsers)
         {
-            ResultType = resultType;
+            ResultNamedType = resultNamedType;
             ValueParsers = valueParsers;
         }
 
@@ -22,7 +22,7 @@ namespace StrawberryShake.CodeGeneration
         ///  - ResultType
         ///  - ResultInfo
         /// </summary>
-        public TypeDescriptor ResultType { get; }
+        public NamedTypeDescriptor ResultNamedType { get; }
 
         /// <summary>
         /// A set of all type tuples, that represent the required

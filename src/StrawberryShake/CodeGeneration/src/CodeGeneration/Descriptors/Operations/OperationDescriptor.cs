@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using HotChocolate;
 
 namespace StrawberryShake.CodeGeneration
 {
@@ -10,7 +11,7 @@ namespace StrawberryShake.CodeGeneration
         public OperationDescriptor(
             ITypeDescriptor resultTypeReference,
             string @namespace,
-            IReadOnlyList<TypeMemberDescriptor> arguments,
+            IReadOnlyList<PropertyDescriptor> arguments,
             string bodyString)
         {
             ResultTypeReference = resultTypeReference;
@@ -22,7 +23,7 @@ namespace StrawberryShake.CodeGeneration
         /// <summary>
         /// The name of the operation
         /// </summary>
-        public abstract string Name { get; }
+        public abstract NameString Name { get; }
 
         public string Namespace { get; }
 
@@ -36,6 +37,6 @@ namespace StrawberryShake.CodeGeneration
         /// <summary>
         /// The arguments the operation takes.
         /// </summary>
-        public IReadOnlyList<TypeMemberDescriptor> Arguments { get; }
+        public IReadOnlyList<PropertyDescriptor> Arguments { get; }
     }
 }

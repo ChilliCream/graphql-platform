@@ -1,31 +1,30 @@
 using System.Collections.Generic;
 using HotChocolate;
+using HotChocolate.Types;
 
 namespace StrawberryShake.CodeGeneration
 {
     /// <summary>
     /// Describes a type, which may be a concrete class or an interface.
     /// </summary>
-    public class TypeDescriptor : ITypeDescriptor
+    public class NamedTypeDescriptor : ITypeDescriptor
     {
-        public TypeDescriptor(
-            string name,
+        public NamedTypeDescriptor(
+            NameString name,
             string @namespace,
             IReadOnlyList<NameString>? implements = null,
-            IReadOnlyList<TypeMemberDescriptor>? properties = null,
-            IReadOnlyList<TypeDescriptor>? isImplementedBy = null,
-            TypeKind kind = TypeKind.Scalar,
-            bool isNullable = false,
-            string? graphQLTypeName = null)
+            IReadOnlyList<PropertyDescriptor>? properties = null,
+            IReadOnlyList<NamedTypeDescriptor>? implementedBy = null,
+            TypeKind kind = TypeKind.LeafType,
+            NameString? graphQLTypeName = null)
         {
             Name = name;
             Namespace = @namespace;
             GraphQLTypeName = graphQLTypeName;
             Implements = implements ?? new List<NameString>();
-            Properties = properties ?? new List<TypeMemberDescriptor>();
-            IsImplementedBy = isImplementedBy ?? new TypeDescriptor[] { };
+            Properties = properties ?? new List<PropertyDescriptor>();
+            ImplementedBy = implementedBy ?? new NamedTypeDescriptor[] { };
             Kind = kind;
-            IsNullable = isNullable;
         }
 
         /// <summary>
@@ -33,17 +32,20 @@ namespace StrawberryShake.CodeGeneration
         /// </summary>
         public NameString Name { get; }
 
-        public NameString? GraphQLTypeName { get; }
+        /// <summary>
+        /// What is the Kind of the described Type?
+        /// </summary>
+        public TypeKind Kind { get; }
 
         /// <summary>
-        /// Describes whether or not it is a nullable type reference
+        /// Gets the GraphQL type name.
         /// </summary>
-        public bool IsNullable { get; }
+        public NameString? GraphQLTypeName { get; }
 
         /// <summary>
         /// The properties that result from the requested fields of the operation this ResultType is generated for.
         /// </summary>
-        public IReadOnlyList<TypeMemberDescriptor> Properties { get; private set; }
+        public IReadOnlyList<PropertyDescriptor> Properties { get; private set; }
 
         /// <summary>
         /// A list of interface names the ResultType implements
@@ -58,25 +60,16 @@ namespace StrawberryShake.CodeGeneration
         /// <summary>
         /// States whether or not this type is an interface
         /// </summary>
-        public bool IsInterface => IsImplementedBy.Count > 0;
+        public bool IsInterface => ImplementedBy.Count > 0;
 
         /// <summary>
         /// A list of types that implement this interface
         /// This list must only contain the most specific, concrete classes (that implement this interface),
         /// but no other interfaces.
         /// </summary>
-        public IReadOnlyList<TypeDescriptor> IsImplementedBy { get; }
+        public IReadOnlyList<NamedTypeDescriptor> ImplementedBy { get; }
 
-        /// <summary>
-        /// What is the Kind of the described Type?
-        /// </summary>
-        public TypeKind Kind { get; }
-
-        public bool IsScalarType => Kind == TypeKind.Scalar;
-
-        public bool IsEntityType => Kind == TypeKind.EntityType;
-
-        public void Complete(IReadOnlyList<TypeMemberDescriptor> properties)
+        public void Complete(IReadOnlyList<PropertyDescriptor> properties)
         {
             Properties = properties;
         }

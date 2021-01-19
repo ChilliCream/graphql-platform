@@ -1,38 +1,39 @@
 using StrawberryShake.CodeGeneration.CSharp.Builders;
+using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
     public partial class JsonResultBuilderGenerator
     {
-        private void AddDataTypeDeserializerMethod(TypeDescriptor typeDescriptor)
+        private void AddDataTypeDeserializerMethod(NamedTypeDescriptor namedTypeDescriptor)
         {
             var dateDeserializer = MethodBuilder.New()
-                .SetReturnType(typeDescriptor.Name)
-                .SetName(DeserializerMethodNameFromTypeName(typeDescriptor))
+                .SetReturnType(namedTypeDescriptor.Name)
+                .SetName(DeserializerMethodNameFromTypeName(namedTypeDescriptor))
                 .AddParameter(ParameterBuilder.New()
-                    .SetType(jsonElementParamName)
-                    .SetName(objParamName))
+                    .SetType(_jsonElementParamName)
+                    .SetName(_objParamName))
                 .AddParameter(ParameterBuilder.New()
                     .SetType($"ISet<{WellKnownNames.EntityId}>")
-                    .SetName(EntityIdsParam));
+                    .SetName(_entityIdsParam));
 
             dateDeserializer.AddCode(
                 EnsureJsonValueIsNotNull(),
-                !typeDescriptor.IsNullable);
+                !namedTypeDescriptor.IsNullableType());
 
             var returnStatement = MethodCallBuilder.New()
                 .SetPrefix("return new ")
-                .SetMethodName(DataTypeNameFromTypeName(typeDescriptor.Name));
+                .SetMethodName(DataTypeNameFromTypeName(namedTypeDescriptor.Name));
 
-            foreach (TypeMemberDescriptor property in typeDescriptor.Properties)
+            foreach (PropertyDescriptor property in namedTypeDescriptor.Properties)
             {
                 returnStatement.AddArgument(BuildUpdateMethodCall(property));
             }
 
             dateDeserializer.AddCode(returnStatement);
             ClassBuilder.AddMethod(dateDeserializer);
-            AddRequiredDeserializeMethods(typeDescriptor);
+            AddRequiredDeserializeMethods(namedTypeDescriptor);
         }
     }
 }

@@ -1,125 +1,131 @@
+using System;
 using System.Collections.ObjectModel;
+using HotChocolate;
+using HotChocolate.Types;
 using StrawberryShake.CodeGeneration;
+using TypeKind = StrawberryShake.CodeGeneration.TypeKind;
 
 namespace StrawberryShake.Integration
 {
     public static class IntegrationDescriptors
     {
-        #region ICharacter
+        private static readonly NameString _characterName = "ICharacter";
+        private static readonly NameString _heroName = "IHero";
 
-        private const string ICharacterName = "ICharacter";
-
-        public static TypeDescriptor DroidTypeDescriptor => new(
+        public static NamedTypeDescriptor CreateDroidNamedTypeDescriptor() => new(
             "Droid",
             "StarWarsClient",
-            new[] {ICharacterName},
-            new[] {TestHelper.GetNamedNonNullStringTypeReference("Name")},
+            new[] { _characterName },
+            new[] { TestHelper.GetNamedNonNullStringTypeReference("Name") },
             kind: TypeKind.EntityType,
-            graphQLTypeName: "Droid"
-        );
+            graphQLTypeName: "Droid");
 
-        public static TypeDescriptor HumanTypeDescriptor => new(
+        public static NamedTypeDescriptor CreateHumanNamedTypeDescriptor() => new(
             "Human",
             "StarWarsClient",
-            new[] {ICharacterName},
-            new[] {TestHelper.GetNamedNonNullStringTypeReference("Name")},
+            new[] { _characterName },
+            new[] { TestHelper.GetNamedNonNullStringTypeReference("Name") },
             kind: TypeKind.EntityType,
-            graphQLTypeName: "Human"
-        );
+            graphQLTypeName: "Human");
 
-        public static TypeDescriptor ICharacterDescriptor => new(
-            ICharacterName,
+        public static NamedTypeDescriptor CreateCharacterDescriptor() => new(
+            _characterName,
             "StarWarsClient",
-            isImplementedBy: new[] {DroidTypeDescriptor, HumanTypeDescriptor},
-            kind: TypeKind.EntityType
-        );
+            implementedBy: new[]
+            {
+                CreateDroidNamedTypeDescriptor(),
+                CreateHumanNamedTypeDescriptor()
+            },
+            kind: TypeKind.EntityType);
 
-        #endregion
-
-        #region IHero
-
-        private const string IHeroName = "IHero";
-
-        public static TypeDescriptor FriendsConnectionDescriptor => new(
+        public static NamedTypeDescriptor CreateFriendsConnectionDescriptor() => new(
             "FriendsConnection",
             "StarWarsClient",
             properties: new[]
             {
-                new TypeMemberDescriptor(
+                new PropertyDescriptor(
                     "Nodes",
                     new ListTypeDescriptor(
-                        false,
-                        ICharacterDescriptor
-                    )
-                ),
+                        CreateCharacterDescriptor())),
                 TestHelper.GetNamedNonNullIntTypeReference("TotalCount")
             },
-            kind: TypeKind.DataType
-        );
+            kind: TypeKind.DataType);
 
-        private static TypeMemberDescriptor FriendsMemberDescriptor => new(
+        private static PropertyDescriptor CreateFriendsMemberDescriptor() => new(
             "Friends",
-            FriendsConnectionDescriptor
-        );
+            CreateFriendsConnectionDescriptor());
 
-        public static TypeDescriptor HumanHeroTypeDescriptor => new(
+        public static NamedTypeDescriptor CreateHumanHeroNamedTypeDescriptor() => new(
             "HumanHero",
             "StarWarsClient",
-            new[] {IHeroName},
-            new[] {TestHelper.GetNamedNonNullStringTypeReference("Name"), FriendsMemberDescriptor},
-            kind: TypeKind.EntityType,
-            graphQLTypeName: "Human"
-        );
-
-        public static TypeDescriptor DroidHeroTypeDescriptor => new(
-            "DroidHero",
-            "StarWarsClient",
-            new[] {IHeroName},
-            new[] {TestHelper.GetNamedNonNullStringTypeReference("Name"), FriendsMemberDescriptor},
-            kind: TypeKind.EntityType,
-            graphQLTypeName: "Droid"
-        );
-
-        public static TypeDescriptor IHeroDescriptor => new(
-            IHeroName,
-            "StarWarsClient",
-            new[] {ICharacterName},
-            new[] {FriendsMemberDescriptor},
-            new[] {HumanHeroTypeDescriptor, DroidHeroTypeDescriptor},
-            TypeKind.EntityType
-        );
-
-        #endregion
-
-        public static EntityTypeDescriptor DroidEntityTypeDescriptor => new(
-            "Droid",
-            "StarWarsClient",
-            new[] { DroidTypeDescriptor, DroidHeroTypeDescriptor }
-        );
-
-        public static EntityTypeDescriptor HumanEntityTypeDescriptor => new(
-            "Human",
-            "StarWarsClient",
-            new[] { HumanTypeDescriptor, HumanHeroTypeDescriptor });
-
-        public static TypeDescriptor GetHeroResultDescriptor => new(
-            "GetHeroResult",
-            "StarWarsClient",
-            new string[] { },
+            new[] { _heroName },
             new[]
             {
-                new TypeMemberDescriptor(
+                TestHelper.GetNamedNonNullStringTypeReference("Name"),
+                CreateFriendsMemberDescriptor()
+            },
+            kind: TypeKind.EntityType,
+            graphQLTypeName: "Human");
+
+        public static NamedTypeDescriptor CreateDroidHeroNamedTypeDescriptor() => new(
+            "DroidHero",
+            "StarWarsClient",
+            new[] { _heroName },
+            new[]
+            {
+                TestHelper.GetNamedNonNullStringTypeReference("Name"),
+                CreateFriendsMemberDescriptor()
+            },
+            kind: TypeKind.EntityType,
+            graphQLTypeName: "Droid");
+
+        public static NamedTypeDescriptor CreateHeroDescriptor() => new(
+            _heroName,
+            "StarWarsClient",
+            new[] { _characterName },
+            new[] { CreateFriendsMemberDescriptor() },
+            new[]
+            {
+                CreateHumanHeroNamedTypeDescriptor(),
+                CreateDroidHeroNamedTypeDescriptor()
+            },
+            TypeKind.EntityType);
+
+        public static EntityTypeDescriptor CreateDroidEntityTypeDescriptor() => new(
+            "Droid",
+            "StarWarsClient",
+            new[]
+            {
+                CreateDroidNamedTypeDescriptor(),
+                CreateDroidHeroNamedTypeDescriptor()
+            });
+
+        public static EntityTypeDescriptor CreateHumanEntityTypeDescriptor() => new(
+            "Human",
+            "StarWarsClient",
+            new[]
+            {
+                CreateHumanNamedTypeDescriptor(),
+                CreateHumanHeroNamedTypeDescriptor()
+            });
+
+        public static NamedTypeDescriptor CreateGetHeroResultDescriptor() => new(
+            "GetHeroResult",
+            "StarWarsClient",
+            Array.Empty<NameString>(),
+            new[]
+            {
+                new PropertyDescriptor(
                     "Hero",
-                    IHeroDescriptor
-                ),
+                    CreateHeroDescriptor()),
                 TestHelper.GetNamedNonNullStringTypeReference("Version")
             });
 
-        public static QueryOperationDescriptor GetHeroQueryDescriptor =>
+        public static QueryOperationDescriptor CreateGetHeroQueryDescriptor() =>
             new(
-                GetHeroResultDescriptor,
+                CreateGetHeroResultDescriptor(),
                 "StarWarsClient",
-                new Collection<TypeMemberDescriptor>(),
+                new Collection<PropertyDescriptor>(),
                 @"query GetHero {
                     hero {
                         __typename
@@ -137,9 +143,9 @@ namespace StrawberryShake.Integration
                     version
                 }");
 
-        public static ResultBuilderDescriptor GetHeroResultBuilderDescriptor =>
+        public static ResultBuilderDescriptor CreateGetHeroResultBuilderDescriptor() =>
             new(
-                GetHeroResultDescriptor,
+                CreateGetHeroResultDescriptor(),
                 new[]
                 {
                     new ValueParserDescriptor("string", "string", "String"),
