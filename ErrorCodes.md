@@ -20,3 +20,4 @@
 | HC0018 | Execution         | Variable `xyz` is required.                                                                                |
 | HC0019 | Execution         | Unable to create an instance for the operation type (initial value).                                       |
 | HC0020 | Execution         | A persisted query was not found when using the active persisted query pipeline.                            |
+| HC0028 | Data              | Type does not contain a valid node field. Only `items` and `nodes` are supported                           |

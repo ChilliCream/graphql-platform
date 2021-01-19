@@ -209,6 +209,9 @@
   <data name="ProjectionConvention_CouldNotProject" xml:space="preserve">
     <value>Projection Visitor is in invalid state. Projection failed!</value>
   </data>
+  <data name="ProjectionVisitor_NodeFieldWasNotFound" xml:space="preserve">
+    <value>Type {0} does not contain a valid node field. Only `items` and `nodes` are supported</value>
+  </data>
   <data name="FilterConvention_ProviderHasToBeInitializedByConvention" xml:space="preserve">
     <value>The filter provider {0} {1}was not initialized by a convention. It is only valid to register a provider over a FilterConvention</value>
   </data>

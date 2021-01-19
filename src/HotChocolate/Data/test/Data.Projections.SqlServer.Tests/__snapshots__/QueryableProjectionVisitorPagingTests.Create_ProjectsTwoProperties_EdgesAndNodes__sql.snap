@@ -1,2 +1,2 @@
-﻿SELECT "d"."Bar", "d"."Baz"
+﻿SELECT "d"."Baz", "d"."Bar"
 FROM "Data" AS "d"

@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixed selection optimizer were not resolved correctly. (#2889)
+- Fixed projection of edge type (#2888) 
 
 ## [11.0.8]
 
