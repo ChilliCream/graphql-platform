@@ -1,6 +1,7 @@
 using System;
 using HotChocolate.Types.Spatial;
-using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Types.Spatial.Configuration;
+using HotChocolate.Types.Spatial.Transformation;
 using NetTopologySuite.Geometries;
 
 namespace HotChocolate
@@ -36,6 +37,7 @@ namespace HotChocolate
 
             return builder
                 .TryAddConvention<ISpatialConvention>(conventionFactory())
+                .TryAddTypeInterceptor<GeometryReprojectionInterceptor>()
                 .AddType<GeoJsonInterfaceType>()
                 .AddType<GeoJsonGeometryType>()
                 .AddType<GeoJsonPointInputType>()
@@ -91,8 +93,7 @@ namespace HotChocolate
         /// </exception>
         public static ISchemaBuilder AddSpatialTypes(this ISchemaBuilder builder)
         {
-            return builder.AddSpatialTypes(() =>
-                new SpatialConvention(x => x.AddDefaultSerializers()));
+            return builder.AddSpatialTypes(() => new SpatialConvention());
         }
     }
 }

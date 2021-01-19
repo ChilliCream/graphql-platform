@@ -1,0 +1,28 @@
+﻿{
+  "Label": null,
+  "Path": null,
+  "Data": {
+    "test": {
+      "type": "LineString",
+      "crs": 26918,
+      "coordinates": [
+        [
+          30.000111780129373,
+          9.999999999907894
+        ],
+        [
+          10.000111806148198,
+          29.999999999723588
+        ],
+        [
+          40.000111767381895,
+          39.999999999631605
+        ]
+      ]
+    }
+  },
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null,
+  "HasNext": null
+}

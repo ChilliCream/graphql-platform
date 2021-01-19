@@ -114,5 +114,18 @@ namespace HotChocolate
             public const string TypeNotDefined = "STITCHING_TYPE_NOT_DEFINED";
             public const string ArgumentNotFound = "STITCHING_DEL_ARGUMENT_NOT_FOUND";
         }
+
+        public static class Spatial
+        {
+            /// <summary>
+            /// The coordinate reference system is not supported by this server
+            /// </summary>
+            public const string UnknowCrs = "HC0029";
+
+            /// <summary>
+            /// Coordinates with M values cannot be reprojected
+            /// </summary>
+            public const string CoordinateMNotSupported = "HC0030";
+        }
     }
 }

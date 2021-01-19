@@ -1,4 +1,5 @@
 using System;
+using System.Net.Security;
 using HotChocolate.Types.Spatial.Properties;
 
 namespace HotChocolate.Types.Spatial
@@ -73,5 +74,25 @@ namespace HotChocolate.Types.Spatial
 
         public static GeoJsonSerializationException Geometry_Parse_InvalidType() =>
             new GeoJsonSerializationException(Resources.Geometry_Parse_InvalidType);
+
+        public static GraphQLException Transformation_UnknownCRS(int srid) =>
+            new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage(Resources.Transformation_DefaultCRSNotFound, srid)
+                    .SetCode(ErrorCodes.Spatial.UnknowCrs)
+                    .Build());
+
+        public static SchemaException Transformation_DefaultCRSNotFound(int srid) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(Resources.Transformation_DefaultCRSNotFound, srid)
+                    .Build());
+
+        public static GraphQLException Transformation_Projection_CoodinateMNotSupported() =>
+            new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage(Resources.Transformation_Projection_CoodinateMNotSupported)
+                    .SetCode(ErrorCodes.Spatial.CoordinateMNotSupported)
+                    .Build());
     }
 }
