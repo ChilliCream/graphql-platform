@@ -7,9 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added result formatter options to minify the JSON payload. (#2897)
+
+### Changed
+
+- Relaxed UUID deserialization (by default we now allow for any UUID format). (#2896)
+
 ### Fixed
 
-- Fixed projection of edge type (#2888)
+- Fixed selection optimizer were not resolved correctly. (#2889)
+- Fixed projection of edge type (#2888) 
 
 ## [11.0.8]
 

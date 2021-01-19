@@ -22,30 +22,33 @@ namespace HotChocolate.AspNetCore.Utilities
 
         protected virtual TestServer CreateStarWarsServer(
             string pattern = "/graphql",
+            Action<IServiceCollection> configureServices = default,
             Action<GraphQLEndpointConventionBuilder> configureConventions = default)
         {
             return ServerFactory.Create(
-                services => services
-                    .AddRouting()
-                    .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
-                    .AddGraphQLServer()
+                services =>
+                {
+                    services
+                        .AddRouting()
+                        .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
+                        .AddGraphQLServer()
                         .AddStarWarsTypes()
                         .AddTypeExtension<QueryExtension>()
                         .AddExportDirectiveType()
                         .AddStarWarsRepositories()
                         .AddInMemorySubscriptions()
-                        .UseActivePersistedQueryPipeline()
-                        .ConfigureSchemaServices(services => 
+                        .UseAutomaticPersistedQueryPipeline()
+                        .ConfigureSchemaServices(services =>
                             services
                                 .AddSingleton<PersistedQueryCache>()
                                 .AddSingleton<IReadStoredQueries>(
                                     c => c.GetService<PersistedQueryCache>())
                                 .AddSingleton<IWriteStoredQueries>(
                                     c => c.GetService<PersistedQueryCache>()))
-                    .AddGraphQLServer("evict")
+                        .AddGraphQLServer("evict")
                         .AddQueryType(d => d.Name("Query"))
                         .AddTypeExtension<QueryExtension>()
-                    .AddGraphQLServer("arguments")
+                        .AddGraphQLServer("arguments")
                         .AddQueryType(d =>
                         {
                             d
@@ -62,7 +65,10 @@ namespace HotChocolate.AspNetCore.Utilities
                                 .Argument("d", t => t.Type<DecimalType>())
                                 .Type<DecimalType>()
                                 .Resolve(c => c.ArgumentValue<decimal?>("d"));
-                        }),
+                        });
+
+                    configureServices?.Invoke(services);
+                },
                 app => app
                     .UseWebSockets()
                     .UseRouting()
