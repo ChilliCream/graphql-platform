@@ -1334,7 +1334,7 @@ data-styled.g150[id="doc-page__Button-fuo9s5-5"]{content:"bNEZNP,"}/*!sc*/
 <p>Most databases enable you to simply skip and take records. The simplest way to provide such a capability is to add an argument <em>skip</em> and an argument <em>take</em> like in the following example.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="71695636473094600000"
+              data-toaster-id="9584040773084035000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1359,7 +1359,7 @@ data-styled.g150[id="doc-page__Button-fuo9s5-5"]{content:"bNEZNP,"}/*!sc*/
 
         return strings;
     }
-}`, `71695636473094600000`)"
+}`, `9584040773084035000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1397,7 +1397,7 @@ data-styled.g150[id="doc-page__Button-fuo9s5-5"]{content:"bNEZNP,"}/*!sc*/
 <p>Let us start with something simple and then drill deeper into more complex solutions. For our first example let us assume we have an in-memory list of strings that we do want to expose as paginated list.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="71784372403770890000"
+              data-toaster-id="72089913505007460000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1406,7 +1406,7 @@ data-styled.g150[id="doc-page__Button-fuo9s5-5"]{content:"bNEZNP,"}/*!sc*/
 {
     public ICollection<string> Strings { get; } =
         new List<string> { &quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;d&quot;, &quot;e&quot;, &quot;f&quot;, &quot;g&quot; };
-}`, `71784372403770890000`)"
+}`, `72089913505007460000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1423,7 +1423,7 @@ data-styled.g150[id="doc-page__Button-fuo9s5-5"]{content:"bNEZNP,"}/*!sc*/
 <p>In order to tell Hot Chocolate that an <code class="language-text">IEnumerable&lt;T&gt;</code> or an <code class="language-text">IQueryable&lt;T&gt;</code> shall be exposed as page-able list in our schema we have to declare that in a schema type.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="95373820718446530000"
+              data-toaster-id="6927105120809740000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1435,7 +1435,7 @@ data-styled.g150[id="doc-page__Button-fuo9s5-5"]{content:"bNEZNP,"}/*!sc*/
     {
         descriptor.Field(t => t.Strings).UsePaging<StringType>();
     }
-}`, `95373820718446530000`)"
+}`, `6927105120809740000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1460,7 +1460,7 @@ data-styled.g150[id="doc-page__Button-fuo9s5-5"]{content:"bNEZNP,"}/*!sc*/
 <p>We will do that by adding another argument <code class="language-text">descending</code> to our field. If the argument is set to <code class="language-text">true</code> than the list is sorted by descending order otherwise the set is sorted in ascending order.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="16153984270608923000"
+              data-toaster-id="89923910005697300000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1494,7 +1494,7 @@ data-styled.g150[id="doc-page__Button-fuo9s5-5"]{content:"bNEZNP,"}/*!sc*/
                     : new PageableData<string>(strings.OrderBy(t => t), cursorProperties);
             });
     }
-}`, `16153984270608923000`)"
+}`, `89923910005697300000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1539,7 +1539,7 @@ data-styled.g150[id="doc-page__Button-fuo9s5-5"]{content:"bNEZNP,"}/*!sc*/
 <p>Let us first have a look how you can pass in an extended queryable resolver to our paging middleware.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="40852197534338245000"
+              data-toaster-id="62160389529551315000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1575,7 +1575,7 @@ data-styled.g150[id="doc-page__Button-fuo9s5-5"]{content:"bNEZNP,"}/*!sc*/
                     : new PageableData<string>(strings.OrderBy(t => t), cursorProperties);
             });
     }
-}`, `40852197534338245000`)"
+}`, `62160389529551315000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1622,7 +1622,7 @@ data-styled.g150[id="doc-page__Button-fuo9s5-5"]{content:"bNEZNP,"}/*!sc*/
 <p>Our generic connection type expects the executed page to be of the type <code class="language-text">IConnection</code>. So, basically the field resolver just has to return a class implementing that interface or using our default implementation <code class="language-text">Connection&lt;T&gt;</code>.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="32207990611957890000"
+              data-toaster-id="19867840958122283000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1640,7 +1640,7 @@ data-styled.g150[id="doc-page__Button-fuo9s5-5"]{content:"bNEZNP,"}/*!sc*/
                 // resolver logic that returns IConnection data.
             });
     }
-}`, `32207990611957890000`)"
+}`, `19867840958122283000`)"
             >
               <div
                 class="gatsby-code-button"
