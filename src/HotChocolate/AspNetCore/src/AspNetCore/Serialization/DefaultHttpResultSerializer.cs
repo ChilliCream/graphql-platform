@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Net;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
@@ -11,19 +12,40 @@ namespace HotChocolate.AspNetCore.Serialization
 {
     public class DefaultHttpResultSerializer : IHttpResultSerializer
     {
-        private readonly JsonQueryResultSerializer _jsonSerializer = new();
-        private readonly JsonArrayResponseStreamSerializer _jsonArraySerializer = new();
-        private readonly MultiPartResponseStreamSerializer _multiPartSerializer = new();
+        private readonly JsonQueryResultSerializer _jsonSerializer;
+        private readonly JsonArrayResponseStreamSerializer _jsonArraySerializer;
+        private readonly MultiPartResponseStreamSerializer _multiPartSerializer;
 
         private readonly HttpResultSerialization _batchSerialization;
         private readonly HttpResultSerialization _deferSerialization;
 
+        /// <summary>
+        /// Creates a new instance of <see cref="DefaultHttpResultSerializer" />.
+        /// </summary>
+        /// <param name="batchSerialization">
+        /// Specifies the output-format for batched queries.
+        /// </param>
+        /// <param name="deferSerialization">
+        /// Specifies the output-format for deferred queries.
+        /// </param>
+        /// <param name="indented">
+        /// Defines whether the underlying <see cref="Utf8JsonWriter"/>
+        /// should pretty print the JSON which includes:
+        /// indenting nested JSON tokens, adding new lines, and adding
+        /// white space between property names and values.
+        /// By default, the JSON is written without any extra white space.
+        /// </param>
         public DefaultHttpResultSerializer(
             HttpResultSerialization batchSerialization = HttpResultSerialization.MultiPartChunked,
-            HttpResultSerialization deferSerialization = HttpResultSerialization.MultiPartChunked)
+            HttpResultSerialization deferSerialization = HttpResultSerialization.MultiPartChunked,
+            bool indented = true)
         {
             _batchSerialization = batchSerialization;
             _deferSerialization = deferSerialization;
+
+            _jsonSerializer = new(indented);
+            _jsonArraySerializer = new(indented);
+            _multiPartSerializer = new(indented);
         }
 
         public virtual string GetContentType(IExecutionResult result)
