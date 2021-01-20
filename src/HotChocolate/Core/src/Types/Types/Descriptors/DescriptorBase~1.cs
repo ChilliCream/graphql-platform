@@ -14,13 +14,11 @@ namespace HotChocolate.Types.Descriptors
         , IDefinitionFactory<T>
         where T : DefinitionBase
     {
-        private readonly List<Action<IDescriptorContext, T>> _modifiers =
-            new List<Action<IDescriptorContext, T>>();
+        private readonly List<Action<IDescriptorContext, T>> _modifiers = new();
 
         protected DescriptorBase(IDescriptorContext context)
         {
-            Context = context
-                ?? throw new ArgumentNullException(nameof(context));
+            Context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
         protected internal IDescriptorContext Context { get; }

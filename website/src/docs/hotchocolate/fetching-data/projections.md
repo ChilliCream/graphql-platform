@@ -76,7 +76,7 @@ The field descriptor attribute `[UseProjection]` does apply the extension method
 ```csharp
 public class Query
 {
-    [UseSorting]
+    [UseProjection]
     public IQueryable<Person> GetPersons([Service]IPersonRepository repository)
     {
         repository.GetPersons();

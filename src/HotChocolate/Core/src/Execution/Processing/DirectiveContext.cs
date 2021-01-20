@@ -145,5 +145,7 @@ namespace HotChocolate.Execution.Processing
             SelectionSetNode? selectionSet = null,
             bool allowInternals = false) =>
             _middlewareContext.GetSelections(typeContext, selectionSet, allowInternals);
+
+        public T GetQueryRoot<T>() => _middlewareContext.GetQueryRoot<T>();
     }
 }

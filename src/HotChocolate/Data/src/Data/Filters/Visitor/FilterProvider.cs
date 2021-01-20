@@ -4,6 +4,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Data.DataResources;
 using static HotChocolate.Data.ThrowHelper;
 
@@ -84,6 +85,7 @@ namespace HotChocolate.Data.Filters
                 (typeof(IConventionContext), context),
                 (typeof(IDescriptorContext), context.DescriptorContext),
                 (typeof(IFilterConvention), _filterConvention),
+                (typeof(ITypeConverter), context.Services.GetTypeConverter()),
                 (typeof(ITypeInspector), context.DescriptorContext.TypeInspector))
                 .Include(context.Services);
 
