@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using HotChocolate;
 using HotChocolate.Language;
@@ -23,15 +24,25 @@ namespace StrawberryShake.CodeGeneration.Utilities
 
             ISchemaBuilder builder = SchemaBuilder.New();
             var scalarInfos = new Dictionary<NameString, ScalarInfo>();
+            var globalEntityPatterns = new List<SelectionSetNode>();
+            var typeEntityPatterns = new Dictionary<NameString, SelectionSetNode>();
 
             foreach (DocumentNode document in documents)
             {
                 if (document.Definitions.Any(
-                    t => t is ScalarTypeExtensionNode or EnumTypeExtensionNode))
+                    t => t is ITypeSystemExtensionNode))
                 {
                     CollectScalarInfos(
                         document.Definitions.OfType<ScalarTypeExtensionNode>(),
                         scalarInfos);
+
+                    CollectGlobalEntityPatterns(
+                        document.Definitions.OfType<SchemaExtensionNode>(),
+                        globalEntityPatterns);
+
+                    CollectTypeEntityPatterns(
+                        document.Definitions.OfType<ObjectTypeExtensionNode>(),
+                        typeEntityPatterns);
                 }
                 else
                 {
@@ -40,8 +51,11 @@ namespace StrawberryShake.CodeGeneration.Utilities
             }
 
             return builder
-                .TryAddTypeInterceptor(new LeafTypeInterceptor(scalarInfos))
-                .Use(next => context => throw new NotSupportedException())
+                .TryAddTypeInterceptor(
+                    new LeafTypeInterceptor(scalarInfos))
+                .TryAddTypeInterceptor(
+                    new EntityTypeInterceptor(globalEntityPatterns, typeEntityPatterns))
+                .Use(_ => _ => throw new NotSupportedException())
                 .Create();
         }
 
@@ -68,13 +82,13 @@ namespace StrawberryShake.CodeGeneration.Utilities
             IHasDirectives hasDirectives,
             NameString directiveName)
         {
-            DirectiveNode? directive =
-                hasDirectives.Directives.FirstOrDefault(t => directiveName.Equals(t.Name.Value));
+            DirectiveNode? directive = hasDirectives.Directives.FirstOrDefault(
+                t => directiveName.Equals(t.Name.Value));
 
             if (directive is { Arguments: { Count: > 0 } })
             {
-                ArgumentNode? argument =
-                    directive.Arguments.FirstOrDefault(t => t.Name.Value.Equals("name"));
+                ArgumentNode? argument = directive.Arguments.FirstOrDefault(
+                    t => t.Name.Value.Equals("name"));
 
                 if (argument is { Value: StringValueNode stringValue })
                 {
@@ -84,33 +98,72 @@ namespace StrawberryShake.CodeGeneration.Utilities
 
             return null;
         }
-    }
 
-    public static class DocumentHelper
-    {
-        public static IEnumerable<DocumentNode> GetTypeSystemDocuments(
-            this IEnumerable<DocumentNode> documentNodes)
+
+        private static void CollectGlobalEntityPatterns(
+            IEnumerable<SchemaExtensionNode> schemaExtensions,
+            List<SelectionSetNode> entityPatterns)
         {
-            if (documentNodes is null)
+            foreach (var schemaExtension in schemaExtensions)
             {
-                throw new ArgumentNullException(nameof(documentNodes));
+                foreach (var directive in schemaExtension.Directives)
+                {
+                    if (TryGetKeys(directive, out SelectionSetNode? selectionSet))
+                    {
+                        entityPatterns.Add(selectionSet);
+                    }
+                }
             }
-
-            return documentNodes.Where(doc =>
-                doc.Definitions.All(def =>
-                    def is ITypeSystemDefinitionNode or ITypeSystemExtensionNode));
         }
 
-        public static IEnumerable<DocumentNode> GetExecutableDocuments(
-            this IEnumerable<DocumentNode> documentNodes)
+        private static void CollectTypeEntityPatterns(
+            IEnumerable<ObjectTypeExtensionNode> objectTypeExtensions,
+            Dictionary<NameString, SelectionSetNode> entityPatterns)
         {
-            if (documentNodes is null)
+            foreach (ObjectTypeExtensionNode objectTypeExtension in objectTypeExtensions)
             {
-                throw new ArgumentNullException(nameof(documentNodes));
+                if (TryGetKeys(objectTypeExtension, out SelectionSetNode? selectionSet) &&
+                    !entityPatterns.ContainsKey(objectTypeExtension.Name.Value))
+                {
+                    entityPatterns.Add(
+                        objectTypeExtension.Name.Value,
+                        selectionSet);
+                }
+            }
+        }
+
+        private static bool TryGetKeys(
+            IHasDirectives directives,
+            [NotNullWhen(true)] out SelectionSetNode? selectionSet)
+        {
+            DirectiveNode? directive = directives.Directives.FirstOrDefault(IsKeyDirective);
+
+            if (directive is not null)
+            {
+                return TryGetKeys(directive, out selectionSet);
             }
 
-            return documentNodes.Where(doc =>
-                doc.Definitions.All(def => def is IExecutableDefinitionNode));
+            selectionSet = null;
+            return false;
         }
+
+        private static bool TryGetKeys(
+            DirectiveNode directive,
+            [NotNullWhen(true)] out SelectionSetNode? selectionSet)
+        {
+            if (directive is { Arguments: { Count: 1 } } &&
+                directive.Arguments[0] is { Name: { Value: "fields" }, Value: StringValueNode sv})
+            {
+                selectionSet = Utf8GraphQLParser.Syntax.ParseSelectionSet($"{{{sv.Value}}}");
+                return true;
+            }
+
+            selectionSet = null;
+            return false;
+        }
+
+        private static bool IsKeyDirective(DirectiveNode directive) =>
+            directive.Name.Value.Equals("key", StringComparison.Ordinal);
+
     }
 }

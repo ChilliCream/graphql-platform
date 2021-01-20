@@ -1,15 +1,25 @@
 using HotChocolate.Language;
 using HotChocolate.Types;
-using StrawberryShake.CodeGeneration.Analyzers;
+using static StrawberryShake.CodeGeneration.Analyzers.WellKnownContextData;
 
 namespace StrawberryShake.CodeGeneration.Extensions
 {
     public static class TypeExtensions
     {
         public static bool IsEntity(this INamedType namedType) =>
-            namedType.ContextData.ContainsKey(WellKnownContextData.Entity);
+            namedType.ContextData.ContainsKey(Entity);
 
-        public static SelectionSetNode GetEntityDefinition(this INamedType namedType) => 
-            (SelectionSetNode)namedType.ContextData[WellKnownContextData.Entity]!;
+        public static SelectionSetNode GetEntityDefinition(this INamedType namedType) =>
+            (SelectionSetNode)namedType.ContextData[Entity]!;
+
+        public static string GetRuntimeType(this ILeafType leafType)
+        {
+            return (string)leafType.ContextData[RuntimeType]!;
+        }
+
+        public static string GetSerializationType(this ILeafType leafType)
+        {
+            return (string)leafType.ContextData[SerializationType]!;
+        }
     }
 }
