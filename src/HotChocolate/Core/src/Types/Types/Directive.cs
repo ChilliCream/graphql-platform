@@ -7,14 +7,15 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
-    public sealed class Directive
-        : IDirective
+    public sealed class Directive : IDirective
     {
         private object _customDirective;
         private DirectiveNode _parsedDirective;
-        private Dictionary<string, ArgumentNode> _arguments;
+        private Dictionary<string, ArgumentNode> _arguments = default!;
 
         private Directive(
             DirectiveType directiveType,
