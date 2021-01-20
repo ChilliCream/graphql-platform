@@ -88,10 +88,10 @@ namespace HotChocolate.Types.Spatial
                     .SetMessage(Resources.Transformation_DefaultCRSNotFound, srid)
                     .Build());
 
-        public static GraphQLException Transformation_Projection_CoodinateMNotSupported() =>
+        public static GraphQLException Transformation_CoordinateMNotSupported() =>
             new GraphQLException(
                 ErrorBuilder.New()
-                    .SetMessage(Resources.Transformation_Projection_CoodinateMNotSupported)
+                    .SetMessage(Resources.Transformation_CoordinateMNotSupported)
                     .SetCode(ErrorCodes.Spatial.CoordinateMNotSupported)
                     .Build());
     }

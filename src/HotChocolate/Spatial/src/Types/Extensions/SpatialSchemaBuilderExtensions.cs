@@ -37,7 +37,7 @@ namespace HotChocolate
 
             return builder
                 .TryAddConvention<ISpatialConvention>(conventionFactory())
-                .TryAddTypeInterceptor<GeometryReprojectionInterceptor>()
+                .TryAddTypeInterceptor<GeometryTransformerInterceptor>()
                 .AddType<GeoJsonInterfaceType>()
                 .AddType<GeoJsonGeometryType>()
                 .AddType<GeoJsonPointInputType>()

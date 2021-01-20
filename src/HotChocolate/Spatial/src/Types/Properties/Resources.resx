@@ -225,12 +225,10 @@
     <value>The coordinate reference system `{0}` is not supported by this server</value>
   </data>
   <data name="Transformation_DefaultCRSNotFound" xml:space="preserve">
-    <value>
-      The default coordinate reference system `{0}` was not found.
-      Register it on the schema with `.AddSpatialTypes(x => x.DefaultSRID({0}).AddAddCoordinateSystemFromString({0}, "..."))`
-    </value>
+    <value>The default coordinate reference system `{0}` was not found.
+      Register it on the schema with `.AddSpatialTypes(x => x.DefaultSRID({0}).AddAddCoordinateSystemFromString({0}, "..."))`</value>
   </data>
-  <data name="Transformation_Projection_CoodinateMNotSupported" xml:space="preserve">
-    <value>Coordinates with M values cannot be reprojected</value>
+  <data name="Transformation_CoordinateMNotSupported" xml:space="preserve">
+    <value>Coordinates with M values cannot be transformed</value>
   </data>
 </root>

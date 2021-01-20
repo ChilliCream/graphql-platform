@@ -255,9 +255,9 @@ namespace HotChocolate.Types.Spatial.Properties {
             }
         }
         
-        internal static string Transformation_Projection_CoodinateMNotSupported {
+        internal static string Transformation_CoordinateMNotSupported {
             get {
-                return ResourceManager.GetString("Transformation_Projection_CoodinateMNotSupported", resourceCulture);
+                return ResourceManager.GetString("Transformation_CoordinateMNotSupported", resourceCulture);
             }
         }
     }

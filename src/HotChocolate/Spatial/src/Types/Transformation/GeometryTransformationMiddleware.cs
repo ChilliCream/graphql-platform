@@ -6,17 +6,23 @@ using NetTopologySuite.Geometries;
 
 namespace HotChocolate.Types.Spatial.Transformation
 {
-    internal class ReprojectionMiddleware
+    /// <summary>
+    /// Transforms a Geometry to the SRID provided by the CRS argument of the field
+    /// </summary>
+    internal class GeometryTransformationMiddleware
     {
         private readonly FieldDelegate _next;
-        private IGeometryProjectorFactory _factory;
+        private readonly IGeometryTransformerFactory _factory;
+        private readonly int _defaultSrid;
 
-        public ReprojectionMiddleware(
+        public GeometryTransformationMiddleware(
             FieldDelegate next,
-            IGeometryProjectorFactory factory)
+            IGeometryTransformerFactory factory,
+            int defaultSrid)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
             _factory = factory ?? throw new ArgumentNullException(nameof(factory));
+            _defaultSrid = defaultSrid;
         }
 
         public async Task InvokeAsync(IMiddlewareContext context)
@@ -26,25 +32,28 @@ namespace HotChocolate.Types.Spatial.Transformation
             var targetCrs = context.ArgumentValue<int?>(WellKnownFields.CrsFieldName);
             if (targetCrs.HasValue)
             {
-                ProjectGeometry(context.Result, targetCrs.Value);
+                TransformInPlace(context.Result, targetCrs.Value);
             }
         }
 
-        public void ProjectGeometry(object? runtimeValue, int targetCrs)
+        private void TransformInPlace(
+            object? runtimeValue,
+            int toSrid)
         {
             if (runtimeValue is Geometry g)
             {
-                if (g.SRID != targetCrs)
+                if (g.SRID != toSrid)
                 {
-                    IGeometryProjector projector = _factory.Create(g, targetCrs);
-                    projector.Reproject(g, targetCrs);
+                    IGeometryTransformer transformer =
+                        _factory.Create(g.SRID is -1 or 0 ? _defaultSrid : g.SRID, toSrid);
+                    transformer.TransformInPlace(g, toSrid);
                 }
             }
             else if (runtimeValue is IList list)
             {
                 for (var i = 0; i < list.Count; i++)
                 {
-                    ProjectGeometry(list[i], targetCrs);
+                    TransformInPlace(list[i], toSrid);
                 }
             }
         }
