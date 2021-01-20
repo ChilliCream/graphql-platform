@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Execution;
@@ -35,15 +36,22 @@ namespace StrawberryShake
                     .AddStarWars()
                     .BuildSchemaAsync();
 
-            schema = SchemaHelper.Load(schema.ToDocument());
+            var documents = sourceText
+                .Select(st => Utf8GraphQLParser.Parse(st))
+                .ToList();
+
+            var typeSystemDocs = documents.GetTypeSystemDocuments().ToList();
+            typeSystemDocs.Add(schema.ToDocument());
+            
+            var executableDocs = documents.GetExecutableDocuments().ToList();
 
             var analyzer = new DocumentAnalyzer();
 
-            analyzer.SetSchema(schema);
+            analyzer.SetSchema(SchemaHelper.Load(typeSystemDocs));
 
-            foreach (string source in sourceText)
+            foreach (DocumentNode executable in executableDocs)
             {
-                analyzer.AddDocument(Utf8GraphQLParser.Parse(source));
+                analyzer.AddDocument(executable);
             }
 
             return analyzer.Analyze();

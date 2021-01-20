@@ -1,5 +1,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using HotChocolate;
+using HotChocolate.Execution;
+using HotChocolate.StarWars;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.CSharp.Builders;

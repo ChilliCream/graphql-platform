@@ -4,13 +4,16 @@
     <PackageId>StrawberryShake.CodeGeneration.CSharp.Analyzers</PackageId>
     <AssemblyName>StrawberryShake.CodeGeneration.CSharp.Analyzers</AssemblyName>
     <RootNamespace>StrawberryShake.CodeGeneration.CSharp.Analyzers</RootNamespace>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild> <!-- Generates a package at build -->
+    <IncludeBuildOutput>false</IncludeBuildOutput> <!-- Do not include the generator as a lib dependency -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <Version>0.0.3</Version>
   </PropertyGroup>
 
-
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Client\src\Core\StrawberryShake.Core.csproj" />
-    <ProjectReference Include="..\CodeGeneration\StrawberryShake.CodeGeneration.csproj" />
-    <ProjectReference Include="..\CodeGeneration.CSharp\StrawberryShake.CodeGeneration.CSharp.csproj" />
+    <ProjectReference Include="..\..\..\Client\src\Core\StrawberryShake.Core.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\CodeGeneration\StrawberryShake.CodeGeneration.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\CodeGeneration.CSharp\StrawberryShake.CodeGeneration.CSharp.csproj" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
@@ -19,6 +22,11 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Package the generator in the analyzer directory of the nuget package -->
+    <None Include="$(OutputPath)\netstandard2.1\*.*" Exclude="$(OutputPath)\netstandard2.1\System*.*" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
 
 </Project>

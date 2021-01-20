@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using System.Text;
 using HotChocolate;
@@ -20,37 +21,49 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
         public void Execute(GeneratorExecutionContext context)
         {
-            var documents = context.AdditionalFiles
-                .Select(t => t.Path)
-                .Where(t => t.EndsWith(".graphql"))
-                .Select(t => Utf8GraphQLParser.Parse(File.ReadAllBytes(t)))
-                .ToList();
-
-            var typeSystemDocs = documents.GetTypeSystemDocuments().ToList();
-            var executableDocs = documents.GetExecutableDocuments().ToList();
-
-            if (typeSystemDocs.Count == 0 || executableDocs.Count == 0)
+            try
             {
-                return;
+                var documents = context.AdditionalFiles
+                    .Select(t => t.Path)
+                    .Where(t => t.EndsWith(".graphql"))
+                    .Select(t => Utf8GraphQLParser.Parse(File.ReadAllBytes(t)))
+                    .ToList();
+
+                var typeSystemDocs = documents.GetTypeSystemDocuments().ToList();
+                var executableDocs = documents.GetExecutableDocuments().ToList();
+
+                if (typeSystemDocs.Count == 0 || executableDocs.Count == 0)
+                {
+                    return;
+                }
+
+                ISchema schema = SchemaHelper.Load(typeSystemDocs);
+
+                var analyzer = new DocumentAnalyzer();
+                analyzer.SetSchema(schema);
+
+                foreach (DocumentNode executableDocument in executableDocs)
+                {
+                    analyzer.AddDocument(executableDocument);
+                }
+
+                ClientModel clientModel = analyzer.Analyze();
+
+                var executor = new CSharpGeneratorExecutor();
+
+                foreach (CSharpDocument document in executor.Generate(clientModel, "Foo"))
+                {
+                    context.AddSource(
+                        document.Name + ".cs",
+                        SourceText.From(document.Source, Encoding.UTF8));
+                }
+
             }
-
-            ISchema schema = SchemaHelper.Load(typeSystemDocs);
-
-            var analyzer = new DocumentAnalyzer();
-            analyzer.SetSchema(schema);
-
-            foreach (DocumentNode executableDocument in executableDocs)
+            catch(Exception ex)
             {
-                analyzer.AddDocument(executableDocument);
-            }
-
-            ClientModel clientModel = analyzer.Analyze();
-
-            var executor = new CSharpGeneratorExecutor();
-
-            foreach (CSharpDocument document in executor.Generate(clientModel, "Foo"))
-            {
-                context.AddSource(document.Name, SourceText.From(document.Source, Encoding.UTF8));
+                context.AddSource(
+                    "error.cs",
+                    "/* " + ex.Message + " */");
             }
         }
     }

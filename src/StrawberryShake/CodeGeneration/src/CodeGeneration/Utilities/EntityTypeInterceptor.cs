@@ -11,7 +11,7 @@ namespace StrawberryShake.CodeGeneration.Utilities
 {
     public class EntityTypeInterceptor : TypeInterceptor
     {
-        private readonly List<TypeInfo> _objectTypes = new();
+        private readonly List<TypeInfo> _outputTypes = new();
         private readonly IReadOnlyList<SelectionSetNode> _globalEntityPatterns;
         private readonly IReadOnlyDictionary<NameString, SelectionSetNode> _typeEntityPatterns;
 
@@ -22,45 +22,48 @@ namespace StrawberryShake.CodeGeneration.Utilities
             _globalEntityPatterns = globalEntityPatterns;
             _typeEntityPatterns = typeEntityPatterns;
         }
-        
+
         public override void OnBeforeCompleteType(
             ITypeCompletionContext completionContext,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData)
         {
-            if (completionContext.Type is ObjectType objectType)
+            if (completionContext.Type is IComplexOutputType outputType)
             {
-                if (_typeEntityPatterns.TryGetValue(objectType.Name, out SelectionSetNode? pattern))
+                if (_typeEntityPatterns.TryGetValue(outputType.Name, out SelectionSetNode? pattern))
                 {
                     contextData[WellKnownContextData.Entity] = pattern;
                 }
                 else
                 {
-                    _objectTypes.Add(new TypeInfo(objectType, contextData));
+                    _outputTypes.Add(new TypeInfo(outputType, contextData));
                 }
             }
         }
 
         public override void OnAfterCompleteTypes()
         {
-            foreach (TypeInfo typeInfo in _objectTypes)
+            if (_globalEntityPatterns.Count > 0)
             {
-                if (_globalEntityPatterns.FirstOrDefault(
-                    pattern => DoesPatternMatch(typeInfo.Type, pattern)) is { } matchedPattern)
+                foreach (TypeInfo typeInfo in _outputTypes)
                 {
-                    typeInfo.ContextData[WellKnownContextData.Entity] = matchedPattern;
+                    if (_globalEntityPatterns.FirstOrDefault(
+                        pattern => DoesPatternMatch(typeInfo.Type, pattern)) is { } matchedPattern)
+                    {
+                        typeInfo.ContextData[WellKnownContextData.Entity] = matchedPattern;
+                    }
                 }
             }
         }
 
-        private bool DoesPatternMatch(ObjectType objectType, SelectionSetNode pattern)
+        private bool DoesPatternMatch(IComplexOutputType outputType, SelectionSetNode pattern)
         {
             // TODO : At the moment we just allow the first level.
 
             foreach (var selection in pattern.Selections.OfType<FieldNode>())
             {
                 if (selection.SelectionSet is null &&
-                    objectType.Fields.TryGetField(selection.Name.Value, out IObjectField? field) &&
+                    outputType.Fields.TryGetField(selection.Name.Value, out IOutputField? field) &&
                     field.Type.NamedType().IsLeafType())
                 {
                     continue;
@@ -74,13 +77,13 @@ namespace StrawberryShake.CodeGeneration.Utilities
 
         private readonly struct TypeInfo
         {
-            public TypeInfo(ObjectType type, IDictionary<string, object?> contextData)
+            public TypeInfo(IComplexOutputType type, IDictionary<string, object?> contextData)
             {
                 Type = type;
                 ContextData = contextData;
             }
 
-            public ObjectType Type { get; }
+            public IComplexOutputType Type { get; }
 
             public IDictionary<string, object?> ContextData { get; }
         }

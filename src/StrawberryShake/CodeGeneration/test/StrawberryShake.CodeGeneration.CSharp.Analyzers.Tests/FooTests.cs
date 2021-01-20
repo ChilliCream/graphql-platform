@@ -9,9 +9,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
         [Fact]
         public async Task TestMe()
         {
-            var s = new ABC.Foo();
+            // var s = new ABC.Foo();
 
-            Assert.Equal("Bar1", s.Bar);
+            //Assert.Equal("Bar1", s.Bar);
             // var x = typeof(ABC.Foo);
         }
     }

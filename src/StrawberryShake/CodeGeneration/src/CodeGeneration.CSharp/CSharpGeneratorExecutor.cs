@@ -22,7 +22,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
 
             var context = new MapperContext(ns);
-            EntityTypeDescriptorMapper.Map(clientModel, context);
+            EnumDescriptorMapper.Map(clientModel, context);
             TypeDescriptorMapper.Map(clientModel, context);
             EntityTypeDescriptorMapper.Map(clientModel, context);
 
