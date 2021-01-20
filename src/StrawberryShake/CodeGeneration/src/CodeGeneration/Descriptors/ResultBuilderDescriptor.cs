@@ -16,8 +16,8 @@ namespace StrawberryShake.CodeGeneration
             ValueParsers = valueParsers;
         }
 
-        // TODO : that cannot be right
-        public NameString Name => ResultNamedType.Name;
+        public NameString Name => 
+            NamingConventions.ResultBuilderNameFromTypeName(ResultNamedType.Name);
 
         /// <summary>
         /// The return type of the result builder.

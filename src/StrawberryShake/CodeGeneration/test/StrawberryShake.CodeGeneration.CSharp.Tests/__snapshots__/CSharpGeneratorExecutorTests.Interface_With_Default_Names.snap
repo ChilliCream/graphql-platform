@@ -1,0 +1,30 @@
+﻿// CharacterEntity
+
+namespace Foo
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class CharacterEntity
+    {
+        public EntityId Id { get; }
+
+        public String Name { get; set; }
+
+        public IReadOnlyList<Episode? ?>? AppearsIn { get; set; }
+    }
+}
+
+
+// Episode
+
+namespace Foo
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public enum Episode
+    {
+        NewHope,
+        Empire,
+        Jedi
+    }
+}
+
+

@@ -1,6 +1,0 @@
-﻿[
-  {
-    "Name": "CharacterEntity",
-    "Source": "namespace Foo\n{\n    [global::System.CodeDom.Compiler.GeneratedCode(\"StrawberryShake\", \"11.0.0\")]\n    public partial class CharacterEntity\n    {\n        public EntityId Id { get; }\n\n        public String Name { get; set; }\n\n        public IReadOnlyList<Episode? ?>? AppearsIn { get; set; }\n    }\n}\n"
-  }
-]

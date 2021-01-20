@@ -168,6 +168,10 @@ namespace StrawberryShake.CodeGeneration.Mappers
                         .First(t => t.TypeModel == fieldType)
                         .NamedTypeDescriptor;
                 }
+                else
+                {
+
+                }
             }
 
             throw new InvalidOperationException(

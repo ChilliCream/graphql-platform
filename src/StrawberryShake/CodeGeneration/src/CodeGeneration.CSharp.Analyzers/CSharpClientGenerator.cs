@@ -57,7 +57,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                         document.Name + ".cs",
                         SourceText.From(document.Source, Encoding.UTF8));
                 }
-
             }
             catch(Exception ex)
             {

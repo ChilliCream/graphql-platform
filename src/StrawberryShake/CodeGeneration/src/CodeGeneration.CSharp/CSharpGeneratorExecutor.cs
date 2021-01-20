@@ -11,7 +11,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
     {
         private readonly ICodeGenerator[] _generators =
         {
-            new EntityTypeGenerator()
+            new ClientGenerator(),
+            new EntityTypeGenerator(),
+            new EnumGenerator(),
+            new JsonResultBuilderGenerator(),
+            new OperationDocumentGenerator(),
+            new OperationServiceGenerator(),
+            new ResultDataFactoryGenerator(),
+            new ResultFromEntityTypeMapperGenerator(),
+            new ResultInfoGenerator(),
+            new ResultTypeGenerator()
         };
 
         public IEnumerable<CSharpDocument> Generate(ClientModel clientModel, string ns)
@@ -32,9 +41,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 foreach (var generator in _generators)
                 {
-                    // TODO : we need a name
-                    // TODO : asnyc context
-                    yield return WriteDocument(generator, descriptor, code).Result;
+                    if (generator.CanHandle(descriptor))
+                    {
+                        // TODO : asnyc context
+                        yield return WriteDocument(generator, descriptor, code).Result;
+                        break;
+                    }
                 }
             }
         }

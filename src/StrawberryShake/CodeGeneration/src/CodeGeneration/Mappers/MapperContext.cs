@@ -29,6 +29,11 @@ namespace StrawberryShake.CodeGeneration.Mappers
             {
                 yield return entityTypeDescriptor;
             }
+
+            foreach (var enumTypeDescriptor in EnumTypes)
+            {
+                yield return enumTypeDescriptor;
+            }
         }
 
         public void Register(NameString codeTypeName, NamedTypeDescriptor typeDescriptor)

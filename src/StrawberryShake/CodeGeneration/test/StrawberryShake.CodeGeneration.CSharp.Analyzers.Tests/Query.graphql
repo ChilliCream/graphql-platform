@@ -4,4 +4,3 @@ query GetHero {
     appearsIn
   }
 }
- 
