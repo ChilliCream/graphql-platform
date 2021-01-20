@@ -8,6 +8,7 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Internal;
+using HotChocolate.Execution.Pipeline;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
@@ -144,5 +145,13 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddSingleton<IIdSerializer, IdSerializer>();
             return services;
         }
+
+        internal static IServiceCollection TryAddDefaultTransactionScopeHandler(
+            this IServiceCollection services)
+        {
+            services.TryAddSingleton<ITransactionScopeHandler, NoOpTransactionScopeHandler>();
+            return services;
+        }
+
     }
 }

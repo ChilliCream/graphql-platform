@@ -17,6 +17,7 @@ namespace HotChocolate.Execution.Pipeline
         private readonly QueryExecutor _queryExecutor;
         private readonly MutationExecutor _mutationExecutor;
         private readonly SubscriptionExecutor _subscriptionExecutor;
+        private readonly ITransactionScopeHandler _transactionScopeHandler;
         private object? _cachedQueryValue;
         private object? _cachedMutation;
 
@@ -26,7 +27,8 @@ namespace HotChocolate.Execution.Pipeline
             ObjectPool<OperationContext> operationContextPool,
             QueryExecutor queryExecutor,
             MutationExecutor mutationExecutor,
-            SubscriptionExecutor subscriptionExecutor)
+            SubscriptionExecutor subscriptionExecutor,
+            ITransactionScopeHandler transactionScopeHandler)
         {
             _next = next ??
                 throw new ArgumentNullException(nameof(next));
@@ -40,6 +42,8 @@ namespace HotChocolate.Execution.Pipeline
                 throw new ArgumentNullException(nameof(mutationExecutor));
             _subscriptionExecutor = subscriptionExecutor ??
                 throw new ArgumentNullException(nameof(subscriptionExecutor));
+            _transactionScopeHandler = transactionScopeHandler ??
+                throw new ArgumentNullException(nameof(transactionScopeHandler));
         }
 
         public async ValueTask InvokeAsync(
@@ -154,6 +158,9 @@ namespace HotChocolate.Execution.Pipeline
             }
             else if (operation.Definition.Operation == OperationType.Mutation)
             {
+                using ITransactionScope transactionScope =
+                    _transactionScopeHandler.Create(context);
+
                 object? mutation = GetMutationRootValue(context);
 
                 operationContext.Initialize(
@@ -168,6 +175,8 @@ namespace HotChocolate.Execution.Pipeline
                 result = await _mutationExecutor
                     .ExecuteAsync(operationContext)
                     .ConfigureAwait(false);
+
+                transactionScope.Complete();
             }
 
             return result;
