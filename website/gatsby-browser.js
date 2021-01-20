@@ -6,3 +6,5 @@ import "prismjs/themes/prism-tomorrow.css";
 require("prismjs/components/prism-csharp");
 require("prismjs/components/prism-graphql");
 require("prismjs/components/prism-json");
+require("prismjs/components/prism-bash");
+require("prismjs/components/prism-sql");

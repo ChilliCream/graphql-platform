@@ -3,15 +3,15 @@ import styled from "styled-components";
 import { useTabs } from "./tabs";
 
 export interface PanelProps {
-    value: string;
+  value: string;
 }
 
 export const Panel: FC<PanelProps> = props => {
-    const { activeTab } = useTabs();
+  const { activeTab } = useTabs();
 
-    return activeTab === props.value ? <Container>{props.children}</Container> : null;
+  return activeTab === props.value ? <><Spacer />{props.children}</> : null;
 };
 
-const Container = styled.div`
+const Spacer = styled.div`
   margin-top: 0.5rem;
 `;

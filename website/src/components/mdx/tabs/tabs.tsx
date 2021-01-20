@@ -36,17 +36,14 @@ export const Tabs: FC<TabsProps> & TabsComposition = ({
 
     return (
         <TabsContext.Provider value={memoizedContextValue}>
-            <div>
-                <Container>
-                    {children}
-                </Container>
-            </div>
+            {children}
+            <ClosingBorder />
         </TabsContext.Provider>
     );
 };
 
-const Container = styled.div`
-  border-bottom: 1px solid #666677;
+const ClosingBorder = styled.div`
+  border-bottom: 1px solid #cacada;
   margin-bottom: 1rem;
 `;
 
