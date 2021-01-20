@@ -158,7 +158,7 @@ namespace HotChocolate.Stitching.Delegation
         }
 
         [Fact]
-        public async Task Deserialize_AnyList()
+        public async Task Deserialize_ListValueNode_Enum()
         {
             // arrange
             ISchema schema =
@@ -167,27 +167,27 @@ namespace HotChocolate.Stitching.Delegation
                     .AddQueryType(x =>
                         x.Name("Query")
                             .Field("Foo")
-                            .Resolver(Array.Empty<object>())
-                            .Type<ListType<AnyType>>())
+                            .Resolver(Array.Empty<Foo>())
+                            .Type<ListType<EnumType<Foo>>>())
                     .BuildSchemaAsync();
 
-            IType anyType = schema.GetType<AnyType>("Any");
-
+            ObjectType queryType = schema.GetType<ObjectType>("Query");
+            queryType.Fields.TryGetField("Foo", out ObjectField fooField);
 
             // act
             object value = DictionaryDeserializer.DeserializeResult(
-                anyType,
-                new List<object> { new IntValueNode(2), new IntValueNode(3) });
+                fooField!.Type,
+                new ListValueNode(new EnumValueNode(Foo.Bar), new EnumValueNode(Foo.Baz)));
 
             // assert
             Assert.Collection(
                 Assert.IsType<List<object>>(value)!,
-                x => Assert.Equal(2L, x),
-                x => Assert.Equal(3L, x));
+                x => Assert.Equal(Foo.Bar, x),
+                x => Assert.Equal(Foo.Baz, x));
         }
 
         [Fact]
-        public async Task Deserialize_AnyListNested()
+        public async Task Deserialize_StringValueNode_Enum()
         {
             // arrange
             ISchema schema =
@@ -196,8 +196,114 @@ namespace HotChocolate.Stitching.Delegation
                     .AddQueryType(x =>
                         x.Name("Query")
                             .Field("Foo")
-                            .Resolver(Array.Empty<object>())
-                            .Type<ListType<AnyType>>())
+                            .Resolver(default(Foo))
+                            .Type<EnumType<Foo>>())
+                    .BuildSchemaAsync();
+
+            ObjectType queryType = schema.GetType<ObjectType>("Query");
+            queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+
+            // act
+            object value = DictionaryDeserializer.DeserializeResult(
+                fooField!.Type,
+                new StringValueNode("BAZ"));
+
+            // assert
+            Assert.Equal(Foo.Baz, value);
+        }
+
+        [Fact]
+        public async Task Deserialize_String_Enum()
+        {
+            // arrange
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQLServer()
+                    .AddQueryType(x =>
+                        x.Name("Query")
+                            .Field("Foo")
+                            .Resolver(default(Foo))
+                            .Type<EnumType<Foo>>())
+                    .BuildSchemaAsync();
+
+            ObjectType queryType = schema.GetType<ObjectType>("Query");
+            queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+
+            // act
+            object value = DictionaryDeserializer.DeserializeResult(
+                fooField!.Type, "BAZ");
+
+            // assert
+            Assert.Equal(Foo.Baz, value);
+        }
+
+        [Fact]
+        public async Task Deserialize_EnumValueNode_Enum()
+        {
+            // arrange
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQLServer()
+                    .AddQueryType(x =>
+                        x.Name("Query")
+                            .Field("Foo")
+                            .Resolver(default(Foo))
+                            .Type<EnumType<Foo>>())
+                    .BuildSchemaAsync();
+
+            ObjectType queryType = schema.GetType<ObjectType>("Query");
+            queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+
+            // act
+            object value = DictionaryDeserializer.DeserializeResult(
+                fooField!.Type,
+                new EnumValueNode(Foo.Baz));
+
+            // assert
+            Assert.Equal(Foo.Baz, value);
+        }
+
+        [Fact]
+        public async Task Deserialize_ListEnum()
+        {
+            // arrange
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQLServer()
+                    .AddQueryType(x =>
+                        x.Name("Query")
+                            .Field("Foo")
+                            .Resolver(Array.Empty<Foo>())
+                            .Type<ListType<EnumType<Foo>>>())
+                    .BuildSchemaAsync();
+
+            ObjectType queryType = schema.GetType<ObjectType>("Query");
+            queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+
+            // act
+            object value = DictionaryDeserializer.DeserializeResult(
+                fooField!.Type,
+                new List<object> { new EnumValueNode(Foo.Bar), new EnumValueNode(Foo.Baz) });
+
+            // assert
+            Assert.Collection(
+                Assert.IsType<List<Foo?>>(value)!,
+                x => Assert.Equal(Foo.Bar, x),
+                x => Assert.Equal(Foo.Baz, x));
+        }
+
+        [Fact]
+        public async Task Deserialize_ListNestedEnum()
+        {
+            // arrange
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQLServer()
+                    .AddQueryType(x =>
+                        x.Name("Query")
+                            .Field("Foo")
+                            .Resolver(Array.Empty<Foo>())
+                            .Type<ListType<ListType<EnumType<Foo>>>>())
                     .BuildSchemaAsync();
 
             ObjectType queryType = schema.GetType<ObjectType>("Query");
@@ -207,13 +313,277 @@ namespace HotChocolate.Stitching.Delegation
             // act
             object value = DictionaryDeserializer.DeserializeResult(
                 fooField!.Type,
-                new List<object> { new List<object> { new IntValueNode(2), new IntValueNode(3) } });
+                new List<object>
+                {
+                    new List<object> { new EnumValueNode(Foo.Bar), new EnumValueNode(Foo.Baz) }
+                });
 
             // assert
             Assert.Collection(
-                Assert.IsType<List<object>>(Assert.IsType<List<object>>(value)!.First())!,
-                x => Assert.Equal(2L, x),
-                x => Assert.Equal(3L, x));
+                Assert.IsType<List<Foo?>>(Assert.IsType<List<List<Foo?>>>(value)!.First())!,
+                x => Assert.Equal(Foo.Bar, x),
+                x => Assert.Equal(Foo.Baz, x));
+        }
+
+        [Fact]
+        public async Task Deserialize_NonNull_ListEnum()
+        {
+            // arrange
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQLServer()
+                    .AddQueryType(x =>
+                        x.Name("Query")
+                            .Field("Foo")
+                            .Resolver(Array.Empty<Foo>())
+                            .Type<ListType<NonNullType<EnumType<Foo>>>>())
+                    .BuildSchemaAsync();
+
+            ObjectType queryType = schema.GetType<ObjectType>("Query");
+            queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+
+            // act
+            object value = DictionaryDeserializer.DeserializeResult(
+                fooField!.Type,
+                new List<object> { new EnumValueNode(Foo.Bar), new EnumValueNode(Foo.Baz) });
+
+            // assert
+            Assert.Collection(
+                Assert.IsType<List<Foo>>(value)!,
+                x => Assert.Equal(Foo.Bar, x),
+                x => Assert.Equal(Foo.Baz, x));
+        }
+
+        [Fact]
+        public async Task Deserialize_NonNull_ListNestedEnum()
+        {
+            // arrange
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQLServer()
+                    .AddQueryType(x =>
+                        x.Name("Query")
+                            .Field("Foo")
+                            .Resolver(Array.Empty<Foo>())
+                            .Type<ListType<ListType<NonNullType<EnumType<Foo>>>>>())
+                    .BuildSchemaAsync();
+
+            ObjectType queryType = schema.GetType<ObjectType>("Query");
+            queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+
+
+            // act
+            object value = DictionaryDeserializer.DeserializeResult(
+                fooField!.Type,
+                new List<object>
+                {
+                    new List<object> { new EnumValueNode(Foo.Bar), new EnumValueNode(Foo.Baz) }
+                });
+
+            // assert
+            Assert.Collection(
+                Assert.IsType<List<Foo>>(Assert.IsType<List<List<Foo>>>(value)!.First())!,
+                x => Assert.Equal(Foo.Bar, x),
+                x => Assert.Equal(Foo.Baz, x));
+        }
+
+
+        [Fact]
+        public async Task Deserialize_ListValueNode_Int()
+        {
+            // arrange
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQLServer()
+                    .AddQueryType(x =>
+                        x.Name("Query")
+                            .Field("Foo")
+                            .Resolver(Array.Empty<int>())
+                            .Type<ListType<IntType>>())
+                    .BuildSchemaAsync();
+
+            ObjectType queryType = schema.GetType<ObjectType>("Query");
+            queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+
+            // act
+            object value = DictionaryDeserializer.DeserializeResult(
+                fooField!.Type,
+                new ListValueNode(new IntValueNode(1), new IntValueNode(2)));
+
+            // assert
+            Assert.Collection(
+                Assert.IsType<List<object>>(value)!,
+                x => Assert.Equal(1, x),
+                x => Assert.Equal(2, x));
+        }
+
+        [Fact]
+        public async Task Deserialize_IntValueNode_Int()
+        {
+            // arrange
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQLServer()
+                    .AddQueryType(x =>
+                        x.Name("Query")
+                            .Field("Foo")
+                            .Resolver(1)
+                            .Type<IntType>())
+                    .BuildSchemaAsync();
+
+            ObjectType queryType = schema.GetType<ObjectType>("Query");
+            queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+
+            // act
+            object value = DictionaryDeserializer.DeserializeResult(
+                fooField!.Type,
+                new IntValueNode(2));
+
+            // assert
+            Assert.Equal(2, value);
+        }
+
+        [Fact]
+        public async Task Deserialize_Int_Int()
+        {
+            // arrange
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQLServer()
+                    .AddQueryType(x =>
+                        x.Name("Query")
+                            .Field("Foo")
+                            .Resolver(1)
+                            .Type<IntType>())
+                    .BuildSchemaAsync();
+
+            ObjectType queryType = schema.GetType<ObjectType>("Query");
+            queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+
+            // act
+            object value = DictionaryDeserializer.DeserializeResult(
+                fooField!.Type, 2);
+
+            // assert
+            Assert.Equal(2, value);
+        }
+
+        [Fact]
+        public async Task Deserialize_ListInt()
+        {
+            // arrange
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQLServer()
+                    .AddQueryType(x =>
+                        x.Name("Query")
+                            .Field("Foo")
+                            .Resolver(Array.Empty<int>())
+                            .Type<ListType<IntType>>())
+                    .BuildSchemaAsync();
+
+            ObjectType queryType = schema.GetType<ObjectType>("Query");
+            queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+
+            // act
+            object value = DictionaryDeserializer.DeserializeResult(
+                fooField!.Type,
+                new List<object> { new IntValueNode(1), new IntValueNode(2) });
+
+            // assert
+            Assert.Collection(
+                Assert.IsType<List<int?>>(value)!,
+                x => Assert.Equal(1, x),
+                x => Assert.Equal(2, x));
+        }
+
+        [Fact]
+        public async Task Deserialize_ListNestedInt()
+        {
+            // arrange
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQLServer()
+                    .AddQueryType(x =>
+                        x.Name("Query")
+                            .Field("Foo")
+                            .Resolver(Array.Empty<int>())
+                            .Type<ListType<ListType<IntType>>>())
+                    .BuildSchemaAsync();
+
+            ObjectType queryType = schema.GetType<ObjectType>("Query");
+            queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+
+
+            // act
+            object value = DictionaryDeserializer.DeserializeResult(
+                fooField!.Type,
+                new List<object> { new List<object> { new IntValueNode(1), new IntValueNode(2) } });
+
+            // assert
+            Assert.Collection(
+                Assert.IsType<List<int?>>(Assert.IsType<List<List<int?>>>(value)!.First())!,
+                x => Assert.Equal(1, x),
+                x => Assert.Equal(2, x));
+        }
+
+        [Fact]
+        public async Task Deserialize_NonNull_ListInt()
+        {
+            // arrange
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQLServer()
+                    .AddQueryType(x =>
+                        x.Name("Query")
+                            .Field("Foo")
+                            .Resolver(Array.Empty<int>())
+                            .Type<ListType<NonNullType<IntType>>>())
+                    .BuildSchemaAsync();
+
+            ObjectType queryType = schema.GetType<ObjectType>("Query");
+            queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+
+            // act
+            object value = DictionaryDeserializer.DeserializeResult(
+                fooField!.Type,
+                new List<object> { new IntValueNode(1), new IntValueNode(2) });
+
+            // assert
+            Assert.Collection(
+                Assert.IsType<List<int>>(value)!,
+                x => Assert.Equal(1, x),
+                x => Assert.Equal(2, x));
+        }
+
+        [Fact]
+        public async Task Deserialize_NonNull_ListNestedInt()
+        {
+            // arrange
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQLServer()
+                    .AddQueryType(x =>
+                        x.Name("Query")
+                            .Field("Foo")
+                            .Resolver(Array.Empty<int>())
+                            .Type<ListType<ListType<NonNullType<IntType>>>>())
+                    .BuildSchemaAsync();
+
+            ObjectType queryType = schema.GetType<ObjectType>("Query");
+            queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+
+
+            // act
+            object value = DictionaryDeserializer.DeserializeResult(
+                fooField!.Type,
+                new List<object> { new List<object> { new IntValueNode(1), new IntValueNode(2) } });
+
+            // assert
+            Assert.Collection(
+                Assert.IsType<List<int>>(Assert.IsType<List<List<int>>>(value)!.First())!,
+                x => Assert.Equal(1, x),
+                x => Assert.Equal(2, x));
         }
 
         public class Query
@@ -224,6 +594,12 @@ namespace HotChocolate.Stitching.Delegation
         public class Person
         {
             public string Name { get; } = "Jon Doe";
+        }
+
+        public enum Foo
+        {
+            Bar,
+            Baz
         }
     }
 }
