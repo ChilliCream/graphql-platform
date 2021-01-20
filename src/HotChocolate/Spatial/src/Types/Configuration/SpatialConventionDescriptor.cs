@@ -42,6 +42,15 @@ namespace HotChocolate.Types.Spatial.Configuration
             return this;
         }
 
+        /// <inheritdoc />
+        public ISpatialConventionDescriptor AddCoordinateSystem(
+            int srid,
+            CoordinateSystem coordinateSystem)
+        {
+            Definition.CoordinateSystems[srid] = coordinateSystem;
+            return this;
+        }
+
         /// <summary>
         /// Creates a new instance of the descriptor
         /// </summary>

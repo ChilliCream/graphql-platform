@@ -23,7 +23,8 @@ namespace HotChocolate.Types.Spatial.Transformation
             IDictionary<string, object?> contextData)
         {
             ISpatialConvention convention = completionContext.GetSpatialConvention();
-            if (convention.TransformerFactory.HasCoordinateSystems())
+            if (convention.TransformerFactory.HasCoordinateSystems() &&
+                convention.DefaultSrid is not 0 and not -1)
             {
                 if (!convention.TransformerFactory.ContainsCoordinateSystem(convention.DefaultSrid))
                 {

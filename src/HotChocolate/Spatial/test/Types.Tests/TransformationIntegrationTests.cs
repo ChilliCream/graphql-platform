@@ -348,6 +348,39 @@ namespace HotChocolate.Types.Spatial
         }
 
         [Fact]
+        public async Task Execute_NoDefault_NotTransformation()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Query>()
+                .AddSpatialTypes(x => x
+                    .AddCoordinateSystemFromString(4326, WKT4326)
+                    .AddCoordinateSystemFromString(26918, WKT26918))
+                .Create();
+
+            IRequestExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                {
+                    test(
+                        arg: {
+                            type: LineString,
+                            crs: 1234
+                            coordinates: [[30, 10], [10, 30], [40, 40]]
+                        }) {
+                            type
+                            crs
+                            coordinates
+                    }
+                }");
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
         public async Task Execute_CrsEmpty_TakeDefaultSrid()
         {
             // arrange
@@ -542,6 +575,40 @@ namespace HotChocolate.Types.Spatial
                         type
                         crs
                         coordinates
+                    }
+                }");
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Execute_Transformer_RegisterWithExtensions()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Query>()
+                .AddSpatialTypes(x => x
+                    .DefaultSrid(4326)
+                    .AddWebMercator()
+                    .AddWGS84())
+                .Create();
+
+            IRequestExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                {
+                    test(
+                        arg: {
+                            type: LineString,
+                            crs: 3857,
+                            coordinates: [[30, 10], [10, 30], [40, 40]]
+                        }) {
+                            type
+                            crs
+                            coordinates
                     }
                 }");
 
