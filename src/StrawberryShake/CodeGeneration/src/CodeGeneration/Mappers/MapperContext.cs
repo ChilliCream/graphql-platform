@@ -9,11 +9,16 @@ namespace StrawberryShake.CodeGeneration.Mappers
         private readonly Dictionary<NameString, NamedTypeDescriptor> _types = new();
         private readonly Dictionary<NameString, EntityTypeDescriptor> _entityTypes = new();
         private readonly Dictionary<NameString, EnumDescriptor> _enums = new();
+        private readonly Dictionary<NameString, OperationDescriptor> _operations = new();
+        private ClientDescriptor? _client = null;
 
-        public MapperContext(string ns)
+        public MapperContext(string ns, string clientName)
         {
             Namespace = ns;
+            ClientName = clientName;
         }
+
+        public string ClientName { get; }
 
         public string Namespace { get; }
 
@@ -22,6 +27,9 @@ namespace StrawberryShake.CodeGeneration.Mappers
         public IReadOnlyCollection<EntityTypeDescriptor> EntityTypes => _entityTypes.Values;
 
         public IReadOnlyCollection<EnumDescriptor> EnumTypes => _enums.Values;
+        public IReadOnlyCollection<OperationDescriptor> Operations => _operations.Values;
+
+        public ClientDescriptor Client => _client ?? throw new NotImplementedException();
 
         public IEnumerable<ICodeDescriptor> GetAllDescriptors()
         {
@@ -34,6 +42,18 @@ namespace StrawberryShake.CodeGeneration.Mappers
             {
                 yield return enumTypeDescriptor;
             }
+
+            foreach (var type in Types)
+            {
+                yield return type;
+            }
+
+            foreach (var type in Operations)
+            {
+                yield return type;
+            }
+
+            yield return Client;
         }
 
         public void Register(NameString codeTypeName, NamedTypeDescriptor typeDescriptor)
@@ -55,6 +75,19 @@ namespace StrawberryShake.CodeGeneration.Mappers
             _enums.Add(
                 codeTypeName.EnsureNotEmpty(nameof(codeTypeName)),
                 enumTypeDescriptor ?? throw new ArgumentNullException(nameof(enumTypeDescriptor)));
+        }
+
+        public void Register(NameString operationName, OperationDescriptor operationDescriptor)
+        {
+            _operations.Add(
+                operationName.EnsureNotEmpty(nameof(operationName)),
+                operationDescriptor ??
+                throw new ArgumentNullException(nameof(operationDescriptor)));
+        }
+
+        public void Register(ClientDescriptor clientDescriptor)
+        {
+            _client = clientDescriptor;
         }
     }
 }

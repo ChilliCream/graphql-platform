@@ -7,6 +7,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public class ResultTypeGenerator: CSharpBaseGenerator<NamedTypeDescriptor>
     {
+        protected override bool CanHandle(NamedTypeDescriptor descriptor)
+        {
+            return descriptor.Kind != TypeKind.LeafType;
+        }
+
         protected override Task WriteAsync(CodeWriter writer, NamedTypeDescriptor namedTypeDescriptor)
         {
             AssertNonNull(writer, namedTypeDescriptor);

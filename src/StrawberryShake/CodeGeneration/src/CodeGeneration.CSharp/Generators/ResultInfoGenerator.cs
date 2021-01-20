@@ -9,6 +9,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public class ResultInfoGenerator : ClassBaseGenerator<ITypeDescriptor>
     {
+        protected override bool CanHandle(ITypeDescriptor descriptor)
+        {
+            return descriptor.Kind == TypeKind.ResultType;
+        }
+
         protected override Task WriteAsync(CodeWriter writer, ITypeDescriptor typeDescriptor)
         {
             AssertNonNull(
@@ -22,13 +27,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 _ => throw new ArgumentException(nameof(typeDescriptor))
             };
 
+            var (classBuilder, constructorBuilder) = CreateClassBuilder();
+
             var className = ResultInfoNameFromTypeName(namedTypeDescriptor.Name);
 
-            ClassBuilder
+            classBuilder
                 .AddImplements(ResultInfoNameFromTypeName(WellKnownNames.IOperationResultDataInfo))
                 .SetName(className);
 
-            ConstructorBuilder
+            constructorBuilder
                 .SetTypeName(namedTypeDescriptor.Name)
                 .SetAccessModifier(AccessModifier.Public);
 
@@ -55,7 +62,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetType(propTypeBuilder)
                     .SetAccessModifier(AccessModifier.Public);
 
-                ClassBuilder.AddProperty(propBuilder);
+                classBuilder.AddProperty(propBuilder);
                 constructorCaller.AddArgument(prop.Name);
 
                 // Add initialization of property to the constructor
@@ -64,31 +71,31 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetName(paramName)
                     .SetType(propTypeBuilder);
 
-                ConstructorBuilder.AddParameter(parameterBuilder);
-                ConstructorBuilder.AddCode(prop.Name + " = " + paramName + ";");
+                constructorBuilder.AddParameter(parameterBuilder);
+                constructorBuilder.AddCode(prop.Name + " = " + paramName + ";");
             }
 
-            ClassBuilder.AddProperty(PropertyBuilder.New()
+            classBuilder.AddProperty(PropertyBuilder.New()
                 .SetName("IOperationResultDataInfo.EntityIds")
                 .SetType("IReadOnlyCollection<EntityId>")
                 .AsLambda("_entityIds"));
 
-            ClassBuilder.AddProperty(PropertyBuilder.New()
+            classBuilder.AddProperty(PropertyBuilder.New()
                 .SetName("IOperationResultDataInfo.Version")
                 .SetType("ulong")
                 .AsLambda("_version"));
 
-            AddConstructorAssignedField("IReadOnlyCollection<EntityId>", "_entityIds");
+            AddConstructorAssignedField("IReadOnlyCollection<EntityId>", "_entityIds", classBuilder, constructorBuilder);
             constructorCaller.AddArgument("_entityIds");
-            AddConstructorAssignedField("ulong", "_version");
+            AddConstructorAssignedField("ulong", "_version", classBuilder, constructorBuilder);
             constructorCaller.AddArgument("_version");
 
             withVersion.AddCode(constructorCaller);
-            ClassBuilder.AddMethod(withVersion);
+            classBuilder.AddMethod(withVersion);
 
             return CodeFileBuilder.New()
                 .SetNamespace(namedTypeDescriptor.Namespace)
-                .AddType(ClassBuilder)
+                .AddType(classBuilder)
                 .BuildAsync(writer);
         }
     }

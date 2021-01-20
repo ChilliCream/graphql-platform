@@ -18,13 +18,13 @@ namespace StrawberryShake
             string referenceName) =>
             new(
                 referenceName,
-                new NonNullTypeDescriptor(new NamedTypeDescriptor("string", "System")));
+                new NonNullTypeDescriptor(new NamedTypeDescriptor("string", "System", false)));
 
         public static PropertyDescriptor GetNamedNonNullIntTypeReference(
             string referenceName) =>
             new(
                 referenceName,
-                new NonNullTypeDescriptor(new NamedTypeDescriptor("int", "System")));
+                new NonNullTypeDescriptor(new NamedTypeDescriptor("int", "System", false)));
 
         public static async Task<ClientModel> CreateClientModelAsync(
             params string[] sourceText)
@@ -42,7 +42,7 @@ namespace StrawberryShake
 
             var typeSystemDocs = documents.GetTypeSystemDocuments().ToList();
             typeSystemDocs.Add(schema.ToDocument());
-            
+
             var executableDocs = documents.GetExecutableDocuments().ToList();
 
             var analyzer = new DocumentAnalyzer();

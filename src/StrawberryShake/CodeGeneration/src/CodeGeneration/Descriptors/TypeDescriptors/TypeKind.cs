@@ -4,6 +4,7 @@ namespace StrawberryShake.CodeGeneration
     {
         LeafType,
         DataType,
-        EntityType
+        EntityType,
+        ResultType
     }
 }

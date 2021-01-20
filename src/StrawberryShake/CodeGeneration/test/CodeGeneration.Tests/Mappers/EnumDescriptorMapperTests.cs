@@ -21,7 +21,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 }");
 
             // act
-            var context = new MapperContext("Foo.Bar");
+            var context = new MapperContext("Foo.Bar", "FooClient");
             EnumDescriptorMapper.Map(clientModel, context);
 
             // assert

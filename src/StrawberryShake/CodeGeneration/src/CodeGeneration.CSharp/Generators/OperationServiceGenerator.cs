@@ -18,14 +18,18 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 writer,
                 operationDescriptor);
 
-            ClassBuilder.SetName(operationDescriptor.Name);
-            ConstructorBuilder.SetTypeName(operationDescriptor.Name);
+            var (classBuilder, constructorBuilder) = CreateClassBuilder();
+
+            classBuilder.SetName(operationDescriptor.Name);
+            constructorBuilder.SetTypeName(operationDescriptor.Name);
 
             AddConstructorAssignedField(
                 TypeReferenceBuilder.New()
                     .SetName(WellKnownNames.IOperationExecutor)
                     .AddGeneric(operationDescriptor.ResultTypeReference.Name),
-                OperationExecutorFieldName);
+                OperationExecutorFieldName,
+                classBuilder,
+                constructorBuilder);
 
             MethodBuilder? executeMethod = null;
             if (operationDescriptor is not SubscriptionOperationDescriptor)
@@ -116,19 +120,19 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             if (executeMethod is not null)
             {
-                ClassBuilder.AddMethod(executeMethod);
+                classBuilder.AddMethod(executeMethod);
             }
 
             if (watchMethod is not null)
             {
-                ClassBuilder.AddMethod(watchMethod);
+                classBuilder.AddMethod(watchMethod);
             }
 
-            ClassBuilder.AddMethod(CreateRequestMethod(operationDescriptor));
+            classBuilder.AddMethod(CreateRequestMethod(operationDescriptor));
 
             return CodeFileBuilder.New()
                 .SetNamespace(operationDescriptor.Namespace)
-                .AddType(ClassBuilder)
+                .AddType(classBuilder)
                 .BuildAsync(writer);
         }
 

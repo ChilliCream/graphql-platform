@@ -29,5 +29,15 @@ namespace StrawberryShake.Integration
 
             _stringBuilder.ToString().MatchSnapshot();
         }
+
+        [Fact]
+        public async Task GenerateResult_IHero()
+        {
+            await _generator.WriteAsync(
+                _codeWriter,
+                IntegrationDescriptors.CreateIHeroDescriptor());
+
+            _stringBuilder.ToString().MatchSnapshot();
+        }
     }
 }

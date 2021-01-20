@@ -17,6 +17,11 @@ namespace StrawberryShake.CodeGeneration.Extensions
             return typeDescriptor.Kind == TypeKind.DataType;
         }
 
+        public static bool IsInterface(this ITypeDescriptor typeDescriptor)
+        {
+            return typeDescriptor is NamedTypeDescriptor { IsInterface: true };
+        }
+
         public static bool IsNullableType(this ITypeDescriptor typeDescriptor)
         {
             return typeDescriptor is not NonNullTypeDescriptor;

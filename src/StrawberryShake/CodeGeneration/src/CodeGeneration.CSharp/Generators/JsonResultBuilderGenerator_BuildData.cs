@@ -8,7 +8,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuilderDescriptor>
     {
-        private void AddBuildDataMethod(NamedTypeDescriptor resultNamedType)
+        private void AddBuildDataMethod(NamedTypeDescriptor resultNamedType, ClassBuilder classBuilder)
         {
             var objParameter = "obj";
             var buildDataMethod = MethodBuilder.New()
@@ -76,7 +76,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 $"return ({_resultDataFactoryFieldName}" +
                 $".Create({resultInfoName}), {resultInfoName});");
 
-            ClassBuilder.AddMethod(buildDataMethod);
+            classBuilder.AddMethod(buildDataMethod);
         }
     }
 }

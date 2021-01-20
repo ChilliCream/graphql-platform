@@ -8,15 +8,17 @@ namespace StrawberryShake.CodeGeneration
     /// </summary>
     public class SubscriptionOperationDescriptor : OperationDescriptor
     {
-        public SubscriptionOperationDescriptor(ITypeDescriptor resultTypeReference,
+        public SubscriptionOperationDescriptor(
+            NameString operationName,
+            ITypeDescriptor resultTypeReference,
             string @namespace,
             IReadOnlyList<PropertyDescriptor> arguments,
             string bodyString)
-            : base(resultTypeReference, @namespace, arguments, bodyString)
+            : base(operationName, resultTypeReference, @namespace, arguments, bodyString)
         {
         }
 
         public override NameString Name =>
-            NamingConventions.SubscriptionServiceNameFromTypeName(ResultTypeReference.Name);
+            NamingConventions.SubscriptionServiceNameFromTypeName(_operationName);
     }
 }

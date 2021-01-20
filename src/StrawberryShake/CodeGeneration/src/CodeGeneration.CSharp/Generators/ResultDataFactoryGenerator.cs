@@ -13,23 +13,32 @@ namespace StrawberryShake.CodeGeneration.CSharp
     {
         const string StoreParamName = "_entityStore";
 
+        protected override bool CanHandle(NamedTypeDescriptor descriptor)
+        {
+            return descriptor.Kind == TypeKind.ResultType && !descriptor.IsInterface();
+        }
+
         protected override Task WriteAsync(CodeWriter writer, NamedTypeDescriptor namedTypeDescriptor)
         {
             AssertNonNull(
                 writer,
                 namedTypeDescriptor);
 
-            ClassBuilder
+            var (classBuilder, constructorBuilder) = CreateClassBuilder();
+
+            classBuilder
                 .SetName(ResultFactoryNameFromTypeName(namedTypeDescriptor.Name))
                 .AddImplements($"{IOperationResultDataFactory}<{namedTypeDescriptor.Name}>");
 
-            ConstructorBuilder
+            constructorBuilder
                 .SetTypeName(namedTypeDescriptor.Name)
                 .SetAccessModifier(AccessModifier.Public);
 
             AddConstructorAssignedField(
                 WellKnownNames.IEntityStore,
-                StoreParamName);
+                StoreParamName,
+                classBuilder,
+                constructorBuilder);
 
             var mappersToInject = namedTypeDescriptor.Properties
                 .Where(prop => !prop.Type.IsLeafType())
@@ -48,7 +57,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 AddConstructorAssignedField(
                     typeName,
                     EntityMapperNameFromGraphQLTypeName(mapperType.Name, gqlTypeName)
-                        .ToFieldName());
+                        .ToFieldName(),
+                    classBuilder,
+                    constructorBuilder);
             }
 
             var createMethod = MethodBuilder.New()
@@ -92,11 +103,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 "throw new ArgumentException(\"" +
                 $"{ResultInfoNameFromTypeName(namedTypeDescriptor.Name)} expected.\");");
 
-            ClassBuilder.AddMethod(createMethod);
+            classBuilder.AddMethod(createMethod);
 
             return CodeFileBuilder.New()
                 .SetNamespace(namedTypeDescriptor.Namespace)
-                .AddType(ClassBuilder)
+                .AddType(classBuilder)
                 .BuildAsync(writer);
         }
 

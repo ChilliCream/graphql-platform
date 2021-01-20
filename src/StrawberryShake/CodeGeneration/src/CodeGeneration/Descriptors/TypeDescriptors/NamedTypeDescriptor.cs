@@ -12,6 +12,7 @@ namespace StrawberryShake.CodeGeneration
         public NamedTypeDescriptor(
             NameString name,
             string @namespace,
+            bool isInterface,
             IReadOnlyList<NameString>? implements = null,
             IReadOnlyList<PropertyDescriptor>? properties = null,
             IReadOnlyList<NamedTypeDescriptor>? implementedBy = null,
@@ -25,6 +26,7 @@ namespace StrawberryShake.CodeGeneration
             Properties = properties ?? new List<PropertyDescriptor>();
             ImplementedBy = implementedBy ?? new NamedTypeDescriptor[] { };
             Kind = kind;
+            IsInterface = isInterface;
         }
 
         /// <summary>
@@ -60,7 +62,7 @@ namespace StrawberryShake.CodeGeneration
         /// <summary>
         /// States whether or not this type is an interface
         /// </summary>
-        public bool IsInterface => ImplementedBy.Count > 0;
+        public bool IsInterface { get; }
 
         /// <summary>
         /// A list of types that implement this interface

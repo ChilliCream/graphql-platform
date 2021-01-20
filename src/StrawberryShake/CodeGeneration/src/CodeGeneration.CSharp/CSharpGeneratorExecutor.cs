@@ -23,17 +23,22 @@ namespace StrawberryShake.CodeGeneration.CSharp
             new ResultTypeGenerator()
         };
 
-        public IEnumerable<CSharpDocument> Generate(ClientModel clientModel, string ns)
+        public IEnumerable<CSharpDocument> Generate(ClientModel clientModel, string ns, string clientName)
         {
             if (clientModel is null)
             {
                 throw new ArgumentNullException(nameof(clientModel));
             }
 
-            var context = new MapperContext(ns);
+            var context = new MapperContext(ns, clientName);
             EnumDescriptorMapper.Map(clientModel, context);
             TypeDescriptorMapper.Map(clientModel, context);
             EntityTypeDescriptorMapper.Map(clientModel, context);
+
+
+
+            OperationDescriptorMapper.Map(clientModel, context);
+            ClientDescriptorMapper.Map(clientModel, context);
 
             var code = new StringBuilder();
 

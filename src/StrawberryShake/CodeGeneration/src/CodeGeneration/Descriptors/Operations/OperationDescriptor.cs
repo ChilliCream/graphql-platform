@@ -8,12 +8,16 @@ namespace StrawberryShake.CodeGeneration
     /// </summary>
     public abstract class OperationDescriptor : ICodeDescriptor
     {
+        protected readonly NameString _operationName;
+
         public OperationDescriptor(
+            NameString operationName,
             ITypeDescriptor resultTypeReference,
             string @namespace,
             IReadOnlyList<PropertyDescriptor> arguments,
             string bodyString)
         {
+            _operationName = operationName;
             ResultTypeReference = resultTypeReference;
             Arguments = arguments;
             BodyString = bodyString;

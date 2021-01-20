@@ -51,7 +51,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
                 var executor = new CSharpGeneratorExecutor();
 
-                foreach (CSharpDocument document in executor.Generate(clientModel, "Foo"))
+                foreach (CSharpDocument document in executor.Generate(clientModel, "Foo", "FooClient"))
                 {
                     context.AddSource(
                         document.Name + ".cs",

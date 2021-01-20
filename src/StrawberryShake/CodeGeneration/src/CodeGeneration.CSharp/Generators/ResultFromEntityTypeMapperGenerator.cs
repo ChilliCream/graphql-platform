@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using HotChocolate;
-using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.NamingConventions;
@@ -16,11 +14,18 @@ namespace StrawberryShake.CodeGeneration.CSharp
         const string _storeFieldName = "_entityStore";
         const string _mapMethodName = "Map";
 
+        protected override bool CanHandle(ITypeDescriptor descriptor)
+        {
+            return descriptor.Kind == TypeKind.EntityType && !descriptor.IsInterface();
+        }
+
         protected override Task WriteAsync(CodeWriter writer, ITypeDescriptor typeDescriptor)
         {
             AssertNonNull(
                 writer,
                 typeDescriptor);
+
+            var (classBuilder, constructorBuilder) = CreateClassBuilder();
 
             NamedTypeDescriptor descriptor = typeDescriptor switch
             {
@@ -30,7 +35,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             };
 
             // Setup class
-            ClassBuilder
+            classBuilder
                 .AddImplements(
                     "IEntityMapper<" +
                     (typeDescriptor.IsEntityType()
@@ -39,18 +44,20 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     $", {descriptor.Name}>")
                 .SetName(
                     descriptor.Kind == TypeKind.EntityType
-                        ? NamingConventions.EntityMapperNameFromGraphQLTypeName(
+                        ? EntityMapperNameFromGraphQLTypeName(
                             descriptor.Name,
                             descriptor.GraphQLTypeName)
-                        : NamingConventions.DataMapperNameFromGraphQLTypeName(
+                        : DataMapperNameFromGraphQLTypeName(
                             descriptor.Name,
                             descriptor.GraphQLTypeName));
 
-            ConstructorBuilder.SetTypeName(descriptor.Name);
+            constructorBuilder.SetTypeName(descriptor.Name);
 
             AddConstructorAssignedField(
                 WellKnownNames.IEntityStore,
-                _storeFieldName);
+                _storeFieldName,
+                classBuilder,
+                constructorBuilder);
 
             // Define map method
             MethodBuilder mapMethod = MethodBuilder.New()
@@ -80,16 +87,18 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         mapMethod,
                         constructorCall,
                         propertyDescriptor,
-                        propertyDescriptor.Type);
+                        propertyDescriptor.Type,
+                        classBuilder,
+                        constructorBuilder);
                 }
             }
 
             mapMethod.AddCode(constructorCall);
-            ClassBuilder.AddMethod(mapMethod);
+            classBuilder.AddMethod(mapMethod);
 
             return CodeFileBuilder.New()
                 .SetNamespace(descriptor.Namespace)
-                .AddType(ClassBuilder)
+                .AddType(classBuilder)
                 .BuildAsync(writer);
         }
 
@@ -97,7 +106,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
             ICodeContainer<T> mapMethod,
             MethodCallBuilder constructorCall,
             PropertyDescriptor propertyDescriptor,
-            ITypeDescriptor typeDescriptor)
+            ITypeDescriptor typeDescriptor,
+            ClassBuilder classBuilder,
+            ConstructorBuilder constructorBuilder)
         {
             var mappedType = propertyDescriptor.Name.WithLowerFirstChar();
             switch (typeDescriptor)
@@ -120,7 +131,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         foreachBuilder,
                         mappedItemName,
                         loopItem,
-                        listTypeDescriptor.InnerType);
+                        listTypeDescriptor.InnerType,
+                        classBuilder,
+                        constructorBuilder);
 
                     foreachBuilder.AddEmptyLine();
                     foreachBuilder.AddCode($"{listVar}.Add({mappedItemName});");
@@ -135,7 +148,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         mapMethod,
                         mappedType,
                         propertyDescriptor.Name,
-                        namedTypeDescriptor);
+                        namedTypeDescriptor,
+                        classBuilder,
+                        constructorBuilder);
 
                     constructorCall.AddArgument(mappedType);
                     break;
@@ -145,7 +160,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         mapMethod,
                         constructorCall,
                         propertyDescriptor,
-                        nonNullTypeDescriptor.InnerType);
+                        nonNullTypeDescriptor.InnerType,
+                        classBuilder,
+                        constructorBuilder);
                     break;
 
                 default:
@@ -157,7 +174,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
             ICodeContainer<T> method,
             string variableName,
             string mappingArgument,
-            ITypeDescriptor typeDescriptor)
+            ITypeDescriptor typeDescriptor,
+            ClassBuilder classBuilder,
+            ConstructorBuilder constructorBuilder)
         {
             switch (typeDescriptor)
             {
@@ -166,7 +185,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         method,
                         variableName,
                         mappingArgument,
-                        listTypeDescriptor.InnerType);
+                        listTypeDescriptor.InnerType,
+                        classBuilder,
+                        constructorBuilder);
 
                     break;
                 case NamedTypeDescriptor namedTypeDescriptor:
@@ -191,7 +212,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                 dataMapperType,
                                 dataMapperName,
                                 dataMapperField,
-                                $"{_entityParamName}.{mappingArgument}");
+                                $"{_entityParamName}.{mappingArgument}",
+                                classBuilder,
+                                constructorBuilder);
 
                             var dataItemVariable = $"{mappingArgument.WithLowerFirstChar()}";
                             method.AddCode(
@@ -208,7 +231,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                     method,
                                     variableName,
                                     mappingArgument,
-                                    namedTypeDescriptor);
+                                    namedTypeDescriptor,
+                                    classBuilder,
+                                    constructorBuilder);
                             }
                             else
                             {
@@ -216,7 +241,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                     method,
                                     variableName,
                                     mappingArgument,
-                                    namedTypeDescriptor);
+                                    namedTypeDescriptor,
+                                    classBuilder,
+                                    constructorBuilder);
                             }
 
                             break;
@@ -231,7 +258,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         method,
                         variableName,
                         mappingArgument,
-                        nonNullTypeDescriptor.InnerType);
+                        nonNullTypeDescriptor.InnerType,
+                        classBuilder,
+                        constructorBuilder);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(typeDescriptor));
@@ -242,7 +271,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
             ICodeContainer<T> method,
             string variableName,
             string mappingArgument,
-            NamedTypeDescriptor namedTypeDescriptor)
+            NamedTypeDescriptor namedTypeDescriptor,
+            ClassBuilder classBuilder,
+            ConstructorBuilder constructorBuilder)
         {
             method.AddCode($"{namedTypeDescriptor.Name} {variableName} = default!;");
             method.AddEmptyLine();
@@ -272,6 +303,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     variableName,
                     mappingArgument,
                     interfaceImplementee,
+                    classBuilder,
+                    constructorBuilder,
                     false);
 
                 return ifCorrectType;
@@ -283,16 +316,18 @@ namespace StrawberryShake.CodeGeneration.CSharp
             string variableName,
             string argumentName,
             NamedTypeDescriptor namedTypeDescriptor,
+            ClassBuilder classBuilder,
+            ConstructorBuilder constructorBuilder,
             bool createNewVar = true)
         {
             var entityMapperName =
-                NamingConventions.EntityMapperNameFromGraphQLTypeName(
+                EntityMapperNameFromGraphQLTypeName(
                     namedTypeDescriptor.Name,
                     namedTypeDescriptor.GraphQLTypeName);
 
             var entityMapperType =
                 $"IEntityMapper<" +
-                $"{NamingConventions.EntityTypeNameFromGraphQLTypeName(namedTypeDescriptor.Name)}, " +
+                $"{EntityTypeNameFromGraphQLTypeName(namedTypeDescriptor.Name)}, " +
                 $"{namedTypeDescriptor.Name}>";
 
             var entityMapperField = entityMapperName.ToFieldName();
@@ -307,7 +342,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 entityMapperType,
                 entityMapperName,
                 entityMapperField,
-                mappingArgument);
+                mappingArgument,
+                classBuilder,
+                constructorBuilder);
 
             method.AddCode(
                 AssignmentBuilder.New()
@@ -320,7 +357,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
             string mapperType,
             string mapperName,
             string mapperFieldName,
-            string mappingArgumentName)
+            string mappingArgumentName,
+            ClassBuilder classBuilder,
+            ConstructorBuilder constructorBuilder)
         {
             var mapperSet = new HashSet<string>();
             if (!mapperSet.Contains(mapperName))
@@ -329,7 +368,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
                 AddConstructorAssignedField(
                     mapperType,
-                    mapperFieldName);
+                    mapperFieldName,
+                    classBuilder,
+                    constructorBuilder);
             }
 
             var mapCallMethod = new MethodCallBuilder()

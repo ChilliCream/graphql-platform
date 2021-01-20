@@ -10,16 +10,20 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             AssertNonNull(writer, clientDescriptor);
 
-            ClassBuilder.SetName(clientDescriptor.Name);
-            ConstructorBuilder.SetTypeName(clientDescriptor.Name);
+            var (classBuilder, constructorBuilder) = CreateClassBuilder();
+
+            classBuilder.SetName(clientDescriptor.Name);
+            constructorBuilder.SetTypeName(clientDescriptor.Name);
 
             foreach (OperationDescriptor operation in clientDescriptor.Operations)
             {
                 AddConstructorAssignedField(
                     operation.Name,
-                    operation.Name.ToFieldName());
+                    operation.Name.ToFieldName(),
+                    classBuilder,
+                    constructorBuilder);
 
-                ClassBuilder.AddMethod(
+                classBuilder.AddMethod(
                     MethodBuilder.New()
                         .SetAccessModifier(AccessModifier.Public)
                         .SetReturnType(operation.Name)
@@ -29,7 +33,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             return CodeFileBuilder.New()
                 .SetNamespace(clientDescriptor.Namespace)
-                .AddType(ClassBuilder)
+                .AddType(classBuilder)
                 .BuildAsync(writer);
         }
     }

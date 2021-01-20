@@ -6,7 +6,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public partial class JsonResultBuilderGenerator
     {
-        private void AddDataTypeDeserializerMethod(NamedTypeDescriptor namedTypeDescriptor, ITypeDescriptor originalTypeDescriptor)
+        private void AddDataTypeDeserializerMethod(NamedTypeDescriptor namedTypeDescriptor, ITypeDescriptor originalTypeDescriptor, ClassBuilder classBuilder)
         {
             var dateDeserializer = MethodBuilder.New()
                 .SetReturnType(namedTypeDescriptor.Name)
@@ -32,8 +32,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
 
             dateDeserializer.AddCode(returnStatement);
-            ClassBuilder.AddMethod(dateDeserializer);
-            AddRequiredDeserializeMethods(namedTypeDescriptor);
+            classBuilder.AddMethod(dateDeserializer);
+            AddRequiredDeserializeMethods(namedTypeDescriptor, classBuilder);
         }
     }
 }

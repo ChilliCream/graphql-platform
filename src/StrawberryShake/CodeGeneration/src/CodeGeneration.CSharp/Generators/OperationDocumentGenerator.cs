@@ -8,17 +8,18 @@ namespace StrawberryShake.CodeGeneration.CSharp
     public class OperationDocumentGenerator: ClassBaseGenerator<OperationDescriptor>
     {
         protected override Task WriteAsync(
-            CodeWriter writer, 
+            CodeWriter writer,
             OperationDescriptor operationDescriptor)
         {
             AssertNonNull(
                 writer,
                 operationDescriptor);
+            var (classBuilder, constructorBuilder) = CreateClassBuilder();
 
-            ClassBuilder.SetName(DocumentTypeNameFromOperationName(operationDescriptor.Name));
-            ConstructorBuilder.SetAccessModifier(AccessModifier.Private);
+            classBuilder.SetName(DocumentTypeNameFromOperationName(operationDescriptor.Name));
+            constructorBuilder.SetAccessModifier(AccessModifier.Private);
 
-            ClassBuilder.AddField(
+            classBuilder.AddField(
                 FieldBuilder.New()
                     .SetStatic()
                     .SetConst()
@@ -26,7 +27,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetName("_bodyString")
                     .SetValue($"@\"{operationDescriptor.BodyString}\"", true));
 
-            ClassBuilder.AddField(
+            classBuilder.AddField(
                 FieldBuilder.New()
                     .SetStatic()
                     .SetReadOnly()
@@ -50,23 +51,23 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     throw new ArgumentOutOfRangeException(nameof(operationDescriptor));
             }
 
-            ClassBuilder.AddProperty(
+            classBuilder.AddProperty(
                 PropertyBuilder.New()
                     .SetType("GetHeroQueryDocument")
                     .SetName("Instance")
                     .SetValue($"new()"));
 
-            ClassBuilder.AddProperty(
+            classBuilder.AddProperty(
                 PropertyBuilder.New()
                     .SetType("OperationKind")
                     .SetName("Kind").AsLambda($"OperationKind.{operationKind}"));
 
-            ClassBuilder.AddProperty(
+            classBuilder.AddProperty(
                 PropertyBuilder.New()
                     .SetType("ReadOnlySpan<byte>")
                     .SetName("Body").AsLambda("_body"));
 
-            ClassBuilder.AddMethod(
+            classBuilder.AddMethod(
                 MethodBuilder.New()
                     .SetReturnType("override string")
                     .SetName("ToString")
@@ -74,7 +75,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             return CodeFileBuilder.New()
                 .SetNamespace(operationDescriptor.Namespace)
-                .AddType(ClassBuilder)
+                .AddType(classBuilder)
                 .BuildAsync(writer);
         }
     }

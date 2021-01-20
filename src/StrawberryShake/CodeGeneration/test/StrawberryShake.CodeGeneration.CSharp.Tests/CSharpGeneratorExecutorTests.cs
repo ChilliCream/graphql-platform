@@ -77,7 +77,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             CSharpGeneratorExecutor generator,
             StringBuilder documents)
         {
-            foreach (CSharpDocument document in generator.Generate(clientModel, "Foo"))
+            foreach (CSharpDocument document in generator.Generate(clientModel, "Foo", "FooClient"))
             {
                 documents.AppendLine("// " + document.Name);
                 documents.AppendLine();

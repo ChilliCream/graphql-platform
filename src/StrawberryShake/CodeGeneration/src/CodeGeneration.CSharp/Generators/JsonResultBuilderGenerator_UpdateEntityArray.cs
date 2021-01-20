@@ -6,7 +6,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public partial class JsonResultBuilderGenerator
     {
-        private void AddUpdateEntityArrayMethod(ListTypeDescriptor listTypeDescriptor, ITypeDescriptor originalTypeDescriptor)
+        private void AddUpdateEntityArrayMethod(ListTypeDescriptor listTypeDescriptor, ITypeDescriptor originalTypeDescriptor, ClassBuilder classBuilder)
         {
             var updateEntityMethod = MethodBuilder.New()
                 .SetAccessModifier(AccessModifier.Private)
@@ -47,9 +47,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
             updateEntityMethod.AddEmptyLine();
             updateEntityMethod.AddCode($"return {listVarName};");
 
-            ClassBuilder.AddMethod(updateEntityMethod);
+            classBuilder.AddMethod(updateEntityMethod);
 
-            AddDeserializeMethod(listTypeDescriptor.InnerType);
+            AddDeserializeMethod(listTypeDescriptor.InnerType, classBuilder);
         }
     }
 }

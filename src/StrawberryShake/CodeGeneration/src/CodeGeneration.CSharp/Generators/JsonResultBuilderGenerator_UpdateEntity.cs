@@ -7,7 +7,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public partial class JsonResultBuilderGenerator
     {
-        private void AddUpdateEntityMethod(NamedTypeDescriptor namedTypeDescriptor, ITypeDescriptor originalTypeDescriptor)
+        private void AddUpdateEntityMethod(NamedTypeDescriptor namedTypeDescriptor, ITypeDescriptor originalTypeDescriptor, ClassBuilder classBuilder)
         {
             var updateEntityMethod = MethodBuilder.New()
                 .SetAccessModifier(AccessModifier.Private)
@@ -64,8 +64,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
             updateEntityMethod.AddEmptyLine();
             updateEntityMethod.AddCode("throw new NotSupportedException();");
 
-            ClassBuilder.AddMethod(updateEntityMethod);
-            AddRequiredDeserializeMethods(namedTypeDescriptor);
+            classBuilder.AddMethod(updateEntityMethod);
+            AddRequiredDeserializeMethods(namedTypeDescriptor, classBuilder);
         }
     }
 }
