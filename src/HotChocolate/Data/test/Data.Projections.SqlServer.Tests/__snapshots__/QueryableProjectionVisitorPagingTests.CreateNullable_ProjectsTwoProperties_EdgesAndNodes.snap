@@ -3,15 +3,12 @@
     "root": {
       "nodes": [
         {
-          "bar": true,
           "baz": "a"
         },
         {
-          "bar": null,
           "baz": null
         },
         {
-          "bar": false,
           "baz": "c"
         }
       ],

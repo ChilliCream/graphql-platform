@@ -249,4 +249,7 @@
   <data name="RootValueResolver_Resolve_CannotCreateInstance" xml:space="preserve">
     <value>Unable to create the operation type `{0}` instance. Try adding the following service: `services.AddScoped&lt;{1}&gt;();`</value>
   </data>
+  <data name="OperationContext_GetQueryRoot_InvalidCast" xml:space="preserve">
+    <value>The query type could not be casted to {0}.</value>
+  </data>
 </root>

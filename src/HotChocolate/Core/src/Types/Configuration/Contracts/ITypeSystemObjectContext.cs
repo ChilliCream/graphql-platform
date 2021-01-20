@@ -12,7 +12,7 @@ namespace HotChocolate.Configuration
     /// </summary>
     public interface ITypeSystemObjectContext
         : IHasScope
-            , IHasContextData
+        , IHasContextData
     {
         /// <summary>
         /// The type system object that is being initialized.

@@ -166,7 +166,8 @@ namespace HotChocolate.Types
             SyntaxNode = definition.SyntaxNode;
             Locations = definition.Locations.ToList().AsReadOnly();
             Arguments = new FieldCollection<Argument>(
-                definition.Arguments.Select(t => new Argument(t)),
+                definition.Arguments.Select(
+                    t => new Argument(t, new FieldCoordinate(Name, t.Name))),
                 context.DescriptorContext.Options.SortFieldsByName);
             HasMiddleware = MiddlewareComponents.Count > 0;
 
