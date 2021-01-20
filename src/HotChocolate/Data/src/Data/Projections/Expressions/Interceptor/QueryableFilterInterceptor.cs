@@ -43,7 +43,7 @@ namespace HotChocolate.Data.Projections.Handlers
                         out IReadOnlyDictionary<NameString, ArgumentValue>? coercedArgs) &&
                 coercedArgs.TryGetValue(argumentName, out var argumentValue) &&
                 argumentValue.Argument.Type is IFilterInputType filterInputType &&
-                argumentValue.ValueLiteral is {} valueNode &&
+                argumentValue.ValueLiteral is { } valueNode &&
                 valueNode is not NullValueNode)
             {
                 QueryableFilterContext filterContext =

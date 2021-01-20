@@ -158,5 +158,8 @@ namespace HotChocolate.Execution.Processing
 
         public void RegisterForCleanup(Action action) =>
             _operationContext.RegisterForCleanup(action);
+
+        public T GetQueryRoot<T>() =>
+            _operationContext.GetQueryRoot<T>();
     }
 }

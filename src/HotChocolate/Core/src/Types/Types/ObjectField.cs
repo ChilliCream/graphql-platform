@@ -18,18 +18,19 @@ namespace HotChocolate.Types
         : OutputFieldBase<ObjectFieldDefinition>
         , IObjectField
     {
-        private static readonly FieldDelegate _empty = c =>
-            throw new InvalidOperationException();
+        private static readonly FieldDelegate _empty = _ => throw new InvalidOperationException();
+        private readonly List<IDirective> _executableDirectives = new();
 
-        private readonly List<IDirective> _executableDirectives =
-            new List<IDirective>();
-
-        internal ObjectField(ObjectFieldDefinition definition, bool sortArgumentsByName = false)
-            : base(definition, sortArgumentsByName)
+        internal ObjectField(
+            ObjectFieldDefinition definition,
+            FieldCoordinate fieldCoordinate,
+            bool sortArgumentsByName = false)
+            : base(definition, fieldCoordinate, sortArgumentsByName)
         {
             Member = definition.Member ?? definition.ResolverMember;
             Middleware = _empty;
             Resolver = definition.Resolver!;
+            Expression = definition.Expression;
             SubscribeResolver = definition.SubscribeResolver;
             ExecutableDirectives = _executableDirectives.AsReadOnly();
             IsIntrospectionField = definition.IsIntrospectionField;
@@ -147,11 +148,11 @@ namespace HotChocolate.Types
                 Resolver,
                 skipMiddleware);
 
-            if (Resolver is null && Middleware is null)
+            if (Resolver is null! && Middleware is null)
             {
                 if (_executableDirectives.Count > 0)
                 {
-                    Middleware = ctx => default;
+                    Middleware = _ => default;
                 }
                 else
                 {
