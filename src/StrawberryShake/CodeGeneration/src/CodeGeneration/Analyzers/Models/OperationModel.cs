@@ -86,16 +86,25 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
         }
 
         public bool TryGetFieldResultType(
-            FieldNode fieldSyntax, 
-            [NotNullWhen(true)]out OutputTypeModel? fieldType)
+            FieldNode fieldSyntax,
+            [NotNullWhen(true)] out OutputTypeModel? fieldType)
         {
             if (fieldSyntax is null)
             {
                 throw new ArgumentNullException(nameof(fieldSyntax));
             }
 
+            var abc = OutputTypes.FirstOrDefault(
+                t => t.SelectionSet == fieldSyntax.SelectionSet);
+
             fieldType = OutputTypes.FirstOrDefault(
                 t => t.IsInterface && t.SelectionSet == fieldSyntax.SelectionSet);
+
+            if (fieldType is null)
+            {
+
+            }
+
             return fieldType is not null;
         }
     }
