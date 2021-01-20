@@ -11,6 +11,11 @@
     <None Remove="**/*.graphql" />
     <GraphQL Include="**/*.graphql" />
     <Watch Include="**/*.graphql" />
+    <AdditionalFiles Include="@(GraphQL)" GraphQL="true" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="GraphQL" />
   </ItemGroup>
 
 </Project>

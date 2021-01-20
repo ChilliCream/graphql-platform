@@ -1,3 +1,5 @@
+using HotChocolate;
+
 namespace StrawberryShake.CodeGeneration
 {
     public class EnumValueDescriptor : ICodeDescriptor
@@ -8,7 +10,7 @@ namespace StrawberryShake.CodeGeneration
             Value = value;
         }
 
-        public string Name { get; }
+        public NameString Name { get; }
 
         public long? Value { get; }
     }

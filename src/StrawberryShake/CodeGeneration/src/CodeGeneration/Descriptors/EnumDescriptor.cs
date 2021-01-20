@@ -1,11 +1,12 @@
 using System.Collections.Generic;
+using HotChocolate;
 
 namespace StrawberryShake.CodeGeneration
 {
     public class EnumDescriptor : ICodeDescriptor
     {
         public EnumDescriptor(
-            string name,
+            NameString name,
             string @namespace,
             IReadOnlyList<EnumValueDescriptor> elements)
         {
@@ -14,7 +15,7 @@ namespace StrawberryShake.CodeGeneration
             Values = elements;
         }
 
-        public string Name { get; }
+        public NameString Name { get; }
 
         public string Namespace { get; }
 

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using HotChocolate;
 
 namespace StrawberryShake.CodeGeneration
 {
@@ -8,7 +9,7 @@ namespace StrawberryShake.CodeGeneration
     public class ClientDescriptor : ICodeDescriptor
     {
         public ClientDescriptor(
-            string name,
+            NameString name,
             string @namespace,
             List<OperationDescriptor> operations)
         {
@@ -20,7 +21,7 @@ namespace StrawberryShake.CodeGeneration
         /// <summary>
         /// The name of the client
         /// </summary>
-        public string Name { get; }
+        public NameString Name { get; }
 
         public string Namespace { get; }
 

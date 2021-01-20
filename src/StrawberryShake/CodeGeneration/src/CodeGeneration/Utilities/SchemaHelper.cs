@@ -23,18 +23,21 @@ namespace StrawberryShake.CodeGeneration.Utilities
             }
 
             ISchemaBuilder builder = SchemaBuilder.New();
-            var scalarInfos = new Dictionary<NameString, ScalarInfo>();
+            var leafTypeInfos = new Dictionary<NameString, LeafTypeInfo>();
             var globalEntityPatterns = new List<SelectionSetNode>();
             var typeEntityPatterns = new Dictionary<NameString, SelectionSetNode>();
 
             foreach (DocumentNode document in documents)
             {
-                if (document.Definitions.Any(
-                    t => t is ITypeSystemExtensionNode))
+                if (document.Definitions.Any(t => t is ITypeSystemExtensionNode))
                 {
                     CollectScalarInfos(
                         document.Definitions.OfType<ScalarTypeExtensionNode>(),
-                        scalarInfos);
+                        leafTypeInfos);
+
+                    CollectEnumInfos(
+                        document.Definitions.OfType<EnumTypeExtensionNode>(),
+                        leafTypeInfos);
 
                     CollectGlobalEntityPatterns(
                         document.Definitions.OfType<SchemaExtensionNode>(),
@@ -52,7 +55,7 @@ namespace StrawberryShake.CodeGeneration.Utilities
 
             return builder
                 .TryAddTypeInterceptor(
-                    new LeafTypeInterceptor(scalarInfos))
+                    new LeafTypeInterceptor(leafTypeInfos))
                 .TryAddTypeInterceptor(
                     new EntityTypeInterceptor(globalEntityPatterns, typeEntityPatterns))
                 .Use(_ => _ => throw new NotSupportedException())
@@ -61,19 +64,38 @@ namespace StrawberryShake.CodeGeneration.Utilities
 
         private static void CollectScalarInfos(
             IEnumerable<ScalarTypeExtensionNode> scalarTypeExtensions,
-            Dictionary<NameString, ScalarInfo> scalarInfos)
+            Dictionary<NameString, LeafTypeInfo> leafTypeInfos)
         {
             foreach (ScalarTypeExtensionNode scalarTypeExtension in scalarTypeExtensions)
             {
-                if (!scalarInfos.TryGetValue(
+                if (!leafTypeInfos.TryGetValue(
                     scalarTypeExtension.Name.Value,
-                    out ScalarInfo scalarInfo))
+                    out LeafTypeInfo scalarInfo))
                 {
-                    scalarInfo = new ScalarInfo(
+                    scalarInfo = new LeafTypeInfo(
                         scalarTypeExtension.Name.Value,
                         GetDirectiveValue(scalarTypeExtension, "runtimeType"),
                         GetDirectiveValue(scalarTypeExtension, "serializationType"));
-                    scalarInfos.Add(scalarInfo.TypeName, scalarInfo);
+                    leafTypeInfos.Add(scalarInfo.TypeName, scalarInfo);
+                }
+            }
+        }
+
+        private static void CollectEnumInfos(
+            IEnumerable<EnumTypeExtensionNode> enumTypeExtensions,
+            Dictionary<NameString, LeafTypeInfo> leafTypeInfos)
+        {
+            foreach (EnumTypeExtensionNode scalarTypeExtension in enumTypeExtensions)
+            {
+                if (!leafTypeInfos.TryGetValue(
+                    scalarTypeExtension.Name.Value,
+                    out LeafTypeInfo scalarInfo))
+                {
+                    scalarInfo = new LeafTypeInfo(
+                        scalarTypeExtension.Name.Value,
+                        GetDirectiveValue(scalarTypeExtension, "runtimeType"),
+                        GetDirectiveValue(scalarTypeExtension, "serializationType"));
+                    leafTypeInfos.Add(scalarInfo.TypeName, scalarInfo);
                 }
             }
         }
@@ -98,7 +120,6 @@ namespace StrawberryShake.CodeGeneration.Utilities
 
             return null;
         }
-
 
         private static void CollectGlobalEntityPatterns(
             IEnumerable<SchemaExtensionNode> schemaExtensions,
@@ -164,6 +185,5 @@ namespace StrawberryShake.CodeGeneration.Utilities
 
         private static bool IsKeyDirective(DirectiveNode directive) =>
             directive.Name.Value.Equals("key", StringComparison.Ordinal);
-
     }
 }

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using HotChocolate;
+using System.Text;
+using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Mappers;
 
@@ -9,34 +9,62 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public class CSharpGeneratorExecutor
     {
-        private const string DefaultNamespace = "StrawberryShake.Generated";
-
-        public void Generate(ClientModel clientModel)
+        private readonly ICodeGenerator[] _generators =
         {
-            if (clientModel == null)
+            new EntityTypeGenerator()
+        };
+
+        public IEnumerable<CSharpDocument> Generate(ClientModel clientModel, string ns)
+        {
+            if (clientModel is null)
             {
                 throw new ArgumentNullException(nameof(clientModel));
             }
 
-            var types = new Dictionary<NameString, ICodeDescriptor>();
-            // GenerateEnums(types, )
-        }
+            var context = new MapperContext(ns);
+            EntityTypeDescriptorMapper.Map(clientModel, context);
+            TypeDescriptorMapper.Map(clientModel, context);
+            EntityTypeDescriptorMapper.Map(clientModel, context);
 
-        public void GenerateEnums(
-            IDictionary<NameString, ICodeDescriptor> types,
-            ClientModel clientModel)
-        {
-            foreach (LeafTypeModel leafTypeModel in clientModel.LeafTypes)
+            var code = new StringBuilder();
+
+            foreach (var descriptor in context.GetAllDescriptors())
             {
-                if (leafTypeModel is not EnumTypeModel enumTypeModel)
+                foreach (var generator in _generators)
                 {
-                    continue;
+                    // TODO : we need a name
+                    // TODO : asnyc context
+                    yield return WriteDocument(generator, descriptor, code).Result;
                 }
-
-                // EnumDescriptor enumDescriptor =
-                    // EnumAnalyzerToDescriptorMapper.Map(DefaultNamespace, enumTypeModel);
-                // types.Add(enumDescriptor.Name, enumDescriptor);
             }
         }
+
+        private async Task<CSharpDocument> WriteDocument(
+            ICodeGenerator generator,
+            ICodeDescriptor descriptor,
+            StringBuilder code)
+        {
+            code.Clear();
+
+            await using var writer = new CodeWriter(code);
+
+            await generator.WriteAsync(writer, descriptor);
+
+            writer.Flush();
+            return new(descriptor.Name, code.ToString());
+        }
+    }
+
+    public class CSharpDocument
+    {
+        public CSharpDocument(string name, string source)
+        {
+            Name = name;
+            Source = source;
+        }
+
+        public string Name { get; }
+
+        public string Source { get; }
     }
 }

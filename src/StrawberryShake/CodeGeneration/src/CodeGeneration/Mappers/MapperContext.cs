@@ -23,6 +23,14 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
         public IReadOnlyCollection<EnumDescriptor> EnumTypes => _enums.Values;
 
+        public IEnumerable<ICodeDescriptor> GetAllDescriptors()
+        {
+            foreach (var entityTypeDescriptor in EntityTypes)
+            {
+                yield return entityTypeDescriptor;
+            }
+        }
+
         public void Register(NameString codeTypeName, NamedTypeDescriptor typeDescriptor)
         {
             _types.Add(

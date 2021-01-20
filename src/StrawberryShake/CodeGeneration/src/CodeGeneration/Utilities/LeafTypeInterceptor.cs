@@ -6,16 +6,15 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 using StrawberryShake.CodeGeneration.Analyzers;
 using static StrawberryShake.CodeGeneration.Analyzers.WellKnownContextData;
-using WellKnownContextData = StrawberryShake.CodeGeneration.Analyzers.WellKnownContextData;
 
 namespace StrawberryShake.CodeGeneration.Utilities
 {
     public class LeafTypeInterceptor : TypeInterceptor
     {
-        private readonly Dictionary<NameString, ScalarInfo> _scalarInfos;
-        private readonly List<Scalar> _scalars = new();
+        private readonly Dictionary<NameString, LeafTypeInfo> _scalarInfos;
+        private readonly List<LeafType> _leafTypes = new();
 
-        public LeafTypeInterceptor(Dictionary<NameString, ScalarInfo> scalarInfos)
+        public LeafTypeInterceptor(Dictionary<NameString, LeafTypeInfo> scalarInfos)
         {
             _scalarInfos = scalarInfos ?? throw new ArgumentNullException(nameof(scalarInfos));
         }
@@ -25,38 +24,44 @@ namespace StrawberryShake.CodeGeneration.Utilities
             DefinitionBase? definition,
             IDictionary<string, object?> contextData)
         {
-            if (completionContext.Type is ScalarType scalarType)
+            if (completionContext.Type is ILeafType leafType)
             {
-                _scalars.Add(new Scalar(scalarType, contextData));
+                _leafTypes.Add(new LeafType(leafType, contextData));
             }
         }
 
         public override void OnAfterCompleteTypeNames()
         {
-            foreach (Scalar scalar in _scalars)
+            foreach (LeafType leafType in _leafTypes)
             {
-                if (_scalarInfos.TryGetValue(scalar.Type.Name, out ScalarInfo scalarInfo))
+                if (_scalarInfos.TryGetValue(leafType.Type.Name, out LeafTypeInfo scalarInfo))
                 {
-                    scalar.ContextData[RuntimeType] = scalarInfo.RuntimeTypeType;
-                    scalar.ContextData[SerializationType] = scalarInfo.SerializationType;
+                    if (leafType.Type is ScalarType)
+                    {
+                        leafType.ContextData[RuntimeType] = scalarInfo.RuntimeTypeType;
+                    }
+                    leafType.ContextData[SerializationType] = scalarInfo.SerializationType;
                 }
                 else
                 {
-                    scalar.ContextData[RuntimeType] = TypeNames.SystemString;
-                    scalar.ContextData[SerializationType] = TypeNames.SystemString;
+                    if (leafType.Type is ScalarType)
+                    {
+                        leafType.ContextData[RuntimeType] = TypeNames.SystemString;
+                    }
+                    leafType.ContextData[SerializationType] = TypeNames.SystemString;
                 }
             }
         }
 
-        private readonly struct Scalar
+        private readonly struct LeafType
         {
-            public Scalar(ScalarType type, IDictionary<string, object?> contextData)
+            public LeafType(ILeafType type, IDictionary<string, object?> contextData)
             {
                 Type = type;
                 ContextData = contextData;
             }
 
-            public ScalarType Type { get; }
+            public ILeafType Type { get; }
 
             public IDictionary<string, object?> ContextData { get; }
         }

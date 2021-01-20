@@ -1,3 +1,5 @@
+using HotChocolate;
+
 namespace StrawberryShake.CodeGeneration
 {
     public class ResultFromEntityTypeMapperDescriptor
@@ -11,7 +13,7 @@ namespace StrawberryShake.CodeGeneration
             ResultNamedType = resultNamedType;
         }
 
-        public string Name =>
+        public NameString Name =>
             NamingConventions.EntityMapperNameFromGraphQLTypeName(
                 ResultNamedType.Name,
                 ResultNamedType.GraphQLTypeName);

@@ -31,7 +31,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
         public EnumTypeModel(
             NameString name,
             string? description,
-            EnumType type,
+            IEnumType type,
             string? underlyingType,
             IReadOnlyList<EnumValueModel> values)
             : base(name, description, type, TypeNames.SystemString, name)
@@ -44,7 +44,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
         /// <summary>
         /// Gets the enum type.
         /// </summary>
-        public new EnumType Type { get; }
+        public new IEnumType Type { get; }
 
         /// <summary>
         /// Gets the underlying type name.

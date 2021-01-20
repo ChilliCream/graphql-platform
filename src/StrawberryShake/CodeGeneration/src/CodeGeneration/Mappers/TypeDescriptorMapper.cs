@@ -19,7 +19,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
             var scalarTypeDescriptors = new Dictionary<NameString, NamedTypeDescriptor>();
 
             CollectTypes(model, context, typeDescriptors);
-            AddProperties(model, typeDescriptors, scalarTypeDescriptors);
+            AddProperties(model, context, typeDescriptors, scalarTypeDescriptors);
 
             foreach (TypeDescriptorModel descriptorModel in typeDescriptors.Values)
             {
@@ -92,6 +92,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
         private static void AddProperties(
             ClientModel model,
+            IMapperContext context,
             Dictionary<NameString, TypeDescriptorModel> typeDescriptors,
             Dictionary<NameString, NamedTypeDescriptor> scalarTypeDescriptors)
         {
@@ -102,22 +103,40 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 foreach (var field in typeDescriptorModel.TypeModel.Fields)
                 {
                     NamedTypeDescriptor? fieldType;
+                    INamedType namedType = field.Type.NamedType();
 
-                    if (field.Type.IsLeafType())
+                    if (namedType.IsScalarType())
                     {
-                        var leafType = (ILeafType)field.Type.NamedType();
+                        var scalarType = (ScalarType)namedType;
 
-                        if (!scalarTypeDescriptors.TryGetValue(leafType.Name, out fieldType))
+                        if (!scalarTypeDescriptors.TryGetValue(scalarType.Name, out fieldType))
                         {
-                            string[] runtimeTypeName = leafType.GetRuntimeType().Split('.');
+                            string[] runtimeTypeName = scalarType.GetRuntimeType().Split('.');
 
                             fieldType = new NamedTypeDescriptor(
                                 runtimeTypeName[^1],
                                 string.Join(".", runtimeTypeName.Take(runtimeTypeName.Length - 1)),
-                                graphQLTypeName: leafType.Name,
+                                graphQLTypeName: scalarType.Name,
                                 kind: TypeKind.LeafType);
 
                             scalarTypeDescriptors.Add(runtimeTypeName[^1], fieldType);
+                        }
+                    }
+                    else if (namedType.IsEnumType())
+                    {
+                        var enumTypeModel = model.LeafTypes
+                            .OfType<EnumTypeModel>()
+                            .First(t => t.Type == namedType);
+
+                        if (!scalarTypeDescriptors.TryGetValue(namedType.Name, out fieldType))
+                        {
+                            fieldType = new NamedTypeDescriptor(
+                                enumTypeModel.Name,
+                                context.Namespace,
+                                graphQLTypeName: namedType.Name,
+                                kind: TypeKind.LeafType);
+
+                            scalarTypeDescriptors.Add(enumTypeModel.Name, fieldType);
                         }
                     }
                     else
@@ -151,7 +170,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 }
             }
 
-            throw new InvalidOperationException();
+            throw new InvalidOperationException(
+                "Could not find an output type for the specified field syntax.");
         }
 
         private static ITypeDescriptor BuildFieldType(

@@ -2,9 +2,9 @@ using HotChocolate;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
 {
-    public readonly struct ScalarInfo
+    public readonly struct LeafTypeInfo
     {
-        public ScalarInfo(
+        public LeafTypeInfo(
             NameString typeName,
             string? runtimeTypeType,
             string? serializationType)

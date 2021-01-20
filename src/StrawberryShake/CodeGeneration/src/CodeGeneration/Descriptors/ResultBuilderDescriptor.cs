@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using HotChocolate;
 
 namespace StrawberryShake.CodeGeneration
 {
@@ -14,6 +15,9 @@ namespace StrawberryShake.CodeGeneration
             ResultNamedType = resultNamedType;
             ValueParsers = valueParsers;
         }
+
+        // TODO : that cannot be right
+        public NameString Name => ResultNamedType.Name;
 
         /// <summary>
         /// The return type of the result builder.
