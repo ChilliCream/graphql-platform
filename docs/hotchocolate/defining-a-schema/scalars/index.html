@@ -1422,7 +1422,7 @@ HotChocolate, for example, automatically binds the <code class="language-text">S
 You can override these mappings by explicitly specifying type bindings on the request executor builder.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="64133046226898990000"
+              data-toaster-id="89301303718464450000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1434,7 +1434,7 @@ You can override these mappings by explicitly specifying type bindings on the re
         .AddGraphQLServer()
         .BindRuntimeType<string, StringType>()
         .AddQueryType<Query>();
-}`, `64133046226898990000`)"
+}`, `89301303718464450000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1454,7 +1454,7 @@ You can override these mappings by explicitly specifying type bindings on the re
 <p>Furthermore, you can also bind scalars to arrays or type structures:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="95692390756129400000"
+              data-toaster-id="90955044339773360000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1466,7 +1466,7 @@ You can override these mappings by explicitly specifying type bindings on the re
         .AddGraphQLServer()
         .BindRuntimeType<byte[], ByteArrayType>()
         .AddQueryType<Query>();
-}`, `95692390756129400000`)"
+}`, `90955044339773360000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1489,14 +1489,14 @@ You can override these mappings by explicitly specifying type bindings on the re
 <p>Consider the following type:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="55605147711963300000"
+              data-toaster-id="90500973719915870000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`type Query {
   foo(bar: Any): String
-}`, `55605147711963300000`)"
+}`, `90500973719915870000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1511,7 +1511,7 @@ You can override these mappings by explicitly specifying type bindings on the re
 <p>Since our field <code class="language-text">foo</code> specifies an argument <code class="language-text">bar</code> of type <code class="language-text">Any</code> all of the following queries would be valid:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="47719252134427740000"
+              data-toaster-id="68061240077509890000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1523,7 +1523,7 @@ You can override these mappings by explicitly specifying type bindings on the re
   a: foo(bar: true)
   a: foo(bar: { a: &quot;foo&quot;, b: { c: 1 } })
   a: foo(bar: [{ a: &quot;foo&quot;, b: { c: 1 } }, { a: &quot;foo&quot;, b: { c: 1 } }])
-}`, `47719252134427740000`)"
+}`, `68061240077509890000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1544,12 +1544,12 @@ You can override these mappings by explicitly specifying type bindings on the re
 <p>If you want to access the data you can either fetch data as an object or you can ask the context to provide it as a specific object.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="52437549191594340000"
+              data-toaster-id="49116303966515390000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`Foo foo = context.Argument<Foo>(&quot;bar&quot;);`, `52437549191594340000`)"
+              onClick="copyToClipboard(`Foo foo = context.Argument<Foo>(&quot;bar&quot;);`, `49116303966515390000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1562,12 +1562,12 @@ You can override these mappings by explicitly specifying type bindings on the re
 <p>We can also ask the context which kind the current argument is:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="50967556165110880000"
+              data-toaster-id="49029525276971000000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`ValueKind kind = context.ArgumentKind(&quot;bar&quot;);`, `50967556165110880000`)"
+              onClick="copyToClipboard(`ValueKind kind = context.ArgumentKind(&quot;bar&quot;);`, `49029525276971000000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1583,7 +1583,7 @@ You can override these mappings by explicitly specifying type bindings on the re
 </blockquote>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="30255273412963766000"
+              data-toaster-id="767636382117009500"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1597,7 +1597,7 @@ You can override these mappings by explicitly specifying type bindings on the re
     Enum,
     Object,
     Null
-}`, `30255273412963766000`)"
+}`, `767636382117009500`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1625,7 +1625,7 @@ You can register converters and reuse the built-in scalar types.
 In case you use a non-standard library, e.g. <a href="https://nodatime.org/">NodeTime</a>, you can register a converter and use the standard <code class="language-text">DateTimeType</code>.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="73508387204506034000"
+              data-toaster-id="44525218640202605000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1636,7 +1636,7 @@ In case you use a non-standard library, e.g. <a href="https://nodatime.org/">Nod
     {
         return offsetDateTime;
     }
-}`, `73508387204506034000`)"
+}`, `44525218640202605000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1655,7 +1655,7 @@ In case you use a non-standard library, e.g. <a href="https://nodatime.org/">Nod
 <p><em>Startup</em></p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="78916254423639400000"
+              data-toaster-id="71880433337480240000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1670,7 +1670,7 @@ In case you use a non-standard library, e.g. <a href="https://nodatime.org/">Nod
             x => x.ToDateTimeOffset())
         .AddTypeConverter<DateTimeOffset, OffsetDateTime>(
             x => OffsetDateTime.FromDateTimeOffset(x));
-}`, `78916254423639400000`)"
+}`, `71880433337480240000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1696,7 +1696,7 @@ The easiest way to create a custom scalar is to extend <code class="language-tex
 This base class already includes basic serialization and parsing logic.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="27843406118283420000"
+              data-toaster-id="70318919326350926000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1754,7 +1754,7 @@ This base class already includes basic serialization and parsing logic.</p>
     /// </summary>
     public override IValueNode ParseResult(object? resultValue) =>
         ParseValue(resultValue);
-}`, `27843406118283420000`)"
+}`, `70318919326350926000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1820,7 +1820,7 @@ This base class already includes basic serialization and parsing logic.</p>
 <p>By extending <code class="language-text">ScalarType</code> you have full control over serialization and parsing. </p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="62033201174864770000"
+              data-toaster-id="36797086252212720000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1920,7 +1920,7 @@ This base class already includes basic serialization and parsing logic.</p>
             value = null;
             return false;
         }
-    }`, `62033201174864770000`)"
+    }`, `36797086252212720000`)"
             >
               <div
                 class="gatsby-code-button"
