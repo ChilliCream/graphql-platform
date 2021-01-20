@@ -11,7 +11,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
         {
             var ret = new TypeReferenceBuilder()
                 .SetName(nameOverride ?? typeReferenceDescriptor.Name)
-                .SetIsNullable(typeReferenceDescriptor.IsNullableType());
+                .SetIsNullable(!(typeReferenceDescriptor is NonNullTypeDescriptor));
 
             if (typeReferenceDescriptor is ListTypeDescriptor listTypeDescriptor)
             {
@@ -29,7 +29,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
                     typeReferenceDescriptor.IsEntityType()
                         ? WellKnownNames.EntityId
                         : typeReferenceDescriptor.Name)
-                .SetIsNullable(typeReferenceDescriptor.IsNullableType());
+                .SetIsNullable(!(typeReferenceDescriptor is NonNullTypeDescriptor));
 
             if (typeReferenceDescriptor is ListTypeDescriptor listTypeDescriptor)
             {

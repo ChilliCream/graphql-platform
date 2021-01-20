@@ -14,6 +14,11 @@ namespace StrawberryShake.CodeGeneration.Extensions
             return char.ToLower(nameString.Value[0]) + nameString.Value.Substring(1);
         }
 
+        public static string WithLowerFirstChar(this string nameString)
+        {
+            return char.ToLower(nameString[0]) + nameString.Substring(1);
+        }
+
         public static string WithCapitalFirstChar(this NameString nameString)
         {
             return char.ToUpper(nameString.Value[0]) + nameString.Value.Substring(1);

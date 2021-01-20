@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
@@ -6,13 +7,20 @@ using static StrawberryShake.CodeGeneration.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public class ResultInfoGenerator : ClassBaseGenerator<NamedTypeDescriptor>
+    public class ResultInfoGenerator : ClassBaseGenerator<ITypeDescriptor>
     {
-        protected override Task WriteAsync(CodeWriter writer, NamedTypeDescriptor namedTypeDescriptor)
+        protected override Task WriteAsync(CodeWriter writer, ITypeDescriptor typeDescriptor)
         {
             AssertNonNull(
                 writer,
-                namedTypeDescriptor);
+                typeDescriptor);
+
+            NamedTypeDescriptor namedTypeDescriptor = typeDescriptor switch
+            {
+                NamedTypeDescriptor nullableNamedType => nullableNamedType,
+                NonNullTypeDescriptor {InnerType: NamedTypeDescriptor namedType} => namedType,
+                _ => throw new ArgumentException(nameof(typeDescriptor))
+            };
 
             var className = ResultInfoNameFromTypeName(namedTypeDescriptor.Name);
 
@@ -39,14 +47,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
             foreach (var prop in namedTypeDescriptor.Properties)
             {
                 var propTypeBuilder = prop.Type.ToEntityIdBuilder();
-                
+
                 // Add Property to class
                 var propBuilder = PropertyBuilder
                     .New()
                     .SetName(prop.Name)
                     .SetType(propTypeBuilder)
                     .SetAccessModifier(AccessModifier.Public);
-                
+
                 ClassBuilder.AddProperty(propBuilder);
                 constructorCaller.AddArgument(prop.Name);
 
@@ -55,7 +63,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 ParameterBuilder parameterBuilder = ParameterBuilder.New()
                     .SetName(paramName)
                     .SetType(propTypeBuilder);
-                
+
                 ConstructorBuilder.AddParameter(parameterBuilder);
                 ConstructorBuilder.AddCode(prop.Name + " = " + paramName + ";");
             }

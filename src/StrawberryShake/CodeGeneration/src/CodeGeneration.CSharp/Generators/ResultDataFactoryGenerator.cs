@@ -80,7 +80,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     GenerateMappingAssignment(
                         ifHasCorrectType,
                         returnStatement,
-                        prop);
+                        prop,
+                        prop.Type);
                 }
             }
 
@@ -102,23 +103,24 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private void GenerateMappingAssignment(
             IfBuilder codeContainer,
             MethodCallBuilder returnBuilder,
-            PropertyDescriptor prop)
+            PropertyDescriptor propertyDescriptor,
+            ITypeDescriptor typeDescriptor)
         {
-            switch (prop.Type)
+            switch (typeDescriptor)
             {
                 case ListTypeDescriptor listTypeDescriptor:
                     // TODO
                     break;
 
-                case NamedTypeDescriptor typeDescriptor1:
-                    var idName = $"{prop.Name}Id";
-                    var varName = prop.Name.WithLowerFirstChar();
-                    if (typeDescriptor1.IsInterface)
+                case NamedTypeDescriptor namedType:
+                    var idName = $"{propertyDescriptor.Name}Id";
+                    var varName = propertyDescriptor.Name.WithLowerFirstChar();
+                    if (namedType.IsInterface)
                     {
-                        codeContainer.AddCode($"{typeDescriptor1.Name} {varName} = default!;");
+                        codeContainer.AddCode($"{namedType.Name} {varName} = default!;");
                         codeContainer.AddEmptyLine();
 
-                        foreach (NamedTypeDescriptor implementee in typeDescriptor1.ImplementedBy)
+                        foreach (NamedTypeDescriptor implementee in namedType.ImplementedBy)
                         {
                             codeContainer.AddCode(
                                 IfBuilder.New()
@@ -140,11 +142,19 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     }
                     else
                     {
-                        if (prop.Type is NamedTypeDescriptor nonList)
+                        if (typeDescriptor is NamedTypeDescriptor nonList)
                         {
                             returnBuilder.AddArgument(GetMappingCall(nonList, idName));
                         }
                     }
+                    break;
+
+                case NonNullTypeDescriptor nonNullTypeDescriptor:
+                    GenerateMappingAssignment(
+                        codeContainer,
+                        returnBuilder,
+                        propertyDescriptor,
+                        nonNullTypeDescriptor.InnerType);
                     break;
 
                 default:
@@ -177,6 +187,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     typeDescriptor1.IsInterface
                         ? typeDescriptor1.ImplementedBy
                         : new[] { typeDescriptor1 },
+
+                NonNullTypeDescriptor nonNullTypeDescriptor =>
+                    GetMappers(nonNullTypeDescriptor.InnerType),
 
                 _ => throw new ArgumentOutOfRangeException()
             };

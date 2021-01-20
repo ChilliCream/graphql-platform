@@ -22,9 +22,9 @@ namespace StrawberryShake.CodeGeneration.Extensions
             return typeDescriptor is not NonNullTypeDescriptor;
         }
 
-        public static bool IsListType(this ITypeDescriptor typeDescriptor)
+        public static bool IsNonNullableType(this ITypeDescriptor typeDescriptor)
         {
-            return typeDescriptor is ListTypeDescriptor;
+            return typeDescriptor is NonNullTypeDescriptor;
         }
     }
 }

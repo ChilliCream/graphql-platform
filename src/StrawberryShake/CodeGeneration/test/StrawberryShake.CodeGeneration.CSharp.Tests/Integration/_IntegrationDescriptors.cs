@@ -38,18 +38,20 @@ namespace StrawberryShake.Integration
             },
             kind: TypeKind.EntityType);
 
-        public static NamedTypeDescriptor CreateFriendsConnectionDescriptor() => new(
+        public static ITypeDescriptor CreateFriendsConnectionDescriptor() =>
+            new NonNullTypeDescriptor(new NamedTypeDescriptor(
             "FriendsConnection",
             "StarWarsClient",
             properties: new[]
             {
                 new PropertyDescriptor(
                     "Nodes",
-                    new ListTypeDescriptor(
-                        CreateCharacterDescriptor())),
+                    new NonNullTypeDescriptor(
+                        new ListTypeDescriptor(
+                            new NonNullTypeDescriptor(CreateCharacterDescriptor())))),
                 TestHelper.GetNamedNonNullIntTypeReference("TotalCount")
             },
-            kind: TypeKind.DataType);
+            kind: TypeKind.DataType));
 
         private static PropertyDescriptor CreateFriendsMemberDescriptor() => new(
             "Friends",
@@ -79,7 +81,7 @@ namespace StrawberryShake.Integration
             kind: TypeKind.EntityType,
             graphQLTypeName: "Droid");
 
-        public static NamedTypeDescriptor CreateHeroDescriptor() => new(
+        public static ITypeDescriptor CreateHeroDescriptor() => new NonNullTypeDescriptor (new NamedTypeDescriptor(
             _heroName,
             "StarWarsClient",
             new[] { _characterName },
@@ -89,7 +91,7 @@ namespace StrawberryShake.Integration
                 CreateHumanHeroNamedTypeDescriptor(),
                 CreateDroidHeroNamedTypeDescriptor()
             },
-            TypeKind.EntityType);
+            TypeKind.EntityType));
 
         public static EntityTypeDescriptor CreateDroidEntityTypeDescriptor() => new(
             "Droid",

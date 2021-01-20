@@ -55,12 +55,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             foreach (var arg in operationDescriptor.Arguments)
             {
+                var typeReferenceBuilder = TypeReferenceBuilder.New()
+                    .SetName(arg.Type.Name)
+                    .SetIsNullable(!(arg.Type is NonNullTypeDescriptor));
+
                 var paramBuilder = ParameterBuilder.New()
                     .SetName(arg.Name.WithLowerFirstChar())
-                    .SetType(
-                        TypeReferenceBuilder.New()
-                            .SetName(arg.Type.Name)
-                            .SetIsNullable(arg.Type.IsNullableType()));
+                    .SetType(typeReferenceBuilder);
 
                 executeMethod?.AddParameter(paramBuilder);
                 watchMethod.AddParameter(paramBuilder);

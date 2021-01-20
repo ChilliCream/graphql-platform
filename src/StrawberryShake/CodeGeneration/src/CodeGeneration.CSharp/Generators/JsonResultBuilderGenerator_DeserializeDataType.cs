@@ -6,11 +6,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public partial class JsonResultBuilderGenerator
     {
-        private void AddDataTypeDeserializerMethod(NamedTypeDescriptor namedTypeDescriptor)
+        private void AddDataTypeDeserializerMethod(NamedTypeDescriptor namedTypeDescriptor, ITypeDescriptor originalTypeDescriptor)
         {
             var dateDeserializer = MethodBuilder.New()
                 .SetReturnType(namedTypeDescriptor.Name)
-                .SetName(DeserializerMethodNameFromTypeName(namedTypeDescriptor))
+                .SetName(DeserializerMethodNameFromTypeName(originalTypeDescriptor))
                 .AddParameter(ParameterBuilder.New()
                     .SetType(_jsonElementParamName)
                     .SetName(_objParamName))
@@ -20,7 +20,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             dateDeserializer.AddCode(
                 EnsureJsonValueIsNotNull(),
-                !namedTypeDescriptor.IsNullableType());
+                originalTypeDescriptor.IsNonNullableType());
 
             var returnStatement = MethodCallBuilder.New()
                 .SetPrefix("return new ")

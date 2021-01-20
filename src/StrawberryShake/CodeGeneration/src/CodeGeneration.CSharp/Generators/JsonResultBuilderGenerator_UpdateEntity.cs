@@ -1,3 +1,4 @@
+using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.NamingConventions;
@@ -6,11 +7,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public partial class JsonResultBuilderGenerator
     {
-        private void AddUpdateEntityMethod(NamedTypeDescriptor namedTypeDescriptor)
+        private void AddUpdateEntityMethod(NamedTypeDescriptor namedTypeDescriptor, ITypeDescriptor originalTypeDescriptor)
         {
             var updateEntityMethod = MethodBuilder.New()
                 .SetAccessModifier(AccessModifier.Private)
-                .SetName(DeserializerMethodNameFromTypeName(namedTypeDescriptor))
+                .SetName(DeserializerMethodNameFromTypeName(originalTypeDescriptor))
                 .SetReturnType(WellKnownNames.EntityId)
                 .AddParameter(
                     ParameterBuilder.New()
@@ -23,7 +24,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             updateEntityMethod.AddCode(
                 EnsureJsonValueIsNotNull(),
-                !namedTypeDescriptor.IsNullableType());
+                originalTypeDescriptor.IsNonNullableType());
 
             var entityIdVarName = "entityId";
             updateEntityMethod.AddCode(

@@ -26,7 +26,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 CodeLineBuilder.New()
                     .SetLine(
                         CodeBlockBuilder.New()
-                            .AddCode($"using {WellKnownNames.IEntityUpdateSession} {sessionName} = ")
+                            .AddCode(
+                                $"using {WellKnownNames.IEntityUpdateSession} {sessionName} = ")
                             .AddCode(_entityStoreFieldName + ".BeginUpdate();")));
 
             var entityIdsName = "entityIds";
@@ -41,8 +42,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 buildDataMethod.AddCode(
                     AssignmentBuilder.New()
                         .SetLefthandSide($"{WellKnownNames.EntityId} {property.Name}Id")
-                        .SetRighthandSide(
-                            BuildUpdateMethodCall(property)));
+                        .SetRighthandSide(BuildUpdateMethodCall(property)));
             }
 
             var resultInfoConstructor = MethodCallBuilder.New()

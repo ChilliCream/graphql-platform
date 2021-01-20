@@ -5,21 +5,21 @@
     {
         private const string _bodyString = 
             @"query GetHero {
-                hero {
-                    __typename
-                    id
-                    name
-                    friends {
-                        nodes {
-                            __typename
-                            id
-                            name
+                    hero {
+                        __typename
+                        id
+                        name
+                        friends {
+                            nodes {
+                                __typename
+                                id
+                                name
+                            }
+                            totalCount
                         }
-                        totalCount
                     }
-                }
-                version
-            }";
+                    version
+                }";
         private static readonly byte[] _body = Encoding.UTF8.GetBytes(_bodyString);
 
         private GetHeroResultQueryDocument()

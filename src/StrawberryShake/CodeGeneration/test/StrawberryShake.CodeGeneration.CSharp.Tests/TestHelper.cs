@@ -8,15 +8,12 @@ namespace StrawberryShake
             string referenceName) =>
             new(
                 referenceName,
-                new NamedTypeDescriptor("string", "System"));
+                new NonNullTypeDescriptor(new NamedTypeDescriptor("string", "System")));
 
         public static PropertyDescriptor GetNamedNonNullIntTypeReference(
             string referenceName) =>
             new(
                 referenceName,
-                new NamedTypeDescriptor("int", "System"));
-
-        public static NamedTypeDescriptor GetNonNullStringTypeReference() =>
-            new("string", "System");
+                new NonNullTypeDescriptor(new NamedTypeDescriptor("int", "System")));
     }
 }
