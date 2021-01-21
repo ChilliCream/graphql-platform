@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using HotChocolate.Configuration;
 using HotChocolate.Execution;
+using HotChocolate.Types.Descriptors.Definitions;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
 using Snapshooter.Xunit;
@@ -24,7 +27,7 @@ namespace HotChocolate.Types.Spatial
                 .AddSpatialTypes(x => x
                     .DefaultSrid(4326)
                     .AddCoordinateSystemFromString(26918, WKT26918))
-                .AddSpatialTypes();
+                .TryAddTypeInterceptor<RoundTypeIntercetor>();
 
             // act
             Exception? ex = Record.Exception(() => builder.Create());
@@ -42,7 +45,7 @@ namespace HotChocolate.Types.Spatial
                 .AddSpatialTypes(x => x
                     .DefaultSrid(4326)
                     .AddCoordinateSystemFromString(4326, WKT4326))
-                .AddSpatialTypes()
+                .TryAddTypeInterceptor<RoundTypeIntercetor>()
                 .Create();
 
             IRequestExecutor executor = schema.MakeExecutable();
@@ -90,8 +93,8 @@ namespace HotChocolate.Types.Spatial
                 .AddSpatialTypes(x => x
                     .DefaultSrid(4326)
                     .AddCoordinateSystemFromString(4326, WKT4326))
-                .AddSpatialTypes()
                 .AddResolver("Query", "test", _ => lineString)
+                .TryAddTypeInterceptor<RoundTypeIntercetor>()
                 .Create();
 
             IRequestExecutor executor = schema.MakeExecutable();
@@ -136,8 +139,8 @@ namespace HotChocolate.Types.Spatial
                     .DefaultSrid(4326)
                     .AddCoordinateSystemFromString(4326, WKT4326)
                     .AddCoordinateSystemFromString(26918, WKT26918))
-                .AddSpatialTypes()
                 .AddResolver("Query", "test", _ => lineString)
+                .TryAddTypeInterceptor<RoundTypeIntercetor>()
                 .Create();
 
             IRequestExecutor executor = schema.MakeExecutable();
@@ -182,8 +185,8 @@ namespace HotChocolate.Types.Spatial
                     .DefaultSrid(4326)
                     .AddCoordinateSystemFromString(4326, WKT4326)
                     .AddCoordinateSystemFromString(26918, WKT26918))
-                .AddSpatialTypes()
                 .AddResolver("Query", "test", _ => lineString)
+                .TryAddTypeInterceptor<RoundTypeIntercetor>()
                 .Create();
 
             IRequestExecutor executor = schema.MakeExecutable();
@@ -228,8 +231,8 @@ namespace HotChocolate.Types.Spatial
                     .DefaultSrid(4326)
                     .AddCoordinateSystemFromString(4326, WKT4326)
                     .AddCoordinateSystemFromString(26918, WKT26918))
-                .AddSpatialTypes()
                 .AddResolver("Query", "test", _ => lineString)
+                .TryAddTypeInterceptor<RoundTypeIntercetor>()
                 .Create();
 
             IRequestExecutor executor = schema.MakeExecutable();
@@ -256,6 +259,7 @@ namespace HotChocolate.Types.Spatial
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType<Query>()
                 .AddSpatialTypes()
+                .TryAddTypeInterceptor<RoundTypeIntercetor>()
                 .Create();
 
             IRequestExecutor executor = schema.MakeExecutable();
@@ -290,6 +294,7 @@ namespace HotChocolate.Types.Spatial
                     .DefaultSrid(4326)
                     .AddCoordinateSystemFromString(4326, WKT4326)
                     .AddCoordinateSystemFromString(26918, WKT26918))
+                .TryAddTypeInterceptor<RoundTypeIntercetor>()
                 .Create();
 
             IRequestExecutor executor = schema.MakeExecutable();
@@ -324,6 +329,7 @@ namespace HotChocolate.Types.Spatial
                     .DefaultSrid(4326)
                     .AddCoordinateSystemFromString(4326, WKT4326)
                     .AddCoordinateSystemFromString(26918, WKT26918))
+                .TryAddTypeInterceptor<RoundTypeIntercetor>()
                 .Create();
 
             IRequestExecutor executor = schema.MakeExecutable();
@@ -356,6 +362,7 @@ namespace HotChocolate.Types.Spatial
                 .AddSpatialTypes(x => x
                     .AddCoordinateSystemFromString(4326, WKT4326)
                     .AddCoordinateSystemFromString(26918, WKT26918))
+                .TryAddTypeInterceptor<RoundTypeIntercetor>()
                 .Create();
 
             IRequestExecutor executor = schema.MakeExecutable();
@@ -385,12 +392,12 @@ namespace HotChocolate.Types.Spatial
         {
             // arrange
             LineString lineString = new LineString(new[]
-                {
-                    new Coordinate(30, 10),
-                    new Coordinate(10, 30),
-                    new CoordinateZ(10, 30, 12),
-                    new Coordinate(40, 40)
-                });
+            {
+                new Coordinate(30, 10),
+                new Coordinate(10, 30),
+                new CoordinateZ(10, 30, 12),
+                new Coordinate(40, 40)
+            });
 
             ISchema schema = SchemaBuilder.New()
                 .AddDocumentFromString(
@@ -403,8 +410,8 @@ namespace HotChocolate.Types.Spatial
                     .DefaultSrid(4326)
                     .AddCoordinateSystemFromString(4326, WKT4326)
                     .AddCoordinateSystemFromString(26918, WKT26918))
-                .AddSpatialTypes()
                 .AddResolver("Query", "test", _ => lineString)
+                .TryAddTypeInterceptor<RoundTypeIntercetor>()
                 .Create();
 
             IRequestExecutor executor = schema.MakeExecutable();
@@ -433,6 +440,7 @@ namespace HotChocolate.Types.Spatial
                     .DefaultSrid(4326)
                     .AddCoordinateSystemFromString(4326, WKT4326)
                     .AddCoordinateSystemFromString(26918, WKT26918))
+                .TryAddTypeInterceptor<RoundTypeIntercetor>()
                 .Create();
 
             IRequestExecutor executor = schema.MakeExecutable();
@@ -467,6 +475,7 @@ namespace HotChocolate.Types.Spatial
                     .DefaultSrid(4326)
                     .AddCoordinateSystemFromString(4326, WKT4326)
                     .AddCoordinateSystemFromString(26918, WKT26918))
+                .TryAddTypeInterceptor<RoundTypeIntercetor>()
                 .Create();
 
             IRequestExecutor executor = schema.MakeExecutable();
@@ -516,8 +525,8 @@ namespace HotChocolate.Types.Spatial
                     .DefaultSrid(4326)
                     .AddCoordinateSystemFromString(26918, WKT26918)
                     .AddCoordinateSystemFromString(4326, WKT4326))
-                .AddSpatialTypes()
                 .AddResolver("Query", "test", _ => lineString)
+                .TryAddTypeInterceptor<RoundTypeIntercetor>()
                 .Create();
 
             IRequestExecutor executor = schema.MakeExecutable();
@@ -561,8 +570,8 @@ namespace HotChocolate.Types.Spatial
                     .DefaultSrid(4326)
                     .AddCoordinateSystemFromString(26918, WKT26918)
                     .AddCoordinateSystemFromString(4326, WKT4326))
-                .AddSpatialTypes()
                 .AddResolver("Query", "test", _ => lineString)
+                .TryAddTypeInterceptor<RoundTypeIntercetor>()
                 .Create();
 
             IRequestExecutor executor = schema.MakeExecutable();
@@ -592,6 +601,7 @@ namespace HotChocolate.Types.Spatial
                     .DefaultSrid(4326)
                     .AddWebMercator()
                     .AddWGS84())
+                .TryAddTypeInterceptor<RoundTypeIntercetor>()
                 .Create();
 
             IRequestExecutor executor = schema.MakeExecutable();
@@ -619,6 +629,48 @@ namespace HotChocolate.Types.Spatial
         public class Query
         {
             public LineString Test(LineString arg) => arg;
+        }
+
+        /// <summary>
+        /// The transformation are different from system to system. We need to round the result
+        /// to make it consistent!
+        /// </summary>
+        public class RoundTypeIntercetor : TypeInterceptor
+        {
+            public override void OnBeforeCompleteType(
+                ITypeCompletionContext completionContext,
+                DefinitionBase? definition,
+                IDictionary<string, object?> contextData)
+            {
+                if (definition is ObjectTypeDefinition o)
+                {
+                    foreach (var field in o.Fields)
+                    {
+                        if (field.Name is { Value: "test" })
+                        {
+                            field.MiddlewareComponents.Insert(0,
+                                next => async context =>
+                                {
+                                    await next(context);
+                                    if (context.Result is Geometry g)
+                                    {
+                                        foreach (var coordinate in g.Coordinates)
+                                        {
+                                            if (coordinate is CoordinateZ z)
+                                            {
+                                                z.Z = Math.Round(z.Z, 2);
+                                            }
+
+                                            coordinate.Y = Math.Round(coordinate.Y, 2);
+                                            coordinate.X = Math.Round(coordinate.X, 2);
+                                        }
+                                    }
+                                }
+                            );
+                        }
+                    }
+                }
+            }
         }
     }
 }
