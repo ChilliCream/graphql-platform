@@ -23,7 +23,7 @@ namespace StrawberryShake.Other
         [Fact]
         public async Task GenerateSimpleResultDataFactory_WithOneValueTypeProperty()
         {
-            await _generator.WriteAsync(
+            await _generator.Write(
                 _codeWriter,
                 new TypeDescriptor(
                     "Foo",

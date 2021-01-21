@@ -40,37 +40,25 @@ namespace StrawberryShake.CodeGeneration.Utilities
             return builder.ToString();
         }
 
-#if NETCOREAPP3_0 || NETCOREAPP2_2
         public static string GetPropertyName(string fieldName)
-#else
-        public static unsafe string GetPropertyName(string fieldName)
-#endif
         {
-            var buffered = 0;
-            Span<char> amended = stackalloc char[fieldName.Length];
+            var value = new StringBuilder();
+            ReadOnlySpan<char> fieldNameSpan = fieldName.AsSpan();
 
             for (var i = 0; i < fieldName.Length; i++)
             {
                 if (i == 0 && char.IsLetter(fieldName[i]))
                 {
-                    amended[buffered++] = char.ToUpper(fieldName[i], CultureInfo.InvariantCulture);
+
+                    value.Append(char.ToUpper(fieldName[i], CultureInfo.InvariantCulture));
                 }
                 else
                 {
-                    amended[buffered++] = fieldName[i];
+                    value.Append(fieldName[i]);
                 }
             }
 
-#if NETCOREAPP3_0 || NETCOREAPP2_2
-            return new string(amended.Slice(0, buffered));
-#else
-
-            amended = amended.Slice(0, buffered);
-            fixed (char* charPtr = amended)
-            {
-                return new string(charPtr, 0, amended.Length);
-            }
-#endif
+            return value.ToString();
         }
 
         public static string GetEnumValue(string enumValue)
@@ -78,9 +66,9 @@ namespace StrawberryShake.CodeGeneration.Utilities
             var value = new StringBuilder();
             ReadOnlySpan<char> enumValueSpan = enumValue.AsSpan();
 
-            bool upper = true;
+            var upper = true;
 
-            for (int i = 0; i < enumValueSpan.Length; i++)
+            for (var i = 0; i < enumValueSpan.Length; i++)
             {
                 if (enumValueSpan[i] == '_')
                 {
@@ -110,21 +98,16 @@ namespace StrawberryShake.CodeGeneration.Utilities
             return "_" + GetParameterName(fieldName);
         }
 
-#if NETCOREAPP3_1 || NETCOREAPP2_1
         public static string GetParameterName(string parameterName)
-#else
-        public static unsafe string GetParameterName(string parameterName)
-#endif
         {
-            var buffered = 0;
+            var value = new StringBuilder();
             var first = true;
-            Span<char> amended = stackalloc char[parameterName.Length];
 
             for (var i = 0; i < parameterName.Length; i++)
             {
                 if (i == 0 && char.IsLetter(parameterName[i]))
                 {
-                    amended[buffered++] = char.ToLower(parameterName[i], CultureInfo.InvariantCulture);
+                    value.Append(char.ToLower(parameterName[i], CultureInfo.InvariantCulture));
                     first = false;
                 }
                 else if (parameterName[i] == '_')
@@ -132,28 +115,19 @@ namespace StrawberryShake.CodeGeneration.Utilities
                     if (i + 1 < parameterName.Length
                         && char.IsLetter(parameterName[i + 1]))
                     {
-                        amended[buffered++] = first
+                        value.Append(first
                             ? char.ToLower(parameterName[++i], CultureInfo.InvariantCulture)
-                            : char.ToUpper(parameterName[++i], CultureInfo.InvariantCulture);
+                            : char.ToUpper(parameterName[++i], CultureInfo.InvariantCulture));
                         first = false;
                     }
                 }
                 else
                 {
-                    amended[buffered++] = parameterName[i];
+                    value.Append(parameterName[i]);
                 }
             }
 
-#if NETCOREAPP3_1 || NETCOREAPP2_1
-            return new string(amended.Slice(0, buffered));
-#else
-
-            amended = amended.Slice(0, buffered);
-            fixed (char* charPtr = amended)
-            {
-                return new string(charPtr, 0, amended.Length);
-            }
-#endif
+            return value.ToString();
         }
     }
 }

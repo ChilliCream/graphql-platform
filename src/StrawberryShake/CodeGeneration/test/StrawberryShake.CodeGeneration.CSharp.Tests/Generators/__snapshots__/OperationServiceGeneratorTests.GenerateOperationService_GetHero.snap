@@ -1,11 +1,11 @@
 ﻿namespace StarWarsClient
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetHeroResultQuery
+    public partial class GetHeroQuery
     {
         private readonly IOperationExecutor<GetHeroResult> _operationExecutor;
 
-        public GetHeroResultQuery(IOperationExecutor<GetHeroResult> operationExecutor)
+        public GetHeroQuery(IOperationExecutor<GetHeroResult> operationExecutor)
         {
             _operationExecutor = operationExecutor
                  ?? throw new ArgumentNullException(nameof(operationExecutor));
@@ -33,7 +33,7 @@
         {
             return new(
                 "GetHeroResult",
-                GetHeroResultQueryDocument.Instance
+                GetHeroQueryDocument.Instance
             );
         }
     }

@@ -24,7 +24,7 @@ namespace StrawberryShake.Other
         [Fact]
         public async Task GenerateQueryServiceWithoutArguments()
         {
-            await _generator.WriteAsync(
+            await _generator.Write(
                 _codeWriter,
                 new SubscriptionOperationDescriptor(
                     new TypeReferenceDescriptor(
@@ -45,7 +45,7 @@ namespace StrawberryShake.Other
         [Fact]
         public async Task GenerateQueryServiceWithValueArgument()
         {
-            await _generator.WriteAsync(
+            await _generator.Write(
                 _codeWriter,
                 new SubscriptionOperationDescriptor(
                     new TypeReferenceDescriptor(
@@ -69,7 +69,7 @@ namespace StrawberryShake.Other
         [Fact]
         public async Task GenerateQueryServiceWithReferenceArgument()
         {
-            await _generator.WriteAsync(
+            await _generator.Write(
                 _codeWriter,
                 new SubscriptionOperationDescriptor(
                     new TypeReferenceDescriptor(
@@ -102,7 +102,7 @@ namespace StrawberryShake.Other
         [Fact]
         public async Task GenerateQueryServiceWithArguments()
         {
-            await _generator.WriteAsync(
+            await _generator.Write(
                 _codeWriter,
                 new SubscriptionOperationDescriptor(
                     new TypeReferenceDescriptor(

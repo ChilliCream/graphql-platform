@@ -23,7 +23,7 @@ namespace StrawberryShake.Integration
         // [Fact]
         // public async Task GenerateDataType_FriendsConnection()
         // {
-        //     await _generator.WriteAsync(
+        //     await _generator.Write(
         //         _codeWriter,
         //         IntegrationDescriptors.CreateDroidEntityTypeDescriptor());
         //

@@ -130,8 +130,7 @@ namespace StrawberryShake.CodeGeneration
             }
         }
 
-        private class Block
-            : IDisposable
+        private class Block : IDisposable
         {
             private readonly Action _decrease;
 

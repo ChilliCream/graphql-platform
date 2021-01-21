@@ -34,7 +34,7 @@
 
         private override string ToString()
         {
-            
+            return _bodyString;
         }
     }
 }

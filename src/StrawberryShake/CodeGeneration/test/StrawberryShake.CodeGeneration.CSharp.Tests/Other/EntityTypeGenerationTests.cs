@@ -23,7 +23,7 @@ namespace StrawberryShake.Other
         [Fact]
         public async Task GenerateSimpleClassWithOneValueTypeProperty()
         {
-            await _generator.WriteAsync(
+            await _generator.Write(
                 _codeWriter,
                 new TypeDescriptor(
                     NamingConventions.EntityTypeNameFromTypeName("Foo"),
@@ -38,7 +38,7 @@ namespace StrawberryShake.Other
         [Fact]
         public async Task GenerateSimpleClassWithOneReferenceTypeProperty()
         {
-            await _generator.WriteAsync(
+            await _generator.Write(
                 _codeWriter,
                 new TypeDescriptor(
                     "Foo",
@@ -64,7 +64,7 @@ namespace StrawberryShake.Other
         [Fact]
         public async Task GenerateSimpleClassWithMultipleProperties()
         {
-            await _generator.WriteAsync(
+            await _generator.Write(
                 _codeWriter,
                 new TypeDescriptor(
                     NamingConventions.EntityTypeNameFromTypeName("Foo"),

@@ -24,7 +24,7 @@ namespace StrawberryShake.Other
         [Fact]
         public async Task GenerateMutationServiceWithoutArguments()
         {
-            await _generator.WriteAsync(
+            await _generator.Write(
                 _codeWriter,
                 new MutationOperationDescriptor(
                     new TypeReferenceDescriptor(
@@ -45,7 +45,7 @@ namespace StrawberryShake.Other
         [Fact]
         public async Task GenerateMutationServiceWithValueArgument()
         {
-            await _generator.WriteAsync(
+            await _generator.Write(
                 _codeWriter,
                 new MutationOperationDescriptor(
                     new TypeReferenceDescriptor(
@@ -78,7 +78,7 @@ namespace StrawberryShake.Other
         [Fact]
         public async Task GenerateMutationServiceWithReferenceArgument()
         {
-            await _generator.WriteAsync(
+            await _generator.Write(
                 _codeWriter,
                 new MutationOperationDescriptor(
                     new TypeReferenceDescriptor(
@@ -111,7 +111,7 @@ namespace StrawberryShake.Other
         [Fact]
         public async Task GenerateMutationServiceWithArguments()
         {
-            await _generator.WriteAsync(
+            await _generator.Write(
                 _codeWriter,
                 new MutationOperationDescriptor(
                     new TypeReferenceDescriptor(

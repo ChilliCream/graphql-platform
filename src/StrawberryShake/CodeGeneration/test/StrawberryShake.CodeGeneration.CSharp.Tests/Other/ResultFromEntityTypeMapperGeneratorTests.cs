@@ -23,7 +23,7 @@ namespace StrawberryShake.Other
         [Fact]
         public async Task MapperWithOneValueProperty()
         {
-            await _generator.WriteAsync(
+            await _generator.Write(
                 _codeWriter,
                 new ResultFromEntityTypeMapperDescriptor(
                     new TypeDescriptor(
@@ -51,7 +51,7 @@ namespace StrawberryShake.Other
         [Fact]
         public async Task MapperWithTwoValueProperties()
         {
-            await _generator.WriteAsync(
+            await _generator.Write(
                 _codeWriter,
                 new ResultFromEntityTypeMapperDescriptor(
                     new TypeDescriptor(
@@ -83,7 +83,7 @@ namespace StrawberryShake.Other
         [Fact]
         public async Task MapperWithOneReferenceProperty()
         {
-            await _generator.WriteAsync(
+            await _generator.Write(
                 _codeWriter,
                 new ResultFromEntityTypeMapperDescriptor(
                     new TypeDescriptor(
@@ -128,7 +128,7 @@ namespace StrawberryShake.Other
         [Fact]
         public async Task MapperWithReferencePropertyList()
         {
-            await _generator.WriteAsync(
+            await _generator.Write(
                 _codeWriter,
                 new ResultFromEntityTypeMapperDescriptor(
                     new TypeDescriptor(
@@ -174,7 +174,7 @@ namespace StrawberryShake.Other
         [Fact]
         public async Task MapperWithManyProperties()
         {
-            await _generator.WriteAsync(
+            await _generator.Write(
                 _codeWriter,
                 new ResultFromEntityTypeMapperDescriptor(
                     new TypeDescriptor(

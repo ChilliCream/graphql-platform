@@ -49,7 +49,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-
         public void Build(CodeWriter writer)
         {
             if (writer is null)

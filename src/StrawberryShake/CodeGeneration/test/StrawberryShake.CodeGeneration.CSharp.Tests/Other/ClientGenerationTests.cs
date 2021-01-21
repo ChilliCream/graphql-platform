@@ -24,7 +24,7 @@ namespace StrawberryShake.Other
         [Fact]
         public async Task GenerateClient_OneOperation_Success()
         {
-            await _generator.WriteAsync(
+            await _generator.Write(
                 _codeWriter,
                 new ClientDescriptor(
                     "FooClient",
@@ -51,7 +51,7 @@ namespace StrawberryShake.Other
         [Fact]
         public async Task GenerateClient_TwoOperations_Success()
         {
-            await _generator.WriteAsync(
+            await _generator.Write(
                 _codeWriter,
                 new ClientDescriptor(
                     "FooClient",

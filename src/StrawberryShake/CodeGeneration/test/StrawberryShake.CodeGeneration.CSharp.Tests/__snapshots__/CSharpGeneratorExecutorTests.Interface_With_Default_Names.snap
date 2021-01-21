@@ -28,3 +28,337 @@ namespace Foo
 }
 
 
+// GetHero
+
+namespace Foo
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetHeroFactory
+        : IOperationResultDataFactory<GetHero>
+    {
+        private readonly IEntityStore _entityStore;
+        private readonly IEntityMapper<CharacterEntity, GetHero_Hero> _getHero_HeroFromCharacterEntityMapper;
+
+        public GetHeroFactory(
+            IEntityStore entityStore,
+            IEntityMapper<CharacterEntity, GetHero_Hero> getHero_HeroFromCharacterEntityMapper)
+        {
+            _entityStore = entityStore
+                 ?? throw new ArgumentNullException(nameof(entityStore));
+            _getHero_HeroFromCharacterEntityMapper = getHero_HeroFromCharacterEntityMapper
+                 ?? throw new ArgumentNullException(nameof(getHero_HeroFromCharacterEntityMapper));
+        }
+
+        public GetHero Create(IOperationResultDataInfo dataInfo)
+        {
+            if (dataInfo is GetHeroInfo info)
+            {
+                IGetHero_Hero hero = default!;
+
+                if (info.HeroId.Name.Equals(
+                    "Character",
+                    StringComparison.Ordinal
+                ))
+                {
+                    hero = GetHero_HeroFromCharacterEntityMapper(_entityStore.GetEntity<CharacterEntity>(info.HeroId));
+                }
+
+                return new GetHero(hero);
+            }
+
+            throw new ArgumentException("GetHeroInfo expected.");
+        }
+    }
+}
+
+
+// GetHero
+
+namespace Foo
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetHeroInfo
+        : IOperationResultDataInfoInfo
+    {
+        private readonly IReadOnlyCollection<EntityId> _entityIds;
+        private readonly ulong _version;
+
+        public GetHeroInfo(
+            EntityId? hero,
+            IReadOnlyCollection<EntityId> entityIds,
+            ulong version)
+        {
+            Hero = hero;
+            _entityIds = entityIds
+                 ?? throw new ArgumentNullException(nameof(entityIds));
+            _version = version
+                 ?? throw new ArgumentNullException(nameof(version));
+        }
+
+        public EntityId? Hero { get; }
+
+        public IReadOnlyCollection<EntityId> IOperationResultDataInfo.EntityIds => _entityIds;
+
+        public ulong IOperationResultDataInfo.Version => _version;
+
+        public GetHeroInfo IOperationResultDataInfo.WithVersion(ulong version)
+        {
+            return new GetHeroInfo(
+                Hero,
+                _entityIds,
+                _version
+            );
+        }
+    }
+}
+
+
+// GetHero
+
+namespace Foo
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetHero
+        : IGetHero
+    {
+        public GetHero(IGetHero_Hero? hero)
+        {
+            Hero = hero;
+        }
+
+        public IGetHero_Hero? Hero { get; }
+    }
+}
+
+
+// GetHero_Hero
+
+namespace Foo
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetHero_HeroFromCharacterEntityMapper
+        : IEntityMapper<CharacterEntity, GetHero_Hero>
+    {
+        private readonly IEntityStore _entityStore;
+
+        public GetHero_HeroFromCharacterEntityMapper(IEntityStore entityStore)
+        {
+            _entityStore = entityStore
+                 ?? throw new ArgumentNullException(nameof(entityStore));
+        }
+
+        public GetHero_Hero Map(CharacterEntity entity)
+        {
+            return new GetHero_Hero(
+                entity.Name,
+                entity.AppearsIn
+            );
+        }
+    }
+}
+
+
+// GetHero_Hero
+
+namespace Foo
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetHero_Hero
+        : IGetHero_Hero
+    {
+        public GetHero_Hero(
+            String name,
+            IReadOnlyList<Episode? ?>? appearsIn)
+        {
+            Name = name;
+            AppearsIn = appearsIn;
+        }
+
+        public String Name { get; }
+
+        public IReadOnlyList<Episode? ?>? AppearsIn { get; }
+    }
+}
+
+
+// IGetHero
+
+namespace Foo
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class IGetHeroInfo
+        : IOperationResultDataInfoInfo
+    {
+        private readonly IReadOnlyCollection<EntityId> _entityIds;
+        private readonly ulong _version;
+
+        public IGetHeroInfo(
+            EntityId? hero,
+            IReadOnlyCollection<EntityId> entityIds,
+            ulong version)
+        {
+            Hero = hero;
+            _entityIds = entityIds
+                 ?? throw new ArgumentNullException(nameof(entityIds));
+            _version = version
+                 ?? throw new ArgumentNullException(nameof(version));
+        }
+
+        public EntityId? Hero { get; }
+
+        public IReadOnlyCollection<EntityId> IOperationResultDataInfo.EntityIds => _entityIds;
+
+        public ulong IOperationResultDataInfo.Version => _version;
+
+        public IGetHeroInfo IOperationResultDataInfo.WithVersion(ulong version)
+        {
+            return new IGetHeroInfo(
+                Hero,
+                _entityIds,
+                _version
+            );
+        }
+    }
+}
+
+
+// IGetHero
+
+namespace Foo
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class IGetHero
+    {
+        public IGetHero(IGetHero_Hero? hero)
+        {
+            Hero = hero;
+        }
+
+        public IGetHero_Hero? Hero { get; }
+    }
+}
+
+
+// IGetHero_Hero
+
+namespace Foo
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class IGetHero_Hero
+    {
+        public IGetHero_Hero(
+            String name,
+            IReadOnlyList<Episode? ?>? appearsIn)
+        {
+            Name = name;
+            AppearsIn = appearsIn;
+        }
+
+        public String Name { get; }
+
+        public IReadOnlyList<Episode? ?>? AppearsIn { get; }
+    }
+}
+
+
+// GetHeroQuery
+
+namespace Foo
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetHeroQueryDocument
+    {
+        private const string _bodyString = 
+            @"query GetHero {
+  hero(episode: NEW_HOPE) {
+    name
+    appearsIn
+  }
+}";
+        private static readonly byte[] _body = Encoding.UTF8.GetBytes(_bodyString);
+
+        private GetHeroQueryDocument()
+        {
+        }
+
+        public GetHeroQueryDocument Instance { get; } = new();
+
+        public OperationKind Kind => OperationKind.Query;
+
+        public ReadOnlySpan<byte> Body => _body;
+
+        private override string ToString()
+        {
+            return _bodyString;
+        }
+    }
+}
+
+
+// GetHeroQuery
+
+namespace Foo
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetHeroQuery
+    {
+        private readonly IOperationExecutor<IGetHero> _operationExecutor;
+
+        public GetHeroQuery(IOperationExecutor<IGetHero> operationExecutor)
+        {
+            _operationExecutor = operationExecutor
+                 ?? throw new ArgumentNullException(nameof(operationExecutor));
+        }
+
+        public async Task<IOperationResult<IGetHero>> Execute(CancellationToken cancellationToken = default)
+        {
+            var request = CreateRequest();
+            
+            return await _operationExecutor
+                .ExecuteAsync(
+                    request,
+                    cancellationToken
+                )
+                .ConfigureAwait(false);
+        }
+
+        public IOperationObservable<IGetHero> Watch(ExecutionStrategy? strategy = null)
+        {
+            var request = CreateRequest();
+            return _operationExecutor.Watch(request, strategy);
+        }
+
+        private OperationRequest CreateRequest()
+        {
+            return new(
+                "IGetHero",
+                GetHeroQueryDocument.Instance
+            );
+        }
+    }
+}
+
+
+// FooClient
+
+namespace Foo
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FooClient
+    {
+        private readonly GetHeroQuery _getHeroQuery;
+
+        public FooClient(GetHeroQuery getHeroQuery)
+        {
+            _getHeroQuery = getHeroQuery
+                 ?? throw new ArgumentNullException(nameof(getHeroQuery));
+        }
+
+        public GetHeroQuery GetHeroQuery()
+        {
+            return _getHeroQuery;
+        }
+    }
+}
+
+

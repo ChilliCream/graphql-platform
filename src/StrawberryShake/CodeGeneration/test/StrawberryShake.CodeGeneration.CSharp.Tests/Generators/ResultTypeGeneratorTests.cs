@@ -1,8 +1,8 @@
 using System.Text;
-using System.Threading.Tasks;
 using Snapshooter.Xunit;
 using StrawberryShake.CodeGeneration;
 using StrawberryShake.CodeGeneration.CSharp;
+using StrawberryShake.CodeGeneration.Extensions;
 using Xunit;
 
 namespace StrawberryShake.Integration
@@ -35,7 +35,7 @@ namespace StrawberryShake.Integration
         {
             _generator.Generate(
                 _codeWriter,
-                IntegrationDescriptors.CreateIHeroDescriptor());
+                IntegrationDescriptors.CreateIHeroDescriptor().InnerType());
 
             _stringBuilder.ToString().MatchSnapshot();
         }

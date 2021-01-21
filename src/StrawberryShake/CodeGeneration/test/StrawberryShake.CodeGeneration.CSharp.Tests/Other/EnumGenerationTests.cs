@@ -23,7 +23,7 @@ namespace StrawberryShake.Other
         [Fact]
         public async Task GenerateSingleValueEnum()
         {
-            await _generator.WriteAsync(
+            await _generator.Write(
                 _codeWriter,
                 new EnumDescriptor(
                     "Foonum",
@@ -40,7 +40,7 @@ namespace StrawberryShake.Other
         [Fact]
         public async Task GenerateSingleValueEnumWithExplicitValue()
         {
-            await _generator.WriteAsync(
+            await _generator.Write(
                 _codeWriter,
                 new EnumDescriptor(
                     "Foonum",
@@ -57,7 +57,7 @@ namespace StrawberryShake.Other
         [Fact]
         public async Task GenerateMultiValueEnum()
         {
-            await _generator.WriteAsync(
+            await _generator.Write(
                 _codeWriter,
                 new EnumDescriptor(
                     "Foonum",
@@ -75,7 +75,7 @@ namespace StrawberryShake.Other
         [Fact]
         public async Task GenerateMultiValueEnumWithOneExplicitValue()
         {
-            await _generator.WriteAsync(
+            await _generator.Write(
                 _codeWriter,
                 new EnumDescriptor(
                     "Foonum",
@@ -93,7 +93,7 @@ namespace StrawberryShake.Other
         [Fact]
         public async Task GenerateMultiValueEnumWithMultipleExplicitValues()
         {
-            await _generator.WriteAsync(
+            await _generator.Write(
                 _codeWriter,
                 new EnumDescriptor(
                     "Foonum",

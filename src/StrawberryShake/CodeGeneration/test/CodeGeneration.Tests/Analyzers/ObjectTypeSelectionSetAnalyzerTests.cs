@@ -47,7 +47,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
             Assert.Collection(
                 result.Fields,
-                field => Assert.Equal("name", field.Name));
+                field => Assert.Equal("Name", field.Name));
         }
 
         [Fact]
@@ -91,7 +91,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
             Assert.Collection(
                 result.Fields,
-                field => Assert.Equal("name", field.Name));
+                field => Assert.Equal("Name", field.Name));
         }
     }
 }
