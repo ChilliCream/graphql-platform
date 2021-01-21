@@ -24,7 +24,7 @@ namespace HotChocolate.Types.Spatial.Transformation
         {
             ISpatialConvention convention = completionContext.GetSpatialConvention();
             if (convention.TransformerFactory.HasCoordinateSystems() &&
-                convention.DefaultSrid is not 0 and not -1)
+                convention.DefaultSrid > 0)
             {
                 if (!convention.TransformerFactory.ContainsCoordinateSystem(convention.DefaultSrid))
                 {
