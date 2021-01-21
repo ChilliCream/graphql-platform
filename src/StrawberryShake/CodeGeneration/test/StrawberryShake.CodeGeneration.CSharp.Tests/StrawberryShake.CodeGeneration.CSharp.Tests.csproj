@@ -17,6 +17,8 @@
 
   <ItemGroup>
     <Compile Remove="Other\**" />
+    <Compile Include="Other\ResultTypeGenerationTests.cs" />
+    <Compile Include="Other\ResultTypeGenerationTests_Lists.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Remove="Other\**" />
@@ -34,6 +36,9 @@
   <!--For Visual Studio for Mac Test Explorer we need this reference here-->
   <ItemGroup>
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Other\__snapshots__\__mismatch__" />
   </ItemGroup>
   
 </Project>

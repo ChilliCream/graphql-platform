@@ -1,16 +1,17 @@
 using System;
+using System.Collections.Generic;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public class ParameterBuilder : ICodeBuilder
     {
-        private TypeReferenceBuilder? _type;
+        private ITypeReferenceBuilder? _type;
         private string? _name;
         private string? _default;
 
         public static ParameterBuilder New() => new();
 
-        public ParameterBuilder SetType(TypeReferenceBuilder value, bool condition = true)
+        public ParameterBuilder SetType(ITypeReferenceBuilder value, bool condition = true)
         {
             if (condition)
             {
@@ -40,7 +41,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public void Build(CodeWriter writer)
+        public void Build(CodeWriter writer, HashSet<string>? builderContext = null)
         {
             if (writer is null)
             {
@@ -53,6 +54,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             }
 
             _type.Build(writer);
+            writer.WriteSpace();
 
             writer.Write(_default is null ? $"{_name}" : $"{_name} = {_default}");
         }

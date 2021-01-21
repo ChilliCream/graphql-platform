@@ -1,0 +1,13 @@
+﻿namespace FooBarNamespace
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class Foo
+    {
+        public Foo(IReadOnlyList<IReadOnlyList<Bar?>?>? bars)
+        {
+            Bars = bars;
+        }
+
+        public IReadOnlyList<IReadOnlyList<Bar?>?>? Bars { get; }
+    }
+}

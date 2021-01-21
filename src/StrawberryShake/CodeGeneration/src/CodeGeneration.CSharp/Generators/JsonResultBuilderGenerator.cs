@@ -34,13 +34,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 $"{WellKnownNames.IOperationResultBuilder}<{_transportResultRootTypeName}," +
                 $" {resultTypeDescriptor.Name}>");
 
-            AddConstructorAssignedField(
+            AddConstructorAssignedNonNullableField(
                 WellKnownNames.IEntityStore,
                 _entityStoreFieldName,
                 classBuilder,
                 constructorBuilder);
 
-            AddConstructorAssignedField(
+            AddConstructorAssignedNonNullableField(
                 TypeReferenceBuilder.New()
                     .SetName("Func")
                     .AddGeneric(_transportResultRootTypeName)
@@ -49,7 +49,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 classBuilder,
                 constructorBuilder);
 
-            AddConstructorAssignedField(
+            AddConstructorAssignedNonNullableField(
                 TypeReferenceBuilder.New()
                     .SetName(WellKnownNames.IOperationResultDataFactory)
                     .AddGeneric(resultTypeDescriptor.Name),

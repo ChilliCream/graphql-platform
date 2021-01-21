@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
@@ -8,7 +9,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private bool _isConst;
         private bool _isStatic;
         private bool _isReadOnly;
-        private TypeReferenceBuilder? _type;
+        private ITypeReferenceBuilder? _type;
         private string? _name;
         private string? _value;
         private bool _useDefaultInitializer;
@@ -32,7 +33,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public FieldBuilder SetType(TypeReferenceBuilder typeReference)
+        public FieldBuilder SetType(ITypeReferenceBuilder typeReference)
         {
             _type = typeReference;
             return this;
@@ -81,7 +82,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public void Build(CodeWriter writer)
+        public void Build(CodeWriter writer, HashSet<string>? builderContext = null)
         {
             if (writer is null)
             {
@@ -114,6 +115,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             }
 
             _type.Build(writer);
+            writer.WriteSpace();
             writer.Write(_name);
 
             if (_value is { })

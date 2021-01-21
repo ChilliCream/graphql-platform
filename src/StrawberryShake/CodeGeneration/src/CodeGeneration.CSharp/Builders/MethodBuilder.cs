@@ -100,7 +100,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public void Build(CodeWriter writer)
+        public void Build(CodeWriter writer, HashSet<string>? builderContext = null)
         {
             if (writer is null)
             {
@@ -125,6 +125,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
             writer.Write($"{CreateInheritance()}");
             _returnType.Build(writer);
+            writer.WriteSpace();
             writer.Write($"{_name}(");
 
             if (_parameters.Count == 0)

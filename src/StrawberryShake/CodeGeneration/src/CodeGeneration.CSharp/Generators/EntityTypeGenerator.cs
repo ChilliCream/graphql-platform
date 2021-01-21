@@ -35,8 +35,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                             PropertyBuilder
                                 .New()
                                 .SetName(prop.Name)
-                                .SetType(prop.Type.ToBuilder(
-                                    DataTypeNameFromTypeName(prop.Type.Name)))
+                                .SetType(
+                                    prop.Type.ToBuilder(DataTypeNameFromTypeName(prop.Type.Name)))
                                 .MakeSettable()
                                 .SetAccessModifier(AccessModifier.Public);
                         classBuilder.AddProperty(dataBuilder);
@@ -46,7 +46,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         PropertyBuilder referencePropertyBuilder = PropertyBuilder
                             .New()
                             .SetName(prop.Name)
-                            .SetType(prop.Type.ToBuilder().SetName(WellKnownNames.EntityId))
+                            .SetType(prop.Type.ToBuilder(WellKnownNames.EntityId))
                             .MakeSettable()
                             .SetAccessModifier(AccessModifier.Public);
                         classBuilder.AddProperty(referencePropertyBuilder);
