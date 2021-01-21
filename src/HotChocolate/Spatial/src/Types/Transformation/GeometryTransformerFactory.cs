@@ -75,6 +75,7 @@ namespace HotChocolate.Types.Spatial.Transformation
             /// <inheritdoc />
             public void TransformInPlace(Geometry geometry, int targetSrid)
             {
+                // empty on purpose
             }
 
             /// <summary>

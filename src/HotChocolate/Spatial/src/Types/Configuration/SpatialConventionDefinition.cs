@@ -17,6 +17,6 @@ namespace HotChocolate.Types.Spatial.Configuration
         /// <summary>
         /// Stores a lookup of SRID and their coordinates systems
         /// </summary>
-        public readonly Dictionary<int, CoordinateSystem> CoordinateSystems = new();
+        public Dictionary<int, CoordinateSystem> CoordinateSystems { get; } = new();
     }
 }
