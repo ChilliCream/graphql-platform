@@ -1,5 +1,4 @@
 using ProjNet.CoordinateSystems;
-using ProjNet.IO.CoordinateSystems;
 
 namespace HotChocolate.Types.Spatial.Configuration
 {
@@ -26,19 +25,6 @@ namespace HotChocolate.Types.Spatial.Configuration
         public ISpatialConventionDescriptor DefaultSrid(int srid)
         {
             Definition.DefaultSrid = srid;
-            return this;
-        }
-
-        /// <inheritdoc />
-        public ISpatialConventionDescriptor AddCoordinateSystemFromString(
-            int srid,
-            string wellKnownText)
-        {
-            if (CoordinateSystemWktReader.Parse(wellKnownText) is CoordinateSystem cs)
-            {
-                Definition.CoordinateSystems[srid] = cs;
-            }
-
             return this;
         }
 

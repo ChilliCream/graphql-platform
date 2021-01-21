@@ -15,14 +15,6 @@ namespace HotChocolate.Types.Spatial.Configuration
         ISpatialConventionDescriptor DefaultSrid(int srid);
 
         /// <summary>
-        /// Adds a coordinate system from a WellKnownText.
-        /// </summary>
-        /// <param name="srid">The identifier of the coordinate system</param>
-        /// <param name="wellKnownText">The definition in WellKnownText</param>
-        /// <returns>The descriptor</returns>
-        ISpatialConventionDescriptor AddCoordinateSystemFromString(int srid, string wellKnownText);
-
-        /// <summary>
         /// Adds a coordinate system to the convention
         /// </summary>
         /// <param name="srid">The identifier of the coordinate system</param>
