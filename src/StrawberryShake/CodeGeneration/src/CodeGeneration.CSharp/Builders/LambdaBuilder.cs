@@ -6,7 +6,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public class LambdaBuilder: ICode
     {
-        private List<string> _arguments = new List<string>();
+        private readonly List<string> _arguments = new();
         private ICode? _code;
 
         public LambdaBuilder AddArgument(string value)
@@ -21,7 +21,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public async Task BuildAsync(CodeWriter writer)
+        public void Build(CodeWriter writer)
         {
             if (_code is null)
             {
@@ -30,25 +30,25 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
             if (_arguments.Count > 1)
             {
-                await writer.WriteAsync('(').ConfigureAwait(false);
+                writer.Write('(');
             }
 
-            for (int i = 0; i < _arguments.Count; i++)
+            for (var i = 0; i < _arguments.Count; i++)
             {
                 if (i > 0)
                 {
-                    await writer.WriteAsync(',').ConfigureAwait(false);
+                    writer.Write(',');
                 }
-                await writer.WriteAsync(_arguments[i]).ConfigureAwait(false);
+                writer.Write(_arguments[i]);
             }
 
             if (_arguments.Count > 1)
             {
-                await writer.WriteAsync(')').ConfigureAwait(false);
+                writer.Write(')');
             }
 
-            await writer.WriteAsync(" => ");
-            await _code.BuildAsync(writer);
+            writer.Write(" => ");
+            _code.Build(writer);
         }
     }
 }

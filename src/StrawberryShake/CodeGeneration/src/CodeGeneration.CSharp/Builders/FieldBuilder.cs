@@ -1,5 +1,4 @@
 using System;
-using System.Threading.Tasks;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
@@ -82,7 +81,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public async Task BuildAsync(CodeWriter writer)
+        public void Build(CodeWriter writer)
         {
             if (writer is null)
             {
@@ -96,48 +95,47 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
             string modifier = _accessModifier.ToString().ToLowerInvariant();
 
-            await writer.WriteIndentAsync().ConfigureAwait(false);
-            await writer.WriteAsync($"{modifier} ")
-                .ConfigureAwait(false);
+            writer.WriteIndent();
+            writer.Write($"{modifier} ");
 
             if (_isConst)
             {
-                await writer.WriteAsync("const ").ConfigureAwait(false);
+                writer.Write("const ");
             }
 
             if (_isStatic)
             {
-                await writer.WriteAsync("static ").ConfigureAwait(false);
+                writer.Write("static ");
             }
 
             if (_isReadOnly)
             {
-                await writer.WriteAsync("readonly ").ConfigureAwait(false);
+                writer.Write("readonly ");
             }
 
-            await _type.BuildAsync(writer).ConfigureAwait(false);
-            await writer.WriteAsync(_name).ConfigureAwait(false);
+            _type.Build(writer);
+            writer.Write(_name);
 
             if (_value is { })
             {
-                await writer.WriteAsync(" = ").ConfigureAwait(false);
+                writer.Write(" = ");
                 if (_beginValueWithNewline)
                 {
-                    await writer.WriteLineAsync().ConfigureAwait(false);
+                    writer.WriteLine();
                     using (writer.IncreaseIndent())
                     {
-                        await writer.WriteIndentAsync().ConfigureAwait(false);
+                        writer.WriteIndent();
                     }
                 }
 
-                await writer.WriteAsync($"{_value}").ConfigureAwait(false);
+                writer.Write($"{_value}");
             }
             else if (_useDefaultInitializer)
             {
-                await writer.WriteAsync($" = new {_type}()").ConfigureAwait(false);
+                writer.Write($" = new {_type}()");
             }
 
-            await writer.WriteLineAsync(";").ConfigureAwait(false);
+            writer.WriteLine(";");
         }
     }
 }

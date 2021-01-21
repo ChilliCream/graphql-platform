@@ -7,16 +7,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public class OperationDocumentGenerator: ClassBaseGenerator<OperationDescriptor>
     {
-        protected override Task WriteAsync(
-            CodeWriter writer,
-            OperationDescriptor operationDescriptor)
+        protected override void Generate(CodeWriter writer, OperationDescriptor descriptor)
         {
-            AssertNonNull(
-                writer,
-                operationDescriptor);
             var (classBuilder, constructorBuilder) = CreateClassBuilder();
 
-            classBuilder.SetName(DocumentTypeNameFromOperationName(operationDescriptor.Name));
+            classBuilder.SetName(DocumentTypeNameFromOperationName(descriptor.Name));
             constructorBuilder.SetAccessModifier(AccessModifier.Private);
 
             classBuilder.AddField(
@@ -25,7 +20,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetConst()
                     .SetType("string")
                     .SetName("_bodyString")
-                    .SetValue($"@\"{operationDescriptor.BodyString}\"", true));
+                    .SetValue($"@\"{descriptor.BodyString}\"", true));
 
             classBuilder.AddField(
                 FieldBuilder.New()
@@ -36,7 +31,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetValue("Encoding.UTF8.GetBytes(_bodyString)"));
 
             string operationKind;
-            switch (operationDescriptor)
+            switch (descriptor)
             {
                 case MutationOperationDescriptor mutationOperationDescriptor:
                     operationKind = "Mutation";
@@ -48,7 +43,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     operationKind = "Subscription";
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(operationDescriptor));
+                    throw new ArgumentOutOfRangeException(nameof(descriptor));
             }
 
             classBuilder.AddProperty(
@@ -73,10 +68,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetName("ToString")
                     .AddCode("return _bodyString;"));
 
-            return CodeFileBuilder.New()
-                .SetNamespace(operationDescriptor.Namespace)
+            CodeFileBuilder
+                .New()
+                .SetNamespace(descriptor.Namespace)
                 .AddType(classBuilder)
-                .BuildAsync(writer);
+                .Build(writer);
         }
     }
 }

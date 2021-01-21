@@ -18,20 +18,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return descriptor.Kind == TypeKind.ResultType && !descriptor.IsInterface();
         }
 
-        protected override Task WriteAsync(CodeWriter writer, NamedTypeDescriptor namedTypeDescriptor)
+        protected override void Generate(CodeWriter writer, NamedTypeDescriptor descriptor)
         {
-            AssertNonNull(
-                writer,
-                namedTypeDescriptor);
-
             var (classBuilder, constructorBuilder) = CreateClassBuilder();
 
             classBuilder
-                .SetName(ResultFactoryNameFromTypeName(namedTypeDescriptor.Name))
-                .AddImplements($"{IOperationResultDataFactory}<{namedTypeDescriptor.Name}>");
+                .SetName(ResultFactoryNameFromTypeName(descriptor.Name))
+                .AddImplements($"{IOperationResultDataFactory}<{descriptor.Name}>");
 
             constructorBuilder
-                .SetTypeName(namedTypeDescriptor.Name)
+                .SetTypeName(descriptor.Name)
                 .SetAccessModifier(AccessModifier.Public);
 
             AddConstructorAssignedField(
@@ -40,7 +36,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 classBuilder,
                 constructorBuilder);
 
-            var mappersToInject = namedTypeDescriptor.Properties
+            var mappersToInject = descriptor.Properties
                 .Where(prop => !prop.Type.IsLeafType())
                 .SelectMany(prop => GetMappers(prop.Type));
 
@@ -65,7 +61,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             var createMethod = MethodBuilder.New()
                 .SetAccessModifier(AccessModifier.Public)
                 .SetName("Create")
-                .SetReturnType(namedTypeDescriptor.Name)
+                .SetReturnType(descriptor.Name)
                 .AddParameter(
                     ParameterBuilder.New()
                         .SetName("dataInfo")
@@ -74,13 +70,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             var returnStatement = MethodCallBuilder.New()
                 .SetPrefix("return new ")
-                .SetMethodName(namedTypeDescriptor.Name);
+                .SetMethodName(descriptor.Name);
 
             var ifHasCorrectType = IfBuilder.New()
                 .SetCondition(
-                    $"dataInfo is {ResultInfoNameFromTypeName(namedTypeDescriptor.Name)} info");
+                    $"dataInfo is {ResultInfoNameFromTypeName(descriptor.Name)} info");
 
-            foreach (var prop in namedTypeDescriptor.Properties)
+            foreach (var prop in descriptor.Properties)
             {
                 if (prop.Type.Kind == TypeKind.LeafType)
                 {
@@ -101,14 +97,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
             createMethod.AddEmptyLine();
             createMethod.AddCode(
                 "throw new ArgumentException(\"" +
-                $"{ResultInfoNameFromTypeName(namedTypeDescriptor.Name)} expected.\");");
+                $"{ResultInfoNameFromTypeName(descriptor.Name)} expected.\");");
 
             classBuilder.AddMethod(createMethod);
 
-            return CodeFileBuilder.New()
-                .SetNamespace(namedTypeDescriptor.Namespace)
+            CodeFileBuilder
+                .New()
+                .SetNamespace(descriptor.Namespace)
                 .AddType(classBuilder)
-                .BuildAsync(writer);
+                .Build(writer);
         }
 
         private void GenerateMappingAssignment(

@@ -9,7 +9,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
             this ITypeDescriptor typeReferenceDescriptor,
             string? nameOverride = null)
         {
-            var ret = new TypeReferenceBuilder()
+            TypeReferenceBuilder ret = new TypeReferenceBuilder()
                 .SetName(nameOverride ?? typeReferenceDescriptor.Name)
                 .SetIsNullable(!(typeReferenceDescriptor is NonNullTypeDescriptor));
 

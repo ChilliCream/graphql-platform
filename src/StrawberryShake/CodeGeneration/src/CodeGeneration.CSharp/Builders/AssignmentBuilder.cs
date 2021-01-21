@@ -1,13 +1,15 @@
+using System;
 using System.Threading.Tasks;
+using StrawberryShake.Properties;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public class AssignmentBuilder : ICode
     {
-        private ICode _leftHandSide { get; set; }
-        private ICode _rightHandSide { get; set; }
-        private bool _assertNonNull { get; set; }
-        private string? _nonNullAssertTypeNameOverride { get; set; }
+        private ICode? _leftHandSide;
+        private ICode? _rightHandSide;
+        private bool _assertNonNull;
+        private string? _nonNullAssertTypeNameOverride;
 
         public static AssignmentBuilder New() => new AssignmentBuilder();
 
@@ -48,33 +50,43 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         }
 
 
-        public async Task BuildAsync(CodeWriter writer)
+        public void Build(CodeWriter writer)
         {
-            await writer.WriteIndentAsync().ConfigureAwait(false);
-            await _leftHandSide.BuildAsync(writer).ConfigureAwait(false);
-            await writer.WriteAsync(" = ").ConfigureAwait(false);
-            await _rightHandSide.BuildAsync(writer).ConfigureAwait(false);
+            if (writer is null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
+
+            if (_leftHandSide is null || _rightHandSide is null)
+            {
+                throw new CodeGeneratorException(Resources.AssignmentBuilder_Build_Incomplete);
+            }
+
+            writer.WriteIndent();
+            _leftHandSide.Build(writer);
+            writer.Write(" = ");
+            _rightHandSide.Build(writer);
             if (_assertNonNull)
             {
-                await writer.WriteLineAsync().ConfigureAwait(false);
+                writer.WriteLine();
                 using (writer.IncreaseIndent())
                 {
-                    await writer.WriteIndentAsync().ConfigureAwait(false);
-                    await writer.WriteAsync(" ?? ").ConfigureAwait(false);
-                    await writer.WriteAsync("throw new ArgumentNullException(nameof(").ConfigureAwait(false);
+                    writer.WriteIndent();
+                    writer.Write(" ?? ");
+                    writer.Write("throw new ArgumentNullException(nameof(");
                     if (_nonNullAssertTypeNameOverride is not null)
                     {
-                        await writer.WriteAsync(_nonNullAssertTypeNameOverride).ConfigureAwait(false);
+                        writer.Write(_nonNullAssertTypeNameOverride);
                     }
                     else
                     {
-                        await _rightHandSide.BuildAsync(writer).ConfigureAwait(false);
+                        _rightHandSide.Build(writer);
                     }
-                    await writer.WriteAsync("))").ConfigureAwait(false);
+                    writer.Write("))");
                 }
             }
-            await writer.WriteAsync(";").ConfigureAwait(false);
-            await writer.WriteLineAsync().ConfigureAwait(false);
+            writer.Write(";");
+            writer.WriteLine();
         }
     }
 }

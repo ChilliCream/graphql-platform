@@ -1,5 +1,4 @@
 using System;
-using System.Threading.Tasks;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
@@ -57,7 +56,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public async Task BuildAsync(CodeWriter writer)
+        public void Build(CodeWriter writer)
         {
             if (writer is null)
             {
@@ -71,37 +70,37 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
             string modifier = _accessModifier.ToString().ToLowerInvariant();
 
-            await writer.WriteIndentAsync().ConfigureAwait(false);
-            await writer.WriteAsync(modifier).ConfigureAwait(false);
-            await writer.WriteSpaceAsync().ConfigureAwait(false);
-            await _type.BuildAsync(writer).ConfigureAwait(false);
-            await writer.WriteAsync(_name).ConfigureAwait(false);
+            writer.WriteIndent();
+            writer.Write(modifier);
+            writer.WriteSpace();
+            _type.Build(writer);
+            writer.Write(_name);
 
             if (_lambdaResolver is not null)
             {
-                await writer.WriteAsync(" => ").ConfigureAwait(false);
-                await writer.WriteAsync(_lambdaResolver).ConfigureAwait(false);
-                await writer.WriteAsync(";").ConfigureAwait(false);
-                await writer.WriteLineAsync().ConfigureAwait(false);
+                writer.Write(" => ");
+                writer.Write(_lambdaResolver);
+                writer.Write(";");
+                writer.WriteLine();
                 return;
             }
 
-            await writer.WriteAsync(" {").ConfigureAwait(false);
-            await writer.WriteAsync(" get;").ConfigureAwait(false);
+            writer.Write(" {");
+            writer.Write(" get;");
             if (!_isReadOnly)
             {
-                await writer.WriteAsync(" set;").ConfigureAwait(false);
+                writer.Write(" set;");
             }
-            await writer.WriteAsync(" }").ConfigureAwait(false);
+            writer.Write(" }");
 
             if (_value is not null)
             {
-                await writer.WriteAsync(" = ").ConfigureAwait(false);
-                await writer.WriteAsync(_value).ConfigureAwait(false);
-                await writer.WriteAsync(";").ConfigureAwait(false);
+                writer.Write(" = ");
+                writer.Write(_value);
+                writer.Write(";");
             }
 
-            await writer.WriteLineAsync().ConfigureAwait(false);
+            writer.WriteLine();
         }
     }
 }

@@ -10,14 +10,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private const string OperationExecutorFieldName = "_operationExecutor";
         private const string CreateRequestMethodName = "CreateRequest";
 
-        protected override Task WriteAsync(
+        protected override void Generate(
             CodeWriter writer,
             OperationDescriptor operationDescriptor)
         {
-            AssertNonNull(
-                writer,
-                operationDescriptor);
-
             var (classBuilder, constructorBuilder) = CreateClassBuilder();
 
             classBuilder.SetName(operationDescriptor.Name);
@@ -130,17 +126,19 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             classBuilder.AddMethod(CreateRequestMethod(operationDescriptor));
 
-            return CodeFileBuilder.New()
+            CodeFileBuilder
+                .New()
                 .SetNamespace(operationDescriptor.Namespace)
                 .AddType(classBuilder)
-                .BuildAsync(writer);
+                .Build(writer);
         }
 
         private MethodBuilder CreateRequestMethod(OperationDescriptor operationDescriptor)
         {
             string typeName = DocumentTypeNameFromOperationName(operationDescriptor.Name);
 
-            return MethodBuilder.New()
+            return MethodBuilder
+                .New()
                 .SetName(CreateRequestMethodName)
                 .SetReturnType(WellKnownNames.OperationRequest)
                 .AddCode(

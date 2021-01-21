@@ -4,6 +4,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public interface ICodeBuilder
     {
-        Task BuildAsync(CodeWriter writer);
+        void Build(CodeWriter writer);
     }
 }

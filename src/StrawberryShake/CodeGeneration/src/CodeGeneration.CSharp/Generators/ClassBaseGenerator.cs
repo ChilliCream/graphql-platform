@@ -3,7 +3,7 @@ using StrawberryShake.CodeGeneration.CSharp.Builders;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public abstract class ClassBaseGenerator<T> : CSharpBaseGenerator<T> where T : ICodeDescriptor
+    public abstract class ClassBaseGenerator<T> : CodeGenerator<T> where T : ICodeDescriptor
     {
         protected (ClassBuilder, ConstructorBuilder) CreateClassBuilder()
         {

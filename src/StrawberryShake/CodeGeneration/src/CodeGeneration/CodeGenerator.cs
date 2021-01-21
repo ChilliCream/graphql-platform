@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+using System;
 
 namespace StrawberryShake.CodeGeneration
 {
@@ -11,13 +11,22 @@ namespace StrawberryShake.CodeGeneration
 
         protected virtual bool CanHandle(TDescriptor descriptor) => true;
 
-        public Task WriteAsync(
-            CodeWriter writer,
-            ICodeDescriptor descriptor) =>
-            WriteAsync(writer, (TDescriptor)descriptor);
+        public void Generate(CodeWriter writer, ICodeDescriptor descriptor)
+        {
+            if (writer is null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
 
-        protected abstract Task WriteAsync(
-            CodeWriter writer,
-            TDescriptor descriptor);
+            if (descriptor is null)
+            {
+                throw new ArgumentNullException(nameof(descriptor));
+            }
+
+            Generate(writer, (TDescriptor)descriptor);
+        }
+
+
+        protected abstract void Generate(CodeWriter writer, TDescriptor descriptor);
     }
 }

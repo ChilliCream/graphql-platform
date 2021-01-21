@@ -6,12 +6,11 @@ using System.Threading.Tasks;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
-    public class CodeInlineBlockBuilder
-        : ICode
+    public class CodeInlineBlockBuilder : ICode
     {
-        private readonly List<ICode> _lineParts = new List<ICode>();
+        private readonly List<ICode> _lineParts = new();
 
-        public static CodeInlineBlockBuilder New() => new CodeInlineBlockBuilder();
+        public static CodeInlineBlockBuilder New() => new();
 
         public CodeInlineBlockBuilder AddCode(ICode value)
         {
@@ -24,7 +23,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public async Task BuildAsync(CodeWriter writer)
+        public void Build(CodeWriter writer)
         {
             if (writer is null)
             {
@@ -33,7 +32,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
             foreach (ICode code in _lineParts)
             {
-                await code.BuildAsync(writer).ConfigureAwait(false);
+                code.Build(writer);
             }
         }
     }

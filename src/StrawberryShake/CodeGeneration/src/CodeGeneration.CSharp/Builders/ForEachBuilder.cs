@@ -1,21 +1,19 @@
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public class ForEachBuilder : ICodeContainer<ForEachBuilder>
     {
-        private string _loopHeader;
+        private string? _loopHeader;
         private readonly List<ICode> _lines = new List<ICode>();
 
         public static ForEachBuilder New() => new();
 
-        public ForEachBuilder AddCode(string code, bool addIfTrue = true)
+        public ForEachBuilder AddCode(string code, bool addIf = true)
         {
             AddCode(
                 CodeLineBuilder.New().SetLine(code),
-                addIfTrue
-            );
+                addIf);
             return this;
         }
 
@@ -29,11 +27,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public ForEachBuilder AddCode(string value)
-        {
-            _lines.Add(CodeLineBuilder.New().SetLine(value));
-            return this;
-        }
         public ForEachBuilder AddEmptyLine()
         {
             _lines.Add(CodeLineBuilder.New());
@@ -46,25 +39,25 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public async Task BuildAsync(CodeWriter writer)
+        public void Build(CodeWriter writer)
         {
-            await writer.WriteIndentAsync().ConfigureAwait(false);
-            await writer.WriteAsync("foreach (").ConfigureAwait(false);
-            await writer.WriteAsync(_loopHeader).ConfigureAwait(false);
-            await writer.WriteAsync(")").ConfigureAwait(false);
-            await writer.WriteLineAsync().ConfigureAwait(false);
-            await writer.WriteIndentAsync().ConfigureAwait(false);
-            await writer.WriteLineAsync("{");
+            writer.WriteIndent();
+            writer.Write("foreach (");
+            writer.Write(_loopHeader);
+            writer.Write(")");
+            writer.WriteLine();
+            writer.WriteIndent();
+            writer.WriteLine("{");
             using (writer.IncreaseIndent())
             {
                 foreach (ICode line in _lines)
                 {
-                    await line.BuildAsync(writer).ConfigureAwait(false);
+                    line.Build(writer);
                 }
             }
 
-            await writer.WriteIndentAsync().ConfigureAwait(false);
-            await writer.WriteLineAsync("}");
+            writer.WriteIndent();
+            writer.WriteLine("}");
         }
     }
 }

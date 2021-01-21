@@ -56,5 +56,29 @@ namespace StrawberryShake.Properties {
                 return ResourceManager.GetString("HttpOperationExecutor_ExecuteAsync_NoResult", resourceCulture);
             }
         }
+        
+        internal static string ClassBuilder_SetName_ClassNameCannotBeNull {
+            get {
+                return ResourceManager.GetString("ClassBuilder_SetName_ClassNameCannotBeNull", resourceCulture);
+            }
+        }
+        
+        internal static string ClassBuilder_AddImplements_TypeNameCannotBeNull {
+            get {
+                return ResourceManager.GetString("ClassBuilder_AddImplements_TypeNameCannotBeNull", resourceCulture);
+            }
+        }
+        
+        internal static string AssignmentBuilder_Build_Incomplete {
+            get {
+                return ResourceManager.GetString("AssignmentBuilder_Build_Incomplete", resourceCulture);
+            }
+        }
+        
+        internal static string CodeFileBuilder_NamespaceCannotBeNull {
+            get {
+                return ResourceManager.GetString("CodeFileBuilder_NamespaceCannotBeNull", resourceCulture);
+            }
+        }
     }
 }

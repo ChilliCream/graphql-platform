@@ -3,25 +3,25 @@ using StrawberryShake.CodeGeneration.CSharp.Builders;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public class EnumGenerator
-        : CSharpBaseGenerator<EnumDescriptor>
+    public class EnumGenerator : CodeGenerator<EnumDescriptor>
     {
-        protected override Task WriteAsync(CodeWriter writer, EnumDescriptor descriptor)
+        protected override void Generate(CodeWriter writer, EnumDescriptor descriptor)
         {
-            AssertNonNull(writer, descriptor);
-
-            EnumBuilder enumBuilder = EnumBuilder.New()
-                .SetName(descriptor.Name);
+            EnumBuilder enumBuilder =
+                EnumBuilder
+                    .New()
+                    .SetName(descriptor.Name);
 
             foreach (EnumValueDescriptor element in descriptor.Values)
             {
                 enumBuilder.AddElement(element.Name, element.Value);
             }
 
-            return CodeFileBuilder.New()
+            CodeFileBuilder
+                .New()
                 .SetNamespace(descriptor.Namespace)
                 .AddType(enumBuilder)
-                .BuildAsync(writer);
+                .Build(writer);
         }
     }
 }

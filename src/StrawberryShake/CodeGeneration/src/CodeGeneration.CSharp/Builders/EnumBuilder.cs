@@ -1,16 +1,14 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
-    public class EnumBuilder
-        : ITypeBuilder
+    public class EnumBuilder : ITypeBuilder
     {
-        private readonly List<(string, long?)> _elements = new List<(string, long?)>();
+        private readonly List<(string, long?)> _elements = new();
         private string? _name;
 
-        public static EnumBuilder New() => new EnumBuilder();
+        public static EnumBuilder New() => new();
 
         public EnumBuilder SetName(string value)
         {
@@ -24,40 +22,40 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public async Task BuildAsync(CodeWriter writer)
+        public void Build(CodeWriter writer)
         {
             if (writer is null)
             {
                 throw new ArgumentNullException(nameof(writer));
             }
 
-            await writer.WriteGeneratedAttributeAsync().ConfigureAwait(false);
+            writer.WriteGeneratedAttribute();
 
-            await writer.WriteIndentedLineAsync($"public enum {_name}").ConfigureAwait(false);
-            await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
+            writer.WriteIndentedLine($"public enum {_name}");
+            writer.WriteIndentedLine("{");
 
             using (writer.IncreaseIndent())
             {
-                for (int i = 0; i < _elements.Count; i++)
+                for (var i = 0; i < _elements.Count; i++)
                 {
-                    await writer.WriteIndentAsync().ConfigureAwait(false);
-                    await writer.WriteAsync(_elements[i].Item1).ConfigureAwait(false);
+                    writer.WriteIndent();
+                    writer.Write(_elements[i].Item1);
 
                     if (_elements[i].Item2.HasValue)
                     {
-                        await writer.WriteAsync($" = {_elements[i].Item2}").ConfigureAwait(false);
+                        writer.Write($" = {_elements[i].Item2}");
                     }
 
                     if (i + 1 < _elements.Count)
                     {
-                        await writer.WriteAsync($",").ConfigureAwait(false);
+                        writer.Write($",");
                     }
 
-                    await writer.WriteLineAsync().ConfigureAwait(false);
+                    writer.WriteLine();
                 }
             }
 
-            await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
+            writer.WriteIndentedLine("}");
         }
     }
 }

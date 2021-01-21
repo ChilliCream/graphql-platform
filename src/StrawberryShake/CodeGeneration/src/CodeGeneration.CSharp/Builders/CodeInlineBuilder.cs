@@ -3,12 +3,11 @@ using System.Threading.Tasks;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
-    public class CodeInlineBuilder
-        : ICode
+    public class CodeInlineBuilder : ICode
     {
         private string? _value;
 
-        public static CodeInlineBuilder New() => new CodeInlineBuilder();
+        public static CodeInlineBuilder New() => new();
 
         public CodeInlineBuilder SetText(string value)
         {
@@ -16,14 +15,19 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public Task BuildAsync(CodeWriter writer)
+        public void Build(CodeWriter writer)
         {
             if (writer is null)
             {
                 throw new ArgumentNullException(nameof(writer));
             }
 
-            return _value is null ? Task.CompletedTask : writer.WriteAsync(_value);
+            if (_value is null)
+            {
+                return;
+            }
+
+            writer.WriteAsync(_value);
         }
     }
 }

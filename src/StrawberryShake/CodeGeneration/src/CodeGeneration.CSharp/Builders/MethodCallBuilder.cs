@@ -6,11 +6,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public class MethodCallBuilder: ICode
     {
-        private string? _methodName { get; set; }
-        private bool _determineStatement { get; set; } = true;
-        private string _prefix { get; set; }
-        private List<ICode> _arguments = new List<ICode>();
-        private List<ICode> _chainedCode = new List<ICode>();
+        private string? _methodName;
+        private bool _determineStatement = true;
+        private string? _prefix;
+        private readonly List<ICode> _arguments = new List<ICode>();
+        private readonly List<ICode> _chainedCode = new List<ICode>();
 
         public static MethodCallBuilder New() => new MethodCallBuilder();
 
@@ -50,7 +50,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public async Task BuildAsync(CodeWriter writer)
+        public void Build(CodeWriter writer)
         {
             if (writer is null)
             {
@@ -59,48 +59,48 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
             if (_determineStatement)
             {
-                await writer.WriteIndentAsync().ConfigureAwait(false);
+                writer.WriteIndent();
             }
 
-            await writer.WriteAsync(_prefix).ConfigureAwait(false);
+            writer.Write(_prefix);
 
             if (_methodName != null)
             {
-                await writer.WriteAsync(_methodName).ConfigureAwait(false);
+                writer.Write(_methodName);
 
-                await writer.WriteAsync("(").ConfigureAwait(false);
+                writer.Write("(");
 
                 if (_arguments.Count == 0)
                 {
-                    await writer.WriteAsync(")").ConfigureAwait(false);
+                    writer.Write(")");
                 }
                 else if (_arguments.Count == 1)
                 {
-                    await _arguments[0].BuildAsync(writer).ConfigureAwait(false);
-                    await writer.WriteAsync(")").ConfigureAwait(false);
+                    _arguments[0].Build(writer);
+                    writer.Write(")");
                 }
                 else
                 {
-                    await writer.WriteLineAsync().ConfigureAwait(false);
+                    writer.WriteLine();
 
                     using (writer.IncreaseIndent())
                     {
                         for (int i = 0; i < _arguments.Count; i++)
                         {
-                            await writer.WriteIndentAsync().ConfigureAwait(false);
-                            await _arguments[i].BuildAsync(writer).ConfigureAwait(false);
+                            writer.WriteIndent();
+                            _arguments[i].Build(writer);
                             if (i == _arguments.Count - 1)
                             {
-                                await writer.WriteLineAsync().ConfigureAwait(false);
+                                writer.WriteLine();
                                 writer.DecreaseIndent();
-                                await writer.WriteIndentAsync();
-                                await writer.WriteAsync(")").ConfigureAwait(false);
+                                writer.WriteIndent();
+                                writer.Write(")");
                                 writer.IncreaseIndent();
                             }
                             else
                             {
-                                await writer.WriteAsync(",").ConfigureAwait(false);
-                                await writer.WriteLineAsync().ConfigureAwait(false);
+                                writer.Write(",");
+                                writer.WriteLine();
                             }
                         }
                     }
@@ -111,17 +111,17 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             {
                 foreach (ICode code in _chainedCode)
                 {
-                    await writer.WriteLineAsync().ConfigureAwait(false);
-                    await writer.WriteIndentAsync().ConfigureAwait(false);
-                    await writer.WriteAsync('.').ConfigureAwait(false);
-                    await code.BuildAsync(writer).ConfigureAwait(false);
+                    writer.WriteLine();
+                    writer.WriteIndent();
+                    writer.Write('.');
+                    code.Build(writer);
                 }
             }
 
             if (_determineStatement)
             {
-                await writer.WriteAsync(";").ConfigureAwait(false);
-                await writer.WriteLineAsync().ConfigureAwait(false);
+                writer.Write(";");
+                writer.WriteLine();
             }
         }
     }

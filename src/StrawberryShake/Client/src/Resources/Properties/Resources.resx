@@ -3,7 +3,7 @@
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:element name="root" msdata:IsDataSet="true">
-      
+
     </xsd:element>
   </xsd:schema>
   <resheader name="resmimetype">
@@ -23,5 +23,17 @@
   </data>
   <data name="HttpOperationExecutor_ExecuteAsync_NoResult" xml:space="preserve">
     <value>For any execution attempt there should be at least one result.</value>
+  </data>
+  <data name="ClassBuilder_SetName_ClassNameCannotBeNull" xml:space="preserve">
+    <value>The class name cannot be null or empty.</value>
+  </data>
+  <data name="ClassBuilder_AddImplements_TypeNameCannotBeNull" xml:space="preserve">
+    <value>The type name cannot be null or empty.</value>
+  </data>
+  <data name="AssignmentBuilder_Build_Incomplete" xml:space="preserve">
+    <value>The assignment builder is incomplete.</value>
+  </data>
+  <data name="CodeFileBuilder_NamespaceCannotBeNull" xml:space="preserve">
+    <value>The namespace cannot be null or empty.</value>
   </data>
 </root>

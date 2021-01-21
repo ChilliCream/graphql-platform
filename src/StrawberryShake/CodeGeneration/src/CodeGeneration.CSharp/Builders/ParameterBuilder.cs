@@ -1,5 +1,4 @@
 using System;
-using System.Threading.Tasks;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
@@ -9,7 +8,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private string? _name;
         private string? _default;
 
-        public static ParameterBuilder New() => new ParameterBuilder();
+        public static ParameterBuilder New() => new();
 
         public ParameterBuilder SetType(TypeReferenceBuilder value, bool condition = true)
         {
@@ -41,7 +40,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public async Task BuildAsync(CodeWriter writer)
+        public void Build(CodeWriter writer)
         {
             if (writer is null)
             {
@@ -53,11 +52,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 throw new ArgumentNullException(nameof(_type));
             }
 
-            await _type.BuildAsync(writer).ConfigureAwait(false);
+            _type.Build(writer);
 
-            await (_default is null
-                ? writer.WriteAsync($"{_name}")
-                : writer.WriteAsync($"{_name} = {_default}"));
+            writer.Write(_default is null ? $"{_name}" : $"{_name} = {_default}");
         }
     }
 }

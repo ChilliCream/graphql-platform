@@ -1,8 +1,6 @@
 using System;
 using System.IO;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace StrawberryShake.CodeGeneration
 {
@@ -12,7 +10,7 @@ namespace StrawberryShake.CodeGeneration
         private readonly TextWriter _writer;
         private readonly bool _disposeWriter;
         private bool _disposed;
-        private int _indent = 0;
+        private int _indent;
 
         public CodeWriter(TextWriter writer)
         {
@@ -28,7 +26,7 @@ namespace StrawberryShake.CodeGeneration
 
         public override Encoding Encoding { get; } = Encoding.UTF8;
 
-        public static string Indent { get; } = new string(' ', 4);
+        public static string Indent { get; } = new(' ', 4);
 
         public override void Write(char value) =>
             _writer.Write(value);
@@ -40,19 +38,12 @@ namespace StrawberryShake.CodeGeneration
             Write('"');
         }
 
-        public Task WriteStringValueAsync(string value) =>
-            Task.Factory.StartNew(
-                () => WriteStringValue(value),
-                CancellationToken.None,
-                TaskCreationOptions.DenyChildAttach,
-                TaskScheduler.Default);
-
         public void WriteIndent()
         {
             if (_indent > 0)
             {
-                int spaces = _indent * 4;
-                for (int i = 0; i < spaces; i++)
+                var spaces = _indent * 4;
+                for (var i = 0; i < spaces; i++)
                 {
                     Write(' ');
                 }
@@ -68,40 +59,23 @@ namespace StrawberryShake.CodeGeneration
             return string.Empty;
         }
 
-        public Task WriteIndentAsync() =>
-            Task.Factory.StartNew(
-                WriteIndent,
-                CancellationToken.None,
-                TaskCreationOptions.DenyChildAttach,
-                TaskScheduler.Default);
+        public void WriteIndentedLine(string format, params object?[] args)
+        {
+            WriteIndent();
 
-        public Task WriteIndentedLineAsync(string format, params object?[] args) =>
-            Task.Factory.StartNew(
-                () =>
-                {
-                    WriteIndent();
-                    if (args.Length == 0)
-                    {
-                        Write(format);
-                    }
-                    else
-                    {
-                        Write(format, args);
-                    }
-                    WriteLine();
-                },
-                CancellationToken.None,
-                TaskCreationOptions.DenyChildAttach,
-                TaskScheduler.Default);
+            if (args.Length == 0)
+            {
+                Write(format);
+            }
+            else
+            {
+                Write(format, args);
+            }
+
+            WriteLine();
+        }
 
         public void WriteSpace() => Write(' ');
-
-        public Task WriteSpaceAsync() =>
-            Task.Factory.StartNew(
-                WriteSpace,
-                CancellationToken.None,
-                TaskCreationOptions.DenyChildAttach,
-                TaskScheduler.Default);
 
         public IDisposable IncreaseIndent()
         {
@@ -137,21 +111,7 @@ namespace StrawberryShake.CodeGeneration
 
         public void WriteLeftBrace() => Write('{');
 
-        public Task WriteLeftBraceAsync() =>
-            Task.Factory.StartNew(
-                WriteLeftBrace,
-                CancellationToken.None,
-                TaskCreationOptions.DenyChildAttach,
-                TaskScheduler.Default);
-
         public void WriteRightBrace() => Write('}');
-
-        public Task WriteRightBraceAsync() =>
-            Task.Factory.StartNew(
-                WriteRightBrace,
-                CancellationToken.None,
-                TaskCreationOptions.DenyChildAttach,
-                TaskScheduler.Default);
 
         public override void Flush()
         {
@@ -174,7 +134,7 @@ namespace StrawberryShake.CodeGeneration
         private class Block
             : IDisposable
         {
-            private Action _decrease;
+            private readonly Action _decrease;
 
             public Block(Action close)
             {

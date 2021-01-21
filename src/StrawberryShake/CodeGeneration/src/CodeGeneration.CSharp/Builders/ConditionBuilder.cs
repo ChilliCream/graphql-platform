@@ -1,13 +1,11 @@
-using System.Collections;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public class ConditionBuilder : ICode
     {
-        private IList<ICode> _conditions = new List<ICode>();
-        public static ConditionBuilder New() => new ConditionBuilder();
+        private readonly List<ICode> _conditions = new();
+        public static ConditionBuilder New() => new();
 
         public ConditionBuilder Set(string condition)
         {
@@ -46,43 +44,37 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public async Task BuildAsync(CodeWriter writer)
+        public void Build(CodeWriter writer)
         {
             if (_conditions.Count == 0)
             {
                 return;
             }
 
-            await WriteCondition(
-                writer,
-                _conditions[0]
-            ).ConfigureAwait(false);
+            WriteCondition(writer, _conditions[0]);
 
-            for (int i = 1; i < _conditions.Count; i++)
+            for (var i = 1; i < _conditions.Count; i++)
             {
                 using (writer.IncreaseIndent())
                 {
-                    await CodeLineBuilder.New().BuildAsync(writer).ConfigureAwait(false);
-                    await writer.WriteIndentAsync().ConfigureAwait(false);
-                    await WriteCondition(
-                        writer,
-                        _conditions[i]
-                    ).ConfigureAwait(false);
+                    CodeLineBuilder.New().Build(writer);
+                    writer.WriteIndent();
+                    WriteCondition(writer, _conditions[i]);
                 }
             }
         }
 
-        private async Task WriteCondition(CodeWriter writer, ICode condition)
+        private void WriteCondition(CodeWriter writer, ICode condition)
         {
             if (condition is ConditionBuilder)
             {
-                await writer.WriteAsync("(").ConfigureAwait(false);
-                await condition.BuildAsync(writer);
-                await writer.WriteAsync(")").ConfigureAwait(false);
+                writer.Write("(");
+                condition.Build(writer);
+                writer.Write(")");
             }
             else
             {
-                await condition.BuildAsync(writer);
+                condition.Build(writer);
             }
         }
     }

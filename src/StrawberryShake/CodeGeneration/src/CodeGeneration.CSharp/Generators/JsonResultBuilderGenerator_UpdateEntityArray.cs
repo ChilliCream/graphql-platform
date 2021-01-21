@@ -6,7 +6,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public partial class JsonResultBuilderGenerator
     {
-        private void AddUpdateEntityArrayMethod(ListTypeDescriptor listTypeDescriptor, ITypeDescriptor originalTypeDescriptor, ClassBuilder classBuilder)
+        private void AddUpdateEntityArrayMethod(
+            ListTypeDescriptor listTypeDescriptor,
+            ITypeDescriptor originalTypeDescriptor,
+            ClassBuilder classBuilder)
         {
             var updateEntityMethod = MethodBuilder.New()
                 .SetAccessModifier(AccessModifier.Private)

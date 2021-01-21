@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Extensions;
 
@@ -6,16 +5,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public class ClientGenerator : ClassBaseGenerator<ClientDescriptor>
     {
-        protected override Task WriteAsync(CodeWriter writer, ClientDescriptor clientDescriptor)
+        protected override void Generate(CodeWriter writer, ClientDescriptor descriptor)
         {
-            AssertNonNull(writer, clientDescriptor);
-
             var (classBuilder, constructorBuilder) = CreateClassBuilder();
 
-            classBuilder.SetName(clientDescriptor.Name);
-            constructorBuilder.SetTypeName(clientDescriptor.Name);
+            classBuilder.SetName(descriptor.Name);
+            constructorBuilder.SetTypeName(descriptor.Name);
 
-            foreach (OperationDescriptor operation in clientDescriptor.Operations)
+            foreach (OperationDescriptor operation in descriptor.Operations)
             {
                 AddConstructorAssignedField(
                     operation.Name,
@@ -24,17 +21,19 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     constructorBuilder);
 
                 classBuilder.AddMethod(
-                    MethodBuilder.New()
+                    MethodBuilder
+                        .New()
                         .SetAccessModifier(AccessModifier.Public)
                         .SetReturnType(operation.Name)
                         .SetName(operation.Name)
                         .AddCode($"return {operation.Name.ToFieldName()};"));
             }
 
-            return CodeFileBuilder.New()
-                .SetNamespace(clientDescriptor.Namespace)
+            CodeFileBuilder
+                .New()
+                .SetNamespace(descriptor.Namespace)
                 .AddType(classBuilder)
-                .BuildAsync(writer);
+                .Build(writer);
         }
     }
 }

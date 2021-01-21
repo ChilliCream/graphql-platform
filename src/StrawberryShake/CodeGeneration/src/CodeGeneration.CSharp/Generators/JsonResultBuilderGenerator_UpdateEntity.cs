@@ -7,7 +7,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public partial class JsonResultBuilderGenerator
     {
-        private void AddUpdateEntityMethod(NamedTypeDescriptor namedTypeDescriptor, ITypeDescriptor originalTypeDescriptor, ClassBuilder classBuilder)
+        private void AddUpdateEntityMethod(
+            NamedTypeDescriptor namedTypeDescriptor,
+            ITypeDescriptor originalTypeDescriptor,
+            ClassBuilder classBuilder)
         {
             var updateEntityMethod = MethodBuilder.New()
                 .SetAccessModifier(AccessModifier.Private)

@@ -1,25 +1,25 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using StrawberryShake.Properties;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
-    public class ClassBuilder
-        : ITypeBuilder
+    public class ClassBuilder : ITypeBuilder
     {
         private AccessModifier _accessModifier;
         private bool _isPartial = true;
-        private bool _isStatic = false;
-        private bool _isSealed = false;
-        private bool _isAbstract = false;
+        private bool _isStatic;
+        private bool _isSealed;
+        private bool _isAbstract;
         private string? _name;
-        private readonly List<string> _implements = new List<string>();
-        private readonly List<FieldBuilder> _fields = new List<FieldBuilder>();
-        private readonly List<ConstructorBuilder> _constructors = new List<ConstructorBuilder>();
-        private readonly List<PropertyBuilder> _properties = new List<PropertyBuilder>();
-        private readonly List<MethodBuilder> _methods = new List<MethodBuilder>();
+        private readonly List<string> _implements = new();
+        private readonly List<FieldBuilder> _fields = new();
+        private readonly List<ConstructorBuilder> _constructors = new();
+        private readonly List<PropertyBuilder> _properties = new();
+        private readonly List<MethodBuilder> _methods = new();
 
-        public static ClassBuilder New() => new ClassBuilder();
+        public static ClassBuilder New() => new();
 
         public ClassBuilder SetAccessModifier(AccessModifier value)
         {
@@ -32,7 +32,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             if (string.IsNullOrEmpty(value))
             {
                 throw new ArgumentException(
-                    "The class name cannot be null or empty.",
+                    Resources.ClassBuilder_SetName_ClassNameCannotBeNull,
                     nameof(value));
             }
 
@@ -45,7 +45,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             if (string.IsNullOrEmpty(value))
             {
                 throw new ArgumentException(
-                    "The type name cannot be null or empty.",
+                    Resources.ClassBuilder_AddImplements_TypeNameCannotBeNull,
                     nameof(value));
             }
 
@@ -124,67 +124,58 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public async Task BuildAsync(CodeWriter writer)
+        public void Build(CodeWriter writer)
         {
             if (writer is null)
             {
                 throw new ArgumentNullException(nameof(writer));
             }
 
-            await writer.WriteGeneratedAttributeAsync().ConfigureAwait(false);
+            writer.WriteGeneratedAttribute();
 
             string modifier = _accessModifier.ToString().ToLowerInvariant();
 
-            await writer.WriteIndentAsync().ConfigureAwait(false);
+            writer.WriteIndent();
 
-            await writer.WriteAsync($"{modifier} ").ConfigureAwait(false);
+            writer.Write($"{modifier} ");
 
             if (_isStatic)
             {
-                await writer.WriteAsync("static ").ConfigureAwait(false);
+                writer.Write("static ");
             }
             else if (_isSealed)
             {
-                await writer.WriteAsync("sealed ").ConfigureAwait(false);
+                writer.Write("sealed ");
             }
             else if (_isAbstract)
             {
-                await writer.WriteAsync("abstract ").ConfigureAwait(false);
+                writer.Write("abstract ");
             }
 
             if (_isPartial)
             {
-                await writer.WriteAsync("partial ").ConfigureAwait(false);
+                writer.Write("partial ");
             }
 
-            await writer.WriteAsync("class ").ConfigureAwait(false);
-            await writer.WriteLineAsync(_name).ConfigureAwait(false);
+            writer.Write("class ");
+            writer.WriteLine(_name);
 
             if (!_isStatic && _implements.Count > 0)
             {
                 using (writer.IncreaseIndent())
                 {
-                    for (int i = 0; i < _implements.Count; i++)
+                    for (var i = 0; i < _implements.Count; i++)
                     {
-                        if (i == 0)
-                        {
-                            await writer.WriteIndentedLineAsync(
-                                $": {_implements[i]}")
-                                .ConfigureAwait(false);
-                        }
-                        else
-                        {
-                            await writer.WriteIndentedLineAsync(
-                                $", {_implements[i]}")
-                                .ConfigureAwait(false);
-                        }
+                        writer.WriteIndentedLine(i == 0
+                            ? $": {_implements[i]}"
+                            : $", {_implements[i]}");
                     }
                 }
             }
 
-            await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
+            writer.WriteIndentedLine("{");
 
-            bool writeLine = false;
+            var writeLine = false;
 
             using (writer.IncreaseIndent())
             {
@@ -192,55 +183,53 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 {
                     foreach (FieldBuilder builder in _fields)
                     {
-                        await builder.BuildAsync(writer).ConfigureAwait(false);
+                        builder.Build(writer);
                     }
                     writeLine = true;
                 }
 
                 if (_constructors.Count > 0)
                 {
-                    for (int i = 0; i < _constructors.Count; i++)
+                    for (var i = 0; i < _constructors.Count; i++)
                     {
                         if (writeLine || i > 0)
                         {
-                            await writer.WriteLineAsync().ConfigureAwait(false);
+                            writer.WriteLine();
                         }
-                        await _constructors[i]
+                        _constructors[i]
                             .SetTypeName(_name!)
-                            .BuildAsync(writer)
-                            .ConfigureAwait(false);
+                            .Build(writer);
                     }
                     writeLine = true;
                 }
 
                 if (_properties.Count > 0)
                 {
-                    for (int i = 0; i < _properties.Count; i++)
+                    for (var i = 0; i < _properties.Count; i++)
                     {
                         if (writeLine || i > 0)
                         {
-                            await writer.WriteLineAsync().ConfigureAwait(false);
+                            writer.WriteLine();
                         }
-                        await _properties[i].BuildAsync(writer).ConfigureAwait(false);
+                        _properties[i].Build(writer);
                     }
                     writeLine = true;
                 }
 
                 if (_methods.Count > 0)
                 {
-                    for (int i = 0; i < _methods.Count; i++)
+                    for (var i = 0; i < _methods.Count; i++)
                     {
                         if (writeLine || i > 0)
                         {
-                            await writer.WriteLineAsync().ConfigureAwait(false);
+                            writer.WriteLine();
                         }
-                        await _methods[i].BuildAsync(writer).ConfigureAwait(false);
+                        _methods[i].Build(writer);
                     }
-                    writeLine = true;
                 }
             }
 
-            await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
+            writer.WriteIndentedLine("}");
         }
     }
 }

@@ -19,12 +19,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return descriptor.Kind == TypeKind.EntityType && !descriptor.IsInterface();
         }
 
-        protected override Task WriteAsync(CodeWriter writer, ITypeDescriptor typeDescriptor)
+        protected override void Generate(CodeWriter writer, ITypeDescriptor typeDescriptor)
         {
-            AssertNonNull(
-                writer,
-                typeDescriptor);
-
             var (classBuilder, constructorBuilder) = CreateClassBuilder();
 
             NamedTypeDescriptor descriptor = typeDescriptor switch
@@ -96,10 +92,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
             mapMethod.AddCode(constructorCall);
             classBuilder.AddMethod(mapMethod);
 
-            return CodeFileBuilder.New()
+            CodeFileBuilder
+                .New()
                 .SetNamespace(descriptor.Namespace)
                 .AddType(classBuilder)
-                .BuildAsync(writer);
+                .Build(writer);
         }
 
         private void TypeMapper<T>(
@@ -280,8 +277,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             var ifChain = InterfaceImplementeeIf(namedTypeDescriptor.ImplementedBy[0]);
 
-            foreach (NamedTypeDescriptor interfaceImplementee in namedTypeDescriptor.ImplementedBy
-                .Skip(1))
+            foreach (NamedTypeDescriptor interfaceImplementee in
+                namedTypeDescriptor.ImplementedBy.Skip(1))
             {
                 var singleIf = InterfaceImplementeeIf(interfaceImplementee).SkipIndents();
                 ifChain.AddIfElse(singleIf);

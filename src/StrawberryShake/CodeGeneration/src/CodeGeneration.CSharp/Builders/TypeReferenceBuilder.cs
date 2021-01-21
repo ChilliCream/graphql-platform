@@ -1,7 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using StrawberryShake.CodeGeneration.CSharp.Extensions;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
@@ -38,47 +35,47 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public async Task BuildAsync(CodeWriter writer)
+        public void Build(CodeWriter writer)
         {
             if (_listInnerType is not null)
             {
-                await writer.WriteAsync("IReadOnlyList<").ConfigureAwait(false);
-                await _listInnerType.BuildAsync(writer);
+                writer.Write("IReadOnlyList<");
+                _listInnerType.Build(writer);
             }
             else
             {
-                await writer.WriteAsync(_name).ConfigureAwait(false);;
+                writer.Write(_name);
             }
 
             if (_genericTypeArguments.Count > 0)
             {
-                await writer.WriteAsync("<").ConfigureAwait(false);;
+                writer.Write("<");
                 for (var i = 0; i < _genericTypeArguments.Count; i++)
                 {
                     if (i > 0)
                     {
-                        await writer.WriteAsync(", ").ConfigureAwait(false);;
+                        writer.Write(", ");
                     }
-                    await writer.WriteAsync(_genericTypeArguments[i]).ConfigureAwait(false);;
+                    writer.Write(_genericTypeArguments[i]);
                 }
-                await writer.WriteAsync(">").ConfigureAwait(false);;
+                writer.Write(">");
             }
 
             if (_isNullable)
             {
-                await writer.WriteAsync("?").ConfigureAwait(false);;
+                writer.Write("?");
             }
 
             if (_listInnerType is not null)
             {
-                await writer.WriteAsync(">").ConfigureAwait(false);;
+                writer.Write(">");
                 if (_listInnerType._isNullable)
                 {
-                    await writer.WriteAsync("?").ConfigureAwait(false);;
+                    writer.Write("?");
                 }
             }
 
-            await writer.WriteSpaceAsync().ConfigureAwait(false);
+            writer.WriteSpace();
         }
     }
 }

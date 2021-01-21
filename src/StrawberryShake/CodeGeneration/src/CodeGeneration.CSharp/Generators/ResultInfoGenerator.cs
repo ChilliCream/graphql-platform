@@ -14,12 +14,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return descriptor.Kind == TypeKind.ResultType;
         }
 
-        protected override Task WriteAsync(CodeWriter writer, ITypeDescriptor typeDescriptor)
+        protected override void Generate(CodeWriter writer, ITypeDescriptor typeDescriptor)
         {
-            AssertNonNull(
-                writer,
-                typeDescriptor);
-
             NamedTypeDescriptor namedTypeDescriptor = typeDescriptor switch
             {
                 NamedTypeDescriptor nullableNamedType => nullableNamedType,
@@ -85,18 +81,28 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetType("ulong")
                 .AsLambda("_version"));
 
-            AddConstructorAssignedField("IReadOnlyCollection<EntityId>", "_entityIds", classBuilder, constructorBuilder);
+            AddConstructorAssignedField(
+                "IReadOnlyCollection<EntityId>",
+                "_entityIds",
+                classBuilder,
+                constructorBuilder);
             constructorCaller.AddArgument("_entityIds");
-            AddConstructorAssignedField("ulong", "_version", classBuilder, constructorBuilder);
+
+            AddConstructorAssignedField(
+                "ulong",
+                "_version",
+                classBuilder,
+                constructorBuilder);
             constructorCaller.AddArgument("_version");
 
             withVersion.AddCode(constructorCaller);
             classBuilder.AddMethod(withVersion);
 
-            return CodeFileBuilder.New()
+            CodeFileBuilder
+                .New()
                 .SetNamespace(namedTypeDescriptor.Namespace)
                 .AddType(classBuilder)
-                .BuildAsync(writer);
+                .Build(writer);
         }
     }
 }

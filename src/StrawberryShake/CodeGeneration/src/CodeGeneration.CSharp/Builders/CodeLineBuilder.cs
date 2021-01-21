@@ -3,8 +3,7 @@ using System.Threading.Tasks;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
-    public class CodeLineBuilder
-        : ICode
+    public class CodeLineBuilder : ICode
     {
         private ICode? _value;
 
@@ -22,7 +21,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public async Task BuildAsync(CodeWriter writer)
+        public void Build(CodeWriter writer)
         {
             if (writer is null)
             {
@@ -31,10 +30,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
             if (_value is not null)
             {
-                await writer.WriteIndentAsync().ConfigureAwait(false);
-                await _value.BuildAsync(writer).ConfigureAwait(false);
+                writer.WriteIndent();
+                _value.Build(writer);
             }
-            await writer.WriteLineAsync().ConfigureAwait(false);
+
+            writer.WriteLine();
         }
     }
 }

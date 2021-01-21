@@ -34,9 +34,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
             EnumDescriptorMapper.Map(clientModel, context);
             TypeDescriptorMapper.Map(clientModel, context);
             EntityTypeDescriptorMapper.Map(clientModel, context);
-
-
-
             OperationDescriptorMapper.Map(clientModel, context);
             ClientDescriptorMapper.Map(clientModel, context);
 
@@ -48,24 +45,22 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 {
                     if (generator.CanHandle(descriptor))
                     {
-                        // TODO : asnyc context
-                        yield return WriteDocument(generator, descriptor, code).Result;
-                        break;
+                        yield return WriteDocument(generator, descriptor, code);
                     }
                 }
             }
         }
 
-        private async Task<CSharpDocument> WriteDocument(
+        private CSharpDocument WriteDocument(
             ICodeGenerator generator,
             ICodeDescriptor descriptor,
             StringBuilder code)
         {
             code.Clear();
 
-            await using var writer = new CodeWriter(code);
+            using var writer = new CodeWriter(code);
 
-            await generator.WriteAsync(writer, descriptor);
+            generator.Generate(writer, descriptor);
 
             writer.Flush();
             return new(descriptor.Name, code.ToString());

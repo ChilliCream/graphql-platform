@@ -5,17 +5,15 @@ using StrawberryShake.CodeGeneration.Extensions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public class ResultTypeGenerator: CSharpBaseGenerator<NamedTypeDescriptor>
+    public class ResultTypeGenerator: CodeGenerator<NamedTypeDescriptor>
     {
         protected override bool CanHandle(NamedTypeDescriptor descriptor)
         {
             return descriptor.Kind != TypeKind.LeafType;
         }
 
-        protected override Task WriteAsync(CodeWriter writer, NamedTypeDescriptor namedTypeDescriptor)
+        protected override void Generate(CodeWriter writer, NamedTypeDescriptor namedTypeDescriptor)
         {
-            AssertNonNull(writer, namedTypeDescriptor);
-
             ClassBuilder classBuilder = ClassBuilder.New()
                 .SetName(namedTypeDescriptor.Name);
 
@@ -51,10 +49,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             classBuilder.AddConstructor(constructorBuilder);
 
-            return CodeFileBuilder.New()
+            CodeFileBuilder
+                .New()
                 .SetNamespace(namedTypeDescriptor.Namespace)
                 .AddType(classBuilder)
-                .BuildAsync(writer);
+                .Build(writer);
         }
     }
 }

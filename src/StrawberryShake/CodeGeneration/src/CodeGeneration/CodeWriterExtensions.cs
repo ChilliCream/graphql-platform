@@ -5,18 +5,17 @@ namespace StrawberryShake.CodeGeneration
 {
     public static class CodeWriterExtensions
     {
-        // private static readonly string _version =
+        // TODO : private static readonly string _version =
         //    typeof(CodeWriter).Assembly.GetName().Version!.ToString();
 
-        public static Task WriteGeneratedAttributeAsync(
-            this CodeWriter writer)
+        public static void WriteGeneratedAttribute(this CodeWriter writer)
         {
             if (writer is null)
             {
                 throw new ArgumentNullException(nameof(writer));
             }
 
-            return writer.WriteIndentedLineAsync(
+            writer.WriteIndentedLine(
                 $"[global::System.CodeDom.Compiler.GeneratedCode(\"StrawberryShake\", \"11.0.0\")]");
         }
     }

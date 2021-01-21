@@ -1,44 +1,44 @@
 using System;
-using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using static StrawberryShake.CodeGeneration.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public class EntityTypeGenerator : CSharpBaseGenerator<EntityTypeDescriptor>
+    public class EntityTypeGenerator : CodeGenerator<EntityTypeDescriptor>
     {
-        protected override Task WriteAsync(CodeWriter writer, EntityTypeDescriptor typeDescriptor)
+        protected override void Generate(CodeWriter writer, EntityTypeDescriptor descriptor)
         {
-            AssertNonNull(writer, typeDescriptor);
-
             // Setup class
             ClassBuilder classBuilder = ClassBuilder.New()
-                .SetName(EntityTypeNameFromGraphQLTypeName(typeDescriptor.GraphQLTypeName))
+                .SetName(EntityTypeNameFromGraphQLTypeName(descriptor.GraphQLTypeName))
                 .AddProperty(PropertyBuilder.New().SetName("Id").SetType(WellKnownNames.EntityId));
 
             // Add Properties to class
-            foreach (var (_, prop) in typeDescriptor.Properties)
+            foreach (var (_, prop) in descriptor.Properties)
             {
                 switch (prop.Type.Kind)
                 {
                     case TypeKind.LeafType:
-                        PropertyBuilder propBuilder = PropertyBuilder
-                            .New()
-                            .SetName(prop.Name)
-                            .SetType(prop.Type.ToBuilder())
-                            .MakeSettable()
-                            .SetAccessModifier(AccessModifier.Public);
+                        PropertyBuilder propBuilder =
+                            PropertyBuilder
+                                .New()
+                                .SetName(prop.Name)
+                                .SetType(prop.Type.ToBuilder())
+                                .MakeSettable()
+                                .SetAccessModifier(AccessModifier.Public);
                         classBuilder.AddProperty(propBuilder);
                         break;
 
                     case TypeKind.DataType:
-                        PropertyBuilder dataBuilder = PropertyBuilder
-                            .New()
-                            .SetName(prop.Name)
-                            .SetType(prop.Type.ToBuilder(DataTypeNameFromTypeName(prop.Type.Name)))
-                            .MakeSettable()
-                            .SetAccessModifier(AccessModifier.Public);
+                        PropertyBuilder dataBuilder =
+                            PropertyBuilder
+                                .New()
+                                .SetName(prop.Name)
+                                .SetType(prop.Type.ToBuilder(
+                                    DataTypeNameFromTypeName(prop.Type.Name)))
+                                .MakeSettable()
+                                .SetAccessModifier(AccessModifier.Public);
                         classBuilder.AddProperty(dataBuilder);
                         break;
 
@@ -57,10 +57,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 }
             }
 
-            return CodeFileBuilder.New()
-                .SetNamespace(typeDescriptor.Namespace)
+            CodeFileBuilder
+                .New()
+                .SetNamespace(descriptor.Namespace)
                 .AddType(classBuilder)
-                .BuildAsync(writer);
+                .Build(writer);
         }
     }
 }
