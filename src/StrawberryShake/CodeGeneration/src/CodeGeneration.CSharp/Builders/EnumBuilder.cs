@@ -7,12 +7,19 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
     {
         private readonly List<(string, long?)> _elements = new();
         private string? _name;
+        private string? _underlyingType;
 
         public static EnumBuilder New() => new();
 
         public EnumBuilder SetName(string value)
         {
             _name = value;
+            return this;
+        }
+
+        public EnumBuilder SetUnderlyingType(string? value)
+        {
+            _underlyingType = value;
             return this;
         }
 
@@ -31,7 +38,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
             writer.WriteGeneratedAttribute();
 
-            writer.WriteIndentedLine($"public enum {_name}");
+            if (_underlyingType is null)
+            {
+                writer.WriteIndentedLine($"public enum {_name}");
+            }
+            else
+            {
+                writer.WriteIndentedLine($"public enum {_name} : {_underlyingType}");
+            }
             writer.WriteIndentedLine("{");
 
             using (writer.IncreaseIndent())

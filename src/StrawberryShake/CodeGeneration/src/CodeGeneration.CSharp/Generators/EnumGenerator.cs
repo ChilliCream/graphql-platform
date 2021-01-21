@@ -10,7 +10,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
             EnumBuilder enumBuilder =
                 EnumBuilder
                     .New()
-                    .SetName(descriptor.Name);
+                    .SetName(descriptor.Name)
+                    .SetUnderlyingType(descriptor.UnderlyingType);
 
             foreach (EnumValueDescriptor element in descriptor.Values)
             {

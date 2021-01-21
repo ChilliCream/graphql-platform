@@ -7,36 +7,35 @@ using Xunit;
 
 namespace StrawberryShake.Integration
 {
-    public class EntityTypeGeneratorTests
+    public class ResultTypeGeneratorTests
     {
         readonly StringBuilder _stringBuilder;
         readonly CodeWriter _codeWriter;
-        readonly EntityTypeGenerator _generator;
+        readonly ResultTypeGenerator _generator;
 
-        public EntityTypeGeneratorTests()
+        public ResultTypeGeneratorTests()
         {
             _stringBuilder = new StringBuilder();
             _codeWriter = new CodeWriter(_stringBuilder);
-            _generator = new EntityTypeGenerator();
+            _generator = new ResultTypeGenerator();
         }
 
         [Fact]
-        public async Task GenerateEntityType_Droid()
+        public void GenerateResult_GetHeroResult()
         {
-            await _generator.WriteAsync(
+            _generator.Generate(
                 _codeWriter,
-                IntegrationDescriptors.CreateDroidEntityTypeDescriptor());
+                IntegrationDescriptors.CreateGetHeroResultDescriptor());
 
             _stringBuilder.ToString().MatchSnapshot();
         }
 
-
         [Fact]
-        public async Task GenerateEntityType_Human()
+        public void GenerateResult_IHero()
         {
-            await _generator.WriteAsync(
+            _generator.Generate(
                 _codeWriter,
-                IntegrationDescriptors.CreateHumanEntityTypeDescriptor());
+                IntegrationDescriptors.CreateIHeroDescriptor());
 
             _stringBuilder.ToString().MatchSnapshot();
         }

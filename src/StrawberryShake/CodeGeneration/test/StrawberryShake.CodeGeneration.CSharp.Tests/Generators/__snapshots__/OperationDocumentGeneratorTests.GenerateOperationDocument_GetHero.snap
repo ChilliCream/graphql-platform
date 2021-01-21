@@ -1,7 +1,7 @@
 ﻿namespace StarWarsClient
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetHeroResultQueryDocument
+    public partial class GetHeroQueryDocument
     {
         private const string _bodyString = 
             @"query GetHero {
@@ -22,7 +22,7 @@
                 }";
         private static readonly byte[] _body = Encoding.UTF8.GetBytes(_bodyString);
 
-        private GetHeroResultQueryDocument()
+        private GetHeroQueryDocument()
         {
         }
 
@@ -34,7 +34,7 @@
 
         private override string ToString()
         {
-            return _bodyString;
+            
         }
     }
 }

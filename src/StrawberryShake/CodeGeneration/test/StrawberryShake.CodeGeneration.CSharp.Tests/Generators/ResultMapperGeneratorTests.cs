@@ -21,9 +21,9 @@ namespace StrawberryShake.Integration
         }
 
         [Fact]
-        public async Task GenerateResultMapper_Droid()
+        public void GenerateResultMapper_Droid()
         {
-            await _generator.WriteAsync(
+            _generator.Generate(
                 _codeWriter,
                 IntegrationDescriptors.CreateDroidNamedTypeDescriptor());
 
@@ -31,9 +31,9 @@ namespace StrawberryShake.Integration
         }
 
         [Fact]
-        public async Task GenerateResultMapper_DroidHero()
+        public void GenerateResultMapper_DroidHero()
         {
-            await _generator.WriteAsync(
+            _generator.Generate(
                 _codeWriter,
                 IntegrationDescriptors.CreateDroidHeroNamedTypeDescriptor());
 
@@ -42,9 +42,9 @@ namespace StrawberryShake.Integration
 
 
         [Fact]
-        public async Task GenerateResultMapper_Human()
+        public void GenerateResultMapper_Human()
         {
-            await _generator.WriteAsync(
+            _generator.Generate(
                 _codeWriter,
                 IntegrationDescriptors.CreateHumanNamedTypeDescriptor());
 
@@ -52,9 +52,9 @@ namespace StrawberryShake.Integration
         }
 
         [Fact]
-        public async Task GenerateResultMapper_HumanHero()
+        public void GenerateResultMapper_HumanHero()
         {
-            await _generator.WriteAsync(
+            _generator.Generate(
                 _codeWriter,
                 IntegrationDescriptors.CreateHumanHeroNamedTypeDescriptor());
 
@@ -62,9 +62,9 @@ namespace StrawberryShake.Integration
         }
 
         [Fact]
-        public async Task GenerateResultMapper_FriendsConnection()
+        public void GenerateResultMapper_FriendsConnection()
         {
-            await _generator.WriteAsync(
+            _generator.Generate(
                 _codeWriter,
                 IntegrationDescriptors.CreateFriendsConnectionDescriptor());
 

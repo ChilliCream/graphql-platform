@@ -7,26 +7,26 @@ using Xunit;
 
 namespace StrawberryShake.Integration
 {
-    public class OperationDocumentGeneratorTests
+    public class ResultDataFactoryTests
     {
         readonly StringBuilder _stringBuilder;
         readonly CodeWriter _codeWriter;
-        readonly OperationDocumentGenerator _generator;
+        readonly ResultDataFactoryGenerator _generator;
 
-        public OperationDocumentGeneratorTests()
+        public ResultDataFactoryTests()
         {
             _stringBuilder = new StringBuilder();
             _codeWriter = new CodeWriter(_stringBuilder);
-            _generator = new OperationDocumentGenerator();
+            _generator = new ResultDataFactoryGenerator();
         }
 
         [Fact]
-        public async Task GenerateOperationDocument_GetHero()
+        public void GenerateResultDataFactory_GetHeroResult()
         {
-            await _generator.WriteAsync(
+            _generator.Generate(
                 _codeWriter,
-                IntegrationDescriptors.CreateGetHeroQueryDescriptor());
-            
+                IntegrationDescriptors.CreateGetHeroResultDescriptor());
+
             _stringBuilder.ToString().MatchSnapshot();
         }
     }

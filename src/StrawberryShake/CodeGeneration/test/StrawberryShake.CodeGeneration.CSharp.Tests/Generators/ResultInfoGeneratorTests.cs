@@ -21,9 +21,9 @@ namespace StrawberryShake.Integration
         }
 
         [Fact]
-        public async Task GenerateResultInfo_GetHeroResultInfo()
+        public void GenerateResultInfo_GetHeroResultInfo()
         {
-            await _generator.WriteAsync(
+            _generator.Generate(
                 _codeWriter,
                 IntegrationDescriptors.CreateGetHeroResultDescriptor());
 

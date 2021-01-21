@@ -4,8 +4,7 @@ using System.Text;
 
 namespace StrawberryShake.CodeGeneration
 {
-    public class CodeWriter
-        : TextWriter
+    public class CodeWriter : TextWriter
     {
         private readonly TextWriter _writer;
         private readonly bool _disposeWriter;
