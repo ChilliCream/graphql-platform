@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.NamingConventions;
-using static StrawberryShake.CodeGeneration.CSharp.TypeNames;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -24,7 +22,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             classBuilder
                 .SetName(ResultFactoryNameFromTypeName(descriptor.Name))
-                .AddImplements($"{IOperationResultDataFactory}<{descriptor.Name}>");
+                .AddImplements($"{TypeNames.IOperationResultDataFactory}<{descriptor.Name}>");
 
             constructorBuilder
                 .SetTypeName(descriptor.Name)
@@ -50,7 +48,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .AddGeneric(EntityTypeNameFromGraphQLTypeName(gqlTypeName))
                     .AddGeneric(mapperType.Name);
 
-                AddConstructorAssignedNonNullableField(
+                AddConstructorAssignedField(
                     typeName,
                     EntityMapperNameFromGraphQLTypeName(mapperType.Name, gqlTypeName)
                         .ToFieldName(),

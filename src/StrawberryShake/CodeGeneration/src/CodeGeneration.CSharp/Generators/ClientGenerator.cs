@@ -14,7 +14,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             foreach (OperationDescriptor operation in descriptor.Operations)
             {
-                AddConstructorAssignedNonNullableField(
+                AddConstructorAssignedField(
                     operation.Name,
                     operation.Name.ToFieldName(),
                     classBuilder,

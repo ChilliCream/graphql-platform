@@ -12,13 +12,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return (classBuilder, constructorBuilder);
         }
 
-        protected void AddConstructorAssignedNonNullableField(
-            ITypeReferenceBuilder type,
+        protected void AddConstructorAssignedField(
+            TypeReferenceBuilder type,
             string fieldName,
             ClassBuilder classBuilder,
             ConstructorBuilder constructorBuilder)
         {
-            var nonNullableType = NonNullTypeReferenceBuilder.New().SetInnerType(type);
             var paramName = fieldName.TrimStart('_');
 
             classBuilder.AddField(
@@ -26,12 +25,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .New()
                     .SetReadOnly()
                     .SetName(fieldName)
-                    .SetType(nonNullableType));
+                    .SetType(type));
 
             constructorBuilder.AddParameter(
                 ParameterBuilder
                     .New()
-                    .SetType(nonNullableType)
+                    .SetType(type)
                     .SetName(paramName))
                 .AddCode(
                     AssignmentBuilder
@@ -41,13 +40,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         .AssertNonNull());
         }
 
-        protected void AddConstructorAssignedNonNullableField(
+        protected void AddConstructorAssignedField(
             string typename,
             string fieldName,
             ClassBuilder classBuilder,
             ConstructorBuilder constructorBuilder)
         {
-            AddConstructorAssignedNonNullableField(
+            AddConstructorAssignedField(
                 TypeReferenceBuilder.New().SetName(typename),
                 fieldName,
                 classBuilder,

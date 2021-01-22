@@ -5,13 +5,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public class ParameterBuilder : ICodeBuilder
     {
-        private ITypeReferenceBuilder? _type;
+        private TypeReferenceBuilder? _type;
         private string? _name;
         private string? _default;
 
         public static ParameterBuilder New() => new();
 
-        public ParameterBuilder SetType(ITypeReferenceBuilder value, bool condition = true)
+        public ParameterBuilder SetType(TypeReferenceBuilder value, bool condition = true)
         {
             if (condition)
             {
@@ -54,7 +54,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             }
 
             _type.Build(writer);
-            writer.WriteSpace();
 
             writer.Write(_default is null ? $"{_name}" : $"{_name} = {_default}");
         }

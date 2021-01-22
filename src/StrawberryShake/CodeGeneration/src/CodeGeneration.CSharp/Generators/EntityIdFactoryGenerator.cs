@@ -95,7 +95,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 return CodeBlockBuilder.From(sourceText);
             }
 
-            sourceText.Append($"(");
+            sourceText.Append($"    (");
 
             bool next = false;
 
@@ -104,10 +104,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 if (next)
                 {
                     sourceText.AppendLine(",");
+                    sourceText.Append("    ");
                 }
                 next = true;
 
-                sourceText.Append($"    obj.GetProperty(\"{field.Name}\").Get{field.TypeName}()!");
+                sourceText.Append($"obj.GetProperty(\"{field.Name}\").Get{field.TypeName}()!");
             }
 
             sourceText.AppendLine($"));");

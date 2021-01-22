@@ -2,7 +2,6 @@ using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.NamingConventions;
-using static StrawberryShake.CodeGeneration.CSharp.TypeNames;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -62,7 +61,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
 
             resultInfoConstructor.AddArgument(entityIdsName);
-            resultInfoConstructor.AddArgument($"{sessionName}.{IEntityUpdateSession_Version}");
+            resultInfoConstructor.AddArgument($"{sessionName}.{TypeNames.IEntityUpdateSession_Version}");
 
             buildDataMethod.AddEmptyLine();
             var resultInfoName = "resultInfo";
