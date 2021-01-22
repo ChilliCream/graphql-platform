@@ -12,14 +12,10 @@ namespace StrawberryShake.CodeGeneration.Extensions
         public static SelectionSetNode GetEntityDefinition(this INamedType namedType) =>
             (SelectionSetNode)namedType.ContextData[Entity]!;
 
-        public static string GetRuntimeType(this ILeafType leafType)
-        {
-            return (string)leafType.ContextData[RuntimeType]!;
-        }
+        public static string GetRuntimeType(this ILeafType leafType) =>
+            (string)leafType.ContextData[RuntimeType]!;
 
-        public static string GetSerializationType(this ILeafType leafType)
-        {
-            return (string)leafType.ContextData[SerializationType]!;
-        }
+        public static string GetSerializationType(this ILeafType leafType) =>
+            (string)leafType.ContextData[SerializationType]!;
     }
 }
