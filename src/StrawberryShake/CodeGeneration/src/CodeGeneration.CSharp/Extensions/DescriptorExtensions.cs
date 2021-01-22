@@ -1,3 +1,4 @@
+using System;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Extensions;
 
@@ -5,38 +6,37 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
 {
     public static class DescriptorExtensions
     {
-        public static TypeReferenceBuilder ToBuilder(
+        public static ITypeReferenceBuilder ToBuilder(
             this ITypeDescriptor typeReferenceDescriptor,
             string? nameOverride = null)
         {
-            TypeReferenceBuilder ret = new TypeReferenceBuilder()
-                .SetName(nameOverride ?? typeReferenceDescriptor.Name)
-                .SetIsNullable(!(typeReferenceDescriptor is NonNullTypeDescriptor));
-
-            if (typeReferenceDescriptor is ListTypeDescriptor listTypeDescriptor)
+            return typeReferenceDescriptor switch
             {
-                ret.SetListType(listTypeDescriptor.InnerType.ToBuilder());
-            }
-
-            return ret;
+                NonNullTypeDescriptor nonNullTypeDescriptor => new NonNullTypeReferenceBuilder()
+                    .SetInnerType(nonNullTypeDescriptor.InnerType.ToBuilder(nameOverride)),
+                ListTypeDescriptor listTypeDescriptor => new ListTypeReferenceBuilder()
+                    .SetListType(listTypeDescriptor.InnerType.ToBuilder(nameOverride)),
+                NamedTypeDescriptor namedTypeDescriptor => new TypeReferenceBuilder()
+                    .SetName(nameOverride ?? namedTypeDescriptor.Name),
+                _ => throw new NotSupportedException()
+            };
         }
 
-        public static TypeReferenceBuilder ToEntityIdBuilder(
+        public static ITypeReferenceBuilder ToEntityIdBuilder(
             this ITypeDescriptor typeReferenceDescriptor)
         {
-            var ret = new TypeReferenceBuilder()
-                .SetName(
-                    typeReferenceDescriptor.IsEntityType()
-                        ? WellKnownNames.EntityId
-                        : typeReferenceDescriptor.Name)
-                .SetIsNullable(!(typeReferenceDescriptor is NonNullTypeDescriptor));
-
-            if (typeReferenceDescriptor is ListTypeDescriptor listTypeDescriptor)
+            return typeReferenceDescriptor switch
             {
-                ret.SetListType(listTypeDescriptor.InnerType.ToBuilder());
-            }
-
-            return ret;
+                NonNullTypeDescriptor nonNullTypeDescriptor => new NonNullTypeReferenceBuilder()
+                    .SetInnerType(nonNullTypeDescriptor.InnerType.ToEntityIdBuilder()),
+                ListTypeDescriptor listTypeDescriptor => new ListTypeReferenceBuilder()
+                    .SetListType(listTypeDescriptor.InnerType.ToEntityIdBuilder()),
+                NamedTypeDescriptor namedTypeDescriptor => new TypeReferenceBuilder()
+                    .SetName(typeReferenceDescriptor.IsEntityType()
+                        ? WellKnownNames.EntityId
+                        : typeReferenceDescriptor.Name),
+                _ => throw new NotSupportedException()
+            };
         }
     }
 }

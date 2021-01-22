@@ -36,6 +36,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             EntityTypeDescriptorMapper.Map(clientModel, context);
             OperationDescriptorMapper.Map(clientModel, context);
             ClientDescriptorMapper.Map(clientModel, context);
+            ResultBuilderDescriptorMapper.Map(clientModel, context);
 
             var code = new StringBuilder();
 

@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
+using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.NamingConventions;
 
@@ -19,7 +20,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             classBuilder.SetName(operationDescriptor.Name);
             constructorBuilder.SetTypeName(operationDescriptor.Name);
 
-            AddConstructorAssignedField(
+            AddConstructorAssignedNonNullableField(
                 TypeReferenceBuilder.New()
                     .SetName(WellKnownNames.IOperationExecutor)
                     .AddGeneric(operationDescriptor.ResultTypeReference.Name),
@@ -49,15 +50,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         .SetName(strategyVariableName)
                         .SetType(
                             TypeReferenceBuilder.New()
-                                .SetIsNullable(true)
                                 .SetName(WellKnownNames.ExecutionStrategy))
                         .SetDefault("null"));
 
             foreach (var arg in operationDescriptor.Arguments)
             {
-                var typeReferenceBuilder = TypeReferenceBuilder.New()
-                    .SetName(arg.Type.Name)
-                    .SetIsNullable(!(arg.Type is NonNullTypeDescriptor));
+                var typeReferenceBuilder = arg.Type.ToBuilder();
 
                 var paramBuilder = ParameterBuilder.New()
                     .SetName(arg.Name.WithLowerFirstChar())

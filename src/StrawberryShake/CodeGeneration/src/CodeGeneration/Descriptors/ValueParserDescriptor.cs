@@ -1,3 +1,5 @@
+using HotChocolate;
+
 namespace StrawberryShake.CodeGeneration
 {
     public struct ValueParserDescriptor
@@ -5,7 +7,7 @@ namespace StrawberryShake.CodeGeneration
         public ValueParserDescriptor(
             string serializedType,
             string runtimeType,
-            string graphQLTypeName)
+            NameString graphQLTypeName)
         {
             SerializedType = serializedType;
             RuntimeType = runtimeType;
@@ -15,7 +17,7 @@ namespace StrawberryShake.CodeGeneration
         public string SerializedType { get; }
 
         public string RuntimeType { get; }
-        
-        public string GraphQLTypeName { get; }
+
+        public NameString GraphQLTypeName { get; }
     }
 }

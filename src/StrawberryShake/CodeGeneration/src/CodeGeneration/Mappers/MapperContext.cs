@@ -10,6 +10,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
         private readonly Dictionary<NameString, EntityTypeDescriptor> _entityTypes = new();
         private readonly Dictionary<NameString, EnumDescriptor> _enums = new();
         private readonly Dictionary<NameString, OperationDescriptor> _operations = new();
+        private readonly Dictionary<NameString, ResultBuilderDescriptor> _resultBuilder = new();
         private ClientDescriptor? _client = null;
 
         public MapperContext(string ns, string clientName)
@@ -28,6 +29,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
         public IReadOnlyCollection<EnumDescriptor> EnumTypes => _enums.Values;
         public IReadOnlyCollection<OperationDescriptor> Operations => _operations.Values;
+        public IReadOnlyCollection<ResultBuilderDescriptor> ResultBuilders => _resultBuilder.Values;
 
         public ClientDescriptor Client => _client ?? throw new NotImplementedException();
 
@@ -51,6 +53,11 @@ namespace StrawberryShake.CodeGeneration.Mappers
             foreach (var type in Operations)
             {
                 yield return type;
+            }
+
+            foreach (var resultBuilder in ResultBuilders)
+            {
+                yield return resultBuilder;
             }
 
             yield return Client;
@@ -83,6 +90,14 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 operationName.EnsureNotEmpty(nameof(operationName)),
                 operationDescriptor ??
                 throw new ArgumentNullException(nameof(operationDescriptor)));
+        }
+
+        public void Register(NameString operationName, ResultBuilderDescriptor resultBuilderDescriptor)
+        {
+            _resultBuilder.Add(
+                operationName.EnsureNotEmpty(nameof(operationName)),
+                resultBuilderDescriptor ??
+                throw new ArgumentNullException(nameof(resultBuilderDescriptor)));
         }
 
         public void Register(ClientDescriptor clientDescriptor)

@@ -62,7 +62,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public void Build(CodeWriter writer)
+        public void Build(CodeWriter writer, HashSet<string>? builderContext = null)
         {
             if (writer is null)
             {

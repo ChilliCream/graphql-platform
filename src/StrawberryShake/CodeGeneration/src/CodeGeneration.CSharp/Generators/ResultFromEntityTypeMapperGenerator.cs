@@ -49,7 +49,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             constructorBuilder.SetTypeName(descriptor.Name);
 
-            AddConstructorAssignedField(
+            AddConstructorAssignedNonNullableField(
                 WellKnownNames.IEntityStore,
                 _storeFieldName,
                 classBuilder,
@@ -363,7 +363,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 mapperSet.Add(mapperName);
 
-                AddConstructorAssignedField(
+                AddConstructorAssignedNonNullableField(
                     mapperType,
                     mapperFieldName,
                     classBuilder,

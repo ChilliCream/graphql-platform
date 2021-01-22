@@ -1,5 +1,6 @@
 using System.Text;
 using System.Threading.Tasks;
+using HotChocolate;
 using Snapshooter.Xunit;
 using StrawberryShake.CodeGeneration;
 using StrawberryShake.CodeGeneration.CSharp;
@@ -7,7 +8,7 @@ using Xunit;
 
 namespace StrawberryShake.Other
 {
-    public class ResultTypeGenerationTests
+    public partial class ResultTypeGenerationTests
     {
         readonly StringBuilder _stringBuilder;
         readonly CodeWriter _codeWriter;
@@ -21,151 +22,139 @@ namespace StrawberryShake.Other
         }
 
         [Fact]
-        public async Task GenerateSimpleClassWithOneValueTypeProperty()
+        public void GenerateEntityWithOneValueTypeProperty()
         {
-            await _generator.Write(
+            _generator.Generate(
                 _codeWriter,
-                new TypeDescriptor(
+                new NamedTypeDescriptor(
                     "Foo",
                     "FooBarNamespace",
-                    new string[] { },
-                    new[] {TestHelper.GetNamedNonNullStringTypeReference("SomeText"),}
-                )
-            );
+                    false,
+                    properties: new[]
+                    {
+                        TestHelper.GetNamedNonNullStringTypeReference("SomeText"),
+                    }));
             _stringBuilder.ToString().MatchSnapshot();
         }
 
         [Fact]
-        public async Task GenerateSimpleClassWithOneReferenceTypeProperty()
+        public async Task GenerateEntityWithOneReferenceTypeProperty()
         {
-            await _generator.Write(
+            _generator.Generate(
                 _codeWriter,
-                new TypeDescriptor(
+                new NamedTypeDescriptor(
                     "Foo",
                     "FooBarNamespace",
-                    new string[] { },
+                    false,
+                    new NameString[] { },
                     new[]
                     {
-                        new NamedTypeReferenceDescriptor(
-                            new TypeDescriptor(
-                                "Bar",
-                                "BarNamespace",
-                                isEntityType: true
-                            ),
-                            false,
-                            ListType.NoList,
-                            "Bar"
-                        )
-                    }
-                )
-            );
+                        new PropertyDescriptor(
+                            "Bar",
+                            new NonNullTypeDescriptor(
+                                new NamedTypeDescriptor(
+                                    "Bar",
+                                    "BarNamespace",
+                                    false,
+                                    kind: TypeKind.EntityType)))
+                    }));
             _stringBuilder.ToString().MatchSnapshot();
         }
 
         [Fact]
-        public async Task GenerateSimpleClassWithOneNullableValueTypeProperty()
+        public async Task GenerateEntityWithOneNullableValueTypeProperty()
         {
-            await _generator.Write(
+            _generator.Generate(
                 _codeWriter,
-                new TypeDescriptor(
+                new NamedTypeDescriptor(
                     "Foo",
                     "FooBarNamespace",
-                    new string[] { },
-                    new[] {TestHelper.GetNamedNonNullStringTypeReference("SomeText"),}
-                )
-            );
+                    false,
+                    properties: new[]
+                    {
+                        TestHelper.GetNamedNullableStringTypeReference("SomeText"),
+                    }));
             _stringBuilder.ToString().MatchSnapshot();
         }
 
         [Fact]
-        public async Task GenerateSimpleClassWithOneNullableReferenceTypeProperty()
+        public async Task GenerateEntityWithOneNullableReferenceTypeProperty()
         {
-            await _generator.Write(
+            _generator.Generate(
                 _codeWriter,
-                new TypeDescriptor(
+                new NamedTypeDescriptor(
                     "Foo",
                     "FooBarNamespace",
-                    new string[] { },
+                    false,
+                    new NameString[] { },
                     new[]
                     {
-                        new NamedTypeReferenceDescriptor(
-                            new TypeDescriptor(
+                        new PropertyDescriptor(
+                            "Bar",
+                            new NamedTypeDescriptor(
                                 "Bar",
                                 "BarNamespace",
-                                isEntityType: true
-                            ),
-                            true,
-                            ListType.NoList,
-                            "Bar"
-                        )
-                    }
-                )
-            );
+                                false,
+                                kind: TypeKind.EntityType))
+                    }));
             _stringBuilder.ToString().MatchSnapshot();
         }
 
         [Fact]
-        public async Task GenerateSimpleClassWithImplements()
+        public async Task GenerateEntityWithImplements()
         {
-            await _generator.Write(
+            _generator.Generate(
                 _codeWriter,
-                new TypeDescriptor(
+                new NamedTypeDescriptor(
                     "Foo",
                     "FooBarNamespace",
-                    new string[] {"IFoo", "IBar"},
+                    false,
+                    new NameString[] {"IFoo", "IBar"},
                     new[]
                     {
-                        new NamedTypeReferenceDescriptor(
-                            new TypeDescriptor(
-                                "Bar",
-                                "BarNamespace",
-                                isEntityType: true
-                            ),
-                            false,
-                            ListType.NoList,
-                            "Bar"
-                        )
-                    }
-                )
-            );
+                        new PropertyDescriptor(
+                            "Bar",
+                            new NonNullTypeDescriptor(
+                                new NamedTypeDescriptor(
+                                    "Bar",
+                                    "BarNamespace",
+                                    false,
+                                    kind: TypeKind.EntityType)))
+                    }));
             _stringBuilder.ToString().MatchSnapshot();
         }
 
 
         [Fact]
-        public async Task GenerateSimpleClassWithMultipleProperties()
+        public void GenerateEntityWithMultipleProperties()
         {
-            await _generator.Write(
+            _generator.Generate(
                 _codeWriter,
-                new TypeDescriptor(
+                new NamedTypeDescriptor(
                     "Foo",
                     "FooBarNamespace",
-                    new string[] { },
-                    new[]
+                    false,
+                    properties: new[]
                     {
-                        TestHelper.GetNamedNonNullStringTypeReference("Id"), new NamedTypeReferenceDescriptor(
-                            new TypeDescriptor(
-                                "Bar",
-                                "BarNamespace",
-                                isEntityType: true
-                            ),
-                            false,
-                            ListType.List,
-                            "Bars"
-                        ),
-                        new NamedTypeReferenceDescriptor(
-                            new TypeDescriptor(
+                        TestHelper.GetNamedNonNullStringTypeReference("Id"),
+                        new PropertyDescriptor(
+                            "Bars",
+                            new NonNullTypeDescriptor(
+                                new ListTypeDescriptor(
+                                    new NonNullTypeDescriptor(
+                                        new NamedTypeDescriptor(
+                                            "Bar",
+                                            "BarNamespace",
+                                            false,
+                                            kind: TypeKind.EntityType))))),
+                        new PropertyDescriptor(
+                            "Baz",
+                            new NamedTypeDescriptor(
                                 "Baz",
                                 "BazNamespace",
-                                isEntityType: true
-                            ),
-                            true,
-                            ListType.NoList,
-                            "Baz"
-                        ),
-                    }
-                )
-            );
+                                false,
+                                kind: TypeKind.EntityType))
+                    }));
             _stringBuilder.ToString().MatchSnapshot();
         }
     }

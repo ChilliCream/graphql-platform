@@ -23,6 +23,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
         void Register(NameString codeTypeName, EnumDescriptor enumTypeDescriptor);
         void Register(NameString operationName, OperationDescriptor operationDescriptor);
+        void Register(NameString resultBuilderName, ResultBuilderDescriptor operationDescriptor);
         void Register(ClientDescriptor clientDescriptor);
     }
 }

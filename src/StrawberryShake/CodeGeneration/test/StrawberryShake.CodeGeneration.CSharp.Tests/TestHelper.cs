@@ -20,6 +20,12 @@ namespace StrawberryShake
                 referenceName,
                 new NonNullTypeDescriptor(new NamedTypeDescriptor("string", "System", false)));
 
+        public static PropertyDescriptor GetNamedNullableStringTypeReference(
+            string referenceName) =>
+            new(
+                referenceName,
+                new NamedTypeDescriptor("string", "System", false));
+
         public static PropertyDescriptor GetNamedNonNullIntTypeReference(
             string referenceName) =>
             new(

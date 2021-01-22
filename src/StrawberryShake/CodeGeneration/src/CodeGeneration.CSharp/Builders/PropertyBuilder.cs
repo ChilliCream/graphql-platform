@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
@@ -8,7 +9,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private bool _isAutoProperty = true;
         private bool _isReadOnly = true;
         private string? _lambdaResolver;
-        private TypeReferenceBuilder? _type;
+        private ITypeReferenceBuilder? _type;
         private string? _name;
         private string? _value;
 
@@ -28,11 +29,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
         public PropertyBuilder SetType(string value)
         {
-            _type = TypeReferenceBuilder.New().SetName(value);
+            _type = NonNullTypeReferenceBuilder.New().SetInnerType(
+                TypeReferenceBuilder.New().SetName(value));
             return this;
         }
 
-        public PropertyBuilder SetType(TypeReferenceBuilder value)
+        public PropertyBuilder SetType(ITypeReferenceBuilder value)
         {
             _type = value;
             return this;
@@ -56,7 +58,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public void Build(CodeWriter writer)
+        public void Build(CodeWriter writer, HashSet<string>? builderContext = null)
         {
             if (writer is null)
             {
@@ -74,6 +76,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             writer.Write(modifier);
             writer.WriteSpace();
             _type.Build(writer);
+            writer.WriteSpace();
             writer.Write(_name);
 
             if (_lambdaResolver is not null)
@@ -91,6 +94,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             {
                 writer.Write(" set;");
             }
+
             writer.Write(" }");
 
             if (_value is not null)

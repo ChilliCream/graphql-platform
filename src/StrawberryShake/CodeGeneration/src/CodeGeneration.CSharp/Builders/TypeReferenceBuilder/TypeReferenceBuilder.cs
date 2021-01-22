@@ -2,20 +2,12 @@ using System.Collections.Generic;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
-    public class TypeReferenceBuilder : ICodeBuilder
+    public class TypeReferenceBuilder : ITypeReferenceBuilder
     {
         private string? _name;
         private readonly List<string> _genericTypeArguments = new();
-        private TypeReferenceBuilder? _listInnerType;
-        private bool _isNullable;
 
         public static TypeReferenceBuilder New() => new();
-
-        public TypeReferenceBuilder SetListType(TypeReferenceBuilder innerType)
-        {
-            _listInnerType = innerType;
-            return this;
-        }
 
         public TypeReferenceBuilder SetName(string name)
         {
@@ -29,23 +21,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public TypeReferenceBuilder SetIsNullable(bool isNullable)
+        public void Build(CodeWriter writer, HashSet<string>? builderContext = null)
         {
-            _isNullable = isNullable;
-            return this;
-        }
-
-        public void Build(CodeWriter writer)
-        {
-            if (_listInnerType is not null)
-            {
-                writer.Write("IReadOnlyList<");
-                _listInnerType.Build(writer);
-            }
-            else
-            {
-                writer.Write(_name);
-            }
+            writer.Write(_name);
 
             if (_genericTypeArguments.Count > 0)
             {
@@ -61,21 +39,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 writer.Write(">");
             }
 
-            if (_isNullable)
+            if (builderContext is null ||
+                !builderContext.Contains(WellKnownBuilderContextData.SkipNullabilityOnce))
             {
                 writer.Write("?");
             }
-
-            if (_listInnerType is not null)
-            {
-                writer.Write(">");
-                if (_listInnerType._isNullable)
-                {
-                    writer.Write("?");
-                }
-            }
-
-            writer.WriteSpace();
         }
     }
 }

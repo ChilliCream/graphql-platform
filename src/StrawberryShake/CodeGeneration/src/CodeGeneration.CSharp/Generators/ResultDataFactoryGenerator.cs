@@ -30,7 +30,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetTypeName(descriptor.Name)
                 .SetAccessModifier(AccessModifier.Public);
 
-            AddConstructorAssignedField(
+            AddConstructorAssignedNonNullableField(
                 WellKnownNames.IEntityStore,
                 StoreParamName,
                 classBuilder,
@@ -50,7 +50,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .AddGeneric(EntityTypeNameFromGraphQLTypeName(gqlTypeName))
                     .AddGeneric(mapperType.Name);
 
-                AddConstructorAssignedField(
+                AddConstructorAssignedNonNullableField(
                     typeName,
                     EntityMapperNameFromGraphQLTypeName(mapperType.Name, gqlTypeName)
                         .ToFieldName(),
