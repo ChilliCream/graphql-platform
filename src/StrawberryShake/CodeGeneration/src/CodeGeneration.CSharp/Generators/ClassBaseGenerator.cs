@@ -13,7 +13,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         }
 
         protected void AddConstructorAssignedNonNullableField(
-            TypeReferenceBuilder type,
+            ITypeReferenceBuilder type,
             string fieldName,
             ClassBuilder classBuilder,
             ConstructorBuilder constructorBuilder)

@@ -9,7 +9,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private Inheritance _inheritance = Inheritance.None;
         private bool _isStatic;
         private bool _is;
-        private TypeReferenceBuilder _returnType = TypeReferenceBuilder.New().SetName("void");
+        private ITypeReferenceBuilder _returnType = TypeReferenceBuilder.New().SetName("void");
         private string? _name;
         private readonly List<ParameterBuilder> _parameters = new();
         private readonly List<ICode> _lines = new();
