@@ -15,8 +15,9 @@ namespace StrawberryShake.CodeGeneration.Mappers
             foreach (OperationModel modelOperation in model.Operations)
             {
                 context.Register(
-                    modelOperation.ResultType.Name,
+                    modelOperation.Name,
                     new ResultBuilderDescriptor(
+                        modelOperation.Name,
                         context.Types.Single(t => t.Name.Equals(modelOperation.ResultType.Name)),
                         modelOperation.LeafTypes.Select(
                             leafType => new ValueParserDescriptor(

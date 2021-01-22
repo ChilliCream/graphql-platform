@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Extensions;
@@ -24,10 +25,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
             var (classBuilder, constructorBuilder) = CreateClassBuilder();
 
             classBuilder.SetName(
-                ResultBuilderNameFromTypeName(resultBuilderDescriptor.ResultNamedType.Name));
+                ResultBuilderNameFromTypeName(resultBuilderDescriptor.Name));
 
             constructorBuilder.SetTypeName(
-                ResultBuilderNameFromTypeName(resultBuilderDescriptor.ResultNamedType.Name));
+                ResultBuilderNameFromTypeName(resultBuilderDescriptor.Name));
 
             classBuilder.AddImplements(
                 $"{TypeNames.IOperationResultBuilder}<{TypeNames.JsonElement}," +
@@ -63,7 +64,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             foreach (var valueParser in resultBuilderDescriptor.ValueParsers)
             {
-                var parserFieldName = $"_{valueParser.RuntimeType}Parser";
+                var parserFieldName = $"_{valueParser.RuntimeType.Split(".").Last().WithLowerFirstChar()}Parser";
                 classBuilder.AddField(
                     FieldBuilder.New().SetName(parserFieldName).SetType(
                         TypeReferenceBuilder.New()
@@ -239,9 +240,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 EnsureJsonValueIsNotNull(),
                 originalTypeDescriptor.IsNonNullableType());
 
+            var jsonGetterTypeName =
+                namedType.SerializationType?.Split(".").Last()
+                    ?? namedType.Name.WithCapitalFirstChar();
             scalarDeserializer.AddCode(
                 $"return {namedType.Name.ToFieldName()}Parser.Parse({_objParamName}" +
-                $".Get{namedType.Name.WithCapitalFirstChar()}()!);");
+                $".Get{jsonGetterTypeName}()!);");
 
             classBuilder.AddMethod(scalarDeserializer);
         }

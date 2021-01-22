@@ -9,15 +9,18 @@ namespace StrawberryShake.CodeGeneration
     public class ResultBuilderDescriptor : ICodeDescriptor
     {
         public ResultBuilderDescriptor(
+            string name,
             NamedTypeDescriptor resultNamedType,
             IReadOnlyCollection<ValueParserDescriptor> valueParsers)
         {
+            _name = name;
             ResultNamedType = resultNamedType;
             ValueParsers = valueParsers;
         }
 
-        public NameString Name => 
-            NamingConventions.ResultBuilderNameFromTypeName(ResultNamedType.Name);
+        private string _name;
+        public NameString Name =>
+            NamingConventions.ResultBuilderNameFromTypeName(_name);
 
         /// <summary>
         /// The return type of the result builder.

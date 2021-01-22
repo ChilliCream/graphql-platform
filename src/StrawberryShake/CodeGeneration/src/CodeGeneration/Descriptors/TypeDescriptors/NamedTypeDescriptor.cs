@@ -17,7 +17,8 @@ namespace StrawberryShake.CodeGeneration
             IReadOnlyList<PropertyDescriptor>? properties = null,
             IReadOnlyList<NamedTypeDescriptor>? implementedBy = null,
             TypeKind kind = TypeKind.LeafType,
-            NameString? graphQLTypeName = null)
+            NameString? graphQLTypeName = null,
+            string? serializationType = null)
         {
             Name = name;
             Namespace = @namespace;
@@ -27,6 +28,7 @@ namespace StrawberryShake.CodeGeneration
             ImplementedBy = implementedBy ?? new NamedTypeDescriptor[] { };
             Kind = kind;
             IsInterface = isInterface;
+            SerializationType = serializationType;
         }
 
         /// <summary>
@@ -43,6 +45,8 @@ namespace StrawberryShake.CodeGeneration
         /// Gets the GraphQL type name.
         /// </summary>
         public NameString? GraphQLTypeName { get; }
+
+        public string? SerializationType { get; }
 
         /// <summary>
         /// The properties that result from the requested fields of the operation this ResultType is generated for.
@@ -70,6 +74,7 @@ namespace StrawberryShake.CodeGeneration
         /// but no other interfaces.
         /// </summary>
         public IReadOnlyList<NamedTypeDescriptor> ImplementedBy { get; }
+
 
         public void Complete(IReadOnlyList<PropertyDescriptor> properties)
         {
