@@ -2,7 +2,6 @@ import React, { createContext, FC, useContext, useMemo, useState } from 'react';
 import { Tab, TabProps } from './tab';
 import { Panel, PanelProps } from './panel';
 import { List } from './list';
-import styled from 'styled-components';
 
 interface TabsContext {
     activeTab: string;
@@ -37,15 +36,9 @@ export const Tabs: FC<TabsProps> & TabsComposition = ({
     return (
         <TabsContext.Provider value={memoizedContextValue}>
             {children}
-            <ClosingBorder />
         </TabsContext.Provider>
     );
 };
-
-const ClosingBorder = styled.div`
-  border-bottom: 1px solid #cacada;
-  margin-bottom: 1rem;
-`;
 
 export const useTabs = (): TabsContext => {
     const context = useContext(TabsContext);

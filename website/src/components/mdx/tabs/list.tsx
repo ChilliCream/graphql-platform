@@ -3,5 +3,9 @@ import styled from "styled-components";
 export const List = styled.div`
     display: flex;
     gap: 2rem;
-    border-bottom: 1px solid #666677;
+    background-color: #e7e9eb;
+
+    ~ .gatsby-highlight {
+        margin-top: 0;
+    }
 `;

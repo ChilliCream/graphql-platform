@@ -24,19 +24,17 @@ const TabButton = styled.button`
     font-size: 0.95rem;
     line-height: 1.2;
     color: #666677;
-    border-bottom: 2px solid transparent;
 
     :hover {
         color: #2d2d35;
-        border-color: #42424d;
     }
 
     &.active {
-        color: #f40010;
-        border-color: #f40010;
+        color: #000;
+        font-weight: 700;
     }
 
     @media only screen and (min-width: 820px) {
-      font-size: 1rem;
-  }
+      font-size: 18px;
+    }
 `;

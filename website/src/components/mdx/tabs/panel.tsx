@@ -1,5 +1,4 @@
 import React, { FC } from "react";
-import styled from "styled-components";
 import { useTabs } from "./tabs";
 
 export interface PanelProps {
@@ -9,9 +8,5 @@ export interface PanelProps {
 export const Panel: FC<PanelProps> = props => {
   const { activeTab } = useTabs();
 
-  return activeTab === props.value ? <><Spacer />{props.children}</> : null;
+  return activeTab === props.value ? <>{props.children}</> : null;
 };
-
-const Spacer = styled.div`
-  margin-top: 0.5rem;
-`;
