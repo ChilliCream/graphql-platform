@@ -13,6 +13,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             new ClientGenerator(),
             new EntityTypeGenerator(),
+            new EntityIdFactoryGenerator(),
             new EnumGenerator(),
             new JsonResultBuilderGenerator(),
             new OperationDocumentGenerator(),

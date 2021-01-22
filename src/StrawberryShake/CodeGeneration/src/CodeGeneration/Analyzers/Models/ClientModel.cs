@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using HotChocolate;
+using StrawberryShake.CodeGeneration.Extensions;
 
 namespace StrawberryShake.CodeGeneration.Analyzers.Models
 {
@@ -25,18 +28,46 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
             IReadOnlyList<LeafTypeModel> leafTypes,
             IReadOnlyList<InputObjectTypeModel> inputObjectTypes)
         {
-            Operations = operations ?? 
+            Operations = operations ??
                 throw new ArgumentNullException(nameof(operations));
-            LeafTypes = leafTypes ?? 
+            LeafTypes = leafTypes ??
                 throw new ArgumentNullException(nameof(leafTypes));
-            InputObjectTypes = inputObjectTypes ?? 
+            InputObjectTypes = inputObjectTypes ??
                 throw new ArgumentNullException(nameof(inputObjectTypes));
+
+            var outputTypes = new Dictionary<NameString, OutputTypeModel>();
+            var entities = new Dictionary<NameString, EntityModel>();
+
+            foreach (OperationModel operation in operations)
+            {
+                foreach (OutputTypeModel outputType in operation.OutputTypes)
+                {
+                    if (!outputTypes.ContainsKey(outputType.Name))
+                    {
+                        outputTypes.Add(outputType.Name, outputType);
+
+                        if (outputType.Type.IsEntity() &&
+                            !entities.ContainsKey(outputType.Type.Name))
+                        {
+                            entities.Add(outputType.Type.Name, new EntityModel(outputType.Type));
+                        }
+                    }
+                }
+            }
+
+            OutputTypes = outputTypes.Values.ToList();
+            Entities = entities.Values.ToList();
         }
 
         /// <summary>
         /// Gets the operations
         /// </summary>
         public IReadOnlyList<OperationModel> Operations { get; }
+
+        /// <summary>
+        /// Gets all the output types.
+        /// </summary>
+        public IReadOnlyList<OutputTypeModel> OutputTypes { get; }
 
         /// <summary>
         /// Gets the leaf types that are used by this operation.
@@ -47,5 +78,10 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
         /// Gets the input objects that are needed.
         /// </summary>
         public IReadOnlyList<InputObjectTypeModel> InputObjectTypes { get; }
+
+        /// <summary>
+        /// Gets the entities that are used in the operations.
+        /// </summary>
+        public IReadOnlyCollection<EntityModel> Entities { get; }
     }
 }
