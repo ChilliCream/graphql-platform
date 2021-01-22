@@ -90,7 +90,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 var field = entity.Fields[0];
 
                 sourceText.AppendLine(
-                    $"obj.GetProperty(\"{field.Name}\").Get{field.TypeName}()!);");
+                    $"    obj.GetProperty(\"{field.Name}\").Get{field.TypeName}()!);");
 
                 return CodeBlockBuilder.From(sourceText);
             }
@@ -105,8 +105,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 {
                     sourceText.AppendLine(",");
                 }
+                next = true;
 
-                sourceText.Append($"obj.GetProperty(\"{field.Name}\").Get{field.TypeName}()!");
+                sourceText.Append($"    obj.GetProperty(\"{field.Name}\").Get{field.TypeName}()!");
             }
 
             sourceText.AppendLine($"));");

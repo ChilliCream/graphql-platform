@@ -5,6 +5,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public interface ICodeBuilder
     {
-        void Build(CodeWriter writer, HashSet<string>? builderContext = null);
+        void Build(CodeWriter writer);
     }
 }

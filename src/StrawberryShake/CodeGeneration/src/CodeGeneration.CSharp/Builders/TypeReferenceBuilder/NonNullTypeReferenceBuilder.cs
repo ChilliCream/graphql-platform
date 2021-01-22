@@ -15,14 +15,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public void Build(CodeWriter writer, HashSet<string>? builderContext = null)
+        public void Build(CodeWriter writer)
         {
             if (_innerType is null)
             {
                 throw new ArgumentNullException(nameof(_innerType));
             }
 
-            _innerType.Build(writer, new HashSet<string> {WellKnownBuilderContextData.SkipNullabilityOnce});
+            _innerType.Build(writer, new HashSet<string> { WellKnownBuilderContextData.SkipNullabilityOnce });
         }
     }
 }

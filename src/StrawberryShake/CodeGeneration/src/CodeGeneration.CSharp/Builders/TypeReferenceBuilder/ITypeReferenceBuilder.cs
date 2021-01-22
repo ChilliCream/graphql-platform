@@ -1,7 +1,6 @@
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
-    public interface ITypeReferenceBuilder: ICodeBuilder
+    public interface ITypeReferenceBuilder : ICodeBuilder
     {
-
     }
 }

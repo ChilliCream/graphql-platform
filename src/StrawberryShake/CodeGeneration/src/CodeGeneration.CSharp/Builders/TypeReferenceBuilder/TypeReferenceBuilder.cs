@@ -9,6 +9,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
         public static TypeReferenceBuilder New() => new();
 
+
         public TypeReferenceBuilder SetName(string name)
         {
             _name = name;
@@ -21,7 +22,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public void Build(CodeWriter writer, HashSet<string>? builderContext = null)
+        public void Build(CodeWriter writer)
         {
             writer.Write(_name);
 
