@@ -12,7 +12,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private const string _extractIdFieldName = "_extractId";
         private const string _resultDataFactoryFieldName = "_resultDataFactory";
         private const string _serializerResolverParamName = "serializerResolver";
-        private const string _transportResultRootTypeName = "JsonElement";
         private const string _entityIdsParam = "entityIds";
         private const string _jsonElementParamName = "JsonElement?";
         private const string _objParamName = "obj";
@@ -31,7 +30,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 ResultBuilderNameFromTypeName(resultBuilderDescriptor.ResultNamedType.Name));
 
             classBuilder.AddImplements(
-                $"{WellKnownNames.IOperationResultBuilder}<{_transportResultRootTypeName}," +
+                $"{WellKnownNames.IOperationResultBuilder}<{WellKnownNames.JsonElement}," +
                 $" {resultTypeDescriptor.Name}>");
 
             AddConstructorAssignedField(
@@ -43,7 +42,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             AddConstructorAssignedField(
                 TypeReferenceBuilder.New()
                     .SetName("Func")
-                    .AddGeneric(_transportResultRootTypeName)
+                    .AddGeneric(WellKnownNames.JsonElement)
                     .AddGeneric(WellKnownNames.EntityId),
                 _extractIdFieldName,
                 classBuilder,
@@ -233,7 +232,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetReturnType(namedType.Name)
                 .AddParameter(
                     ParameterBuilder.New()
-                        .SetType("JsonElement")
+                        .SetType(WellKnownNames.JsonElement)
                         .SetName(_objParamName));
 
             scalarDeserializer.AddCode(

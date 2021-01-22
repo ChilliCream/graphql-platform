@@ -5,7 +5,7 @@ namespace Foo
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class CharacterEntity
     {
-        public EntityId Id { get; }
+        public global::StrawberryShake.EntityId Id { get; }
 
         public String Name { get; set; }
 
@@ -84,7 +84,7 @@ namespace Foo
         private readonly ulong _version;
 
         public GetHeroInfo(
-            EntityId? hero,
+            global::StrawberryShake.EntityId? hero,
             IReadOnlyCollection<EntityId> entityIds,
             ulong version)
         {
@@ -95,7 +95,7 @@ namespace Foo
                  ?? throw new ArgumentNullException(nameof(version));
         }
 
-        public EntityId? Hero { get; }
+        public global::StrawberryShake.EntityId? Hero { get; }
 
         public IReadOnlyCollection<EntityId> IOperationResultDataInfo.EntityIds => _entityIds;
 
@@ -193,7 +193,7 @@ namespace Foo
         private readonly ulong _version;
 
         public IGetHeroInfo(
-            EntityId? hero,
+            global::StrawberryShake.EntityId? hero,
             IReadOnlyCollection<EntityId> entityIds,
             ulong version)
         {
@@ -204,7 +204,7 @@ namespace Foo
                  ?? throw new ArgumentNullException(nameof(version));
         }
 
-        public EntityId? Hero { get; }
+        public global::StrawberryShake.EntityId? Hero { get; }
 
         public IReadOnlyCollection<EntityId> IOperationResultDataInfo.EntityIds => _entityIds;
 

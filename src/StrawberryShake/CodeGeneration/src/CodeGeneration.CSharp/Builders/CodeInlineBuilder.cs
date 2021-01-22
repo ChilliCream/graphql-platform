@@ -1,5 +1,4 @@
 using System;
-using System.Threading.Tasks;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
@@ -8,6 +7,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private string? _value;
 
         public static CodeInlineBuilder New() => new();
+
+        public static CodeInlineBuilder From(string sourceText) => 
+            New().SetText(sourceText);
 
         public CodeInlineBuilder SetText(string value)
         {
@@ -27,7 +29,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 return;
             }
 
-            writer.WriteIndentedLine(_value);
+            writer.Write(_value);
         }
     }
 }

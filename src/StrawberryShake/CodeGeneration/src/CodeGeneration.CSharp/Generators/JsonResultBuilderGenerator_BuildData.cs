@@ -18,7 +18,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     $"({resultNamedType.Name}, {ResultInfoNameFromTypeName(resultNamedType.Name)})")
                 .AddParameter(
                     ParameterBuilder.New()
-                        .SetType("JsonElement")
+                        .SetType(WellKnownNames.JsonElement)
                         .SetName(objParameter));
 
             var sessionName = "session";

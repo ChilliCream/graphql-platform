@@ -8,7 +8,7 @@
         private readonly ulong _version;
 
         public GetHeroResultInfo(
-            EntityId hero,
+            global::StrawberryShake.EntityId hero,
             string version,
             IReadOnlyCollection<EntityId> entityIds,
             ulong version)
@@ -21,7 +21,7 @@
                  ?? throw new ArgumentNullException(nameof(version));
         }
 
-        public EntityId Hero { get; }
+        public global::StrawberryShake.EntityId Hero { get; }
 
         public string Version { get; }
 

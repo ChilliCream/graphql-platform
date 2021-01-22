@@ -2,17 +2,17 @@
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroResultBuilder
-        : IOperationResultBuilder<JsonElement, GetHeroResult>
+        : IOperationResultBuilder<global::System.Text.Json.JsonElement, GetHeroResult>
     {
         private readonly IEntityStore _entityStore;
-        private readonly Func<JsonElement, EntityId> _extractId;
+        private readonly Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
         private readonly IOperationResultDataFactory<GetHeroResult> _resultDataFactory;
         private ILeafValueParser<string, string> _stringParser;
         private ILeafValueParser<int, int> _intParser;
 
         public GetHeroResultBuilder(
             IEntityStore entityStore,
-            Func<JsonElement, EntityId> extractId,
+            Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> extractId,
             IOperationResultDataFactory<GetHeroResult> resultDataFactory,
             ISerializerResolver serializerResolver)
         {
@@ -46,12 +46,12 @@
             );
         }
 
-        private (GetHeroResult, GetHeroResultInfo) BuildData(JsonElement obj)
+        private (GetHeroResult, GetHeroResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
         {
             using IEntityUpdateSession session = _entityStore.BeginUpdate();
-            var entityIds = new HashSet<EntityId>();
+            var entityIds = new HashSet<global::StrawberryShake.EntityId>();
 
-            EntityId HeroId = UpdateNonNullableIHeroEntity(
+            global::StrawberryShake.EntityId HeroId = UpdateNonNullableIHeroEntity(
                 obj.GetPropertyOrNull("hero"),
                 entityIds
             );
@@ -66,16 +66,16 @@
             return (_resultDataFactory.Create(resultInfo), resultInfo);
         }
 
-        private EntityId UpdateNonNullableIHeroEntity(
+        private global::StrawberryShake.EntityId UpdateNonNullableIHeroEntity(
             JsonElement? obj,
-            ISet<EntityId> entityIds)
+            ISet<global::StrawberryShake.EntityId> entityIds)
         {
             if (obj == null)
             {
                 throw new InvalidOperationException();
             }
 
-            EntityId entityId = _extractId(obj);
+            global::StrawberryShake.EntityId entityId = _extractId(obj);
             entityIds.Add(entityId);
 
             if (entityId.Name.Equals("HumanHero", StringComparison.Ordinal))
@@ -107,7 +107,7 @@
 
         private FriendsConnection DeserializeNonNullableFriendsConnectionData(
             JsonElement? obj,
-            ISet<EntityId> entityIds)
+            ISet<global::StrawberryShake.EntityId> entityIds)
         {
             if (obj == null)
             {
@@ -123,16 +123,16 @@
             );
         }
 
-        private IList<EntityId> UpdateNonNullableICharacterEntityNonNullableArray(
+        private IList<global::StrawberryShake.EntityId> UpdateNonNullableICharacterEntityNonNullableArray(
             JsonElement? obj,
-            ISet<EntityId> entityIds)
+            ISet<global::StrawberryShake.EntityId> entityIds)
         {
             if (obj == null)
             {
                 throw new InvalidOperationException();
             }
 
-            var iCharacters = new List<EntityId>();
+            var iCharacters = new List<global::StrawberryShake.EntityId>();
             foreach (JsonElement child in obj.EnumerateArray())
             {
                 iCharacters.Add(UpdateNonNullableICharacterEntity(
@@ -144,16 +144,16 @@
             return iCharacters;
         }
 
-        private EntityId UpdateNonNullableICharacterEntity(
+        private global::StrawberryShake.EntityId UpdateNonNullableICharacterEntity(
             JsonElement? obj,
-            ISet<EntityId> entityIds)
+            ISet<global::StrawberryShake.EntityId> entityIds)
         {
             if (obj == null)
             {
                 throw new InvalidOperationException();
             }
 
-            EntityId entityId = _extractId(obj);
+            global::StrawberryShake.EntityId entityId = _extractId(obj);
             entityIds.Add(entityId);
 
             if (entityId.Name.Equals("Droid", StringComparison.Ordinal))
@@ -175,7 +175,7 @@
             throw new NotSupportedException();
         }
 
-        private int DeserializeNonNullableInt(JsonElement obj)
+        private int DeserializeNonNullableInt(global::System.Text.Json.JsonElement obj)
         {
             if (obj == null)
             {
@@ -185,7 +185,7 @@
             return _intParser.Parse(obj.GetInt()!);
         }
 
-        private string DeserializeNonNullableString(JsonElement obj)
+        private string DeserializeNonNullableString(global::System.Text.Json.JsonElement obj)
         {
             if (obj == null)
             {

@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
-    public class MethodCallBuilder: ICode
+    public class MethodCallBuilder : ICode
     {
         private string? _methodName;
         private bool _determineStatement = true;
