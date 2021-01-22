@@ -104,5 +104,10 @@ namespace StrawberryShake.CodeGeneration.Mappers
         {
             _client = clientDescriptor;
         }
+
+        public void Register(EntityIdFactoryDescriptor entityIdFactoryDescriptor)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
