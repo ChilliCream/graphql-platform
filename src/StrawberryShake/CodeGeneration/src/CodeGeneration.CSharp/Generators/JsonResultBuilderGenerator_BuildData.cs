@@ -2,7 +2,7 @@ using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.NamingConventions;
-using static StrawberryShake.CodeGeneration.CSharp.WellKnownNames;
+using static StrawberryShake.CodeGeneration.CSharp.TypeNames;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -18,7 +18,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     $"({resultNamedType.Name}, {ResultInfoNameFromTypeName(resultNamedType.Name)})")
                 .AddParameter(
                     ParameterBuilder.New()
-                        .SetType(WellKnownNames.JsonElement)
+                        .SetType(TypeNames.JsonElement)
                         .SetName(objParameter));
 
             var sessionName = "session";
@@ -27,13 +27,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetLine(
                         CodeBlockBuilder.New()
                             .AddCode(
-                                $"using {WellKnownNames.IEntityUpdateSession} {sessionName} = ")
+                                $"using {TypeNames.IEntityUpdateSession} {sessionName} = ")
                             .AddCode(_entityStoreFieldName + ".BeginUpdate();")));
 
             var entityIdsName = "entityIds";
             buildDataMethod.AddCode(
                 CodeLineBuilder.New()
-                    .SetLine($"var {entityIdsName} = new HashSet<{WellKnownNames.EntityId}>();"));
+                    .SetLine($"var {entityIdsName} = new HashSet<{TypeNames.EntityId}>();"));
 
             buildDataMethod.AddEmptyLine();
             foreach (PropertyDescriptor property in
@@ -41,7 +41,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 buildDataMethod.AddCode(
                     AssignmentBuilder.New()
-                        .SetLefthandSide($"{WellKnownNames.EntityId} {property.Name}Id")
+                        .SetLefthandSide($"{TypeNames.EntityId} {property.Name}Id")
                         .SetRighthandSide(BuildUpdateMethodCall(property)));
             }
 

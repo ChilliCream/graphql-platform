@@ -28,7 +28,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             var className = ResultInfoNameFromTypeName(namedTypeDescriptor.Name);
 
             classBuilder
-                .AddImplements(ResultInfoNameFromTypeName(WellKnownNames.IOperationResultDataInfo))
+                .AddImplements(ResultInfoNameFromTypeName(TypeNames.IOperationResultDataInfo))
                 .SetName(className);
 
             constructorBuilder
@@ -42,7 +42,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             var withVersion = MethodBuilder.New()
                 .SetAccessModifier(AccessModifier.Public)
                 .SetReturnType(className)
-                .SetName($"{WellKnownNames.IOperationResultDataInfo}.WithVersion")
+                .SetName($"{TypeNames.IOperationResultDataInfo}.WithVersion")
                 .AddParameter(ParameterBuilder.New()
                     .SetType("ulong")
                     .SetName("version"));

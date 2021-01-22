@@ -12,7 +12,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             // Setup class
             ClassBuilder classBuilder = ClassBuilder.New()
                 .SetName(EntityTypeNameFromGraphQLTypeName(descriptor.GraphQLTypeName))
-                .AddProperty(PropertyBuilder.New().SetName("Id").SetType(WellKnownNames.EntityId));
+                .AddProperty(PropertyBuilder.New().SetName("Id").SetType(TypeNames.EntityId));
 
             // Add Properties to class
             foreach (var (_, prop) in descriptor.Properties)
@@ -46,7 +46,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         PropertyBuilder referencePropertyBuilder = PropertyBuilder
                             .New()
                             .SetName(prop.Name)
-                            .SetType(prop.Type.ToBuilder(WellKnownNames.EntityId))
+                            .SetType(prop.Type.ToBuilder().SetName(TypeNames.EntityId))
                             .MakeSettable()
                             .SetAccessModifier(AccessModifier.Public);
                         classBuilder.AddProperty(referencePropertyBuilder);

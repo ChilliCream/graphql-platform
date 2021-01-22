@@ -15,14 +15,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
             var updateEntityMethod = MethodBuilder.New()
                 .SetAccessModifier(AccessModifier.Private)
                 .SetName(DeserializerMethodNameFromTypeName(originalTypeDescriptor))
-                .SetReturnType(WellKnownNames.EntityId)
+                .SetReturnType(TypeNames.EntityId)
                 .AddParameter(
                     ParameterBuilder.New()
                         .SetType(_jsonElementParamName)
                         .SetName(_objParamName))
                 .AddParameter(
                     ParameterBuilder.New()
-                        .SetType($"ISet<{WellKnownNames.EntityId}>")
+                        .SetType($"ISet<{TypeNames.EntityId}>")
                         .SetName(_entityIdsParam));
 
             updateEntityMethod.AddCode(
@@ -31,7 +31,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             var entityIdVarName = "entityId";
             updateEntityMethod.AddCode(
-                $"{WellKnownNames.EntityId} {entityIdVarName} = " +
+                $"{TypeNames.EntityId} {entityIdVarName} = " +
                 $"{_extractIdFieldName}({_objParamName});");
             updateEntityMethod.AddCode($"{_entityIdsParam}.Add({entityIdVarName});");
 

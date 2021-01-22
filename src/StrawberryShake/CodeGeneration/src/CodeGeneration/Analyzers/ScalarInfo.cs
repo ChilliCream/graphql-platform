@@ -6,17 +6,17 @@ namespace StrawberryShake.CodeGeneration.Analyzers
     {
         public LeafTypeInfo(
             NameString typeName,
-            string? runtimeTypeType,
-            string? serializationType)
+            string? runtimeTypeType = null,
+            string? serializationType = null)
         {
             TypeName = typeName.EnsureNotEmpty(nameof(typeName));
-            RuntimeTypeType = runtimeTypeType ?? TypeNames.SystemString;
-            SerializationType = serializationType ?? TypeNames.SystemString;
+            RuntimeType = runtimeTypeType ?? TypeNames.String;
+            SerializationType = serializationType ?? TypeNames.String;
         }
 
         public NameString TypeName { get; }
 
-        public string RuntimeTypeType { get; }
+        public string RuntimeType { get; }
 
         public string SerializationType { get; }
     }

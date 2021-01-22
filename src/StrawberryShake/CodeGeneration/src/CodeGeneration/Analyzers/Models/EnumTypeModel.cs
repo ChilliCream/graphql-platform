@@ -34,7 +34,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
             IEnumType type,
             string? underlyingType,
             IReadOnlyList<EnumValueModel> values)
-            : base(name, description, type, TypeNames.SystemString, name)
+            : base(name, description, type, TypeNames.String, name)
         {
             Type = type ?? throw new ArgumentNullException(nameof(type));
             UnderlyingType = underlyingType;

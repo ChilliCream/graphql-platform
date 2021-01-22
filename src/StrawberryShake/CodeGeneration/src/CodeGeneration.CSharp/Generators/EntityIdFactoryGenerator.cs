@@ -20,19 +20,19 @@ namespace StrawberryShake.CodeGeneration.CSharp
             var obj = ParameterBuilder
                 .New()
                 .SetName("obj")
-                .SetType(WellKnownNames.JsonElement);
+                .SetType(TypeNames.JsonElement);
 
             var type = ParameterBuilder
                 .New()
                 .SetName("type")
-                .SetType(WellKnownNames.String);
+                .SetType(TypeNames.String);
 
             var createEntityId = MethodBuilder
                 .New()
                 .SetStatic()
                 .SetAccessModifier(AccessModifier.Public)
                 .SetName("CreateEntityId")
-                .SetReturnType(WellKnownNames.EntityId)
+                .SetReturnType(TypeNames.EntityId)
                 .AddParameter(obj)
                 .AddCode(CreateEntityIdBody(descriptor));
             factory.AddMethod(createEntityId);
@@ -45,7 +45,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetStatic()
                     .SetAccessModifier(AccessModifier.Public)
                     .SetName($"Create{entity.Name}EntityId")
-                    .SetReturnType(WellKnownNames.EntityId)
+                    .SetReturnType(TypeNames.EntityId)
                     .AddParameter(obj)
                     .AddParameter(type)
                     .AddCode(CreateSpecificEntityIdBody(entity));
@@ -72,7 +72,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     $"    \"{entity.Name}\" => Create{entity.Name}EntityId(obj, typeName),");
             }
 
-            sourceText.AppendLine($"    _ => throw new {WellKnownNames.NotSupportedException}()");
+            sourceText.AppendLine($"    _ => throw new {TypeNames.NotSupportedException}()");
             sourceText.AppendLine("};");
 
             return CodeBlockBuilder.From(sourceText);
@@ -82,7 +82,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             var sourceText = new StringBuilder();
 
-            sourceText.AppendLine($"return new {WellKnownNames.EntityId}(");
+            sourceText.AppendLine($"return new {TypeNames.EntityId}(");
             sourceText.AppendLine($"    type,");
 
             if (entity.Fields.Count == 0)

@@ -25,7 +25,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
         public static ITypeReferenceBuilder ToEntityIdBuilder(
             this ITypeDescriptor typeReferenceDescriptor)
         {
-            return typeReferenceDescriptor switch
+            var ret = new TypeReferenceBuilder()
+                .SetName(
+                    typeReferenceDescriptor.IsEntityType()
+                        ? TypeNames.EntityId
+                        : typeReferenceDescriptor.Name)
+                .SetIsNullable(!(typeReferenceDescriptor is NonNullTypeDescriptor));
+
+            if (typeReferenceDescriptor is ListTypeDescriptor listTypeDescriptor)
             {
                 NonNullTypeDescriptor nonNullTypeDescriptor => new NonNullTypeReferenceBuilder()
                     .SetInnerType(nonNullTypeDescriptor.InnerType.ToEntityIdBuilder()),

@@ -22,7 +22,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             AddConstructorAssignedNonNullableField(
                 TypeReferenceBuilder.New()
-                    .SetName(WellKnownNames.IOperationExecutor)
+                    .SetName(TypeNames.IOperationExecutor)
                     .AddGeneric(operationDescriptor.ResultTypeReference.Name),
                 OperationExecutorFieldName,
                 classBuilder,
@@ -33,10 +33,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 executeMethod = MethodBuilder.New()
                     .SetReturnType(
-                        $"async Task<{WellKnownNames.IOperationResult}<" +
+                        $"async Task<{TypeNames.IOperationResult}<" +
                         $"{operationDescriptor.ResultTypeReference.Name}>>")
                     .SetAccessModifier(AccessModifier.Public)
-                    .SetName(WellKnownNames.Execute);
+                    .SetName(TypeNames.Execute);
             }
 
             var strategyVariableName = "strategy";
@@ -44,13 +44,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetReturnType(
                     $"IOperationObservable<{operationDescriptor.ResultTypeReference.Name}>")
                 .SetAccessModifier(AccessModifier.Public)
-                .SetName(WellKnownNames.Watch)
+                .SetName(TypeNames.Watch)
                 .AddParameter(
                     ParameterBuilder.New()
                         .SetName(strategyVariableName)
                         .SetType(
                             TypeReferenceBuilder.New()
-                                .SetName(WellKnownNames.ExecutionStrategy))
+                                .SetIsNullable(true)
+                                .SetName(TypeNames.ExecutionStrategy))
                         .SetDefault("null"));
 
             foreach (var arg in operationDescriptor.Arguments)
@@ -138,7 +139,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return MethodBuilder
                 .New()
                 .SetName(CreateRequestMethodName)
-                .SetReturnType(WellKnownNames.OperationRequest)
+                .SetReturnType(TypeNames.OperationRequest)
                 .AddCode(
                     MethodCallBuilder.New()
                         .SetPrefix("return ")

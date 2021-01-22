@@ -49,8 +49,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             constructorBuilder.SetTypeName(descriptor.Name);
 
-            AddConstructorAssignedNonNullableField(
-                WellKnownNames.IEntityStore,
+            AddConstructorAssignedField(
+                TypeNames.IEntityStore,
                 _storeFieldName,
                 classBuilder,
                 constructorBuilder);

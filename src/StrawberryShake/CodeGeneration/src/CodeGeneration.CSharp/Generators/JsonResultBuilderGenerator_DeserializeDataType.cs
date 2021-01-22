@@ -18,7 +18,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetType(_jsonElementParamName)
                     .SetName(_objParamName))
                 .AddParameter(ParameterBuilder.New()
-                    .SetType($"ISet<{WellKnownNames.EntityId}>")
+                    .SetType($"ISet<{TypeNames.EntityId}>")
                     .SetName(_entityIdsParam));
 
             dateDeserializer.AddCode(

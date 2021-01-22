@@ -30,11 +30,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 ResultBuilderNameFromTypeName(resultBuilderDescriptor.ResultNamedType.Name));
 
             classBuilder.AddImplements(
-                $"{WellKnownNames.IOperationResultBuilder}<{WellKnownNames.JsonElement}," +
+                $"{TypeNames.IOperationResultBuilder}<{TypeNames.JsonElement}," +
                 $" {resultTypeDescriptor.Name}>");
 
-            AddConstructorAssignedNonNullableField(
-                WellKnownNames.IEntityStore,
+            AddConstructorAssignedField(
+                TypeNames.IEntityStore,
                 _entityStoreFieldName,
                 classBuilder,
                 constructorBuilder);
@@ -42,15 +42,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
             AddConstructorAssignedNonNullableField(
                 TypeReferenceBuilder.New()
                     .SetName("Func")
-                    .AddGeneric(WellKnownNames.JsonElement)
-                    .AddGeneric(WellKnownNames.EntityId),
+                    .AddGeneric(TypeNames.JsonElement)
+                    .AddGeneric(TypeNames.EntityId),
                 _extractIdFieldName,
                 classBuilder,
                 constructorBuilder);
 
             AddConstructorAssignedNonNullableField(
                 TypeReferenceBuilder.New()
-                    .SetName(WellKnownNames.IOperationResultDataFactory)
+                    .SetName(TypeNames.IOperationResultDataFactory)
                     .AddGeneric(resultTypeDescriptor.Name),
                 _resultDataFactoryFieldName,
                 classBuilder,
@@ -59,7 +59,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             constructorBuilder.AddParameter(
                 ParameterBuilder.New()
                     .SetName(_serializerResolverParamName)
-                    .SetType(WellKnownNames.ISerializerResolver));
+                    .SetType(TypeNames.ISerializerResolver));
 
             foreach (var valueParser in resultBuilderDescriptor.ValueParsers)
             {
@@ -67,7 +67,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 classBuilder.AddField(
                     FieldBuilder.New().SetName(parserFieldName).SetType(
                         TypeReferenceBuilder.New()
-                            .SetName(WellKnownNames.ILeafValueParser)
+                            .SetName(TypeNames.ILeafValueParser)
                             .AddGeneric(valueParser.SerializedType)
                             .AddGeneric(valueParser.RuntimeType)));
 
@@ -179,15 +179,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetName("Build")
                 .SetReturnType(
                     TypeReferenceBuilder.New()
-                        .SetName(WellKnownNames.IOperationResult)
+                        .SetName(TypeNames.IOperationResult)
                         .AddGeneric(resultNamedType.Name))
                 .AddParameter(
                     ParameterBuilder.New()
                         .SetType(
                             TypeReferenceBuilder.New()
-                                .SetName(WellKnownNames.Response)
+                                .SetName(TypeNames.Response)
                                 .AddGeneric("JsonDocument")
-                                .SetName(WellKnownNames.Response))
+                                .SetName(TypeNames.Response))
                         .SetName(responseParameterName));
 
             buildMethod.AddCode(
@@ -213,7 +213,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             buildMethod.AddCode(
                 MethodCallBuilder.New()
                     .SetPrefix("return new ")
-                    .SetMethodName($"{WellKnownNames.OperationResult}<{resultNamedType.Name}>")
+                    .SetMethodName($"{TypeNames.OperationResult}<{resultNamedType.Name}>")
                     .AddArgument("data?.Result")
                     .AddArgument("data?.Info")
                     .AddArgument(_resultDataFactoryFieldName)
@@ -232,7 +232,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetReturnType(namedType.Name)
                 .AddParameter(
                     ParameterBuilder.New()
-                        .SetType(WellKnownNames.JsonElement)
+                        .SetType(TypeNames.JsonElement)
                         .SetName(_objParamName));
 
             scalarDeserializer.AddCode(

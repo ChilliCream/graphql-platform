@@ -38,7 +38,7 @@ namespace StrawberryShake.CodeGeneration.Utilities
                 {
                     if (leafType.Type is ScalarType)
                     {
-                        leafType.ContextData[RuntimeType] = scalarInfo.RuntimeTypeType;
+                        leafType.ContextData[RuntimeType] = scalarInfo.RuntimeType;
                     }
                     leafType.ContextData[SerializationType] = scalarInfo.SerializationType;
                 }
@@ -46,9 +46,9 @@ namespace StrawberryShake.CodeGeneration.Utilities
                 {
                     if (leafType.Type is ScalarType)
                     {
-                        leafType.ContextData[RuntimeType] = TypeNames.SystemString;
+                        leafType.ContextData[RuntimeType] = TypeNames.String;
                     }
-                    leafType.ContextData[SerializationType] = TypeNames.SystemString;
+                    leafType.ContextData[SerializationType] = TypeNames.String;
                 }
             }
         }

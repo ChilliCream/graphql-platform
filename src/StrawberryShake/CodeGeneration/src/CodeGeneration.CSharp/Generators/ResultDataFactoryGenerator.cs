@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.NamingConventions;
-using static StrawberryShake.CodeGeneration.CSharp.WellKnownNames;
+using static StrawberryShake.CodeGeneration.CSharp.TypeNames;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -30,8 +30,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetTypeName(descriptor.Name)
                 .SetAccessModifier(AccessModifier.Public);
 
-            AddConstructorAssignedNonNullableField(
-                WellKnownNames.IEntityStore,
+            AddConstructorAssignedField(
+                TypeNames.IEntityStore,
                 StoreParamName,
                 classBuilder,
                 constructorBuilder);
@@ -46,7 +46,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
                 var typeName = TypeReferenceBuilder
                     .New()
-                    .SetName(WellKnownNames.IEntityMapper)
+                    .SetName(TypeNames.IEntityMapper)
                     .AddGeneric(EntityTypeNameFromGraphQLTypeName(gqlTypeName))
                     .AddGeneric(mapperType.Name);
 
@@ -65,7 +65,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .AddParameter(
                     ParameterBuilder.New()
                         .SetName("dataInfo")
-                        .SetType(WellKnownNames.IOperationResultDataInfo)
+                        .SetType(TypeNames.IOperationResultDataInfo)
                 );
 
             var returnStatement = MethodCallBuilder.New()
