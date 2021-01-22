@@ -25,6 +25,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
         /// The input types that could be passed in.
         /// </param>
         public ClientModel(
+            ISchema schema,
             IReadOnlyList<OperationModel> operations,
             IReadOnlyList<LeafTypeModel> leafTypes,
             IReadOnlyList<InputObjectTypeModel> inputObjectTypes)
@@ -47,7 +48,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
                     {
                         outputTypes.Add(outputType.Name, outputType);
 
-                        if (outputType.Type.IsEntity() &&
+                        if (!outputType.IsInterface() &&
+                            outputType.Type.IsEntity() &&
                             !entities.ContainsKey(outputType.Type.Name) &&
                             outputType.Type is IComplexOutputType complexOutputType)
                         {
