@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.NamingConventions;
@@ -363,7 +362,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 mapperSet.Add(mapperName);
 
-                AddConstructorAssignedNonNullableField(
+                AddConstructorAssignedField(
                     mapperType,
                     mapperFieldName,
                     classBuilder,

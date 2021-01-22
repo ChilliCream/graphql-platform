@@ -39,7 +39,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 classBuilder,
                 constructorBuilder);
 
-            AddConstructorAssignedNonNullableField(
+            AddConstructorAssignedField(
                 TypeReferenceBuilder.New()
                     .SetName("Func")
                     .AddGeneric(TypeNames.JsonElement)
@@ -48,7 +48,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 classBuilder,
                 constructorBuilder);
 
-            AddConstructorAssignedNonNullableField(
+            AddConstructorAssignedField(
                 TypeReferenceBuilder.New()
                     .SetName(TypeNames.IOperationResultDataFactory)
                     .AddGeneric(resultTypeDescriptor.Name),

@@ -86,7 +86,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 type =>
                 {
                     Assert.Equal("String", type.Name);
-                    Assert.Equal("System", type.Namespace);
+                    Assert.Equal("global::System", type.Namespace);
                     Assert.True(type.IsLeafType());
                 });
         }

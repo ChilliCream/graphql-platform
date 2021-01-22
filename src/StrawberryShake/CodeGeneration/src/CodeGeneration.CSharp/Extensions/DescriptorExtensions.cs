@@ -6,44 +6,73 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
 {
     public static class DescriptorExtensions
     {
-        public static ITypeReferenceBuilder ToBuilder(
+        public static TypeReferenceBuilder ToBuilder(
             this ITypeDescriptor typeReferenceDescriptor,
-            string? nameOverride = null)
+            string? nameOverride = null,
+            TypeReferenceBuilder? builder = null,
+            bool isNonNull = false)
         {
-            return typeReferenceDescriptor switch
+            var actualBuilder = builder ?? TypeReferenceBuilder.New();
+            switch (typeReferenceDescriptor)
             {
-                NonNullTypeDescriptor nonNullTypeDescriptor => new NonNullTypeReferenceBuilder()
-                    .SetInnerType(nonNullTypeDescriptor.InnerType.ToBuilder(nameOverride)),
-                ListTypeDescriptor listTypeDescriptor => new ListTypeReferenceBuilder()
-                    .SetListType(listTypeDescriptor.InnerType.ToBuilder(nameOverride)),
-                NamedTypeDescriptor namedTypeDescriptor => new TypeReferenceBuilder()
-                    .SetName(nameOverride ?? namedTypeDescriptor.Name),
-                _ => throw new NotSupportedException()
-            };
+                case ListTypeDescriptor listTypeDescriptor:
+                    actualBuilder.SetIsNullable(!isNonNull);
+                    actualBuilder.SetListType();
+                    ToBuilder(
+                        listTypeDescriptor.InnerType,
+                        nameOverride,
+                        actualBuilder);
+                    break;
+                case NamedTypeDescriptor namedTypeDescriptor:
+                    actualBuilder.SetIsNullable(!isNonNull);
+                    actualBuilder.SetName(nameOverride ?? namedTypeDescriptor.Name);
+                    break;
+                case NonNullTypeDescriptor nonNullTypeDescriptor:
+                    ToBuilder(
+                        nonNullTypeDescriptor.InnerType,
+                        nameOverride,
+                        actualBuilder,
+                        true);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(typeReferenceDescriptor));
+            }
+
+            return actualBuilder;
         }
 
-        public static ITypeReferenceBuilder ToEntityIdBuilder(
-            this ITypeDescriptor typeReferenceDescriptor)
+        public static TypeReferenceBuilder ToEntityIdBuilder(
+            this ITypeDescriptor typeReferenceDescriptor,
+            TypeReferenceBuilder? builder = null,
+            bool isNonNull = false)
         {
-            var ret = new TypeReferenceBuilder()
-                .SetName(
-                    typeReferenceDescriptor.IsEntityType()
-                        ? TypeNames.EntityId
-                        : typeReferenceDescriptor.Name)
-                .SetIsNullable(!(typeReferenceDescriptor is NonNullTypeDescriptor));
-
-            if (typeReferenceDescriptor is ListTypeDescriptor listTypeDescriptor)
+            var actualBuilder = builder ?? TypeReferenceBuilder.New();
+            switch (typeReferenceDescriptor)
             {
-                NonNullTypeDescriptor nonNullTypeDescriptor => new NonNullTypeReferenceBuilder()
-                    .SetInnerType(nonNullTypeDescriptor.InnerType.ToEntityIdBuilder()),
-                ListTypeDescriptor listTypeDescriptor => new ListTypeReferenceBuilder()
-                    .SetListType(listTypeDescriptor.InnerType.ToEntityIdBuilder()),
-                NamedTypeDescriptor namedTypeDescriptor => new TypeReferenceBuilder()
-                    .SetName(typeReferenceDescriptor.IsEntityType()
-                        ? WellKnownNames.EntityId
-                        : typeReferenceDescriptor.Name),
-                _ => throw new NotSupportedException()
-            };
+                case ListTypeDescriptor listTypeDescriptor:
+                    actualBuilder.SetListType();
+                    ToEntityIdBuilder(
+                        listTypeDescriptor.InnerType,
+                        actualBuilder);
+                    break;
+                case NamedTypeDescriptor namedTypeDescriptor:
+                    actualBuilder.SetIsNullable(!isNonNull);
+                    actualBuilder.SetName(
+                        typeReferenceDescriptor.IsEntityType()
+                            ? TypeNames.EntityId
+                            : typeReferenceDescriptor.Name);
+                    break;
+                case NonNullTypeDescriptor nonNullTypeDescriptor:
+                    ToEntityIdBuilder(
+                        nonNullTypeDescriptor.InnerType,
+                        actualBuilder,
+                        true);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(typeReferenceDescriptor));
+            }
+
+            return actualBuilder;
         }
     }
 }

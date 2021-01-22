@@ -81,14 +81,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetType("ulong")
                 .AsLambda("_version"));
 
-            AddConstructorAssignedNonNullableField(
+            AddConstructorAssignedField(
                 "IReadOnlyCollection<EntityId>",
                 "_entityIds",
                 classBuilder,
                 constructorBuilder);
             constructorCaller.AddArgument("_entityIds");
 
-            AddConstructorAssignedNonNullableField(
+            AddConstructorAssignedField(
                 "ulong",
                 "_version",
                 classBuilder,

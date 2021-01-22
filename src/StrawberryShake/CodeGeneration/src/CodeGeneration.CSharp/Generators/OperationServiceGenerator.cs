@@ -20,7 +20,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             classBuilder.SetName(operationDescriptor.Name);
             constructorBuilder.SetTypeName(operationDescriptor.Name);
 
-            AddConstructorAssignedNonNullableField(
+            AddConstructorAssignedField(
                 TypeReferenceBuilder.New()
                     .SetName(TypeNames.IOperationExecutor)
                     .AddGeneric(operationDescriptor.ResultTypeReference.Name),
