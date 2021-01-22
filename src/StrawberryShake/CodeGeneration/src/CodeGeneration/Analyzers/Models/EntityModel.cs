@@ -18,13 +18,13 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
         /// <param name="type">
         /// The entity type.
         /// </param>
-        public EntityModel(IObjectType type)
+        public EntityModel(IComplexOutputType type)
         {
             Name = type.Name;
             Type = type;
             Definition = type.GetEntityDefinition();
 
-            var fields = new Dictionary<string, IObjectField>();
+            var fields = new Dictionary<string, IOutputField>();
 
             foreach (var fieldSyntax in Definition.Selections.OfType<FieldNode>())
             {
@@ -52,6 +52,6 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
         /// <summary>
         /// Gets the ID fields.
         /// </summary>
-        public IReadOnlyList<IObjectField> Fields { get; }
+        public IReadOnlyList<IOutputField> Fields { get; }
     }
 }

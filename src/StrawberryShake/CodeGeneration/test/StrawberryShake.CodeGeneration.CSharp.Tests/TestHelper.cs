@@ -43,7 +43,7 @@ namespace StrawberryShake
                     .BuildSchemaAsync();
 
             var documents = sourceText
-                .Select(st => Utf8GraphQLParser.Parse(st))
+                .Select(Utf8GraphQLParser.Parse)
                 .ToList();
 
             var typeSystemDocs = documents.GetTypeSystemDocuments().ToList();

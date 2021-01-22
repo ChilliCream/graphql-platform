@@ -1,15 +1,8 @@
-using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using HotChocolate;
-using HotChocolate.Execution;
-using HotChocolate.StarWars;
 using Snapshooter.Xunit;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
-using StrawberryShake.CodeGeneration.CSharp.Builders;
 using Xunit;
-using Xunit.Sdk;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {

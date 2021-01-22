@@ -11,7 +11,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
         private readonly Dictionary<NameString, EnumDescriptor> _enums = new();
         private readonly Dictionary<NameString, OperationDescriptor> _operations = new();
         private readonly Dictionary<NameString, ResultBuilderDescriptor> _resultBuilder = new();
-        private ClientDescriptor? _client = null;
+        private ClientDescriptor? _client;
+        private EntityIdFactoryDescriptor? _entityIdFactory;
 
         public MapperContext(string ns, string clientName)
         {
@@ -28,10 +29,16 @@ namespace StrawberryShake.CodeGeneration.Mappers
         public IReadOnlyCollection<EntityTypeDescriptor> EntityTypes => _entityTypes.Values;
 
         public IReadOnlyCollection<EnumDescriptor> EnumTypes => _enums.Values;
+
         public IReadOnlyCollection<OperationDescriptor> Operations => _operations.Values;
+
         public IReadOnlyCollection<ResultBuilderDescriptor> ResultBuilders => _resultBuilder.Values;
 
-        public ClientDescriptor Client => _client ?? throw new NotImplementedException();
+        public ClientDescriptor Client => 
+            _client ?? throw new NotImplementedException();
+
+        public EntityIdFactoryDescriptor EntityIdFactory => 
+            _entityIdFactory ?? throw new NotImplementedException(); 
 
         public IEnumerable<ICodeDescriptor> GetAllDescriptors()
         {
@@ -61,6 +68,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
             }
 
             yield return Client;
+
+            yield return EntityIdFactory;
         }
 
         public void Register(NameString codeTypeName, NamedTypeDescriptor typeDescriptor)
@@ -107,7 +116,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
         public void Register(EntityIdFactoryDescriptor entityIdFactoryDescriptor)
         {
-            throw new NotImplementedException();
+            _entityIdFactory = entityIdFactoryDescriptor;
         }
     }
 }

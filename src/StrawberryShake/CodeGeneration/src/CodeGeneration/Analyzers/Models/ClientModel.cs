@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate;
+using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Extensions;
 
 namespace StrawberryShake.CodeGeneration.Analyzers.Models
@@ -47,9 +48,10 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
                         outputTypes.Add(outputType.Name, outputType);
 
                         if (outputType.Type.IsEntity() &&
-                            !entities.ContainsKey(outputType.Type.Name))
+                            !entities.ContainsKey(outputType.Type.Name) &&
+                            outputType.Type is IComplexOutputType complexOutputType)
                         {
-                            entities.Add(outputType.Type.Name, new EntityModel(outputType.Type));
+                            entities.Add(outputType.Type.Name, new EntityModel(complexOutputType));
                         }
                     }
                 }
