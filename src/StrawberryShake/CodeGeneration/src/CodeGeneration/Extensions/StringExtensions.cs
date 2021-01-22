@@ -1,3 +1,4 @@
+using System;
 using HotChocolate;
 
 namespace StrawberryShake.CodeGeneration.Extensions
@@ -15,5 +16,15 @@ namespace StrawberryShake.CodeGeneration.Extensions
 
         public static string WithCapitalFirstChar(this NameString nameString) =>
             char.ToUpper(nameString.Value[0]) + nameString.Value.Substring(1);
+
+        public static string WithCapitalFirstChar(this NameString? nameString)
+        {
+            if (nameString is null)
+            {
+                throw new ArgumentNullException(nameof(nameString));
+            }
+
+            return WithCapitalFirstChar(nameString);
+        }
     }
 }

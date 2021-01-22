@@ -154,6 +154,7 @@ namespace StrawberryShake.Integration
 
         public static ResultBuilderDescriptor CreateGetHeroResultBuilderDescriptor() =>
             new(
+                "GetHero",
                 CreateGetHeroResultDescriptor(),
                 new[]
                 {

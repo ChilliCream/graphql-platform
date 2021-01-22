@@ -339,21 +339,21 @@ namespace Foo
 }
 
 
-// IGetHeroBuilder
+// GetHeroBuilder
 
 namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class IGetHeroBuilder
+    public partial class GetHeroBuilderBuilder
         : IOperationResultBuilder<global::System.Text.Json.JsonElement, IGetHero>
     {
         private readonly IEntityStore _entityStore;
         private readonly Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
         private readonly IOperationResultDataFactory<IGetHero> _resultDataFactory;
-        private ILeafValueParser<global::System.String, Episode> _EpisodeParser;
-        private ILeafValueParser<global::System.String, global::System.String> _global::System.StringParser;
+        private ILeafValueParser<global::System.String, Episode> _episodeParser;
+        private ILeafValueParser<global::System.String, global::System.String> _stringParser;
 
-        public IGetHeroBuilder(
+        public GetHeroBuilderBuilder(
             IEntityStore entityStore,
             Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> extractId,
             IOperationResultDataFactory<IGetHero> resultDataFactory,
@@ -365,10 +365,10 @@ namespace Foo
                  ?? throw new ArgumentNullException(nameof(extractId));
             _resultDataFactory = resultDataFactory
                  ?? throw new ArgumentNullException(nameof(resultDataFactory));
-            _EpisodeParser = serializerResolver.GetLeafValueParser<global::System.String, Episode>("Episode")
-                 ?? throw new ArgumentNullException(nameof(_EpisodeParser));
-            _global::System.StringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String")
-                 ?? throw new ArgumentNullException(nameof(_global::System.StringParser));
+            _episodeParser = serializerResolver.GetLeafValueParser<global::System.String, Episode>("Episode")
+                 ?? throw new ArgumentNullException(nameof(_episodeParser));
+            _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String")
+                 ?? throw new ArgumentNullException(nameof(_stringParser));
         }
 
         public IOperationResult<IGetHero> Build(Response<JsonDocument> response)
@@ -452,7 +452,7 @@ namespace Foo
 
         private Episode DeserializeEpisode(global::System.Text.Json.JsonElement obj)
         {
-            return _episodeParser.Parse(obj.GetEpisode()!);
+            return _episodeParser.Parse(obj.GetString()!);
         }
     }
 }

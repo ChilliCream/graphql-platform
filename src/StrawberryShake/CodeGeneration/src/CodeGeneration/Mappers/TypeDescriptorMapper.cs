@@ -190,6 +190,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                                 context.Namespace,
                                 false,
                                 graphQLTypeName: namedType.Name,
+                                serializationType: enumTypeModel.Type.GetSerializationType(),
                                 kind: TypeKind.LeafType);
 
                             scalarTypeDescriptors.Add(
