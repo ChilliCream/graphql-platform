@@ -1,23 +1,27 @@
 using System;
-using System.Threading.Tasks;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public class CodeLineBuilder : ICode
     {
         private ICode? _value;
+        private string? _sourceText;
 
         public static CodeLineBuilder New() => new CodeLineBuilder();
 
+        public static CodeLineBuilder From(string line) => New().SetLine(line);
+
         public CodeLineBuilder SetLine(string value)
         {
-            _value = CodeInlineBuilder.New().SetText(value);
+            _sourceText = value;
+            _value = null;
             return this;
         }
 
         public CodeLineBuilder SetLine(ICode value)
         {
             _value = value;
+            _sourceText = null;
             return this;
         }
 
@@ -32,6 +36,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             {
                 writer.WriteIndent();
                 _value.Build(writer);
+            }
+            else if (_sourceText is not null)
+            {
+                writer.WriteIndent();
+                writer.Write(_sourceText);
             }
 
             writer.WriteLine();

@@ -12,6 +12,28 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
         public static CodeBlockBuilder New() => new CodeBlockBuilder();
 
+        public static CodeBlockBuilder From(StringBuilder sourceText)
+        {
+            var builder = New();
+
+            using var stringReader = new StringReader(sourceText.ToString());
+
+            string? line = null;
+
+            do
+            {
+                line = stringReader.ReadLine();
+
+                if (line is not null)
+                {
+                    builder.AddCode(CodeLineBuilder.From(line));
+                }
+
+            } while (line is not null);
+
+            return builder;
+        }
+
         public CodeBlockBuilder AddCode(ICode value)
         {
             if (value is null)

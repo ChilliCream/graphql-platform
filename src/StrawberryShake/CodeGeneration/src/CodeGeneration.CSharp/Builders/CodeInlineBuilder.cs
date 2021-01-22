@@ -27,7 +27,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 return;
             }
 
-            writer.Write(_value);
+            writer.WriteIndentedLine(_value);
         }
     }
 }
