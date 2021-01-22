@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -16,11 +18,20 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
         /// <param name="type">
         /// The entity type.
         /// </param>
-        public EntityModel(INamedType type)
+        public EntityModel(IObjectType type)
         {
             Name = type.Name;
             Type = type;
-            Definition = type.GetEntityDefinition();;
+            Definition = type.GetEntityDefinition();
+
+            var fields = new Dictionary<string, IObjectField>();
+
+            foreach (var fieldSyntax in Definition.Selections.OfType<FieldNode>())
+            {
+                fields.Add(fieldSyntax.Name.Value, type.Fields[fieldSyntax.Name.Value]);
+            }
+
+            Fields = fields.Values.ToList();
         }
 
         /// <summary>
@@ -31,11 +42,16 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
         /// <summary>
         /// Gets the entity type.
         /// </summary>
-        public INamedType Type { get;}
+        public INamedType Type { get; }
 
         /// <summary>
         /// Gets the entity definition that specifies the fields that make up the id fields.
         /// </summary>
         public SelectionSetNode Definition { get; }
+
+        /// <summary>
+        /// Gets the ID fields.
+        /// </summary>
+        public IReadOnlyList<IObjectField> Fields { get; }
     }
 }

@@ -33,6 +33,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             var context = new MapperContext(ns, clientName);
             EnumDescriptorMapper.Map(clientModel, context);
+            EntityIdFactoryDescriptorMapper.Map(clientModel, context);
             TypeDescriptorMapper.Map(clientModel, context);
             EntityTypeDescriptorMapper.Map(clientModel, context);
             OperationDescriptorMapper.Map(clientModel, context);

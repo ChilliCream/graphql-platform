@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using System.Linq;
-using HotChocolate;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 
 namespace StrawberryShake.CodeGeneration.Mappers
@@ -22,21 +20,6 @@ namespace StrawberryShake.CodeGeneration.Mappers
                                 leafType.SerializationType,
                                 leafType.RuntimeType,
                                 leafType.Name)).ToList()));
-            }
-        }
-    }
-
-    public class EntityIdFactoryDescriptorMapper
-    {
-        public static void Map(
-            ClientModel model,
-            IMapperContext context)
-        {
-            var map = new Dictionary<NameString, EntityIdDescriptor>();
-
-            foreach (OperationModel modelOperation in model.Operations)
-            {
-                
             }
         }
     }
