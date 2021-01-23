@@ -300,6 +300,48 @@ namespace HotChocolate.Data
             result.ToJson().MatchSnapshot();
         }
 
+        [Fact]
+        public async Task ExecuteAsync_Should_ArgumentAndFirstOrDefault_When_Executed()
+        {
+            // arrange
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddFiltering()
+                .AddSorting()
+                .AddProjections()
+                .AddQueryType<FirstOrDefaulQuery>()
+                .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                {
+                    books(book: {id: 1}) {
+                        title
+                    }
+                }
+                ");
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
+        public class FirstOrDefaulQuery
+        {
+            [UseFirstOrDefault, UseProjection]
+            public IQueryable<Book> GetBooks(BookInput book) => new[]
+            {
+                new Book { Id = 1, Title = "BookTitle", Author = new Author { Name = "Author" } },
+                new Book { Id = 2, Title = "BookTitle2", Author = new Author { Name = "Author2" } }
+            }.AsQueryable().Where(x => x.Id ==book.Id);
+        }
+
+        public class BookInput
+        {
+            public int Id { get; set; }
+
+        }
+
         public class PagingAndProjection
         {
             [UsePaging]
