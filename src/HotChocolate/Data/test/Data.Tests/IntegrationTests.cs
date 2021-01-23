@@ -300,6 +300,150 @@ namespace HotChocolate.Data
             result.ToJson().MatchSnapshot();
         }
 
+        [Fact]
+        public async Task ExecuteAsync_Should_ProjectAndPage_When_EdgesFragment()
+        {
+            // arrange
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddFiltering()
+                .EnableRelaySupport()
+                .AddSorting()
+                .AddProjections()
+                .AddQueryType<PagingAndProjection>()
+                .AddObjectType<Book>(x =>
+                    x.ImplementsNode().IdField(x => x.Id).ResolveNode(x => default!))
+                .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                {
+                    books {
+                        edges {
+                            node {
+                                ... Test
+                            }
+                        }
+                    }
+                }
+                fragment Test on Book {
+                    title
+                    id
+                }
+                ");
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+        [Fact]
+        public async Task ExecuteAsync_Should_ProjectAndPage_When_NodesFragment()
+        {
+            // arrange
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddFiltering()
+                .EnableRelaySupport()
+                .AddSorting()
+                .AddProjections()
+                .AddQueryType<PagingAndProjection>()
+                .AddObjectType<Book>(x =>
+                    x.ImplementsNode().IdField(x => x.Id).ResolveNode(x => default!))
+                .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                {
+                    books {
+                        nodes {
+                            ... Test
+                        }
+                    }
+                }
+                fragment Test on Book {
+                    title
+                    id
+                }
+                ");
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task ExecuteAsync_Should_ProjectAndPage_When_EdgesFragmentNested()
+        {
+            // arrange
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddFiltering()
+                .EnableRelaySupport()
+                .AddSorting()
+                .AddProjections()
+                .AddQueryType<PagingAndProjection>()
+                .AddObjectType<Book>(x =>
+                    x.ImplementsNode().IdField(x => x.Id).ResolveNode(x => default!))
+                .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                {
+                    books {
+                        edges {
+                            node {
+                                author {
+                                   ... Test
+                                }
+                            }
+                        }
+                    }
+                }
+                fragment Test on Author {
+                    name
+                }
+                ");
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+        [Fact]
+        public async Task ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentNested()
+        {
+            // arrange
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddFiltering()
+                .EnableRelaySupport()
+                .AddSorting()
+                .AddProjections()
+                .AddQueryType<PagingAndProjection>()
+                .AddObjectType<Book>(x =>
+                    x.ImplementsNode().IdField(x => x.Id).ResolveNode(x => default!))
+                .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                {
+                    books {
+                        nodes {
+                            author {
+                               ... Test
+                            }
+                        }
+                    }
+                }
+                fragment Test on Author {
+                    name
+                }
+                ");
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
         public class PagingAndProjection
         {
             [UsePaging]
