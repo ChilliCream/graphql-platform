@@ -20,5 +20,6 @@ namespace HotChocolate.Types
         public const string ByteArray = "ByteArray";
         public const string Any = "Any";
         public const string TimeSpan = "TimeSpan";
+        public const string File = "File";
     }
 }

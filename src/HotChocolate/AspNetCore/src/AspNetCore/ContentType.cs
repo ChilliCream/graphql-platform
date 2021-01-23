@@ -27,5 +27,28 @@ namespace HotChocolate.AspNetCore
             'o',
             'n'
         };
+
+        public static ReadOnlySpan<char> MultiPartSpan() => new char[]
+        {
+            'm',
+            'u',
+            'l',
+            't',
+            'i',
+            'p',
+            'a',
+            'r',
+            't',
+            '/',
+            'f',
+            'o',
+            'r',
+            'm',
+            '-',
+            'd',
+            'a',
+            't',
+            'a'
+        };
     }
 }

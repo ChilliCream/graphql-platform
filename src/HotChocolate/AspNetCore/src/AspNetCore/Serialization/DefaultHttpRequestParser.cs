@@ -8,6 +8,9 @@ using HotChocolate.Language;
 using HotChocolate.Utilities;
 using static HotChocolate.Language.Utf8GraphQLRequestParser;
 using static HotChocolate.AspNetCore.ThrowHelper;
+using Microsoft.Extensions.Primitives;
+using System.Text;
+using System.Text.Json;
 
 namespace HotChocolate.AspNetCore.Serialization
 {
@@ -115,6 +118,88 @@ namespace HotChocolate.AspNetCore.Serialization
             {
                 throw DefaultHttpRequestParser_UnexpectedError(ex);
             }
+        }
+
+        // todo: The IFormCollection is convenient, but it requires us to work with strings instead of a byte stream
+        //       and in order to use the Utf8GraphQLRequestParser we have to convert those strings back to bytes - yikes!
+        public IReadOnlyList<GraphQLRequest> ReadFormRequest(IFormCollection form)
+        {
+            if (form.Count < 2)
+                throw new Exception("At least a 'operations' and 'map' field need to be present.");
+
+            if (!form.TryGetValue("operations", out StringValues operationsCollection) || !operationsCollection.TryPeek(out var operationsString))
+                throw new Exception("No 'operations' specified.");
+
+            if (!form.TryGetValue("map", out StringValues mapCollection) || !mapCollection.TryPeek(out var mapString))
+                throw new Exception("No 'map' specified.");
+
+            var map = JsonSerializer.Deserialize<IDictionary<string, string[]>>(mapString);
+
+            if (map == null)
+                throw new Exception("'map' is not a dictionary of string[].");
+
+            var operationsBytes = Encoding.UTF8.GetBytes(operationsString);
+
+            var requestParser = new Utf8GraphQLRequestParser(
+                operationsBytes,
+                _parserOptions,
+                _documentCache,
+                _documentHashProvider);
+
+            var requests = requestParser.Parse();
+
+            if (requests == null)
+                throw new Exception("Requests could not be parsed.");
+
+            foreach (var request in requests)
+            {
+                // todo: This is quite hacky and requires Utf8GraphQLRequestParser to actually return this
+                //       I choose to do it this way as to not change the existing APIs.
+                //       For a final implementation this should be done differently
+                if (!(request.Variables is Dictionary<string, object?> mutableVariables))
+                    continue;
+
+                foreach (var (key, values) in map)
+                {
+                    var file = form.Files.GetFile(key);
+
+                    if (file == null)
+                        throw new Exception($"File could not be parsed for key '{key}'");
+
+                    foreach (var value in values)
+                    {
+                        var parts = value?.Split(".");
+
+                        if (parts == null || parts.Length < 2)
+                            throw new Exception("Failed to parse 'map' value.");
+
+                        var variableName = parts[1];
+
+                        if (parts.Length == 2)
+                        {
+                            // single file upload, e.g. 'variables.file'
+                            mutableVariables[variableName] = file;
+                        }
+                        else
+                        {
+                            // multiple files upload, e.g. 'variables.files.1'
+                            if (mutableVariables[variableName] is List<IFormFile> list)
+                            {
+                                list.Add(file);
+                            }
+                            else
+                            {
+                                mutableVariables[variableName] = new List<IFormFile>
+                                {
+                                    file
+                                };
+                            }
+                        }
+                    }
+                }
+            }
+
+            return requests;
         }
 
         private async ValueTask<IReadOnlyList<GraphQLRequest>> ReadAsync(
