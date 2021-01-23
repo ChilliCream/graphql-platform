@@ -45,7 +45,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
 
             var resultInfoConstructor = MethodCallBuilder.New()
-                .SetMethodName($"new {ResultInfoNameFromTypeName(resultNamedType.Name)}")
+                .SetMethodName($"new {ResultInfoNameFromTypeName(resultNamedType.ImplementedBy[0].Name)}")
                 .SetDetermineStatement(false);
 
             foreach (PropertyDescriptor property in resultNamedType.Properties)

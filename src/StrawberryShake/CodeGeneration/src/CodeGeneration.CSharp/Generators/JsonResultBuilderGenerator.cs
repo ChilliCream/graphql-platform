@@ -24,11 +24,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
             var resultTypeDescriptor = resultBuilderDescriptor.ResultNamedType;
             var (classBuilder, constructorBuilder) = CreateClassBuilder();
 
-            classBuilder.SetName(
-                ResultBuilderNameFromTypeName(resultBuilderDescriptor.Name));
+            classBuilder.SetName(resultBuilderDescriptor.Name);
 
-            constructorBuilder.SetTypeName(
-                ResultBuilderNameFromTypeName(resultBuilderDescriptor.Name));
+            constructorBuilder.SetTypeName(resultBuilderDescriptor.Name);
 
             classBuilder.AddImplements(
                 $"{TypeNames.IOperationResultBuilder}<{TypeNames.JsonElement}," +

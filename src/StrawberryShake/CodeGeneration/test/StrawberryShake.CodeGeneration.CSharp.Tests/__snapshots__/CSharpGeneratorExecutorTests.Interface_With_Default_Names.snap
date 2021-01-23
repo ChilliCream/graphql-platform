@@ -186,54 +186,8 @@ namespace Foo
 namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class IGetHeroInfo
-        : IOperationResultDataInfoInfo
+    public interface IGetHero
     {
-        private readonly IReadOnlyCollection<EntityId> _entityIds;
-        private readonly ulong _version;
-
-        public IGetHeroInfo(
-            global::StrawberryShake.EntityId? hero,
-            IReadOnlyCollection<EntityId> entityIds,
-            ulong version)
-        {
-            Hero = hero;
-            _entityIds = entityIds
-                 ?? throw new ArgumentNullException(nameof(entityIds));
-            _version = version
-                 ?? throw new ArgumentNullException(nameof(version));
-        }
-
-        public global::StrawberryShake.EntityId? Hero { get; }
-
-        public IReadOnlyCollection<EntityId> IOperationResultDataInfo.EntityIds => _entityIds;
-
-        public ulong IOperationResultDataInfo.Version => _version;
-
-        public IGetHeroInfo IOperationResultDataInfo.WithVersion(ulong version)
-        {
-            return new IGetHeroInfo(
-                Hero,
-                _entityIds,
-                _version
-            );
-        }
-    }
-}
-
-
-// IGetHero
-
-namespace Foo
-{
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class IGetHero
-    {
-        public IGetHero(IGetHero_Hero? hero)
-        {
-            Hero = hero;
-        }
-
         public IGetHero_Hero? Hero { get; }
     }
 }
@@ -244,16 +198,8 @@ namespace Foo
 namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class IGetHero_Hero
+    public interface IGetHero_Hero
     {
-        public IGetHero_Hero(
-            String name,
-            IReadOnlyList<Episode?>? appearsIn)
-        {
-            Name = name;
-            AppearsIn = appearsIn;
-        }
-
         public String Name { get; }
 
         public IReadOnlyList<Episode?>? AppearsIn { get; }
@@ -344,7 +290,7 @@ namespace Foo
 namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetHeroBuilderBuilder
+    public partial class GetHeroBuilder
         : IOperationResultBuilder<global::System.Text.Json.JsonElement, IGetHero>
     {
         private readonly IEntityStore _entityStore;
@@ -353,7 +299,7 @@ namespace Foo
         private ILeafValueParser<global::System.String, Episode> _episodeParser;
         private ILeafValueParser<global::System.String, global::System.String> _stringParser;
 
-        public GetHeroBuilderBuilder(
+        public GetHeroBuilder(
             IEntityStore entityStore,
             Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> extractId,
             IOperationResultDataFactory<IGetHero> resultDataFactory,
@@ -399,7 +345,7 @@ namespace Foo
                 entityIds
             );
 
-            var resultInfo = new IGetHeroInfo(
+            var resultInfo = new GetHeroInfo(
                 HeroId,
                 entityIds,
                 session.Version

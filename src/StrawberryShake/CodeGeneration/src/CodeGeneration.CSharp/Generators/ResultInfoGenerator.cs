@@ -11,7 +11,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
     {
         protected override bool CanHandle(ITypeDescriptor descriptor)
         {
-            return descriptor.Kind == TypeKind.ResultType;
+            return descriptor.Kind == TypeKind.ResultType && !descriptor.IsInterface();
         }
 
         protected override void Generate(CodeWriter writer, ITypeDescriptor typeDescriptor)

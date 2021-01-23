@@ -48,7 +48,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
                     {
                         outputTypes.Add(outputType.Name, outputType);
 
-                        if (!outputType.IsInterface() &&
+                        if (!outputType.IsInterface &&
                             outputType.Type.IsEntity() &&
                             !entities.ContainsKey(outputType.Type.Name) &&
                             outputType.Type is IComplexOutputType complexOutputType)

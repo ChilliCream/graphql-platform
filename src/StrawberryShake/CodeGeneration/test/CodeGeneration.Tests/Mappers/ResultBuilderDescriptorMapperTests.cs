@@ -46,15 +46,15 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 context.ResultBuilders.OrderBy(t => t.Name),
                 resultBuilder =>
                 {
-                    Assert.Equal("ICreateReviewBuilder", resultBuilder.Name);
+                    Assert.Equal("CreateReviewBuilder", resultBuilder.Name);
                 },
                 resultBuilder =>
                 {
-                    Assert.Equal("IGetHeroBuilder", resultBuilder.Name);
+                    Assert.Equal("GetHeroBuilder", resultBuilder.Name);
                 },
                 resultBuilder =>
                 {
-                    Assert.Equal("IOnReviewBuilder", resultBuilder.Name);
+                    Assert.Equal("OnReviewBuilder", resultBuilder.Name);
                 });
         }
     }

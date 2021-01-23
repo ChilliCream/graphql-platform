@@ -75,7 +75,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     context,
                     typeDescriptors,
                     operation.ResultType,
-                    TypeKind.ResultType);
+                    TypeKind.ResultType,
+                    operation);
 
                 foreach (var outputType in operation.OutputTypes.Where(t => t.IsInterface))
                 {
@@ -83,26 +84,12 @@ namespace StrawberryShake.CodeGeneration.Mappers
                         outputType.Name,
                         out TypeDescriptorModel descriptorModel))
                     {
-                        descriptorModel = new TypeDescriptorModel(
+                        RegisterType(
+                            model,
+                            context,
+                            typeDescriptors,
                             outputType,
-                            new NamedTypeDescriptor(
-                                outputType.Name,
-                                context.Namespace,
-                                outputType.IsInterface,
-                                outputType.Implements.Select(t => t.Name).ToList(),
-                                kind: outputType.Type.IsEntity()
-                                    ? TypeKind.EntityType
-                                    : TypeKind.DataType,
-                                graphQLTypeName: outputType.Type.Name,
-                                implementedBy: operation
-                                    .GetImplementations(outputType)
-                                    .Select(t => typeDescriptors[t.Name])
-                                    .Select(t => t.NamedTypeDescriptor)
-                                    .ToList()));
-
-                        typeDescriptors.Add(
-                            outputType.Name,
-                            descriptorModel);
+                            operationModel: operation);
                     }
                 }
             }
@@ -112,7 +99,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
             IMapperContext context,
             Dictionary<NameString, TypeDescriptorModel> typeDescriptors,
             OutputTypeModel outputType,
-            TypeKind? kind = null)
+            TypeKind? kind = null,
+            OperationModel? operationModel = null)
         {
             if (!typeDescriptors.TryGetValue(
                 outputType.Name,
@@ -128,7 +116,11 @@ namespace StrawberryShake.CodeGeneration.Mappers
                         kind: kind ?? (outputType.Type.IsEntity()
                             ? TypeKind.EntityType
                             : TypeKind.DataType),
-                        graphQLTypeName: outputType.Type.Name));
+                        graphQLTypeName: outputType.Type.Name,
+                        implementedBy: operationModel?.GetImplementations(outputType)
+                            .Select(t => typeDescriptors[t.Name])
+                            .Select(t => t.NamedTypeDescriptor)
+                            .ToList() ?? new List<NamedTypeDescriptor>()));
 
                 typeDescriptors.Add(
                     outputType.Name,

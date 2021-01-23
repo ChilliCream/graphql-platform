@@ -20,7 +20,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
             new ResultDataFactoryGenerator(),
             new ResultFromEntityTypeMapperGenerator(),
             new ResultInfoGenerator(),
-            new ResultTypeGenerator()
+            new ResultTypeGenerator(),
+            new ResultInterfaceGenerator()
         };
 
         public IEnumerable<CSharpDocument> Generate(ClientModel clientModel, string ns, string clientName)

@@ -9,7 +9,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
     {
         protected override bool CanHandle(NamedTypeDescriptor descriptor)
         {
-            return descriptor.Kind != TypeKind.LeafType;
+            return descriptor.Kind != TypeKind.LeafType && !descriptor.IsInterface();
         }
 
         protected override void Generate(CodeWriter writer, NamedTypeDescriptor namedTypeDescriptor)

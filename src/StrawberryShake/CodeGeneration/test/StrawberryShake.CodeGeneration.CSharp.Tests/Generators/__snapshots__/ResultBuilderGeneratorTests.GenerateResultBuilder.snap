@@ -1,19 +1,19 @@
 ﻿namespace StarWarsClient
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetHeroResultBuilder
-        : IOperationResultBuilder<global::System.Text.Json.JsonElement, GetHeroResult>
+    public partial class GetHeroBuilder
+        : IOperationResultBuilder<global::System.Text.Json.JsonElement, IGetHeroResult>
     {
         private readonly IEntityStore _entityStore;
         private readonly Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
-        private readonly IOperationResultDataFactory<GetHeroResult> _resultDataFactory;
+        private readonly IOperationResultDataFactory<IGetHeroResult> _resultDataFactory;
         private ILeafValueParser<string, string> _stringParser;
         private ILeafValueParser<int, int> _intParser;
 
-        public GetHeroResultBuilder(
+        public GetHeroBuilder(
             IEntityStore entityStore,
             Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> extractId,
-            IOperationResultDataFactory<GetHeroResult> resultDataFactory,
+            IOperationResultDataFactory<IGetHeroResult> resultDataFactory,
             ISerializerResolver serializerResolver)
         {
             _entityStore = entityStore
@@ -28,9 +28,9 @@
                  ?? throw new ArgumentNullException(nameof(_intParser));
         }
 
-        public IOperationResult<GetHeroResult> Build(Response<JsonDocument> response)
+        public IOperationResult<IGetHeroResult> Build(Response<JsonDocument> response)
         {
-            (GetHeroResult Result, GetHeroResultInfo Info)? data = null;
+            (IGetHeroResult Result, IGetHeroResultInfo Info)? data = null;
 
             if (response.Body is not null
                 && response.Body.RootElement.TryGetProperty("data", out JsonElement obj))
@@ -38,7 +38,7 @@
                 data = BuildData(obj);
             }
 
-            return new OperationResult<GetHeroResult>(
+            return new OperationResult<IGetHeroResult>(
                 data?.Result,
                 data?.Info,
                 _resultDataFactory,
@@ -46,7 +46,7 @@
             );
         }
 
-        private (GetHeroResult, GetHeroResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
+        private (IGetHeroResult, IGetHeroResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
         {
             using IEntityUpdateSession session = _entityStore.BeginUpdate();
             var entityIds = new HashSet<global::StrawberryShake.EntityId>();
