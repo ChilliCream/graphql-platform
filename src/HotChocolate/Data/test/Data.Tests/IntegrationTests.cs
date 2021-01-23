@@ -327,7 +327,7 @@ namespace HotChocolate.Data
         }
 
         [Fact]
-        public async Task Schema_Should_Generate_WhenMutationReturnTypeHasManyToManyRelationshipWithInputType()
+        public async Task Schema_Should_Generate_WhenMutationInputHasManyToManyRelationshipWithOutputType()
         {
             // arrange
             IRequestExecutor executor = await new ServiceCollection()
@@ -346,7 +346,7 @@ namespace HotChocolate.Data
         }
 
         [Fact]
-        public async Task Schema_Should_Generate_WhenMutationReturnTypeHasOneToOneRelationshipWithInputType()
+        public async Task Schema_Should_Generate_WhenMutationInputHasManyToOneRelationshipWithOutputType()
         {
             // arrange
             IRequestExecutor executor = await new ServiceCollection()
@@ -355,7 +355,7 @@ namespace HotChocolate.Data
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<FirstOrDefaulQuery>()
-                .AddMutationType<FirstOrDefaultMutation_InputHasOneToOneRelationshipWithOutputType>()
+                .AddMutationType<FirstOrDefaultMutation_InputHasManyToOneRelationshipWithOutputType>()
                 .BuildRequestExecutorAsync();
 
             // act
@@ -386,7 +386,7 @@ namespace HotChocolate.Data
             }.AsQueryable();
         }
 
-        public class FirstOrDefaultMutation_InputHasOneToOneRelationshipWithOutputType
+        public class FirstOrDefaultMutation_InputHasManyToOneRelationshipWithOutputType
         {
             [UseFirstOrDefault, UseProjection]
             public IQueryable<Author> addBook(Book book) => new[]
