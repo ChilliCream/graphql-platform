@@ -326,20 +326,81 @@ namespace HotChocolate.Data
             result.ToJson().MatchSnapshot();
         }
 
+        [Fact]
+        public async Task Schema_Should_Generate_WhenMutationReturnTypeHasManyToManyRelationshipWithInputType()
+        {
+            // arrange
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddFiltering()
+                .AddSorting()
+                .AddProjections()
+                .AddQueryType<FirstOrDefaulQuery>()
+                .AddMutationType<FirstOrDefaultMutation_InputHasManyToManyRelationshipWithOutputType>()
+                .BuildRequestExecutorAsync();
+
+            // act
+            var result = executor.Schema.Print();
+            // assert
+            Assert.True(result.Length > 0);  //not sure what to assert....
+        }
+
+        [Fact]
+        public async Task Schema_Should_Generate_WhenMutationReturnTypeHasOneToOneRelationshipWithInputType()
+        {
+            // arrange
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddFiltering()
+                .AddSorting()
+                .AddProjections()
+                .AddQueryType<FirstOrDefaulQuery>()
+                .AddMutationType<FirstOrDefaultMutation_InputHasOneToOneRelationshipWithOutputType>()
+                .BuildRequestExecutorAsync();
+
+            // act
+            var result = executor.Schema.Print();
+            // assert
+            Assert.True(result.Length > 0);  //not sure what to assert....
+        }
         public class FirstOrDefaulQuery
         {
             [UseFirstOrDefault, UseProjection]
             public IQueryable<Book> GetBooks(BookInput book) => new[]
             {
-                new Book { Id = 1, Title = "BookTitle", Author = new Author { Name = "Author" } },
-                new Book { Id = 2, Title = "BookTitle2", Author = new Author { Name = "Author2" } }
-            }.AsQueryable().Where(x => x.Id ==book.Id);
+                new Book {Id = 1, Title = "BookTitle", Author = new Author {Name = "Author"}},
+                new Book {Id = 2, Title = "BookTitle2", Author = new Author {Name = "Author2"}}
+            }.AsQueryable().Where(x => x.Id == book.Id);
         }
 
+        public class FirstOrDefaultMutation_InputHasManyToManyRelationshipWithOutputType
+        {
+            [UseFirstOrDefault, UseProjection]
+            public IQueryable<Author> addPublisher(Publisher publisher) => new[]
+            {
+                new Author
+                {
+                    Name = "Author",
+                    Publishers = new List<Publisher>{publisher}
+                }
+            }.AsQueryable();
+        }
+
+        public class FirstOrDefaultMutation_InputHasOneToOneRelationshipWithOutputType
+        {
+            [UseFirstOrDefault, UseProjection]
+            public IQueryable<Author> addBook(Book book) => new[]
+            {
+                new Author
+                {
+                    Name = "Author",
+                    Books = new List<Book>{book}
+                }
+            }.AsQueryable();
+        }
         public class BookInput
         {
             public int Id { get; set; }
-
         }
 
         public class PagingAndProjection
@@ -348,7 +409,7 @@ namespace HotChocolate.Data
             [UseProjection]
             public IQueryable<Book> GetBooks() => new[]
             {
-                new Book { Id = 1, Title = "BookTitle", Author = new Author { Name = "Author" } }
+                new Book {Id = 1, Title = "BookTitle", Author = new Author {Name = "Author"}}
             }.AsQueryable();
         }
     }

@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HotChocolate.Data
 {
@@ -12,5 +10,7 @@ namespace HotChocolate.Data
 
         public virtual ICollection<Book> Books { get; set; } =
             new List<Book>();
+        public virtual ICollection<Publisher> Publishers { get; set; } =
+            new List<Publisher>();
     }
 }

@@ -9,5 +9,6 @@ namespace HotChocolate.Data
         public string? Title { get; set; }
 
         public virtual Author? Author { get; set; }
+        public virtual Publisher? Publisher { get; set; }
     }
 }
