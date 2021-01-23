@@ -183,7 +183,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
                                 false,
                                 graphQLTypeName: namedType.Name,
                                 serializationType: enumTypeModel.Type.GetSerializationType(),
-                                kind: TypeKind.LeafType);
+                                kind: TypeKind.LeafType,
+                                isEnum: true);
 
                             scalarTypeDescriptors.Add(
                                 enumTypeModel.Name,

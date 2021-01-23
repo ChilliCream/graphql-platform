@@ -119,7 +119,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     break;
 
                 case NamedTypeDescriptor namedType:
-                    var idName = $"{propertyDescriptor.Name}Id";
+                    var idName = $"{propertyDescriptor.Name}";
                     var varName = propertyDescriptor.Name.WithLowerFirstChar();
                     if (namedType.IsInterface)
                     {

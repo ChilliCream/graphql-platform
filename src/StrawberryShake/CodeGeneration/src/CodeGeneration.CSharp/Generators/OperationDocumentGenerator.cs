@@ -18,7 +18,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 FieldBuilder.New()
                     .SetStatic()
                     .SetConst()
-                    .SetType("string")
+                    .SetType(TypeNames.String)
                     .SetName("_bodyString")
                     .SetValue($"@\"{descriptor.BodyString}\"", true));
 
@@ -28,7 +28,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetReadOnly()
                     .SetType("byte[]")
                     .SetName("_body")
-                    .SetValue("Encoding.UTF8.GetBytes(_bodyString)"));
+                    .SetValue($"{TypeNames.EncodingUtf8}.GetBytes(_bodyString)"));
 
             string operationKind;
             switch (descriptor)
@@ -48,22 +48,24 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             classBuilder.AddProperty(
                 PropertyBuilder.New()
+                    .SetStatic()
                     .SetType("GetHeroQueryDocument")
                     .SetName("Instance")
                     .SetValue($"new()"));
 
             classBuilder.AddProperty(
                 PropertyBuilder.New()
-                    .SetType("OperationKind")
-                    .SetName("Kind").AsLambda($"OperationKind.{operationKind}"));
+                    .SetType(TypeNames.OperationKind)
+                    .SetName("Kind").AsLambda($"{TypeNames.OperationKind}.{operationKind}"));
 
             classBuilder.AddProperty(
                 PropertyBuilder.New()
-                    .SetType("ReadOnlySpan<byte>")
+                    .SetType($"{TypeNames.IReadOnlySpan}<byte>")
                     .SetName("Body").AsLambda("_body"));
 
             classBuilder.AddMethod(
                 MethodBuilder.New()
+                    .SetAccessModifier(AccessModifier.Public)
                     .SetReturnType("override string")
                     .SetName("ToString")
                     .AddCode("return _bodyString;"));

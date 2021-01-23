@@ -14,7 +14,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private const string _resultDataFactoryFieldName = "_resultDataFactory";
         private const string _serializerResolverParamName = "serializerResolver";
         private const string _entityIdsParam = "entityIds";
-        private const string _jsonElementParamName = "JsonElement?";
+        private const string _jsonElementParamName = TypeNames.JsonElement + "?";
         private const string _objParamName = "obj";
 
         protected override void Generate(
@@ -205,7 +205,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                             .Set("response.Body is not null")
                             .And(
                                 "response.Body.RootElement.TryGetProperty(\"data\"," +
-                                " out JsonElement obj)"))
+                                $" out {TypeNames.JsonElement} obj)"))
                     .AddCode("data = BuildData(obj);"));
 
             buildMethod.AddEmptyLine();

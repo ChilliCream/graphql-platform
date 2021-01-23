@@ -32,7 +32,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             // Setup class
             classBuilder
                 .AddImplements(
-                    "IEntityMapper<" +
+                    $"{TypeNames.IEntityMapper}<" +
                     (typeDescriptor.IsEntityType()
                         ? EntityTypeNameFromGraphQLTypeName(descriptor.GraphQLTypeName)
                         : DataTypeNameFromTypeName(descriptor.Name)) +

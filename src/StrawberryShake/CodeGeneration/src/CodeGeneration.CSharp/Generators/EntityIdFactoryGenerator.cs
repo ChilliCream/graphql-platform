@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
@@ -95,7 +96,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 return CodeBlockBuilder.From(sourceText);
             }
 
-            sourceText.Append($"    (");
+            sourceText.Append($"    ");
 
             bool next = false;
 
@@ -108,10 +109,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 }
                 next = true;
 
-                sourceText.Append($"obj.GetProperty(\"{field.Name}\").Get{field.TypeName}()!");
+                sourceText.Append($"obj.GetProperty(\"{field.Name}\").Get{field.TypeName.Split(".").Last()}()!");
             }
 
-            sourceText.AppendLine($"));");
+            sourceText.AppendLine($");");
 
             return CodeBlockBuilder.From(sourceText);
         }

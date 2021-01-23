@@ -73,7 +73,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 {
                     writer.WriteIndent();
                     writer.Write(" ?? ");
-                    writer.Write("throw new ArgumentNullException(nameof(");
+                    writer.Write($"throw new {TypeNames.ArgumentNullException}(nameof(");
                     if (_nonNullAssertTypeNameOverride is not null)
                     {
                         writer.Write(_nonNullAssertTypeNameOverride);

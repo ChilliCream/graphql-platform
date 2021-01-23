@@ -7,9 +7,9 @@ namespace Foo
     {
         public global::StrawberryShake.EntityId Id { get; }
 
-        public String Name { get; set; }
+        public global::System.String Name { get; set; }
 
-        public IReadOnlyList<Episode?>? AppearsIn { get; set; }
+        public global::System.Collections.Generic.IReadOnlyList<Episode?>? AppearsIn { get; set; }
     }
 }
 
@@ -34,33 +34,33 @@ namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroFactory
-        : IOperationResultDataFactory<GetHero>
+        : global::StrawberryShake.IOperationResultDataFactory<GetHero>
     {
-        private readonly IEntityStore _entityStore;
-        private readonly IEntityMapper<CharacterEntity, GetHero_Hero> _getHero_HeroFromCharacterEntityMapper;
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityMapper<CharacterEntity, GetHero_Hero> _getHero_HeroFromCharacterEntityMapper;
 
         public GetHeroFactory(
-            IEntityStore entityStore,
-            IEntityMapper<CharacterEntity, GetHero_Hero> getHero_HeroFromCharacterEntityMapper)
+            global::StrawberryShake.IEntityStore entityStore,
+            global::StrawberryShake.IEntityMapper<CharacterEntity, GetHero_Hero> getHero_HeroFromCharacterEntityMapper)
         {
             _entityStore = entityStore
-                 ?? throw new ArgumentNullException(nameof(entityStore));
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
             _getHero_HeroFromCharacterEntityMapper = getHero_HeroFromCharacterEntityMapper
-                 ?? throw new ArgumentNullException(nameof(getHero_HeroFromCharacterEntityMapper));
+                 ?? throw new global::System.ArgumentNullException(nameof(getHero_HeroFromCharacterEntityMapper));
         }
 
-        public GetHero Create(IOperationResultDataInfo dataInfo)
+        public GetHero Create(global::StrawberryShake.IOperationResultDataInfo dataInfo)
         {
             if (dataInfo is GetHeroInfo info)
             {
                 IGetHero_Hero hero = default!;
 
-                if (info.HeroId.Name.Equals(
+                if (info.Hero.Name.Equals(
                     "Character",
                     StringComparison.Ordinal
                 ))
                 {
-                    hero = GetHero_HeroFromCharacterEntityMapper(_entityStore.GetEntity<CharacterEntity>(info.HeroId));
+                    hero = GetHero_HeroFromCharacterEntityMapper(_entityStore.GetEntity<CharacterEntity>(info.Hero));
                 }
 
                 return new GetHero(hero);
@@ -78,30 +78,30 @@ namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroInfo
-        : IOperationResultDataInfoInfo
+        : global::StrawberryShake.IOperationResultDataInfo
     {
-        private readonly IReadOnlyCollection<EntityId> _entityIds;
+        private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
         private readonly ulong _version;
 
         public GetHeroInfo(
             global::StrawberryShake.EntityId? hero,
-            IReadOnlyCollection<EntityId> entityIds,
+            global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds,
             ulong version)
         {
             Hero = hero;
             _entityIds = entityIds
-                 ?? throw new ArgumentNullException(nameof(entityIds));
+                 ?? throw new global::System.ArgumentNullException(nameof(entityIds));
             _version = version
-                 ?? throw new ArgumentNullException(nameof(version));
+                 ?? throw new global::System.ArgumentNullException(nameof(version));
         }
 
         public global::StrawberryShake.EntityId? Hero { get; }
 
-        public IReadOnlyCollection<EntityId> IOperationResultDataInfo.EntityIds => _entityIds;
+        public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
 
-        public ulong IOperationResultDataInfo.Version => _version;
+        public ulong Version => _version;
 
-        public GetHeroInfo IOperationResultDataInfo.WithVersion(ulong version)
+        public global::StrawberryShake.IOperationResultDataInfo WithVersion(ulong version)
         {
             return new GetHeroInfo(
                 Hero,
@@ -137,14 +137,14 @@ namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_HeroFromCharacterEntityMapper
-        : IEntityMapper<CharacterEntity, GetHero_Hero>
+        : global::StrawberryShake.IEntityMapper<CharacterEntity, GetHero_Hero>
     {
-        private readonly IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
 
-        public GetHero_HeroFromCharacterEntityMapper(IEntityStore entityStore)
+        public GetHero_HeroFromCharacterEntityMapper(global::StrawberryShake.IEntityStore entityStore)
         {
             _entityStore = entityStore
-                 ?? throw new ArgumentNullException(nameof(entityStore));
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
         }
 
         public GetHero_Hero Map(CharacterEntity entity)
@@ -167,16 +167,16 @@ namespace Foo
         : IGetHero_Hero
     {
         public GetHero_Hero(
-            String name,
-            IReadOnlyList<Episode?>? appearsIn)
+            global::System.String name,
+            global::System.Collections.Generic.IReadOnlyList<Episode?>? appearsIn)
         {
             Name = name;
             AppearsIn = appearsIn;
         }
 
-        public String Name { get; }
+        public global::System.String Name { get; }
 
-        public IReadOnlyList<Episode?>? AppearsIn { get; }
+        public global::System.Collections.Generic.IReadOnlyList<Episode?>? AppearsIn { get; }
     }
 }
 
@@ -200,9 +200,9 @@ namespace Foo
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetHero_Hero
     {
-        public String Name { get; }
+        public global::System.String Name { get; }
 
-        public IReadOnlyList<Episode?>? AppearsIn { get; }
+        public global::System.Collections.Generic.IReadOnlyList<Episode?>? AppearsIn { get; }
     }
 }
 
@@ -214,26 +214,26 @@ namespace Foo
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroQueryDocument
     {
-        private const string _bodyString = 
+        private const global::System.String _bodyString = 
             @"query GetHero {
   hero(episode: NEW_HOPE) {
     name
     appearsIn
   }
 }";
-        private static readonly byte[] _body = Encoding.UTF8.GetBytes(_bodyString);
+        private static readonly byte[] _body = global::System.Text.Encoding.UTF8.GetBytes(_bodyString);
 
         private GetHeroQueryDocument()
         {
         }
 
-        public GetHeroQueryDocument Instance { get; } = new();
+        public static GetHeroQueryDocument Instance { get; } = new();
 
-        public OperationKind Kind => OperationKind.Query;
+        public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
 
-        public ReadOnlySpan<byte> Body => _body;
+        public global::System.ReadOnlySpan<byte> Body => _body;
 
-        private override string ToString()
+        public override string ToString()
         {
             return _bodyString;
         }
@@ -248,15 +248,15 @@ namespace Foo
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroQuery
     {
-        private readonly IOperationExecutor<IGetHero> _operationExecutor;
+        private readonly global::StrawberryShake.IOperationExecutor<IGetHero> _operationExecutor;
 
-        public GetHeroQuery(IOperationExecutor<IGetHero> operationExecutor)
+        public GetHeroQuery(global::StrawberryShake.IOperationExecutor<IGetHero> operationExecutor)
         {
             _operationExecutor = operationExecutor
-                 ?? throw new ArgumentNullException(nameof(operationExecutor));
+                 ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
         }
 
-        public async Task<IOperationResult<IGetHero>> Execute(CancellationToken cancellationToken = default)
+        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetHero>> Execute(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest();
             
@@ -268,13 +268,13 @@ namespace Foo
                 .ConfigureAwait(false);
         }
 
-        public IOperationObservable<IGetHero> Watch(ExecutionStrategy? strategy = null)
+        public global::System.Runtime.IObservable<global::StrawberryShake.IOperationResult<IGetHero>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null)
         {
             var request = CreateRequest();
             return _operationExecutor.Watch(request, strategy);
         }
 
-        private OperationRequest CreateRequest()
+        private global::StrawberryShake.OperationRequest CreateRequest()
         {
             return new(
                 "IGetHero",
@@ -291,43 +291,43 @@ namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroBuilder
-        : IOperationResultBuilder<global::System.Text.Json.JsonElement, IGetHero>
+        : global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonElement, IGetHero>
     {
-        private readonly IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
-        private readonly IOperationResultDataFactory<IGetHero> _resultDataFactory;
-        private ILeafValueParser<global::System.String, Episode> _episodeParser;
-        private ILeafValueParser<global::System.String, global::System.String> _stringParser;
+        private readonly global::StrawberryShake.IOperationResultDataFactory<IGetHero> _resultDataFactory;
+        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, Episode> _episodeParser;
+        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
 
         public GetHeroBuilder(
-            IEntityStore entityStore,
+            global::StrawberryShake.IEntityStore entityStore,
             Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> extractId,
-            IOperationResultDataFactory<IGetHero> resultDataFactory,
-            ISerializerResolver serializerResolver)
+            global::StrawberryShake.IOperationResultDataFactory<IGetHero> resultDataFactory,
+            global::StrawberryShake.ISerializerResolver serializerResolver)
         {
             _entityStore = entityStore
-                 ?? throw new ArgumentNullException(nameof(entityStore));
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
             _extractId = extractId
-                 ?? throw new ArgumentNullException(nameof(extractId));
+                 ?? throw new global::System.ArgumentNullException(nameof(extractId));
             _resultDataFactory = resultDataFactory
-                 ?? throw new ArgumentNullException(nameof(resultDataFactory));
+                 ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
             _episodeParser = serializerResolver.GetLeafValueParser<global::System.String, Episode>("Episode")
-                 ?? throw new ArgumentNullException(nameof(_episodeParser));
+                 ?? throw new global::System.ArgumentNullException(nameof(_episodeParser));
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String")
-                 ?? throw new ArgumentNullException(nameof(_stringParser));
+                 ?? throw new global::System.ArgumentNullException(nameof(_stringParser));
         }
 
-        public IOperationResult<IGetHero> Build(Response<JsonDocument> response)
+        public global::StrawberryShake.IOperationResult<IGetHero> Build(Response<JsonDocument> response)
         {
             (IGetHero Result, IGetHeroInfo Info)? data = null;
 
             if (response.Body is not null
-                && response.Body.RootElement.TryGetProperty("data", out JsonElement obj))
+                && response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement obj))
             {
                 data = BuildData(obj);
             }
 
-            return new OperationResult<IGetHero>(
+            return new global::StrawberryShake.OperationResult<IGetHero>(
                 data?.Result,
                 data?.Info,
                 _resultDataFactory,
@@ -337,7 +337,7 @@ namespace Foo
 
         private (IGetHero, IGetHeroInfo) BuildData(global::System.Text.Json.JsonElement obj)
         {
-            using IEntityUpdateSession session = _entityStore.BeginUpdate();
+            using global::StrawberryShake.IEntityUpdateSession session = _entityStore.BeginUpdate();
             var entityIds = new HashSet<global::StrawberryShake.EntityId>();
 
             global::StrawberryShake.EntityId HeroId = UpdateIGetHero_HeroEntity(
@@ -355,7 +355,7 @@ namespace Foo
         }
 
         private global::StrawberryShake.EntityId UpdateIGetHero_HeroEntity(
-            JsonElement? obj,
+            global::System.Text.Json.JsonElement? obj,
             ISet<global::StrawberryShake.EntityId> entityIds)
         {
             global::StrawberryShake.EntityId entityId = _extractId(obj);
@@ -384,11 +384,11 @@ namespace Foo
         }
 
         private IList<global::StrawberryShake.EntityId> DeserializeEpisodeArray(
-            JsonElement? obj,
+            global::System.Text.Json.JsonElement? obj,
             ISet<global::StrawberryShake.EntityId> entityIds)
         {
             var episodes = new List<Episode>();
-            foreach (JsonElement child in obj.EnumerateArray())
+            foreach (global::System.Text.Json.JsonElement child in obj.EnumerateArray())
             {
                 episodes.Add(DeserializeEpisode(child));
             }
@@ -416,7 +416,7 @@ namespace Foo
         public FooClient(GetHeroQuery getHeroQuery)
         {
             _getHeroQuery = getHeroQuery
-                 ?? throw new ArgumentNullException(nameof(getHeroQuery));
+                 ?? throw new global::System.ArgumentNullException(nameof(getHeroQuery));
         }
 
         public GetHeroQuery GetHeroQuery()
@@ -449,7 +449,7 @@ public static partial class EntityIdFactory
     {
         return new global::StrawberryShake.EntityId(
             type,
-            (obj.GetProperty("id").Getglobal::System.String()!));
+            obj.GetProperty("id").GetString()!);
     }
 }
 

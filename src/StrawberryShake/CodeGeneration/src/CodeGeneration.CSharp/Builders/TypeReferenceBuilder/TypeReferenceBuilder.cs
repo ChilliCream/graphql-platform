@@ -83,7 +83,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             switch (token)
             {
                 case TypeKindToken.List:
-                    writer.Write("IReadOnlyList<");
+                    writer.Write(TypeNames.GenericCollectionsNamespace + "IReadOnlyList<");
                     HandleQueue(writer, currentIndex + 1);
                     writer.Write(">");
                     break;

@@ -39,7 +39,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             updateEntityMethod.AddCode(
                 ForEachBuilder.New()
-                    .SetLoopHeader($"JsonElement child in {_objParamName}.EnumerateArray()")
+                    .SetLoopHeader($"{TypeNames.JsonElement} child in {_objParamName}.EnumerateArray()")
                     .AddCode(
                         MethodCallBuilder.New()
                             .SetPrefix($"{listVarName}.")

@@ -12,12 +12,19 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private TypeReferenceBuilder? _type;
         private string? _name;
         private string? _value;
+        private bool _isStatic;
 
         public static PropertyBuilder New() => new();
 
         public PropertyBuilder SetAccessModifier(AccessModifier value)
         {
             _accessModifier = value;
+            return this;
+        }
+
+        public PropertyBuilder SetStatic()
+        {
+            _isStatic = true;
             return this;
         }
 
@@ -74,6 +81,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             writer.WriteIndent();
             writer.Write(modifier);
             writer.WriteSpace();
+            if (_isStatic)
+            {
+                writer.Write("static");
+                writer.WriteSpace();
+            }
             _type.Build(writer);
             writer.Write(_name);
 
@@ -104,5 +116,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
             writer.WriteLine();
         }
+
+
     }
 }

@@ -25,7 +25,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
                     break;
                 case NamedTypeDescriptor namedTypeDescriptor:
                     actualBuilder.SetIsNullable(!isNonNull);
-                    actualBuilder.SetName(nameOverride ?? namedTypeDescriptor.Name);
+                    if (namedTypeDescriptor.IsLeafType() && !namedTypeDescriptor.IsEnum)
+                    {
+                        actualBuilder.SetName(
+                            $"{namedTypeDescriptor.Namespace}." +
+                            (nameOverride ?? namedTypeDescriptor.Name));
+                    }
+                    else
+                    {
+                        actualBuilder.SetName(nameOverride ?? namedTypeDescriptor.Name);
+                    }
                     break;
                 case NonNullTypeDescriptor nonNullTypeDescriptor:
                     ToBuilder(

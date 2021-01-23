@@ -18,7 +18,8 @@ namespace StrawberryShake.CodeGeneration
             IReadOnlyList<NamedTypeDescriptor>? implementedBy = null,
             TypeKind kind = TypeKind.LeafType,
             NameString? graphQLTypeName = null,
-            string? serializationType = null)
+            string? serializationType = null,
+            bool isEnum = false)
         {
             Name = name;
             Namespace = @namespace;
@@ -29,6 +30,7 @@ namespace StrawberryShake.CodeGeneration
             Kind = kind;
             IsInterface = isInterface;
             SerializationType = serializationType;
+            IsEnum = isEnum;
         }
 
         /// <summary>
@@ -47,6 +49,7 @@ namespace StrawberryShake.CodeGeneration
         public NameString? GraphQLTypeName { get; }
 
         public string? SerializationType { get; }
+        public bool IsEnum { get; }
 
         /// <summary>
         /// The properties that result from the requested fields of the operation this ResultType is generated for.

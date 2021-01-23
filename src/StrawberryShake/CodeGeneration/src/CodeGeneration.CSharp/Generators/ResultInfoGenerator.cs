@@ -28,7 +28,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             var className = ResultInfoNameFromTypeName(namedTypeDescriptor.Name);
 
             classBuilder
-                .AddImplements(ResultInfoNameFromTypeName(TypeNames.IOperationResultDataInfo))
+                .AddImplements(TypeNames.IOperationResultDataInfo)
                 .SetName(className);
 
             constructorBuilder
@@ -41,8 +41,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             var withVersion = MethodBuilder.New()
                 .SetAccessModifier(AccessModifier.Public)
-                .SetReturnType(className)
-                .SetName($"{TypeNames.IOperationResultDataInfo}.WithVersion")
+                .SetReturnType(TypeNames.IOperationResultDataInfo)
+                .SetName($"WithVersion")
                 .AddParameter(ParameterBuilder.New()
                     .SetType("ulong")
                     .SetName("version"));
@@ -72,17 +72,17 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
 
             classBuilder.AddProperty(PropertyBuilder.New()
-                .SetName("IOperationResultDataInfo.EntityIds")
-                .SetType("IReadOnlyCollection<EntityId>")
+                .SetName($"EntityIds")
+                .SetType($"{TypeNames.IReadOnlyCollection}<{TypeNames.EntityId}>")
                 .AsLambda("_entityIds"));
 
             classBuilder.AddProperty(PropertyBuilder.New()
-                .SetName("IOperationResultDataInfo.Version")
+                .SetName("Version")
                 .SetType("ulong")
                 .AsLambda("_version"));
 
             AddConstructorAssignedField(
-                "IReadOnlyCollection<EntityId>",
+                $"{TypeNames.IReadOnlyCollection}<{TypeNames.EntityId}>",
                 "_entityIds",
                 classBuilder,
                 constructorBuilder);

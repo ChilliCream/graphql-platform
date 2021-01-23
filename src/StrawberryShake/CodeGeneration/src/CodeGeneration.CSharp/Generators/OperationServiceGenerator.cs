@@ -33,7 +33,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 executeMethod = MethodBuilder.New()
                     .SetReturnType(
-                        $"async Task<{TypeNames.IOperationResult}<" +
+                        $"async {TypeNames.Task}<{TypeNames.IOperationResult}<" +
                         $"{operationDescriptor.ResultTypeReference.Name}>>")
                     .SetAccessModifier(AccessModifier.Public)
                     .SetName(TypeNames.Execute);
@@ -42,7 +42,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
             var strategyVariableName = "strategy";
             var watchMethod = MethodBuilder.New()
                 .SetReturnType(
-                    $"IOperationObservable<{operationDescriptor.ResultTypeReference.Name}>")
+                    $"{TypeNames.IOperationObservable}<" +
+                    $"{TypeNames.IOperationResult}<" +
+                    $"{operationDescriptor.ResultTypeReference.Name}>>")
                 .SetAccessModifier(AccessModifier.Public)
                 .SetName(TypeNames.Watch)
                 .AddParameter(
@@ -71,7 +73,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             executeMethod?.AddParameter(
                 ParameterBuilder.New()
-                    .SetType("CancellationToken")
+                    .SetType(TypeNames.CancellationToken)
                     .SetName(cancellationTokenVariableName)
                     .SetDefault());
 

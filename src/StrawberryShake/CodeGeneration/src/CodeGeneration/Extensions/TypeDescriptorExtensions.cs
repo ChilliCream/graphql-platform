@@ -8,7 +8,7 @@ namespace StrawberryShake.CodeGeneration.Extensions
         public static bool IsEntityType(this ITypeDescriptor typeDescriptor) =>
             typeDescriptor.Kind == TypeKind.EntityType;
 
-        public static bool IsDataType(this ITypeDescriptor typeDescriptor) => 
+        public static bool IsDataType(this ITypeDescriptor typeDescriptor) =>
             typeDescriptor.Kind == TypeKind.DataType;
 
         public static bool IsInterface(this ITypeDescriptor typeDescriptor) =>
