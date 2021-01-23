@@ -18,4 +18,8 @@
     <Folder Include="__snapshots__" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="__snapshots__\IntegrationTests.ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentContainsProjectedField.snap" />
+  </ItemGroup>
+
 </Project>
