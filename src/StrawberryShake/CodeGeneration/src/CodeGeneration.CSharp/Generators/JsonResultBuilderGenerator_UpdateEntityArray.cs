@@ -14,14 +14,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
             var updateEntityMethod = MethodBuilder.New()
                 .SetAccessModifier(AccessModifier.Private)
                 .SetName(DeserializerMethodNameFromTypeName(originalTypeDescriptor))
-                .SetReturnType($"IList<{TypeNames.EntityId}>")
+                .SetReturnType($"{TypeNames.IList}<{TypeNames.EntityId}>")
                 .AddParameter(
                     ParameterBuilder.New()
                         .SetType(_jsonElementParamName)
                         .SetName(_objParamName))
                 .AddParameter(
                     ParameterBuilder.New()
-                        .SetType($"ISet<{TypeNames.EntityId}>")
+                        .SetType($"{TypeNames.ISet}<{TypeNames.EntityId}>")
                         .SetName(_entityIdsParam));
 
             updateEntityMethod.AddCode(
@@ -35,7 +35,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 : listTypeDescriptor.InnerType.Name;
 
             updateEntityMethod.AddCode(
-                $"var {listVarName} = new List<{elementType}>();");
+                $"var {listVarName} = new {TypeNames.List}<{elementType}>();");
 
             updateEntityMethod.AddCode(
                 ForEachBuilder.New()

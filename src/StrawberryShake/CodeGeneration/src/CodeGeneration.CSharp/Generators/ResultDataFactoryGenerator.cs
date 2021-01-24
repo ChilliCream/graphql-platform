@@ -94,7 +94,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             createMethod.AddCode(ifHasCorrectType);
             createMethod.AddEmptyLine();
             createMethod.AddCode(
-                "throw new ArgumentException(\"" +
+                $"throw new {TypeNames.ArgumentException}(\"" +
                 $"{ResultInfoNameFromTypeName(descriptor.Name)} expected.\");");
 
             classBuilder.AddMethod(createMethod);
@@ -125,6 +125,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     {
                         codeContainer.AddCode($"{namedType.Name} {varName} = default!;");
                         codeContainer.AddEmptyLine();
+                        var nonNullVarName = $"{idName.WithLowerFirstChar()}Info";
+                        codeContainer.AddCode(
+                            $"var {nonNullVarName} = info.{idName} " +
+                            $"?? throw new {TypeNames.ArgumentNullException}();");
 
                         foreach (NamedTypeDescriptor implementee in namedType.ImplementedBy)
                         {
@@ -134,12 +138,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                         ConditionBuilder.New().Set(
                                             MethodCallBuilder.New()
                                                 .SetDetermineStatement(false)
-                                                .SetMethodName($"info.{idName}.Name.Equals")
+                                                .SetMethodName($"{nonNullVarName}.Name.Equals")
                                                 .AddArgument($"\"{implementee.GraphQLTypeName}\"")
-                                                .AddArgument("StringComparison.Ordinal")))
+                                                .AddArgument(TypeNames.OrdinalStringComparisson)))
                                     .AddCode(AssignmentBuilder.New()
                                         .SetLefthandSide(varName)
-                                        .SetRighthandSide(GetMappingCall(implementee, idName))));
+                                        .SetRighthandSide(GetMappingCall(implementee, nonNullVarName))));
 
                             codeContainer.AddEmptyLine();
                         }
@@ -173,13 +177,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return MethodCallBuilder.New()
                 .SetMethodName(
                     EntityMapperNameFromGraphQLTypeName(
-                        namedTypeDescriptor.Name,
-                        namedTypeDescriptor.GraphQLTypeName))
+                            namedTypeDescriptor.Name,
+                            namedTypeDescriptor.GraphQLTypeName
+                            ?? throw new ArgumentNullException("GraphQLTypeName"))
+                        .ToFieldName()+ ".Map")
                 .SetDetermineStatement(false)
                 .AddArgument(
                     $"{StoreParamName}.GetEntity<" +
                     $"{EntityTypeNameFromGraphQLTypeName(namedTypeDescriptor.GraphQLTypeName)}>" +
-                    $"(info.{idName})");
+                    $"({idName}) ?? throw new {TypeNames.ArgumentNullException}()");
         }
 
         private IEnumerable<NamedTypeDescriptor> GetMappers(ITypeDescriptor typeDescriptor)

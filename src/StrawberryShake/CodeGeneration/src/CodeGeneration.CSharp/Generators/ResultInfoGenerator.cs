@@ -92,7 +92,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 "ulong",
                 "_version",
                 classBuilder,
-                constructorBuilder);
+                constructorBuilder,
+                true);
             constructorCaller.AddArgument("_version");
 
             withVersion.AddCode(constructorCaller);

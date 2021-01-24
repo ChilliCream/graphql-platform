@@ -283,7 +283,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 ifChain.AddIfElse(singleIf);
             }
 
-            ifChain.AddElse(CodeInlineBuilder.New().SetText("throw new NotSupportedException();"));
+            ifChain.AddElse(CodeInlineBuilder.New()
+                .SetText($"throw new {TypeNames.NotSupportedException}();"));
 
             method.AddCode(ifChain);
 
@@ -292,7 +293,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 var ifCorrectType = IfBuilder.New()
                     .SetCondition(
                         $"{mappingArgument}.Name.Equals(\"" +
-                        $"{interfaceImplementee.GraphQLTypeName}\", StringComparison.Ordinal)");
+                        $"{interfaceImplementee.GraphQLTypeName}\", {TypeNames.OrdinalStringComparisson})");
 
                 MapConcreteType(
                     ifCorrectType,

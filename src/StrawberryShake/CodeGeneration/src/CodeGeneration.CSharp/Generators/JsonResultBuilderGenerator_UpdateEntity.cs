@@ -22,7 +22,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         .SetName(_objParamName))
                 .AddParameter(
                     ParameterBuilder.New()
-                        .SetType($"ISet<{TypeNames.EntityId}>")
+                        .SetType($"{TypeNames.ISet}<{TypeNames.EntityId}>")
                         .SetName(_entityIdsParam));
 
             updateEntityMethod.AddCode(
@@ -42,7 +42,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 var ifStatement = IfBuilder.New()
                     .SetCondition(
                         $"entityId.Name.Equals(\"{concreteType.Name}\", " +
-                        "StringComparison.Ordinal)");
+                        $"{TypeNames.OrdinalStringComparisson})");
 
                 var entityTypeName = EntityTypeNameFromGraphQLTypeName(concreteType.Name);
 
@@ -65,7 +65,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
 
             updateEntityMethod.AddEmptyLine();
-            updateEntityMethod.AddCode("throw new NotSupportedException();");
+            updateEntityMethod.AddCode($"throw new {TypeNames.NotSupportedException}();");
 
             classBuilder.AddMethod(updateEntityMethod);
             AddRequiredDeserializeMethods(namedTypeDescriptor, classBuilder);

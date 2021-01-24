@@ -14,7 +14,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetAccessModifier(AccessModifier.Private)
                 .SetName("BuildData")
                 .SetReturnType(
-                    $"({resultNamedType.Name}, {ResultInfoNameFromTypeName(resultNamedType.Name)})")
+                    $"({resultNamedType.Name}, " +
+                    $"{ResultInfoNameFromTypeName(resultNamedType.ImplementedBy[0].Name)})")
                 .AddParameter(
                     ParameterBuilder.New()
                         .SetType(TypeNames.JsonElement)
@@ -32,7 +33,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             var entityIdsName = "entityIds";
             buildDataMethod.AddCode(
                 CodeLineBuilder.New()
-                    .SetLine($"var {entityIdsName} = new HashSet<{TypeNames.EntityId}>();"));
+                    .SetLine($"var {entityIdsName} = new {TypeNames.HashSet}<{TypeNames.EntityId}>();"));
 
             buildDataMethod.AddEmptyLine();
             foreach (PropertyDescriptor property in

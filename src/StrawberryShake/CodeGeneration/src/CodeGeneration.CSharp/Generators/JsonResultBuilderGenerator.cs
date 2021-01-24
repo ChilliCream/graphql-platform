@@ -29,7 +29,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             constructorBuilder.SetTypeName(resultBuilderDescriptor.Name);
 
             classBuilder.AddImplements(
-                $"{TypeNames.IOperationResultBuilder}<{TypeNames.JsonElement}," +
+                $"{TypeNames.IOperationResultBuilder}<{TypeNames.JsonDocument}," +
                 $" {resultTypeDescriptor.Name}>");
 
             AddConstructorAssignedField(
@@ -40,7 +40,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             AddConstructorAssignedField(
                 TypeReferenceBuilder.New()
-                    .SetName("Func")
+                    .SetName(TypeNames.Func)
                     .AddGeneric(TypeNames.JsonElement)
                     .AddGeneric(TypeNames.EntityId),
                 _extractIdFieldName,
@@ -185,7 +185,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         .SetType(
                             TypeReferenceBuilder.New()
                                 .SetName(TypeNames.Response)
-                                .AddGeneric("JsonDocument")
+                                .AddGeneric(TypeNames.JsonDocument)
                                 .SetName(TypeNames.Response))
                         .SetName(responseParameterName));
 
@@ -193,7 +193,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 AssignmentBuilder.New()
                     .SetLefthandSide(
                         $"({resultNamedType.Name} Result, " +
-                        $"{NamingConventions.ResultInfoNameFromTypeName(resultNamedType.Name)} " +
+                        $"{ResultInfoNameFromTypeName(resultNamedType.ImplementedBy[0].Name)} " +
                         "Info)? data")
                     .SetRighthandSide("null"));
 
@@ -228,10 +228,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             var scalarDeserializer = MethodBuilder.New()
                 .SetName(DeserializerMethodNameFromTypeName(originalTypeDescriptor))
-                .SetReturnType(namedType.Name)
+                .SetReturnType(namedType.Namespace + namedType.Name)
                 .AddParameter(
                     ParameterBuilder.New()
-                        .SetType(TypeNames.JsonElement)
+                        .SetType(TypeNames.JsonElement + "?")
                         .SetName(_objParamName));
 
             scalarDeserializer.AddCode(
@@ -257,7 +257,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         .SetCondition(
                             ConditionBuilder.New()
                                 .Set($"{propertyName} == null"))
-                        .AddCode("throw new InvalidOperationException();"))
+                        .AddCode($"throw new {TypeNames.ArgumentNullException}();"))
                 .AddEmptyLine();
         }
 
@@ -270,7 +270,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetMethodName(DeserializerMethodNameFromTypeName(property.Type));
 
             deserializeMethodCaller.AddArgument(
-                $"{_objParamName}.GetPropertyOrNull(\"{property.Name.WithLowerFirstChar()}\")");
+                $"{TypeNames.GetPropertyOrNull}({_objParamName}, \"{property.Name.WithLowerFirstChar()}\")");
 
             if (!property.Type.IsLeafType())
             {

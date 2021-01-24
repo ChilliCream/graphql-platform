@@ -11,7 +11,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             var (classBuilder, constructorBuilder) = CreateClassBuilder();
 
-            classBuilder.SetName(DocumentTypeNameFromOperationName(descriptor.Name));
+            var documentClassName = DocumentTypeNameFromOperationName(descriptor.Name);
+            classBuilder
+                .AddImplements(TypeNames.IDocument)
+                .SetName(documentClassName);
             constructorBuilder.SetAccessModifier(AccessModifier.Private);
 
             classBuilder.AddField(
@@ -49,9 +52,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
             classBuilder.AddProperty(
                 PropertyBuilder.New()
                     .SetStatic()
-                    .SetType("GetHeroQueryDocument")
+                    .SetType(documentClassName)
                     .SetName("Instance")
-                    .SetValue($"new()"));
+                    .SetValue($"new {documentClassName}()"));
 
             classBuilder.AddProperty(
                 PropertyBuilder.New()

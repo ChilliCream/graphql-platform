@@ -16,7 +16,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
             TypeReferenceBuilder type,
             string fieldName,
             ClassBuilder classBuilder,
-            ConstructorBuilder constructorBuilder)
+            ConstructorBuilder constructorBuilder,
+            bool skiplNullCheck = false)
         {
             var paramName = fieldName.TrimStart('_');
 
@@ -27,30 +28,36 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetName(fieldName)
                     .SetType(type));
 
+            var assignment = AssignmentBuilder
+                .New()
+                .SetLefthandSide(fieldName)
+                .SetRighthandSide(paramName);
+            if (!skiplNullCheck)
+            {
+                assignment.AssertNonNull();
+            }
+
             constructorBuilder.AddParameter(
-                ParameterBuilder
-                    .New()
-                    .SetType(type)
-                    .SetName(paramName))
-                .AddCode(
-                    AssignmentBuilder
+                    ParameterBuilder
                         .New()
-                        .SetLefthandSide(fieldName)
-                        .SetRighthandSide(paramName)
-                        .AssertNonNull());
+                        .SetType(type)
+                        .SetName(paramName))
+                .AddCode(assignment);
         }
 
         protected void AddConstructorAssignedField(
             string typename,
             string fieldName,
             ClassBuilder classBuilder,
-            ConstructorBuilder constructorBuilder)
+            ConstructorBuilder constructorBuilder,
+            bool skiplNullCheck = false)
         {
             AddConstructorAssignedField(
                 TypeReferenceBuilder.New().SetName(typename),
                 fieldName,
                 classBuilder,
-                constructorBuilder);
+                constructorBuilder,
+                skiplNullCheck);
         }
     }
 }
