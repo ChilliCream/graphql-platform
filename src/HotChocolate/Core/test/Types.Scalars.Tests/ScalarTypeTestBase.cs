@@ -37,7 +37,7 @@ namespace HotChocolate.Types.Scalars
             }
         }
 
-        protected void IsInstanceOfType<TType>(
+        protected void ExpectIsInstanceOfTypeToMatch<TType>(
             IValueNode valueSyntax,
             bool expectedResult)
             where TType : ScalarType, new()
@@ -52,7 +52,7 @@ namespace HotChocolate.Types.Scalars
             Assert.Equal(expectedResult, result);
         }
 
-        protected void IsInstanceOfType<TType>(
+        protected void ExpectIsInstanceOfTypeToMatch<TType>(
             object runtimeValue,
             bool expectedResult)
             where TType : ScalarType, new()
@@ -67,7 +67,7 @@ namespace HotChocolate.Types.Scalars
             Assert.Equal(expectedResult, result);
         }
 
-        protected void ParseLiteral<TType>(
+        protected void ExpectParseLiteralToMatch<TType>(
             IValueNode valueSyntax,
             object expectedResult)
             where TType : ScalarType, new()
@@ -82,7 +82,8 @@ namespace HotChocolate.Types.Scalars
             Assert.Equal(expectedResult, result);
         }
 
-        protected void ParseLiteralInvalid<TType>(IValueNode valueSyntax)
+        protected void ExpectParseLiteralToThrowSerializationException<TType>(
+            IValueNode valueSyntax)
             where TType : ScalarType, new()
         {
             // arrange
@@ -95,7 +96,7 @@ namespace HotChocolate.Types.Scalars
             Assert.IsType<SerializationException>(result);
         }
 
-        protected void ParseValue<TType>(
+        protected void ExpectParseValueToMatchType<TType>(
             object valueSyntax,
             Type type)
             where TType : ScalarType, new()
@@ -110,7 +111,7 @@ namespace HotChocolate.Types.Scalars
             Assert.Equal(type, result.GetType());
         }
 
-        protected void ParseValueInvalid<TType>(object runtimeValue)
+        protected void ExpectParseValueToThrowSerializationException<TType>(object runtimeValue)
             where TType : ScalarType, new()
         {
             // arrange

@@ -8,7 +8,7 @@ namespace HotChocolate.Types.Scalars
     public class NonEmptyStringTypeTests : ScalarTypeTestBase
     {
         [Fact]
-        public void Schema_IsMatch()
+        public void Schema_WithScalar_IsMatch()
         {
             // arrange
             ISchema schema = BuildSchema<NonEmptyStringType>();
@@ -26,14 +26,17 @@ namespace HotChocolate.Types.Scalars
         [InlineData(typeof(StringValueNode), "", false)]
         [InlineData(typeof(StringValueNode), "foo", true)]
         [InlineData(typeof(NullValueNode), null, true)]
-        public void Test_IsInstanceOfTypeValueNode(Type type, object value, bool expected)
+        public void IsInstanceOfType_GivenValueNode_MatchExpected(
+            Type type,
+            object value,
+            bool expected)
         {
             // arrange
             IValueNode valueNode = CreateValueNode(type, value);
 
             // act
             // assert
-            IsInstanceOfType<NonEmptyStringType>(valueNode, expected);
+            ExpectIsInstanceOfTypeToMatch<NonEmptyStringType>(valueNode, expected);
         }
 
         [Theory]
@@ -44,25 +47,28 @@ namespace HotChocolate.Types.Scalars
         [InlineData("", false)]
         [InlineData(null, true)]
         [InlineData("foo", true)]
-        public void Test_IsInstanceOfTypeObject(object value, bool expected)
+        public void IsInstanceOfType_GivenObject_MatchExpected(object value, bool expected)
         {
             // arrange
             // act
             // assert
-            IsInstanceOfType<NonEmptyStringType>(value, expected);
+            ExpectIsInstanceOfTypeToMatch<NonEmptyStringType>(value, expected);
         }
 
         [Theory]
         [InlineData(typeof(StringValueNode), "foo", "foo")]
         [InlineData(typeof(NullValueNode), null, null)]
-        public void Test_ParseLiteral(Type type, object value, object expected)
+        public void ParseLiteral_GivenValueNode_MatchExpected(
+            Type type,
+            object value,
+            object expected)
         {
             // arrange
             IValueNode valueNode = CreateValueNode(type, value);
 
             // act
             // assert
-            ParseLiteral<NonEmptyStringType>(valueNode, expected);
+            ExpectParseLiteralToMatch<NonEmptyStringType>(valueNode, expected);
         }
 
         [Theory]
@@ -71,25 +77,25 @@ namespace HotChocolate.Types.Scalars
         [InlineData(typeof(IntValueNode), 1)]
         [InlineData(typeof(BooleanValueNode), true)]
         [InlineData(typeof(StringValueNode), "")]
-        public void Test_ParseLiteralInvalid(Type type, object value)
+        public void ParseLiteral_GivenValueNode_ThrowSerializationException(Type type, object value)
         {
             // arrange
             IValueNode valueNode = CreateValueNode(type, value);
 
             // act
             // assert
-            ParseLiteralInvalid<NonEmptyStringType>(valueNode);
+            ExpectParseLiteralToThrowSerializationException<NonEmptyStringType>(valueNode);
         }
 
         [Theory]
         [InlineData(typeof(StringValueNode), "foo")]
         [InlineData(typeof(NullValueNode), null)]
-        public void Test_ParseValue(Type type, object value)
+        public void ParseValue_GivenObject_MatchExpectedType(Type type, object value)
         {
             // arrange
             // act
             // assert
-            ParseValue<NonEmptyStringType>(value, type);
+            ExpectParseValueToMatchType<NonEmptyStringType>(value, type);
         }
 
         [Theory]
@@ -98,12 +104,12 @@ namespace HotChocolate.Types.Scalars
         [InlineData(1)]
         [InlineData(true)]
         [InlineData("")]
-        public void Test_ParseValueInvalid(object value)
+        public void ParseLiteral_GivenObject_ThrowSerializationException(object value)
         {
             // arrange
             // act
             // assert
-            ParseValueInvalid<NonEmptyStringType>(value);
+            ExpectParseValueToThrowSerializationException<NonEmptyStringType>(value);
         }
     }
 }
