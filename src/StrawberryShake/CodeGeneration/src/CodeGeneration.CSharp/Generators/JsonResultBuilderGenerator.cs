@@ -62,7 +62,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             foreach (var valueParser in resultBuilderDescriptor.ValueParsers)
             {
-                var parserFieldName = $"_{valueParser.RuntimeType.Split(".").Last().WithLowerFirstChar()}Parser";
+                var parserFieldName =
+                    $"_{valueParser.RuntimeType.Split(".").Last().WithLowerFirstChar()}Parser";
                 classBuilder.AddField(
                     FieldBuilder.New().SetName(parserFieldName).SetType(
                         TypeReferenceBuilder.New()
@@ -228,37 +229,45 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             var scalarDeserializer = MethodBuilder.New()
                 .SetName(DeserializerMethodNameFromTypeName(originalTypeDescriptor))
-                .SetReturnType(namedType.Namespace + namedType.Name)
+                .SetReturnType(namedType.Namespace + "." + namedType.Name)
                 .AddParameter(
                     ParameterBuilder.New()
                         .SetType(TypeNames.JsonElement + "?")
                         .SetName(_objParamName));
 
             scalarDeserializer.AddCode(
-                EnsureJsonValueIsNotNull(),
+                EnsureJsonValueIsNotNull(isNonNullType: originalTypeDescriptor.IsNonNullableType()),
                 originalTypeDescriptor.IsNonNullableType());
 
             var jsonGetterTypeName =
                 namedType.SerializationType?.Split(".").Last()
-                    ?? namedType.Name.WithCapitalFirstChar();
+                ?? namedType.Name.WithCapitalFirstChar();
             scalarDeserializer.AddCode(
-                $"return {namedType.Name.ToFieldName()}Parser.Parse({_objParamName}" +
+                $"return {namedType.Name.ToFieldName()}Parser.Parse({_objParamName}.Value" +
                 $".Get{jsonGetterTypeName}()!);");
 
             classBuilder.AddMethod(scalarDeserializer);
         }
 
-        private CodeBlockBuilder EnsureJsonValueIsNotNull(string propertyName = _objParamName)
+        private CodeBlockBuilder EnsureJsonValueIsNotNull(
+            string propertyName = _objParamName,
+            bool isNonNullType = false)
         {
-            return CodeBlockBuilder.New()
-                .AddCode(
-                    IfBuilder
-                        .New()
-                        .SetCondition(
-                            ConditionBuilder.New()
-                                .Set($"{propertyName} == null"))
-                        .AddCode($"throw new {TypeNames.ArgumentNullException}();"))
+            var ifBuilder = IfBuilder
+                .New()
+                .SetCondition(
+                    ConditionBuilder.New()
+                        .Set($"!{propertyName}.HasValue"));
+            ifBuilder.AddCode(
+                isNonNullType ?
+                    $"throw new {TypeNames.ArgumentNullException}();"
+                    : "return null;");
+
+            var codeBuilder = CodeBlockBuilder.New()
+                .AddCode(ifBuilder)
                 .AddEmptyLine();
+
+            return codeBuilder;
         }
 
         private MethodCallBuilder BuildUpdateMethodCall(PropertyDescriptor property)
@@ -310,7 +319,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
             switch (typeDescriptor)
             {
                 case ListTypeDescriptor listTypeDescriptor:
-                    return BuildDeserializeMethodName(listTypeDescriptor.InnerType, true) +
+                    return BuildDeserializeMethodName(
+                               listTypeDescriptor.InnerType,
+                               true) +
                            "Array";
 
                 case NamedTypeDescriptor namedTypeDescriptor:
@@ -326,9 +337,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 case NonNullTypeDescriptor nonNullTypeDescriptor:
                     return parentIsList
                         ? BuildDeserializeMethodName(nonNullTypeDescriptor.InnerType) +
-                            "NonNullable"
+                          "NonNullable"
                         : "NonNullable" +
-                            BuildDeserializeMethodName(nonNullTypeDescriptor.InnerType);
+                          BuildDeserializeMethodName(nonNullTypeDescriptor.InnerType);
                 default:
                     throw new ArgumentOutOfRangeException(nameof(typeDescriptor));
             }

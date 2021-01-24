@@ -374,14 +374,14 @@ namespace Foo
             throw new global::System.NotSupportedException();
         }
 
-        private global::SystemString DeserializeNonNullableString(global::System.Text.Json.JsonElement? obj)
+        private global::System.String DeserializeNonNullableString(global::System.Text.Json.JsonElement? obj)
         {
-            if (obj == null)
+            if (!obj.HasValue)
             {
                 throw new global::System.ArgumentNullException();
             }
 
-            return _stringParser.Parse(obj.GetString()!);
+            return _stringParser.Parse(obj.Value.GetString()!);
         }
 
         private global::System.Collections.Generic.IList<global::StrawberryShake.EntityId> DeserializeEpisodeArray(
@@ -397,9 +397,9 @@ namespace Foo
             return episodes;
         }
 
-        private FooEpisode DeserializeEpisode(global::System.Text.Json.JsonElement? obj)
+        private Foo.Episode DeserializeEpisode(global::System.Text.Json.JsonElement? obj)
         {
-            return _episodeParser.Parse(obj.GetString()!);
+            return _episodeParser.Parse(obj.Value.GetString()!);
         }
     }
 }
