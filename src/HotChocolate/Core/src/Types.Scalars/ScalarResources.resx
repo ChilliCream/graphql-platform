@@ -18,13 +18,13 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="NonNullStringType_Description" xml:space="preserve">
-    <value>The NonNullString scalar type represents non empty textual data, represented as UTF‐8 character sequences with at least one character</value>
+  <data name="NonEmptyStringType_Description" xml:space="preserve">
+    <value>The NonEmptyString scalar type represents non empty textual data, represented as UTF‐8 character sequences with at least one character</value>
   </data>
-  <data name="NonNullStringType_IsEmpty_ParseLiteral" xml:space="preserve">
-    <value>NonNullString cannot parse the provided literal. The provided string was empty.</value>
+  <data name="NonEmptyStringType_IsEmpty_ParseLiteral" xml:space="preserve">
+    <value>NonEmptyString cannot parse the provided literal. The provided string was empty.</value>
   </data>
-  <data name="NonNullStringType_IsEmpty_ParseValue" xml:space="preserve">
-    <value>NonNullString cannot parse the provided value. The provided string was empty.</value>
+  <data name="NonEmptyStringType_IsEmpty_ParseValue" xml:space="preserve">
+    <value>NonEmptyString cannot parse the provided value. The provided string was empty.</value>
   </data>
 </root>

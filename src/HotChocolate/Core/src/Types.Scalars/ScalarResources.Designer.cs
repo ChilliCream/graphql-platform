@@ -45,21 +45,21 @@ namespace HotChocolate.Types.Scalars {
             }
         }
         
-        internal static string NonNullStringType_Description {
+        internal static string NonEmptyStringType_Description {
             get {
-                return ResourceManager.GetString("NonNullStringType_Description", resourceCulture);
+                return ResourceManager.GetString("NonEmptyStringType_Description", resourceCulture);
             }
         }
         
-        internal static string NonNullStringType_IsEmpty_ParseLiteral {
+        internal static string NonEmptyStringType_IsEmpty_ParseLiteral {
             get {
-                return ResourceManager.GetString("NonNullStringType_IsEmpty_ParseLiteral", resourceCulture);
+                return ResourceManager.GetString("NonEmptyStringType_IsEmpty_ParseLiteral", resourceCulture);
             }
         }
         
-        internal static string NonNullStringType_IsEmpty_ParseValue {
+        internal static string NonEmptyStringType_IsEmpty_ParseValue {
             get {
-                return ResourceManager.GetString("NonNullStringType_IsEmpty_ParseValue", resourceCulture);
+                return ResourceManager.GetString("NonEmptyStringType_IsEmpty_ParseValue", resourceCulture);
             }
         }
     }

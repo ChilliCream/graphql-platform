@@ -5,7 +5,7 @@ using HotChocolate.Types.Scalars;
 namespace HotChocolate.Types
 {
     /// <summary>
-    /// The NonNullString scalar type represents non empty textual data, represented as
+    /// The NonEmptyString scalar type represents non empty textual data, represented as
     /// UTF‐8 character sequences with at least one character
     /// </summary>
     public class NonEmptyStringType : StringType
@@ -15,8 +15,8 @@ namespace HotChocolate.Types
         /// </summary>
         public NonEmptyStringType()
             : this(
-                WellKnownScalarTypes.NonNullString,
-                ScalarResources.NonNullStringType_Description)
+                WellKnownScalarTypes.NonEmptyString,
+                ScalarResources.NonEmptyStringType_Description)
         {
         }
 
@@ -49,7 +49,7 @@ namespace HotChocolate.Types
         {
             if (valueSyntax.Value == string.Empty)
             {
-                throw ThrowHelper.NonNullStringType_ParseLiteral_IsEmpty(this);
+                throw ThrowHelper.NonEmptyStringType_ParseLiteral_IsEmpty(this);
             }
 
             return base.ParseLiteral(valueSyntax);
@@ -60,7 +60,7 @@ namespace HotChocolate.Types
         {
             if (runtimeValue == string.Empty)
             {
-                throw ThrowHelper.NonNullStringType_ParseValue_IsEmpty(this);
+                throw ThrowHelper.NonEmptyStringType_ParseValue_IsEmpty(this);
             }
 
             return base.ParseValue(runtimeValue);
