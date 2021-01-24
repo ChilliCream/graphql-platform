@@ -7,6 +7,7 @@ namespace HotChocolate.Types.Scalars
             return new SerializationException(
                 ErrorBuilder.New()
                     .SetMessage(ScalarResources.NonEmptyStringType_IsEmpty_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
                     .SetExtension("actualType", "NonEmptyString")
                     .Build(),
                 type);
@@ -17,6 +18,7 @@ namespace HotChocolate.Types.Scalars
             return new SerializationException(
                 ErrorBuilder.New()
                     .SetMessage(ScalarResources.NonEmptyStringType_IsEmpty_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
                     .SetExtension("actualType", "NonEmptyString")
                     .Build(),
                 type);
