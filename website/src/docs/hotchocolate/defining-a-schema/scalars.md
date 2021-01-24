@@ -13,3 +13,59 @@ Sorry for any inconvenience, and thank you for being patient!
 The ChilliCream Team
 
 <br><br><br>
+
+# Additional Scalars
+HotChocolate provides additional scalars for more specific usecases. 
+
+To use these scalars you have to add the package `HotChocolate.Types.Scalars`
+
+```csharp
+dotnet add package HotChocolate.Types.Scalars
+```
+
+These scalars cannot be mapped by HotChocolate to a field. 
+You need to specify them manually.
+
+**Annotation Based**
+```csharp
+public class User 
+{
+    [GraphQLType(typeof(NonEmptyStringType))]
+    public string UserName { get; set; }
+}
+```
+
+**Code First**
+```csharp
+public class UserType : ObjectType<User> 
+{
+    protected override void Configure(
+        IObjectTypeDescriptor<User> descriptor)
+    {
+        descriptor.Field(x => x.UserName).Type<NonEmptyStringType>();
+    }
+}
+```
+
+**Schema First**
+```sql
+type User {
+  userName: NonEmptyString
+}
+```
+
+You will also have to add the Scalar to the schema: 
+```csharp
+services
+  .AddGraphQLServer()
+  // ....
+  .AddType<NonEmptyStringType>()
+```
+
+## NonEmptyString
+```sdl
+"""
+The NonNullString scalar type represents non empty textual data, represented as UTF‐8 character sequences with at least one character
+"""
+scalar NonEmptyString
+```
