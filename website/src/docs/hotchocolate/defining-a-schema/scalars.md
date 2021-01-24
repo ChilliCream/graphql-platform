@@ -69,3 +69,11 @@ The NonNullString scalar type represents non empty textual data, represented as 
 """
 scalar NonEmptyString
 ```
+
+## PositiveInt
+```sdl
+"""
+The PositiveInt scalar type represents a signed 32‐bit numeric non‐fractional value of at least the value 1.
+"""
+scalar PositiveInt
+```

@@ -62,5 +62,23 @@ namespace HotChocolate.Types.Scalars {
                 return ResourceManager.GetString("NonEmptyStringType_IsEmpty_ParseValue", resourceCulture);
             }
         }
+        
+        internal static string PositiveIntType_Description {
+            get {
+                return ResourceManager.GetString("PositiveIntType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string PositiveIntType_ZeroOrLess_ParseLiteral {
+            get {
+                return ResourceManager.GetString("PositiveIntType_ZeroOrLess_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        internal static string PositiveIntType_ZeroOrLess_ParseValue {
+            get {
+                return ResourceManager.GetString("PositiveIntType_ZeroOrLess_ParseValue", resourceCulture);
+            }
+        }
     }
 }

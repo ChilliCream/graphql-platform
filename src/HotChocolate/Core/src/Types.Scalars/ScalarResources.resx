@@ -27,4 +27,13 @@
   <data name="NonEmptyStringType_IsEmpty_ParseValue" xml:space="preserve">
     <value>NonEmptyString cannot parse the provided value. The provided string was empty.</value>
   </data>
+  <data name="PositiveIntType_Description" xml:space="preserve">
+    <value>The PositiveInt scalar type represents a signed 32‐bit numeric non‐fractional value of at least the value 1.</value>
+  </data>
+  <data name="PositiveIntType_ZeroOrLess_ParseLiteral" xml:space="preserve">
+    <value>PositiveInt cannot parse the provided literal. The provided value is 0 or less.</value>
+  </data>
+  <data name="PositiveIntType_ZeroOrLess_ParseValue" xml:space="preserve">
+    <value>PositiveInt cannot parse the provided value. The provided value is 0 or less.</value>
+  </data>
 </root>
