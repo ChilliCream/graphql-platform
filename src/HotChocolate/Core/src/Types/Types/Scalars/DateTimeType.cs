@@ -14,7 +14,7 @@ namespace HotChocolate.Types
     ///
     /// https://www.graphql-scalars.com/date-time/
     /// </summary>
-    public sealed class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
+    public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
     {
         private const string _utcFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffZ";
         private const string _localFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffzzz";
