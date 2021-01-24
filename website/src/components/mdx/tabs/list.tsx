@@ -8,4 +8,8 @@ export const List = styled.div`
     ~ .gatsby-highlight {
         margin-top: 0;
     }
+
+    ~ p {
+        margin-top: 14px;
+    }
 `;

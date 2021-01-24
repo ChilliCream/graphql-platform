@@ -17,17 +17,18 @@ export const CodeBlock: FC<CodeBlockProps> = ({
   const code = children.props.children;
 
   return (
-    <Container className="gatsby-highlight">
+    <Container className={`gatsby-highlight code-${language}`}>
+      <CodeIndicator language={language} />
+      <CopyPosition>
+        <Copy content={code} />
+      </CopyPosition>
       <Highlight
         Prism={Prism as any}
         code={code}
         language={(language as string) === 'sdl' ? 'graphql' : language}
       >
         {({ className, style, tokens, getLineProps, getTokenProps }) => (
-          <Pre className={`${className} code-${language}`} style={style}>
-            <CopyPosition>
-              <Copy content={code} />
-            </CopyPosition>
+          <Pre className={className} style={style}>
             {tokens.map((line, i) => (
               <Line
                 highlight={shouldHighlightLine(i)}
@@ -46,6 +47,77 @@ export const CodeBlock: FC<CodeBlockProps> = ({
     </Container>
   );
 };
+
+interface CodeIndicatorProps { language: string; } const CodeIndicator: FC<CodeIndicatorProps> = ({ language }) => {
+  const codeLanguage = codeLanguages[language];
+
+  return (
+    codeLanguage
+      ? <IndicatorContent style={{
+        color: codeLanguage.color,
+        background: codeLanguage.background,
+      }}>{codeLanguage.content}</IndicatorContent>
+      : null
+  )
+}
+
+const codeLanguages: Record<string, { content: string, color: string, background: string }> = {
+  csharp: {
+    content: 'C#',
+    color: '#4f3903',
+    background: '#ffb806'
+  },
+  bash: {
+    content: 'Bash',
+    color: '#333',
+    background: '#0fd',
+  },
+  graphql: {
+    content: 'GraphQL',
+    color: '#fff',
+    background: '#e535ab',
+  },
+  http: {
+    content: 'HTTP',
+    color: '#efeaff',
+    background: '#8b76cc',
+  },
+  json: {
+    content: 'JSON',
+    color: '#fff',
+    background: '#1da0f2',
+  },
+  sdl: {
+    content: 'SDL',
+
+    color: '#fff',
+    background: '#e535ab',
+  },
+  sql: {
+    content: 'SQL',
+    color: '#fff',
+    background: '#80f',
+  },
+  xml: {
+    content: 'XML',
+    color: '#fff',
+    background: '#999',
+  }
+}
+
+const IndicatorContent = styled.div`
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    left: 50px;
+    border-radius: 0px 0px 4px 4px;
+    padding: 2px 8px;
+    font-size: 0.8em;
+    font-weight: bold;
+    letter-spacing: 0.075em;
+    line-height: 1em;
+    text-transform: uppercase;
+`;
 
 const RE = /{([\d,-]+)}/
 
@@ -96,7 +168,6 @@ const LineContent = styled.span`
   display: table-cell;
 `;
 
-
 const Container = styled.div`
     position: relative;
     margin: 20px 0;
@@ -113,72 +184,12 @@ const Container = styled.div`
     > pre[class*="language-"] {
       margin: 0;
       padding: 30px 20px;
-
-      ::before {
-        position: absolute;
-        top: 0;
-        left: 50px;
-        border-radius: 0px 0px 4px 4px;
-        padding: 6px 8px;
-        font-size: 0.800em;
-        font-weight: bold;
-        letter-spacing: 0.075em;
-        line-height: 1em;
-        text-transform: uppercase;
-      }
-    }
-
-    > pre[class="code-bash"]::before {
-      content: "Bash";
-      color: #333;
-      background: #0fd;
-    }
-
-    > pre[class*="code-csharp"]::before {
-      content: "C#";
-      color: #4f3903;
-      background: #ffb806;
-    }
-
-    > pre[class*="code-graphql"]::before {
-      content: "GraphQL";
-      color: #fff;
-      background: #e535ab;
-    }
-
-    > pre[class*="code-http"]::before {
-      content: "HTTP";
-      color: #efeaff;
-      background: #8b76cc;
-    }
-
-    > pre[class*="code-json"]::before {
-      content: "JSON";
-      color: #fff;
-      background: #1da0f2;
-    }
-
-    > pre[class*="code-sdl"]::before {
-      content: "SDL";
-      color: #fff;
-      background: #e535ab;
-    }
-
-    > pre[class*="code-sql"]::before {
-      content: "SQL";
-      color: #fff;
-      background: #80f;
-    }
-
-    > pre[class*="code-xml"]::before {
-      content: "XML";
-      color: #fff;
-      background: #999;
     }
 `;
 
 const CopyPosition = styled.div`
   position: absolute;
+  z-index: 1;
   top: 0;
   right: 0;
 `;
