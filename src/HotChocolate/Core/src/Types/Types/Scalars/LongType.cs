@@ -5,7 +5,7 @@ using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
-    public sealed class LongType
+    public class LongType
         : IntegerTypeBase<long>
     {
         /// <summary>
