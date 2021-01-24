@@ -114,5 +114,13 @@ namespace HotChocolate
             public const string TypeNotDefined = "STITCHING_TYPE_NOT_DEFINED";
             public const string ArgumentNotFound = "STITCHING_DEL_ARGUMENT_NOT_FOUND";
         }
+
+        public static class Data
+        {
+            /// <summary>
+            /// Type does not contain a valid node field. Only `items` and `nodes` are supported
+            /// </summary>
+            public const string NodeFieldWasNotFound = "HC0028";
+        }
     }
 }

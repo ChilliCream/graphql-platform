@@ -1,0 +1,5 @@
+﻿{
+  "ContentType": "application/json; charset=utf-8",
+  "StatusCode": "OK",
+  "Content": "{\n  \"data\": {\n    \"__typename\": \"Query\"\n  }\n}"
+}
