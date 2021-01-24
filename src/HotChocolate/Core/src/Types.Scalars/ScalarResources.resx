@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <root>
-  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+  <xsd:schema id="root"
+    xmlns=""
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:element name="root" msdata:IsDataSet="true">
 
     </xsd:element>
@@ -28,7 +31,7 @@
     <value>NonEmptyString cannot parse the provided value. The provided string was empty.</value>
   </data>
   <data name="PositiveIntType_Description" xml:space="preserve">
-    <value>The PositiveInt scalar type represents a signed 32‐bit numeric non‐fractional value of at least the value 1.</value>
+    <value>The PositiveInt scalar type represents a signed 32-bit numeric non-fractional value of at least the value 1.</value>
   </data>
   <data name="PositiveIntType_ZeroOrLess_ParseLiteral" xml:space="preserve">
     <value>PositiveInt cannot parse the provided literal. The provided value is 0 or less.</value>
