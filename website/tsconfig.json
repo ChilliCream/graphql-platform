@@ -2,10 +2,7 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",
-    "lib": [
-      "dom",
-      "es2019.array"
-    ],
+    "lib": ["dom", "es2019.array"],
     "jsx": "preserve",
     "moduleResolution": "node",
     "allowJs": true,

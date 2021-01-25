@@ -11,4 +11,3 @@ In case you might need help, check out our [Slack channel](https://join.slack.co
 Sorry for any inconvenience, and thank you for being patient!
 
 The ChilliCream Team
-

@@ -113,20 +113,20 @@ HotChocolate will register the types as implementations of the interface.
 In the annotation based approach, you most likely do not need to worry about interfaces at all.
 
 ```csharp
-public class Query 
+public class Query
 {
   public IMessage[] GetMessages([Service]IMessageRepo repo) => repo.GetMessages();
 }
 
 [GraphQLName("Message")]
-public interface IMessage 
+public interface IMessage
 {
   User SendBy { get; }
 
   DateTime CreatedAt { get; }
 }
 
-public class TextMessage : IMessage 
+public class TextMessage : IMessage
 {
   public User SendBy { get; set; }
 
@@ -153,12 +153,12 @@ _Configure Services_
   }
 ```
 
-You can also use classes as definitions for interfaces. 
+You can also use classes as definitions for interfaces.
 To mark a base class as an interface definition you can use `[InterfaceType]`.
 
 ```csharp
 [InterfaceType]
-public abstract class Message 
+public abstract class Message
 {
   public User SendBy { get; set; }
 
@@ -255,8 +255,8 @@ public void ConfigureServices(IServiceCollection services)
         }
         ")
         .AddResolver(
-            "Query", 
-            "messages", 
+            "Query",
+            "messages",
             (context, token) => context.Service<IMessageRepo>().GetMessages());
 }
 ```
@@ -284,44 +284,43 @@ union GroupMember = User | Group
 
 ## Querying Unions
 
-Union types do not have fields in common.   
+Union types do not have fields in common.  
 You have to use [Inline Fragments 📄](https://spec.graphql.org/June2018/#sec-Inline-Fragments) to query for fields of a specific implementation.
 
 ```graphql
 {
-    accessControl {
-        __typename
-        ... on Group {
-          id
-        }
-        ... on User {
-          userName 
-        }
-    } 
+  accessControl {
+    __typename
+    ... on Group {
+      id
+    }
+    ... on User {
+      userName
+    }
+  }
 }
 ```
 
 ```json
 {
-    "accessControl": [
-        {
-          "__typename": "Group",
-          "id": "R3JvdXA6MQ=="
-        },
-        {
-          "__typename": "User",
-          "userName": "SpicyChicken404"
-        },
-        {
-          "__typename": "User",
-          "userName": "CookingMaster86"
-        }
-    ]
+  "accessControl": [
+    {
+      "__typename": "Group",
+      "id": "R3JvdXA6MQ=="
+    },
+    {
+      "__typename": "User",
+      "userName": "SpicyChicken404"
+    },
+    {
+      "__typename": "User",
+      "userName": "CookingMaster86"
+    }
+  ]
 }
 ```
 
 ## Union Definition
-
 
 <ExampleTabs>
 <ExampleTabs.Annotation>
@@ -331,7 +330,7 @@ You can manage the membership of union types with a marker interface.
 
 ```csharp
 [UnionType("GroupMember")]
-public interface IGroupMember 
+public interface IGroupMember
 {
 }
 
@@ -343,12 +342,12 @@ public class Group : IGroupMember
   public IGroupMember[] Members { get; set; }
 }
 
-public class User : IGroupMember 
+public class User : IGroupMember
 {
   public string UserName { get; set; }
 }
 
-public class Query 
+public class Query
 {
   public IGroupMember[] GetAccessControl([Service]IAccessRepo repo) => repo.GetItems();
 }
@@ -364,7 +363,7 @@ _Configure Services_
           .AddGraphQLServer()
           // HotChocolate will pick up IGroupMember as a UnionType<IGroupMember>
           .AddQueryType<Query>()
-          // HotChocolate knows that User and Group implement IGroupMember and will add it to the 
+          // HotChocolate knows that User and Group implement IGroupMember and will add it to the
           // list of possible types of the UnionType
           .AddType<Group>()
           .AddType<User>()
@@ -420,8 +419,8 @@ public void ConfigureServices(IServiceCollection services)
         union GroupMember = User | Group
         ")
         .AddResolver(
-            "Query", 
-            "accessControl", 
+            "Query",
+            "accessControl",
             (context, token) => context.Service<IAccessRepo>().GetItems());
 }
 ```

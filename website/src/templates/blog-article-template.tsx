@@ -17,8 +17,7 @@ const BlogArticleTemplate: FunctionComponent<BlogArticleTemplateProperties> = ({
       <SEO
         description={data.mdx!.excerpt || undefined}
         imageUrl={
-          data.mdx!.frontmatter!.featuredImage?.childImageSharp!
-            .fluid!.src
+          data.mdx!.frontmatter!.featuredImage?.childImageSharp!.fluid!.src
         }
         isArticle
         title={data.mdx!.frontmatter!.title!}

@@ -59,7 +59,7 @@ module.exports = {
               quality: 90,
             },
           },
-        ]
+        ],
       },
     },
     {
@@ -232,7 +232,7 @@ module.exports = {
                 const link = siteUrl + pathPrefix + node.frontmatter.path;
                 let image = node.frontmatter.featuredImage
                   ? siteUrl +
-                  node.frontmatter.featuredImage.childImageSharp.fluid.src
+                    node.frontmatter.featuredImage.childImageSharp.fluid.src
                   : null;
 
                 return {

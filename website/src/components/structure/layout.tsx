@@ -25,13 +25,13 @@ export const Layout: FunctionComponent = ({ children }) => {
 
   const components = {
     pre: CodeBlock,
-    h1: (props: any) => <AutoLinkedHeading size='h1' {...props} />,
-    h2: (props: any) => <AutoLinkedHeading size='h2' {...props} />,
-    h3: (props: any) => <AutoLinkedHeading size='h3' {...props} />,
-    h4: (props: any) => <AutoLinkedHeading size='h4' {...props} />,
-    h5: (props: any) => <AutoLinkedHeading size='h5' {...props} />,
-    h6: (props: any) => <AutoLinkedHeading size='h6' {...props} />,
-  }
+    h1: (props: any) => <AutoLinkedHeading size="h1" {...props} />,
+    h2: (props: any) => <AutoLinkedHeading size="h2" {...props} />,
+    h3: (props: any) => <AutoLinkedHeading size="h3" {...props} />,
+    h4: (props: any) => <AutoLinkedHeading size="h4" {...props} />,
+    h5: (props: any) => <AutoLinkedHeading size="h5" {...props} />,
+    h6: (props: any) => <AutoLinkedHeading size="h6" {...props} />,
+  };
 
   return (
     <>

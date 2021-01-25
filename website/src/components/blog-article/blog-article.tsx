@@ -45,9 +45,7 @@ export const BlogArticle: FunctionComponent<BlogArticleProperties> = ({
             <BlogArticleTags tags={existingTags} />
           </ArticleHeader>
           <ArticleContent>
-            <MDXRenderer>
-              {body}
-            </MDXRenderer>
+            <MDXRenderer>{body}</MDXRenderer>
           </ArticleContent>
         </Article>
         <ArticleComments data={data} path={path} title={title} />
@@ -58,7 +56,7 @@ export const BlogArticle: FunctionComponent<BlogArticleProperties> = ({
 
 export const BlogArticleGraphQLFragment = graphql`
   fragment BlogArticle on Query {
-    mdx(frontmatter: { path: { eq: $path } }) { 
+    mdx(frontmatter: { path: { eq: $path } }) {
       excerpt
       frontmatter {
         featuredImage {

@@ -199,7 +199,9 @@ Example:
 query {
   posts(
     first: 5
-    where: { OR: [{ title: {contains: "Doe" }}, { title: {contains: "John" }}] }
+    where: {
+      OR: [{ title: { contains: "Doe" } }, { title: { contains: "John" } }]
+    }
   ) {
     edges {
       node {
@@ -217,7 +219,7 @@ query {
 query {
   posts(
     first: 5
-    where: { title: {contains: "John", OR: { title: {contains: "Doe" }}} }
+    where: { title: { contains: "John", OR: { title: { contains: "Doe" } } } }
   ) {
     edges {
       node {
@@ -231,7 +233,8 @@ query {
 
 In this case the filters are applied like `title.Contains("John") && title.Contains("Doe")` rather than `title.Contains("John") || title.Contains("Doe")` how you probably intended it.
 
-## Removing AND / OR 
+## Removing AND / OR
+
 If you do not want to expose `AND` and `OR` you can remove these fields with the descriptor API:
 
 ```csharp

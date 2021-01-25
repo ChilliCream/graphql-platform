@@ -1,5 +1,11 @@
 import { graphql, Link } from "gatsby";
-import React, { Fragment, FunctionComponent, useCallback, useEffect, useState } from "react";
+import React, {
+  Fragment,
+  FunctionComponent,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
 import { ArticleSectionsFragment } from "../../../graphql-types";
@@ -16,9 +22,9 @@ export const ArticleSections: FunctionComponent<ArticleSectionsProperties> = ({
 }) => {
   const dispatch = useDispatch();
   const [activeHeadingId, setActiveHeadingId] = useState<string>();
-  const [headings, setHeadings] = useState<Heading[]>([])
-  const yScrollPosition = useSelector<State, number>((state) =>
-    state.common.yScrollPosition
+  const [headings, setHeadings] = useState<Heading[]>([]);
+  const yScrollPosition = useSelector<State, number>(
+    (state) => state.common.yScrollPosition
   );
 
   const handleCloseClick = useCallback(() => {
@@ -27,11 +33,11 @@ export const ArticleSections: FunctionComponent<ArticleSectionsProperties> = ({
 
   useEffect(() => {
     const result = ((data.tableOfContents.items as TableOfContentItem[]) ?? [])
-      .flatMap(item => ([item, ...item.items ?? []]))
-      .map(item => ({
+      .flatMap((item) => [item, ...(item.items ?? [])])
+      .map((item) => ({
         id: item.url,
-        position: document.getElementById(item.url.substring(1))!
-          .offsetTop - 80
+        position:
+          document.getElementById(item.url.substring(1))!.offsetTop - 80,
       }))
       .reverse();
 
@@ -40,7 +46,7 @@ export const ArticleSections: FunctionComponent<ArticleSectionsProperties> = ({
 
   useEffect(() => {
     setActiveHeadingId(
-      headings.find(id => yScrollPosition >= id.position)?.id
+      headings.find((id) => yScrollPosition >= id.position)?.id
     );
   }, [headings, yScrollPosition]);
 
@@ -68,30 +74,30 @@ interface TableOfContentProps {
   activeHeadingId: string | undefined;
 }
 
-const TableOfContent: FunctionComponent<TableOfContentProps> = (
-  { items, activeHeadingId }
-) => {
+const TableOfContent: FunctionComponent<TableOfContentProps> = ({
+  items,
+  activeHeadingId,
+}) => {
   return (
     <TocItemContainer>
-      {items.map(item => (
+      {items.map((item) => (
         <Fragment key={item.url}>
-          <TocListItem className={activeHeadingId === item.url
-            ? 'active'
-            : undefined}
+          <TocListItem
+            className={activeHeadingId === item.url ? "active" : undefined}
           >
             <TocLink to={item.url}>{item.title}</TocLink>
           </TocListItem>
-          {item.items &&
+          {item.items && (
             <TableOfContent
               items={item.items ?? []}
               activeHeadingId={activeHeadingId}
             />
-          }
+          )}
         </Fragment>
       ))}
     </TocItemContainer>
-  )
-}
+  );
+};
 
 interface TableOfContentItem {
   title: string;
@@ -130,7 +136,7 @@ const TocItemContainer = styled.ul`
   }
 `;
 
-const TocLink = styled(props => <Link {...props} />)`
+const TocLink = styled((props) => <Link {...props} />)`
   font-size: 0.833em;
   color: #666;
 
