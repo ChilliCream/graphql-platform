@@ -16,6 +16,13 @@ namespace HotChocolate.Types.Scalars
                 .Create();
         }
 
+        protected ScalarType CreateType<TType>()
+            where TType : ScalarType
+        {
+            return BuildSchema<TType>().GetType<ObjectType>("Query").Fields["scalar"].Type as
+                ScalarType ?? throw new InvalidOperationException();
+        }
+
         protected IValueNode CreateValueNode(Type type, object value)
         {
             switch (type.Name)
@@ -40,10 +47,10 @@ namespace HotChocolate.Types.Scalars
         protected void ExpectIsInstanceOfTypeToMatch<TType>(
             IValueNode valueSyntax,
             bool expectedResult)
-            where TType : ScalarType, new()
+            where TType : ScalarType
         {
             // arrange
-            var scalar = new TType();
+            ScalarType scalar = CreateType<TType>();
 
             // act
             var result = scalar.IsInstanceOfType(valueSyntax);
@@ -53,12 +60,12 @@ namespace HotChocolate.Types.Scalars
         }
 
         protected void ExpectIsInstanceOfTypeToMatch<TType>(
-            object runtimeValue,
+            object? runtimeValue,
             bool expectedResult)
-            where TType : ScalarType, new()
+            where TType : ScalarType
         {
             // arrange
-            var scalar = new TType();
+            ScalarType scalar = CreateType<TType>();
 
             // act
             var result = scalar.IsInstanceOfType(runtimeValue);
@@ -69,11 +76,11 @@ namespace HotChocolate.Types.Scalars
 
         protected void ExpectParseLiteralToMatch<TType>(
             IValueNode valueSyntax,
-            object expectedResult)
-            where TType : ScalarType, new()
+            object? expectedResult)
+            where TType : ScalarType
         {
             // arrange
-            var scalar = new TType();
+            ScalarType scalar = CreateType<TType>();
 
             // act
             object result = scalar.ParseLiteral(valueSyntax);
@@ -84,25 +91,25 @@ namespace HotChocolate.Types.Scalars
 
         protected void ExpectParseLiteralToThrowSerializationException<TType>(
             IValueNode valueSyntax)
-            where TType : ScalarType, new()
+            where TType : ScalarType
         {
             // arrange
-            var scalar = new TType();
+            ScalarType scalar = CreateType<TType>();
 
             // act
-            Exception result = Record.Exception(() => scalar.ParseLiteral(valueSyntax));
+            Exception? result = Record.Exception(() => scalar.ParseLiteral(valueSyntax));
 
             // assert
             Assert.IsType<SerializationException>(result);
         }
 
         protected void ExpectParseValueToMatchType<TType>(
-            object valueSyntax,
+            object? valueSyntax,
             Type type)
-            where TType : ScalarType, new()
+            where TType : ScalarType
         {
             // arrange
-            var scalar = new TType();
+            ScalarType scalar = CreateType<TType>();
 
             // act
             IValueNode result = scalar.ParseValue(valueSyntax);
@@ -111,14 +118,14 @@ namespace HotChocolate.Types.Scalars
             Assert.Equal(type, result.GetType());
         }
 
-        protected void ExpectParseValueToThrowSerializationException<TType>(object runtimeValue)
-            where TType : ScalarType, new()
+        protected void ExpectParseValueToThrowSerializationException<TType>(object? runtimeValue)
+            where TType : ScalarType
         {
             // arrange
-            var scalar = new TType();
+            ScalarType scalar = CreateType<TType>();
 
             // act
-            Exception result = Record.Exception(() => scalar.ParseValue(runtimeValue));
+            Exception? result = Record.Exception(() => scalar.ParseValue(runtimeValue));
 
             // assert
             Assert.IsType<SerializationException>(result);
@@ -127,10 +134,10 @@ namespace HotChocolate.Types.Scalars
         protected void ExpectSerializeToMatch<TType>(
             object? runtimeValue,
             object? resultValue)
-            where TType : ScalarType, new()
+            where TType : ScalarType
         {
             // arrange
-            var scalar = new TType();
+            ScalarType scalar = CreateType<TType>();
 
             // act
             object? result = scalar.Serialize(runtimeValue);
@@ -142,10 +149,10 @@ namespace HotChocolate.Types.Scalars
         protected void ExpectDeserializeToMatch<TType>(
             object? resultValue,
             object? runtimeValue)
-            where TType : ScalarType, new()
+            where TType : ScalarType
         {
             // arrange
-            var scalar = new TType();
+            ScalarType scalar = CreateType<TType>();
 
             // act
             object? result = scalar.Deserialize(resultValue);
@@ -155,26 +162,26 @@ namespace HotChocolate.Types.Scalars
         }
 
         protected void ExpectSerializeToThrowSerializationException<TType>(object runtimeValue)
-            where TType : ScalarType, new()
+            where TType : ScalarType
         {
             // arrange
-            var scalar = new TType();
+            ScalarType scalar = CreateType<TType>();
 
             // act
-            Exception result = Record.Exception(() => scalar.Serialize(runtimeValue));
+            Exception? result = Record.Exception(() => scalar.Serialize(runtimeValue));
 
             // assert
             Assert.IsType<SerializationException>(result);
         }
 
         protected void ExpectDeserializeToThrowSerializationException<TType>(object runtimeValue)
-            where TType : ScalarType, new()
+            where TType : ScalarType
         {
             // arrange
-            var scalar = new TType();
+            ScalarType scalar = CreateType<TType>();
 
             // act
-            Exception result = Record.Exception(() => scalar.Deserialize(runtimeValue));
+            Exception? result = Record.Exception(() => scalar.Deserialize(runtimeValue));
 
             // assert
             Assert.IsType<SerializationException>(result);
