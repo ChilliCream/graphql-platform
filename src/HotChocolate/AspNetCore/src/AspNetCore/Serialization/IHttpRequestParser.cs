@@ -13,8 +13,9 @@ namespace HotChocolate.AspNetCore.Serialization
             Stream stream,
             CancellationToken cancellationToken);
 
-        IReadOnlyList<GraphQLRequest> ReadFormRequest(
-            IFormCollection form);
+        ValueTask<IReadOnlyList<GraphQLRequest>> ReadMultipartRequestAsync(
+            HttpRequest request,
+            CancellationToken cancellationToken);
 
         GraphQLRequest ReadParamsRequest(
             IQueryCollection parameters);

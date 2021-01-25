@@ -10,13 +10,14 @@ using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
+using System.Threading;
 
 namespace HotChocolate.AspNetCore
 {
     public class HttpPostMiddleware : MiddlewareBase
     {
         private const string _batchOperations = "batchOperations";
-        private readonly IHttpRequestParser _requestParser;
+        protected IHttpRequestParser RequestParser { get; }
 
         public HttpPostMiddleware(
             HttpRequestDelegate next,
@@ -26,11 +27,11 @@ namespace HotChocolate.AspNetCore
             NameString schemaName)
             : base(next, executorResolver, resultSerializer, schemaName)
         {
-            _requestParser = requestParser ??
+            RequestParser = requestParser ??
                 throw new ArgumentNullException(nameof(requestParser));
         }
 
-        public async Task InvokeAsync(HttpContext context)
+        public async virtual Task InvokeAsync(HttpContext context)
         {
             if (!HttpMethods.IsPost(context.Request.Method))
             {
@@ -41,19 +42,26 @@ namespace HotChocolate.AspNetCore
             else
             {
                 AllowedContentType contentType = ParseContentType(context.Request.ContentType);
-                if (contentType == AllowedContentType.None)
+                if (contentType == AllowedContentType.Json)
+                {
+                    await HandleRequestAsync(context, contentType);
+                }
+                else
                 {
                     // the content type is unknown so we will invoke the next middleware.
                     await NextAsync(context);
                 }
-                else
-                {
-                    await HandleRequestAsync(context, contentType);
-                }
             }
         }
 
-        private async Task HandleRequestAsync(
+        protected virtual ValueTask<IReadOnlyList<GraphQLRequest>> GetRequestsFromBody(
+            HttpRequest request, 
+            CancellationToken cancellationToken)
+        {
+            return RequestParser.ReadJsonRequestAsync(request.Body, cancellationToken);
+        }
+
+        protected async Task HandleRequestAsync(
             HttpContext context,
             AllowedContentType contentType)
         {
@@ -67,18 +75,8 @@ namespace HotChocolate.AspNetCore
 
             try
             {
-                IReadOnlyList<GraphQLRequest> requests;
-
                 // next we parse the GraphQL request.
-                if (contentType == AllowedContentType.Form)
-                {
-                    requests = _requestParser.ReadFormRequest(context.Request.Form);
-                }
-                else
-                {
-                    requests = await _requestParser.ReadJsonRequestAsync(
-                         context.Request.Body, context.RequestAborted);
-                }
+                IReadOnlyList<GraphQLRequest> requests = await GetRequestsFromBody(context.Request, context.RequestAborted);
 
                 switch (requests.Count)
                 {
