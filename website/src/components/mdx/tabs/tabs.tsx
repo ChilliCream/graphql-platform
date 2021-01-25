@@ -1,4 +1,4 @@
-import React, { createContext, FC, useContext, useMemo, useState } from 'react';
+import React, { createContext, FunctionComponent, useContext, useMemo, useState } from 'react';
 import { Tab, TabProps } from './tab';
 import { Panel, PanelProps } from './panel';
 import { List } from './list';
@@ -9,9 +9,9 @@ interface TabsContext {
 }
 
 export interface TabsComposition {
-    Tab: FC<TabProps>;
-    Panel: FC<PanelProps>;
-    List: FC;
+    Tab: FunctionComponent<TabProps>;
+    Panel: FunctionComponent<PanelProps>;
+    List: FunctionComponent;
 }
 
 const TabsContext = createContext<TabsContext | undefined>(undefined);
@@ -20,7 +20,7 @@ export interface TabsProps {
     defaultValue: string;
 }
 
-export const Tabs: FC<TabsProps> & TabsComposition = ({
+export const Tabs: FunctionComponent<TabsProps> & TabsComposition = ({
     defaultValue, children
 }) => {
     const [activeTab, setActiveTab] = useState(defaultValue);

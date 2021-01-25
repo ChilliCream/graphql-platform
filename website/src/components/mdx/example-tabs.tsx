@@ -1,13 +1,13 @@
-import React, { FC } from 'react';
+import React, { FunctionComponent } from 'react';
 import { Tabs } from './tabs';
 
 export interface ExampleTabsComposition {
-    Annotation: FC;
-    Code: FC;
-    Schema: FC;
+    Annotation: FunctionComponent;
+    Code: FunctionComponent;
+    Schema: FunctionComponent;
 }
 
-export const ExampleTabs: FC & ExampleTabsComposition = ({
+export const ExampleTabs: FunctionComponent & ExampleTabsComposition = ({
     children
 }) => {
     return (
@@ -22,15 +22,15 @@ export const ExampleTabs: FC & ExampleTabsComposition = ({
     )
 };
 
-const Annotation: FC = (
+const Annotation: FunctionComponent = (
     { children }
 ) => <Tabs.Panel value='annotation'>{children}</Tabs.Panel>
 
-const Code: FC = (
+const Code: FunctionComponent = (
     { children }
 ) => <Tabs.Panel value='code'>{children}</Tabs.Panel>
 
-const Schema: FC = (
+const Schema: FunctionComponent = (
     { children }
 ) => <Tabs.Panel value='schema'>{children}</Tabs.Panel>
 

@@ -1,7 +1,7 @@
-import React, { FC, useState } from "react"
+import React, { FunctionComponent, useState } from "react"
 import styled from "styled-components"
 
-const copyToClipboard = (content: string) => {
+function copyToClipboard(content: string): void {
     const el = document.createElement(`textarea`)
     el.value = content
     el.setAttribute(`readonly`, ``)
@@ -17,7 +17,7 @@ interface CoopyProps {
     content: string;
 }
 
-export const Copy: FC<CoopyProps> = ({ content }) => {
+export const Copy: FunctionComponent<CoopyProps> = ({ content }) => {
     const [showToast, setShowToast] = useState(false);
 
     return (
@@ -37,7 +37,7 @@ export const Copy: FC<CoopyProps> = ({ content }) => {
     )
 }
 
-const CopySuccessToast: FC = () => {
+const CopySuccessToast: FunctionComponent = () => {
     return (
         <ToastContainer>
             <ToastText>Copied code example</ToastText>

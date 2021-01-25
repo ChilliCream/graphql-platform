@@ -1,4 +1,4 @@
-import React, { FC } from "react";
+import React, { FunctionComponent } from "react";
 import styled from "styled-components";
 import Highlight, { Language } from "prism-react-renderer";
 import Prism from "prismjs"
@@ -8,7 +8,7 @@ interface CodeBlockProps {
   children: any;
 }
 
-export const CodeBlock: FC<CodeBlockProps> = ({
+export const CodeBlock: FunctionComponent<CodeBlockProps> = ({
   children
 }) => {
   const language = children.props.className.replace(/language-/, '') as Language;
@@ -48,7 +48,11 @@ export const CodeBlock: FC<CodeBlockProps> = ({
   );
 };
 
-interface CodeIndicatorProps { language: string; } const CodeIndicator: FC<CodeIndicatorProps> = ({ language }) => {
+interface CodeIndicatorProps {
+  language: string;
+}
+
+const CodeIndicator: FunctionComponent<CodeIndicatorProps> = ({ language }) => {
   const codeLanguage = codeLanguages[language];
 
   return (
@@ -119,14 +123,14 @@ const IndicatorContent = styled.div`
     text-transform: uppercase;
 `;
 
-const RE = /{([\d,-]+)}/
+const matchHighlights = /{([\d,-]+)}/
 
 const calculateLinesToHighlight = (meta: string): (index: number) => boolean => {
-  if (!RE.test(meta)) {
+  if (!matchHighlights.test(meta)) {
     return () => false;
   }
 
-  const lineNumbers = RE.exec(meta)![1]
+  const lineNumbers = matchHighlights.exec(meta)![1]
     .split(',')
     .map((v) => v.split('-').map((v) => parseInt(v, 10)));
 

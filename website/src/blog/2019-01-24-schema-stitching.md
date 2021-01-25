@@ -171,7 +171,7 @@ foo(id:123) {
 
 Since, we did not want to cram a query like this into one string we allow this to be done with a flat path.
 
-```sdl
+```text
 foo(id:$arguments:arg1).bar.baz(top:1)
 ```
 
@@ -307,7 +307,7 @@ HTTP directives let you decorate a schema SDL and thus let you map REST services
 
 Moreover, we will introduce a cast feature to our delegation path. This will basically allow you to use fragments without having to write the code.
 
-```sdl
+```text
 foo.bar<baz>(a:1).qux(b:1)
 ```
 

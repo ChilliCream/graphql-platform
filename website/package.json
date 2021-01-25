@@ -25,7 +25,6 @@
     "@darth-knoppix/gatsby-plugin-feed": "^2.0.2",
     "@mdx-js/mdx": "^1.6.22",
     "@mdx-js/react": "^1.6.22",
-    "@types/prismjs": "^1.16.2",
     "algoliasearch": "^4.8.3",
     "gatsby": "^2.30.1",
     "gatsby-image": "^2.9.0",
@@ -64,6 +63,7 @@
   },
   "devDependencies": {
     "@types/algoliasearch": "^3.34.10",
+    "@types/prismjs": "^1.16.2",
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
     "@types/react-helmet": "^6.1.0",
