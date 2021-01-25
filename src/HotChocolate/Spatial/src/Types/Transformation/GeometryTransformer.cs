@@ -34,6 +34,7 @@ namespace HotChocolate.Types.Spatial.Transformation
                     case CoordinateM:
                         hasErrors = true;
                         break;
+
                     case CoordinateZ:
                         x = coordinate.X;
                         y = coordinate.Y;
@@ -43,6 +44,7 @@ namespace HotChocolate.Types.Spatial.Transformation
                         coordinate.Y = y;
                         coordinate.Z = z;
                         break;
+
                     default:
                         x = coordinate.X;
                         y = coordinate.Y;
