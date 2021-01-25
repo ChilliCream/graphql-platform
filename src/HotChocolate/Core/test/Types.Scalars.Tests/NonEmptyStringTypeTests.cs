@@ -104,12 +104,66 @@ namespace HotChocolate.Types.Scalars
         [InlineData(1)]
         [InlineData(true)]
         [InlineData("")]
-        public void ParseLiteral_GivenObject_ThrowSerializationException(object value)
+        public void ParseValue_GivenObject_ThrowSerializationException(object value)
         {
             // arrange
             // act
             // assert
             ExpectParseValueToThrowSerializationException<NonEmptyStringType>(value);
+        }
+
+        [Theory]
+        [InlineData("foo", "foo")]
+        [InlineData(null, null)]
+        public void Deserialize_GivenValue_MatchExpected(
+            object resultValue,
+            object runtimeValue)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectDeserializeToMatch<NonEmptyStringType>(resultValue, runtimeValue);
+        }
+
+        [Theory]
+        [InlineData(TestEnum.Foo)]
+        [InlineData(1d)]
+        [InlineData(1)]
+        [InlineData(true)]
+        [InlineData("")]
+        public void Deserialize_GivenValue_ThrowSerializationException(object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectDeserializeToThrowSerializationException<NonEmptyStringType>(value);
+        }
+
+        [Theory]
+        [InlineData("foo", "foo")]
+        [InlineData(null, null)]
+        public void Serialize_GivenObject_MatchExpectedType(
+            object runtimeValue,
+            object resultValue)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectSerializeToMatch<NonEmptyStringType>(runtimeValue, resultValue);
+        }
+
+        [Theory]
+        [InlineData(TestEnum.Foo)]
+        [InlineData(1d)]
+        [InlineData(1)]
+        [InlineData(true)]
+        [InlineData("")]
+        public void Serialize_GivenObject_ThrowSerializationException(object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectSerializeToThrowSerializationException<NonEmptyStringType>(value);
         }
     }
 }

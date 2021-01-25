@@ -124,6 +124,62 @@ namespace HotChocolate.Types.Scalars
             Assert.IsType<SerializationException>(result);
         }
 
+        protected void ExpectSerializeToMatch<TType>(
+            object? runtimeValue,
+            object? resultValue)
+            where TType : ScalarType, new()
+        {
+            // arrange
+            var scalar = new TType();
+
+            // act
+            object? result = scalar.Serialize(runtimeValue);
+
+            // assert
+            Assert.Equal(resultValue, result);
+        }
+
+        protected void ExpectDeserializeToMatch<TType>(
+            object? resultValue,
+            object? runtimeValue)
+            where TType : ScalarType, new()
+        {
+            // arrange
+            var scalar = new TType();
+
+            // act
+            object? result = scalar.Deserialize(resultValue);
+
+            // assert
+            Assert.Equal(resultValue, runtimeValue);
+        }
+
+        protected void ExpectSerializeToThrowSerializationException<TType>(object runtimeValue)
+            where TType : ScalarType, new()
+        {
+            // arrange
+            var scalar = new TType();
+
+            // act
+            Exception result = Record.Exception(() => scalar.Serialize(runtimeValue));
+
+            // assert
+            Assert.IsType<SerializationException>(result);
+        }
+
+        protected void ExpectDeserializeToThrowSerializationException<TType>(object runtimeValue)
+            where TType : ScalarType, new()
+        {
+            // arrange
+            var scalar = new TType();
+
+            // act
+            Exception result = Record.Exception(() => scalar.Deserialize(runtimeValue));
+
+            // assert
+            Assert.IsType<SerializationException>(result);
+        }
+
         public enum TestEnum
         {
             Foo
