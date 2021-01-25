@@ -127,6 +127,7 @@ namespace HotChocolate
             /// </summary>
             public const string CoordinateMNotSupported = "HC0030";
         }
+
         public static class Data
         {
             /// <summary>
