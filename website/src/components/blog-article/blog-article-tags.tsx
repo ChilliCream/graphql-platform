@@ -26,7 +26,7 @@ export const BlogArticleTags: FunctionComponent<BlogArticleTagsProperties> = ({
 };
 
 export const BlogArticleTagsGraphQLFragment = graphql`
-  fragment BlogArticleTags on MarkdownRemarkFrontmatter {
+  fragment BlogArticleTags on MdxFrontmatter {
     tags
   }
 `;

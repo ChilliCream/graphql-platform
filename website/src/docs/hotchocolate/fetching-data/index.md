@@ -2,6 +2,8 @@
 title: "Resolver"
 ---
 
+import { ExampleTabs } from "../../../components/mdx/example-tabs"
+
 Here we will learn what resolvers are, how they are defined, and what else we could do with them in Hot Chocolate.
 
 # Introduction
@@ -88,7 +90,8 @@ A resolver is a function that takes zero or many arguments and returns one value
 
 ## Basic resolver example
 
-**Annotation-based approach**
+<ExampleTabs>
+<ExampleTabs.Annotation>
 
 ```csharp
 // Query.cs
@@ -112,7 +115,8 @@ public class Startup
 }
 ```
 
-**Code-first approach**
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
 
 ```csharp
 // Query.cs
@@ -149,7 +153,8 @@ public class Startup
 }
 ```
 
-**Schema-first approach**
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
 
 ```csharp
 // Query.cs
@@ -177,6 +182,9 @@ public class Startup
     // Omitted code for brevity
 }
 ```
+
+</ExampleTabs.Schema>
+</ExampleTabs>
 
 When comparing all three approaches side-by-side, we can see very quickly that they all look nearly the same. They all have the `Query` type in common, which is identical in all three approaches. Regardless, the `Query` type contains a method named `Say`, which is our resolver, in fact, the most significant bit here. The `Say` method will be translated into the `say` field on the schema side as soon as Hot Chocolate is initialized. As a small side note here, all three approaches will result in the same `SDL`.
 
