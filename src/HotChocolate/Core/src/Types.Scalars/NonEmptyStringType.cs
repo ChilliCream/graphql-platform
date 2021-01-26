@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Language;
 using HotChocolate.Types.Scalars;
 
@@ -64,6 +63,34 @@ namespace HotChocolate.Types
             }
 
             return base.ParseValue(runtimeValue);
+        }
+
+        /// <inheritdoc />
+        public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+        {
+            if (runtimeValue is string s && s == string.Empty)
+            {
+                resultValue = null;
+                return false;
+            }
+
+            return base.TrySerialize(runtimeValue, out resultValue);
+        }
+
+        /// <inheritdoc />
+        public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
+        {
+            if (!base.TryDeserialize(resultValue, out runtimeValue))
+            {
+                return false;
+            }
+
+            if (runtimeValue is string s && s == string.Empty)
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }
