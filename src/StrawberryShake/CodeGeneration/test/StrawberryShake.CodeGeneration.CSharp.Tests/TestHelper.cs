@@ -18,7 +18,7 @@ namespace StrawberryShake
             string referenceName) =>
             new(
                 referenceName,
-                new NonNullTypeDescriptor(new NamedTypeDescriptor("string", "System", false)));
+                new NonNullTypeDescriptor(new NamedTypeDescriptor("string", "global::System.", false)));
 
         public static PropertyDescriptor GetNamedNullableStringTypeReference(
             string referenceName) =>

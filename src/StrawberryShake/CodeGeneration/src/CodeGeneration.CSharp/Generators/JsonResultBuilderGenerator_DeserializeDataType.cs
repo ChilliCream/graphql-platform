@@ -7,24 +7,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
     public partial class JsonResultBuilderGenerator
     {
         private void AddDataTypeDeserializerMethod(
-            NamedTypeDescriptor namedTypeDescriptor,
-            ITypeDescriptor originalTypeDescriptor,
-            ClassBuilder classBuilder)
+            ClassBuilder classBuilder,
+            MethodBuilder methodBuilder,
+            NamedTypeDescriptor namedTypeDescriptor)
         {
-            var dateDeserializer = MethodBuilder.New()
-                .SetReturnType(namedTypeDescriptor.Name)
-                .SetName(DeserializerMethodNameFromTypeName(originalTypeDescriptor))
-                .AddParameter(ParameterBuilder.New()
-                    .SetType(_jsonElementParamName)
-                    .SetName(_objParamName))
-                .AddParameter(ParameterBuilder.New()
-                    .SetType($"{TypeNames.ISet}<{TypeNames.EntityId}>")
-                    .SetName(_entityIdsParam));
-
-            dateDeserializer.AddCode(
-                EnsureJsonValueIsNotNull(),
-                originalTypeDescriptor.IsNonNullableType());
-
             var returnStatement = MethodCallBuilder.New()
                 .SetPrefix("return new ")
                 .SetMethodName(DataTypeNameFromTypeName(namedTypeDescriptor.Name));
@@ -34,9 +20,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 returnStatement.AddArgument(BuildUpdateMethodCall(property));
             }
 
-            dateDeserializer.AddCode(returnStatement);
-            classBuilder.AddMethod(dateDeserializer);
-            AddRequiredDeserializeMethods(namedTypeDescriptor, classBuilder);
+            methodBuilder.AddCode(returnStatement);
+
+            AddRequiredDeserializeMethods(
+                namedTypeDescriptor,
+                classBuilder);
         }
     }
 }

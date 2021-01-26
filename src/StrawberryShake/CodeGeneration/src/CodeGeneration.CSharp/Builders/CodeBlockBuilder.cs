@@ -8,7 +8,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public class CodeBlockBuilder : ICode
     {
-        private readonly List<ICode> _blockParts = new List<ICode>();
+        private readonly List<ICodeBuilder> _blockParts = new List<ICodeBuilder>();
 
         public static CodeBlockBuilder New() => new CodeBlockBuilder();
 
@@ -34,7 +34,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return builder;
         }
 
-        public CodeBlockBuilder AddCode(ICode value)
+        public CodeBlockBuilder AddCode(ICodeBuilder value)
         {
             if (value is null)
             {
@@ -69,7 +69,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 throw new ArgumentNullException(nameof(writer));
             }
 
-            foreach (ICode code in _blockParts)
+            foreach (var code in _blockParts)
             {
                 code.Build(writer);
             }

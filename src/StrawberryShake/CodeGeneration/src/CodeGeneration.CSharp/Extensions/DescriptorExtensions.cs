@@ -59,6 +59,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
             switch (typeReferenceDescriptor)
             {
                 case ListTypeDescriptor listTypeDescriptor:
+                    actualBuilder.SetIsNullable(!isNonNull);
                     actualBuilder.SetListType();
                     ToEntityIdBuilder(
                         listTypeDescriptor.InnerType,
@@ -66,10 +67,19 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
                     break;
                 case NamedTypeDescriptor namedTypeDescriptor:
                     actualBuilder.SetIsNullable(!isNonNull);
-                    actualBuilder.SetName(
-                        typeReferenceDescriptor.IsEntityType()
-                            ? TypeNames.EntityId
-                            : typeReferenceDescriptor.Name);
+                    if (namedTypeDescriptor.IsLeafType() && !namedTypeDescriptor.IsEnum)
+                    {
+                        actualBuilder.SetName(
+                            $"{namedTypeDescriptor.Namespace}.{namedTypeDescriptor.Name}");
+                    }
+                    else
+                    {
+                        actualBuilder.SetName(
+                            typeReferenceDescriptor.IsEntityType()
+                                ? TypeNames.EntityId
+                                : typeReferenceDescriptor.Name);
+                    }
+
                     break;
                 case NonNullTypeDescriptor nonNullTypeDescriptor:
                     ToEntityIdBuilder(

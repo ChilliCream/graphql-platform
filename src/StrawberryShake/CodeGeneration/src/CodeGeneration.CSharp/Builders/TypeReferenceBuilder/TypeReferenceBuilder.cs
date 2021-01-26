@@ -21,6 +21,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
+        public TypeReferenceBuilder SetNameSpace(string @namespace)
+        {
+            return this;
+        }
+
         public TypeReferenceBuilder SetListType()
         {
             _buildOrder.Push(TypeKindToken.List);
