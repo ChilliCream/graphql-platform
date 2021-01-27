@@ -151,7 +151,7 @@ namespace HotChocolate.AspNetCore
                 return AllowedContentType.Json;
             }
 
-            // todo: In theory this should also support application/x-www-form-urlencoded
+            // TODO : In theory this should also support application/x-www-form-urlencoded
             if (span.SequenceEqual(ContentType.MultiPartSpan()))
             {
                 return AllowedContentType.Form;

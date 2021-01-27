@@ -50,11 +50,10 @@ namespace HotChocolate.AspNetCore
             HttpRequest request,
             CancellationToken cancellationToken)
         {
-            // todo: The IFormCollection is convenient, but it requires us to work with strings instead of a stream
             var formFeature = new FormFeature(request);
             IFormCollection? form = await formFeature.ReadFormAsync(cancellationToken);
 
-            return await RequestParser.ReadFormAsync(form);
+            return RequestParser.ReadFormRequest(form);
         }
     }
 }

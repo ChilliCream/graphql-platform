@@ -51,73 +51,110 @@ namespace HotChocolate.AspNetCore.Serialization
             CancellationToken cancellationToken) =>
             ReadAsync(stream, false, cancellationToken);
 
-        public async ValueTask<IReadOnlyList<GraphQLRequest>> ReadFormAsync(
+        // TODO : this method should be split up
+        public IReadOnlyList<GraphQLRequest> ReadFormRequest(
             IFormCollection form)
         {
-            if (form.Count < 2)
+            string? operations = null;
+            IDictionary<string, string[]>? map = null;
+
+            foreach (KeyValuePair<string, StringValues> field in form)
             {
-                // TODO : throw helper
-                throw new GraphQLRequestException(
-                    ErrorBuilder.New()
-                        .SetMessage(
-                            "At least a '{0}' and '{1}' field need to be present.",
-                            _operations,
-                            _map)
-                        .SetCode("// TODO CODE HC")
-                        .Build());
+                switch (field.Key)
+                {
+                    case _operations:
+                        if (!field.Value.TryPeek(out operations) || string.IsNullOrEmpty(operations))
+                        {
+                            // TODO : throw helper
+                            throw new GraphQLRequestException(
+                                ErrorBuilder.New()
+                                    .SetMessage("No '{0}' specified.", _operations)
+                                    .SetCode("// TODO CODE HC")
+                                    .Build());
+                        }
+                        break;
+                    case _map:
+                        if (string.IsNullOrEmpty(operations))
+                        {
+                            // TODO : throw helper
+                            throw new GraphQLRequestException(
+                                ErrorBuilder.New()
+                                    .SetMessage("Misordered multipart fields; '{0}' should follow ‘{1}’.", _map, _operations)
+                                    .SetCode("// TODO CODE HC")
+                                    .Build());
+                        }
+
+                        if (!field.Value.TryPeek(out var mapString))
+                        {
+                            // TODO : throw helper
+                            throw new GraphQLRequestException(
+                                ErrorBuilder.New()
+                                    .SetMessage("No '{0}' specified.", _map)
+                                    .SetCode("// TODO CODE HC")
+                                    .Build());
+                        }
+
+                        try
+                        {
+                            map = JsonSerializer.Deserialize<IDictionary<string, string[]>>(mapString);
+                        }
+                        catch
+                        {
+                            // TODO : throw helper
+                            throw new GraphQLRequestException(
+                                ErrorBuilder.New()
+                                    .SetMessage(
+                                        "Invalid JSON in the ‘{0}’ multipart field.", _map)
+                                    .SetCode("// TODO CODE HC")
+                                    .Build());
+                        }
+                        break;
+                    default:
+                        // TODO : throw helper
+                        throw new GraphQLRequestException(
+                            ErrorBuilder.New()
+                                .SetMessage(
+                                    "At least an '{0}' and a '{1}' field need to be present.",
+                                    _operations,
+                                    _map)
+                                .SetCode("// TODO CODE HC")
+                                .Build());
+                }
             }
 
-            if (!form.TryGetValue("operations", out StringValues operationsCollection) ||
-                !operationsCollection.TryPeek(out var operationsString))
-            {
-                // TODO : throw helper
-                throw new GraphQLRequestException(
-                    ErrorBuilder.New()
-                        .SetMessage("No '{0}' specified.", _operations)
-                        .SetCode("// TODO CODE HC")
-                        .Build());
-            }
+            IReadOnlyList<GraphQLRequest> requests =
+                Parse(operations, _parserOptions, _documentCache, _documentHashProvider);
 
-            if (!form.TryGetValue("map", out StringValues mapCollection) ||
-                !mapCollection.TryPeek(out var mapString))
+            // No files were sent, we can exit early.
+            if (form.Files.Count < 1)
             {
-                // TODO : throw helper
-                throw new GraphQLRequestException(
-                    ErrorBuilder.New()
-                        .SetMessage("No '{0}' specified.", _map)
-                        .SetCode("// TODO CODE HC")
-                        .Build());
+                return requests;
             }
-
-            IDictionary<string, string[]>? map =
-                JsonSerializer.Deserialize<IDictionary<string, string[]>>(mapString);
 
             if (map is null)
             {
                 // TODO : throw helper
                 throw new GraphQLRequestException(
                     ErrorBuilder.New()
-                        .SetMessage("'{0}' is not a dictionary of string[].", _map)
+                        .SetMessage("Misordered multipart fields; files should follow ‘{0}’.", _map)
                         .SetCode("// TODO CODE HC")
                         .Build());
             }
 
-            IReadOnlyList<GraphQLRequest> requests =
-                Parse(operationsString, _parserOptions, _documentCache, _documentHashProvider);
-
-            foreach (var request in requests)
+            foreach (GraphQLRequest request in requests)
             {
-                // todo: This is quite hacky and requires Utf8GraphQLRequestParser to actually return this
-                //       I choose to do it this way as to not change the existing APIs.
-                //       For a final implementation this should be done differently
+                // TODO : this is quite hacky and requires Utf8GraphQLRequestParser to actually return this
+                //        I choose to do it this way as to not change the existing APIs.
+                //        For a final implementation this should be done differently
                 if (!(request.Variables is Dictionary<string, object?> mutableVariables))
                 {
                     continue;
                 }
-
+                
+                // TODO : this needs to be reworked to support nested File properties
                 foreach (var (key, values) in map)
                 {
-                    IFormFile file = form.Files.GetFile(key);
+                    IFormFile? file = form.Files.GetFile(key);
 
                     if (file is null)
                     {

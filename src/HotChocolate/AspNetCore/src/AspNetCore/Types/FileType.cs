@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.Types
 {
-    // todo: This is not fully implemented
+    // TODO : This is not fully implemented
     public class FileValueNode : IValueNode<IFormFile>
     {
         private IFormFile _value;
@@ -54,7 +54,7 @@ namespace HotChocolate.Types
         }
     }
 
-    // todo: This is not fully implemented
+    // TODO : This is not fully implemented
     public class FileType : ScalarType<IFormFile>
     {
         /// <summary>
