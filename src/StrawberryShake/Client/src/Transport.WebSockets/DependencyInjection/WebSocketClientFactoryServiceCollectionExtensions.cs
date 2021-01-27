@@ -28,7 +28,7 @@ namespace StrawberryShake.Transport.WebSockets
             services.AddSingleton<DefaultSocketClientFactory>();
             services.TryAddSingleton<ISocketClientFactory>(sp =>
                 sp.GetRequiredService<DefaultSocketClientFactory>());
-            services.AddWebSocketConnectionPool();
+            services.AddWebSocketClientPool();
 
             return services;
         }
@@ -109,7 +109,7 @@ namespace StrawberryShake.Transport.WebSockets
         public static IWebSocketClientBuilder AddWebSocketClient(
             this IServiceCollection services,
             string name,
-            Action<SocketClient> configureClient)
+            Action<ISocketClient> configureClient)
         {
             if (services == null)
             {
@@ -165,7 +165,7 @@ namespace StrawberryShake.Transport.WebSockets
         public static IWebSocketClientBuilder AddWebSocketClient(
             this IServiceCollection services,
             string name,
-            Action<IServiceProvider, SocketClient> configureClient)
+            Action<IServiceProvider, ISocketClient> configureClient)
         {
             if (services == null)
             {

@@ -9,7 +9,9 @@ namespace StrawberryShake.Transport.WebSockets
         /// <summary>
         /// Gets a list of operations used to configure an <see cref="ClientWebSocket"/>.
         /// </summary>
-        public IList<Action<SocketClient>> WebSocketClientActions { get; } =
-            new List<Action<SocketClient>>();
+        public IList<Action<ISocketClient>> WebSocketClientActions { get; } =
+            new List<Action<ISocketClient>>();
+
+        public IList<ISocketProtocol> Protocols { get; } = new List<ISocketProtocol>();
     }
 }

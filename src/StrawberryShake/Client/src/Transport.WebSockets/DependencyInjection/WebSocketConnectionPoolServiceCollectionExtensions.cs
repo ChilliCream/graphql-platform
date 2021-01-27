@@ -4,16 +4,16 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace StrawberryShake.Transport.WebSockets
 {
-    public static class WebSocketConnectionPoolServiceCollectionExtensions
+    public static class WebSocketClientPoolServiceCollectionExtensions
     {
-        public static IServiceCollection AddWebSocketConnectionPool(this IServiceCollection services)
+        public static IServiceCollection AddWebSocketClientPool(this IServiceCollection services)
         {
             if (services is null)
             {
                 throw new ArgumentNullException(nameof(services));
             }
 
-            services.TryAddSingleton<ISocketConnectionPool, SocketConnectionPool>();
+            services.TryAddSingleton<ISocketClientPool, SocketClientPool>();
             return services;
         }
     }

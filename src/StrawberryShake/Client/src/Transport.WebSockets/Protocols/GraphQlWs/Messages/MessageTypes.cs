@@ -1,8 +1,8 @@
-﻿namespace StrawberryShake.Http.Subscriptions.Messages
+﻿namespace StrawberryShake.Transport
 {
-    internal static class MessageTypes
+    public static class MessageTypes
     {
-        internal static class Connection
+        public static class Connection
         {
             public const string Initialize = "connection_init";
             public const string Accept = "connection_ack";

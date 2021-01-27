@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.StarWars;
@@ -35,15 +36,16 @@ namespace StrawberryShake.Transport.WebSockets
                 out int port);
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddWebSocketClient(
-                "Foo",
-                c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
+                    "Foo",
+                    c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"))
+                .AddProtocol(new SubscriptionTransportWsProtocol());
             IServiceProvider services =
                 serviceCollection.BuildServiceProvider();
 
-            ISocketConnectionPool connectionPool =
-                services.GetRequiredService<ISocketConnectionPool>();
+            ISocketClientPool connectionPool =
+                services.GetRequiredService<ISocketClientPool>();
 
-            ISocketConnection socketConnection = await connectionPool.RentAsync("Foo");
+            ISocketClient socketClient = await connectionPool.RentAsync("Foo");
 
             var document =
                 new MockDocument("subscription Test { onTest }");
@@ -51,7 +53,7 @@ namespace StrawberryShake.Transport.WebSockets
 
             // act
             var results = new List<JsonDocument>();
-            var manager = new SocketOperationManager(socketConnection);
+            await using var manager = new SocketOperationManager(socketClient.GetProtocol());
             var connection = new StrawberryShake.Http.Subscriptions.WebSocketConnection(manager);
             await foreach (var response in connection.ExecuteAsync(request))
             {
@@ -65,6 +67,8 @@ namespace StrawberryShake.Transport.WebSockets
                     break;
                 }
             }
+
+            await connectionPool.ReturnAsync(socketClient);
 
             // assert
             results.Select(x => x.RootElement.ToString()).ToList().MatchSnapshot();

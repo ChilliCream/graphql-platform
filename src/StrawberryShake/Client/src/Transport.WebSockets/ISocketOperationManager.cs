@@ -1,4 +1,5 @@
 using System;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using StrawberryShake.Transport.WebSockets.Messages;
@@ -17,7 +18,8 @@ namespace StrawberryShake.Transport.Subscriptions
             CancellationToken cancellationToken = default);
 
         ValueTask ReceiveMessage(
-            OperationMessage message,
+            string operationId,
+            JsonDocument payload,
             CancellationToken cancellationToken = default);
     }
 }

@@ -1,4 +1,3 @@
-using System.Linq;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -6,28 +5,23 @@ using System.Threading.Tasks;
 
 namespace StrawberryShake.Transport.WebSockets
 {
-    internal sealed class SocketConnectionPool
-        : ISocketConnectionPool
+    internal sealed class SocketClientPool
+        : ISocketClientPool
     {
         private readonly SemaphoreSlim _semaphoreSlim = new(1, 1);
-        private readonly Dictionary<string, ConnectionInfo> _connections = new();
+        private readonly Dictionary<string, ClientInfo> _connections = new();
         private readonly ISocketClientFactory _socketClientFactory;
 
-        //TODO The socket interceptors are not available here!
-        private readonly ISocketConnectionInterceptor[] _connectionInterceptors;
         private bool _disposed;
 
-        public SocketConnectionPool(
-            ISocketClientFactory socketClientFactory,
-            IEnumerable<ISocketConnectionInterceptor> connectionInterceptors)
+        public SocketClientPool(
+            ISocketClientFactory socketClientFactory)
         {
             _socketClientFactory = socketClientFactory
                 ?? throw new ArgumentNullException(nameof(socketClientFactory));
-            _connectionInterceptors = connectionInterceptors?.ToArray()
-                ?? throw new ArgumentNullException(nameof(connectionInterceptors));
         }
 
-        public async Task<ISocketConnection> RentAsync(
+        public async Task<ISocketClient> RentAsync(
             string name,
             CancellationToken cancellationToken = default)
             {
@@ -35,34 +29,21 @@ namespace StrawberryShake.Transport.WebSockets
 
             try
             {
-                if (_connections.TryGetValue(name, out ConnectionInfo? connectionInfo))
+                if (_connections.TryGetValue(name, out ClientInfo? connectionInfo))
                 {
                     connectionInfo.Rentals++;
                 }
                 else
                 {
-                    connectionInfo = new ConnectionInfo(
-                        new SocketConnection(
-                            name,
-                            _socketClientFactory.CreateClient(name)));
+                    connectionInfo = new ClientInfo(_socketClientFactory.CreateClient(name));
 
-                    await connectionInfo.Connection.OpenAsync(cancellationToken)
+                    await connectionInfo.Client.OpenAsync(cancellationToken)
                         .ConfigureAwait(false);
-
-                    await InitializeConnectionAsync(connectionInfo.Connection, cancellationToken)
-                        .ConfigureAwait(false);
-
-                    for (int i = 0; i < _connectionInterceptors.Length; i++)
-                    {
-                        await _connectionInterceptors[i].OnConnectAsync(
-                            connectionInfo.Connection)
-                            .ConfigureAwait(false);
-                    }
 
                     _connections.Add(name, connectionInfo);
                 }
 
-                return connectionInfo.Connection;
+                return connectionInfo.Client;
             }
             finally
             {
@@ -71,14 +52,14 @@ namespace StrawberryShake.Transport.WebSockets
         }
 
         public async Task ReturnAsync(
-            ISocketConnection connection,
+            ISocketClient connection,
             CancellationToken cancellationToken = default)
         {
             await _semaphoreSlim.WaitAsync(cancellationToken).ConfigureAwait(false);
 
             try
             {
-                if (_connections.TryGetValue(connection.Name, out ConnectionInfo? connectionInfo))
+                if (_connections.TryGetValue(connection.Name, out ClientInfo? connectionInfo))
                 {
                     connectionInfo.Rentals--;
                 }
@@ -93,14 +74,6 @@ namespace StrawberryShake.Transport.WebSockets
                 {
                     try
                     {
-                        for (int i = 0; i < _connectionInterceptors.Length; i++)
-                        {
-                            await _connectionInterceptors[i].OnDisconnectAsync(
-                                connectionInfo.Connection)
-                                .ConfigureAwait(false);
-                        }
-                        await TerminateConnectionAsync(connection, cancellationToken)
-                            .ConfigureAwait(false);
                         _connections.Remove(connection.Name);
                         await connection.CloseAsync(
                                 "All subscriptions closed.",
@@ -114,7 +87,7 @@ namespace StrawberryShake.Transport.WebSockets
                     }
                     finally
                     {
-                        connection.Dispose();
+                        await connection.DisposeAsync();
                     }
                 }
             }
@@ -124,52 +97,28 @@ namespace StrawberryShake.Transport.WebSockets
             }
         }
 
-        private Task InitializeConnectionAsync(
-            ISocketConnection connection,
-            CancellationToken cancellationToken = default)
-        {
-            var messageWriter = new SocketMessageWriter();
-            messageWriter.WriteStartObject();
-            messageWriter.WriteType(MessageTypes.Connection.Initialize);
-            messageWriter.WriteEndObject();
-
-            return connection.SendAsync(messageWriter.Body, cancellationToken);
-        }
-
-        private Task TerminateConnectionAsync(
-            ISocketConnection connection,
-            CancellationToken cancellationToken = default)
-        {
-            var messageWriter = new SocketMessageWriter();
-            messageWriter.WriteStartObject();
-            messageWriter.WriteType(MessageTypes.Connection.Terminate);
-            messageWriter.WriteEndObject();
-
-            return connection.SendAsync(messageWriter.Body, cancellationToken);
-        }
-
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
             if (!_disposed)
             {
-                foreach (ConnectionInfo connection in _connections.Values)
+                foreach (ClientInfo connection in _connections.Values)
                 {
-                    connection.Connection.Dispose();
+                    await connection.Client.DisposeAsync();
                 }
                 _connections.Clear();
                 _disposed = true;
             }
         }
 
-        private sealed class ConnectionInfo
+        private sealed class ClientInfo
         {
-            public ConnectionInfo(ISocketConnection connection)
+            public ClientInfo(ISocketClient connection)
             {
-                Connection = connection;
+                Client = connection;
                 Rentals = 1;
             }
 
-            public ISocketConnection Connection { get; }
+            public ISocketClient Client { get; }
 
             public int Rentals { get; set; }
         }

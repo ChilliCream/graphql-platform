@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Microsoft.Extensions.Options;
 
 namespace StrawberryShake.Transport.WebSockets
@@ -14,7 +15,7 @@ namespace StrawberryShake.Transport.WebSockets
             _optionsMonitor = optionsMonitor;
         }
 
-        public SocketClient CreateClient(string name)
+        public ISocketClient CreateClient(string name)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -23,8 +24,8 @@ namespace StrawberryShake.Transport.WebSockets
                     nameof(name));
             }
 
-            var client = new SocketClient();
             SocketClientFactoryOptions options = _optionsMonitor.Get(name);
+            var client = new WebSocketClient(name, options.Protocols.ToArray());
 
             for (var i = 0; i < options.WebSocketClientActions.Count; i++)
             {

@@ -14,13 +14,13 @@ namespace StrawberryShake.Http.Subscriptions
     public sealed class MessageProcessor
     {
         internal const byte Delimiter = 0x07;
-        private readonly ISocketConnection _connection;
+        private readonly ISocketClient _connection;
         private readonly MessageParser _parser;
         private readonly IMessageHandler[] _messageHandlers;
         private readonly PipeReader _reader;
 
         internal MessageProcessor(
-            ISocketConnection connection,
+            ISocketClient connection,
             MessageParser parser,
             IEnumerable<IMessageHandler> messageHandlers,
             PipeReader reader)
@@ -99,7 +99,7 @@ namespace StrawberryShake.Http.Subscriptions
         }
 
         private Task ProcessAsync(
-            ISocketConnection connection,
+            ISocketClient connection,
             ReadOnlySequence<byte> slice,
             CancellationToken cancellationToken)
         {
@@ -111,7 +111,7 @@ namespace StrawberryShake.Http.Subscriptions
         }
 
         private async Task HandleMessageAsync(
-            ISocketConnection connection,
+            ISocketClient connection,
             OperationMessage message,
             CancellationToken cancellationToken)
         {

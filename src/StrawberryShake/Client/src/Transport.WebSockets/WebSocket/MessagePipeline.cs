@@ -15,12 +15,12 @@ namespace StrawberryShake.Http.Subscriptions
         private readonly MessageProcessor _processor;
 
         public MessagePipeline(
-            ISocketConnection connection,
+            ISocketClient client,
             IEnumerable<IMessageHandler> messageHandlers)
         {
-            _receiver = new MessageReceiver(connection, _input.Writer);
+            _receiver = new MessageReceiver(client, _input.Writer);
             _processor = new MessageProcessor(
-                connection,
+                client,
                 new MessageParser(),
                 messageHandlers,
                 _input.Reader);

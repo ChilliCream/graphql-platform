@@ -1,5 +1,4 @@
 using System.Net.WebSockets;
-using StrawberryShake.Transport.WebSockets;
 
 namespace StrawberryShake.Transport
 {
@@ -28,6 +27,6 @@ namespace StrawberryShake.Transport
         /// instance's public properties as desired.
         /// </para>
         /// </remarks>
-        SocketClient CreateClient(string name);
+        ISocketClient CreateClient(string name);
     }
 }

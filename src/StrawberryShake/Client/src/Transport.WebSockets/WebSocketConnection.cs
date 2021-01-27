@@ -5,7 +5,6 @@ using System.Text.Json;
 using System.Threading;
 using StrawberryShake.Transport.Http;
 using StrawberryShake.Transport.Subscriptions;
-using StrawberryShake.Transport.WebSockets.Messages;
 
 namespace StrawberryShake.Http.Subscriptions
 {
@@ -28,11 +27,8 @@ namespace StrawberryShake.Http.Subscriptions
 
             await foreach (var result in operation.ReadAsync(cancellationToken))
             {
-                if (result is OperationMessage<JsonDocument> jsonResult)
-                {
-                    // TODO : Exception? --------------------------------V
-                    yield return new Response<JsonDocument>(jsonResult.Payload, null);
-                }
+                // TODO : Exception? --------------------------------V
+                yield return new Response<JsonDocument>(result, null);
             }
         }
     }

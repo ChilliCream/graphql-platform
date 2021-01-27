@@ -19,4 +19,8 @@
     <ProjectReference Include="..\Transport.Http\StrawberryShake.Transport.Http.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Subscriptions" />
+  </ItemGroup>
+
 </Project>

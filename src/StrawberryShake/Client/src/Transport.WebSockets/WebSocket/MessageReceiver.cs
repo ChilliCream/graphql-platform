@@ -8,11 +8,11 @@ namespace StrawberryShake.Http.Subscriptions
 {
     internal sealed class MessageReceiver
     {
-        private readonly ISocketConnection _connection;
+        private readonly ISocketClient _connection;
         private readonly PipeWriter _writer;
 
         public MessageReceiver(
-            ISocketConnection connection,
+            ISocketClient connection,
             PipeWriter writer)
         {
             _connection = connection;

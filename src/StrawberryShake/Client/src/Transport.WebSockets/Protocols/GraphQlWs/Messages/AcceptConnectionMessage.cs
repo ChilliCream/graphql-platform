@@ -1,3 +1,4 @@
+using StrawberryShake.Transport;
 using StrawberryShake.Transport.WebSockets.Messages;
 
 namespace StrawberryShake.Http.Subscriptions.Messages

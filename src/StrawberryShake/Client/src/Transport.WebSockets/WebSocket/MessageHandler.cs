@@ -18,7 +18,7 @@ namespace StrawberryShake.Http.Subscriptions
         protected virtual bool CanHandle(T message) => true;
 
         public ValueTask HandleAsync(
-            ISocketConnection connection,
+            ISocketClient connection,
             OperationMessage message,
             CancellationToken cancellationToken)
         {
@@ -43,7 +43,7 @@ namespace StrawberryShake.Http.Subscriptions
         }
 
         protected abstract ValueTask HandleAsync(
-            ISocketConnection connection,
+            ISocketClient connection,
             T message,
             CancellationToken cancellationToken);
     }

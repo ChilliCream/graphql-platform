@@ -2,29 +2,28 @@ using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using StrawberryShake.Http.Subscriptions.Messages;
 using StrawberryShake.Transport;
-using StrawberryShake.Transport.Subscriptions;
 
 namespace StrawberryShake.Http.Subscriptions
 {
+    //TODO why do we need more than one pipeline?
     public class MessagePipelineHandler
-        : ISocketConnectionInterceptor
     {
-        private readonly ConcurrentDictionary<ISocketConnection, MessagePipeline>
+        private readonly ConcurrentDictionary<ISocketClient, MessagePipeline>
             _pipelines = new();
         private readonly DataResultMessageHandler _resultMessageHandler;
 
-        public MessagePipelineHandler(ISocketOperationManager subscriptionManager)
+        public MessagePipelineHandler(ISocketProtocol protocol)
         {
-            _resultMessageHandler = new DataResultMessageHandler(subscriptionManager);
+            _resultMessageHandler = new DataResultMessageHandler(protocol);
         }
 
-        public Task OnConnectAsync(ISocketConnection connection)
+        public Task OnConnectAsync(ISocketClient client)
         {
-            _pipelines.GetOrAdd(connection,
+            _pipelines.GetOrAdd(client,
                 c =>
                 {
                     var pipeline = new MessagePipeline(
-                        connection,
+                        client,
                         new[]
                         {
                             _resultMessageHandler
@@ -35,9 +34,9 @@ namespace StrawberryShake.Http.Subscriptions
             return Task.CompletedTask;
         }
 
-        public async Task OnDisconnectAsync(ISocketConnection connection)
+        public async Task OnDisconnectAsync(ISocketClient client)
         {
-            if (_pipelines.TryRemove(connection, out MessagePipeline? pipeline))
+            if (_pipelines.TryRemove(client, out MessagePipeline? pipeline))
             {
                 await pipeline.DisposeAsync().ConfigureAwait(false);
             }

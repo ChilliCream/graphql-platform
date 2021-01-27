@@ -1,18 +1,20 @@
 using System;
 using System.Collections.Generic;
+using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using StrawberryShake.Transport.WebSockets.Messages;
 
 namespace StrawberryShake.Transport.Subscriptions
 {
     public class SocketOperation : IAsyncDisposable
     {
         private readonly ISocketOperationManager _manager;
-        private readonly Channel<OperationMessage> _channel;
+        private readonly Channel<JsonDocument> _channel;
         private bool _disposed;
+
 
         public string Id { get; }
 
@@ -27,10 +29,10 @@ namespace StrawberryShake.Transport.Subscriptions
         {
             _manager = manager;
             Id = id;
-            _channel = Channel.CreateUnbounded<OperationMessage>();
+            _channel = Channel.CreateUnbounded<JsonDocument>();
         }
 
-        public async IAsyncEnumerable<OperationMessage> ReadAsync(
+        public async IAsyncEnumerable<JsonDocument> ReadAsync(
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             if (_disposed)
@@ -38,7 +40,7 @@ namespace StrawberryShake.Transport.Subscriptions
                 yield break;
             }
 
-            ChannelReader<OperationMessage> reader = _channel.Reader;
+            ChannelReader<JsonDocument> reader = _channel.Reader;
 
             while (!_disposed && !reader.Completion.IsCompleted)
             {
@@ -50,7 +52,7 @@ namespace StrawberryShake.Transport.Subscriptions
         }
 
         public async ValueTask ReceiveAsync(
-            OperationMessage message,
+            JsonDocument message,
             CancellationToken cancellationToken)
         {
             await _channel.Writer.WriteAsync(message, cancellationToken);

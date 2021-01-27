@@ -1,17 +1,35 @@
 using System;
-using System.Net.WebSockets;
+using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace StrawberryShake.Transport.WebSockets
+namespace StrawberryShake.Transport
 {
     public interface ISocketClient
-        : IDisposable
+        : IAsyncDisposable
     {
-        Uri? Uri { get; }
+        Uri? Uri { get; set; }
 
-        ClientWebSocket Socket { get; }
+        string? Name { get; }
 
-        Task ConnectAsync(Uri? uri = default , CancellationToken cancellationToken = default);
+        bool IsClosed { get; }
+
+        Task OpenAsync(
+            CancellationToken cancellationToken = default);
+
+        Task SendAsync(
+            ReadOnlyMemory<byte> message,
+            CancellationToken cancellationToken = default);
+
+        Task ReceiveAsync(
+            PipeWriter writer,
+            CancellationToken cancellationToken = default);
+
+        Task CloseAsync(
+            string message,
+            SocketCloseStatus closeStatus,
+            CancellationToken cancellationToken = default);
+
+        ISocketProtocol GetProtocol();
     }
 }

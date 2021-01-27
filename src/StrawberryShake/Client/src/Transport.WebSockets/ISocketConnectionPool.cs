@@ -4,15 +4,15 @@ using System.Threading.Tasks;
 
 namespace StrawberryShake.Transport
 {
-    public interface ISocketConnectionPool
-        : IDisposable
+    public interface ISocketClientPool
+        : IAsyncDisposable
     {
-        Task<ISocketConnection> RentAsync(
+        Task<ISocketClient> RentAsync(
             string name,
             CancellationToken cancellationToken = default);
 
         Task ReturnAsync(
-            ISocketConnection connection,
+            ISocketClient client,
             CancellationToken cancellationToken = default);
     }
 }
