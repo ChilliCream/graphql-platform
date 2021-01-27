@@ -1,66 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!-- 
-    Microsoft ResX Schema 
-    
-    Version 2.0
-    
-    The primary goals of this format is to allow a simple XML format 
-    that is mostly human readable. The generation and parsing of the 
-    various data types are done through the TypeConverter classes 
-    associated with the data types.
-    
-    Example:
-    
-    ... ado.net/XML headers & schema ...
-    <resheader name="resmimetype">text/microsoft-resx</resheader>
-    <resheader name="version">2.0</resheader>
-    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
-    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
-    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
-    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
-    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
-        <value>[base64 mime encoded serialized .NET Framework object]</value>
-    </data>
-    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
-        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
-        <comment>This is a comment</comment>
-    </data>
-                
-    There are any number of "resheader" rows that contain simple 
-    name/value pairs.
-    
-    Each data row contains a name, and value. The row also contains a 
-    type or mimetype. Type corresponds to a .NET class that support 
-    text/value conversion through the TypeConverter architecture. 
-    Classes that don't support this are serialized and stored with the 
-    mimetype set.
-    
-    The mimetype is used for serialized objects, and tells the 
-    ResXResourceReader how to depersist the object. This is currently not 
-    extensible. For a given mimetype the value must be set accordingly:
-    
-    Note - application/x-microsoft.net.object.binary.base64 is the format 
-    that the ResXResourceWriter will generate, however the reader can 
-    read any of the formats listed below.
-    
-    mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with 
-            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
-            : and then encoded with base64 encoding.
-    
-    mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with 
-            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
-            : and then encoded with base64 encoding.
-
-    mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array 
-            : using a System.ComponentModel.TypeConverter
-            : and then encoded with base64 encoding.
-    -->
-  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
-    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+  <xsd:schema id="root"
+    xmlns=""
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:element name="root" msdata:IsDataSet="true">
       <xsd:complexType>
         <xsd:choice maxOccurs="unbounded">
@@ -118,13 +61,13 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="NegativeIntType_Description" xml:space="preserve">
-    <value>The NegativeIntType scalar type represents Integers that will have a value less than 0.</value>
+    <value>The NegativeIntType scalar type represents a signed 32-bit numeric non-fractional with a maximum of -1.</value>
   </data>
   <data name="NegativeIntType_IsNotNegative_ParseLiteral" xml:space="preserve">
-    <value>NegativeIntType cannot parse the provided literal. The provided int was not negative.</value>
+    <value>NegativeIntType cannot parse the provided literal. The provided value was not negative.</value>
   </data>
   <data name="NegativeIntType_IsNotNegative_ParseValue" xml:space="preserve">
-    <value>NegativeIntType cannot parse the provided value. The provided int was not negative.</value>
+    <value>NegativeIntType cannot parse the provided value. The provided value was not negative.</value>
   </data>
   <data name="NonEmptyStringType_Description" xml:space="preserve">
     <value>The NonEmptyString scalar type represents non empty textual data, represented as UTF‐8 character sequences with at least one character</value>
@@ -134,5 +77,14 @@
   </data>
   <data name="NonEmptyStringType_IsEmpty_ParseValue" xml:space="preserve">
     <value>NonEmptyString cannot parse the provided value. The provided string was empty.</value>
+  </data>
+  <data name="PositiveIntType_Description" xml:space="preserve">
+    <value>The PositiveInt scalar type represents a signed 32-bit numeric non-fractional value of at least the value 1.</value>
+  </data>
+  <data name="PositiveIntType_ZeroOrLess_ParseLiteral" xml:space="preserve">
+    <value>PositiveInt cannot parse the provided literal. The provided value is 0 or less.</value>
+  </data>
+  <data name="PositiveIntType_ZeroOrLess_ParseValue" xml:space="preserve">
+    <value>PositiveInt cannot parse the provided value. The provided value is 0 or less.</value>
   </data>
 </root>

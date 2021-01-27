@@ -10,7 +10,7 @@ namespace HotChocolate.Types
     public class NonEmptyStringType : StringType
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="NonEmptyStringType "/> class.
+        /// Initializes a new instance of the <see cref="NonEmptyStringType"/> class.
         /// </summary>
         public NonEmptyStringType()
             : this(
@@ -20,7 +20,7 @@ namespace HotChocolate.Types
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="NonEmptyStringType "/> class.
+        /// Initializes a new instance of the <see cref="NonEmptyStringType"/> class.
         /// </summary>
         public NonEmptyStringType(
             NameString name,

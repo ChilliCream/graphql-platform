@@ -379,9 +379,17 @@ services
 ## NegativeInt
 ```sdl
 """
-The NegativeInt scalar type represents a signed 32‐bit numeric non‐fractional value of at below the value 0.
+The NegativeIntType scalar type represents a signed 32-bit numeric non-fractional with a maximum of -1.
 """
 scalar NegativeInt
+```
+
+## PositiveInt
+```sdl
+"""
+The PositiveInt scalar type represents a signed 32‐bit numeric non‐fractional value of at least the value 1.
+"""
+scalar PositiveInt
 ```
 
 ## NonEmptyString
