@@ -79,7 +79,7 @@ namespace HotChocolate.Types.Scalars {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to NegativeIntType cannot parse the provided value. The provided int was not Negative..
+        ///   Looks up a localized string similar to NegativeIntType cannot parse the provided value. The provided int was not negative..
         /// </summary>
         internal static string NegativeIntType_IsNotNegative_ParseValue {
             get {

@@ -22,6 +22,9 @@ namespace HotChocolate.Types.Scalars
         [InlineData(typeof(EnumValueNode), TestEnum.Foo, false)]
         [InlineData(typeof(FloatValueNode), 1d, false)]
         [InlineData(typeof(IntValueNode), -1, true)]
+        [InlineData(typeof(IntValueNode), int.MinValue, true)]
+        [InlineData(typeof(IntValueNode), 0, false)]
+        [InlineData(typeof(IntValueNode), 1, false)]
         [InlineData(typeof(BooleanValueNode), true, false)]
         [InlineData(typeof(StringValueNode), "", false)]
         [InlineData(typeof(StringValueNode), "foo", false)]
@@ -43,6 +46,9 @@ namespace HotChocolate.Types.Scalars
         [InlineData(TestEnum.Foo, false)]
         [InlineData(1d, false)]
         [InlineData(-1, true)]
+        [InlineData(int.MinValue, true)]
+        [InlineData(0, false)]
+        [InlineData(1, false)]
         [InlineData(true, false)]
         [InlineData("", false)]
         [InlineData(null, true)]
@@ -112,6 +118,66 @@ namespace HotChocolate.Types.Scalars
             // act
             // assert
             ExpectParseValueToThrowSerializationException<NegativeIntType>(value);
+        }
+
+        [Theory]
+        [InlineData(-1, -1)]
+        [InlineData(int.MinValue, int.MinValue)]
+        [InlineData(null, null)]
+        public void Deserialize_GivenValue_MatchExpected(
+            object resultValue,
+            object runtimeValue)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectDeserializeToMatch<NegativeIntType>(resultValue, runtimeValue);
+        }
+
+        [Theory]
+        [InlineData(TestEnum.Foo)]
+        [InlineData(1d)]
+        [InlineData(true)]
+        [InlineData("foo")]
+        [InlineData(int.MaxValue)]
+        [InlineData(1)]
+        [InlineData(0)]
+        public void Deserialize_GivenValue_ThrowSerializationException(object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectDeserializeToThrowSerializationException<NegativeIntType>(value);
+        }
+
+        [Theory]
+        [InlineData(-1, -1)]
+        [InlineData(int.MinValue, int.MinValue)]
+        [InlineData(null, null)]
+        public void Serialize_GivenObject_MatchExpectedType(
+            object runtimeValue,
+            object resultValue)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectSerializeToMatch<NegativeIntType>(runtimeValue, resultValue);
+        }
+
+        [Theory]
+        [InlineData(TestEnum.Foo)]
+        [InlineData(1d)]
+        [InlineData(true)]
+        [InlineData("foo")]
+        [InlineData(int.MaxValue)]
+        [InlineData(1)]
+        [InlineData(0)]
+        public void Serialize_GivenObject_ThrowSerializationException(object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectSerializeToThrowSerializationException<NegativeIntType>(value);
         }
     }
 }

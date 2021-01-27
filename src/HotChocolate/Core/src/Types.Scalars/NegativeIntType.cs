@@ -10,7 +10,7 @@ namespace HotChocolate.Types
     public class NegativeIntType : IntType
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="NegativeIntType "/> class.
+        /// Initializes a new instance of the <see cref="NegativeIntType"/> class.
         /// </summary>
         public NegativeIntType()
             : this(
@@ -20,7 +20,7 @@ namespace HotChocolate.Types
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="NegativeIntType "/> class.
+        /// Initializes a new instance of the <see cref="NegativeIntType"/> class.
         /// </summary>
         public NegativeIntType(
             NameString name,
@@ -34,19 +34,19 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         protected override bool IsInstanceOfType(int runtimeValue)
         {
-            return runtimeValue < 0;
+            return runtimeValue <= MaxValue;
         }
 
         /// <inheritdoc />
         protected override bool IsInstanceOfType(IntValueNode valueSyntax)
         {
-            return valueSyntax.ToInt32() < 0;
+            return valueSyntax.ToInt32() <= MaxValue;
         }
 
         /// <inheritdoc />
         protected override int ParseLiteral(IntValueNode valueSyntax)
         {
-            if (valueSyntax.ToInt32() >= 0)
+            if (valueSyntax.ToInt32() > MaxValue)
             {
                 throw ThrowHelper.NegativeIntType_ParseLiteral_IsNotNegative(this);
             }
@@ -57,7 +57,7 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         protected override IntValueNode ParseValue(int runtimeValue)
         {
-            if (runtimeValue >= 0)
+            if (runtimeValue > MaxValue)
             {
                 throw ThrowHelper.NegativeIntType_ParseValue_IsNotNegative(this);
             }

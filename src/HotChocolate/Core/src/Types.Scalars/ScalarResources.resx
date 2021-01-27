@@ -124,7 +124,7 @@
     <value>NegativeIntType cannot parse the provided literal. The provided int was not negative.</value>
   </data>
   <data name="NegativeIntType_IsNotNegative_ParseValue" xml:space="preserve">
-    <value>NegativeIntType cannot parse the provided value. The provided int was not Negative.</value>
+    <value>NegativeIntType cannot parse the provided value. The provided int was not negative.</value>
   </data>
   <data name="NonEmptyStringType_Description" xml:space="preserve">
     <value>The NonEmptyString scalar type represents non empty textual data, represented as UTF‐8 character sequences with at least one character</value>
