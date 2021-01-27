@@ -376,6 +376,14 @@ services
   .AddType<NonEmptyStringType>()
 ```
 
+## NegativeInt
+```sdl
+"""
+The NegativeInt scalar type represents a signed 32‐bit numeric non‐fractional value of at below the value 0.
+"""
+scalar NegativeInt
+```
+
 ## NonEmptyString
 ```sdl
 """
