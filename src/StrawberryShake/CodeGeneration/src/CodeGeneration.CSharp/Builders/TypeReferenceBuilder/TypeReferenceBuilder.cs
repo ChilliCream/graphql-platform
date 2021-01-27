@@ -9,6 +9,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private readonly List<TypeKindToken> _buildOrder = new();
         private string? _name;
         private readonly List<string> _genericTypeArguments = new();
+        private bool _skipTrailingSpace;
 
         public static TypeReferenceBuilder New()
         {
@@ -18,6 +19,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         public TypeReferenceBuilder SetName(string name)
         {
             _name = name;
+            return this;
+        }
+
+        public TypeReferenceBuilder SkipTraliingSpace()
+        {
+            _skipTrailingSpace = true;
             return this;
         }
 
@@ -56,7 +63,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         public void Build(CodeWriter writer)
         {
             HandleQueue(writer, 0);
-            writer.WriteSpace();
+            if (!_skipTrailingSpace)
+            {
+                writer.WriteSpace();
+            }
         }
 
         private void HandleQueue(CodeWriter writer, int currentIndex)

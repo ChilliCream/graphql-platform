@@ -1,5 +1,6 @@
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
+using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Extensions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
@@ -14,12 +15,19 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             var listVarName = listTypeDescriptor.Name.WithLowerFirstChar() + "s";
 
-            string elementType = listTypeDescriptor.IsEntityType()
-                ? TypeNames.EntityId
-                : listTypeDescriptor.InnerType.Name;
-
             methodBuilder.AddCode(
-                $"var {listVarName} = new {TypeNames.List}<{elementType}>();");
+                AssignmentBuilder.New()
+                    .SetLefthandSide($"var {listVarName}")
+                    .SetRighthandSide(
+                        CodeBlockBuilder.New()
+                            .AddCode("new ")
+                            .AddCode(TypeNames.List)
+                            .AddCode("<")
+                            .AddCode(listTypeDescriptor.InnerType.ToEntityIdBuilder().SkipTraliingSpace())
+                            .AddCode(">")
+                            .AddCode("()")
+                        ));
+            methodBuilder.AddEmptyLine();
 
             methodBuilder.AddCode(
                 ForEachBuilder.New()
