@@ -9,9 +9,7 @@ using HotChocolate.Utilities;
 using static HotChocolate.Language.Utf8GraphQLRequestParser;
 using static HotChocolate.AspNetCore.ThrowHelper;
 using Microsoft.Extensions.Primitives;
-using System.Text;
 using System.Text.Json;
-using Microsoft.AspNetCore.Http.Features;
 
 namespace HotChocolate.AspNetCore.Serialization
 {
@@ -53,14 +51,9 @@ namespace HotChocolate.AspNetCore.Serialization
             CancellationToken cancellationToken) =>
             ReadAsync(stream, false, cancellationToken);
 
-        public async ValueTask<IReadOnlyList<GraphQLRequest>> ReadMultipartRequestAsync(
-            HttpRequest httpRequest,
-            CancellationToken cancellationToken)
+        public async ValueTask<IReadOnlyList<GraphQLRequest>> ReadFormAsync(
+            IFormCollection form)
         {
-            // todo: The IFormCollection is convenient, but it requires us to work with strings instead of a stream
-            var formFeature = new FormFeature(httpRequest);
-            IFormCollection? form = await formFeature.ReadFormAsync(cancellationToken);
-
             if (form.Count < 2)
             {
                 // TODO : throw helper

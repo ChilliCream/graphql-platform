@@ -1,11 +1,11 @@
 using System.Collections.Generic;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.AspNetCore
@@ -46,11 +46,15 @@ namespace HotChocolate.AspNetCore
             }
         }
 
-        protected override ValueTask<IReadOnlyList<GraphQLRequest>> GetRequestsFromBody(
+        protected override async ValueTask<IReadOnlyList<GraphQLRequest>> GetRequestsFromBody(
             HttpRequest request,
             CancellationToken cancellationToken)
         {
-            return RequestParser.ReadMultipartRequestAsync(request, cancellationToken);
+            // todo: The IFormCollection is convenient, but it requires us to work with strings instead of a stream
+            var formFeature = new FormFeature(request);
+            IFormCollection? form = await formFeature.ReadFormAsync(cancellationToken);
+
+            return await RequestParser.ReadFormAsync(form);
         }
     }
 }
