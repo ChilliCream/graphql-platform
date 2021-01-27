@@ -5,7 +5,8 @@ using HotChocolate.Types.Scalars;
 namespace HotChocolate.Types
 {
     /// <summary>
-    /// The NegativeIntType scalar type represents Integers that will have a value less than 0.
+    /// The NegativeIntType scalar type represents a signed 32-bit numeric non-fractional with a
+    /// maximum of -1.
     /// </summary>
     public class NegativeIntType : IntType
     {
