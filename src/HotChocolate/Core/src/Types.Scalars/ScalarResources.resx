@@ -61,13 +61,13 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="NegativeIntType_Description" xml:space="preserve">
-    <value>The NegativeIntType scalar type represents Integers that will have a value less than 0.</value>
+    <value>The NegativeIntType scalar type represents a signed 32-bit numeric non-fractional with a maximum of -1.</value>
   </data>
   <data name="NegativeIntType_IsNotNegative_ParseLiteral" xml:space="preserve">
-    <value>NegativeIntType cannot parse the provided literal. The provided int was not negative.</value>
+    <value>NegativeIntType cannot parse the provided literal. The provided value was not negative.</value>
   </data>
   <data name="NegativeIntType_IsNotNegative_ParseValue" xml:space="preserve">
-    <value>NegativeIntType cannot parse the provided value. The provided int was not negative.</value>
+    <value>NegativeIntType cannot parse the provided value. The provided value was not negative.</value>
   </data>
   <data name="NonEmptyStringType_Description" xml:space="preserve">
     <value>The NonEmptyString scalar type represents non empty textual data, represented as UTF‐8 character sequences with at least one character</value>
