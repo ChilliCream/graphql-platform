@@ -10,7 +10,7 @@ namespace HotChocolate.Data.Neo4J
     {
         public static T MapValue<T>(object cypherValue)
         {
-            var targetType = typeof(T);
+            Type targetType = typeof(T);
 
             if (typeof(IEnumerable).IsAssignableFrom(targetType))
             {
@@ -22,8 +22,8 @@ namespace HotChocolate.Data.Neo4J
                     return enumerable.As<T>();
                 }
 
-                var elementType = targetType.GetGenericArguments()[0];
-                var genericType = typeof(CollectionMapper<>).MakeGenericType(elementType);
+                Type? elementType = targetType.GetGenericArguments()[0];
+                Type genericType = typeof(CollectionMapper<>).MakeGenericType(elementType);
                 var collectionMapper = (ICollectionMapper)genericType.CreateInstance();
 
                 return (T)collectionMapper.MapValues(enumerable, targetType);
@@ -33,14 +33,14 @@ namespace HotChocolate.Data.Neo4J
             {
                 case INode node:
                 {
-                    var entity = node.Properties.FromObjectDictionary<T>();
+                    T entity = node.Properties.FromObjectDictionary<T>();
                     EntityPropertyAccessor.SetNodeId(entity, node.Id);
 
                     return entity;
                 }
                 case IRelationship relationship:
                 {
-                    var entity = relationship.Properties.FromObjectDictionary<T>();
+                    T entity = relationship.Properties.FromObjectDictionary<T>();
 
                     return entity;
                 }

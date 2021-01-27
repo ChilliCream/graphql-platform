@@ -3,8 +3,10 @@ using System.Linq;
 
 namespace HotChocolate.Data.Neo4J.Language
 {
-    public class StatementBuilder
+    public class StatementBuilder : IStatementBuilder
     {
+        private readonly int STATEMENT_CACHE_SIZE = 128;
+
         private bool IsWrite = false;
         private Match? _match;
         private Where? _where;
@@ -37,18 +39,26 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public string Build()
         {
+            // TODO: Implement cache
+
             using var visitor = new CypherVisitor();
-            if (!IsWrite)
+            switch (IsWrite)
             {
-                _match?.Visit(visitor);
-                _where?.Visit(visitor);
-                _return?.Visit(visitor);
-            }
-            else
-            {
-                // TODO: Write Implementation
+                case false:
+                    _match?.Visit(visitor);
+                    _where?.Visit(visitor);
+                    _return?.Visit(visitor);
+                    break;
+                default:
+                    // TODO: Write Implementation
+                    break;
             }
             return visitor.Print();
+        }
+
+        public IStatementBuilder GetDefaultBuilder()
+        {
+            throw new System.NotImplementedException();
         }
     }
 

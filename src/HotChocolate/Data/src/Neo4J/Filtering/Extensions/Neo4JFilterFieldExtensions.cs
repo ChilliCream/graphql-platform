@@ -1,6 +1,6 @@
 using HotChocolate.Data.Filters;
 
-namespace HotChocolate.Data.Neo4J.Extensions
+namespace HotChocolate.Data.Neo4J.Filtering
 {
     internal static class Neo4JFilterFieldExtensions
     {

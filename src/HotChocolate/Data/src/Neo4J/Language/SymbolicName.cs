@@ -1,6 +1,6 @@
 ﻿using System;
 using HotChocolate.Data.Neo4J.Extensions;
-using HotChocolate.Data.Neo4J.Utils;
+using HotChocolate.Data.Neo4J;
 
 namespace HotChocolate.Data.Neo4J.Language
 {

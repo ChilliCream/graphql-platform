@@ -1,17 +1,13 @@
-using System;
 using Neo4j.Driver;
 
 namespace HotChocolate.Data.Neo4J
 {
-    public class DbClient
+    public static class DbClient
     {
-        public bool IsConnected => Driver != null;
+        public static IDriver  CreateDriver(string uri, string username, string password) =>
+            GraphDatabase.Driver(uri, AuthTokens.Basic(username, password));
 
-        public DbClient(Uri uri, string username, string password)
-        {
-            Driver = GraphDatabase.Driver(uri, AuthTokens.Basic(username, password));
-        }
-
-        public IDriver Driver { get; }
+        public static IDriver  CreateDriver(string uri) =>
+            GraphDatabase.Driver(uri);
     }
 }

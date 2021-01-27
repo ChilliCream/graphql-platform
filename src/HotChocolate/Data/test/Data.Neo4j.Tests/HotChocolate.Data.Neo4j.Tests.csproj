@@ -15,4 +15,12 @@
     <PackageReference Include="Squadron.Neo4j" Version="0.9.0-preview.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Filtering" />
+    <Folder Include="Language" />
+    <Folder Include="Paging" />
+    <Folder Include="Projections" />
+    <Folder Include="Sorting" />
+  </ItemGroup>
+
 </Project>

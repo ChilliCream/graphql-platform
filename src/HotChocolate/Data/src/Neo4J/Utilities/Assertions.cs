@@ -1,7 +1,7 @@
 ﻿using System;
 using HotChocolate.Data.Neo4J.Extensions;
 
-namespace HotChocolate.Data.Neo4J.Utils
+namespace HotChocolate.Data.Neo4J
 {
     public static class Assertions
     {

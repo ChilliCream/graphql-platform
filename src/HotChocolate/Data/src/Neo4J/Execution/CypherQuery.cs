@@ -1,6 +1,6 @@
 ﻿namespace HotChocolate.Data.Neo4J
 {
-    public class CypherQuery
+    public class CypherQuery<T>
     {
         /// <summary>
         /// Is the query is a read or write.

@@ -1,65 +1,67 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using HotChocolate;
+using HotChocolate.Data;
 using HotChocolate.Data.Neo4J;
+using HotChocolate.Data.Neo4J.Execution;
+using HotChocolate.Data.Neo4J.Extensions;
+using HotChocolate.Data.Neo4J.Language;
+using HotChocolate.Resolvers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using HotChocolate.Data.Neo4J.Language;
+using HotChocolate.Types;
 using Neo4j.Driver;
 
 namespace Neo4jDemo
 {
     public class Startup
     {
+        [Neo4JNode("Movie", "Film")]
         public class Movie
         {
             public string Title { get; set; }
-            public int? YearReleased { get; set; }
-            public string Plot { get; set; }
+            public int? Released { get; set; }
+            public string Tagline { get; set; }
             public double? ImdbRating { get; set; }
 
-            //[Relationship("ACTED_IN", RelationshipDirection.Incoming)]
-            //public List<Actor> Actors { get; set; }
+            [Neo4JRelationship("ACTED_IN", RelationshipDirection.Incoming)]
+            public List<Actor> Actors { get; set; }
+        }
+
+        public class Car
+        {
+            public string Name { get; set; }
         }
 
         public class Actor
         {
             public string Name { get; set; }
 
-            //[Relationship("ACTED_IN", RelationshipDirection.Outgoing)]
+            [Neo4JRelationship("ACTED_IN", RelationshipDirection.Outgoing)]
             public List<Movie> ActedIn { get; set; }
         }
 
 
+        [ExtendObjectType(Name = "Query")]
         public class Query
         {
-            public async Task<Movie> GetMovies()
+            [UseNeo4JDatabase("neo4j")]
+            [UseFiltering]
+            public async Task<List<Movie>> GetMovies([ScopedService] IAsyncSession session)
             {
-                Movie movies;
-
-                IDriver driver = GraphDatabase.Driver("bolt://localhost:7687", AuthTokens.Basic("neo4j", "test123"));
-                IAsyncSession session = driver.AsyncSession(o => o.WithDatabase("neo4j"));
-
-                try
-                {
-                    var cursor = await session.RunAsync(@"
+                IResultCursor cursor = await session.RunAsync(@"
                         MATCH (m:Movie)
                         RETURN m
                     ");
 
-                    movies = await cursor.MapSingleAsync<Movie>();
-                }
-                finally
-                {
-                    await session.CloseAsync();
-                }
-
-                await driver.CloseAsync();
-
-                return movies;
+                return await cursor.MapAsync<Movie>();
             }
+
+            [UseNeo4JDatabase("movies")]
+            [UseFiltering]
+            public Neo4JExecutable<Movie> GetMovie() => default;
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
@@ -67,27 +69,13 @@ namespace Neo4jDemo
         public void ConfigureServices(IServiceCollection services)
         {
             services
-                //.AddSingleton(_ => CreateDriver())
-
+                .AddSingleton(
+                    //DbClient.CreateDriver("bolt://localhost:7687"))
+                    DbClient.CreateDriver("bolt://localhost:7687", "neo4j", "test123"))
                 .AddGraphQLServer()
-                .AddDocumentFromString(@"
-                    type Query {
-                        movies: Movie
-                    }
-                    type Movie {
-                        title: String
-                        yearReleased: Int
-                        plot: String
-                        imdbRating: Float
-                    }
-                ")
-                .BindComplexType<Query>()
-                .BindComplexType<Movie>();
-        }
-
-        private IDriver CreateDriver()
-        {
-            return GraphDatabase.Driver("bolt://localhost:7687", AuthTokens.Basic("neo4j", "password"));
+                .AddQueryType(d => d.Name("Query"))
+                    .AddType<Query>()
+                .AddNeo4JFiltering();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

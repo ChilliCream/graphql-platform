@@ -6,6 +6,8 @@ namespace HotChocolate.Data.Neo4J.Language
     {
         public void Enter(IVisitable visitable)
         {
+            _visitedElements.AddLast(visitable);
+
             switch (visitable.Kind)
             {
                 case ClauseKind.Match:

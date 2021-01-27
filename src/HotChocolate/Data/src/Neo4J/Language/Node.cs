@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using HotChocolate.Data.Neo4J.Utils;
+using HotChocolate.Data.Neo4J;
 
 namespace HotChocolate.Data.Neo4J.Language
 {
