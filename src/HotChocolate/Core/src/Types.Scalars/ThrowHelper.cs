@@ -46,5 +46,27 @@ namespace HotChocolate.Types.Scalars
                     .Build(),
                 type);
         }
+
+        public static SerializationException NegativeIntType_ParseLiteral_IsNotNegative(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.NegativeIntType_IsNotNegative_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", "NegativeInt")
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException NegativeIntType_ParseValue_IsNotNegative(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.NegativeIntType_IsNotNegative_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", "NegativeInt")
+                    .Build(),
+                type);
+        }
     }
 }
