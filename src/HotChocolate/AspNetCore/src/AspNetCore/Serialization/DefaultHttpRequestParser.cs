@@ -23,6 +23,8 @@ namespace HotChocolate.AspNetCore.Serialization
         private const string _queryIdentifier = "query";
         private const string _variablesIdentifier = "variables";
         private const string _extensionsIdentifier = "extensions";
+        private const string _operations = "operations";
+        private const string _map = "map";
 
         private readonly IDocumentCache _documentCache;
         private readonly IDocumentHashProvider _documentHashProvider;
@@ -57,30 +59,58 @@ namespace HotChocolate.AspNetCore.Serialization
         {
             // todo: The IFormCollection is convenient, but it requires us to work with strings instead of a stream
             var formFeature = new FormFeature(httpRequest);
-            var form = await formFeature.ReadFormAsync(cancellationToken);
+            IFormCollection? form = await formFeature.ReadFormAsync(cancellationToken);
 
             if (form.Count < 2)
-                throw new Exception("At least a 'operations' and 'map' field need to be present.");
+            {
+                // TODO : throw helper
+                throw new GraphQLRequestException(
+                    ErrorBuilder.New()
+                        .SetMessage(
+                            "At least a '{0}' and '{1}' field need to be present.",
+                            _operations,
+                            _map)
+                        .SetCode("// TODO CODE HC")
+                        .Build());
+            }
 
-            if (!form.TryGetValue("operations", out StringValues operationsCollection) || !operationsCollection.TryPeek(out var operationsString))
-                throw new Exception("No 'operations' specified.");
+            if (!form.TryGetValue("operations", out StringValues operationsCollection) ||
+                !operationsCollection.TryPeek(out var operationsString))
+            {
+                // TODO : throw helper
+                throw new GraphQLRequestException(
+                    ErrorBuilder.New()
+                        .SetMessage("No '{0}' specified.", _operations)
+                        .SetCode("// TODO CODE HC")
+                        .Build());
+            }
 
-            if (!form.TryGetValue("map", out StringValues mapCollection) || !mapCollection.TryPeek(out var mapString))
-                throw new Exception("No 'map' specified.");
+            if (!form.TryGetValue("map", out StringValues mapCollection) ||
+                !mapCollection.TryPeek(out var mapString))
+            {
+                // TODO : throw helper
+                throw new GraphQLRequestException(
+                    ErrorBuilder.New()
+                        .SetMessage("No '{0}' specified.", _map)
+                        .SetCode("// TODO CODE HC")
+                        .Build());
+            }
 
-            var map = JsonSerializer.Deserialize<IDictionary<string, string[]>>(mapString);
+            IDictionary<string, string[]>? map =
+                JsonSerializer.Deserialize<IDictionary<string, string[]>>(mapString);
 
-            if (map == null)
-                throw new Exception("'map' is not a dictionary of string[].");
+            if (map is null)
+            {
+                // TODO : throw helper
+                throw new GraphQLRequestException(
+                    ErrorBuilder.New()
+                        .SetMessage("'{0}' is not a dictionary of string[].", _map)
+                        .SetCode("// TODO CODE HC")
+                        .Build());
+            }
 
-            // todo: Stuff like this is just a temporary hack until we have a proper multipart reader
-            var operationsBytes = Encoding.UTF8.GetBytes(operationsString);
-            var operationsStream = new MemoryStream(operationsBytes);
-
-            var requests = await ReadAsync(operationsStream, false, cancellationToken);
-
-            if (requests == null)
-                throw new Exception("Requests could not be parsed.");
+            IReadOnlyList<GraphQLRequest> requests =
+                Parse(operationsString, _parserOptions, _documentCache, _documentHashProvider);
 
             foreach (var request in requests)
             {
@@ -88,21 +118,27 @@ namespace HotChocolate.AspNetCore.Serialization
                 //       I choose to do it this way as to not change the existing APIs.
                 //       For a final implementation this should be done differently
                 if (!(request.Variables is Dictionary<string, object?> mutableVariables))
+                {
                     continue;
+                }
 
                 foreach (var (key, values) in map)
                 {
-                    var file = form.Files.GetFile(key);
+                    IFormFile file = form.Files.GetFile(key);
 
-                    if (file == null)
+                    if (file is null)
+                    {
                         throw new Exception($"File could not be parsed for key '{key}'");
+                    }
 
                     foreach (var value in values)
                     {
-                        var parts = value?.Split(".");
+                        var parts = value.Split(".");
 
                         if (parts == null || parts.Length < 2)
+                        {
                             throw new Exception("Failed to parse 'map' value.");
+                        }
 
                         var variableName = parts[1];
 
@@ -167,10 +203,10 @@ namespace HotChocolate.AspNetCore.Serialization
 
             try
             {
-                DocumentNode? document = string.IsNullOrEmpty(query) 
-                    ? null 
+                DocumentNode? document = string.IsNullOrEmpty(query)
+                    ? null
                     : Utf8GraphQLParser.Parse(query);
-                    
+
                 IReadOnlyDictionary<string, object?>? variables = null;
 
                 // if we find variables we do need to parse them

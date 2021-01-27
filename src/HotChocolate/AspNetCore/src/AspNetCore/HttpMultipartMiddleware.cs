@@ -22,7 +22,7 @@ namespace HotChocolate.AspNetCore
         {
         }
 
-        public async override Task InvokeAsync(HttpContext context)
+        public override async Task InvokeAsync(HttpContext context)
         {
             if (!HttpMethods.IsPost(context.Request.Method) ||
                 !(context.GetGraphQLServerOptions()?.EnableMultipartRequests ?? false))
@@ -46,7 +46,9 @@ namespace HotChocolate.AspNetCore
             }
         }
 
-        protected override ValueTask<IReadOnlyList<GraphQLRequest>> GetRequestsFromBody(HttpRequest request, CancellationToken cancellationToken)
+        protected override ValueTask<IReadOnlyList<GraphQLRequest>> GetRequestsFromBody(
+            HttpRequest request,
+            CancellationToken cancellationToken)
         {
             return RequestParser.ReadMultipartRequestAsync(request, cancellationToken);
         }
