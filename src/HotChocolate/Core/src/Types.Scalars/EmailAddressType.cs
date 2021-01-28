@@ -46,7 +46,7 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         protected override string ParseLiteral(StringValueNode valueSyntax)
         {
-            var rgx = Regex.matches(valueSyntax,@"/^\+[1-9]\d{1,14}$/");
+            var rgx = Regex.matches(valueSyntax, @"/^\+[1-9]\d{1,14}$/");
             
             if(!rgx.Success)
             {
@@ -59,7 +59,7 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         protected override StringValueNode PareseValue(string runtimeValue)
         {
-            var rgx = Regex.matches(valueSyntax,@"/^\+[1-9]\d{1,14}$/");
+            var rgx = Regex.matches(valueSyntax, @"/^\+[1-9]\d{1,14}$/");
             
             if(!rgx.Success)
             {
@@ -72,7 +72,7 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         public override bool TrySerialize(object? runtimeValue, out object? resultValue)
         {
-            var rgx = Regex.matches(valueSyntax,@"/^\+[1-9]\d{1,14}$/");
+            var rgx = Regex.matches(valueSyntax, @"/^\+[1-9]\d{1,14}$/");
 
             if(runtimeValue is string s && !rgx.Success)
             {
@@ -86,7 +86,7 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
         {
-            var rgx = Regex.matches(valueSyntax,@"/^\+[1-9]\d{1,14}$/");
+            var rgx = Regex.matches(valueSyntax, @"/^\+[1-9]\d{1,14}$/");
             
             if (!base.TryDeserialize(resultValue, out runtimeValue))
             {
