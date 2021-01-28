@@ -34,13 +34,13 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         protected override bool IsInstanceOfType(string runtimeValue)
         {
-            return runtimeValue !== string.Empty;
+            return runtimeValue != string.Empty;
         }
 
         /// <inheritdoc />
         protected override bool IsInstanceOfType(StringValueNode valueSyntax)
         {
-            return valueSyntax.Value !== string.Empty;
+            return valueSyntax.Value != string.Empty;
         }
 
         /// <inheritdoc />
@@ -74,7 +74,7 @@ namespace HotChocolate.Types
         {
             var rgx = Regex.matches(runtimeValue, @"/^\+[1-9]\d{1,14}$/");
 
-            if(runtimeValue is string s && !rgx.Success)
+            if(runtimeValue is string && !rgx.Success)
             {
                 resultValue = null;
                 return false;
@@ -93,7 +93,7 @@ namespace HotChocolate.Types
                 return false;
             }
             
-            if(resultValue is string s && !rgx.Success)
+            if(resultValue is string && !rgx.Success)
             {
                 return false;
             }
