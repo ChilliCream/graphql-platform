@@ -5,11 +5,12 @@
     "Books": [
       {
         "Id": 1,
-        "AuthorId": 0,
         "Title": "Foo1",
-        "Author": null
+        "Author": null,
+        "Publisher": null
       }
-    ]
+    ],
+    "Publishers": []
   },
   "executable": "System.Linq.Enumerable+ListPartition`1[HotChocolate.Data.Author]"
 }
