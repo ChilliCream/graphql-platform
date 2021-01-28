@@ -46,7 +46,7 @@ Getting started with filters is very easy, especially if you do not want to expl
 
 Hot Chocolate will infer the filters directly from your .Net Model and then use a Middleware to apply filters to `IQueryable<T>` or `IEnumerable<T>` on execution.
 
-> ⚠️ **Note:** If you use more than middleware, keep in mind that **ORDER MATTERS** _Why order matters_ <<Add link >>
+> ⚠️ **Note:** If you use more than middleware, keep in mind that **ORDER MATTERS**.
 
 > ⚠️ **Note:** Be sure to install the `HotChocolate.Types.Filters` NuGet package.
 
@@ -711,7 +711,7 @@ public class UserFilterType : FilterInputType<User>
 
 # Naming Conventions
 
-\_Hot Chocolate already provides two naming schemes for filters. If you would like to define your own naming scheme or extend existing ones have a look at the documentation of <<LINk FILTER CONVENTIONS>>
+\_Hot Chocolate already provides two naming schemes for filters. If you would like to define your own naming scheme or extend existing ones have a look at the documentation of TODO:Link-Filtering
 
 ## Snake Case
 
@@ -942,7 +942,7 @@ input UserFilter {
 To add or customize a filter you must use `Filter(x => x.Foo)` for scalars `List(x => x.Bar)` for lists and `Object(x => x.Baz)` for nested objects.
 These methods will return fluent interfaces to configure the filter for the selected field.
 
-A field has different filter operations that you can configure. You will find more about filter types and filter operations here <<LINK>>
+A field has different filter operations that you can configure. You will find more about filter types and filter operations here TODO:Link
 When fields are bound implicitly, meaning filters are added for all properties, you may want to hide a few fields. You can do this with `Ignore(x => Bar)`.
 Operations on fields can again be bound implicitly or explicitly. By default, Hot Chocolate generates operations for all fields of the type.
 If you do want to specify the operations by yourself you can change this behavior with `BindFilters`, `BindFiltersExplicitly` or `BindFiltersImplicitly`.
@@ -1030,14 +1030,12 @@ SchemaBuilder.New().AddConvention(new FilterConvention(x => /* Config */));
 In this section, we will take a look at the basic features of the filter convention.
 The documentation will reference often to `descriptor`. Imagine this `descriptor` as the parameter of the Configure method of the filter convention in the following context:
 
-```csharp
+```csharp {5}
 public class CustomConvention
     : FilterConvention
 {
     protected override void Configure(
-        /**highlight-start**/
         IFilterConventionDescriptor descriptor
-        /**highlight-end**/
     ) { }
 }
 
@@ -1202,7 +1200,7 @@ You can drill up with `And()`.
 
 ### Configuration of the type system
 
-In this section, we will focus on the generation of the schema. If you are interested in changing how filters translate to the database, you have to look here <<INSERT LINK HERE>>
+In this section, we will focus on the generation of the schema. If you are interested in changing how filters translate to the database, you have to look here TODO:Link
 
 #### Configure Filter Operations
 
@@ -1265,7 +1263,7 @@ public delegate NameString CreateFieldName(
 
 **Configuration**
 
-```csharp{1, 6}
+```csharp {1, 6}
  // (A)
  // specifies that all not equals operations should be extended with _nada
  descriptor
@@ -1282,7 +1280,7 @@ public delegate NameString CreateFieldName(
 
 **result**
 
-```graphql{8,18}
+```graphql {8,18}
 input UserFilter {
   loggingCount: Int
   loggingCount_gt: Int
@@ -1333,7 +1331,7 @@ You can either set the description for all operations of this kind or only for a
 
 **result**
 
-```graphql{2-4,11-14, 20-22,27-29}
+```graphql {2-4,11-14, 20-22,27-29}
 input UserFilter {
   """
   has to be equal
@@ -1396,7 +1394,7 @@ There are multiple ways to ignore an operation:
 
 **result**
 
-```graphql{2,4, 8,14,18}
+```graphql {2,4, 8,14,18}
 input UserFilter {
   ↵
   loggingCount_gt: Int
@@ -1969,7 +1967,7 @@ This delegate might seem intimidating first, but it is not bad as it looks. If t
 
 Operations handlers can be configured like the following:
 
-```csharp{10,13}
+```csharp {10,13}
 public class CustomConvention : FilterConvention
 {
     protected override void Configure(

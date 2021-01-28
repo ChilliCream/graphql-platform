@@ -1,5 +1,5 @@
 ---
-title: IDataLoader<TKey, TValue>
+title: IDataLoader<TKey, TValue\>
 ---
 
 **Description:** Represents a minimal set of _DataLoader_ functionality.
@@ -78,7 +78,7 @@ values and enqueues requests which were not cached for batching if enabled.
 
 ---
 
-## LoadAsync(IReadOnlyCollection<TKey> keys)
+## LoadAsync(IReadOnlyCollection<TKey\> keys)
 
 **Description:** Loads multiple values by keys. This call may return cached
 values and enqueues requests which were not cached for batching if enabled.
@@ -103,7 +103,7 @@ values and enqueues requests which were not cached for batching if enabled.
 
 ---
 
-## Set(TKey key, Task<TValue> value)
+## Set(TKey key, Task<TValue\> value)
 
 **Description:** Adds a new entry to the cache if not already exists.
 

@@ -82,7 +82,7 @@ If `Continue` is returned from the `Enter` or `Leave` method visitation on the c
 
 In the following example `Continue` is returned from the onEnter method. The visitor calls `VisitChildren` and continues to by _entering_ the selection set.
 
-```graphql{4}
+```graphql {4}
 query {
   foo {
     bar
@@ -100,7 +100,7 @@ If `Skip` is returned from the `Enter` or `Leave` method, further visitation on 
 
 In the following example `Skip` is returned from the onEnter method. The visitor skips the field _baz_. It continues visitation by _entering_ the field _qux_.
 
-```graphql{4}
+```graphql {4}
 query {
   foo {
     bar
@@ -118,7 +118,7 @@ If `SkipAndLeave` is returned from the Enter method, further visitation on this 
 
 In the following example `SkipAndLeave` is returned from the onEnter method. The visitor skips the field _baz_. Before it continues visitation with the field _qux_ it calls the _leaves_ the field _baz_ by calling `Leave`
 
-```graphql{4}
+```graphql {4}
 query {
   foo {
     bar
@@ -136,7 +136,7 @@ If `Break` is returned from the `Enter` or `Leave` method, further visitation on
 
 In the following example `Break` is returned from the onEnter method. The visitor immediately starts walking back up. The visitor calls the `Leave` on `foo` instead of visiting the selections set of _baz_ it skips _baz_ and _qux_.
 
-```graphql{4}
+```graphql {4}
 query {
   foo {
     bar
