@@ -327,7 +327,8 @@ namespace HotChocolate.Data
         }
 
         [Fact]
-        public async Task Schema_Should_Generate_WhenMutationInputHasManyToManyRelationshipWithOutputType()
+        public async Task
+            Schema_Should_Generate_WhenMutationInputHasManyToManyRelationshipWithOutputType()
         {
             // arrange
             IRequestExecutor executor = await new ServiceCollection()
@@ -336,17 +337,19 @@ namespace HotChocolate.Data
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<FirstOrDefaulQuery>()
-                .AddMutationType<FirstOrDefaultMutation_InputHasManyToManyRelationshipWithOutputType>()
+                .AddMutationType<FirstOrDefaultMutation_InputHasManyToManyRelationshipWithOutputType
+                >()
                 .BuildRequestExecutorAsync();
 
             // act
             var result = executor.Schema.Print();
             // assert
-            Assert.True(result.Length > 0);  //not sure what to assert....
+            Assert.True(result.Length > 0); //not sure what to assert....
         }
 
         [Fact]
-        public async Task Schema_Should_Generate_WhenMutationInputHasManyToOneRelationshipWithOutputType()
+        public async Task
+            Schema_Should_Generate_WhenMutationInputHasManyToOneRelationshipWithOutputType()
         {
             // arrange
             IRequestExecutor executor = await new ServiceCollection()
@@ -355,22 +358,31 @@ namespace HotChocolate.Data
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<FirstOrDefaulQuery>()
-                .AddMutationType<FirstOrDefaultMutation_InputHasManyToOneRelationshipWithOutputType>()
+                .AddMutationType<FirstOrDefaultMutation_InputHasManyToOneRelationshipWithOutputType
+                >()
                 .BuildRequestExecutorAsync();
 
             // act
             var result = executor.Schema.Print();
             // assert
-            Assert.True(result.Length > 0);  //not sure what to assert....
+            Assert.True(result.Length > 0); //not sure what to assert....
         }
+
         public class FirstOrDefaulQuery
         {
             [UseFirstOrDefault, UseProjection]
             public IQueryable<Book> GetBooks(BookInput book) => new[]
-            {
-                new Book {Id = 1, Title = "BookTitle", Author = new Author {Name = "Author"}},
-                new Book {Id = 2, Title = "BookTitle2", Author = new Author {Name = "Author2"}}
-            }.AsQueryable().Where(x => x.Id == book.Id);
+                {
+                    new Book
+                    {
+                        Id = 1, Title = "BookTitle", Author = new Author { Name = "Author" }
+                    },
+                    new Book
+                    {
+                        Id = 2, Title = "BookTitle2", Author = new Author { Name = "Author2" }
+                    }
+                }.AsQueryable()
+                .Where(x => x.Id == book.Id);
         }
 
         public class FirstOrDefaultMutation_InputHasManyToManyRelationshipWithOutputType
@@ -378,11 +390,7 @@ namespace HotChocolate.Data
             [UseFirstOrDefault, UseProjection]
             public IQueryable<Author> addPublisher(Publisher publisher) => new[]
             {
-                new Author
-                {
-                    Name = "Author",
-                    Publishers = new List<Publisher>{publisher}
-                }
+                new Author { Name = "Author", Publishers = new List<Publisher> { publisher } }
             }.AsQueryable();
         }
 
@@ -391,13 +399,10 @@ namespace HotChocolate.Data
             [UseFirstOrDefault, UseProjection]
             public IQueryable<Author> addBook(Book book) => new[]
             {
-                new Author
-                {
-                    Name = "Author",
-                    Books = new List<Book>{book}
-                }
+                new Author { Name = "Author", Books = new List<Book> { book } }
             }.AsQueryable();
         }
+
         public class BookInput
         {
             public int Id { get; set; }
@@ -409,7 +414,7 @@ namespace HotChocolate.Data
             [UseProjection]
             public IQueryable<Book> GetBooks() => new[]
             {
-                new Book {Id = 1, Title = "BookTitle", Author = new Author {Name = "Author"}}
+                new Book { Id = 1, Title = "BookTitle", Author = new Author { Name = "Author" } }
             }.AsQueryable();
         }
     }
