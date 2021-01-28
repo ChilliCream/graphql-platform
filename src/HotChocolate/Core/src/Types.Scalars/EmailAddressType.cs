@@ -46,13 +46,16 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         protected override string ParseLiteral(StringValueNode valueSyntax)
         {
-            Regex rx = new Regex(@"/^\+[1-9]\d{1,14}$/",
+            Regex rgx = new Regex(@"/^\+[1-9]\d{1,14}$/",
                 RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            var match = rgx.Match(valueSyntax)
             
-            if(!rx === typeof(string))
+            if(!match)
             {
-            
+                throw ThrowHelper.EmailAddressType_ParseLiteral_IsEmpty(this);
             }
+
+            return base.ParseLiteral(valueSyntax);
         }
     }
 }
