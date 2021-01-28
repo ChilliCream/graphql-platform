@@ -55,7 +55,7 @@ namespace HotChocolate.AspNetCore.Serialization
             IFormCollection form)
         {
             string operations = null!;
-            IDictionary<string, string[]> map = null!;
+            Dictionary<string, string[]> map = null!;
 
             foreach (KeyValuePair<string, StringValues> field in form)
             {
@@ -87,7 +87,7 @@ namespace HotChocolate.AspNetCore.Serialization
 
                         try
                         {
-                            map = JsonSerializer.Deserialize<IDictionary<string, string[]>>(mapString);
+                            map = JsonSerializer.Deserialize<Dictionary<string, string[]>>(mapString);
                         }
                         catch
                         {
@@ -95,25 +95,15 @@ namespace HotChocolate.AspNetCore.Serialization
                             throw new GraphQLRequestException(
                                 ErrorBuilder.New()
                                     .SetMessage(
-                                        "Invalid JSON in the ‘{0}’ multipart field.", _map)
+                                        "Invalid JSON in the ‘{0}’ multipart field; Expected type of Dictionary<string, string[]>.", _map)
                                     .SetCode("// TODO CODE HC")
                                     .Build());
                         }
                         break;
-                    default:
-                        // TODO : throw helper
-                        throw new GraphQLRequestException(
-                            ErrorBuilder.New()
-                                .SetMessage(
-                                    "At least an '{0}' and a '{1}' field need to be present.",
-                                    _operations,
-                                    _map)
-                                .SetCode("// TODO CODE HC")
-                                .Build());
                 }
             }
 
-            if(map is null)
+            if (map is null)
             {
                 // TODO : throw helper
                 throw new GraphQLRequestException(
@@ -123,6 +113,9 @@ namespace HotChocolate.AspNetCore.Serialization
                         .Build());
             }
 
+            // TODO : parsing the operations before correlating the map to the files 
+            //        is unnecessary overhead and also makes testing harder,
+            //        since we have to submit a valid query
             IReadOnlyList<GraphQLRequest> requests =
                 Parse(operations, _parserOptions, _documentCache, _documentHashProvider);
 

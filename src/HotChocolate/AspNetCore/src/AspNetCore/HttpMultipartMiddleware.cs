@@ -25,7 +25,7 @@ namespace HotChocolate.AspNetCore
         public override async Task InvokeAsync(HttpContext context)
         {
             if (!HttpMethods.IsPost(context.Request.Method) ||
-                !(context.GetGraphQLServerOptions()?.EnableMultipartRequests ?? false))
+                !(context.GetGraphQLServerOptions()?.EnableMultipartRequests ?? true))
             {
                 // if the request is not a post request or multipart requests are not enabled
                 // we will just invoke the next middleware and do nothing:
@@ -50,18 +50,29 @@ namespace HotChocolate.AspNetCore
             HttpRequest httpRequest,
             CancellationToken cancellationToken)
         {
-            var formFeature = new FormFeature(httpRequest);
-            IFormCollection? form = await formFeature.ReadFormAsync(cancellationToken);
+            IFormCollection? form;
+
+            try
+            {
+                var formFeature = new FormFeature(httpRequest);
+                form = await formFeature.ReadFormAsync(cancellationToken);
+            }
+            catch
+            {
+                // TODO : throw helper
+                throw new GraphQLRequestException(
+                    ErrorBuilder.New()
+                        .SetMessage("At least an 'operations' and a 'map' field need to be present.")
+                        .SetCode("// TODO CODE HC")
+                        .Build());
+            }
 
             (IReadOnlyList<GraphQLRequest> Requests, IDictionary<string, string[]> Map) result =
                 RequestParser.ReadFormRequest(form);
 
-            if (form.Files.Count > 0)
+            foreach (GraphQLRequest request in result.Requests)
             {
-                foreach (GraphQLRequest request in result.Requests)
-                {
-                    InsertFilesIntoRequest(request, result.Map, form.Files);
-                }
+                InsertFilesIntoRequest(request, result.Map, form.Files);
             }
 
             return result.Requests;
@@ -78,10 +89,10 @@ namespace HotChocolate.AspNetCore
 
             foreach (KeyValuePair<string, string[]> mapPair in map)
             {
-                var filename = mapPair.Key;
+                var fileKey = mapPair.Key;
                 var objectPaths = mapPair.Value;
 
-                if (string.IsNullOrEmpty(filename))
+                if (string.IsNullOrEmpty(fileKey))
                 {
                     // TODO : how to handle
                     continue;
@@ -93,28 +104,26 @@ namespace HotChocolate.AspNetCore
                     continue;
                 }
 
-                IFormFile? file = files.GetFile(filename);
+                IFormFile? file = files.GetFile(fileKey);
 
                 if (file is null)
                 {
-                    // TODO : how to handle
-                    continue;
+                    // TODO : throw helper
+                    throw new GraphQLRequestException(
+                        ErrorBuilder.New()
+                            .SetMessage("File of key '{0}' is missing.", fileKey)
+                            .SetCode("// TODO CODE HC")
+                            .Build());
                 }
 
                 foreach (var objectPath in objectPaths)
                 {
-                    var parts = objectPath.Split('.');
+                    var parts = objectPath.Split('.', 2);
 
-                    if (parts.Length < 2)
+                    if (parts.Length < 2 || parts[0] != "variables")
                     {
                         // TODO : how to handle
-                        continue;
-                    }
-
-
-                    if (parts[0] != "variables")
-                    {
-                        // nested properties are currently not supported
+                        // an object path that does not start with variables. 
                         continue;
                     }
 
