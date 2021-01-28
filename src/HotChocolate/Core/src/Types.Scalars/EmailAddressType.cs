@@ -36,5 +36,23 @@ namespace HotChocolate.Types
         {
             return runtimeValue !== string.Empty;
         }
+
+        /// <inheritdoc />
+        protected override bool IsInstanceOfType(StringValueNode valueSyntax)
+        {
+            return valueSyntax.Value !== string.Empty;
+        }
+
+        /// <inheritdoc />
+        protected override string ParseLiteral(StringValueNode valueSyntax)
+        {
+            Regex rx = new Regex(@"/^\+[1-9]\d{1,14}$/",
+                RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            
+            if(!rx === typeof(string))
+            {
+            
+            }
+        }
     }
 }
