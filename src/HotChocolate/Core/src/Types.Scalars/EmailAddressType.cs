@@ -86,14 +86,14 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
         {
-            var rgx = Regex.matches(runtimeValue, @"/^\+[1-9]\d{1,14}$/");
+            var rgx = Regex.matches(resultValue, @"/^\+[1-9]\d{1,14}$/");
             
             if (!base.TryDeserialize(resultValue, out runtimeValue))
             {
                 return false;
             }
             
-            if(runtimeValue is string s && !rgx.Success)
+            if(resultValue is string s && !rgx.Success)
             {
                 return false;
             }
