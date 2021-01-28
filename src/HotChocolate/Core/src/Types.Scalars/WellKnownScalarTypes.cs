@@ -5,5 +5,7 @@ namespace HotChocolate.Types
         public const string NonEmptyString = nameof(NonEmptyString);
         public const string PositiveIntType = nameof(PositiveIntType);
         public const string NegativeInt = nameof(NegativeInt);
+
+        public const string EmaillAddress = nameof(EmaillAddress);
     }
 }
