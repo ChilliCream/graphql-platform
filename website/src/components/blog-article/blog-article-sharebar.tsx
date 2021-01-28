@@ -13,10 +13,10 @@ interface BlogArticleSharebarProperties {
 }
 
 export const BlogArticleSharebar: FunctionComponent<BlogArticleSharebarProperties> = ({
-  data: { markdownRemark, site },
+  data: { mdx, site },
   tags,
 }) => {
-  const { frontmatter } = markdownRemark!;
+  const { frontmatter } = mdx!;
   const articelUrl = site!.siteMetadata!.siteUrl! + frontmatter!.path!;
   const title = frontmatter!.title!;
 
@@ -39,7 +39,7 @@ export const BlogArticleSharebar: FunctionComponent<BlogArticleSharebarPropertie
 
 export const BlogArticleSharebarGraphQLFragment = graphql`
   fragment BlogArticleSharebar on Query {
-    markdownRemark(frontmatter: { path: { eq: $path } }) {
+    mdx(frontmatter: { path: { eq: $path } }) {
       frontmatter {
         path
         tags
