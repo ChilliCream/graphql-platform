@@ -48,7 +48,7 @@ namespace HotChocolate.Types
         {
             Regex rgx = new Regex(@"/^\+[1-9]\d{1,14}$/",
                 RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            var match = rgx.Match(valueSyntax)
+            var match = rgx.Match(valueSyntax);
             
             if(!match)
             {
@@ -56,6 +56,57 @@ namespace HotChocolate.Types
             }
 
             return base.ParseLiteral(valueSyntax);
+        }
+
+        /// <inheritdoc />
+        protected override StringValueNode PareseValue(string runtimeValue)
+        {
+            Regex rgx = new Regex(@"/^\+[1-9]\d{1,14}$/",
+                RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            var match = rgx.Match(runtimeValue);
+            
+            if(!match)
+            {
+                throw ThrowHelper.EmailAddressType_ParseValue_IsEmpty(this);
+            }
+
+            return base.ParseValue(runtimeValue);
+        }
+
+        /// <inheritdoc />
+        public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+        {
+            Regex rgx = new Regex(@"/^\+[1-9]\d{1,14}$/",
+                RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            var match = rgx.Match(runtimeValue);
+            
+            if(runtimeValue is string s && !match)
+            {
+                resultValue = null;
+                return false;
+            }
+
+            return base.TrySerialize(runtimeValue, out resultValue);
+        }
+
+        /// <inheritdoc />
+        public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
+        {
+            Regex rgx = new Regex(@"/^\+[1-9]\d{1,14}$/",
+                RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            var match = rgx.Match(runtimeValue);
+            
+            if (!base.TryDeserialize(resultValue, out runtimeValue))
+            {
+                return false;
+            }
+            
+            if(runtimeValue is string s && !match)
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }
