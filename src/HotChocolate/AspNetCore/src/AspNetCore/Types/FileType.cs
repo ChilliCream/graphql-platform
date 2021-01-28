@@ -8,22 +8,13 @@ namespace HotChocolate.Types
     // TODO : This is not fully implemented
     public class FileValueNode : IValueNode<IFormFile>
     {
-        private IFormFile _value;
+        private IFormFile? _value;
 
-        public FileValueNode(object value)
+        public FileValueNode(object? value)
         {
-            if (value is null)
-            {
-                throw new ArgumentNullException(nameof(value));
-            }
-
             if (value is IFormFile formFileValue)
             {
                 _value = formFileValue;
-            }
-            else
-            {
-                throw new Exception("Value is not IFormFile");
             }
         }
 

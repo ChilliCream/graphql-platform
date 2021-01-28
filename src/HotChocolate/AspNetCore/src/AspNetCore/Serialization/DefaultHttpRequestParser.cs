@@ -143,54 +143,93 @@ namespace HotChocolate.AspNetCore.Serialization
 
             foreach (GraphQLRequest request in requests)
             {
-                // TODO : this is quite hacky and requires Utf8GraphQLRequestParser to actually return this
-                //        I choose to do it this way as to not change the existing APIs.
-                //        For a final implementation this should be done differently
                 if (!(request.Variables is Dictionary<string, object?> mutableVariables))
                 {
                     continue;
                 }
-                
-                // TODO : this needs to be reworked to support nested File properties
-                foreach (var (key, values) in map)
+
+                foreach (KeyValuePair<string, string[]> mapPair in map)
                 {
-                    IFormFile? file = form.Files.GetFile(key);
+                    var filename = mapPair.Key;
+                    var objectPaths = mapPair.Value;
+
+                    if (string.IsNullOrEmpty(filename))
+                    {
+                        // TODO : how to handle
+                        continue;
+                    }
+
+                    if (objectPaths is null || objectPaths.Length < 1)
+                    {
+                        // TODO : how to handle
+                        continue;
+                    }
+
+                    IFormFile? file = form.Files.GetFile(filename);
 
                     if (file is null)
                     {
-                        throw new Exception($"File could not be parsed for key '{key}'");
+                        // TODO : how to handle
+                        continue;
                     }
 
-                    foreach (var value in values)
+                    foreach (var objectPath in objectPaths)
                     {
-                        var parts = value.Split(".");
+                        var parts = objectPath.Split('.');
 
-                        if (parts == null || parts.Length < 2)
+                        if (parts.Length < 2)
                         {
-                            throw new Exception("Failed to parse 'map' value.");
+                            // TODO : how to handle
+                            continue;
+                        }
+
+
+                        if (parts[0] != "variables")
+                        {
+                            // nested properties are currently not supported
+                            continue;
                         }
 
                         var variableName = parts[1];
 
-                        if (parts.Length == 2)
+                        switch (parts.Length)
                         {
-                            // single file upload, e.g. 'variables.file'
-                            mutableVariables[variableName] = file;
-                        }
-                        else
-                        {
-                            // multiple files upload, e.g. 'variables.files.1'
-                            if (mutableVariables[variableName] is List<IFormFile> list)
-                            {
-                                list.Add(file);
-                            }
-                            else
-                            {
-                                mutableVariables[variableName] = new List<IFormFile>
+                            case 2:
+                                // single file upload, e.g. 'variables.file'
+                                mutableVariables[variableName] = file;
+                                break;
+                            case 3:
+                                // multi file upload, e.g. 'variables.files.1'
+                                if (!int.TryParse(parts[2], out var fileIndex))
                                 {
-                                    file
-                                };
-                            }
+                                    continue;
+                                }
+
+                                List<IFormFile?> list;
+
+                                if (mutableVariables[variableName] is List<IFormFile?> variableList)
+                                {
+                                    list = variableList;
+                                }
+                                else
+                                {
+                                    list = new List<IFormFile?>();
+
+                                    mutableVariables[variableName] = list;
+                                }
+
+                                // we don't know the size of the file list beforehand so we have to resize dynamically
+                                for(var i = list.Count; i <= fileIndex; i++)
+                                {
+                                    list.Add(null);
+                                }
+
+                                list[fileIndex] = file;
+
+                                break;
+                            default:
+                                // nested object, which is currently not supported
+                                break;
                         }
                     }
                 }
