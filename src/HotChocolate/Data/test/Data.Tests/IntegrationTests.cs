@@ -337,14 +337,14 @@ namespace HotChocolate.Data
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<FirstOrDefaulQuery>()
-                .AddMutationType<FirstOrDefaultMutation_InputHasManyToManyRelationshipWithOutputType
-                >()
+                .AddMutationType<FirstOrDefaultMutation_ManyToMany>()
                 .BuildRequestExecutorAsync();
 
             // act
             var result = executor.Schema.Print();
+
             // assert
-            Assert.True(result.Length > 0); //not sure what to assert....
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -358,20 +358,20 @@ namespace HotChocolate.Data
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<FirstOrDefaulQuery>()
-                .AddMutationType<FirstOrDefaultMutation_InputHasManyToOneRelationshipWithOutputType
-                >()
+                .AddMutationType<FirstOrDefaultMutation_ManyToOne>()
                 .BuildRequestExecutorAsync();
 
             // act
             var result = executor.Schema.Print();
+
             // assert
-            Assert.True(result.Length > 0); //not sure what to assert....
+            result.MatchSnapshot();
         }
 
         public class FirstOrDefaulQuery
         {
             [UseFirstOrDefault, UseProjection]
-            public IQueryable<Book> GetBooks(BookInput book) => new[]
+            public IQueryable<Book> GetBooks(Book book) => new[]
                 {
                     new Book
                     {
@@ -385,27 +385,22 @@ namespace HotChocolate.Data
                 .Where(x => x.Id == book.Id);
         }
 
-        public class FirstOrDefaultMutation_InputHasManyToManyRelationshipWithOutputType
+        public class FirstOrDefaultMutation_ManyToMany
         {
             [UseFirstOrDefault, UseProjection]
-            public IQueryable<Author> addPublisher(Publisher publisher) => new[]
+            public IQueryable<Author> AddPublisher(Publisher publisher) => new[]
             {
                 new Author { Name = "Author", Publishers = new List<Publisher> { publisher } }
             }.AsQueryable();
         }
 
-        public class FirstOrDefaultMutation_InputHasManyToOneRelationshipWithOutputType
+        public class FirstOrDefaultMutation_ManyToOne
         {
             [UseFirstOrDefault, UseProjection]
-            public IQueryable<Author> addBook(Book book) => new[]
+            public IQueryable<Author> AddBook(Book book) => new[]
             {
                 new Author { Name = "Author", Books = new List<Book> { book } }
             }.AsQueryable();
-        }
-
-        public class BookInput
-        {
-            public int Id { get; set; }
         }
 
         public class PagingAndProjection
