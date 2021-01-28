@@ -46,11 +46,9 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         protected override string ParseLiteral(StringValueNode valueSyntax)
         {
-            Regex rgx = new Regex(@"/^\+[1-9]\d{1,14}$/",
-                RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            var match = rgx.Match(valueSyntax);
+            var rgx = Regex.matches(valueSyntax,@"/^\+[1-9]\d{1,14}$/");
             
-            if(!match)
+            if(!rgx.Success)
             {
                 throw ThrowHelper.EmailAddressType_ParseLiteral_IsEmpty(this);
             }
@@ -61,11 +59,9 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         protected override StringValueNode PareseValue(string runtimeValue)
         {
-            Regex rgx = new Regex(@"/^\+[1-9]\d{1,14}$/",
-                RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            var match = rgx.Match(runtimeValue);
+            var rgx = Regex.matches(valueSyntax,@"/^\+[1-9]\d{1,14}$/");
             
-            if(!match)
+            if(!rgx.Success)
             {
                 throw ThrowHelper.EmailAddressType_ParseValue_IsEmpty(this);
             }
@@ -76,11 +72,9 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         public override bool TrySerialize(object? runtimeValue, out object? resultValue)
         {
-            Regex rgx = new Regex(@"/^\+[1-9]\d{1,14}$/",
-                RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            var match = rgx.Match(runtimeValue);
-            
-            if(runtimeValue is string s && !match)
+            var rgx = Regex.matches(valueSyntax,@"/^\+[1-9]\d{1,14}$/");
+
+            if(runtimeValue is string s && !rgx.Success)
             {
                 resultValue = null;
                 return false;
@@ -92,16 +86,14 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
         {
-            Regex rgx = new Regex(@"/^\+[1-9]\d{1,14}$/",
-                RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            var match = rgx.Match(runtimeValue);
+            var rgx = Regex.matches(valueSyntax,@"/^\+[1-9]\d{1,14}$/");
             
             if (!base.TryDeserialize(resultValue, out runtimeValue))
             {
                 return false;
             }
             
-            if(runtimeValue is string s && !match)
+            if(runtimeValue is string s && !rgx.Success)
             {
                 return false;
             }
