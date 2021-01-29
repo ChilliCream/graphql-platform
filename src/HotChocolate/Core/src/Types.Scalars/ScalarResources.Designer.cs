@@ -51,9 +51,15 @@ namespace HotChocolate.Types.Scalars {
             }
         }
         
-        internal static string EmailAddress_IsValid_ParseLiteral {
+        internal static string EmailAddress_IsInvalid_ParseLiteral {
             get {
-                return ResourceManager.GetString("EmailAddress_IsValid_ParseLiteral", resourceCulture);
+                return ResourceManager.GetString("EmailAddress_IsInvalid_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        internal static string EmailAddress_IsInvalid_ParseValue {
+            get {
+                return ResourceManager.GetString("EmailAddress_IsInvalid_ParseValue", resourceCulture);
             }
         }
         

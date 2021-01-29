@@ -63,7 +63,10 @@
   <data name="EmailAddress_Description" xml:space="preserve">
     <value>The EmailAddress scalar type represents a email address, represented as UTF-8 character sequences. The scalar follows the specification defined in RFC 5322</value>
   </data>
-  <data name="EmailAddress_IsValid_ParseLiteral" xml:space="preserve">
+  <data name="EmailAddress_IsInvalid_ParseLiteral" xml:space="preserve">
+    <value>EmailAddress cannot parse the provided literal. The provided value does not meet the RFC 5322 specification.</value>
+  </data>
+  <data name="EmailAddress_IsInvalid_ParseValue" xml:space="preserve">
     <value>EmailAddress cannot parse the provided literal. The provided value does not meet the RFC 5322 specification.</value>
   </data>
   <data name="NegativeIntType_Description" xml:space="preserve">
