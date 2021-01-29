@@ -48,9 +48,6 @@ namespace HotChocolate.Types.Pagination
             return descriptor;
         }
 
-        // User => Group
-        // User => Collection => Group
-
         private static void ApplyConfiguration(
             ITypeCompletionContext context,
             ObjectFieldDefinition definition,
