@@ -44,11 +44,10 @@ namespace HotChocolate.Types
             where TTypeDef : DefinitionBase, IHasSyntaxNode
             where TFieldType : IType
             where TFieldDef : FieldDefinitionBase, IHasSyntaxNode
-
         {
-            if (context.Type is IType type && fields.Count == 0)
+            if (fields.Count == 0)
             {
-                string kind = context.Type is IType t
+                var kind = context.Type is IType t
                     ? t.Kind.ToString()
                     : TypeKind.Directive.ToString();
 

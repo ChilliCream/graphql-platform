@@ -315,18 +315,17 @@ namespace HotChocolate.Data
 
             IExecutionResult executionResult = await executor
                 .ExecuteAsync(@"
-                        {
-                            users {
-                                items {
-                                    parents {
-                                        items {
-                                            firstName
-                                        }
+                    {
+                        users {
+                            items {
+                                parents {
+                                    items {
+                                        firstName
                                     }
-                               }
-                            }
-                        }");
-
+                                }
+                           }
+                        }
+                    }");
 
             executionResult.ToJson().MatchSnapshot();
         }
@@ -352,7 +351,8 @@ namespace HotChocolate.Data
         {
             protected override void Configure(IObjectTypeDescriptor<User> descriptor)
             {
-                descriptor.Field(i => i.Parents)
+                descriptor
+                    .Field(i => i.Parents)
                     .UseOffsetPaging<UserType>()
                     .Resolve((_, __) => new[]
                     {
@@ -371,7 +371,8 @@ namespace HotChocolate.Data
         {
             protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
             {
-                descriptor.Field(t => t.Users)
+                descriptor
+                    .Field(t => t.Users)
                     .UseOffsetPaging<UserType>();
             }
         }

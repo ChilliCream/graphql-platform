@@ -33,7 +33,7 @@ namespace HotChocolate.Configuration
         private readonly TypeRegistry _typeRegistry;
         private readonly TypeLookup _typeLookup;
         private readonly TypeReferenceResolver _typeReferenceResolver;
-        private ITypeInitializationFlowInterceptor? _flowInterceptor;
+        private readonly ITypeInitializationFlowInterceptor? _flowInterceptor;
 
         public TypeInitializer(
             IDescriptorContext descriptorContext,
@@ -505,21 +505,6 @@ namespace HotChocolate.Configuration
                     batch.Clear();
                     batch.AddRange(GetNextBatch(processed, kind));
                 }
-
-                // In case we still have types to process but could not resolve a batch cyclic
-                // dependencies occured.
-                // We try to resolve self referencing types.
-                if (!failed
-                    && processed.Count < _typeRegistry.Count
-                    && batch.Count == 0)
-                {
-                    IEnumerable<RegisteredType> selfReferencingTypes =
-                        GetSelfReferencingTypes(
-                            _typeRegistry.Types.Where(t => !processed.Contains(t.References[0])),
-                            kind);
-
-                   batch.AddRange(selfReferencingTypes);
-                }
             }
 
             if (!failed && processed.Count < _typeRegistry.Count)
@@ -554,29 +539,6 @@ namespace HotChocolate.Configuration
             }
 
             return _errors.Count == 0;
-        }
-
-        private IEnumerable<RegisteredType> GetSelfReferencingTypes(
-            IEnumerable<RegisteredType> registeredTypes,
-            TypeDependencyKind kind)
-        {
-            foreach (var type in registeredTypes)
-            {
-                IEnumerable<IExtendedType> dependencies = type.Dependencies
-                    .Where(x => x.Kind == kind)
-                    .Select(x => x.TypeReference)
-                    .OfType<ExtendedTypeReference>()
-                    .Select(x => x.Type);
-
-                IEnumerable<IExtendedType> references = type.References
-                    .OfType<ExtendedTypeReference>()
-                    .Select(x => x.Type);
-
-                if (dependencies.Intersect(references).Any())
-                {
-                    yield return type;
-                }
-            }
         }
 
         private IEnumerable<RegisteredType> GetInitialBatch(

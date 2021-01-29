@@ -33,29 +33,23 @@ namespace HotChocolate.Types.Pagination
             descriptor
                 .Use(placeholder)
                 .Extend()
-                .OnBeforeCreate((context, definition) =>
+                .OnBeforeCreate(definition =>
                 {
-                    MemberInfo? member = definition.ResolverMember ?? definition.Member;
-                    IExtendedType schemaType = GetSchemaType(context.TypeInspector, member, type);
-
-                    d.Configurations.Add(
-                        LazyTypeConfigurationBuilder
-                            .New<ObjectFieldDefinition>()
-                            .Definition(definition)
-                            .Configure(
-                                (_, __) => ApplyConfiguration(
-                                    context,
-                                    definition,
-                                    entityType,
-                                    resolvePagingProvider,
-                                    options,
-                                    placeholder))
-                            .DependsOn(TypeReference.Create(schemaType, TypeContext.Output), true)
-                            .Build());
+                    definition.Configurations.Add(
+                        new TypeConfiguration<ObjectFieldDefinition>
+                        {
+                            Definition = definition,
+                            On = ApplyConfigurationOn.Completion,
+                            Configure = (c, d) => ApplyConfiguration(
+                                c, d, entityType, resolvePagingProvider, options, placeholder)
+                        });
                 });
 
             return descriptor;
         }
+
+        // User => Group
+        // User => Collection => Group
 
         private static void ApplyConfiguration(
             ITypeCompletionContext context,
