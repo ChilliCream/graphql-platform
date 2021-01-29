@@ -1,20 +1,28 @@
+using System.Text.RegularExpressions;
 using HotChocolate.Language;
 using HotChocolate.Types.Scalars;
 
 namespace HotChocolate.Types
 {
     /// <summary>
-    /// A field whose value conforms to the standard internet email address format as specified in HTML Spec
+    /// The `EmailAddress` scalar type represents a email address, represented as UTF-8 character sequences.
+    /// The scalar follows the specification defined in RFC 5322
     /// </summary>
     public class EmailAddressType : StringType
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="EmailAddressType"/> class.
+        /// Well established regex for email validation
+        /// Source : https://emailregex.com/
         /// </summary>
+        private static readonly string _validationPattern = @"(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|""(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*"")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])";
 
+        private static readonly Regex _validationRegex =
+            new Regex(
+                _validationPattern,
+                RegexOptions.Compiled | RegexOptions.IgnoreCase);
         public EmailAddressType()
             : this(
-                WellKnownScalarTypes.EmaillAddress,
+                WellKnownScalarTypes.EmailAddress,
                 ScalarResources.EmailAddressType_Description)
         {
         }
@@ -34,7 +42,7 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         protected override bool IsInstanceOfType(string runtimeValue)
         {
-            return runtimeValue != string.Empty;
+            return runtimeValue != string.Empty || _validationRegex.IsMatch(runtimeValue);
         }
 
         /// <inheritdoc />
@@ -47,7 +55,7 @@ namespace HotChocolate.Types
         protected override string ParseLiteral(StringValueNode valueSyntax)
         {
             var rgx = Regex.matches(valueSyntax, @"/^\+[1-9]\d{1,14}$/");
-            
+
             if(!rgx.Success)
             {
                 throw ThrowHelper.EmailAddressType_ParseLiteral_IsEmpty(this);
@@ -60,7 +68,7 @@ namespace HotChocolate.Types
         protected override StringValueNode PareseValue(string runtimeValue)
         {
             var rgx = Regex.matches(runtimeValue, @"/^\+[1-9]\d{1,14}$/");
-            
+
             if(!rgx.Success)
             {
                 throw ThrowHelper.EmailAddressType_ParseValue_IsEmpty(this);
@@ -87,12 +95,12 @@ namespace HotChocolate.Types
         public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
         {
             var rgx = Regex.matches(resultValue, @"/^\+[1-9]\d{1,14}$/");
-            
+
             if (!base.TryDeserialize(resultValue, out runtimeValue))
             {
                 return false;
             }
-            
+
             if(resultValue is string && !rgx.Success)
             {
                 return false;
