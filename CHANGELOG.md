@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [11.0.9]
+
 ### Added
 
 - Added result formatter options to minify the JSON payload. (#2897)
