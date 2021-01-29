@@ -45,28 +45,18 @@ namespace HotChocolate.Types.Scalars {
             }
         }
         
-        internal static string EmailAddressType_Description {
+        internal static string EmailAddress_Description {
             get {
-                return ResourceManager.GetString("EmailAddressType_Description", resourceCulture);
+                return ResourceManager.GetString("EmailAddress_Description", resourceCulture);
             }
         }
         
-        internal static string EmailAddressType_IsEmpty_ParseLiteral {
+        internal static string EmailAddress_IsValid_ParseLiteral {
             get {
-                return ResourceManager.GetString("EmailAddressType_IsEmpty_ParseLiteral", resourceCulture);
+                return ResourceManager.GetString("EmailAddress_IsValid_ParseLiteral", resourceCulture);
             }
         }
         
-        internal static string EmailAddressType_IsEmpty_ParseValue {
-            get {
-                return ResourceManager.GetString("EmailAddressType_IsEmpty_ParseValue", resourceCulture);
-            }
-        }
-
-
-
-
-
         internal static string NegativeIntType_Description {
             get {
                 return ResourceManager.GetString("NegativeIntType_Description", resourceCulture);

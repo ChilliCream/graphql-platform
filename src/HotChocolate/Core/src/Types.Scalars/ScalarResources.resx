@@ -61,10 +61,10 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="EmailAddress_Description" xml:space="preserve">
-    <value>The EmailAddress scalar type represents a field whose value conforms to the standard internet email address format as specified in HTML Spec</value>
+    <value>The EmailAddress scalar type represents a email address, represented as UTF-8 character sequences. The scalar follows the specification defined in RFC 5322</value>
   </data>
-  <data name="EmailAddress_IsEmpty_ParseLiteral" xml:space="preserve">
-    <value>EmailAddress cannot parse the provided literal. The provided string was empty.</value>
+  <data name="EmailAddress_IsValid_ParseLiteral" xml:space="preserve">
+    <value>EmailAddress cannot parse the provided literal. The provided value does not meet the RFC 5322 specification.</value>
   </data>
   <data name="NegativeIntType_Description" xml:space="preserve">
     <value>The NegativeIntType scalar type represents a signed 32-bit numeric non-fractional with a maximum of -1.</value>

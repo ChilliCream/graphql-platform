@@ -1,3 +1,4 @@
+using System;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
 using HotChocolate.Types.Scalars;
@@ -42,21 +43,19 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         protected override bool IsInstanceOfType(string runtimeValue)
         {
-            return runtimeValue != string.Empty || _validationRegex.IsMatch(runtimeValue);
+            return runtimeValue != string.Empty && _validationRegex.IsMatch(runtimeValue);
         }
 
         /// <inheritdoc />
         protected override bool IsInstanceOfType(StringValueNode valueSyntax)
         {
-            return valueSyntax.Value != string.Empty;
+            return valueSyntax.Value != string.Empty && _validationRegex.IsMatch(valueSyntax.Value);
         }
 
         /// <inheritdoc />
         protected override string ParseLiteral(StringValueNode valueSyntax)
         {
-            var rgx = Regex.matches(valueSyntax, @"/^\+[1-9]\d{1,14}$/");
-
-            if(!rgx.Success)
+            if(valueSyntax.Value == string.Empty || !_validationRegex.IsMatch(valueSyntax.Value))
             {
                 throw ThrowHelper.EmailAddressType_ParseLiteral_IsEmpty(this);
             }
@@ -65,11 +64,10 @@ namespace HotChocolate.Types
         }
 
         /// <inheritdoc />
-        protected override StringValueNode PareseValue(string runtimeValue)
+        protected override StringValueNode ParseValue(string runtimeValue)
         {
-            var rgx = Regex.matches(runtimeValue, @"/^\+[1-9]\d{1,14}$/");
 
-            if(!rgx.Success)
+            if(runtimeValue == string.Empty || !_validationRegex.IsMatch(runtimeValue))
             {
                 throw ThrowHelper.EmailAddressType_ParseValue_IsEmpty(this);
             }
