@@ -80,33 +80,43 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         public override bool TrySerialize(object? runtimeValue, out object? resultValue)
         {
-            var rgx = Regex.matches(runtimeValue, @"/^\+[1-9]\d{1,14}$/");
-
-            if(runtimeValue is string && !rgx.Success)
+            if (runtimeValue is null)
             {
                 resultValue = null;
-                return false;
+                return true;
             }
 
-            return base.TrySerialize(runtimeValue, out resultValue);
+            if(runtimeValue is string s &&
+               _validationRegex.IsMatch(s))
+            {
+                resultValue = s;
+                return true;
+            }
+
+
+            resultValue = null;
+            return false;
         }
 
         /// <inheritdoc />
         public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
         {
-            var rgx = Regex.matches(resultValue, @"/^\+[1-9]\d{1,14}$/");
-
-            if (!base.TryDeserialize(resultValue, out runtimeValue))
+            if (resultValue is null)
             {
-                return false;
+                runtimeValue = null;
+                return true;
             }
 
-            if(resultValue is string && !rgx.Success)
+            if(resultValue is string s &&
+               _validationRegex.IsMatch(s))
             {
-                return false;
+                runtimeValue = s;
+                return true;
             }
 
-            return true;
+
+            runtimeValue = null;
+            return false;
         }
     }
 }
