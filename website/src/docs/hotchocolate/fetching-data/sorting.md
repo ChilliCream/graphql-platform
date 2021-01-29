@@ -130,7 +130,7 @@ public class UserSortType
 
 If you want to change the sorting operations on a field, you need to declare you own operation enum type.
 
-```csharp{7}
+```csharp {7}
 public class UserSortType
     : SortInputType<User>
 {
