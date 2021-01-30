@@ -11,7 +11,7 @@ using HotChocolate.Types.Pagination;
 
 namespace HotChocolate.Data.Neo4J.Paging
 {
-/// <summary>
+    /// <summary>
     /// An offset paging provider for Neo4J that create pagination queries
     /// </summary>
     public class Neo4JOffsetPagingProvider : OffsetPagingProvider
