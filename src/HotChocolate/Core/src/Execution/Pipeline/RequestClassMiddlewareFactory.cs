@@ -96,6 +96,7 @@ namespace HotChocolate.Execution.Pipeline
             AddService<IReadStoredQueries>(list, schemaServices);
             AddService<QueryExecutor>(list, schemaServices);
             AddService<MutationExecutor>(list, schemaServices);
+            AddService<IEnumerable<ISelectionOptimizer>>(list, schemaServices);
             AddService<SubscriptionExecutor>(list, schemaServices);
             AddOptions(list, options);
             list.Add(new SchemaNameParameterHandler(schemaName));

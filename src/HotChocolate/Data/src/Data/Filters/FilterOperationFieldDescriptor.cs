@@ -136,6 +136,6 @@ namespace HotChocolate.Data.Filters
             IDescriptorContext context,
             int operation,
             string? scope = null) =>
-            new FilterOperationFieldDescriptor(context, operation, scope);
+            new(context, operation, scope);
     }
 }

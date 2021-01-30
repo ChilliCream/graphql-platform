@@ -121,8 +121,13 @@ namespace HotChocolate.Types
 
             SyntaxNode = definition.SyntaxNode;
             var sortFieldsByName = context.DescriptorContext.Options.SortFieldsByName;
+
             Fields = new FieldCollection<InterfaceField>(
-                definition.Fields.Select(t => new InterfaceField(t, sortFieldsByName)),
+                definition.Fields.Select(
+                    t => new InterfaceField(
+                        t,
+                        new FieldCoordinate(Name, t.Name),
+                        sortFieldsByName)),
                 sortFieldsByName);
 
             CompleteAbstractTypeResolver(context, definition.ResolveAbstractType);
