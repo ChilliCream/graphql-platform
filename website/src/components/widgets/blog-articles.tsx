@@ -84,7 +84,7 @@ const Container = styled.ul`
   flex-direction: column;
   margin: 0 0 60px;
   width: 100%;
-  max-width: 800px;
+  max-width: 820px;
   list-style-type: none;
 `;
 

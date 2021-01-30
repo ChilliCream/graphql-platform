@@ -1,6 +1,29 @@
 import { createGlobalStyle } from "styled-components";
 
+export const GlobalLayoutStyle = createGlobalStyle`
+  body {
+      > div {
+        height: 100%;
+        display: block;
+        > div {
+          height: 100%;
+          display: grid;
+          grid-template-rows: 60px auto;
+          grid-template-columns: 1fr;
+        }
+      }
+  }
+`;
+
 export const GlobalStyle = createGlobalStyle`
+  :root {
+    --brand-color: #f40010;
+    --brand-color-hover: #b7020a;
+    --text-color-contrast: #fff;
+    --border-radius: 4px;
+    --font-size: .833rem;
+  }
+
   html {
     display: flex;
     flex-direction: column;
@@ -28,17 +51,6 @@ export const GlobalStyle = createGlobalStyle`
 
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-
-    > div {
-      height: 100%;
-      display: block;
-      > div {
-        height: 100%;
-        display: grid;
-        grid-template-rows: 60px auto;
-        grid-template-columns: 1fr;
-      }
-    }
   }
 
   * {
@@ -59,7 +71,7 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   a {
-    color: #f40010;
+    color: var(----brand-color);
     text-decoration: none;
   }
 
@@ -90,7 +102,7 @@ export const GlobalStyle = createGlobalStyle`
     code {
       padding: 2px 5px;
       font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace;
-      font-size: 0.833em;
+      font-size: var(----font-size);
     }
   }
 
@@ -198,7 +210,7 @@ export const GlobalStyle = createGlobalStyle`
     border-bottom: 1px solid #aaa;
     padding: 5px 10px;
     font-feature-settings: "tnum";
-    font-size: 0.833em;
+    font-size: var(----font-size);
     line-height: 1.667em;
     text-align: left;
   }

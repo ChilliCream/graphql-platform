@@ -7,8 +7,8 @@ export const Intro = styled.header`
   align-items: center;
   padding: 25px 0;
   width: 100%;
-  background-color: #f40010;
-  background: linear-gradient(180deg, #f40010 70%, #ff892a 100%);
+  background-color: var(--brand-color);
+  background: linear-gradient(180deg, var(--brand-color) 70%, #ff892a 100%);
 
   @media only screen and (min-width: 992px) {
     padding: 60px 0;
