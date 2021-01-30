@@ -6,6 +6,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
 using static HotChocolate.Data.Projections.ProjectionProvider;
+using static HotChocolate.Data.Projections.WellKnownProjectionFields;
 
 namespace HotChocolate.Data.Projections
 {
@@ -127,19 +128,16 @@ namespace HotChocolate.Data.Projections
             }
 
             if (field.Type is IPageType and ObjectType pageType &&
-                context.SelectionSetNodes.Peek() is {} pagingFieldSelection)
+                context.SelectionSetNodes.Peek() is { } pagingFieldSelection)
             {
                 IReadOnlyList<IFieldSelection> selections =
                     context.Context.GetSelections(pageType, pagingFieldSelection, true);
 
                 foreach (var selection in selections)
                 {
-                    if ((selection.Field.Name.Value is "nodes" ||
-                        selection.Field.Name.Value is "items") &&
-                        selection.SyntaxNode.SelectionSet is not null)
+                    if (selection.ResponseName.Value is CombinedEdgeField)
                     {
-                        context.SelectionSetNodes.Push(
-                            selection.SyntaxNode.SelectionSet);
+                        context.SelectionSetNodes.Push(selection.SyntaxNode.SelectionSet);
 
                         return base.Visit(selection.Field, context);
                     }

@@ -158,7 +158,12 @@ namespace Microsoft.Extensions.DependencyInjection
                 .UseOperationExecution();
         }
 
+        [Obsolete("Use UseAutomaticPersistedQueryPipeline")]
         public static IRequestExecutorBuilder UseActivePersistedQueryPipeline(
+            this IRequestExecutorBuilder builder) =>
+            UseAutomaticPersistedQueryPipeline(builder);
+
+        public static IRequestExecutorBuilder UseAutomaticPersistedQueryPipeline(
             this IRequestExecutorBuilder builder)
         {
             if (builder is null)

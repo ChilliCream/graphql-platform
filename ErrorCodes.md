@@ -26,3 +26,4 @@
 | HC0024 | Data              | Sorting could not be projected                                                                             |
 | HC0025 | Data              | No paging provider for the source was found                                                                |
 | HC0026 | Data              | The requested field does not support null values                                                           |
+| HC0028 | Data              | Type does not contain a valid node field. Only `items` and `nodes` are supported                           |
