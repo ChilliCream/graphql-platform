@@ -95,6 +95,10 @@
               {
                 "path": "spatial-data",
                 "title": "Spatial Data"
+              },
+              {
+                "path": "neo4j",
+                "title": "Neo4J Database"
               }
             ]
           },
