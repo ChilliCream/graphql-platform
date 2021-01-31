@@ -70,5 +70,76 @@ namespace HotChocolate.Types.Scalars
             // assert
             ExpectParseLiteralToMatch<EmailAddressType>(valueNode, expected);
         }
+
+        [Theory]
+        [InlineData(typeof(EnumValueNode), TestEnum.Foo)]
+        [InlineData(typeof(FloatValueNode), 1d)]
+        [InlineData(typeof(IntValueNode), 1)]
+        [InlineData(typeof(BooleanValueNode), true)]
+        [InlineData(typeof(StringValueNode), "")]
+        [InlineData(typeof(StringValueNode), "invalid.email.com")]
+        public void ParseLiteral_GivenValueNode_ThrowSerializationException(Type type, object value)
+        {
+            // arrange
+            IValueNode valueNode = CreateValueNode(type, value);
+
+            // act
+            // assert
+            ExpectParseLiteralToThrowSerializationException<EmailAddressType>(valueNode);
+        }
+
+        [Theory]
+        [InlineData("test@chillicream.com", "test@chillicream.com")]
+        [InlineData(null, null)]
+        public void Deserialize_GivenValue_MatchExpected(
+            object resultValue,
+            object runtimeValue)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectDeserializeToMatch<EmailAddressType>(resultValue, runtimeValue);
+        }
+
+        [Theory]
+        [InlineData(TestEnum.Foo)]
+        [InlineData(1d)]
+        [InlineData(1)]
+        [InlineData(true)]
+        [InlineData("invalid.email.com")]
+        public void Deserialize_GivenValue_ThrowSerializationException(object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectDeserializeToThrowSerializationException<EmailAddressType>(value);
+        }
+
+        [Theory]
+        [InlineData("test@chillicream.com", "test@chillicream.com")]
+        [InlineData(null, null)]
+        public void Serialize_GivenObject_MatchExpectedType(
+            object runtimeValue,
+            object resultValue)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectSerializeToMatch<EmailAddressType>(runtimeValue, resultValue);
+        }
+
+        [Theory]
+        [InlineData(TestEnum.Foo)]
+        [InlineData(1d)]
+        [InlineData(1)]
+        [InlineData(true)]
+        [InlineData("invalid.email.com")]
+        public void Serialize_GivenObject_ThrowSerializationException(object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectSerializeToThrowSerializationException<EmailAddressType>(value);
+        }
     }
 }
