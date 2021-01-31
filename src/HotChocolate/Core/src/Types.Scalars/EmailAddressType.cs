@@ -56,7 +56,7 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         protected override string ParseLiteral(StringValueNode valueSyntax)
         {
-            if(valueSyntax.Value == string.Empty || !_validationRegex.IsMatch(valueSyntax.Value))
+            if(!_validationRegex.IsMatch(valueSyntax.Value))
             {
                 throw ThrowHelper.EmailAddressType_ParseLiteral_IsInvalid(this);
             }
@@ -68,7 +68,7 @@ namespace HotChocolate.Types
         protected override StringValueNode ParseValue(string runtimeValue)
         {
 
-            if(runtimeValue == string.Empty || !_validationRegex.IsMatch(runtimeValue))
+            if(!_validationRegex.IsMatch(runtimeValue))
             {
                 throw ThrowHelper.EmailAddressType_ParseValue_IsInvalid(this);
             }
@@ -92,7 +92,6 @@ namespace HotChocolate.Types
                 return true;
             }
 
-
             resultValue = null;
             return false;
         }
@@ -112,7 +111,6 @@ namespace HotChocolate.Types
                 runtimeValue = s;
                 return true;
             }
-
 
             runtimeValue = null;
             return false;
