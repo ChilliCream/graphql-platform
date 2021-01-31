@@ -4,7 +4,7 @@
     {
         public static readonly NullLiteral Instance = new();
 
-        private NullLiteral() : base("null") { }
+        public NullLiteral() : base("null") { }
 
         public override string AsString() => "NULL";
     }

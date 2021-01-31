@@ -1,8 +1,5 @@
 ﻿using System.Collections.Generic;
 
-/// <summary>
-/// A list of literals.
-/// </summary>
 namespace HotChocolate.Data.Neo4J.Language
 {
     public class ListLiteral<T> : Literal<IEnumerable<Literal<T>>>

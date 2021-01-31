@@ -5,9 +5,14 @@
         public override ClauseKind Kind => ClauseKind.Skip;
         private readonly IntegerLiteral _skipAmount;
 
-        private Skip(IntegerLiteral skipAmount)
+        public Skip(IntegerLiteral skipAmount)
         {
             _skipAmount = skipAmount;
+        }
+
+        public Skip(int skipAmount)
+        {
+            _skipAmount = new IntegerLiteral(skipAmount);
         }
 
         public static Skip Create(int value)

@@ -10,7 +10,7 @@ namespace HotChocolate.Data.Neo4J.Language
 
         private readonly string _symbol;
 
-        private SortDirection(string symbol)
+        public SortDirection(string symbol)
         {
             _symbol = symbol;
         }

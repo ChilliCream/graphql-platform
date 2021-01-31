@@ -6,7 +6,7 @@ namespace HotChocolate.Data.Neo4J
 {
     public class Neo4JNodeAttribute : ObjectTypeDescriptorAttribute
     {
-        private string[] _labels;
+        private readonly string[] _labels;
         public Neo4JNodeAttribute(params string[] labels)
         {
             _labels = labels;

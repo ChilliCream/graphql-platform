@@ -4,7 +4,7 @@
     {
         public abstract ClauseKind Kind { get; }
         /// <summary>
-        /// Visits a Visitor visiting this Visitable and its nested Visitables if applicable.
+        /// Visits a visitor visiting this Visitable and its nested Visitables if applicable.
         /// </summary>
         /// <param name="visitor"></param>
         public virtual void Visit(CypherVisitor visitor)

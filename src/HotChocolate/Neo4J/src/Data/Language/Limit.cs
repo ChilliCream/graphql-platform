@@ -3,16 +3,15 @@
     public class Limit : Visitable
     {
         public override ClauseKind Kind => ClauseKind.Limit;
-
         private readonly IntegerLiteral _limitAmount;
 
-        private Limit(IntegerLiteral limitAmount) {
+        public Limit(IntegerLiteral limitAmount) {
             _limitAmount = limitAmount;
         }
 
-        public static Limit Create(int value)
+        public Limit (int value)
         {
-            return new (new IntegerLiteral(value));
+            _limitAmount = new IntegerLiteral(value);
         }
 
         public override void Visit(CypherVisitor visitor)
