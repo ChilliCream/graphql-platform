@@ -47,6 +47,7 @@ namespace HotChocolate.Types.Scalars
         [InlineData("", false)]
         [InlineData(null, true)]
         [InlineData("test@chillicream.com", true)]
+        [InlineData("CapitalizeTest@chillicream.com", true)]
         public void IsInstanceOfType_GivenObject_MatchExpected(object value, bool expected)
         {
             // arrange
