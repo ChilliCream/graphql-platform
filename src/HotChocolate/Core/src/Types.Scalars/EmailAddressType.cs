@@ -24,7 +24,7 @@ namespace HotChocolate.Types
         public EmailAddressType()
             : this(
                 WellKnownScalarTypes.EmailAddress,
-                ScalarResources.EmailAddressType_Description)
+                ScalarResources.EmailAddress_Description)
         {
         }
 
@@ -57,7 +57,7 @@ namespace HotChocolate.Types
         {
             if(valueSyntax.Value == string.Empty || !_validationRegex.IsMatch(valueSyntax.Value))
             {
-                throw ThrowHelper.EmailAddressType_ParseLiteral_IsEmpty(this);
+                throw ThrowHelper.EmailAddressType_ParseLiteral_IsInvalid(this);
             }
 
             return base.ParseLiteral(valueSyntax);
@@ -69,7 +69,7 @@ namespace HotChocolate.Types
 
             if(runtimeValue == string.Empty || !_validationRegex.IsMatch(runtimeValue))
             {
-                throw ThrowHelper.EmailAddressType_ParseValue_IsEmpty(this);
+                throw ThrowHelper.EmailAddressType_ParseValue_IsInvalid(this);
             }
 
             return base.ParseValue(runtimeValue);
