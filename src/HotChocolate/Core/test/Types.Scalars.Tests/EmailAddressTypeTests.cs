@@ -38,5 +38,21 @@ namespace HotChocolate.Types.Scalars
             // assert
             ExpectIsInstanceOfTypeToMatch<EmailAddressType>(valueNode, expected);
         }
+
+        [Theory]
+        [InlineData(TestEnum.Foo, false)]
+        [InlineData(1d, false)]
+        [InlineData(1, false)]
+        [InlineData(true, false)]
+        [InlineData("", false)]
+        [InlineData(null, true)]
+        [InlineData("test@chilicream.com", true)]
+        public void IsInstanceOfType_GivenObject_MatchExpected(object value, bool expected)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectIsInstanceOfTypeToMatch<EmailAddressType>(value, expected);
+        }
     }
 }
