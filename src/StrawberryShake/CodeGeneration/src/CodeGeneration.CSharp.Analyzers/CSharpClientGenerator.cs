@@ -25,33 +25,17 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             {
                 var documents = context.AdditionalFiles
                     .Select(t => t.Path)
-                    .Where(t => t.EndsWith(".graphql"))
-                    .Select(t => Utf8GraphQLParser.Parse(File.ReadAllBytes(t)))
-                    .ToList();
+                    .Where(t => t.EndsWith(".graphql"));
 
-                var typeSystemDocs = documents.GetTypeSystemDocuments().ToList();
-                var executableDocs = documents.GetExecutableDocuments().ToList();
+                var generator = new CSharpGenerator();
 
-                if (typeSystemDocs.Count == 0 || executableDocs.Count == 0)
+                var generatorResult = generator.Generate(documents);
+                if (generatorResult.HasErrors())
                 {
-                    return;
+                    // TODO
                 }
 
-                ISchema schema = SchemaHelper.Load(typeSystemDocs);
-
-                var analyzer = new DocumentAnalyzer();
-                analyzer.SetSchema(schema);
-
-                foreach (DocumentNode executableDocument in executableDocs)
-                {
-                    analyzer.AddDocument(executableDocument);
-                }
-
-                ClientModel clientModel = analyzer.Analyze();
-
-                var executor = new CSharpGeneratorExecutor();
-
-                foreach (CSharpDocument document in executor.Generate(clientModel, "Foo", "FooClient"))
+                foreach (CSharpDocument document in generatorResult.CSharpDocuments)
                 {
                     context.AddSource(
                         document.Name + ".cs",

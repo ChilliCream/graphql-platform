@@ -12,4 +12,19 @@
     <ProjectReference Include="..\..\..\..\HotChocolate\Stitching\src\Stitching\HotChocolate.Stitching.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\CodeGenerationResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>CodeGenerationResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\CodeGenerationResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>CodeGenerationResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
 </Project>

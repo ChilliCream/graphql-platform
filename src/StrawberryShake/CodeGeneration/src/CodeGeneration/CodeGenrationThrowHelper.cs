@@ -1,0 +1,25 @@
+using System.Collections.Generic;
+using HotChocolate;
+using HotChocolate.Language;
+using static StrawberryShake.CodeGeneration.Properties.CodeGenerationResources;
+
+namespace StrawberryShake.CodeGeneration
+{
+    public static class CodeGenerationThrowHelper
+    {
+        public static IReadOnlyList<IError> Generator_NoExecutableDocumentsFound() =>
+            new CodeGeneratorException(Throwhelper_Generator_NoExecutableDocumentsFound).Errors;
+
+        public static IReadOnlyList<IError> Generator_NoGraphQlFilesFound() =>
+            new CodeGeneratorException(Throwhelper_Generator_NoGraphQlFilesFound).Errors;
+
+        public static IReadOnlyList<IError> Generator_NoTypeDocumentsFound() =>
+            new CodeGeneratorException(Throwhelper_Generator_NoTypeDocumentsFound).Errors;
+
+        public static IError Generator_SyntaxException(SyntaxException syntaxException) =>
+            ErrorBuilder.New()
+                .SetMessage(Throwhelper_Generator_SyntaxError)
+                .AddLocation(new HotChocolate.Location(syntaxException.Line, syntaxException.Column))
+                .Build();
+    }
+}
