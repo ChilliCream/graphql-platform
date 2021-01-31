@@ -59,6 +59,7 @@ namespace HotChocolate.Types.Scalars
 
         [Theory]
         [InlineData(typeof(StringValueNode), "test@chillicream.com", "test@chillicream.com")]
+        [InlineData(typeof(StringValueNode), "CapitalizeTest@chillicream.com", "CapitalizeTest@chillicream.com")]
         [InlineData(typeof(NullValueNode), null, null)]
         public void ParseLiteral_GivenValueNode_MatchExpected(
             Type type,
@@ -92,6 +93,7 @@ namespace HotChocolate.Types.Scalars
 
         [Theory]
         [InlineData("test@chillicream.com", "test@chillicream.com")]
+        [InlineData("CapitalizeTest@chillicream.com", "CapitalizeTest@chillicream.com")]
         [InlineData(null, null)]
         public void Deserialize_GivenValue_MatchExpected(
             object resultValue,
@@ -119,6 +121,7 @@ namespace HotChocolate.Types.Scalars
 
         [Theory]
         [InlineData("test@chillicream.com", "test@chillicream.com")]
+        [InlineData("CapitalizeTest@chillicream.com", "CapitalizeTest@chillicream.com")]
         [InlineData(null, null)]
         public void Serialize_GivenObject_MatchExpectedType(
             object runtimeValue,
