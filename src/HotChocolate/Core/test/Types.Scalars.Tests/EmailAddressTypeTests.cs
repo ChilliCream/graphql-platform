@@ -46,13 +46,29 @@ namespace HotChocolate.Types.Scalars
         [InlineData(true, false)]
         [InlineData("", false)]
         [InlineData(null, true)]
-        [InlineData("test@chilicream.com", true)]
+        [InlineData("test@chillicream.com", true)]
         public void IsInstanceOfType_GivenObject_MatchExpected(object value, bool expected)
         {
             // arrange
             // act
             // assert
             ExpectIsInstanceOfTypeToMatch<EmailAddressType>(value, expected);
+        }
+
+        [Theory]
+        [InlineData(typeof(StringValueNode), "test@chillicream.com", "test@chillicream.com")]
+        [InlineData(typeof(NullValueNode), null, null)]
+        public void ParseLiteral_GivenValueNode_MatchExpected(
+            Type type,
+            object value,
+            object expected)
+        {
+            // arrange
+            IValueNode valueNode = CreateValueNode(type, value);
+
+            // act
+            // assert
+            ExpectParseLiteralToMatch<EmailAddressType>(valueNode, expected);
         }
     }
 }
