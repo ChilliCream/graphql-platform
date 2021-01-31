@@ -25,6 +25,7 @@ namespace HotChocolate.Types.Scalars
         [InlineData(typeof(BooleanValueNode), true, false)]
         [InlineData(typeof(StringValueNode), "", false)]
         [InlineData(typeof(StringValueNode), "test@chillicream.com", true)]
+        [InlineData(typeof(StringValueNode), "CapitalizeTest@chillicream.com", true)]
         [InlineData(typeof(NullValueNode), null, true)]
         public void IsInstanceOfType_GivenValueNode_MatchExpected(
             Type type,
