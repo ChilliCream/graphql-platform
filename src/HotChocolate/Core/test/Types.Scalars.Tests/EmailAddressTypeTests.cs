@@ -82,6 +82,7 @@ namespace HotChocolate.Types.Scalars
         [InlineData(typeof(StringValueNode), "")]
         [InlineData(typeof(StringValueNode), "invalid.email.com")]
         [InlineData(typeof(StringValueNode), "email@-example.com")]
+        [InlineData(typeof(StringValueNode), "email@example..com")]
         public void ParseLiteral_GivenValueNode_ThrowSerializationException(Type type, object value)
         {
             // arrange
@@ -113,6 +114,7 @@ namespace HotChocolate.Types.Scalars
         [InlineData(true)]
         [InlineData("invalid.email.com")]
         [InlineData("email@-example.com")]
+        [InlineData("email@example..com")]
         public void Deserialize_GivenValue_ThrowSerializationException(object value)
         {
             // arrange
@@ -142,6 +144,7 @@ namespace HotChocolate.Types.Scalars
         [InlineData(true)]
         [InlineData("invalid.email.com")]
         [InlineData("email@-example.com")]
+        [InlineData("email@example..com")]
         public void Serialize_GivenObject_ThrowSerializationException(object value)
         {
             // arrange
