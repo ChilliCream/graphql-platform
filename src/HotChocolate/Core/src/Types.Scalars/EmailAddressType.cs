@@ -21,6 +21,7 @@ namespace HotChocolate.Types
             new Regex(
                 _validationPattern,
                 RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
         public EmailAddressType()
             : this(
                 WellKnownScalarTypes.EmailAddress,
@@ -43,13 +44,13 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         protected override bool IsInstanceOfType(string runtimeValue)
         {
-            return runtimeValue != string.Empty && _validationRegex.IsMatch(runtimeValue);
+            return _validationRegex.IsMatch(runtimeValue);
         }
 
         /// <inheritdoc />
         protected override bool IsInstanceOfType(StringValueNode valueSyntax)
         {
-            return valueSyntax.Value != string.Empty && _validationRegex.IsMatch(valueSyntax.Value);
+            return _validationRegex.IsMatch(valueSyntax.Value);
         }
 
         /// <inheritdoc />
