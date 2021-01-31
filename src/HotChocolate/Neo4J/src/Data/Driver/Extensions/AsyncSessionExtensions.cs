@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Neo4j.Driver;
 
@@ -10,10 +11,10 @@ public static class AsyncSessionExtensions
             this IAsyncSession asyncSession,
             long nodeId) where TEntity : class
         {
-            var parameters = new CypherQueryParameters()
+            IDictionary<string, object> parameters = new CypherQueryParameters()
                 .WithValue("p1", nodeId);
 
-            var resultCursor = await asyncSession.RunAsync(Constants.Statement.GetNode, parameters)
+            IResultCursor resultCursor = await asyncSession.RunAsync(Constants.Statement.GetNode, parameters)
                 .ConfigureAwait(false);
 
             return await resultCursor.MapSingleAsync<TEntity>().ConfigureAwait(false);
@@ -23,10 +24,10 @@ public static class AsyncSessionExtensions
             this IAsyncTransaction asyncTransaction,
             long nodeId) where TEntity : class
         {
-            var parameters = new CypherQueryParameters()
+            IDictionary<string, object> parameters = new CypherQueryParameters()
                 .WithValue("p1", nodeId);
 
-            var resultCursor = await asyncTransaction.RunAsync(Constants.Statement.GetNode, parameters)
+            IResultCursor resultCursor = await asyncTransaction.RunAsync(Constants.Statement.GetNode, parameters)
                 .ConfigureAwait(false);
 
             return await resultCursor.MapSingleAsync<TEntity>().ConfigureAwait(false);
@@ -40,7 +41,7 @@ public static class AsyncSessionExtensions
             if (nodeId == null)
                 throw new InvalidOperationException(Constants.NodeIdUnspecifiedMessage);
 
-            var parameters = new CypherQueryParameters()
+            IDictionary<string, object> parameters = new CypherQueryParameters()
                 .WithValue("p1", nodeId)
                 .WithEntity("p2", entity);
 

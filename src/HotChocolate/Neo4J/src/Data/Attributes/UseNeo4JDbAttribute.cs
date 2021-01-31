@@ -7,7 +7,7 @@ namespace HotChocolate.Data.Neo4J
     public class UseNeo4JDatabaseAttribute
         : ObjectFieldDescriptorAttribute
     {
-        private string _databaseName;
+        private readonly string _databaseName;
 
         public UseNeo4JDatabaseAttribute(string databaseName) {
             _databaseName = databaseName;

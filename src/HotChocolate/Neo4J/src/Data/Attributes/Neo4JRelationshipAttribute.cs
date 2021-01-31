@@ -8,8 +8,8 @@ namespace HotChocolate.Data.Neo4J
     public class Neo4JRelationshipAttribute
         : ObjectFieldDescriptorAttribute
     {
-        private string _name;
-        private RelationshipDirection _direction;
+        private readonly string _name;
+        private readonly RelationshipDirection _direction;
 
         public Neo4JRelationshipAttribute(
             string name,
