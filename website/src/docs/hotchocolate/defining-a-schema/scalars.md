@@ -36,6 +36,7 @@ In addition to the scalars defined by the specification, HotChocolate also suppo
 | `Date`      | ISO-8601 date                                               |
 | `Uuid`      | GUID                                                        |
 | `Any`       | This type can be anything, string, int, list or object etc. |
+| `EmailAddress` | A email address, represented as UTF-8 character sequences defined in RFC 5322. |
 
 # Using Scalars
 HotChocolate will automatically detect which scalars are in use and will only expose those in the introspection. This keeps the schema definition small, simple and clean.
