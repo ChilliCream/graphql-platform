@@ -1,5 +1,8 @@
 namespace StrawberryShake.Transport
 {
+    /// <summary>
+    /// Represents the different status that a socket can be closed by
+    /// </summary>
     public enum SocketCloseStatus
     {
         None,

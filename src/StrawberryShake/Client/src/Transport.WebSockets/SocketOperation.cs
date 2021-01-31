@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading;
@@ -9,20 +8,40 @@ using System.Threading.Tasks;
 
 namespace StrawberryShake.Transport.Subscriptions
 {
-    public class SocketOperation : IAsyncDisposable
+    /// <summary>
+    /// Represents a operation on a socket
+    /// </summary>
+    public class SocketOperation : ISocketOperation
     {
         private readonly ISocketOperationManager _manager;
         private readonly Channel<JsonDocument> _channel;
         private bool _disposed;
 
-
+        /// <summary>
+        /// The id of the operation
+        /// </summary>
         public string Id { get; }
 
+        /// <summary>
+        /// Initializes a new <see cref="SocketOperation"/>
+        /// </summary>
+        /// <param name="manager">
+        /// The socket operation manager that this operation manages
+        /// </param>
         public SocketOperation(ISocketOperationManager manager)
             : this(manager, Guid.NewGuid().ToString())
         {
         }
 
+        /// <summary>
+        /// Initializes a new <see cref="SocketOperation"/>
+        /// </summary>
+        /// <param name="manager">
+        /// The socket operation manager that this operation manages
+        /// </param>
+        /// <param name="id">
+        /// The id of this operation
+        /// </param>
         public SocketOperation(
             ISocketOperationManager manager,
             string id)
@@ -32,6 +51,7 @@ namespace StrawberryShake.Transport.Subscriptions
             _channel = Channel.CreateUnbounded<JsonDocument>();
         }
 
+        /// <inheritdoc />
         public async IAsyncEnumerable<JsonDocument> ReadAsync(
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
@@ -55,9 +75,10 @@ namespace StrawberryShake.Transport.Subscriptions
             JsonDocument message,
             CancellationToken cancellationToken)
         {
-            await _channel.Writer.WriteAsync(message, cancellationToken);
+            await _channel.Writer.WriteAsync(message, cancellationToken).ConfigureAwait(false);
         }
 
+        /// <inheritdoc />
         public async ValueTask DisposeAsync()
         {
             if (!_disposed)

@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.StarWars;
@@ -35,10 +34,11 @@ namespace StrawberryShake.Transport.WebSockets
                 x => x.AddTypeExtension<StringSubscriptionExtensions>(),
                 out int port);
             var serviceCollection = new ServiceCollection();
-            serviceCollection.AddWebSocketClient(
+            serviceCollection
+                .AddProtocol<GraphQlWsProtocolFactory>()
+                .AddWebSocketClient(
                     "Foo",
-                    c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"))
-                .AddProtocol(new SubscriptionTransportWsProtocol());
+                    c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
             IServiceProvider services =
                 serviceCollection.BuildServiceProvider();
 

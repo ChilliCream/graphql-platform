@@ -155,5 +155,7 @@ namespace StrawberryShake.Transport.Http
 
             writer.WriteEndArray();
         }
+
+        public static readonly JsonOperationRequestSerializer Default = new();
     }
 }

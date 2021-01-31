@@ -80,5 +80,41 @@ namespace StrawberryShake.Properties {
                 return ResourceManager.GetString("CodeFileBuilder_NamespaceCannotBeNull", resourceCulture);
             }
         }
+        
+        internal static string Serialization_MessageHadNoTypeSpecified {
+            get {
+                return ResourceManager.GetString("Serialization_MessageHadNoTypeSpecified", resourceCulture);
+            }
+        }
+        
+        internal static string Serialization_InvalidToken {
+            get {
+                return ResourceManager.GetString("Serialization_InvalidToken", resourceCulture);
+            }
+        }
+        
+        internal static string Serialization_UnknownField {
+            get {
+                return ResourceManager.GetString("Serialization_UnknownField", resourceCulture);
+            }
+        }
+        
+        internal static string Protocol_CannotStartOperationOnClosedSocket {
+            get {
+                return ResourceManager.GetString("Protocol_CannotStartOperationOnClosedSocket", resourceCulture);
+            }
+        }
+        
+        internal static string Protocol_CannotInitializeOnClosedSocket {
+            get {
+                return ResourceManager.GetString("Protocol_CannotInitializeOnClosedSocket", resourceCulture);
+            }
+        }
+        
+        internal static string Argument_IsNullOrEmpty {
+            get {
+                return ResourceManager.GetString("Argument_IsNullOrEmpty", resourceCulture);
+            }
+        }
     }
 }

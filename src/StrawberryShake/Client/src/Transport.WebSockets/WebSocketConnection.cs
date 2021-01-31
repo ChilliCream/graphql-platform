@@ -8,22 +8,30 @@ using StrawberryShake.Transport.Subscriptions;
 
 namespace StrawberryShake.Http.Subscriptions
 {
+
+    /// <summary>
+    /// A WebSocket connection to a GraphQL server and allows to execute requests against it.
+    /// </summary>
     public class WebSocketConnection : IConnection<JsonDocument>
     {
-        private readonly ISocketOperationManager _client;
-        private readonly JsonOperationRequestSerializer _serializer = new();
+        private readonly ISocketOperationManager _operationManager;
 
-        public WebSocketConnection(ISocketOperationManager client)
+        /// <summary>
+        /// Creates a new instance of a <see cref="WebSocketConnection"/>
+        /// </summary>
+        /// <param name="operationManager"></param>
+        public WebSocketConnection(ISocketOperationManager operationManager)
         {
-            _client = client ?? throw new ArgumentNullException(nameof(client));
+            _operationManager = operationManager ?? throw new ArgumentNullException(nameof(operationManager));
         }
 
+        /// <inheritdoc />
         public async IAsyncEnumerable<Response<JsonDocument>> ExecuteAsync(
             OperationRequest request,
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             await using SocketOperation operation =
-                await _client.StartOperationAsync(request, cancellationToken);
+                await _operationManager.StartOperationAsync(request, cancellationToken);
 
             await foreach (var result in operation.ReadAsync(cancellationToken))
             {

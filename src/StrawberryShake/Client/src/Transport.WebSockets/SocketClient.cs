@@ -2,17 +2,19 @@ using System;
 using System.Collections.Generic;
 using System.IO.Pipelines;
 using System.Net.WebSockets;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using StrawberryShake.Http.Subscriptions.Messages;
 
 namespace StrawberryShake.Transport.WebSockets
 {
+    /// <summary>
+    /// Represents a client for sending and receiving messages responses over a websocket
+    /// identified by a URI and name.
+    /// </summary>
     public sealed class WebSocketClient
         : ISocketClient
     {
-        private readonly IReadOnlyList<ISocketProtocol> _protocols;
+        private readonly IReadOnlyList<ISocketProtocolFactory> _protocolFactories;
         private readonly ClientWebSocket _socket;
 
         private const int _maxMessageSize = 1024 * 4;
@@ -21,26 +23,37 @@ namespace StrawberryShake.Transport.WebSockets
         private bool _disposed;
         private readonly string _name;
 
-        public WebSocketClient(string name, IReadOnlyList<ISocketProtocol> protocols)
+        /// <summary>
+        /// Creates a new instance of <see cref="WebSocketClient"/>
+        /// </summary>
+        /// <param name="name">The name of the socket</param>
+        /// <param name="protocolFactories">The protocol factories this socket supports</param>
+        public WebSocketClient(
+            string name,
+            IReadOnlyList<ISocketProtocolFactory> protocolFactories)
         {
-            _protocols = protocols;
+            _protocolFactories = protocolFactories;
             _name = name;
             _socket = new ClientWebSocket();
 
-            for (var i = 0; i < _protocols.Count; i++)
+            for (var i = 0; i < _protocolFactories.Count; i++)
             {
-                _socket.Options.AddSubProtocol(_protocols[i].ProtocolName);
+                _socket.Options.AddSubProtocol(_protocolFactories[i].ProtocolName);
             }
         }
 
+        /// <inheritdoc />
         public Uri? Uri { get; set; }
 
+        /// <inheritdoc />
         public string? Name => _name;
 
+        /// <inheritdoc />
         public bool IsClosed =>
             _disposed
             || _socket.CloseStatus.HasValue;
 
+        /// <inheritdoc />
         public async Task OpenAsync(CancellationToken cancellationToken = default)
         {
             if (_disposed)
@@ -56,11 +69,11 @@ namespace StrawberryShake.Transport.WebSockets
 
             await _socket.ConnectAsync(Uri, cancellationToken).ConfigureAwait(false);
 
-            for (var i = 0; i < _protocols.Count; i++)
+            for (var i = 0; i < _protocolFactories.Count; i++)
             {
-                if (_protocols[i].ProtocolName == _socket.SubProtocol)
+                if (_protocolFactories[i].ProtocolName == _socket.SubProtocol)
                 {
-                    _activeProtocol = _protocols[i];
+                    _activeProtocol = _protocolFactories[i].Create(this);
                     break;
                 }
             }
@@ -77,9 +90,10 @@ namespace StrawberryShake.Transport.WebSockets
                 throw new InvalidOperationException();
             }
 
-            await _activeProtocol.InitializeAsync(this, cancellationToken).ConfigureAwait(false);
+            await _activeProtocol.InitializeAsync(cancellationToken).ConfigureAwait(false);
         }
 
+        /// <inheritdoc />
         public async Task CloseAsync(
             string message,
             SocketCloseStatus closeStatus,
@@ -111,6 +125,7 @@ namespace StrawberryShake.Transport.WebSockets
             }
         }
 
+        /// <inheritdoc />
         public ISocketProtocol GetProtocol()
         {
             if (_activeProtocol is null)
@@ -122,28 +137,25 @@ namespace StrawberryShake.Transport.WebSockets
             return _activeProtocol;
         }
 
-        public Task SendAsync(
+        /// <inheritdoc />
+        public ValueTask SendAsync(
             ReadOnlyMemory<byte> message,
             CancellationToken cancellationToken = default)
         {
             if (IsClosed)
             {
-                return Task.CompletedTask;
+                return default;
             }
 
-            if (MemoryMarshal.TryGetArray(message, out ArraySegment<byte> buffer))
-            {
-                return _socket.SendAsync(
-                    buffer,
-                    WebSocketMessageType.Text,
-                    true,
-                    cancellationToken);
-            }
-
-            return Task.CompletedTask;
+            return _socket.SendAsync(
+                message,
+                WebSocketMessageType.Text,
+                true,
+                cancellationToken);
         }
 
-        public async Task ReceiveAsync(
+        /// <inheritdoc />
+        public async ValueTask ReceiveAsync(
             PipeWriter writer,
             CancellationToken cancellationToken = default)
         {
@@ -154,40 +166,37 @@ namespace StrawberryShake.Transport.WebSockets
 
             try
             {
-                WebSocketReceiveResult? socketResult = null;
+                ValueWebSocketReceiveResult? socketResult;
                 do
                 {
                     Memory<byte> memory = writer.GetMemory(_maxMessageSize);
-                    if (MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> buffer))
+                    try
                     {
-                        try
-                        {
-                            socketResult = await _socket
-                                .ReceiveAsync(buffer, cancellationToken)
-                                .ConfigureAwait(false);
-
-                            if (socketResult.Count == 0)
-                            {
-                                break;
-                            }
-
-                            writer.Advance(socketResult.Count);
-                        }
-                        catch
-                        {
-                            break;
-                        }
-
-                        FlushResult result = await writer
-                            .FlushAsync(cancellationToken)
+                        socketResult = await _socket
+                            .ReceiveAsync(memory, cancellationToken)
                             .ConfigureAwait(false);
 
-                        if (result.IsCompleted)
+                        if (socketResult.Value.Count == 0)
                         {
                             break;
                         }
+
+                        writer.Advance(socketResult.Value.Count);
                     }
-                } while (socketResult == null || !socketResult.EndOfMessage);
+                    catch
+                    {
+                        break;
+                    }
+
+                    FlushResult result = await writer
+                        .FlushAsync(cancellationToken)
+                        .ConfigureAwait(false);
+
+                    if (result.IsCompleted)
+                    {
+                        break;
+                    }
+                } while (!socketResult.Value.EndOfMessage);
             }
             catch (ObjectDisposedException)
             {
@@ -222,14 +231,15 @@ namespace StrawberryShake.Transport.WebSockets
             }
         }
 
+        /// <inheritdoc />
         public async ValueTask DisposeAsync()
         {
             if (!_disposed)
             {
                 _socket.Dispose();
-                foreach (var protocol in _protocols)
+                if (_activeProtocol is { })
                 {
-                    await protocol.DisposeAsync();
+                    await _activeProtocol.DisposeAsync().ConfigureAwait(false);
                 }
 
                 _disposed = true;

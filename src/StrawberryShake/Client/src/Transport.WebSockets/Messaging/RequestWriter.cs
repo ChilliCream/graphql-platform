@@ -3,7 +3,8 @@ using System.Buffers;
 
 namespace StrawberryShake.Transport
 {
-    public class MessageWriter
+    /// <inheritdoc />
+    public class RequestWriter
         : IRequestWriter
     {
         private const int _initialBufferSize = 1024;
@@ -14,28 +15,28 @@ namespace StrawberryShake.Transport
         private int _start;
         private bool _disposed;
 
-        public MessageWriter()
+        protected RequestWriter()
         {
             _buffer = ArrayPool<byte>.Shared.Rent(_initialBufferSize);
             _capacity = _buffer.Length;
         }
 
-        public int Length => _start;
-
+        /// <inheritdoc />
         public ReadOnlyMemory<byte> Body => _buffer.AsMemory().Slice(0, _start);
 
-        public byte[] GetInternalBuffer() => _buffer;
-
+        /// <inheritdoc />
         public void Advance(int count)
         {
             if (count < 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(count));
             }
+
             _start += count;
             _capacity -= count;
         }
 
+        /// <inheritdoc />
         public Memory<byte> GetMemory(int sizeHint = 0)
         {
             var size = sizeHint < _minMemorySize ? _defaultMemorySize : sizeHint;
@@ -43,6 +44,7 @@ namespace StrawberryShake.Transport
             return _buffer.AsMemory().Slice(_start, size);
         }
 
+        /// <inheritdoc />
         public Span<byte> GetSpan(int sizeHint = 0)
         {
             var size = sizeHint < _minMemorySize ? _defaultMemorySize : sizeHint;
@@ -70,19 +72,27 @@ namespace StrawberryShake.Transport
             }
         }
 
-        public void Clear()
+        /// <inheritdoc />
+        public virtual void Reset()
         {
             ArrayPool<byte>.Shared.Return(_buffer);
             _buffer = ArrayPool<byte>.Shared.Rent(_initialBufferSize);
             _capacity = _buffer.Length;
+            _start = 0;
         }
 
+        /// <inheritdoc />
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting
+        /// unmanaged resources
+        /// </summary>
+        /// <param name="disposing">True if it is disposing</param>
         protected virtual void Dispose(bool disposing)
         {
             if (!_disposed && disposing)

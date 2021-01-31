@@ -6,29 +6,30 @@ using Microsoft.Extensions.Options;
 namespace StrawberryShake.Transport.WebSockets
 {
     /// <summary>
-    /// Extensions methods to configure an <see cref="IServiceCollection"/> for <see cref="ISocketClientFactory"/>.
+    /// Extensions methods to configure an <see cref="IServiceCollection"/> for
+    /// <see cref="ISocketClientFactory"/>.
     /// </summary>
     public static class WebSocketClientFactoryServiceCollectionExtensions
     {
         /// <summary>
-        /// Adds the <see cref="ISocketClientFactory"/> and related services to the <see cref="IServiceCollection"/>.
+        /// Adds a websocket <see cref="ISocketProtocolFactory"/> to the <see cref="IServiceCollection"/>
         /// </summary>
-        /// <param name="services">The <see cref="IServiceCollection"/>.</param>
-        /// <returns>The <see cref="IServiceCollection"/>.</returns>
-        public static IServiceCollection AddWebSocketClient(
+        /// <param name="services">
+        /// The <see cref="IServiceCollection"/>.
+        /// </param>
+        /// <returns>
+        /// An <see cref="IWebSocketClientBuilder"/> that can be used to configure the client.
+        /// </returns>
+        public static IServiceCollection AddProtocol<TFactory>(
             this IServiceCollection services)
+            where TFactory : class, ISocketProtocolFactory
         {
             if (services == null)
             {
                 throw new ArgumentNullException(nameof(services));
             }
 
-            services.AddOptions();
-
-            services.AddSingleton<DefaultSocketClientFactory>();
-            services.TryAddSingleton<ISocketClientFactory>(sp =>
-                sp.GetRequiredService<DefaultSocketClientFactory>());
-            services.AddWebSocketClientPool();
+            services.AddSingleton<ISocketProtocolFactory, TFactory>();
 
             return services;
         }
@@ -36,20 +37,20 @@ namespace StrawberryShake.Transport.WebSockets
         /// <summary>
         /// Adds the <see cref="ISocketClientFactory"/> and related services
         /// to the <see cref="IServiceCollection"/> and configures a named
-        /// <see cref="SocketClient"/>.
+        /// <see cref="WebSocketClient"/>.
         /// </summary>
         /// <param name="services">
         /// The <see cref="IServiceCollection"/>.
         /// </param>
         /// <param name="name">
-        /// The logical name of the <see cref="SocketClient"/> to configure.
+        /// The logical name of the <see cref="WebSocketClient"/> to configure.
         /// </param>
         /// <returns>
         /// An <see cref="IWebSocketClientBuilder"/> that can be used to configure the client.
         /// </returns>
         /// <remarks>
         /// <para>
-        /// <see cref="SocketClient"/> instances that apply the provided configuration can
+        /// <see cref="WebSocketClient"/> instances that apply the provided configuration can
         /// be retrieved using <see cref="ISocketClientFactory.CreateClient(string)"/>
         /// and providing the matching name.
         /// </para>
@@ -80,23 +81,23 @@ namespace StrawberryShake.Transport.WebSockets
         /// <summary>
         /// Adds the <see cref="ISocketClientFactory"/> and related services
         /// to the <see cref="IServiceCollection"/> and configures a named
-        /// <see cref="SocketClient"/>.
+        /// <see cref="WebSocketClient"/>.
         /// </summary>
         /// <param name="services">
         /// The <see cref="IServiceCollection"/>.
         /// </param>
         /// <param name="name">
-        /// The logical name of the <see cref="SocketClient"/> to configure.
+        /// The logical name of the <see cref="WebSocketClient"/> to configure.
         /// </param>
         /// <param name="configureClient">
-        /// A delegate that is used to configure an <see cref="SocketClient"/>.
+        /// A delegate that is used to configure an <see cref="WebSocketClient"/>.
         /// </param>
         /// <returns>
         /// An <see cref="ISocketClientFactory"/> that can be used to configure the client.
         /// </returns>
         /// <remarks>
         /// <para>
-        /// <see cref="SocketClient"/> instances that apply the provided
+        /// <see cref="WebSocketClient"/> instances that apply the provided
         /// configuration can be retrieved using
         /// <see cref="ISocketClientFactory.CreateClient(string)"/> and providing
         /// the matching name.
@@ -136,23 +137,23 @@ namespace StrawberryShake.Transport.WebSockets
         /// <summary>
         /// Adds the <see cref="ISocketClientFactory"/> and related services
         /// to the <see cref="IServiceCollection"/> and configures a named
-        /// <see cref="SocketClient"/>.
+        /// <see cref="WebSocketClient"/>.
         /// </summary>
         /// <param name="services">
         /// The <see cref="IServiceCollection"/>.
         /// </param>
         /// <param name="name">
-        /// The logical name of the <see cref="SocketClient"/> to configure.
+        /// The logical name of the <see cref="WebSocketClient"/> to configure.
         /// </param>
         /// <param name="configureClient">
-        /// A delegate that is used to configure an <see cref="SocketClient"/>.
+        /// A delegate that is used to configure an <see cref="WebSocketClient"/>.
         /// </param>
         /// <returns>
         /// An <see cref="ISocketClientFactory"/> that can be used to configure the client.
         /// </returns>
         /// <remarks>
         /// <para>
-        /// <see cref="SocketClient"/> instances that apply the provided
+        /// <see cref="WebSocketClient"/> instances that apply the provided
         /// configuration can be retrieved using
         /// <see cref="ISocketClientFactory.CreateClient(string)"/> and providing
         /// the matching name.
@@ -187,6 +188,24 @@ namespace StrawberryShake.Transport.WebSockets
             var builder = new DefaultWebSocketClientBuilder(services, name);
             builder.ConfigureWebSocketClient(configureClient);
             return builder;
+        }
+
+        private static IServiceCollection AddWebSocketClient(
+            this IServiceCollection services)
+        {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            services.AddOptions();
+
+            services.AddSingleton<DefaultSocketClientFactory>();
+            services.TryAddSingleton<ISocketClientFactory>(sp =>
+                sp.GetRequiredService<DefaultSocketClientFactory>());
+            services.AddWebSocketClientPool();
+
+            return services;
         }
     }
 }

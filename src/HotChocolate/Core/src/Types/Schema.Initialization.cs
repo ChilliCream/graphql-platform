@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Text.RegularExpressions;
 using HotChocolate.Configuration;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -9,6 +10,7 @@ namespace HotChocolate
 {
     public partial class Schema
     {
+
         private readonly Action<ISchemaTypeDescriptor> _configure;
         private bool _sealed;
 

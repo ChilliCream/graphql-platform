@@ -1,49 +1,68 @@
+using System;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace StrawberryShake.Transport
 {
+    /// <summary>
+    /// A Json message writer that buffers the result locally
+    /// </summary>
     public sealed class SocketMessageWriter
-        : MessageWriter
+        : RequestWriter,
+          IAsyncDisposable
     {
-        private static readonly JsonWriterOptions _options =
-            new JsonWriterOptions { SkipValidation = true };
-        private readonly Utf8JsonWriter _writer;
+        private static readonly JsonWriterOptions _options = new() { SkipValidation = true };
 
+        /// <summary>
+        /// The underlying json writer
+        /// </summary>
+        public Utf8JsonWriter Writer { get; }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="SocketMessageWriter"/>
+        /// </summary>
         public SocketMessageWriter()
         {
-            _writer = new Utf8JsonWriter(this, _options);
+            Writer = new Utf8JsonWriter(this, _options);
         }
 
+        /// <inheritdoc />
+        public override void Reset()
+        {
+            base.Reset();
+            Writer.Reset();
+        }
+
+        /// <summary>
+        /// Writes the beginning of a JSON object
+        /// </summary>
         public void WriteStartObject()
         {
-            _writer.WriteStartObject();
-            _writer.Flush();
+            Writer.WriteStartObject();
+            Writer.Flush();
         }
 
+        /// <summary>
+        /// Writes the end of a JSON object
+        /// </summary>
         public void WriteEndObject()
         {
-            _writer.WriteEndObject();
-            _writer.Flush();
+            Writer.WriteEndObject();
+            Writer.Flush();
         }
 
-        public void WriteId(string id)
+        /// <inheritdoc />
+        public async ValueTask DisposeAsync()
         {
-            _writer.WritePropertyName("id");
-            _writer.WriteStringValue(id);
-            _writer.Flush();
+            await Writer.DisposeAsync();
+            Dispose();
         }
 
-        public void WriteType(string type)
+        /// <inheritdoc />
+        protected override void Dispose(bool disposing)
         {
-            _writer.WritePropertyName("type");
-            _writer.WriteStringValue(type);
-            _writer.Flush();
-        }
-
-        public void WriteStartPayload()
-        {
-            _writer.WritePropertyName("payload");
-            _writer.Flush();
+            DisposeAsync();
+            base.Dispose(disposing);
         }
     }
 }

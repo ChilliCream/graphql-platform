@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace StrawberryShake.Transport.Subscriptions
 {
+    /// <inheritdoc />
     public sealed class SocketOperationManager : ISocketOperationManager
     {
         private readonly ISocketProtocol _socketProtocol;
@@ -14,6 +15,10 @@ namespace StrawberryShake.Transport.Subscriptions
 
         private bool _disposed;
 
+        /// <summary>
+        /// Creates a new instance <see cref="SocketOperationManager"/>
+        /// </summary>
+        /// <param name="socketProtocol"></param>
         public SocketOperationManager(ISocketProtocol socketProtocol)
         {
             _socketProtocol = socketProtocol ??
@@ -22,17 +27,7 @@ namespace StrawberryShake.Transport.Subscriptions
             _socketProtocol.Subscribe(ReceiveMessage);
         }
 
-        public async ValueTask ReceiveMessage(
-            string operationId,
-            JsonDocument payload,
-            CancellationToken cancellationToken = default)
-        {
-            if (_operations.TryGetValue(operationId, out var operation))
-            {
-                await operation.ReceiveAsync(payload, cancellationToken);
-            }
-        }
-
+        /// <inheritdoc />
         public Task<SocketOperation> StartOperationAsync(
             OperationRequest request,
             CancellationToken cancellationToken = default)
@@ -76,6 +71,7 @@ namespace StrawberryShake.Transport.Subscriptions
             return operation;
         }
 
+        /// <inheritdoc />
         public async Task StopOperationAsync(
             string operationId,
             CancellationToken cancellationToken = default)
@@ -88,6 +84,26 @@ namespace StrawberryShake.Transport.Subscriptions
             }
         }
 
+        /// <summary>
+        /// Receive a message from the socket
+        /// </summary>
+        /// <param name="operationId">Id of the operation</param>
+        /// <param name="payload">The payload of the message</param>
+        /// <param name="cancellationToken">
+        /// The cancellation token to cancel
+        /// </param>
+        private async ValueTask ReceiveMessage(
+            string operationId,
+            JsonDocument payload,
+            CancellationToken cancellationToken = default)
+        {
+            if (_operations.TryGetValue(operationId, out var operation))
+            {
+                await operation.ReceiveAsync(payload, cancellationToken);
+            }
+        }
+
+        /// <inheritdoc />
         public async ValueTask DisposeAsync()
         {
             if (!_disposed && _operations.Count > 0)

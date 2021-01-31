@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 namespace StrawberryShake.Transport.WebSockets
 {
+    /// <inheritdoc />
     internal sealed class SocketClientPool
         : ISocketClientPool
     {
@@ -21,6 +22,7 @@ namespace StrawberryShake.Transport.WebSockets
                 ?? throw new ArgumentNullException(nameof(socketClientFactory));
         }
 
+        /// <inheritdoc />
         public async Task<ISocketClient> RentAsync(
             string name,
             CancellationToken cancellationToken = default)
@@ -51,6 +53,7 @@ namespace StrawberryShake.Transport.WebSockets
             }
         }
 
+        /// <inheritdoc />
         public async Task ReturnAsync(
             ISocketClient connection,
             CancellationToken cancellationToken = default)

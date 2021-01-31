@@ -36,4 +36,22 @@
   <data name="CodeFileBuilder_NamespaceCannotBeNull" xml:space="preserve">
     <value>The namespace cannot be null or empty.</value>
   </data>
+  <data name="Serialization_MessageHadNoTypeSpecified" xml:space="preserve">
+    <value>The GraphQL socket message had no type property specified.</value>
+  </data>
+  <data name="Serialization_InvalidToken" xml:space="preserve">
+    <value>Could not parse the message. The token {0} was invalid</value>
+  </data>
+  <data name="Serialization_UnknownField" xml:space="preserve">
+    <value>Could not parse the message. The field {0} is unknown</value>
+  </data>
+  <data name="Protocol_CannotStartOperationOnClosedSocket" xml:space="preserve">
+    <value>Could not start the operation {0}. The socket was closed</value>
+  </data>
+  <data name="Protocol_CannotInitializeOnClosedSocket" xml:space="preserve">
+    <value>Could not initialize the protocol. The socket was closed</value>
+  </data>
+  <data name="Argument_IsNullOrEmpty" xml:space="preserve">
+    <value>The argument {0} must not be null or empty</value>
+  </data>
 </root>
