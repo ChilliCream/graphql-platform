@@ -67,7 +67,7 @@
     <value>EmailAddress cannot parse the provided literal. The provided value does not meet the RFC 5322 specification.</value>
   </data>
   <data name="EmailAddress_IsInvalid_ParseValue" xml:space="preserve">
-    <value>EmailAddress cannot parse the provided literal. The provided value does not meet the RFC 5322 specification.</value>
+    <value>EmailAddress cannot parse the provided value. The provided value does not meet the RFC 5322 specification.</value>
   </data>
   <data name="NegativeIntType_Description" xml:space="preserve">
     <value>The NegativeIntType scalar type represents a signed 32-bit numeric non-fractional with a maximum of -1.</value>
