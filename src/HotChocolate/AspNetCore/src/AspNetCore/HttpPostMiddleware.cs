@@ -55,7 +55,7 @@ namespace HotChocolate.AspNetCore
         }
 
         protected virtual ValueTask<IReadOnlyList<GraphQLRequest>> GetRequestsFromBody(
-            HttpRequest request, 
+            HttpRequest request,
             CancellationToken cancellationToken)
         {
             return RequestParser.ReadJsonRequestAsync(request.Body, cancellationToken);
@@ -76,7 +76,8 @@ namespace HotChocolate.AspNetCore
             try
             {
                 // next we parse the GraphQL request.
-                IReadOnlyList<GraphQLRequest> requests = await GetRequestsFromBody(context.Request, context.RequestAborted);
+                IReadOnlyList<GraphQLRequest> requests =
+                    await GetRequestsFromBody(context.Request, context.RequestAborted);
 
                 switch (requests.Count)
                 {

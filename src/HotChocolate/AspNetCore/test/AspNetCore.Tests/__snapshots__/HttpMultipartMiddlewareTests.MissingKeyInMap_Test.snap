@@ -1,0 +1,14 @@
+﻿{
+  "ContentType": "application/json; charset=utf-8",
+  "StatusCode": "BadRequest",
+  "Data": null,
+  "Errors": [
+    {
+      "message": "Entry with missing key in 'map'.",
+      "extensions": {
+        "code": "// TODO CODE HC"
+      }
+    }
+  ],
+  "Extensions": null
+}

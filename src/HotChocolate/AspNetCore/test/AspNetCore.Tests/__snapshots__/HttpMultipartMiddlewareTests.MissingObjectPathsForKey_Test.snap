@@ -1,0 +1,14 @@
+﻿{
+  "ContentType": "application/json; charset=utf-8",
+  "StatusCode": "BadRequest",
+  "Data": null,
+  "Errors": [
+    {
+      "message": "No object paths specified for key '1' in 'map'.",
+      "extensions": {
+        "code": "// TODO CODE HC"
+      }
+    }
+  ],
+  "Extensions": null
+}

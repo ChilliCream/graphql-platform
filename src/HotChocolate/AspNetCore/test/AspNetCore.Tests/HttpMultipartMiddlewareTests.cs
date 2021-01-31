@@ -149,20 +149,10 @@ namespace HotChocolate.AspNetCore
             // arrange
             TestServer server = CreateStarWarsServer();
 
-            var request = new ClientQueryRequest
-            {
-                // TODO : needs a valid query to execute
-                Query = "",
-                Variables = new Dictionary<string, object>
-                {
-                    { "1", new[] { "variables.file" } }
-                }
-            };
-
             // act
             var form = new MultipartFormDataContent
             {
-                { new StringContent(JsonSerializer.Serialize(request)), "operations" },
+                { new StringContent("{}"), "operations" },
                 { new StringContent("{ \"1\": [\"variables.file\"] }"), "map" },
             };
 
@@ -173,28 +163,16 @@ namespace HotChocolate.AspNetCore
         }
 
         [Fact]
-        public async Task ExtraneousFile_Test()
+        public async Task MissingKeyInMap_Test()
         {
             // arrange
             TestServer server = CreateStarWarsServer();
 
-            var request = new ClientQueryRequest
-            {
-                // TODO : needs a valid query to execute
-                Query = "",
-                Variables = new Dictionary<string, object>
-                {
-                    { "1", new[] { "variables.file" } }
-                }
-            };
-
             // act
             var form = new MultipartFormDataContent
             {
-                { new StringContent(JsonSerializer.Serialize(request)), "operations" },
-                { new StringContent("{\"1\": [\"variables.file\"]}"), "map" },
-                { new StringContent("File1"), "1", "file1.txt" },
-                { new StringContent("File2"), "2", "file2.txt" },
+                { new StringContent("{}"), "operations" },
+                { new StringContent("{ \"\": [\"variables.file\"] }"), "map" },
             };
 
             ClientQueryResult result = await server.PostMultipartAsync(form);
@@ -202,5 +180,26 @@ namespace HotChocolate.AspNetCore
             // assert
             result.MatchSnapshot();
         }
+
+        [Fact]
+        public async Task MissingObjectPathsForKey_Test()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            // act
+            var form = new MultipartFormDataContent
+            {
+                { new StringContent("{}"), "operations" },
+                { new StringContent("{ \"1\": [] }"), "map" },
+            };
+
+            ClientQueryResult result = await server.PostMultipartAsync(form);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        // TODO : How to test whether the files actually end up in the resolver?
     }
 }

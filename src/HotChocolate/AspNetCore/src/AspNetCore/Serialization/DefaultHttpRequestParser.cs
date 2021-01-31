@@ -8,8 +8,6 @@ using HotChocolate.Language;
 using HotChocolate.Utilities;
 using static HotChocolate.Language.Utf8GraphQLRequestParser;
 using static HotChocolate.AspNetCore.ThrowHelper;
-using Microsoft.Extensions.Primitives;
-using System.Text.Json;
 
 namespace HotChocolate.AspNetCore.Serialization
 {
@@ -21,8 +19,6 @@ namespace HotChocolate.AspNetCore.Serialization
         private const string _queryIdentifier = "query";
         private const string _variablesIdentifier = "variables";
         private const string _extensionsIdentifier = "extensions";
-        private const string _operations = "operations";
-        private const string _map = "map";
 
         private readonly IDocumentCache _documentCache;
         private readonly IDocumentHashProvider _documentHashProvider;
@@ -50,77 +46,6 @@ namespace HotChocolate.AspNetCore.Serialization
             Stream stream,
             CancellationToken cancellationToken) =>
             ReadAsync(stream, false, cancellationToken);
-
-        public (IReadOnlyList<GraphQLRequest> Requests, IDictionary<string, string[]> Map) ReadFormRequest(
-            IFormCollection form)
-        {
-            string operations = null!;
-            Dictionary<string, string[]> map = null!;
-
-            foreach (KeyValuePair<string, StringValues> field in form)
-            {
-                switch (field.Key)
-                {
-                    case _operations:
-                        if (!field.Value.TryPeek(out operations) || string.IsNullOrEmpty(operations))
-                        {
-                            // TODO : throw helper
-                            throw new GraphQLRequestException(
-                                ErrorBuilder.New()
-                                    .SetMessage("No '{0}' specified.", _operations)
-                                    .SetCode("// TODO CODE HC")
-                                    .Build());
-                        }
-                        break;
-                    case _map:
-                        if (string.IsNullOrEmpty(operations))
-                        {
-                            // TODO : throw helper
-                            throw new GraphQLRequestException(
-                                ErrorBuilder.New()
-                                    .SetMessage("Misordered multipart fields; '{0}' should follow ‘{1}’.", _map, _operations)
-                                    .SetCode("// TODO CODE HC")
-                                    .Build());
-                        }
-
-                        field.Value.TryPeek(out var mapString);
-
-                        try
-                        {
-                            map = JsonSerializer.Deserialize<Dictionary<string, string[]>>(mapString);
-                        }
-                        catch
-                        {
-                            // TODO : throw helper
-                            throw new GraphQLRequestException(
-                                ErrorBuilder.New()
-                                    .SetMessage(
-                                        "Invalid JSON in the ‘{0}’ multipart field; Expected type of Dictionary<string, string[]>.", _map)
-                                    .SetCode("// TODO CODE HC")
-                                    .Build());
-                        }
-                        break;
-                }
-            }
-
-            if (map is null)
-            {
-                // TODO : throw helper
-                throw new GraphQLRequestException(
-                    ErrorBuilder.New()
-                        .SetMessage("No '{0}' specified.", _map)
-                        .SetCode("// TODO CODE HC")
-                        .Build());
-            }
-
-            // TODO : parsing the operations before correlating the map to the files 
-            //        is unnecessary overhead and also makes testing harder,
-            //        since we have to submit a valid query
-            IReadOnlyList<GraphQLRequest> requests =
-                Parse(operations, _parserOptions, _documentCache, _documentHashProvider);
-
-            return (requests, map);
-        }
 
         public GraphQLRequest ReadParamsRequest(IQueryCollection parameters)
         {
@@ -190,6 +115,15 @@ namespace HotChocolate.AspNetCore.Serialization
             {
                 throw DefaultHttpRequestParser_UnexpectedError(ex);
             }
+        }
+
+        public IReadOnlyList<GraphQLRequest> ReadOperationsRequest(
+            string operations)
+        {
+            IReadOnlyList<GraphQLRequest> requests =
+                Parse(operations, _parserOptions, _documentCache, _documentHashProvider);
+
+            return requests;
         }
 
         private async ValueTask<IReadOnlyList<GraphQLRequest>> ReadAsync(
