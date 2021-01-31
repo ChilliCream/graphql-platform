@@ -1,9 +1,7 @@
-using System;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
-using HotChocolate.Types.Scalars;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Scalars
 {
     /// <summary>
     /// The `EmailAddress` scalar type represents a email address, represented as UTF-8 character sequences.
