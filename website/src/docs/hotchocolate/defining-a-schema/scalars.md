@@ -394,3 +394,11 @@ The NonNullString scalar type represents non empty textual data, represented as 
 """
 scalar NonEmptyString
 ```
+
+## EmailAddress
+```sdl
+"""
+The EmailAddress scalar type represents a email address, represented as UTF-8 character sequences that follows the specification defined in RFC 5322
+"""
+scalar NonEmptyString
+```
