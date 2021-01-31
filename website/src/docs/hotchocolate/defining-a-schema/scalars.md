@@ -36,7 +36,6 @@ In addition to the scalars defined by the specification, HotChocolate also suppo
 | `Date`      | ISO-8601 date                                               |
 | `Uuid`      | GUID                                                        |
 | `Any`       | This type can be anything, string, int, list or object etc. |
-| `EmailAddress` | A email address, represented as UTF-8 character sequences defined in RFC 5322. |
 
 # Using Scalars
 HotChocolate will automatically detect which scalars are in use and will only expose those in the introspection. This keeps the schema definition small, simple and clean.
@@ -392,6 +391,14 @@ scalar PositiveInt
 ```sdl
 """
 The NonNullString scalar type represents non empty textual data, represented as UTF‐8 character sequences with at least one character
+"""
+scalar NonEmptyString
+```
+
+## EmailAddress
+```sdl
+"""
+The EmailAddress scalar type represents a email address, represented as UTF-8 character sequences that follows the specification defined in RFC 5322
 """
 scalar NonEmptyString
 ```
