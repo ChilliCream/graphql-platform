@@ -2,33 +2,30 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Validation;
-using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake.CodeGeneration.Analyzers;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Utilities;
+using static StrawberryShake.CodeGeneration.CodeGenerationThrowHelper;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
     public class CSharpGenerator
     {
-        public CSharpGeneratorResult Generate(IEnumerable<string>? graphQlFiles)
+        public CSharpGeneratorResult Generate(IEnumerable<string> graphQLFiles)
         {
-            var errors = new List<HotChocolate.IError>();
-
-            if (graphQlFiles is null)
+            if (graphQLFiles is null)
             {
-                errors.AddRange(CodeGenerationThrowHelper.Generator_NoGraphQlFilesFound());
-                return new CSharpGeneratorResult(
-                    new List<CSharpDocument>(),
-                    errors);
+                throw new ArgumentNullException(nameof(graphQLFiles));
             }
 
+            var errors = new List<IError>();
             var documents = new List<DocumentNode>();
 
-            foreach (var file in graphQlFiles)
+            foreach (var file in graphQLFiles)
             {
                 try
                 {
@@ -36,8 +33,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 }
                 catch (SyntaxException syntaxException)
                 {
-                    errors.Add(
-                        CodeGenerationThrowHelper.Generator_SyntaxException(syntaxException));
+                    errors.Add(Generator_SyntaxException(syntaxException));
                 }
             }
 
@@ -53,12 +49,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             if (typeSystemDocs.Count == 0)
             {
-                errors.AddRange(CodeGenerationThrowHelper.Generator_NoTypeDocumentsFound());
+                errors.AddRange(Generator_NoTypeDocumentsFound());
             }
 
             if (executableDocs.Count == 0)
             {
-                errors.AddRange(CodeGenerationThrowHelper.Generator_NoExecutableDocumentsFound());
+                errors.AddRange(Generator_NoExecutableDocumentsFound());
             }
 
             if (errors.Any())
@@ -103,7 +99,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     clientModel,
                     "Foo",
                     "FooClient").ToList(),
-                new List<HotChocolate.IError>());
+                errors);
         }
     }
 }

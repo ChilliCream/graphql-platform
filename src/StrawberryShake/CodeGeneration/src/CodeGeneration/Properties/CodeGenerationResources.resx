@@ -18,7 +18,7 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Throwhelper_Generator_NoGraphQlFilesFound" xml:space="preserve">
+  <data name="Throwhelper_Generator_NoGraphQLFilesFound" xml:space="preserve">
     <value>No .graphql files were found in your project. </value>
   </data>
   <data name="Throwhelper_Generator_NoExecutableDocumentsFound" xml:space="preserve">

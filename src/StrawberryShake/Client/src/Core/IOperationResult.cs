@@ -20,7 +20,7 @@ namespace StrawberryShake
 
         IOperationResultDataInfo? DataInfo { get; }
 
-        IReadOnlyList<IError> Errors { get; }
+        IReadOnlyList<IClientError> Errors { get; }
 
         IReadOnlyDictionary<string, object?> Extensions { get; }
 

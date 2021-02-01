@@ -45,9 +45,9 @@ namespace StrawberryShake.CodeGeneration.Properties {
             }
         }
         
-        internal static string Throwhelper_Generator_NoGraphQlFilesFound {
+        internal static string Throwhelper_Generator_NoGraphQLFilesFound {
             get {
-                return ResourceManager.GetString("Throwhelper_Generator_NoGraphQlFilesFound", resourceCulture);
+                return ResourceManager.GetString("Throwhelper_Generator_NoGraphQLFilesFound", resourceCulture);
             }
         }
         

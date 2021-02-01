@@ -20,11 +20,11 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
             Name = name.EnsureNotEmpty(nameof(name));
             Description = description;
             IsInterface = isInterface;
-            Type = type ?? 
+            Type = type ??
                 throw new ArgumentNullException(nameof(type));
-            SelectionSet = selectionSet ?? 
+            SelectionSet = selectionSet ??
                 throw new ArgumentNullException(nameof(selectionSet));
-            Fields = fields ?? 
+            Fields = fields ??
                 throw new ArgumentNullException(nameof(fields));
             Implements = implements ?? Array.Empty<OutputTypeModel>();
         }
@@ -33,7 +33,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
 
         public string? Description { get; }
 
-        public bool IsInterface { get; }        
+        public bool IsInterface { get; }
 
         public INamedType Type { get; }
 
@@ -42,5 +42,10 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
         public IReadOnlyList<OutputTypeModel> Implements { get; }
 
         public IReadOnlyList<OutputFieldModel> Fields { get; }
+
+        public override string ToString()
+        {
+            return Name;
+        }
     }
 }

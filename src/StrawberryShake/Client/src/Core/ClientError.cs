@@ -6,10 +6,10 @@ namespace StrawberryShake
     /// <summary>
     /// Represents a query error.
     /// </summary>
-    public class Error : IError
+    public class ClientError : IClientError
     {
         /// <summary>
-        /// Initializes a new instance of <see cref="Error"/>.
+        /// Initializes a new instance of <see cref="ClientError"/>.
         /// </summary>
         /// <param name="message">The error message.</param>
         /// <param name="code">The error code.</param>
@@ -17,7 +17,7 @@ namespace StrawberryShake
         /// <param name="locations">A location reference to the query document.</param>
         /// <param name="exception">An associated exception.</param>
         /// <param name="extensions">Additional error data.</param>
-        public Error(
+        public ClientError(
             string message,
             string? code = null,
             IReadOnlyList<object>? path = null,
@@ -25,7 +25,7 @@ namespace StrawberryShake
             Exception? exception = null,
             IReadOnlyDictionary<string, object?>? extensions = null)
         {
-            Message = message;
+            Message = message ?? throw new ArgumentNullException(nameof(message));
             Code = code;
             Path = path;
             Locations = locations;

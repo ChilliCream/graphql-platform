@@ -10,8 +10,8 @@ namespace StrawberryShake.CodeGeneration
         public static IReadOnlyList<IError> Generator_NoExecutableDocumentsFound() =>
             new CodeGeneratorException(Throwhelper_Generator_NoExecutableDocumentsFound).Errors;
 
-        public static IReadOnlyList<IError> Generator_NoGraphQlFilesFound() =>
-            new CodeGeneratorException(Throwhelper_Generator_NoGraphQlFilesFound).Errors;
+        public static IReadOnlyList<IError> Generator_NoGraphQLFilesFound() =>
+            new CodeGeneratorException(Throwhelper_Generator_NoGraphQLFilesFound).Errors;
 
         public static IReadOnlyList<IError> Generator_NoTypeDocumentsFound() =>
             new CodeGeneratorException(Throwhelper_Generator_NoTypeDocumentsFound).Errors;

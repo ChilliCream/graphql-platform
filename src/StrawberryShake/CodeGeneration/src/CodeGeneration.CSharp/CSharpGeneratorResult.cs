@@ -1,5 +1,5 @@
-using System;
 using System.Collections.Generic;
+using HotChocolate;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -7,14 +7,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
     {
         public CSharpGeneratorResult(
             IReadOnlyList<CSharpDocument> cSharpDocuments,
-            IReadOnlyList<HotChocolate.IError> errors)
+            IReadOnlyList<IError> errors)
         {
             CSharpDocuments = cSharpDocuments;
             Errors = errors;
         }
 
         public IReadOnlyList<CSharpDocument> CSharpDocuments;
-        public IReadOnlyList<HotChocolate.IError> Errors;
+
+        public IReadOnlyList<IError> Errors;
 
         public bool HasErrors() => Errors.Count > 0;
     }

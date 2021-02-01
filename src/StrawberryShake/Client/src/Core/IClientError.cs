@@ -6,7 +6,7 @@ namespace StrawberryShake
     /// <summary>
     /// Represents a query error.
     /// </summary>
-    public interface IError
+    public interface IClientError
     {
         /// <summary>
         /// Gets the error message.

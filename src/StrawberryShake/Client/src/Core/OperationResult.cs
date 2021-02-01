@@ -11,7 +11,7 @@ namespace StrawberryShake
             T? data,
             IOperationResultDataInfo? dataInfo,
             IOperationResultDataFactory<T> dataFactory,
-            IReadOnlyList<IError>? errors,
+            IReadOnlyList<IClientError>? errors,
             IReadOnlyDictionary<string, object?>? extensions = null,
             IReadOnlyDictionary<string, object?>? contextData = null)
         {
@@ -23,7 +23,7 @@ namespace StrawberryShake
             Data = data;
             DataInfo = dataInfo;
             DataFactory = dataFactory;
-            Errors = errors ?? Array.Empty<IError>();
+            Errors = errors ?? Array.Empty<IClientError>();
             Extensions = extensions ?? ImmutableDictionary<string, object?>.Empty;
             ContextData = contextData ?? ImmutableDictionary<string, object?>.Empty;
         }
@@ -38,7 +38,7 @@ namespace StrawberryShake
 
         public IOperationResultDataFactory<T> DataFactory { get; }
 
-        public IReadOnlyList<IError> Errors { get; }
+        public IReadOnlyList<IClientError> Errors { get; }
 
         public IReadOnlyDictionary<string, object?> Extensions { get; }
 
