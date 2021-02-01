@@ -45,7 +45,7 @@
     "gatsby-remark-mermaid": "^2.1.0",
     "gatsby-remark-reading-time": "^1.1.0",
     "gatsby-source-filesystem": "^2.9.0",
-    "gatsby-transformer-json": "^2.9.0",
+    "gatsby-transformer-json": "^2.10.0",
     "gatsby-transformer-sharp": "^2.10.0",
     "github-slugger": "^1.3.0",
     "prism-react-renderer": "^1.1.1",
