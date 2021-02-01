@@ -186,6 +186,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
         }
 
         protected FragmentNode ResolveReturnType(
+            IDocumentAnalyzerContext context,
             FieldSelection fieldSelection,
             SelectionSet selectionSet,
             bool appendTypeName = false)
@@ -205,7 +206,14 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 selectionSet.SyntaxNode),
                 selectionSet.FragmentNodes);
 
-            return HoistFragment(returnType, namedType);
+            returnType = HoistFragment(returnType, namedType);
+
+            context.RegisterSelectionSet(
+                namedType,
+                selectionSet.SyntaxNode,
+                returnType.Fragment.SelectionSet);
+
+            return returnType;
         }
 
         protected static FragmentNode HoistFragment(
@@ -243,7 +251,6 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             Func<string, string> nameFormatter)
         {
             var nameBuilder = new StringBuilder();
-
             Path? current = selectionPath;
 
             do

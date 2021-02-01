@@ -46,6 +46,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             List<OperationModel> operations = new();
             Dictionary<NameString, LeafTypeModel> leafTypes = new();
             Dictionary<NameString, InputObjectTypeModel> inputObjectType = new();
+            Dictionary<SelectionSetInfo, SelectionSetNode> selectionSets = new();
 
             foreach (var operation in operationDocuments.Operations.Values)
             {
@@ -66,10 +67,22 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                         inputObjectType.Add(inputObjectTypeModel.Name, inputObjectTypeModel);
                     }
                 }
+
+                foreach (var selectionSet in context.SelectionSets)
+                {
+                    if (selectionSets.TryGetValue(selectionSet.Key, out var to) &&
+                        to != selectionSet.Value)
+                    {
+                        // TODO : we need a proper analyzer error here.
+                        throw new InvalidOperationException(
+                            "The same selection set is mapped multiple times.");
+                    }
+
+                    selectionSets[selectionSet.Key] = selectionSet.Value;
+                }
             }
 
             return new ClientModel(
-                _schema,
                 operations,
                 leafTypes.Values.ToList(),
                 inputObjectType.Values.ToList());

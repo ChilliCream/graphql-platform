@@ -14,6 +14,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
         {
             FragmentNode returnTypeFragment =
                 ResolveReturnType(
+                    context,
                     fieldSelection,
                     selectionSetVariants.ReturnType);
 

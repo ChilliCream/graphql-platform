@@ -30,7 +30,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             AssertResult(clientModel, generator, documents);
         }
 
-        [Fact(Skip = "Micha")]
+        [Fact]
         public async Task Interface_With_Fragment_Definition_Two_Models()
         {
             // arrange

@@ -7,7 +7,6 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Extensions;
-using static StrawberryShake.CodeGeneration.Analyzers.WellKnownContextData;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
 {
@@ -16,6 +15,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
         private readonly HashSet<NameString> _takenNames = new();
         private readonly Dictionary<ISyntaxNode, HashSet<NameString>> _syntaxNodeNames = new();
         private readonly Dictionary<NameString, ITypeModel> _typeModels = new();
+        private readonly Dictionary<SelectionSetInfo, SelectionSetNode> _selectionSets = new();
         private readonly FieldCollector _fieldCollector;
 
         public DocumentAnalyzerContext(
@@ -45,7 +45,11 @@ namespace StrawberryShake.CodeGeneration.Analyzers
         public Path RootPath { get; }
 
         public Queue<FieldSelection> Fields { get; } = new();
+
         public IReadOnlyCollection<ITypeModel> TypeModels => _typeModels.Values;
+
+        public IReadOnlyDictionary<SelectionSetInfo, SelectionSetNode> SelectionSets =>
+            _selectionSets;
 
         public SelectionSetVariants CollectFields() =>
             _fieldCollector.CollectFields(
@@ -110,6 +114,12 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 }
             }
         }
+
+        public void RegisterSelectionSet(
+            INamedType namedType,
+            SelectionSetNode from,
+            SelectionSetNode to) =>
+            _selectionSets.Add(new(namedType, from), to);
 
         public IEnumerable<OutputTypeModel> GetImplementations(OutputTypeModel outputTypeModel)
         {

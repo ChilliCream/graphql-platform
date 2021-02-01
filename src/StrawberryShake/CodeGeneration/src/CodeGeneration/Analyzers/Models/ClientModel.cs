@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate;
+using HotChocolate.Language;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Extensions;
 
@@ -24,8 +25,10 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
         /// <param name="inputObjectTypes">
         /// The input types that could be passed in.
         /// </param>
+        /// <param name="selectionSets">
+        /// The mapping of hoisted selection sets to original selection sets.
+        /// </param>
         public ClientModel(
-            ISchema schema,
             IReadOnlyList<OperationModel> operations,
             IReadOnlyList<LeafTypeModel> leafTypes,
             IReadOnlyList<InputObjectTypeModel> inputObjectTypes)

@@ -26,7 +26,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 GetResultType(context),
                 context.TypeModels.OfType<LeafTypeModel>().ToList(),
                 context.TypeModels.OfType<InputObjectTypeModel>().ToList(),
-                context.TypeModels.OfType<OutputTypeModel>().ToList());
+                context.TypeModels.OfType<OutputTypeModel>().ToList(),
+                context.SelectionSets);
         }
 
         private static OutputTypeModel GetResultType(

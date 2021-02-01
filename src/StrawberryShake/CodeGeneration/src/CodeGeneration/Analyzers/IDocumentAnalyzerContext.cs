@@ -27,6 +27,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
         IReadOnlyCollection<ITypeModel> TypeModels { get; }
 
+        IReadOnlyDictionary<SelectionSetInfo, SelectionSetNode> SelectionSets { get; }
+
         NameString ResolveTypeName(
             NameString proposedName);
 
@@ -49,6 +51,12 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
         void RegisterType(INamedType type);
 
-        IEnumerable<OutputTypeModel> GetImplementations(OutputTypeModel outputTypeModel);
+        void RegisterSelectionSet(
+            INamedType namedType, 
+            SelectionSetNode from, 
+            SelectionSetNode to);
+
+        IEnumerable<OutputTypeModel> GetImplementations(
+            OutputTypeModel outputTypeModel);
     }
 }

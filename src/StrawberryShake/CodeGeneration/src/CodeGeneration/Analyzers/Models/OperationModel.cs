@@ -10,6 +10,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
 {
     public class OperationModel
     {
+        private readonly IReadOnlyDictionary<SelectionSetInfo, SelectionSetNode> _selectionSets;
+
         public OperationModel(
             NameString name,
             ObjectType type,
@@ -19,7 +21,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
             OutputTypeModel resultType,
             IReadOnlyList<LeafTypeModel> leafTypes,
             IReadOnlyList<InputObjectTypeModel> inputObjectTypes,
-            IReadOnlyList<OutputTypeModel> outputTypeModels)
+            IReadOnlyList<OutputTypeModel> outputTypeModels,
+            IReadOnlyDictionary<SelectionSetInfo, SelectionSetNode> selectionSets)
         {
             Name = name.EnsureNotEmpty(nameof(name));
             Type = type ??
@@ -38,6 +41,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
                 throw new ArgumentNullException(nameof(inputObjectTypes));
             OutputTypes = outputTypeModels ??
                 throw new ArgumentNullException(nameof(outputTypeModels));
+            _selectionSets = selectionSets ??
+                throw new ArgumentNullException(nameof(selectionSets));
         }
 
         public string Name { get; }
@@ -87,6 +92,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
 
         public bool TryGetFieldResultType(
             FieldNode fieldSyntax,
+            INamedType fieldNamedType,
             [NotNullWhen(true)] out OutputTypeModel? fieldType)
         {
             if (fieldSyntax is null)
@@ -94,16 +100,15 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
                 throw new ArgumentNullException(nameof(fieldSyntax));
             }
 
-            var abc = OutputTypes.FirstOrDefault(
-                t => t.SelectionSet == fieldSyntax.SelectionSet);
+            if(!_selectionSets.TryGetValue(
+                new SelectionSetInfo(fieldNamedType, fieldSyntax.SelectionSet!),
+                out SelectionSetNode? selectionSetNode))
+            {
+                selectionSetNode = fieldSyntax.SelectionSet;
+            }
 
             fieldType = OutputTypes.FirstOrDefault(
-                t => t.IsInterface && t.SelectionSet == fieldSyntax.SelectionSet);
-
-            if (fieldType is null)
-            {
-
-            }
+                t => t.IsInterface && t.SelectionSet == selectionSetNode);
 
             return fieldType is not null;
         }

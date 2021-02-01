@@ -196,6 +196,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                         fieldType = GetFieldTypeDescriptor(
                             model,
                             field.SyntaxNode,
+                            field.Type.NamedType(),
                             typeDescriptors);
                     }
 
@@ -214,20 +215,19 @@ namespace StrawberryShake.CodeGeneration.Mappers
         private static NamedTypeDescriptor GetFieldTypeDescriptor(
             ClientModel model,
             FieldNode fieldSyntax,
+            INamedType fieldNamedType,
             Dictionary<NameString, TypeDescriptorModel> typeDescriptors)
         {
             foreach (var operation in model.Operations)
             {
                 if (operation.TryGetFieldResultType(
                     fieldSyntax,
+                    fieldNamedType,
                     out OutputTypeModel? fieldType))
                 {
                     return typeDescriptors.Values
                         .First(t => t.TypeModel == fieldType)
                         .NamedTypeDescriptor;
-                }
-                else
-                {
                 }
             }
 
