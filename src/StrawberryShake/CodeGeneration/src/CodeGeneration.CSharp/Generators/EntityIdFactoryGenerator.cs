@@ -1,7 +1,5 @@
-using System;
 using System.Linq;
 using System.Text;
-using System.Text.Json;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 
 namespace StrawberryShake.CodeGeneration.CSharp
@@ -91,7 +89,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 var field = entity.Fields[0];
 
                 sourceText.AppendLine(
-                    $"    obj.GetProperty(\"{field.Name}\").Get{field.TypeName}()!);");
+                    $"    obj.GetProperty(\"{field.Name}\").{GetSerializerMethod(field)}()!);");
 
                 return CodeBlockBuilder.From(sourceText);
             }
@@ -110,12 +108,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 next = true;
 
                 sourceText.Append(
-                    $"obj.GetProperty(\"{field.Name}\").Get{field.TypeName.Split(".").Last()}()!");
+                    $"obj.GetProperty(\"{field.Name}\").{GetSerializerMethod(field)}()!");
             }
 
             sourceText.AppendLine("));");
 
             return CodeBlockBuilder.From(sourceText);
         }
+
+        private static string GetSerializerMethod(EntityIdDescriptor field) => 
+            $"Get{field.TypeName.Split(".").Last()}";
     }
 }
