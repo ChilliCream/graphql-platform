@@ -78,12 +78,12 @@
             entityIds.Add(entityId);
 
             BarTypeEntity entity = _entityStore.GetOrCreate<BarTypeEntity>(entityId);
-            entity.name = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+            entity.name = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "name"));
 
             return entityId;
         }
 
-        private string DeserializeNonNullableString(global::System.Text.Json.JsonElement? obj)
+        private global::System..string DeserializeNonNullableString(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {

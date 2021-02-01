@@ -74,7 +74,8 @@
                 return null;
             }
 
-            var bars = new global::System.Collections.Generic.List<global::StrawberryShake.EntityId>();
+            var bars = new global::System.Collections.Generic.List<global::StrawberryShake.EntityId?>();
+
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
                 bars.Add(UpdateBarEntity(

@@ -3,11 +3,11 @@
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class Foo
     {
-        public Foo(string? someText)
+        public Foo(System.string? someText)
         {
             SomeText = someText;
         }
 
-        public string? SomeText { get; }
+        public System.string? SomeText { get; }
     }
 }

@@ -54,7 +54,7 @@
 
             var resultInfo = new FooInfo(
                 DeserializeBarData(
-                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj, "theBar"),
+                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "theBar"),
                     entityIds
                 ),
                 entityIds,
@@ -71,10 +71,10 @@
                 return null;
             }
 
-            return new BarData(DeserializeString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj, "name")));
+            return new BarData(DeserializeString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "name")));
         }
 
-        private string? DeserializeString(global::System.Text.Json.JsonElement? obj)
+        private System.string? DeserializeString(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {

@@ -52,7 +52,7 @@
             var entityIds = new global::System.Collections.Generic.HashSet<global::StrawberryShake.EntityId>();
 
             global::StrawberryShake.EntityId? theBarId = UpdateBarEntity(
-                global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "theBar"),
+                global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj, "theBar"),
                 entityIds
             );
 
@@ -104,7 +104,7 @@
             return entityId;
         }
 
-        private string? DeserializeString(global::System.Text.Json.JsonElement? obj)
+        private System.string? DeserializeString(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {

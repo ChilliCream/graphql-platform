@@ -4,8 +4,8 @@
     public partial class Foo
     {
         public Foo(
-            string id,
-            IReadOnlyList<Bar> bars,
+            global::System..string id,
+            global::System.Collections.Generic.IReadOnlyList<Bar> bars,
             Baz? baz)
         {
             Id = id;
@@ -13,9 +13,9 @@
             Baz = baz;
         }
 
-        public string Id { get; }
+        public global::System..string Id { get; }
 
-        public IReadOnlyList<Bar> Bars { get; }
+        public global::System.Collections.Generic.IReadOnlyList<Bar> Bars { get; }
 
         public Baz? Baz { get; }
     }
