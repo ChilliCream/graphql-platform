@@ -220,10 +220,9 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 current is not null &&
                 DoesTypeApply(current.Fragment.TypeCondition, type))
             {
-                selected = current;
-
                 if (current.Fragment.TypeCondition == type)
                 {
+                    selected = current;
                     break;
                 }
 
