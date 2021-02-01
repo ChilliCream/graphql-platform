@@ -82,7 +82,11 @@ namespace HotChocolate.Data
                 .BindRuntimeType<DateTimeOffset?,
                     ComparableOperationFilterInputType<DateTimeOffset?>>()
                 .BindRuntimeType<TimeSpan?, ComparableOperationFilterInputType<TimeSpan?>>();
-
+                .BindRuntimeType<sbyte, ComparableOperationFilterInputType<sbyte>>()
+                .BindRuntimeType<ushort, ComparableOperationFilterInputType<ushort>>()
+                .BindRuntimeType<uint, ComparableOperationFilterInputType<uint>>()
+                .BindRuntimeType<ulong, ComparableOperationFilterInputType<ulong>>()
+                
             return descriptor;
         }
     }
