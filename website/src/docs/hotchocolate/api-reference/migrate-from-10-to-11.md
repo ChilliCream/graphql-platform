@@ -594,15 +594,21 @@ downstream schemas.
     services
         .AddGraphQLServer()
         .AddRemoteSchema("SomeSchema")
-        .AddType(new IntType())
-        .AddType(new IntType("PaginationAmount"))
+        .ConfigureSchema(x =>
+                    {
+                        x.AddType(new IntType())
+                        .AddType(new IntType("PaginationAmount"));
+                    })
         .AddMergedDocumentRewriter(
             d => (DocumentNode)new PagingAmountRewriter().Rewrite(d, null));
 
     services
         .AddGraphQL("SomeSchema")
-        .AddType(new IntType())
-        .AddType(new IntType("PaginationAmount"));
+        .ConfigureSchema(x =>
+                     {
+                         x.AddType(new IntType())
+                         .AddType(new IntType("PaginationAmount"));
+                     });
 ```
 
 **PagingAmountRewriter:**
