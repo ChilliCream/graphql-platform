@@ -5,7 +5,7 @@
     {
         public GetHeroResult(
             IHero hero,
-            string version)
+            global::System..string version)
         {
             Hero = hero;
             Version = version;
@@ -13,6 +13,6 @@
 
         public IHero Hero { get; }
 
-        public string Version { get; }
+        public global::System..string Version { get; }
     }
 }

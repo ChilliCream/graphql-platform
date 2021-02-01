@@ -2,8 +2,9 @@
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroQueryDocument
+        : global::StrawberryShake.IDocument
     {
-        private const string _bodyString = 
+        private const global::System.String _bodyString = 
             @"query GetHero {
                     hero {
                         __typename
@@ -20,19 +21,19 @@
                     }
                     version
                 }";
-        private static readonly byte[] _body = Encoding.UTF8.GetBytes(_bodyString);
+        private static readonly byte[] _body = global::System.Text.Encoding.UTF8.GetBytes(_bodyString);
 
         private GetHeroQueryDocument()
         {
         }
 
-        public GetHeroQueryDocument Instance { get; } = new();
+        public static GetHeroQueryDocument Instance { get; } = new GetHeroQueryDocument();
 
-        public OperationKind Kind => OperationKind.Query;
+        public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
 
-        public ReadOnlySpan<byte> Body => _body;
+        public global::System.ReadOnlySpan<byte> Body => _body;
 
-        private override string ToString()
+        public override string ToString()
         {
             return _bodyString;
         }

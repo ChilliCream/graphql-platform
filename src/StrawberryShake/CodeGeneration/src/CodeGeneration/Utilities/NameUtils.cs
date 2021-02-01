@@ -43,7 +43,6 @@ namespace StrawberryShake.CodeGeneration.Utilities
         public static string GetPropertyName(string fieldName)
         {
             var value = new StringBuilder();
-            ReadOnlySpan<char> fieldNameSpan = fieldName.AsSpan();
 
             for (var i = 0; i < fieldName.Length; i++)
             {
@@ -64,24 +63,22 @@ namespace StrawberryShake.CodeGeneration.Utilities
         public static string GetEnumValue(string enumValue)
         {
             var value = new StringBuilder();
-            ReadOnlySpan<char> enumValueSpan = enumValue.AsSpan();
-
             var upper = true;
 
-            for (var i = 0; i < enumValueSpan.Length; i++)
+            for (var i = 0; i < enumValue.Length; i++)
             {
-                if (enumValueSpan[i] == '_')
+                if (enumValue[i] == '_')
                 {
                     upper = true;
                 }
                 else if (upper)
                 {
                     upper = false;
-                    value.Append(char.ToUpperInvariant(enumValueSpan[i]));
+                    value.Append(char.ToUpperInvariant(enumValue[i]));
                 }
                 else
                 {
-                    value.Append(char.ToLowerInvariant(enumValueSpan[i]));
+                    value.Append(char.ToLowerInvariant(enumValue[i]));
                 }
             }
 

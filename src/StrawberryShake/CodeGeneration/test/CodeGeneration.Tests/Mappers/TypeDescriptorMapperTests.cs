@@ -43,7 +43,21 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 },
                 type =>
                 {
-                    Assert.Equal("GetHero_Hero", type.Name);
+                    Assert.Equal("GetHero_Hero_Droid", type.Name);
+                    Assert.Equal("Foo.Bar", type.Namespace);
+
+                    Assert.Collection(
+                        type.Properties,
+                        property =>
+                        {
+                            Assert.Equal("Name", property.Name);
+                            Assert.Equal("String", property.Type.Name);
+                            Assert.False(property.Type.IsNullableType());
+                        });
+                },
+                type =>
+                {
+                    Assert.Equal("GetHero_Hero_Human", type.Name);
                     Assert.Equal("Foo.Bar", type.Namespace);
 
                     Assert.Collection(

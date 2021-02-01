@@ -5,7 +5,7 @@
     {
         public global::StrawberryShake.EntityId Id { get; }
 
-        public string Name { get; set; }
+        public global::System..string Name { get; set; }
 
         public FriendsConnectionData Friends { get; set; }
     }

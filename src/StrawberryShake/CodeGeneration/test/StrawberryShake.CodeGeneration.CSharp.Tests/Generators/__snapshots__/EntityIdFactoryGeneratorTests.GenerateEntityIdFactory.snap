@@ -19,7 +19,7 @@ public static partial class EntityIdFactory
     {
         return new global::StrawberryShake.EntityId(
             type,
-            (obj.GetProperty("id").GetString()!));
+            obj.GetProperty("id").GetString()!);
     }
 
     public static global::StrawberryShake.EntityId CreateBarEntityId(

@@ -2,23 +2,23 @@
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FriendsConnectionFromDataMapper
-        : IEntityMapper<FriendsConnectionData, FriendsConnection>
+        : global::StrawberryShake.IEntityMapper<FriendsConnectionData, FriendsConnection>
     {
-        private readonly IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly IEntityMapper<DroidEntity, Droid> _droidFromDroidEntityMapper;
         private readonly IEntityMapper<HumanEntity, Human> _humanFromHumanEntityMapper;
 
         public FriendsConnectionFromDataMapper(
-            IEntityStore entityStore,
+            global::StrawberryShake.IEntityStore entityStore,
             IEntityMapper<DroidEntity, Droid> droidFromDroidEntityMapper,
             IEntityMapper<HumanEntity, Human> humanFromHumanEntityMapper)
         {
             _entityStore = entityStore
-                 ?? throw new ArgumentNullException(nameof(entityStore));
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
             _droidFromDroidEntityMapper = droidFromDroidEntityMapper
-                 ?? throw new ArgumentNullException(nameof(droidFromDroidEntityMapper));
+                 ?? throw new global::System.ArgumentNullException(nameof(droidFromDroidEntityMapper));
             _humanFromHumanEntityMapper = humanFromHumanEntityMapper
-                 ?? throw new ArgumentNullException(nameof(humanFromHumanEntityMapper));
+                 ?? throw new global::System.ArgumentNullException(nameof(humanFromHumanEntityMapper));
         }
 
         public FriendsConnection Map(FriendsConnectionData entity)
@@ -28,18 +28,18 @@
             {
                 ICharacter mappedItem = default!;
 
-                if (nodesItem.Name.Equals("Droid", StringComparison.Ordinal))
+                if (nodesItem.Name.Equals("Droid", global::System.StringComparison.Ordinal))
                 {
                     mappedItem = _droidFromDroidEntityMapper.Map(_entityStore.GetEntity<DroidEntity>(nodesItem));
 
                 }
-                else if (nodesItem.Name.Equals("Human", StringComparison.Ordinal))
+                else if (nodesItem.Name.Equals("Human", global::System.StringComparison.Ordinal))
                 {
                     mappedItem = _humanFromHumanEntityMapper.Map(_entityStore.GetEntity<HumanEntity>(nodesItem));
 
                 }
                 else {
-                    throw new NotSupportedException();
+                    throw new global::System.NotSupportedException();
                 }
 
                 nodes.Add(mappedItem);

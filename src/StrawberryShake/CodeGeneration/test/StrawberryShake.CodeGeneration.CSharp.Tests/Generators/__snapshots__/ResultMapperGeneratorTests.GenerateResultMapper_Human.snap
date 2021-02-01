@@ -2,14 +2,14 @@
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class HumanFromHumanEntityMapper
-        : IEntityMapper<HumanEntity, Human>
+        : global::StrawberryShake.IEntityMapper<HumanEntity, Human>
     {
-        private readonly IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
 
-        public HumanFromHumanEntityMapper(IEntityStore entityStore)
+        public HumanFromHumanEntityMapper(global::StrawberryShake.IEntityStore entityStore)
         {
             _entityStore = entityStore
-                 ?? throw new ArgumentNullException(nameof(entityStore));
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
         }
 
         public Human Map(HumanEntity entity)

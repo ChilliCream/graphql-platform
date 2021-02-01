@@ -2,19 +2,19 @@
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class HumanHeroFromHumanEntityMapper
-        : IEntityMapper<HumanEntity, HumanHero>
+        : global::StrawberryShake.IEntityMapper<HumanEntity, HumanHero>
     {
-        private readonly IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly IEntityMapper<FriendsConnectionData, FriendsConnection> _friendsConnectionFromDataMapper;
 
         public HumanHeroFromHumanEntityMapper(
-            IEntityStore entityStore,
+            global::StrawberryShake.IEntityStore entityStore,
             IEntityMapper<FriendsConnectionData, FriendsConnection> friendsConnectionFromDataMapper)
         {
             _entityStore = entityStore
-                 ?? throw new ArgumentNullException(nameof(entityStore));
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
             _friendsConnectionFromDataMapper = friendsConnectionFromDataMapper
-                 ?? throw new ArgumentNullException(nameof(friendsConnectionFromDataMapper));
+                 ?? throw new global::System.ArgumentNullException(nameof(friendsConnectionFromDataMapper));
         }
 
         public HumanHero Map(HumanEntity entity)

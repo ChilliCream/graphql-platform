@@ -2,34 +2,33 @@
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroResultInfo
-        : IOperationResultDataInfoInfo
+        : global::StrawberryShake.IOperationResultDataInfo
     {
-        private readonly IReadOnlyCollection<EntityId> _entityIds;
+        private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
         private readonly ulong _version;
 
         public GetHeroResultInfo(
             global::StrawberryShake.EntityId hero,
-            string version,
-            IReadOnlyCollection<EntityId> entityIds,
+            global::System..string version,
+            global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds,
             ulong version)
         {
             Hero = hero;
             Version = version;
             _entityIds = entityIds
-                 ?? throw new ArgumentNullException(nameof(entityIds));
-            _version = version
-                 ?? throw new ArgumentNullException(nameof(version));
+                 ?? throw new global::System.ArgumentNullException(nameof(entityIds));
+            _version = version;
         }
 
         public global::StrawberryShake.EntityId Hero { get; }
 
-        public string Version { get; }
+        public global::System..string Version { get; }
 
-        public IReadOnlyCollection<EntityId> IOperationResultDataInfo.EntityIds => _entityIds;
+        public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
 
-        public ulong IOperationResultDataInfo.Version => _version;
+        public ulong Version => _version;
 
-        public GetHeroResultInfo IOperationResultDataInfo.WithVersion(ulong version)
+        public global::StrawberryShake.IOperationResultDataInfo WithVersion(ulong version)
         {
             return new GetHeroResultInfo(
                 Hero,

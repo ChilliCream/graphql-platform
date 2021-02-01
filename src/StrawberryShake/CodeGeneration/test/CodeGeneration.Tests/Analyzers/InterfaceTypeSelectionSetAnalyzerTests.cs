@@ -41,9 +41,11 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             // assert
             Assert.Equal("IGetHero_Hero", result.Name);
 
+
             Assert.Collection(
-                context.GetImplementations(result),
-                model => Assert.Equal("GetHero_Hero", model.Name));
+                context.GetImplementations(result).OrderBy(m => m.Name),
+                model => Assert.Equal("GetHero_Hero_Droid", model.Name),
+                model => Assert.Equal("GetHero_Hero_Human", model.Name));
 
             Assert.Collection(
                 result.Fields,
@@ -130,7 +132,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             Assert.Equal("IHero", result.Name);
 
             Assert.Collection(
-                context.GetImplementations(result),
+                context.GetImplementations(result).OrderBy(t => t.Name),
+                model => Assert.Equal("Hero", model.Name),
                 model => Assert.Equal("Hero", model.Name));
 
             Assert.Collection(

@@ -65,7 +65,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                             selectionSetSyntax, objectType, path);
                         list.Add(objectSelection);
 
-                        if (!FieldSelectionsAreEqual(returnType.Fields, objectSelection.Fields))
+                        // TODO : do we always want to generate all shapes?
+                        // if (!FieldSelectionsAreEqual(returnType.Fields, objectSelection.Fields))
                         {
                             singleModelShape = false;
                         }

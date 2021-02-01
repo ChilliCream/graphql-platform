@@ -84,9 +84,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
             var sourceText = new StringBuilder();
 
             sourceText.AppendLine($"return new {TypeNames.EntityId}(");
-            sourceText.AppendLine($"    type,");
+            sourceText.AppendLine("    type,");
 
-            if (entity.Fields.Count == 0)
+            if (entity.Fields.Count == 1)
             {
                 var field = entity.Fields[0];
 
@@ -96,9 +96,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 return CodeBlockBuilder.From(sourceText);
             }
 
-            sourceText.Append($"    ");
+            sourceText.Append("    (");
 
-            bool next = false;
+            var next = false;
 
             foreach (var field in entity.Fields)
             {
@@ -109,10 +109,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 }
                 next = true;
 
-                sourceText.Append($"obj.GetProperty(\"{field.Name}\").Get{field.TypeName.Split(".").Last()}()!");
+                sourceText.Append(
+                    $"obj.GetProperty(\"{field.Name}\").Get{field.TypeName.Split(".").Last()}()!");
             }
 
-            sourceText.AppendLine($");");
+            sourceText.AppendLine("));");
 
             return CodeBlockBuilder.From(sourceText);
         }

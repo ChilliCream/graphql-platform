@@ -3,15 +3,15 @@
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroQuery
     {
-        private readonly IOperationExecutor<GetHeroResult> _operationExecutor;
+        private readonly global::StrawberryShake.IOperationExecutor<GetHeroResult> _operationExecutor;
 
-        public GetHeroQuery(IOperationExecutor<GetHeroResult> operationExecutor)
+        public GetHeroQuery(global::StrawberryShake.IOperationExecutor<GetHeroResult> operationExecutor)
         {
             _operationExecutor = operationExecutor
-                 ?? throw new ArgumentNullException(nameof(operationExecutor));
+                 ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
         }
 
-        public async Task<IOperationResult<GetHeroResult>> Execute(CancellationToken cancellationToken = default)
+        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<GetHeroResult>> Execute(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest();
             
@@ -23,13 +23,13 @@
                 .ConfigureAwait(false);
         }
 
-        public IOperationObservable<GetHeroResult> Watch(ExecutionStrategy? strategy = null)
+        public global::System.IObservable<global::StrawberryShake.IOperationResult<GetHeroResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null)
         {
             var request = CreateRequest();
             return _operationExecutor.Watch(request, strategy);
         }
 
-        private OperationRequest CreateRequest()
+        private global::StrawberryShake.OperationRequest CreateRequest()
         {
             return new(
                 "GetHeroResult",

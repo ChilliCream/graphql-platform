@@ -13,8 +13,6 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 {
     internal abstract class SelectionSetAnalyzer
     {
-        private readonly StringBuilder _nameBuilder = new();
-
         public abstract OutputTypeModel Analyze(
            IDocumentAnalyzerContext context,
            FieldSelection fieldSelection,
@@ -245,7 +243,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             Path selectionPath,
             Func<string, string> nameFormatter)
         {
-            _nameBuilder.Clear();
+            var nameBuilder = new StringBuilder();
 
             Path? current = selectionPath;
 
@@ -255,18 +253,18 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 {
                     string part = GetClassName(name.Name);
 
-                    if (_nameBuilder.Length > 0)
+                    if (nameBuilder.Length > 0)
                     {
                         part += "_";
                     }
-                    _nameBuilder.Insert(0, part);
+                    nameBuilder.Insert(0, part);
                 }
 
                 current = current?.Parent;
             }
             while (current is not null && current != Path.Root);
 
-            return nameFormatter(_nameBuilder.ToString());
+            return nameFormatter(nameBuilder.ToString());
         }
     }
 }
