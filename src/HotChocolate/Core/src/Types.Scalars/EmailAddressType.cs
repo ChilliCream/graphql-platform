@@ -23,7 +23,7 @@ namespace HotChocolate.Types.Scalars
         public EmailAddressType()
             : this(
                 WellKnownScalarTypes.EmailAddress,
-                ScalarResources.EmailAddress_Description)
+                ScalarResources.EmailAddressType_Description)
         {
         }
 
