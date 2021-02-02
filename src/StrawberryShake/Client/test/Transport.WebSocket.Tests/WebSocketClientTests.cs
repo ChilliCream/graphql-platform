@@ -82,7 +82,6 @@ namespace StrawberryShake.Transport.WebSockets
             IReadOnlyList<ISocketProtocolFactory> protocolFactories =
                 Array.Empty<ISocketProtocolFactory>();
             var socket = new WebSocketClient(name, protocolFactories);
-            await socket.DisposeAsync();
 
             // act
             Exception? exception =

@@ -1,9 +1,9 @@
 namespace StrawberryShake.Transport.WebSockets
 {
     /// <summary>
-    /// Factory for <see cref="GraphQlWsProtocol"/>
+    /// Factory for <see cref="GraphQLWebSocketProtocol"/>
     /// </summary>
-    public class GraphQlWsProtocolFactory : ISocketProtocolFactory
+    public class GraphQLWebSocketProtocolFactory : ISocketProtocolFactory
     {
         /// <inheritdoc />
         public string ProtocolName => "graphql-ws";
@@ -11,7 +11,7 @@ namespace StrawberryShake.Transport.WebSockets
         /// <inheritdoc />
         public ISocketProtocol Create(ISocketClient socketClient)
         {
-            return new GraphQlWsProtocol(socketClient);
+            return new GraphQLWebSocketProtocol(socketClient);
         }
     }
 }

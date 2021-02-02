@@ -15,7 +15,7 @@ namespace StrawberryShake.Transport.WebSockets
             var services = new ServiceCollection();
 
             // act
-            services.AddProtocol<GraphQlWsProtocolFactory>();
+            services.AddProtocol<GraphQLWebSocketProtocolFactory>();
 
             // assert
             Assert.Single(
@@ -31,7 +31,7 @@ namespace StrawberryShake.Transport.WebSockets
 
             // act
             Exception? ex =
-                Record.Exception(() => services.AddProtocol<GraphQlWsProtocolFactory>());
+                Record.Exception(() => services.AddProtocol<GraphQLWebSocketProtocolFactory>());
 
             // assert
             Assert.IsType<ArgumentNullException>(ex);

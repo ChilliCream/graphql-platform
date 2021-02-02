@@ -2,7 +2,7 @@ using System;
 
 namespace StrawberryShake.Transport
 {
-    public static class GraphQlWsMessageTypeSpans
+    public static class GraphQLWebSocketMessageTypeSpans
     {
         public static ReadOnlySpan<byte> ConnectionInitialize => new[]
         {

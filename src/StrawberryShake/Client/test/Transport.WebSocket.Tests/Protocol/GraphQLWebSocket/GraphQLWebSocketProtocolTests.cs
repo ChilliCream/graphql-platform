@@ -18,7 +18,7 @@ namespace StrawberryShake.Transport.WebSockets
             var socketClient = new SocketClientStub { IsClosed = false };
 
             // act
-            var protocol = new GraphQlWsProtocol(socketClient);
+            var protocol = new GraphQLWebSocketProtocol(socketClient);
             await protocol.InitializeAsync(CancellationToken.None);
             await protocol.DisposeAsync();
 
@@ -34,7 +34,7 @@ namespace StrawberryShake.Transport.WebSockets
             ISocketClient socketClient = null!;
 
             // act
-            Exception? exception = Record.Exception(() => new GraphQlWsProtocol(socketClient));
+            Exception? exception = Record.Exception(() => new GraphQLWebSocketProtocol(socketClient));
 
             // assert
             Assert.IsType<ArgumentNullException>(exception);
@@ -45,7 +45,7 @@ namespace StrawberryShake.Transport.WebSockets
         {
             // arrange
             var socketClient = new SocketClientStub { IsClosed = true };
-            var protocol = new GraphQlWsProtocol(socketClient);
+            var protocol = new GraphQLWebSocketProtocol(socketClient);
 
             // act
             Exception? exception = await Record.ExceptionAsync(
@@ -60,7 +60,7 @@ namespace StrawberryShake.Transport.WebSockets
         {
             // arrange
             var socketClient = new SocketClientStub { IsClosed = false };
-            var protocol = new GraphQlWsProtocol(socketClient);
+            var protocol = new GraphQLWebSocketProtocol(socketClient);
 
             // act
             await protocol.InitializeAsync(CancellationToken.None);
@@ -75,7 +75,7 @@ namespace StrawberryShake.Transport.WebSockets
         {
             // arrange
             var socketClient = new SocketClientStub { IsClosed = false };
-            var protocol = new GraphQlWsProtocol(socketClient);
+            var protocol = new GraphQLWebSocketProtocol(socketClient);
 
             // act
             await protocol.TerminateAsync(CancellationToken.None);
@@ -90,7 +90,7 @@ namespace StrawberryShake.Transport.WebSockets
         {
             // arrange
             var socketClient = new SocketClientStub { IsClosed = false };
-            var protocol = new GraphQlWsProtocol(socketClient);
+            var protocol = new GraphQLWebSocketProtocol(socketClient);
 
             // act
             await protocol.TerminateAsync(CancellationToken.None);
@@ -105,7 +105,7 @@ namespace StrawberryShake.Transport.WebSockets
         {
             // arrange
             var socketClient = new SocketClientStub { IsClosed = true };
-            var protocol = new GraphQlWsProtocol(socketClient);
+            var protocol = new GraphQLWebSocketProtocol(socketClient);
 
             // act
             Exception? exception = await Record.ExceptionAsync(
@@ -120,7 +120,7 @@ namespace StrawberryShake.Transport.WebSockets
         {
             // arrange
             var socketClient = new SocketClientStub { IsClosed = false };
-            var protocol = new GraphQlWsProtocol(socketClient);
+            var protocol = new GraphQLWebSocketProtocol(socketClient);
             var operationId = "b1b416a5-8d1b-4855-b186-6de39809caea";
 
             // act
@@ -142,7 +142,7 @@ namespace StrawberryShake.Transport.WebSockets
         {
             // arrange
             var socketClient = new SocketClientStub { IsClosed = false };
-            var protocol = new GraphQlWsProtocol(socketClient);
+            var protocol = new GraphQLWebSocketProtocol(socketClient);
             var operationId = "b1b416a5-8d1b-4855-b186-6de39809caea";
 
             // act
@@ -158,7 +158,7 @@ namespace StrawberryShake.Transport.WebSockets
         {
             // arrange
             var socketClient = new SocketClientStub { IsClosed = false };
-            var protocol = new GraphQlWsProtocol(socketClient);
+            var protocol = new GraphQLWebSocketProtocol(socketClient);
             var operationId = "b1b416a5-8d1b-4855-b186-6de39809caea";
 
             // act
@@ -176,7 +176,7 @@ namespace StrawberryShake.Transport.WebSockets
             // arrange
             var message = @"{""type:""}";
             var socketClient = new SocketClientStub { IsClosed = false };
-            var protocol = new GraphQlWsProtocol(socketClient);
+            var protocol = new GraphQLWebSocketProtocol(socketClient);
             var operationId = "b1b416a5-8d1b-4855-b186-6de39809caea";
             socketClient.MessagesReceive.Enqueue(message);
 
@@ -196,7 +196,7 @@ namespace StrawberryShake.Transport.WebSockets
             // arrange
             var message = @"{""type"":""Start""}";
             var socketClient = new SocketClientStub { IsClosed = false };
-            var protocol = new GraphQlWsProtocol(socketClient);
+            var protocol = new GraphQLWebSocketProtocol(socketClient);
             socketClient.MessagesReceive.Enqueue(message);
 
             // act
@@ -215,7 +215,7 @@ namespace StrawberryShake.Transport.WebSockets
             // arrange
             var message = @"{""type"":""Start""}";
             var socketClient = new SocketClientStub { IsClosed = false };
-            var protocol = new GraphQlWsProtocol(socketClient);
+            var protocol = new GraphQLWebSocketProtocol(socketClient);
             socketClient.MessagesReceive.Enqueue(message);
             protocol.Subscribe((_, _, _) => throw new InvalidOperationException());
 
@@ -238,7 +238,7 @@ namespace StrawberryShake.Transport.WebSockets
             string? payload = null;
             var message = @"{""type"":""data"", ""payload"":""Foo"", ""id"":""123""}";
             var socketClient = new SocketClientStub { IsClosed = false };
-            var protocol = new GraphQlWsProtocol(socketClient);
+            var protocol = new GraphQLWebSocketProtocol(socketClient);
             protocol.Subscribe((operationId, operationMessage, token) =>
             {
                 if (operationMessage is DataDocumentOperationMessage msg)
@@ -269,7 +269,7 @@ namespace StrawberryShake.Transport.WebSockets
             bool received = false;
             var message = @"{""type"":""complete"", ""id"":""123""}";
             var socketClient = new SocketClientStub { IsClosed = false };
-            var protocol = new GraphQlWsProtocol(socketClient);
+            var protocol = new GraphQLWebSocketProtocol(socketClient);
             protocol.Subscribe((operationId, operationMessage, token) =>
             {
                 if (operationMessage is CompleteOperationMessage msg)
@@ -298,7 +298,7 @@ namespace StrawberryShake.Transport.WebSockets
             string? error = null;
             var message = @"{""type"":""error"", ""id"":""123""}";
             var socketClient = new SocketClientStub { KeepOpen = true, IsClosed = false };
-            var protocol = new GraphQlWsProtocol(socketClient);
+            var protocol = new GraphQLWebSocketProtocol(socketClient);
             protocol.Subscribe((_, operationMessage, _) =>
             {
                 if (operationMessage is ErrorOperationMessage msg)
@@ -327,7 +327,7 @@ namespace StrawberryShake.Transport.WebSockets
             string? error = null;
             var message = @"{""type"":""connection_error"", ""id"":""123""}";
             var socketClient = new SocketClientStub { KeepOpen = true, IsClosed = false };
-            var protocol = new GraphQlWsProtocol(socketClient);
+            var protocol = new GraphQLWebSocketProtocol(socketClient);
             protocol.Subscribe((_, operationMessage, _) =>
             {
                 if (operationMessage is ErrorOperationMessage msg)

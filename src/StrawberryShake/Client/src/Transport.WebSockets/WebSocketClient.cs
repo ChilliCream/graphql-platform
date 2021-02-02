@@ -247,12 +247,11 @@ namespace StrawberryShake.Transport.WebSockets
         {
             if (!_disposed)
             {
-                _socket.Dispose();
                 if (_activeProtocol is { })
                 {
                     await _activeProtocol.DisposeAsync().ConfigureAwait(false);
                 }
-
+                _socket.Dispose();
                 _disposed = true;
             }
         }

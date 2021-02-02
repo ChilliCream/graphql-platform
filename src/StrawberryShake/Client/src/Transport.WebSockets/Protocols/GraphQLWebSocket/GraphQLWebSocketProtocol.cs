@@ -13,19 +13,19 @@ namespace StrawberryShake.Transport.WebSockets
     /// A implementation of <see cref="ISocketProtocol"/> that uses graphql-ws protocol to
     /// communicate with the server
     /// </summary>
-    public sealed class GraphQlWsProtocol : SocketProtocolBase
+    public sealed class GraphQLWebSocketProtocol : SocketProtocolBase
     {
         private readonly ISocketClient _socketClient;
         private readonly MessagePipeline _receiver;
         private readonly SynchronizedMessageWriter _sender;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="GraphQlWsProtocol"/>
+        /// Initializes a new instance of <see cref="GraphQLWebSocketProtocol"/>
         /// </summary>
         /// <param name="socketClient">
         /// The client where this protocol is using
         /// </param>
-        public GraphQlWsProtocol(ISocketClient socketClient)
+        public GraphQLWebSocketProtocol(ISocketClient socketClient)
         {
             _socketClient = socketClient ?? throw new ArgumentNullException(nameof(socketClient));
             _receiver = new MessagePipeline(socketClient, ProcessAsync);
@@ -108,33 +108,31 @@ namespace StrawberryShake.Transport.WebSockets
         {
             try
             {
-                GraphQlWsMessage message = GraphQlWsMessageParser.Parse(slice);
+                GraphQLWebSocketMessage message = GraphQLWebSocketMessageParser.Parse(slice);
 
                 if (message.Id is { } id)
                 {
                     switch (message.Type)
                     {
-                        case GraphQlWsMessageType.Data:
-                            if (SequenceMarshal.TryGetReadOnlyMemory(message.Payload,
-                                out var memory))
-                            {
-                                return Notify(
-                                    id,
-                                    new DataDocumentOperationMessage(memory),
-                                    cancellationToken);
-                            }
-                            break;
-                        case GraphQlWsMessageType.Complete:
+                        case GraphQLWebSocketMessageType.Data:
+                            return Notify(
+                                id,
+                                // TODO: This copies the data into an array. This is needed because the read only sequence would be
+                                // out of data once it arrives in the socket operation.
+                                // We would need to pass the content serializer into the protcol to avoid this
+                                new DataDocumentOperationMessage(message.Payload.ToArray()),
+                                cancellationToken);
+                        case GraphQLWebSocketMessageType.Complete:
                             return Notify(
                                 id,
                                 CompleteOperationMessage.Default,
                                 cancellationToken);
-                        case GraphQlWsMessageType.Error:
+                        case GraphQLWebSocketMessageType.Error:
                             return Notify(
                                 id,
                                 ErrorOperationMessage.UnexpectedServerError,
                                 cancellationToken);
-                        case GraphQlWsMessageType.ConnectionError:
+                        case GraphQLWebSocketMessageType.ConnectionError:
                             return Notify(
                                 id,
                                 ErrorOperationMessage.ConnectionError,

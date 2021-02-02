@@ -9,7 +9,7 @@ using Xunit;
 
 namespace StrawberryShake.Transport.WebSockets
 {
-    public class GraphQlWsMessageParserTests
+    public class GraphQLWebSocketMessageParserTests
     {
         [Fact]
         public void ParseMessage_EmptyObject_ThrowException()
@@ -18,7 +18,7 @@ namespace StrawberryShake.Transport.WebSockets
             ReadOnlySequence<byte> message = GetBytes("{}");
 
             // act
-            Exception? ex = Record.Exception(() => GraphQlWsMessageParser.Parse(message));
+            Exception? ex = Record.Exception(() => GraphQLWebSocketMessageParser.Parse(message));
 
             // assert
             Assert.IsType<SerializationException>(ex).Message.MatchSnapshot();
@@ -31,7 +31,7 @@ namespace StrawberryShake.Transport.WebSockets
             ReadOnlySequence<byte> message = GetBytes(@"{""id"": ""123""}");
 
             // act
-            Exception? ex = Record.Exception(() => GraphQlWsMessageParser.Parse(message));
+            Exception? ex = Record.Exception(() => GraphQLWebSocketMessageParser.Parse(message));
 
             // assert
             Assert.IsType<SerializationException>(ex).Message.MatchSnapshot();
@@ -44,7 +44,7 @@ namespace StrawberryShake.Transport.WebSockets
             ReadOnlySequence<byte> message = GetBytes(@"{""id"": ""123""");
 
             // act
-            Exception? ex = Record.Exception(() => GraphQlWsMessageParser.Parse(message));
+            Exception? ex = Record.Exception(() => GraphQLWebSocketMessageParser.Parse(message));
 
             // assert
             Assert.NotNull(ex);
@@ -58,7 +58,7 @@ namespace StrawberryShake.Transport.WebSockets
             ReadOnlySequence<byte> message = GetBytes(@"{""type"": ""ka"", ""Foo"":1}");
 
             // act
-            Exception? ex = Record.Exception(() => GraphQlWsMessageParser.Parse(message));
+            Exception? ex = Record.Exception(() => GraphQLWebSocketMessageParser.Parse(message));
 
             // assert
             Assert.IsType<SerializationException>(ex).Message.MatchSnapshot();
@@ -71,7 +71,7 @@ namespace StrawberryShake.Transport.WebSockets
             ReadOnlySequence<byte> message = GetBytes($@"{{""type"": null, ""Foo"":1}}");
 
             // act
-            Exception? ex = Record.Exception(() => GraphQlWsMessageParser.Parse(message));
+            Exception? ex = Record.Exception(() => GraphQLWebSocketMessageParser.Parse(message));
 
             // assert
             Assert.IsType<SerializationException>(ex).Message.MatchSnapshot();
@@ -95,7 +95,7 @@ namespace StrawberryShake.Transport.WebSockets
             ReadOnlySequence<byte> message = GetBytes($@"{{""type"": ""{type}"", ""Foo"":1}}");
 
             // act
-            Exception? ex = Record.Exception(() => GraphQlWsMessageParser.Parse(message));
+            Exception? ex = Record.Exception(() => GraphQLWebSocketMessageParser.Parse(message));
 
             // assert
             Assert.IsType<SerializationException>(ex)
@@ -109,10 +109,10 @@ namespace StrawberryShake.Transport.WebSockets
             ReadOnlySequence<byte> message = GetBytes(@"{""type"": ""ka""}");
 
             // act
-            GraphQlWsMessage parsed = GraphQlWsMessageParser.Parse(message);
+            GraphQLWebSocketMessage parsed = GraphQLWebSocketMessageParser.Parse(message);
 
             // assert
-            Assert.Equal(GraphQlWsMessageType.KeepAlive, parsed.Type);
+            Assert.Equal(GraphQLWebSocketMessageType.KeepAlive, parsed.Type);
         }
 
         [Fact]
@@ -123,10 +123,10 @@ namespace StrawberryShake.Transport.WebSockets
                 GetBytes(@"{""type"": ""data"", ""id"":""123"", ""payload"": ""payload""}");
 
             // act
-            GraphQlWsMessage parsed = GraphQlWsMessageParser.Parse(message);
+            GraphQLWebSocketMessage parsed = GraphQLWebSocketMessageParser.Parse(message);
 
             // assert
-            Assert.Equal(GraphQlWsMessageType.Data, parsed.Type);
+            Assert.Equal(GraphQLWebSocketMessageType.Data, parsed.Type);
             Assert.Equal("123", parsed.Id);
             Assert.Equal(@"""payload""", Encoding.UTF8.GetString(parsed.Payload.FirstSpan));
         }
@@ -139,10 +139,10 @@ namespace StrawberryShake.Transport.WebSockets
                 GetBytes(@"{""type"": ""error"", ""id"":""123"", ""payload"": ""payload""}");
 
             // act
-            GraphQlWsMessage parsed = GraphQlWsMessageParser.Parse(message);
+            GraphQLWebSocketMessage parsed = GraphQLWebSocketMessageParser.Parse(message);
 
             // assert
-            Assert.Equal(GraphQlWsMessageType.Error, parsed.Type);
+            Assert.Equal(GraphQLWebSocketMessageType.Error, parsed.Type);
             Assert.Equal("123", parsed.Id);
             Assert.Equal(@"""payload""", Encoding.UTF8.GetString(parsed.Payload.FirstSpan));
         }
@@ -155,10 +155,10 @@ namespace StrawberryShake.Transport.WebSockets
                 GetBytes(@"{""type"": ""start"", ""id"":""123"", ""payload"": ""payload""}");
 
             // act
-            GraphQlWsMessage parsed = GraphQlWsMessageParser.Parse(message);
+            GraphQLWebSocketMessage parsed = GraphQLWebSocketMessageParser.Parse(message);
 
             // assert
-            Assert.Equal(GraphQlWsMessageType.Start, parsed.Type);
+            Assert.Equal(GraphQLWebSocketMessageType.Start, parsed.Type);
             Assert.Equal("123", parsed.Id);
             Assert.Equal(@"""payload""", Encoding.UTF8.GetString(parsed.Payload.FirstSpan));
         }
@@ -171,10 +171,10 @@ namespace StrawberryShake.Transport.WebSockets
                 GetBytes(@"{""type"": ""stop"", ""id"":""123""}");
 
             // act
-            GraphQlWsMessage parsed = GraphQlWsMessageParser.Parse(message);
+            GraphQLWebSocketMessage parsed = GraphQLWebSocketMessageParser.Parse(message);
 
             // assert
-            Assert.Equal(GraphQlWsMessageType.Stop, parsed.Type);
+            Assert.Equal(GraphQLWebSocketMessageType.Stop, parsed.Type);
             Assert.Equal("123", parsed.Id);
         }
 
@@ -186,10 +186,10 @@ namespace StrawberryShake.Transport.WebSockets
                 GetBytes(@"{""type"": ""complete"", ""id"":""123""}");
 
             // act
-            GraphQlWsMessage parsed = GraphQlWsMessageParser.Parse(message);
+            GraphQLWebSocketMessage parsed = GraphQLWebSocketMessageParser.Parse(message);
 
             // assert
-            Assert.Equal(GraphQlWsMessageType.Complete, parsed.Type);
+            Assert.Equal(GraphQLWebSocketMessageType.Complete, parsed.Type);
             Assert.Equal("123", parsed.Id);
         }
 
@@ -201,10 +201,10 @@ namespace StrawberryShake.Transport.WebSockets
                 GetBytes(@"{""type"": ""connection_init""}");
 
             // act
-            GraphQlWsMessage parsed = GraphQlWsMessageParser.Parse(message);
+            GraphQLWebSocketMessage parsed = GraphQLWebSocketMessageParser.Parse(message);
 
             // assert
-            Assert.Equal(GraphQlWsMessageType.ConnectionInit, parsed.Type);
+            Assert.Equal(GraphQLWebSocketMessageType.ConnectionInit, parsed.Type);
         }
 
         [Fact]
@@ -215,10 +215,10 @@ namespace StrawberryShake.Transport.WebSockets
                 GetBytes(@"{""type"": ""connection_ack""}");
 
             // act
-            GraphQlWsMessage parsed = GraphQlWsMessageParser.Parse(message);
+            GraphQLWebSocketMessage parsed = GraphQLWebSocketMessageParser.Parse(message);
 
             // assert
-            Assert.Equal(GraphQlWsMessageType.ConnectionAccept, parsed.Type);
+            Assert.Equal(GraphQLWebSocketMessageType.ConnectionAccept, parsed.Type);
         }
 
         [Fact]
@@ -229,10 +229,10 @@ namespace StrawberryShake.Transport.WebSockets
                 GetBytes(@"{""type"": ""connection_error"", ""payload"": ""payload""}");
 
             // act
-            GraphQlWsMessage parsed = GraphQlWsMessageParser.Parse(message);
+            GraphQLWebSocketMessage parsed = GraphQLWebSocketMessageParser.Parse(message);
 
             // assert
-            Assert.Equal(GraphQlWsMessageType.ConnectionError, parsed.Type);
+            Assert.Equal(GraphQLWebSocketMessageType.ConnectionError, parsed.Type);
             Assert.Equal(@"""payload""", Encoding.UTF8.GetString(parsed.Payload.FirstSpan));
         }
 
@@ -244,10 +244,10 @@ namespace StrawberryShake.Transport.WebSockets
                 GetBytes(@"{""type"": ""connection_terminate"" }");
 
             // act
-            GraphQlWsMessage parsed = GraphQlWsMessageParser.Parse(message);
+            GraphQLWebSocketMessage parsed = GraphQLWebSocketMessageParser.Parse(message);
 
             // assert
-            Assert.Equal(GraphQlWsMessageType.ConnectionTerminate, parsed.Type);
+            Assert.Equal(GraphQLWebSocketMessageType.ConnectionTerminate, parsed.Type);
         }
 
         private ReadOnlySequence<byte> GetBytes(string message)

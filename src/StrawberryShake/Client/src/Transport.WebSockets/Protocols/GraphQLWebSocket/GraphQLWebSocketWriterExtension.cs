@@ -1,18 +1,18 @@
 using System;
 using StrawberryShake.Transport.Http;
 using StrawberryShake.Transport.WebSockets;
-using static StrawberryShake.Transport.GraphQlWsMessageTypeSpans;
+using static StrawberryShake.Transport.GraphQLWebSocketMessageTypeSpans;
 
 namespace StrawberryShake.Transport
 {
     /// <summary>
     /// Common extension of the <see cref="SocketMessageWriter"/> for
-    /// <see cref="GraphQlWsProtocol"/>
+    /// <see cref="GraphQLWebSocketProtocol"/>
     /// </summary>
-    internal static class GraphQlWsSocketWriterExtension
+    internal static class GraphQLWebSocketWriterExtension
     {
         /// <summary>
-        /// Writes a <see cref="GraphQlWsMessageType.Start"/> message to the writer
+        /// Writes a <see cref="GraphQLWebSocketMessageType.Start"/> message to the writer
         /// </summary>
         /// <param name="writer">The writer</param>
         /// <param name="operationId">The operation id of the operation</param>
@@ -33,7 +33,7 @@ namespace StrawberryShake.Transport
             }
 
             writer.WriteStartObject();
-            writer.WriteType(GraphQlWsMessageType.Start);
+            writer.WriteType(GraphQLWebSocketMessageType.Start);
             writer.WriteId(operationId);
             writer.WriteStartPayload();
             writer.Serialize(request);
@@ -41,7 +41,7 @@ namespace StrawberryShake.Transport
         }
 
         /// <summary>
-        /// Writes a <see cref="GraphQlWsMessageType.Stop"/> message to the writer
+        /// Writes a <see cref="GraphQLWebSocketMessageType.Stop"/> message to the writer
         /// </summary>
         /// <param name="writer">The writer</param>
         /// <param name="operationId">The operation id of the operation</param>
@@ -55,30 +55,30 @@ namespace StrawberryShake.Transport
             }
 
             writer.WriteStartObject();
-            writer.WriteType(GraphQlWsMessageType.Stop);
+            writer.WriteType(GraphQLWebSocketMessageType.Stop);
             writer.WriteId(operationId);
             writer.WriteEndObject();
         }
 
         /// <summary>
-        /// Writes a <see cref="GraphQlWsMessageType.ConnectionInit"/>message to the writer
+        /// Writes a <see cref="GraphQLWebSocketMessageType.ConnectionInit"/>message to the writer
         /// </summary>
         /// <param name="writer">The writer</param>
         public static void WriteInitializeMessage(this SocketMessageWriter writer)
         {
             writer.WriteStartObject();
-            writer.WriteType(GraphQlWsMessageType.ConnectionInit);
+            writer.WriteType(GraphQLWebSocketMessageType.ConnectionInit);
             writer.WriteEndObject();
         }
 
         /// <summary>
-        /// Writes a <see cref="GraphQlWsMessageType.ConnectionTerminate"/>message to the writer
+        /// Writes a <see cref="GraphQLWebSocketMessageType.ConnectionTerminate"/>message to the writer
         /// </summary>
         /// <param name="writer">The writer</param>
         public static void WriteTerminateMessage(this SocketMessageWriter writer)
         {
             writer.WriteStartObject();
-            writer.WriteType(GraphQlWsMessageType.ConnectionTerminate);
+            writer.WriteType(GraphQLWebSocketMessageType.ConnectionTerminate);
             writer.WriteEndObject();
         }
 
@@ -92,21 +92,21 @@ namespace StrawberryShake.Transport
 
         private static void WriteType(
             this SocketMessageWriter writer,
-            GraphQlWsMessageType type)
+            GraphQLWebSocketMessageType type)
         {
             writer.Writer.WritePropertyName("type");
             ReadOnlySpan<byte> typeToWriter = type switch
             {
-                GraphQlWsMessageType.ConnectionInit => ConnectionInitialize,
-                GraphQlWsMessageType.ConnectionAccept => ConnectionAccept,
-                GraphQlWsMessageType.ConnectionError => ConnectionError,
-                GraphQlWsMessageType.KeepAlive => KeepAlive,
-                GraphQlWsMessageType.ConnectionTerminate => ConnectionTerminate,
-                GraphQlWsMessageType.Start => Start,
-                GraphQlWsMessageType.Data => Data,
-                GraphQlWsMessageType.Error => GraphQlWsMessageTypeSpans.Error,
-                GraphQlWsMessageType.Complete => Complete,
-                GraphQlWsMessageType.Stop => Stop,
+                GraphQLWebSocketMessageType.ConnectionInit => ConnectionInitialize,
+                GraphQLWebSocketMessageType.ConnectionAccept => ConnectionAccept,
+                GraphQLWebSocketMessageType.ConnectionError => ConnectionError,
+                GraphQLWebSocketMessageType.KeepAlive => KeepAlive,
+                GraphQLWebSocketMessageType.ConnectionTerminate => ConnectionTerminate,
+                GraphQLWebSocketMessageType.Start => Start,
+                GraphQLWebSocketMessageType.Data => Data,
+                GraphQLWebSocketMessageType.Error => GraphQLWebSocketMessageTypeSpans.Error,
+                GraphQLWebSocketMessageType.Complete => Complete,
+                GraphQLWebSocketMessageType.Stop => Stop,
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
             };
 

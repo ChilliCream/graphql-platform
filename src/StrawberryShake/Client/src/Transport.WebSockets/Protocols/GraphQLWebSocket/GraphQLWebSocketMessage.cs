@@ -5,10 +5,10 @@ using StrawberryShake.Transport.WebSockets;
 namespace StrawberryShake.Http.Subscriptions
 {
     /// <summary>
-    /// The <see cref="GraphQlWsMessage"/> is used as a data transport structure to send messages
-    /// over a <see cref="GraphQlWsProtocol"/>
+    /// The <see cref="GraphQLWebSocketMessage"/> is used as a data transport structure to send messages
+    /// over a <see cref="GraphQLWebSocketProtocol"/>
     /// </summary>
-    internal ref struct GraphQlWsMessage
+    internal ref struct GraphQLWebSocketMessage
     {
         /// <summary>
         /// The Id of the operation this message belongs to.
@@ -18,7 +18,7 @@ namespace StrawberryShake.Http.Subscriptions
         /// <summary>
         /// The identifier of the type of the message.
         /// </summary>
-        public GraphQlWsMessageType Type { get; set; }
+        public GraphQLWebSocketMessageType Type { get; set; }
 
         /// <summary>
         /// The payload of the message

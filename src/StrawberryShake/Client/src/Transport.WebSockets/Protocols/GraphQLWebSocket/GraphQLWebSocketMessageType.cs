@@ -3,7 +3,7 @@
     /// <summary>
     /// The message types of the graphql-ws protocol
     /// </summary>
-    internal enum GraphQlWsMessageType
+    internal enum GraphQLWebSocketMessageType
     {
         /// <summary>
         /// Default message type.

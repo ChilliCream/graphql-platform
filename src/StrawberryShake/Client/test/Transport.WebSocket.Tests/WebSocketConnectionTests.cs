@@ -1,164 +1,272 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Utilities;
-using HotChocolate.Execution.Configuration;
-using HotChocolate.StarWars;
-using HotChocolate.Types;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Snapshooter.Xunit;
+using StrawberryShake.Http.Subscriptions;
+using StrawberryShake.Transport.WebSockets.Messages;
 using Xunit;
 
 namespace StrawberryShake.Transport.WebSockets
 {
-    public class HttpConnectionTests : ServerTestBase
+    public class WebSocketConnectionTests
     {
-        public HttpConnectionTests(TestServerFactory serverFactory)
-            : base(serverFactory)
+        [Fact]
+        public void Constructor_AllArgs_CreateObject()
         {
+            // arrange
+            ISocketOperationManager manager = new Mock<ISocketOperationManager>().Object;
+
+            // act
+            Exception? exception = Record.Exception(() => new WebSocketConnection(manager));
+
+            // assert
+            Assert.Null(exception);
         }
 
         [Fact]
-        public async Task Simple_Request()
+        public void Constructor_ManagerNull_CreateObject()
         {
             // arrange
-            using IWebHost host = TestServerHelper.CreateServer(
-                x => x.AddTypeExtension<StringSubscriptionExtensions>(),
-                out int port);
-            var serviceCollection = new ServiceCollection();
-            serviceCollection
-                .AddProtocol<GraphQlWsProtocolFactory>()
-                .AddWebSocketClient(
-                    "Foo",
-                    c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
-            IServiceProvider services =
-                serviceCollection.BuildServiceProvider();
-
-            ISocketClientPool connectionPool =
-                services.GetRequiredService<ISocketClientPool>();
-
-            ISocketClient socketClient = await connectionPool.RentAsync("Foo");
-
-            var document =
-                new MockDocument("subscription Test { onTest }");
-            var request = new OperationRequest("Test", document);
+            ISocketOperationManager manager = null!;
 
             // act
-            var results = new List<JsonDocument>();
-            var obj = new object();
-            await using var manager = new SocketOperationManager(socketClient);
-            var connection = new StrawberryShake.Http.Subscriptions.WebSocketConnection(manager);
-            await foreach (var response in connection.ExecuteAsync(request))
-            {
-                if (response.Body is not null)
-                {
-                    lock (obj)
-                    {
-                        results.Add(response.Body);
-                    }
-                }
-
-                if (results.Count == 10)
-                {
-                    break;
-                }
-            }
-
-            await connectionPool.ReturnAsync(socketClient);
+            Exception? exception = Record.Exception(() => new WebSocketConnection(manager));
 
             // assert
-            results.Select(x => x.RootElement.ToString()).ToList().MatchSnapshot();
+            Assert.IsType<ArgumentNullException>(exception);
         }
 
-        [ExtendObjectType("Subscription")]
-        public class StringSubscriptionExtensions
+        [Fact]
+        public async Task ExecuteAsync_Completed_Complete()
         {
-            [SubscribeAndResolve]
-            public async IAsyncEnumerable<string> OnTest()
+            // arrange
+            async IAsyncEnumerable<OperationMessage> Producer(
+                [EnumeratorCancellation] CancellationToken cancellationToken = default)
             {
-                for (var i = 0; i < 10; i++)
-                {
-                    await Task.Delay(1);
-                    yield return $"num{i}";
+                yield break;
+            }
+
+            var operationRequest = new OperationRequest("foo", GetHeroQueryDocument.Instance);
+            var managerMock = new Mock<ISocketOperationManager>();
+            var operationMock = new Mock<ISocketOperation>();
+            managerMock
+                .Setup(x => x.StartOperationAsync(operationRequest, CancellationToken.None))
+                .ReturnsAsync(operationMock.Object);
+            operationMock.Setup(x => x.ReadAsync(default)).Returns(Producer());
+            ISocketOperationManager manager = managerMock.Object;
+            var connection = new WebSocketConnection(manager);
+            var results = new List<Response<JsonDocument>>();
+
+            // act
+            await foreach (var response in connection.ExecuteAsync(operationRequest))
+            {
+                results.Add(response);
+            }
+
+            // assert
+            Assert.Empty(results);
+        }
+
+        [Fact]
+        public async Task ExecuteAsync_Data_ParseJson()
+        {
+            // arrange
+            async IAsyncEnumerable<OperationMessage> Producer(
+                [EnumeratorCancellation] CancellationToken cancellationToken = default)
+            {
+                var messageData = Encoding.UTF8.GetBytes(@"{""Foo"": ""Bar""}");
+                var msg =
+                    new DataDocumentOperationMessage(new ReadOnlyMemory<byte>(messageData));
+                yield return msg;
+            }
+
+            var operationRequest = new OperationRequest("foo", GetHeroQueryDocument.Instance);
+            var managerMock = new Mock<ISocketOperationManager>();
+            var operationMock = new Mock<ISocketOperation>();
+            managerMock
+                .Setup(x => x.StartOperationAsync(operationRequest, CancellationToken.None))
+                .ReturnsAsync(operationMock.Object);
+            operationMock.Setup(x => x.ReadAsync(default)).Returns(Producer());
+            ISocketOperationManager manager = managerMock.Object;
+            var connection = new WebSocketConnection(manager);
+            var results = new List<Response<JsonDocument>>();
+
+            // act
+            await foreach (var response in connection.ExecuteAsync(operationRequest))
+            {
+                results.Add(response);
+            }
+
+            // assert
+            Assert.Single(results)!.Body!.RootElement!.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task ExecuteAsync_DataInvalid_ParseJson()
+        {
+            // arrange
+            async IAsyncEnumerable<OperationMessage> Producer(
+                [EnumeratorCancellation] CancellationToken cancellationToken = default)
+            {
+                var messageData = Encoding.UTF8.GetBytes(@"{""Foo""}");
+                var msg =
+                    new DataDocumentOperationMessage(new ReadOnlyMemory<byte>(messageData));
+                yield return msg;
+            }
+
+            var operationRequest = new OperationRequest("foo", GetHeroQueryDocument.Instance);
+            var managerMock = new Mock<ISocketOperationManager>();
+            var operationMock = new Mock<ISocketOperation>();
+            managerMock
+                .Setup(x => x.StartOperationAsync(operationRequest, CancellationToken.None))
+                .ReturnsAsync(operationMock.Object);
+            operationMock.Setup(x => x.ReadAsync(default)).Returns(Producer());
+            ISocketOperationManager manager = managerMock.Object;
+            var connection = new WebSocketConnection(manager);
+            var results = new List<Response<JsonDocument>>();
+
+            // act
+            await foreach (var response in connection.ExecuteAsync(operationRequest))
+            {
+                results.Add(response);
+            }
+
+            // assert
+            Response<JsonDocument>? res = Assert.Single(results);
+            res?.Exception?.Message.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task ExecuteAsync_Error_ReturnResult()
+        {
+            // arrange
+            async IAsyncEnumerable<OperationMessage> Producer(
+                [EnumeratorCancellation] CancellationToken cancellationToken = default)
+            {
+                yield return ErrorOperationMessage.ConnectionError;
+            }
+
+            var operationRequest = new OperationRequest("foo", GetHeroQueryDocument.Instance);
+            var managerMock = new Mock<ISocketOperationManager>();
+            var operationMock = new Mock<ISocketOperation>();
+            managerMock
+                .Setup(x => x.StartOperationAsync(operationRequest, CancellationToken.None))
+                .ReturnsAsync(operationMock.Object);
+            operationMock.Setup(x => x.ReadAsync(default)).Returns(Producer());
+            ISocketOperationManager manager = managerMock.Object;
+            var connection = new WebSocketConnection(manager);
+            var results = new List<Response<JsonDocument>>();
+
+            // act
+            await foreach (var response in connection.ExecuteAsync(operationRequest))
+            {
+                results.Add(response);
+            }
+
+            // assert
+            Response<JsonDocument>? res = Assert.Single(results);
+            res?.Exception?.Message.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task ExecuteAsync_Cancelled_ReturnResult()
+        {
+            // arrange
+            async IAsyncEnumerable<OperationMessage> Producer(
+                [EnumeratorCancellation] CancellationToken cancellationToken = default)
+            {
+                yield return CancelledOperationMessage.Default;
+            }
+
+            var operationRequest = new OperationRequest("foo", GetHeroQueryDocument.Instance);
+            var managerMock = new Mock<ISocketOperationManager>();
+            var operationMock = new Mock<ISocketOperation>();
+            managerMock
+                .Setup(x => x.StartOperationAsync(operationRequest, CancellationToken.None))
+                .ReturnsAsync(operationMock.Object);
+            operationMock.Setup(x => x.ReadAsync(default)).Returns(Producer());
+            ISocketOperationManager manager = managerMock.Object;
+            var connection = new WebSocketConnection(manager);
+            var results = new List<Response<JsonDocument>>();
+
+            // act
+            await foreach (var response in connection.ExecuteAsync(operationRequest))
+            {
+                results.Add(response);
+            }
+
+            // assert
+            Response<JsonDocument>? res = Assert.Single(results);
+            res?.Exception?.Message.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task ExecuteAsync_Completed_ReturnResult()
+        {
+            // arrange
+            async IAsyncEnumerable<OperationMessage> Producer(
+                [EnumeratorCancellation] CancellationToken cancellationToken = default)
+            {
+                yield return CompleteOperationMessage.Default;
+            }
+
+            var operationRequest = new OperationRequest("foo", GetHeroQueryDocument.Instance);
+            var managerMock = new Mock<ISocketOperationManager>();
+            var operationMock = new Mock<ISocketOperation>();
+            managerMock
+                .Setup(x => x.StartOperationAsync(operationRequest, CancellationToken.None))
+                .ReturnsAsync(operationMock.Object);
+            operationMock.Setup(x => x.ReadAsync(default)).Returns(Producer());
+            ISocketOperationManager manager = managerMock.Object;
+            var connection = new WebSocketConnection(manager);
+            var results = new List<Response<JsonDocument>>();
+
+            // act
+            await foreach (var response in connection.ExecuteAsync(operationRequest))
+            {
+                results.Add(response);
+            }
+
+            // assert
+            Assert.Empty(results);
+        }
+
+        private class GetHeroQueryDocument : IDocument
+        {
+            private const string _bodyString =
+                @"query GetHero {
+                hero {
+                    __typename
+                    id
+                    name
+                    friends {
+                        nodes {
+                            __typename
+                            id
+                            name
+                        }
+                        totalCount
+                    }
                 }
-            }
-        }
+                version
+            }";
 
-        private class MockDocument : IDocument
-        {
-            private readonly byte[] _query;
+            private static readonly byte[] _body = Encoding.UTF8.GetBytes(_bodyString);
 
-            public MockDocument(string query)
-            {
-                _query = Encoding.UTF8.GetBytes(query);
-            }
+            private GetHeroQueryDocument() { }
 
             public OperationKind Kind => OperationKind.Query;
 
-            public ReadOnlySpan<byte> Body => _query;
-        }
-    }
+            public ReadOnlySpan<byte> Body => _body;
 
-    public static class TestServerHelper
-    {
-        public static IWebHost CreateServer(Action<IRequestExecutorBuilder> configure, out int port)
-        {
-            var configBuilder = new ConfigurationBuilder();
-            configBuilder.AddInMemoryCollection();
-            var config = configBuilder.Build();
-            var host = new WebHostBuilder()
-                .UseConfiguration(config)
-                .UseKestrel()
-                .ConfigureServices(services =>
-                {
-                    IRequestExecutorBuilder builder = services.AddRouting()
-                        .AddGraphQLServer();
+            public override string ToString() => _bodyString;
 
-                    configure(builder);
-
-                    builder
-                        .AddStarWarsTypes()
-                        .AddExportDirectiveType()
-                        .AddStarWarsRepositories()
-                        .AddInMemorySubscriptions();
-                })
-                .Configure(app =>
-                    app.Use(async (ct, next) =>
-                        {
-                            try
-                            {
-                                // Kestrel does not return proper error responses:
-                                // https://github.com/aspnet/KestrelHttpServer/issues/43
-                                await next();
-                            }
-                            catch (Exception ex)
-                            {
-                                if (ct.Response.HasStarted)
-                                {
-                                    throw;
-                                }
-
-                                ct.Response.StatusCode = 500;
-                                ct.Response.Headers.Clear();
-                                await ct.Response.WriteAsync(ex.ToString());
-                            }
-                        })
-                        .UseWebSockets()
-                        .UseRouting()
-                        .UseEndpoints(e => e.MapGraphQL()))
-                .Build();
-
-            host.Start();
-
-            port = host.GetPort();
-            return host;
+            public static GetHeroQueryDocument Instance { get; } = new();
         }
     }
 }
