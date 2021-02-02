@@ -1,0 +1,27 @@
+﻿{
+  "Data": null,
+  "Errors": [
+    {
+      "Message": "Detected non-null violation in variable `foo`.",
+      "Code": "EXEC_NON_NULL_VIOLATION",
+      "Path": null,
+      "Locations": [
+        {
+          "Line": 2,
+          "Column": 35
+        }
+      ],
+      "Exception": null,
+      "Extensions": {
+        "variable_name": "foo",
+        "variable_path": [
+          "bar",
+          "baz"
+        ],
+        "code": "EXEC_NON_NULL_VIOLATION"
+      }
+    }
+  ],
+  "Extensions": null,
+  "ContextData": null
+}

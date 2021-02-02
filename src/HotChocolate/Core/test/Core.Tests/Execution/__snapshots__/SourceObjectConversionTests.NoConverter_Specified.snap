@@ -1,0 +1,47 @@
+﻿{
+  "Data": {
+    "foo": {
+      "qux": null
+    }
+  },
+  "Errors": [
+    {
+      "Message": "Unexpected Execution Error",
+      "Code": null,
+      "Path": {
+        "Parent": {
+          "Parent": null,
+          "Name": "foo",
+          "Index": null,
+          "Depth": 0
+        },
+        "Name": "qux",
+        "Index": null,
+        "Depth": 1
+      },
+      "Locations": [
+        {
+          "Line": 1,
+          "Column": 9
+        }
+      ],
+      "Extensions": null,
+      "Exception": {
+        "ClassName": "System.InvalidCastException",
+        "Message": "Could not cast the source object to `HotChocolate.Execution.SourceObjectConversionTests+Baz`.",
+        "Data": null,
+        "InnerException": null,
+        "HelpURL": null,
+        "StackTraceString": "   at HotChocolate.Execution.ResolverContext.Parent[T]() in /Users/michael/local/hc/src/HotChocolate/Core/src/Core/Execution/Utilities/ResolverContext.cs:line 142\n   at lambda_method(Closure , IResolverContext )\n   at HotChocolate.Types.FieldMiddlewareCompiler.<>c__DisplayClass3_0.<<CreateResolverMiddleware>b__0>d.MoveNext() in /Users/michael/local/hc/src/HotChocolate/Core/src/Types/Types/Helpers/FieldMiddlewareCompiler.cs:line 74\n--- End of stack trace from previous location where exception was thrown ---\n   at HotChocolate.Execution.ExecutionStrategyBase.ExecuteMiddlewareAsync(ResolverContext resolverContext, IErrorHandler errorHandler) in /Users/michael/local/hc/src/HotChocolate/Core/src/Core/Execution/ExecutionStrategyBase.Resolver.cs:line 40",
+        "RemoteStackTraceString": null,
+        "RemoteStackIndex": 0,
+        "ExceptionMethod": null,
+        "HResult": -2147467262,
+        "Source": "HotChocolate.Core",
+        "WatsonBuckets": null
+      }
+    }
+  ],
+  "Extensions": null,
+  "ContextData": null
+}

@@ -1,0 +1,147 @@
+type Application implements Node {
+  id: ID!
+  name: String!
+  parts: [ApplicationPart]!
+}
+
+type ApplicationPart {
+  name: String!
+  components: [Component]!
+  settings(
+    environmentName: String = null
+    componentName: [String!]
+    resolveSecrets: Boolean = null
+  ): [ComponentSettings]
+}
+
+type Component implements Node {
+  id: ID!
+  name: String!
+  schema: String!
+}
+
+type ComponentSettings {
+  name: String!
+  settings: ObjectValue!
+}
+
+type CryptoKeyCreationEvent {
+  environment: Environment!
+  decryptionKey: String
+  keyVersion: Int!
+}
+
+# The `Date` scalar represents an ISO-8601 compliant date type.
+scalar Date
+
+# The `DateTime` scalar represents an ISO-8601 compliant date time type.
+scalar DateTime
+
+scalar Decimal
+
+type Environment {
+  name: String!
+  keys: [KeyItem]
+}
+
+type KeyItem {
+  decryptionKey: String
+  encryptionKey: String
+  keyVersion: Int!
+  enabled: Boolean!
+  equals: Boolean!
+  hashCode: Int!
+}
+
+type ListValue {
+  items: [Value]!
+}
+
+scalar Long
+
+type Mutation {
+  createEnvironment(environmentName: String = null): CryptoKeyCreationEvent
+  addCryptoKey(environmentName: String = null): CryptoKeyCreationEvent
+  publish(
+    application: String = null
+    applicationPart: String = null
+    environment: String = null
+    keyVersion: Int!
+  ): Boolean!
+  saveComponent(name: String!, schema: String!): Component!
+  saveSettings(
+    componentName: String!
+    path: String!
+    validity: ValueValidityInput
+    value: String = null
+  ): ObjectValue
+}
+
+interface Node {
+  id: ID!
+}
+
+type ObjectField {
+  name: String!
+  value: Value!
+}
+
+type ObjectValue {
+  fields: [ObjectField!]!
+  toJson: String!
+}
+
+type PublisherHookSettings {
+  name: String
+  description: String
+  assembly: String
+  className: String
+  parameters: String
+}
+
+type Query {
+  apiVersion: String!
+  application(applicationName: String = null): Application
+  applications: [Application]
+  component(componentName: String = null): Component
+  components: [Component]
+  settings(
+    componentName: [String!]!
+    resolveSecrets: Boolean = false
+    validity: ValueValidityInput
+  ): [ComponentSettings!]!
+  environment(environmentName: String = null): Environment
+  environments: [Environment]
+  hooks: [PublisherHookSettings]
+  variables(validity: ValueValidityInput): [Variable]
+  node(id: ID!): Node
+}
+
+type StringValue {
+  value: String
+}
+
+type Subscription {
+  onComponentChanged(componentName: String = null): Component!
+}
+
+scalar Url
+
+scalar Uuid
+
+union Value = ObjectValue | StringValue | ListValue
+
+input ValueValidityInput {
+  applicationName: String = null
+  applicationPartName: String = null
+  environmentName: String = null
+}
+
+type Variable {
+  id: String
+  variableName: String
+  applicationName: String
+  applicationPartName: String
+  environmentName: String
+  value: String
+}

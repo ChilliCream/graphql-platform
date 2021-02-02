@@ -1,0 +1,19 @@
+﻿{
+  "Data": {
+    "foo": null
+  },
+  "Errors": [
+    {
+      "Message": "The specified variable was not declared.",
+      "Code": null,
+      "Path": null,
+      "Locations": null,
+      "Extensions": {
+        "name": "abc"
+      },
+      "Exception": null
+    }
+  ],
+  "Extensions": null,
+  "ContextData": null
+}

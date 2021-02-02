@@ -1,0 +1,10 @@
+﻿{
+  "Data": {
+    "b": {
+      "__typename": "Foo"
+    }
+  },
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
+}

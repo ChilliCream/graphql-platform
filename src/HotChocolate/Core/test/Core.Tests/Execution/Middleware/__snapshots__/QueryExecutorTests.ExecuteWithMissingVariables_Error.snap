@@ -1,0 +1,23 @@
+﻿{
+  "Data": null,
+  "Errors": [
+    {
+      "Message": "Variable `a` of type `String!` must not be null.",
+      "Code": "EXEC_NON_NULL_VIOLATION",
+      "Path": null,
+      "Locations": [
+        {
+          "Line": 1,
+          "Column": 9
+        }
+      ],
+      "Exception": null,
+      "Extensions": {
+        "variable_name": "a",
+        "code": "EXEC_NON_NULL_VIOLATION"
+      }
+    }
+  ],
+  "Extensions": null,
+  "ContextData": null
+}

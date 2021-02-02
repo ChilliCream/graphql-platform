@@ -1,0 +1,19 @@
+﻿{
+  "Data": {
+    "foo": {
+      "nullable_prop": null
+    }
+  },
+  "Errors": [
+    {
+      "Message": "ERROR",
+      "Code": null,
+      "Path": null,
+      "Locations": [],
+      "Exception": null,
+      "Extensions": {}
+    }
+  ],
+  "Extensions": null,
+  "ContextData": null
+}

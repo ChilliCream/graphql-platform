@@ -1,0 +1,27 @@
+﻿{
+  "Data": null,
+  "Errors": [
+    {
+      "Message": "The variable `baz` is not compatible with the type of the current location.",
+      "Code": null,
+      "Path": [
+        "z"
+      ],
+      "Locations": [
+        {
+          "Line": 4,
+          "Column": 50
+        }
+      ],
+      "Exception": null,
+      "Extensions": {
+        "variable": "baz",
+        "variableType": "String",
+        "locationType": "String!",
+        "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variable-Usages-are-Allowed"
+      }
+    }
+  ],
+  "Extensions": null,
+  "ContextData": null
+}

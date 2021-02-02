@@ -1,0 +1,10 @@
+type Query {
+  foo(a: Int): String @cost(complexity: 5, multiplier: ["a"])
+  bar(a: String): String
+  baz(a: Int, b: BazInput): String
+    @cost(complexity: 5, multiplier: ["a", "b.a"])
+}
+
+input BazInput {
+  a: Int
+}

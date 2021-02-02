@@ -1,0 +1,16 @@
+﻿{
+  "Data": {
+    "first": {
+      "theNumber": 1
+    },
+    "second": {
+      "theNumber": 3
+    },
+    "third": {
+      "theNumber": 2
+    }
+  },
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
+}

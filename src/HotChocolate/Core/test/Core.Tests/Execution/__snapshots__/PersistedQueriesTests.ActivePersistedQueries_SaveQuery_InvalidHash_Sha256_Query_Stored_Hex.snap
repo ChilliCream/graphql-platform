@@ -1,0 +1,13 @@
+﻿{
+  "Data": {
+    "foo": "bar"
+  },
+  "Errors": null,
+  "Extensions": {
+    "persistedQuery": {
+      "sha256Hash": "1a4eb6a25bda520ded59f5d74567463b72620c586ac0b4656bdbd4875f5ec5e5",
+      "persisted": true
+    }
+  },
+  "ContextData": null
+}

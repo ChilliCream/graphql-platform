@@ -1,0 +1,23 @@
+﻿{
+  "Data": null,
+  "Errors": [
+    {
+      "Message": "Variable `a` got invalid value.",
+      "Code": "EXEC_INVALID_TYPE",
+      "Path": null,
+      "Locations": [
+        {
+          "Line": 1,
+          "Column": 9
+        }
+      ],
+      "Extensions": {
+        "code": "EXEC_INVALID_TYPE",
+        "variable_name": "a"
+      },
+      "Exception": null
+    }
+  ],
+  "Extensions": null,
+  "ContextData": null
+}

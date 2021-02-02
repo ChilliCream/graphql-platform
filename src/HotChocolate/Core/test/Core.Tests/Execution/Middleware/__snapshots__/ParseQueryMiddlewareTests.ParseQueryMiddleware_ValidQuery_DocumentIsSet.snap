@@ -1,0 +1,58 @@
+﻿{
+  "Kind": "Document",
+  "Location": {
+    "Start": 0,
+    "End": 5,
+    "Line": 1,
+    "Column": 1
+  },
+  "Definitions": [
+    {
+      "Kind": "OperationDefinition",
+      "Location": {
+        "Start": 0,
+        "End": 5,
+        "Line": 1,
+        "Column": 1
+      },
+      "Name": null,
+      "Operation": "Query",
+      "VariableDefinitions": [],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 0,
+          "End": 5,
+          "Line": 1,
+          "Column": 1
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": null,
+            "Location": {
+              "Start": 2,
+              "End": 5,
+              "Line": 1,
+              "Column": 3
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 2,
+                "End": 5,
+                "Line": 1,
+                "Column": 3
+              },
+              "Value": "a"
+            },
+            "Directives": []
+          }
+        ]
+      }
+    }
+  ]
+}

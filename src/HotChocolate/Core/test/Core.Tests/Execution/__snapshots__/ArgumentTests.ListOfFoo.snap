@@ -1,0 +1,18 @@
+﻿{
+  "Data": {
+    "a": [
+      {
+        "foo": "123_"
+      },
+      {
+        "foo": "456_"
+      },
+      {
+        "foo": "789_"
+      }
+    ]
+  },
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
+}

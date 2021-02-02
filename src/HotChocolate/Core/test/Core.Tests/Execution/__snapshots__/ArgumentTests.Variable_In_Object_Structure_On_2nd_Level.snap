@@ -1,0 +1,8 @@
+﻿{
+  "Data": {
+    "x": "{ someObj: { someField: \"abc\" } }"
+  },
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
+}

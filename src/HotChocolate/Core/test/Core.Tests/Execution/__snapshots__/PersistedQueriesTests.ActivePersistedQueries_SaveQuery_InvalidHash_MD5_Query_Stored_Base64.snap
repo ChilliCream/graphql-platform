@@ -1,0 +1,13 @@
+﻿{
+  "Data": {
+    "foo": "bar"
+  },
+  "Errors": null,
+  "Extensions": {
+    "persistedQuery": {
+      "md5Hash": "uABiY2sImPW0idy8HUdmBg==",
+      "persisted": true
+    }
+  },
+  "ContextData": null
+}

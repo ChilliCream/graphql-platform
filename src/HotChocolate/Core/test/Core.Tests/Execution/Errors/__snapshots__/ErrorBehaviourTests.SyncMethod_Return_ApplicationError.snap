@@ -1,0 +1,17 @@
+﻿{
+  "Data": {
+    "error9": null
+  },
+  "Errors": [
+    {
+      "Message": "query error 9",
+      "Code": null,
+      "Path": null,
+      "Locations": null,
+      "Extensions": null,
+      "Exception": null
+    }
+  ],
+  "Extensions": null,
+  "ContextData": null
+}

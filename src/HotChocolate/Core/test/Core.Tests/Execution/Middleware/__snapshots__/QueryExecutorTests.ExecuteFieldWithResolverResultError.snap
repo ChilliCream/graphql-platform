@@ -1,0 +1,40 @@
+﻿{
+  "Data": {
+    "y": null,
+    "yasync": null
+  },
+  "Errors": [
+    {
+      "Message": "hello world y",
+      "Code": null,
+      "Path": [
+        "y"
+      ],
+      "Locations": [
+        {
+          "Line": 1,
+          "Column": 3
+        }
+      ],
+      "Exception": null,
+      "Extensions": {}
+    },
+    {
+      "Message": "hello world yasync",
+      "Code": null,
+      "Path": [
+        "yasync"
+      ],
+      "Locations": [
+        {
+          "Line": 1,
+          "Column": 5
+        }
+      ],
+      "Exception": null,
+      "Extensions": {}
+    }
+  ],
+  "Extensions": null,
+  "ContextData": null
+}

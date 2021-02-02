@@ -1,0 +1,11 @@
+type Query {
+    state: CurrentState!
+}
+
+type Mutation {
+  changeTheNumber(newNumber: Int!) : CurrentState!
+}
+
+type CurrentState {
+  theNumber: Int!
+}

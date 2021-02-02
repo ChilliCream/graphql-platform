@@ -1,0 +1,39 @@
+﻿{
+  "Data": {
+    "foo": null
+  },
+  "Extensions": {},
+  "Errors": [
+    {
+      "Message": "Unexpected Execution Error",
+      "Code": "Foo123",
+      "Path": [
+        "foo"
+      ],
+      "Locations": [
+        {
+          "Line": 1,
+          "Column": 3
+        }
+      ],
+      "Exception": {
+        "ClassName": "System.Exception",
+        "Message": "Foo",
+        "Data": null,
+        "InnerException": null,
+        "HelpURL": null,
+        "StackTraceString": "   at HotChocolate.Execution.Errors.ErrorHandlerTests.<>c.<AddClassErrorFilterWithFactory>b__3_3(IResolverContext ctx) in /Users/michael/Local/hotchocolate/src/Core/Core.Tests/Execution/Errors/ErrorHandlerTests.cs:line 126\n   at HotChocolate.Types.FieldMiddlewareCompiler.<>c__DisplayClass3_0.<<CreateResolverMiddleware>b__0>d.MoveNext() in /Users/michael/Local/hotchocolate/src/Core/Types/Types/Helpers/FieldMiddlewareCompiler.cs:line 74\n--- End of stack trace from previous location where exception was thrown ---\n   at HotChocolate.Execution.ExecutionStrategyBase.ExecuteMiddlewareAsync(ResolverContext resolverContext, IErrorHandler errorHandler) in /Users/michael/Local/hotchocolate/src/Core/Core/Execution/ExecutionStrategyBase.Resolver.cs:line 40",
+        "RemoteStackTraceString": null,
+        "RemoteStackIndex": 0,
+        "ExceptionMethod": null,
+        "HResult": -2146233088,
+        "Source": "HotChocolate.Core.Tests",
+        "WatsonBuckets": null
+      },
+      "Extensions": {
+        "code": "Foo123"
+      }
+    }
+  ],
+  "ContextData": {}
+}
