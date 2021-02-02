@@ -1,8 +1,0 @@
-﻿namespace FooBarNamespace
-{
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public enum Foonum
-    {
-        Foo = 42
-    }
-}
