@@ -2,6 +2,8 @@
 title: Object Type
 ---
 
+import { ExampleTabs } from "../../../components/mdx/example-tabs"
+
 The object type is the most important output type in GraphQL and represents the data we can fetch from our GraphQL server. The GraphQL SDL representation of an object looks like the following:
 
 ```sdl
@@ -17,7 +19,8 @@ represent raw data that is passed into a field.
 
 > **Note:** Every single code example will be shown in three different approaches, annotation-based (previously known as pure code-first), code-first, and schema-first. However, they will always result in the same outcome on a GraphQL schema perspective and internally in Hot Chocolate. All three approaches have their pros and cons and can be combined when needed with each other. If you would like to learn more about the three approaches in Hot Chocolate, click on [Coding Approaches](/docs/hotchocolate/api-reference/coding-approaches).
 
-**Annotation-based approach**
+<ExampleTabs>
+<ExampleTabs.Annotation>
 
 ```csharp
 // Query.cs
@@ -49,7 +52,8 @@ public class Startup
 }
 ```
 
-**Code-first approach**
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
 
 ```csharp
 // Query.cs
@@ -108,7 +112,8 @@ public class Startup
 }
 ```
 
-**Schema-first approach**
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
 
 ```csharp
 // Query.cs
@@ -141,6 +146,9 @@ public class Startup
     // Omitted code for brevity
 }
 ```
+
+</ExampleTabs.Schema>
+</ExampleTabs>
 
 # Extension
 

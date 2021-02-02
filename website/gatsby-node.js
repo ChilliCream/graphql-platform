@@ -8,7 +8,7 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
   );
   const result = await graphql(`
     {
-      blog: allMarkdownRemark(
+      blog: allMdx(
         limit: 1000
         filter: { frontmatter: { path: { regex: "//blog(/.*)?/" } } }
         sort: { order: DESC, fields: [frontmatter___date] }
@@ -124,7 +124,7 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
 exports.onCreateNode = ({ node, actions, getNode }) => {
   const { createNodeField } = actions;
 
-  if (node.internal.type === `MarkdownRemark`) {
+  if (node.internal.type === `Mdx`) {
     const value = createFilePath({ node, getNode });
     createNodeField({
       name: `slug`,
