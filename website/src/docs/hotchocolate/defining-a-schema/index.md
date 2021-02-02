@@ -2,13 +2,15 @@
 title: "Schema basics"
 ---
 
+import { ExampleTabs } from "../../../components/mdx/example-tabs"
+
 The schema in GraphQL represents the type system and exposes your business model in a strong and rich way. The schema fully describes the shape of your data and how you can interact with it.
 
 # Object Type
 
 The most important type in a GraphQL schema is the object type which lets you consume data. Every object type has to have at least one field which holds the data of an object. Fields can return simple scalars like String, Int, or again object types.
 
-```SDL
+```sdl
 type Book {
   title: String
   author: String
@@ -19,7 +21,7 @@ type Book {
 
 In GraphQL, we have three root types from which only the Query type has to be defined. Root types provide the entry points that let you fetch data, mutate data, or subscribe to events. Root types themself are object types.
 
-```SDL
+```sdl
 schema {
   query: Query
 }
@@ -38,7 +40,8 @@ In Hot Chocolate, there are three ways to define an object type.
 
 > **Note:** Every single code example will be shown in three different approaches, annotation-based (previously known as pure code-first), code-first, and schema-first. However, they will always result in the same outcome on a GraphQL schema perspective and internally in Hot Chocolate. All three approaches have their pros and cons and can be combined when needed with each other. If you would like to learn more about the three approaches in Hot Chocolate, click on [Coding Approaches](/docs/hotchocolate/api-reference/coding-approaches).
 
-**Annotation-based approach**
+<ExampleTabs>
+<ExampleTabs.Annotation>
 
 ```csharp
 // Query.cs
@@ -70,7 +73,8 @@ public class Startup
 }
 ```
 
-**Code-first approach**
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
 
 ```csharp
 // Query.cs
@@ -129,7 +133,8 @@ public class Startup
 }
 ```
 
-**Schema-first approach**
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
 
 ```csharp
 // Query.cs
@@ -163,6 +168,9 @@ public class Startup
 }
 ```
 
+</ExampleTabs.Schema>
+</ExampleTabs>
+
 ## Fields
 
 Fields of object types can be compared to methods in C# and allow us to pass in arguments.
@@ -186,7 +194,8 @@ type Book {
 }
 ```
 
-**Annotation-based approach**
+<ExampleTabs>
+<ExampleTabs.Annotation>
 
 ```csharp
 // Query.cs
@@ -221,7 +230,8 @@ public class Startup
 }
 ```
 
-**Code-first approach**
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
 
 ```csharp
 // Query.cs
@@ -283,7 +293,8 @@ public class Startup
 }
 ```
 
-**Schema-first approach**
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
 
 ```csharp
 // Query.cs
@@ -320,6 +331,9 @@ public class Startup
 }
 ```
 
+</ExampleTabs.Schema>
+</ExampleTabs>
+
 > Further reading:
 >
 > - [Object Types](/docs/hotchocolate/api-reference/object-type).
@@ -338,7 +352,8 @@ input BookInput {
 
 If we wanted for instance to create a new book with a mutation we could do that like the following.
 
-**Annotation-based approach**
+<ExampleTabs>
+<ExampleTabs.Annotation>
 
 ```csharp
 // Query.cs
@@ -379,7 +394,8 @@ public class Startup
 }
 ```
 
-**Code-first approach**
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
 
 ```csharp
 // Query.cs
@@ -441,7 +457,8 @@ public class Startup
 }
 ```
 
-**Schema-first approach**
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
 
 ```csharp
 // Query.cs
@@ -477,6 +494,9 @@ public class Startup
     // Omitted code for brevity
 }
 ```
+
+</ExampleTabs.Schema>
+</ExampleTabs>
 
 # Lists
 

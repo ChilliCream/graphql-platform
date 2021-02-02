@@ -2,15 +2,15 @@
 title: "Scalars"
 ---
 
-A GraphQL schema should be built as expressive as possible. 
-Just from looking at the schema, a developer should know how to use the API. 
+A GraphQL schema should be built as expressive as possible.
+Just from looking at the schema, a developer should know how to use the API.
 In GraphQL you are not limited to only describing the structure of a type, you can even describe value types.
 Scalar types represent types that can hold data of a specific kind.
 Scalars are leaf types, meaning you cannot use e.g. `{ fieldname }` to further drill down into the type.
 
-A scalar must only know how to serialize and deserialize the value of the field. 
-GraphQL gives you the freedom to define custom scalar types. 
-This makes them the perfect tool for expressive value types. 
+A scalar must only know how to serialize and deserialize the value of the field.
+GraphQL gives you the freedom to define custom scalar types.
+This makes them the perfect tool for expressive value types.
 You could create a scalar for `CreditCardNumber` or `NonEmptyString`.
 
 The GraphQL specification defines the following scalars
@@ -38,9 +38,10 @@ In addition to the scalars defined by the specification, HotChocolate also suppo
 | `Any`       | This type can be anything, string, int, list or object etc. |
 
 # Using Scalars
+
 HotChocolate will automatically detect which scalars are in use and will only expose those in the introspection. This keeps the schema definition small, simple and clean.
 
-The schema discovers .NET types and binds the matching scalar to the type. 
+The schema discovers .NET types and binds the matching scalar to the type.
 HotChocolate, for example, automatically binds the `StringType` on a member of the type `System.String`.
 You can override these mappings by explicitly specifying type bindings on the request executor builder.
 
@@ -70,7 +71,7 @@ public void ConfigureServices(IServiceCollection services)
 
 # Any Type
 
-The `Any` scalar is a special type that can be compared to `object` in C#. 
+The `Any` scalar is a special type that can be compared to `object` in C#.
 `Any` allows us to specify any literal or return any output type.
 
 Consider the following type:
@@ -130,13 +131,14 @@ If you want to access an object dynamically without serializing it to a strongly
 Lists can be accessed generically by getting them as `IReadOnlyList<object>` or as `ListValueNode`.
 
 # Custom Converter
+
 HotChocolate converts .Net types to match the types supported by the scalar of the field.
-By default, all standard .Net types have converters registered. 
+By default, all standard .Net types have converters registered.
 You can register converters and reuse the built-in scalar types.
 In case you use a non-standard library, e.g. [NodeTime](https://nodatime.org/), you can register a converter and use the standard `DateTimeType`.
 
 ```csharp
-public class Query 
+public class Query
 {
     public OffsetDateTime GetDateTime(OffsetDateTime offsetDateTime)
     {
@@ -144,7 +146,9 @@ public class Query
     }
 }
 ```
-*Startup*
+
+_Startup_
+
 ```csharp
 public void ConfigureServices(IServiceCollection services)
 {
@@ -159,8 +163,8 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
-
 # Custom Scalars
+
 All scalars in HotChocolate are defined though a `ScalarType`
 The easiest way to create a custom scalar is to extend `ScalarType<TRuntimeType, TLiteral>`.
 This base class already includes basic serialization and parsing logic.
@@ -222,7 +226,7 @@ public sealed class CreditCardNumberType
 }
 ```
 
-By extending `ScalarType` you have full control over serialization and parsing. 
+By extending `ScalarType` you have full control over serialization and parsing.
 
 ```csharp
     public sealed class CreditCardNumberType
