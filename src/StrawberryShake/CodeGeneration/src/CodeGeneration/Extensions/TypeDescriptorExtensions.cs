@@ -1,3 +1,6 @@
+using System;
+using System.Linq;
+
 namespace StrawberryShake.CodeGeneration.Extensions
 {
     public static class TypeDescriptorExtensions
@@ -10,6 +13,20 @@ namespace StrawberryShake.CodeGeneration.Extensions
 
         public static bool IsDataType(this ITypeDescriptor typeDescriptor) =>
             typeDescriptor.Kind == TypeKind.DataType;
+
+        public static bool ContainsEntity(this ITypeDescriptor typeDescriptor)
+        {
+            return typeDescriptor switch
+            {
+                ListTypeDescriptor listTypeDescriptor =>
+                    listTypeDescriptor.InnerType.ContainsEntity(),
+                NamedTypeDescriptor namedTypeDescriptor =>
+                    namedTypeDescriptor.Properties.Any(prop => prop.Type.IsEntityType()),
+                NonNullTypeDescriptor nonNullTypeDescriptor =>
+                    nonNullTypeDescriptor.InnerType.ContainsEntity(),
+                _ => throw new ArgumentOutOfRangeException(nameof(typeDescriptor))
+            };
+        }
 
         public static bool IsInterface(this ITypeDescriptor typeDescriptor) =>
             typeDescriptor is NamedTypeDescriptor { IsInterface: true };

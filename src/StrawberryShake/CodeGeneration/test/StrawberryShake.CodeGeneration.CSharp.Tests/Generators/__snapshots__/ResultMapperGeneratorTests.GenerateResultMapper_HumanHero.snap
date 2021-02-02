@@ -4,15 +4,10 @@
     public partial class HumanHeroFromHumanEntityMapper
         : global::StrawberryShake.IEntityMapper<HumanEntity, HumanHero>
     {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly IEntityMapper<FriendsConnectionData, FriendsConnection> _friendsConnectionFromDataMapper;
 
-        public HumanHeroFromHumanEntityMapper(
-            global::StrawberryShake.IEntityStore entityStore,
-            IEntityMapper<FriendsConnectionData, FriendsConnection> friendsConnectionFromDataMapper)
+        public HumanHeroFromHumanEntityMapper(IEntityMapper<FriendsConnectionData, FriendsConnection> friendsConnectionFromDataMapper)
         {
-            _entityStore = entityStore
-                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
             _friendsConnectionFromDataMapper = friendsConnectionFromDataMapper
                  ?? throw new global::System.ArgumentNullException(nameof(friendsConnectionFromDataMapper));
         }

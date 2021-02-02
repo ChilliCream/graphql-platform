@@ -20,7 +20,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         protected override void Generate(CodeWriter writer, ITypeDescriptor typeDescriptor)
         {
-            var (classBuilder, constructorBuilder) = CreateClassBuilder();
+            var (classBuilder, constructorBuilder) = CreateClassBuilder(false);
 
             NamedTypeDescriptor descriptor = typeDescriptor switch
             {
@@ -48,11 +48,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             constructorBuilder.SetTypeName(descriptor.Name);
 
-            AddConstructorAssignedField(
-                TypeNames.IEntityStore,
-                _storeFieldName,
-                classBuilder,
-                constructorBuilder);
+            if (descriptor.ContainsEntity())
+            {
+                AddConstructorAssignedField(
+                    TypeNames.IEntityStore,
+                    _storeFieldName,
+                    classBuilder,
+                    constructorBuilder);
+            }
+
 
             // Define map method
             MethodBuilder mapMethod = MethodBuilder.New()
@@ -89,6 +93,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
 
             mapMethod.AddCode(constructorCall);
+
+            if (constructorBuilder.HasParameters())
+            {
+                classBuilder.AddConstructor(constructorBuilder);
+            }
             classBuilder.AddMethod(mapMethod);
 
             CodeFileBuilder
