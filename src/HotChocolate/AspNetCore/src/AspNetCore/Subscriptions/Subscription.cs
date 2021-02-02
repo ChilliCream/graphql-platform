@@ -56,9 +56,16 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     Completed?.Invoke(this, EventArgs.Empty);
                 }
             }
-            catch (TaskCanceledException)
+            catch(OperationCanceledException){}
+            catch(ObjectDisposedException){}
+            catch (Exception ex)
             {
-                // the subscription was canceled.
+                if (!_cts.IsCancellationRequested)
+                {
+                    //TODO Send error
+                    await _connection.SendAsync(new DataErrorMessage(Id), _cts.Token);
+                    Completed?.Invoke(this, EventArgs.Empty);
+                }
             }
             finally
             {
