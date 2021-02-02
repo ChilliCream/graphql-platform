@@ -2,7 +2,7 @@ using System;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace StrawberryShake.Transport
+namespace StrawberryShake.Transport.WebSockets
 {
     /// <summary>
     /// A Json message writer that buffers the result locally

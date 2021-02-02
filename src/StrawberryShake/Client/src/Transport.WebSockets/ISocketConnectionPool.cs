@@ -2,31 +2,31 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace StrawberryShake.Transport
+namespace StrawberryShake.Transport.WebSockets
 {
     /// <summary>
-    /// Represents a pool of <see cref="ISocketClient"/>
+    /// Represents a pool of <see cref="ISessionManager"/>
     /// </summary>
-    public interface ISocketClientPool
+    public interface ISocketSessionPool
         : IAsyncDisposable
     {
         /// <summary>
-        /// Rents a named <see cref="ISocketClient"/> from the pool.
+        /// Rents a named <see cref="ISessionManager"/> from the pool.
         /// </summary>
         /// <param name="name">The name of the client</param>
         /// <param name="cancellationToken">The cancellation token for the operation</param>
-        /// <returns>A socket client</returns>
-        Task<ISocketClient> RentAsync(
+        /// <returns>A socket sessionManager</returns>
+        Task<ISessionManager> RentAsync(
             string name,
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Returns a socket client to the pool.
+        /// Returns a socket sessionManager to the pool.
         /// </summary>
-        /// <param name="client">The client</param>
+        /// <param name="sessionManager">The sessionManager</param>
         /// <param name="cancellationToken">The cancellation token for the operation</param>
         Task ReturnAsync(
-            ISocketClient client,
+            ISessionManager sessionManager,
             CancellationToken cancellationToken = default);
     }
 }

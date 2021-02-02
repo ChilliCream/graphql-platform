@@ -1,12 +1,10 @@
 using System;
 using System.Buffers;
-using System.Collections.Concurrent;
 using System.IO.Pipelines;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace StrawberryShake.Http.Subscriptions
+namespace StrawberryShake.Transport.WebSockets
 {
     /// <summary>
     /// Event handler to receive message data

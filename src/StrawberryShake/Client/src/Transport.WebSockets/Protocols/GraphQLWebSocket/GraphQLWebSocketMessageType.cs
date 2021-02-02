@@ -1,4 +1,4 @@
-﻿namespace StrawberryShake.Transport
+﻿namespace StrawberryShake.Transport.WebSockets.Protocol
 {
     /// <summary>
     /// The message types of the graphql-ws protocol

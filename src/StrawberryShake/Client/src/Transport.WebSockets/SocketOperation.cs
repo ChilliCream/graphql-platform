@@ -13,7 +13,7 @@ namespace StrawberryShake.Transport.WebSockets
     /// </summary>
     public sealed class SocketOperation : ISocketOperation
     {
-        private readonly ISocketOperationManager _manager;
+        private readonly ISessionManager _manager;
         private readonly Channel<OperationMessage> _channel;
         private bool _disposed;
 
@@ -28,7 +28,7 @@ namespace StrawberryShake.Transport.WebSockets
         /// <param name="manager">
         /// The socket operation manager that this operation manages
         /// </param>
-        public SocketOperation(ISocketOperationManager manager)
+        public SocketOperation(ISessionManager manager)
             : this(manager, Guid.NewGuid().ToString())
         {
         }
@@ -43,7 +43,7 @@ namespace StrawberryShake.Transport.WebSockets
         /// The id of this operation
         /// </param>
         public SocketOperation(
-            ISocketOperationManager manager,
+            ISessionManager manager,
             string id)
         {
             _manager = manager ?? throw new ArgumentNullException(nameof(manager));

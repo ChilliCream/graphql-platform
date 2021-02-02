@@ -2,51 +2,64 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using StrawberryShake.Properties;
 
 namespace StrawberryShake.Transport.WebSockets
 {
     /// <inheritdoc />
-    internal sealed class SocketClientPool
-        : ISocketClientPool
+    internal sealed class SocketSessionPool
+        : ISocketSessionPool
     {
         private readonly SemaphoreSlim _semaphoreSlim = new(1, 1);
-        private readonly Dictionary<string, ClientInfo> _clients = new();
+        private readonly Dictionary<string, SessionInfo> _sessions = new();
         private readonly ISocketClientFactory _socketClientFactory;
 
         private bool _disposed;
 
-        public SocketClientPool(
-            ISocketClientFactory socketClientFactory)
+        public SocketSessionPool(ISocketClientFactory socketClientFactory)
         {
             _socketClientFactory = socketClientFactory
                 ?? throw new ArgumentNullException(nameof(socketClientFactory));
         }
 
         /// <inheritdoc />
-        public async Task<ISocketClient> RentAsync(
+        public async Task<ISessionManager> RentAsync(
             string name,
             CancellationToken cancellationToken = default)
-            {
+        {
             await _semaphoreSlim.WaitAsync(cancellationToken).ConfigureAwait(false);
 
             try
             {
-                if (_clients.TryGetValue(name, out ClientInfo? connectionInfo))
+                if (_sessions.TryGetValue(name, out SessionInfo? sessionInfo))
                 {
-                    connectionInfo.Rentals++;
+                    sessionInfo.Rentals++;
                 }
                 else
                 {
-                    connectionInfo = new ClientInfo(_socketClientFactory.CreateClient(name));
+                    ISocketClient client = _socketClientFactory.CreateClient(name);
 
-                    await connectionInfo.Client.OpenAsync(cancellationToken)
+                    var sessionManager = new SessionManager(client);
+                    sessionInfo = new SessionInfo(sessionManager);
+                    _sessions.Add(name, sessionInfo);
+
+                    await sessionManager
+                        .OpenSessionAsync(cancellationToken)
                         .ConfigureAwait(false);
-
-                    _clients.Add(name, connectionInfo);
                 }
 
-                return connectionInfo.Client;
+                return sessionInfo.SessionManager;
+            }
+            catch
+            {
+                if (_sessions.TryGetValue(name, out SessionInfo? sessionInfo))
+                {
+                    await RemoveAndDisposeAsync(
+                            sessionInfo.SessionManager,
+                            cancellationToken)
+                        .ConfigureAwait(false);
+                }
+
+                throw;
             }
             finally
             {
@@ -56,41 +69,26 @@ namespace StrawberryShake.Transport.WebSockets
 
         /// <inheritdoc />
         public async Task ReturnAsync(
-            ISocketClient client,
+            ISessionManager sessionManager,
             CancellationToken cancellationToken = default)
         {
             await _semaphoreSlim.WaitAsync(cancellationToken).ConfigureAwait(false);
 
             try
             {
-                if (_clients.TryGetValue(client.Name, out ClientInfo? connectionInfo))
+                if (_sessions.TryGetValue(sessionManager.Name, out SessionInfo? connectionInfo))
                 {
                     connectionInfo.Rentals--;
                 }
                 else
                 {
-                    throw ThrowHelper.SocketClientPool_ClientNotFromPool(nameof(client));
+                    throw ThrowHelper.SocketClientPool_ClientNotFromPool(nameof(sessionManager));
                 }
 
                 if (connectionInfo.Rentals < 1)
                 {
-                    try
-                    {
-                        _clients.Remove(client.Name);
-                        await client.CloseAsync(
-                                Resources.SocketClient_AllOperationsFinished,
-                                SocketCloseStatus.NormalClosure,
-                                cancellationToken)
-                            .ConfigureAwait(false);
-                    }
-                    catch
-                    {
-                        // we ignore errors here
-                    }
-                    finally
-                    {
-                        await client.DisposeAsync();
-                    }
+                    await RemoveAndDisposeAsync(sessionManager, cancellationToken)
+                        .ConfigureAwait(false);
                 }
             }
             finally
@@ -103,24 +101,47 @@ namespace StrawberryShake.Transport.WebSockets
         {
             if (!_disposed)
             {
-                foreach (ClientInfo connection in _clients.Values)
+                foreach (SessionInfo connection in _sessions.Values)
                 {
-                    await connection.Client.DisposeAsync();
+                    await connection.SessionManager.DisposeAsync();
                 }
-                _clients.Clear();
+
+                _sessions.Clear();
                 _disposed = true;
             }
         }
 
-        private sealed class ClientInfo
+        private async Task RemoveAndDisposeAsync(
+            ISessionManager sessionManager,
+            CancellationToken cancellationToken)
         {
-            public ClientInfo(ISocketClient connection)
+            try
             {
-                Client = connection;
+                _sessions.Remove(sessionManager.Name);
+
+                await sessionManager
+                    .CloseSessionAsync(cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch
+            {
+                // we ignore errors here
+            }
+            finally
+            {
+                await sessionManager.DisposeAsync();
+            }
+        }
+
+        private sealed class SessionInfo
+        {
+            public SessionInfo(ISessionManager sessionManager)
+            {
+                SessionManager = sessionManager;
                 Rentals = 1;
             }
 
-            public ISocketClient Client { get; }
+            public ISessionManager SessionManager { get; }
 
             public int Rentals { get; set; }
         }

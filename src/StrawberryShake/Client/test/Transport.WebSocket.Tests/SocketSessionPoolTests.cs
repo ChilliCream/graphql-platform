@@ -6,17 +6,18 @@ using Xunit;
 
 namespace StrawberryShake.Transport.WebSockets
 {
-    public class SocketClientPoolTests
+    public class SocketSessionPoolTests
     {
         [Fact]
         public void Constructor_AllArgs_CreateObject()
         {
             // arrange
+            Mock<ISocketProtocol> protocol = new();
             ISocketClientFactory optionsMonitor = new Mock<ISocketClientFactory>().Object;
 
             // act
             Exception? exception = Record.Exception(() =>
-                new SocketClientPool(optionsMonitor));
+                new SocketSessionPool(optionsMonitor));
 
             // assert
             Assert.Null(exception);
@@ -26,11 +27,12 @@ namespace StrawberryShake.Transport.WebSockets
         public void Constructor_MonitorNull_CreateObject()
         {
             // arrange
+            Mock<ISocketProtocol> protocol = new();
             ISocketClientFactory optionsMonitor = null!;
 
             // act
             Exception? exception = Record.Exception(() =>
-                new SocketClientPool(optionsMonitor));
+                new SocketSessionPool(optionsMonitor));
 
             // assert
             Assert.IsType<ArgumentNullException>(exception);
@@ -41,18 +43,19 @@ namespace StrawberryShake.Transport.WebSockets
         {
             // arrange
             Mock<ISocketClientFactory> optionsMonitorMock = new(MockBehavior.Strict);
+            Mock<ISocketProtocol> protocol = new();
             ISocketClientFactory optionsMonitor = optionsMonitorMock.Object;
             optionsMonitorMock
                 .Setup(x => x.CreateClient("Foo"))
-                .Returns(() => new SocketClientStub() { Name = "Foo" });
-            var pool = new SocketClientPool(optionsMonitor);
+                .Returns(() => new SocketClientStub() { Protocol = protocol.Object, Name = "Foo" });
+            var pool = new SocketSessionPool(optionsMonitor);
 
             // act
-            ISocketClient rented = await pool.RentAsync("Foo");
+            ISessionManager rented = await pool.RentAsync("Foo");
 
             // assert
             optionsMonitorMock.VerifyAll();
-            Assert.IsType<SocketClientStub>(rented);
+            Assert.IsType<SessionManager>(rented);
         }
 
         [Fact]
@@ -60,15 +63,16 @@ namespace StrawberryShake.Transport.WebSockets
         {
             // arrange
             Mock<ISocketClientFactory> optionsMonitorMock = new(MockBehavior.Strict);
+            Mock<ISocketProtocol> protocol = new();
             ISocketClientFactory optionsMonitor = optionsMonitorMock.Object;
             optionsMonitorMock
                 .Setup(x => x.CreateClient("Foo"))
-                .Returns(() => new SocketClientStub() { Name = "Foo" });
-            var pool = new SocketClientPool(optionsMonitor);
-            ISocketClient first = await pool.RentAsync("Foo");
+                .Returns(() => new SocketClientStub() { Protocol = protocol.Object, Name = "Foo" });
+            var pool = new SocketSessionPool(optionsMonitor);
+            ISessionManager first = await pool.RentAsync("Foo");
 
             // act
-            ISocketClient second = await pool.RentAsync("Foo");
+            ISessionManager second = await pool.RentAsync("Foo");
 
             // assert
             Assert.Equal(first, second);
@@ -79,12 +83,13 @@ namespace StrawberryShake.Transport.WebSockets
         {
             // arrange
             Mock<ISocketClientFactory> optionsMonitorMock = new(MockBehavior.Strict);
+            Mock<ISocketProtocol> protocol = new();
             ISocketClientFactory optionsMonitor = optionsMonitorMock.Object;
-            var socket = new SocketClientStub() { Name = "Foo" };
+            var socket = new SocketClientStub() { Protocol = protocol.Object, Name = "Foo" };
             optionsMonitorMock
                 .Setup(x => x.CreateClient("Foo"))
                 .Returns(() => socket);
-            var pool = new SocketClientPool(optionsMonitor);
+            var pool = new SocketSessionPool(optionsMonitor);
 
             // act
             await pool.RentAsync("Foo");
@@ -98,14 +103,15 @@ namespace StrawberryShake.Transport.WebSockets
         {
             // arrange
             Mock<ISocketClientFactory> optionsMonitorMock = new(MockBehavior.Strict);
+            Mock<ISocketProtocol> protocol = new();
             ISocketClientFactory optionsMonitor = optionsMonitorMock.Object;
-            var socket = new SocketClientStub() { Name = "Foo" };
+            var socket = new SocketClientStub() { Protocol = protocol.Object, Name = "Foo" };
             optionsMonitorMock
                 .Setup(x => x.CreateClient("Foo"))
                 .Returns(() => socket);
-            var pool = new SocketClientPool(optionsMonitor);
-            ISocketClient first = await pool.RentAsync("Foo");
-            ISocketClient second = await pool.RentAsync("Foo");
+            var pool = new SocketSessionPool(optionsMonitor);
+            ISessionManager first = await pool.RentAsync("Foo");
+            ISessionManager second = await pool.RentAsync("Foo");
 
             // act
             await pool.ReturnAsync(first);
@@ -119,14 +125,15 @@ namespace StrawberryShake.Transport.WebSockets
         {
             // arrange
             Mock<ISocketClientFactory> optionsMonitorMock = new(MockBehavior.Strict);
+            Mock<ISocketProtocol> protocol = new();
             ISocketClientFactory optionsMonitor = optionsMonitorMock.Object;
-            var socket = new SocketClientStub() { Name = "Foo" };
+            var socket = new SocketClientStub() { Protocol = protocol.Object, Name = "Foo" };
             optionsMonitorMock
                 .Setup(x => x.CreateClient("Foo"))
                 .Returns(() => socket);
-            var pool = new SocketClientPool(optionsMonitor);
-            ISocketClient first = await pool.RentAsync("Foo");
-            ISocketClient second = await pool.RentAsync("Foo");
+            var pool = new SocketSessionPool(optionsMonitor);
+            ISessionManager first = await pool.RentAsync("Foo");
+            ISessionManager second = await pool.RentAsync("Foo");
 
             // act
             await pool.ReturnAsync(first);
@@ -141,13 +148,14 @@ namespace StrawberryShake.Transport.WebSockets
         {
             // arrange
             Mock<ISocketClientFactory> optionsMonitorMock = new(MockBehavior.Strict);
+            Mock<ISocketProtocol> protocol = new();
             ISocketClientFactory optionsMonitor = optionsMonitorMock.Object;
-            var socket = new SocketClientStub() { Name = "Foo" };
+            var socket = new SocketClientStub() { Protocol = protocol.Object, Name = "Foo" };
             optionsMonitorMock
                 .Setup(x => x.CreateClient("Foo"))
                 .Returns(() => socket);
-            var pool = new SocketClientPool(optionsMonitor);
-            ISocketClient rented = await pool.RentAsync("Foo");
+            var pool = new SocketSessionPool(optionsMonitor);
+            ISessionManager rented = await pool.RentAsync("Foo");
 
             // act
             await pool.ReturnAsync(rented);
@@ -161,13 +169,14 @@ namespace StrawberryShake.Transport.WebSockets
         {
             // arrange
             Mock<ISocketClientFactory> optionsMonitorMock = new(MockBehavior.Strict);
+            Mock<ISocketProtocol> protocol = new();
             ISocketClientFactory optionsMonitor = optionsMonitorMock.Object;
-            var socket = new SocketClientStub() { Name = "Foo" };
+            var socket = new SocketClientStub() { Protocol = protocol.Object, Name = "Foo" };
             optionsMonitorMock
                 .Setup(x => x.CreateClient("Foo"))
                 .Returns(() => socket);
-            var pool = new SocketClientPool(optionsMonitor);
-            ISocketClient rented = await pool.RentAsync("Foo");
+            var pool = new SocketSessionPool(optionsMonitor);
+            ISessionManager rented = await pool.RentAsync("Foo");
 
             // act
             await pool.ReturnAsync(rented);
@@ -181,15 +190,17 @@ namespace StrawberryShake.Transport.WebSockets
         {
             // arrange
             Mock<ISocketClientFactory> optionsMonitorMock = new(MockBehavior.Strict);
+            Mock<ISocketProtocol> protocol = new();
             ISocketClientFactory optionsMonitor = optionsMonitorMock.Object;
-            var socket = new SocketClientStub() { Name = "Foo" };
+            var socket = new SocketClientStub() { Protocol = protocol.Object, Name = "Foo" };
             optionsMonitorMock
                 .Setup(x => x.CreateClient("Foo"))
                 .Returns(() => socket);
-            var pool = new SocketClientPool(optionsMonitor);
+            var pool = new SocketSessionPool(optionsMonitor);
 
             // act
-            Exception? ex = await Record.ExceptionAsync(() => pool.ReturnAsync(socket));
+            Exception? ex =
+                await Record.ExceptionAsync(() => pool.ReturnAsync(new SessionManager(socket)));
 
             // assert
             Assert.IsType<ArgumentException>(ex).Message.MatchSnapshot();
@@ -200,15 +211,16 @@ namespace StrawberryShake.Transport.WebSockets
         {
             // arrange
             Mock<ISocketClientFactory> optionsMonitorMock = new(MockBehavior.Strict);
+            Mock<ISocketProtocol> protocol = new();
             ISocketClientFactory optionsMonitor = optionsMonitorMock.Object;
-            var socket = new SocketClientStub() { Name = "Foo" };
+            var socket = new SocketClientStub() { Protocol = protocol.Object, Name = "Foo" };
             optionsMonitorMock
                 .Setup(x => x.CreateClient("Foo"))
                 .Returns(() => socket);
-            var pool = new SocketClientPool(optionsMonitor);
+            var pool = new SocketSessionPool(optionsMonitor);
 
             // act
-            ISocketClient rented = await pool.RentAsync("Foo");
+            ISessionManager rented = await pool.RentAsync("Foo");
             await pool.DisposeAsync();
 
             // assert

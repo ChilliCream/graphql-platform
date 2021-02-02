@@ -77,12 +77,12 @@ namespace StrawberryShake.Transport.WebSockets
             await Blocker.WaitAsync(cancellationToken);
         }
 
-        public Task OpenAsync(CancellationToken cancellationToken = default)
+        public Task<ISocketProtocol> OpenAsync(CancellationToken cancellationToken = default)
         {
             Increment(x => x.OpenAsync(default!));
 
             IsClosed = false;
-            return Task.CompletedTask;
+            return Task.FromResult(Protocol);
         }
 
         public Task CloseAsync(
@@ -96,12 +96,6 @@ namespace StrawberryShake.Transport.WebSockets
             CloseStatus = closeStatus;
             IsClosed = true;
             return Task.CompletedTask;
-        }
-
-        public bool TryGetProtocol(out ISocketProtocol? protocol)
-        {
-            protocol = Protocol;
-            return true;
         }
 
         public ValueTask DisposeAsync()

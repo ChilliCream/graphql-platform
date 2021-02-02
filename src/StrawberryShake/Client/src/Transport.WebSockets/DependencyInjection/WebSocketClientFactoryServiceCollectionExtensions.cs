@@ -1,9 +1,9 @@
 using System;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
+using StrawberryShake.Transport.WebSockets;
 
-namespace StrawberryShake.Transport.WebSockets
+namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
     /// Extensions methods to configure an <see cref="IServiceCollection"/> for
@@ -20,8 +20,7 @@ namespace StrawberryShake.Transport.WebSockets
         /// <returns>
         /// An <see cref="IWebSocketClientBuilder"/> that can be used to configure the client.
         /// </returns>
-        public static IServiceCollection AddProtocol<TFactory>(
-            this IServiceCollection services)
+        public static IServiceCollection AddProtocol<TFactory>(this IServiceCollection services)
             where TFactory : class, ISocketProtocolFactory
         {
             if (services == null)
@@ -190,8 +189,7 @@ namespace StrawberryShake.Transport.WebSockets
             return builder;
         }
 
-        private static IServiceCollection AddWebSocketClient(
-            this IServiceCollection services)
+        private static IServiceCollection AddWebSocketClient(this IServiceCollection services)
         {
             if (services == null)
             {

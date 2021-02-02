@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.IO.Pipelines;
 using System.Net.WebSockets;
 using System.Threading;
@@ -57,7 +56,7 @@ namespace StrawberryShake.Transport.WebSockets
             || _socket.CloseStatus.HasValue;
 
         /// <inheritdoc />
-        public async Task OpenAsync(CancellationToken cancellationToken = default)
+        public async Task<ISocketProtocol> OpenAsync(CancellationToken cancellationToken = default)
         {
             if (_disposed)
             {
@@ -92,6 +91,8 @@ namespace StrawberryShake.Transport.WebSockets
             }
 
             await _activeProtocol.InitializeAsync(cancellationToken).ConfigureAwait(false);
+
+            return _activeProtocol;
         }
 
         /// <inheritdoc />
@@ -133,19 +134,6 @@ namespace StrawberryShake.Transport.WebSockets
             {
                 // we do not throw here ...
             }
-        }
-
-        /// <inheritdoc />
-        public bool TryGetProtocol([NotNullWhen(true)] out ISocketProtocol? protocol )
-        {
-            if (!IsClosed && _activeProtocol is not null)
-            {
-                protocol = _activeProtocol;
-                return true;
-            }
-
-            protocol = null;
-            return false;
         }
 
         /// <inheritdoc />

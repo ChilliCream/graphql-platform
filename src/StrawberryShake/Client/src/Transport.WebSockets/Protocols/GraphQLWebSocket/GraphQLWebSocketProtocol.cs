@@ -1,14 +1,11 @@
 using System;
 using System.Buffers;
-using System.Runtime.InteropServices;
-using System.Runtime.Serialization;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using StrawberryShake.Http.Subscriptions;
 using StrawberryShake.Transport.WebSockets.Messages;
 
-namespace StrawberryShake.Transport.WebSockets
+namespace StrawberryShake.Transport.WebSockets.Protocol
 {
     /// <summary>
     /// A implementation of <see cref="ISocketProtocol"/> that uses graphql-ws protocol to
@@ -134,7 +131,7 @@ namespace StrawberryShake.Transport.WebSockets
                         case GraphQLWebSocketMessageType.ConnectionError:
                             return Notify(
                                 id,
-                                ErrorOperationMessage.ConnectionError,
+                                ErrorOperationMessage.ConnectionInitializationError,
                                 cancellationToken);
                         default:
                             return CloseSocketOnProtocolError(

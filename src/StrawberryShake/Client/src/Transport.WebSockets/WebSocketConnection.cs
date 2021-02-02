@@ -13,16 +13,16 @@ namespace StrawberryShake.Http.Subscriptions
     /// </summary>
     public class WebSocketConnection : IConnection<JsonDocument>
     {
-        private readonly ISocketOperationManager _operationManager;
+        private readonly ISessionManager _sessionManager;
 
         /// <summary>
         /// Creates a new instance of a <see cref="WebSocketConnection"/>
         /// </summary>
-        /// <param name="operationManager"></param>
-        public WebSocketConnection(ISocketOperationManager operationManager)
+        /// <param name="sessionManager"></param>
+        public WebSocketConnection(ISessionManager sessionManager)
         {
-            _operationManager = operationManager ??
-                throw new ArgumentNullException(nameof(operationManager));
+            _sessionManager = sessionManager ??
+                throw new ArgumentNullException(nameof(sessionManager));
         }
 
         /// <inheritdoc />
@@ -36,7 +36,7 @@ namespace StrawberryShake.Http.Subscriptions
             }
 
             await using ISocketOperation operation =
-                await _operationManager.StartOperationAsync(request, cancellationToken);
+                await _sessionManager.StartOperationAsync(request, cancellationToken);
 
             await foreach (var message in operation.ReadAsync(cancellationToken))
             {
@@ -47,14 +47,12 @@ namespace StrawberryShake.Http.Subscriptions
                         yield return new Response<JsonDocument>(msg.Payload, null);
                         break;
                     case OperationMessageType.Error when message is ErrorOperationMessage msg:
-                        yield return new Response<JsonDocument>(
-                            null,
-                            new SocketOperationException(msg.Message));
+                        var operationEx = new SocketOperationException(msg.Message);
+                        yield return new Response<JsonDocument>(null, operationEx);
                         yield break;
                     case OperationMessageType.Cancelled:
-                        yield return new Response<JsonDocument>(
-                            null,
-                            new OperationCanceledException());
+                        var canceledException = new OperationCanceledException();
+                        yield return new Response<JsonDocument>(null, canceledException);
                         yield break;
                     case OperationMessageType.Complete:
                         yield break;

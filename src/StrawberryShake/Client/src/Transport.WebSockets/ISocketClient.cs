@@ -1,10 +1,9 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace StrawberryShake.Transport
+namespace StrawberryShake.Transport.WebSockets
 {
     /// <summary>
     /// Represents a client for sending and receiving messages responses over a abstract socket
@@ -53,7 +52,8 @@ namespace StrawberryShake.Transport
         /// Opens a connection to the server
         /// </summary>
         /// <param name="cancellationToken">The cancellation token to cancel the operation</param>
-        Task OpenAsync(
+        /// <returns>The socket protocol that was established with the server</returns>
+        Task<ISocketProtocol> OpenAsync(
             CancellationToken cancellationToken = default);
 
         /// <summary>
@@ -67,12 +67,5 @@ namespace StrawberryShake.Transport
             string message,
             SocketCloseStatus closeStatus,
             CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Tries to resolve the protocol that was negotiated with the server
-        /// </summary>
-        /// <param name="protocol">The protocol that was negotiated</param>
-        /// <returns>true if a protocol is found</returns>
-        bool TryGetProtocol([NotNullWhen(true)] out ISocketProtocol? protocol);
     }
 }

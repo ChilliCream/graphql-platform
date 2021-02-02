@@ -8,9 +8,14 @@ namespace StrawberryShake.Transport.WebSockets
     /// Represents a manager for socket operations. This manager can be used to start and stop
     /// operations on a socket.
     /// </summary>
-    public interface ISocketOperationManager
+    public interface ISessionManager
         : IAsyncDisposable
     {
+        /// <summary>
+        /// The name of the underlying socket client
+        /// </summary>
+        string Name { get; }
+
         /// <summary>
         /// Starts a new operation over the socket
         /// </summary>
@@ -28,5 +33,17 @@ namespace StrawberryShake.Transport.WebSockets
         Task StopOperationAsync(
             string operationId,
             CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Opens a session over the socket
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation token to cancel the operation</param>
+        Task OpenSessionAsync( CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Closes a session over the socket
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation token to cancel the operation</param>
+        Task CloseSessionAsync( CancellationToken cancellationToken = default);
     }
 }

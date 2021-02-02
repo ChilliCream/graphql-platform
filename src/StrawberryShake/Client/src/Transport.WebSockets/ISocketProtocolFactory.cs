@@ -1,4 +1,4 @@
-namespace StrawberryShake.Transport
+namespace StrawberryShake.Transport.WebSockets
 {
     /// <summary>
     /// Represents a factory for <see cref="ISocketProtocol"/>

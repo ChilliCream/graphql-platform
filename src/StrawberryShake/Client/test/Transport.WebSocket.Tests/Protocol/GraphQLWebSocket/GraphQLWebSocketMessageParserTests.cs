@@ -5,6 +5,7 @@ using System.Text;
 using Snapshooter;
 using Snapshooter.Xunit;
 using StrawberryShake.Http.Subscriptions;
+using StrawberryShake.Transport.WebSockets.Protocol;
 using Xunit;
 
 namespace StrawberryShake.Transport.WebSockets

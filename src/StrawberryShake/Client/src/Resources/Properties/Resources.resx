@@ -60,13 +60,7 @@
   <data name="SocketClient_URIWasNotSpecified" xml:space="preserve">
     <value>The configuration of socket client {0} is invalid. Uri was missing.</value>
   </data>
-  <data name="SocketClient_URIWasNotSpecified" xml:space="preserve">
-    <value>The configuration of socket client {0} is invalid. Uri was missing.</value>
-  </data>
   <data name="SocketClient_ProtocolNotFound" xml:space="preserve">
-    <value>There was no protocol of type {0} registered.</value>
-  </data>
-  <data name="SocketClient_" xml:space="preserve">
     <value>There was no protocol of type {0} registered.</value>
   </data>
   <data name="SocketClient_FailedToInitializeProtocol" xml:space="preserve">
@@ -75,13 +69,25 @@
   <data name="SocketClient_AllOperationsFinished" xml:space="preserve">
     <value>All operations finished</value>
   </data>
-  <data name="OperationManager_SocketWasNotInitialized" xml:space="preserve">
+  <data name="SessionManager_SessionIsNotOpen" xml:space="preserve">
+    <value>The session was not open. Operations can only be started or stopped on a open session</value>
+  </data>
+  <data name="SessionManager_SocketWasNotInitialized" xml:space="preserve">
     <value>Could not get the protocol from socket {0}. The socket is in a invalid state</value>
   </data>
-  <data name="OperationManager_OperationWasAlreadyRegistered" xml:space="preserve">
+  <data name="SessionManager_OperationWasAlreadyRegistered" xml:space="preserve">
     <value>Operation with id {0} was already registered on the operation manager</value>
   </data>
   <data name="SocketClientPool_ClientNotFromPool" xml:space="preserve">
     <value>The specified client does not belong to this pool.</value>
+  </data>
+  <data name="ErrorOperationMessage_UnexpectedServerError" xml:space="preserve">
+    <value>There was a unexpected error on the server</value>
+  </data>
+  <data name="ErrorOperationMessage_ConnectionInitializationError" xml:space="preserve">
+    <value>Connection initialization failed. Could not connect to server</value>
+  </data>
+  <data name="ErrorOperationMessage_ResponseParsingError" xml:space="preserve">
+    <value>Could not parse the response of the server</value>
   </data>
 </root>

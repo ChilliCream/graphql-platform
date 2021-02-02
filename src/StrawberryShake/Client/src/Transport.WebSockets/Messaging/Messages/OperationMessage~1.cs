@@ -1,5 +1,3 @@
-using System.Buffers;
-
 namespace StrawberryShake.Transport.WebSockets.Messages
 {
     /// <summary>

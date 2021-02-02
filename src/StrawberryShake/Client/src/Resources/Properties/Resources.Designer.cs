@@ -135,12 +135,6 @@ namespace StrawberryShake.Properties {
             }
         }
         
-        internal static string SocketClient_ {
-            get {
-                return ResourceManager.GetString("SocketClient_", resourceCulture);
-            }
-        }
-        
         internal static string SocketClient_FailedToInitializeProtocol {
             get {
                 return ResourceManager.GetString("SocketClient_FailedToInitializeProtocol", resourceCulture);
@@ -153,21 +147,45 @@ namespace StrawberryShake.Properties {
             }
         }
         
-        internal static string OperationManager_SocketWasNotInitialized {
+        internal static string SessionManager_SessionIsNotOpen {
             get {
-                return ResourceManager.GetString("OperationManager_SocketWasNotInitialized", resourceCulture);
+                return ResourceManager.GetString("SessionManager_SessionIsNotOpen", resourceCulture);
             }
         }
         
-        internal static string OperationManager_OperationWasAlreadyRegistered {
+        internal static string SessionManager_SocketWasNotInitialized {
             get {
-                return ResourceManager.GetString("OperationManager_OperationWasAlreadyRegistered", resourceCulture);
+                return ResourceManager.GetString("SessionManager_SocketWasNotInitialized", resourceCulture);
+            }
+        }
+        
+        internal static string SessionManager_OperationWasAlreadyRegistered {
+            get {
+                return ResourceManager.GetString("SessionManager_OperationWasAlreadyRegistered", resourceCulture);
             }
         }
         
         internal static string SocketClientPool_ClientNotFromPool {
             get {
                 return ResourceManager.GetString("SocketClientPool_ClientNotFromPool", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorOperationMessage_UnexpectedServerError {
+            get {
+                return ResourceManager.GetString("ErrorOperationMessage_UnexpectedServerError", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorOperationMessage_ConnectionInitializationError {
+            get {
+                return ResourceManager.GetString("ErrorOperationMessage_ConnectionInitializationError", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorOperationMessage_ResponseParsingError {
+            get {
+                return ResourceManager.GetString("ErrorOperationMessage_ResponseParsingError", resourceCulture);
             }
         }
     }

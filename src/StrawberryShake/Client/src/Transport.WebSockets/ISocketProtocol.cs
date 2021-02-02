@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using StrawberryShake.Transport.WebSockets.Messages;
 
-namespace StrawberryShake.Transport
+namespace StrawberryShake.Transport.WebSockets
 {
     /// <summary>
     /// Delegate that is invoked whenever a message is received by the protocol

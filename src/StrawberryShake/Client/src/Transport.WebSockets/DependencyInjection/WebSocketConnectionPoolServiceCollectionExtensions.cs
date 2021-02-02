@@ -1,17 +1,17 @@
 using System;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using StrawberryShake.Transport.WebSockets;
 
-namespace StrawberryShake.Transport.WebSockets
+namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
     /// Extensions methods to configure an <see cref="IServiceCollection"/> for
-    /// <see cref="ISocketClientPool"/>.
+    /// <see cref="ISocketSessionPool"/>.
     /// </summary>
     public static class WebSocketClientPoolServiceCollectionExtensions
     {
         /// <summary>
-        /// Registers the <see cref="ISocketClientPool"/> on the <see cref="IServiceCollection"/>
+        /// Registers the <see cref="ISocketSessionPool"/> on the <see cref="IServiceCollection"/>
         /// </summary>
         /// <param name="services">
         /// The <see cref="IServiceCollection"/>
@@ -29,7 +29,7 @@ namespace StrawberryShake.Transport.WebSockets
                 throw new ArgumentNullException(nameof(services));
             }
 
-            services.TryAddSingleton<ISocketClientPool, SocketClientPool>();
+            services.TryAddSingleton<ISocketSessionPool, SocketSessionPool>();
             return services;
         }
     }

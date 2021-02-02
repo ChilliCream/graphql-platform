@@ -1,9 +1,8 @@
 using System;
 using StrawberryShake.Transport.Http;
-using StrawberryShake.Transport.WebSockets;
-using static StrawberryShake.Transport.GraphQLWebSocketMessageTypeSpans;
+using static StrawberryShake.Transport.WebSockets.Protocol.GraphQLWebSocketMessageTypeSpans;
 
-namespace StrawberryShake.Transport
+namespace StrawberryShake.Transport.WebSockets.Protocol
 {
     /// <summary>
     /// Common extension of the <see cref="SocketMessageWriter"/> for

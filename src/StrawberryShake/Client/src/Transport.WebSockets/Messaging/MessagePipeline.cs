@@ -2,9 +2,8 @@ using System;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
-using StrawberryShake.Transport;
 
-namespace StrawberryShake.Http.Subscriptions
+namespace StrawberryShake.Transport.WebSockets
 {
     /// <summary>
     /// Subscribes to a <see cref="ISocketClient"/> to receive data and pipes it through a

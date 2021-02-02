@@ -23,7 +23,7 @@ namespace StrawberryShake.Transport.WebSockets
             // assert
             Assert.Single(
                 services.BuildServiceProvider()
-                    .GetRequiredService<IEnumerable<ISocketClientPool>>());
+                    .GetRequiredService<IEnumerable<ISocketSessionPool>>());
         }
 
         [Fact]

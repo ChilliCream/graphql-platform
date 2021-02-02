@@ -1,7 +1,7 @@
 using System;
 using System.Buffers;
 
-namespace StrawberryShake.Transport
+namespace StrawberryShake.Transport.WebSockets
 {
     /// <summary>
     /// Represents a output sink into which bytes can be written.

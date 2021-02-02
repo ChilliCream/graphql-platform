@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using StrawberryShake.Http.Subscriptions;
+using StrawberryShake.Transport.WebSockets.Protocol;
 using Xunit;
 
 namespace StrawberryShake.Transport.WebSockets
@@ -40,20 +41,19 @@ namespace StrawberryShake.Transport.WebSockets
             IServiceProvider services =
                 serviceCollection.BuildServiceProvider();
 
-            ISocketClientPool connectionPool =
-                services.GetRequiredService<ISocketClientPool>();
+            ISocketSessionPool socketSessionPool =
+                services.GetRequiredService<ISocketSessionPool>();
 
             List<JsonDocument> results = new();
             MockDocument document = new("subscription Test { onTest(id:1) }");
             OperationRequest request = new("Test", document);
 
             // act
-            ISocketClient socketClient = await connectionPool.RentAsync("Foo", ct);
+            ISessionManager sessionManager = await socketSessionPool.RentAsync("Foo", ct);
 
             try
             {
-                await using var manager = new SocketOperationManager(socketClient);
-                var connection = new WebSocketConnection(manager);
+                var connection = new WebSocketConnection(sessionManager);
                 await foreach (var response in connection.ExecuteAsync(request, ct))
                 {
                     if (response.Body is not null)
@@ -69,7 +69,7 @@ namespace StrawberryShake.Transport.WebSockets
             }
             finally
             {
-                await connectionPool.ReturnAsync(socketClient, ct);
+                await socketSessionPool.ReturnAsync(sessionManager, ct);
             }
 
 
@@ -94,36 +94,30 @@ namespace StrawberryShake.Transport.WebSockets
             IServiceProvider services =
                 serviceCollection.BuildServiceProvider();
 
-            ISocketClientPool connectionPool =
-                services.GetRequiredService<ISocketClientPool>();
+            ISocketSessionPool socketSessionPool =
+                services.GetRequiredService<ISocketSessionPool>();
 
             List<JsonDocument> results = new();
             MockDocument document = new("subscription Test { onTest }");
             OperationRequest request = new("Test", document);
 
             // act
-            ISocketClient socketClient = await connectionPool.RentAsync("Foo", ct);
+            ISessionManager sessionManager = await socketSessionPool.RentAsync("Foo", ct);
 
             try
             {
-                await using var manager = new SocketOperationManager(socketClient);
-                var connection = new WebSocketConnection(manager);
+                var connection = new WebSocketConnection(sessionManager);
                 await foreach (var response in connection.ExecuteAsync(request, ct))
                 {
                     if (response.Body is not null)
                     {
                         results.Add(response.Body);
                     }
-
-                    if (results.Count == 10)
-                    {
-                        break;
-                    }
                 }
             }
             finally
             {
-                await connectionPool.ReturnAsync(socketClient, ct);
+                await socketSessionPool.ReturnAsync(sessionManager, ct);
             }
 
 
@@ -148,36 +142,30 @@ namespace StrawberryShake.Transport.WebSockets
             IServiceProvider services =
                 serviceCollection.BuildServiceProvider();
 
-            ISocketClientPool connectionPool =
-                services.GetRequiredService<ISocketClientPool>();
+            ISocketSessionPool socketSessionPool =
+                services.GetRequiredService<ISocketSessionPool>();
 
             List<JsonDocument> results = new();
             MockDocument document = new(@"subscription Test { onTest(id:""Foo"") }");
             OperationRequest request = new("Test", document);
 
             // act
-            ISocketClient socketClient = await connectionPool.RentAsync("Foo", ct);
+            ISessionManager sessionManager = await socketSessionPool.RentAsync("Foo", ct);
 
             try
             {
-                await using var manager = new SocketOperationManager(socketClient);
-                var connection = new WebSocketConnection(manager);
+                var connection = new WebSocketConnection(sessionManager);
                 await foreach (var response in connection.ExecuteAsync(request, ct))
                 {
                     if (response.Body is not null)
                     {
                         results.Add(response.Body);
                     }
-
-                    if (results.Count == 10)
-                    {
-                        break;
-                    }
                 }
             }
             finally
             {
-                await connectionPool.ReturnAsync(socketClient, ct);
+                await socketSessionPool.ReturnAsync(sessionManager, ct);
             }
 
 
@@ -203,14 +191,13 @@ namespace StrawberryShake.Transport.WebSockets
                     c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
             IServiceProvider services = serviceCollection.BuildServiceProvider();
 
-            ISocketClientPool connectionPool = services.GetRequiredService<ISocketClientPool>();
+            ISocketSessionPool socketSessionPool = services.GetRequiredService<ISocketSessionPool>();
             ConcurrentDictionary<int, List<JsonDocument>> results = new();
 
 
             // act
-            ISocketClient socketClient = await connectionPool.RentAsync("Foo", ct);
-            await using var manager = new SocketOperationManager(socketClient);
-            var connection = new WebSocketConnection(manager);
+            ISessionManager sessionManager = await socketSessionPool.RentAsync("Foo", ct);
+            var connection = new WebSocketConnection(sessionManager);
 
             try
             {
@@ -252,7 +239,7 @@ namespace StrawberryShake.Transport.WebSockets
             }
             finally
             {
-                await connectionPool.ReturnAsync(socketClient, ct);
+                await socketSessionPool.ReturnAsync(sessionManager, ct);
             }
 
             // assert

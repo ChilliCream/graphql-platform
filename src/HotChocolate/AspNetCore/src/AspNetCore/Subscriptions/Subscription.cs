@@ -1,7 +1,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Properties;
 using HotChocolate.AspNetCore.Subscriptions.Messages;
 using HotChocolate.Execution;
 

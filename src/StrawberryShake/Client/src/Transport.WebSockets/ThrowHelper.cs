@@ -42,13 +42,16 @@ namespace StrawberryShake.Transport.WebSockets
         public static SocketOperationException SocketClient_ProtocolNotFound(string protocolName) =>
             new(string.Format(Resources.SocketClient_ProtocolNotFound, protocolName));
 
-        public static SocketOperationException OperationManager_SocketWasNotInitialized(
+        public static SocketOperationException SessionManager_SocketWasNotInitialized(
             string socketName) =>
-            new(string.Format(Resources.OperationManager_SocketWasNotInitialized, socketName));
+            new(string.Format(Resources.SessionManager_SocketWasNotInitialized, socketName));
 
-        public static SocketOperationException OperationManager_OperationWasAlreadyRegistered(
+        public static SocketOperationException SessionManager_SessionIsNotOpen() =>
+            new(Resources.SessionManager_SessionIsNotOpen);
+
+        public static SocketOperationException SessionManager_OperationWasAlreadyRegistered(
             string operationId) =>
-            new(string.Format(Resources.OperationManager_OperationWasAlreadyRegistered,
+            new(string.Format(Resources.SessionManager_OperationWasAlreadyRegistered,
                 operationId));
 
         public static ArgumentException SocketClientPool_ClientNotFromPool(string argumentName) =>

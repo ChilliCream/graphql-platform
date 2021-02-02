@@ -1,4 +1,4 @@
-namespace StrawberryShake.Transport
+namespace StrawberryShake.Transport.WebSockets
 {
     /// <summary>
     /// Represents the different status that a socket can be closed by

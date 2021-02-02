@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualBasic;
 using Snapshooter.Xunit;
 using StrawberryShake.Transport.WebSockets.Messages;
+using StrawberryShake.Transport.WebSockets.Protocol;
 using Xunit;
 
 namespace StrawberryShake.Transport.WebSockets

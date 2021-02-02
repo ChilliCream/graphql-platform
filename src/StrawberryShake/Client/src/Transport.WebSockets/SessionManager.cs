@@ -3,33 +3,31 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using StrawberryShake.Properties;
 using StrawberryShake.Transport.WebSockets.Messages;
 
 namespace StrawberryShake.Transport.WebSockets
 {
     /// <inheritdoc />
-    public sealed class SocketOperationManager : ISocketOperationManager
+    public sealed class SessionManager : ISessionManager
     {
-        private readonly ISocketProtocol _socketProtocol;
+        private readonly ISocketClient _socketClient;
+        private ISocketProtocol? _socketProtocol;
         private readonly ConcurrentDictionary<string, SocketOperation> _operations = new();
 
         private bool _disposed;
 
         /// <summary>
-        /// Creates a new instance <see cref="SocketOperationManager"/>
+        /// Creates a new instance <see cref="SessionManager"/>
         /// </summary>
-        public SocketOperationManager(ISocketClient socketClient)
+        public SessionManager(ISocketClient socketClient)
         {
-            if (socketClient is null)
-            {
+            _socketClient = socketClient ??
                 throw new ArgumentNullException(nameof(socketClient));
-            }
-
-            socketClient.TryGetProtocol(out ISocketProtocol? socketProtocol);
-            _socketProtocol = socketProtocol ??
-                throw ThrowHelper.OperationManager_SocketWasNotInitialized(socketClient.Name);
-            _socketProtocol.Subscribe(ReceiveMessage);
         }
+
+        /// <inheritdoc />
+        public string Name => _socketClient.Name;
 
         /// <inheritdoc />
         public Task<ISocketOperation> StartOperationAsync(
@@ -44,19 +42,20 @@ namespace StrawberryShake.Transport.WebSockets
             return StartOperationAsyncInternal(request, cancellationToken);
         }
 
-
         private async Task<ISocketOperation> StartOperationAsyncInternal(
             OperationRequest request,
             CancellationToken cancellationToken)
         {
+            EnsureSession(out var socketProtocol);
+
             var operation = new SocketOperation(this);
             if (_operations.TryAdd(operation.Id, operation))
             {
                 try
                 {
-                    _socketProtocol.Disposed += (sender, args) => StopOperationAsync(operation.Id);
+                    socketProtocol.Disposed += (sender, args) => StopOperationAsync(operation.Id);
 
-                    await _socketProtocol
+                    await socketProtocol
                         .StartOperationAsync(operation.Id, request, cancellationToken)
                         .ConfigureAwait(false);
                 }
@@ -68,7 +67,7 @@ namespace StrawberryShake.Transport.WebSockets
             }
             else
             {
-                throw ThrowHelper.OperationManager_OperationWasAlreadyRegistered(operation.Id);
+                throw ThrowHelper.SessionManager_OperationWasAlreadyRegistered(operation.Id);
             }
 
             return operation;
@@ -79,14 +78,38 @@ namespace StrawberryShake.Transport.WebSockets
             string operationId,
             CancellationToken cancellationToken = default)
         {
+            EnsureSession(out var socketProtocol);
+
             if (_operations.TryRemove(operationId, out var operation))
             {
-                await _socketProtocol
+                await socketProtocol
                     .StopOperationAsync(operationId, cancellationToken)
                     .ConfigureAwait(false);
 
                 await operation.DisposeAsync().ConfigureAwait(false);
             }
+        }
+
+        /// <inheritdoc />
+        public async Task OpenSessionAsync(CancellationToken cancellationToken = default)
+        {
+            ISocketProtocol socketProtocol = await _socketClient.OpenAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            _socketProtocol = socketProtocol ??
+                throw ThrowHelper.SessionManager_SocketWasNotInitialized(_socketClient.Name);
+
+            _socketProtocol.Subscribe(ReceiveMessage);
+        }
+
+        /// <inheritdoc />
+        public async Task CloseSessionAsync(CancellationToken cancellationToken = default)
+        {
+            await _socketClient.CloseAsync(
+                    Resources.SocketClient_AllOperationsFinished,
+                    SocketCloseStatus.NormalClosure,
+                    cancellationToken)
+                .ConfigureAwait(false);
         }
 
         /// <summary>
@@ -108,6 +131,12 @@ namespace StrawberryShake.Transport.WebSockets
             }
         }
 
+        private void EnsureSession(out ISocketProtocol socketProtocol)
+        {
+            socketProtocol = _socketProtocol ??
+                throw ThrowHelper.SessionManager_SessionIsNotOpen();
+        }
+
         /// <inheritdoc />
         public async ValueTask DisposeAsync()
         {
@@ -126,7 +155,8 @@ namespace StrawberryShake.Transport.WebSockets
                     _operations.Clear();
                 }
 
-                _socketProtocol.Unsubscribe(ReceiveMessage);
+                _socketProtocol?.Unsubscribe(ReceiveMessage);
+                await _socketClient.DisposeAsync();
             }
         }
     }

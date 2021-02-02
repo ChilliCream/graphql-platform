@@ -69,7 +69,7 @@ namespace StrawberryShake.Transport.WebSockets
             // arrange
             // act
             // assert
-            ErrorOperationMessage.ConnectionError.MatchSnapshot();
+            ErrorOperationMessage.ConnectionInitializationError.MatchSnapshot();
         }
 
         [Fact]

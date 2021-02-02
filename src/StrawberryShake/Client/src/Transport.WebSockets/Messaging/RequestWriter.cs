@@ -1,7 +1,7 @@
 using System;
 using System.Buffers;
 
-namespace StrawberryShake.Transport
+namespace StrawberryShake.Transport.WebSockets
 {
     /// <inheritdoc />
     public class RequestWriter

@@ -1,6 +1,6 @@
 using System.Net.WebSockets;
 
-namespace StrawberryShake.Transport
+namespace StrawberryShake.Transport.WebSockets
 {
     /// <summary>
     /// A factory abstraction for a component that can create <see cref="ClientWebSocket"/>

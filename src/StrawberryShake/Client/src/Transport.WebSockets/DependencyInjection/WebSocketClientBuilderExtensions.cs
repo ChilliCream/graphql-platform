@@ -1,8 +1,8 @@
 using System;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using StrawberryShake.Transport.WebSockets;
 
-namespace StrawberryShake.Transport.WebSockets
+namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
     /// Extension methods for configuring an <see cref="IWebSocketClientBuilder"/>

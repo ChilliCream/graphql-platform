@@ -1,5 +1,3 @@
-using StrawberryShake.Transport.WebSockets;
-
 namespace StrawberryShake.Transport.WebSockets.Messages
 {
     /// <summary>

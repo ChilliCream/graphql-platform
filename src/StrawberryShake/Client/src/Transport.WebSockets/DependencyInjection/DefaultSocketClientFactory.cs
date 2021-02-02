@@ -21,8 +21,8 @@ namespace StrawberryShake.Transport.WebSockets
             IOptionsMonitor<SocketClientFactoryOptions> optionsMonitor,
             IEnumerable<ISocketProtocolFactory> protocolFactories)
         {
-            _optionsMonitor =
-                optionsMonitor ?? throw new ArgumentNullException(nameof(optionsMonitor));
+            _optionsMonitor = optionsMonitor ??
+                throw new ArgumentNullException(nameof(optionsMonitor));
             _protocolFactories = protocolFactories?.ToArray() ??
                 throw new ArgumentNullException(nameof(protocolFactories));
         }

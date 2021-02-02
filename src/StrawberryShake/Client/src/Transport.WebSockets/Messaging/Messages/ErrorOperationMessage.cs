@@ -1,4 +1,5 @@
 using System;
+using StrawberryShake.Properties;
 
 namespace StrawberryShake.Transport.WebSockets.Messages
 {
@@ -19,13 +20,31 @@ namespace StrawberryShake.Transport.WebSockets.Messages
         /// </summary>
         public string Message { get; }
 
+        /// <summary>
+        /// Default unexpected server error
+        /// <remarks>
+        /// There was a unexpected error on the server
+        /// </remarks>
+        /// </summary>
         public static readonly ErrorOperationMessage UnexpectedServerError =
-            new("Unexpected Server Error");
+            new(Resources.ErrorOperationMessage_UnexpectedServerError);
 
-        public static readonly ErrorOperationMessage ConnectionError =
-            new("Connection initialization failed. Could not connect to server");
+        /// <summary>
+        /// Default connection error
+        /// <remarks>
+        /// Connection initialization failed. Could not connect to server
+        /// </remarks>
+        /// </summary>
+        public static readonly ErrorOperationMessage ConnectionInitializationError =
+            new(Resources.ErrorOperationMessage_ConnectionInitializationError);
 
-        public static readonly ErrorOperationMessage ParsingOfResponseFailed =
-            new("Could not parse the message");
+        /// <summary>
+        /// Defaults response parsing error
+        /// <remarks>
+        /// Could not parse the response of the server
+        /// </remarks>
+        /// </summary>
+        public static readonly ErrorOperationMessage ResponseParsingError =
+            new(Resources.ErrorOperationMessage_ResponseParsingError);
     }
 }
