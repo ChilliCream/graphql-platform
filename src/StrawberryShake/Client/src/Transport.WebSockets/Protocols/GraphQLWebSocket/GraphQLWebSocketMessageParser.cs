@@ -122,12 +122,7 @@ namespace StrawberryShake.Http.Subscriptions
                 case _p:
                     if (fieldName.SequenceEqual(Payload))
                     {
-                        var start = _reader.TokenStartIndex;
-                        _reader.Skip();
-                        var end = _reader.BytesConsumed;
-
-                        message.Payload =
-                            _messageData.Slice((int)start, (int)(end - start));
+                        message.Payload = JsonDocument.ParseValue(ref _reader);
                     }
 
                     break;
@@ -190,7 +185,8 @@ namespace StrawberryShake.Http.Subscriptions
 
                     break;
                 case _c when typeName[11] is _i:
-                    if (typeName.SequenceEqual(GraphQLWebSocketMessageTypeSpans.ConnectionInitialize))
+                    if (typeName.SequenceEqual(
+                        GraphQLWebSocketMessageTypeSpans.ConnectionInitialize))
                     {
                         return GraphQLWebSocketMessageType.ConnectionInit;
                     }
@@ -211,7 +207,8 @@ namespace StrawberryShake.Http.Subscriptions
 
                     break;
                 case _c when typeName[11] is _t:
-                    if (typeName.SequenceEqual(GraphQLWebSocketMessageTypeSpans.ConnectionTerminate))
+                    if (typeName.SequenceEqual(GraphQLWebSocketMessageTypeSpans.ConnectionTerminate)
+                    )
                     {
                         return GraphQLWebSocketMessageType.ConnectionTerminate;
                     }

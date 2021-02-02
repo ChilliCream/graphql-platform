@@ -1,4 +1,4 @@
-using System.Buffers;
+using System.Text.Json;
 using StrawberryShake.Transport;
 using StrawberryShake.Transport.WebSockets;
 
@@ -23,6 +23,6 @@ namespace StrawberryShake.Http.Subscriptions
         /// <summary>
         /// The payload of the message
         /// </summary>
-        public ReadOnlySequence<byte> Payload { get; set; }
+        public JsonDocument Payload { get; set; }
     }
 }

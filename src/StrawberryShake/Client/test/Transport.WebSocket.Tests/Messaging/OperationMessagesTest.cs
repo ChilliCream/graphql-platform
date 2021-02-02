@@ -1,6 +1,7 @@
 using System;
 using System.Buffers;
 using System.Text;
+using System.Text.Json;
 using Snapshooter.Xunit;
 using StrawberryShake.Transport.WebSockets.Messages;
 using Xunit;
@@ -75,11 +76,11 @@ namespace StrawberryShake.Transport.WebSockets
         public void JsonDocumentOperationMessage_FromBytes_IsMatch()
         {
             // arrange
-            var message =
-                new ReadOnlySequence<byte>(Encoding.UTF8.GetBytes(@"{ ""Foo"": ""Bar""}"));
+            var message = JsonDocument.Parse(@"{ ""Foo"": ""Bar""}");
 
             // act
-            OperationMessage operationMessage = new DataDocumentOperationMessage(message.First);
+            OperationMessage operationMessage =
+                new DataDocumentOperationMessage<JsonDocument>(message);
 
             // assert
             operationMessage.MatchSnapshot();

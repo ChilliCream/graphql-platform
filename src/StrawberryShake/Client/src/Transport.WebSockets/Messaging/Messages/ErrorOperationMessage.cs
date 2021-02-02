@@ -24,5 +24,8 @@ namespace StrawberryShake.Transport.WebSockets.Messages
 
         public static readonly ErrorOperationMessage ConnectionError =
             new("Connection initialization failed. Could not connect to server");
+
+        public static readonly ErrorOperationMessage ParsingOfResponseFailed =
+            new("Could not parse the message");
     }
 }

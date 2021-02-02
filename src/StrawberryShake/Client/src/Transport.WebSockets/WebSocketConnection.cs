@@ -1,5 +1,4 @@
 using System;
-using System.Buffers;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
@@ -43,25 +42,9 @@ namespace StrawberryShake.Http.Subscriptions
             {
                 switch (message.Type)
                 {
-                    case OperationMessageType.Data when message is DataDocumentOperationMessage msg:
-                        Exception? exception = null;
-                        JsonDocument? document = null;
-                        try
-                        {
-                            document = msg.ParseDocument();
-                        }
-                        catch (Exception ex)
-                        {
-                            exception = ex;
-                        }
-
-                        yield return new Response<JsonDocument>(document, exception);
-
-                        if (exception is not null)
-                        {
-                            yield break;
-                        }
-
+                    case OperationMessageType.Data
+                        when message is DataDocumentOperationMessage<JsonDocument> msg:
+                        yield return new Response<JsonDocument>(msg.Payload, null);
                         break;
                     case OperationMessageType.Error when message is ErrorOperationMessage msg:
                         yield return new Response<JsonDocument>(

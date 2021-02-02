@@ -2,6 +2,7 @@ using System;
 using System.Buffers;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using StrawberryShake.Http.Subscriptions;
@@ -117,11 +118,9 @@ namespace StrawberryShake.Transport.WebSockets
                         case GraphQLWebSocketMessageType.Data:
                             return Notify(
                                 id,
-                                // TODO: This copies the data into an array. This is needed because the read only sequence would be
-                                // out of data once it arrives in the socket operation.
-                                // We would need to pass the content serializer into the protcol to avoid this
-                                new DataDocumentOperationMessage(message.Payload.ToArray()),
+                                new DataDocumentOperationMessage<JsonDocument>(message.Payload),
                                 cancellationToken);
+
                         case GraphQLWebSocketMessageType.Complete:
                             return Notify(
                                 id,

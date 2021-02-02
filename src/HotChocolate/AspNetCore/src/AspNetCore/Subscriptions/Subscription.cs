@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.AspNetCore.Properties;
 using HotChocolate.AspNetCore.Subscriptions.Messages;
 using HotChocolate.Execution;
 
@@ -56,15 +57,30 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     Completed?.Invoke(this, EventArgs.Empty);
                 }
             }
-            catch(OperationCanceledException){}
-            catch(ObjectDisposedException){}
+            catch (OperationCanceledException) { }
+            catch (ObjectDisposedException) { }
             catch (Exception ex)
             {
                 if (!_cts.IsCancellationRequested)
                 {
-                    //TODO Send error
-                    await _connection.SendAsync(new DataErrorMessage(Id), _cts.Token);
-                    Completed?.Invoke(this, EventArgs.Empty);
+                    IError error =
+                        ErrorBuilder
+                            .New()
+                            .SetException(ex)
+                            .SetCode(ErrorCodes.Execution.TaskProcessingError)
+                            .SetMessage("Unexpected Execution Error")
+                            .Build();
+
+                    IQueryResult result = QueryResultBuilder.CreateError(error);
+                    try
+                    {
+                        await _connection.SendAsync(new DataResultMessage(Id, result), _cts.Token);
+                    }
+                    finally
+                    {
+                        await _connection.SendAsync(new DataCompleteMessage(Id), _cts.Token);
+                        Completed?.Invoke(this, EventArgs.Empty);
+                    }
                 }
             }
             finally
@@ -81,6 +97,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 {
                     _cts.Cancel();
                 }
+
                 _cts.Dispose();
                 _disposed = true;
             }

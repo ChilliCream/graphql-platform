@@ -128,7 +128,7 @@ namespace StrawberryShake.Transport.WebSockets
             // assert
             Assert.Equal(GraphQLWebSocketMessageType.Data, parsed.Type);
             Assert.Equal("123", parsed.Id);
-            Assert.Equal(@"""payload""", Encoding.UTF8.GetString(parsed.Payload.FirstSpan));
+            Assert.Equal("payload", parsed.Payload.RootElement.ToString());
         }
 
         [Fact]
@@ -144,7 +144,7 @@ namespace StrawberryShake.Transport.WebSockets
             // assert
             Assert.Equal(GraphQLWebSocketMessageType.Error, parsed.Type);
             Assert.Equal("123", parsed.Id);
-            Assert.Equal(@"""payload""", Encoding.UTF8.GetString(parsed.Payload.FirstSpan));
+            Assert.Equal("payload", parsed.Payload.RootElement.ToString());
         }
 
         [Fact]
@@ -160,7 +160,7 @@ namespace StrawberryShake.Transport.WebSockets
             // assert
             Assert.Equal(GraphQLWebSocketMessageType.Start, parsed.Type);
             Assert.Equal("123", parsed.Id);
-            Assert.Equal(@"""payload""", Encoding.UTF8.GetString(parsed.Payload.FirstSpan));
+            Assert.Equal("payload", parsed.Payload.RootElement.ToString());
         }
 
         [Fact]
@@ -233,7 +233,7 @@ namespace StrawberryShake.Transport.WebSockets
 
             // assert
             Assert.Equal(GraphQLWebSocketMessageType.ConnectionError, parsed.Type);
-            Assert.Equal(@"""payload""", Encoding.UTF8.GetString(parsed.Payload.FirstSpan));
+            Assert.Equal("payload", parsed.Payload.RootElement.ToString());
         }
 
         [Fact]

@@ -79,9 +79,9 @@ namespace StrawberryShake.Transport.WebSockets
             async IAsyncEnumerable<OperationMessage> Producer(
                 [EnumeratorCancellation] CancellationToken cancellationToken = default)
             {
-                var messageData = Encoding.UTF8.GetBytes(@"{""Foo"": ""Bar""}");
+                var messageData = JsonDocument.Parse(@"{""Foo"": ""Bar""}");
                 var msg =
-                    new DataDocumentOperationMessage(new ReadOnlyMemory<byte>(messageData));
+                    new DataDocumentOperationMessage<JsonDocument>(messageData);
                 yield return msg;
             }
 
@@ -104,41 +104,6 @@ namespace StrawberryShake.Transport.WebSockets
 
             // assert
             Assert.Single(results)!.Body!.RootElement!.MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task ExecuteAsync_DataInvalid_ParseJson()
-        {
-            // arrange
-            async IAsyncEnumerable<OperationMessage> Producer(
-                [EnumeratorCancellation] CancellationToken cancellationToken = default)
-            {
-                var messageData = Encoding.UTF8.GetBytes(@"{""Foo""}");
-                var msg =
-                    new DataDocumentOperationMessage(new ReadOnlyMemory<byte>(messageData));
-                yield return msg;
-            }
-
-            var operationRequest = new OperationRequest("foo", GetHeroQueryDocument.Instance);
-            var managerMock = new Mock<ISocketOperationManager>();
-            var operationMock = new Mock<ISocketOperation>();
-            managerMock
-                .Setup(x => x.StartOperationAsync(operationRequest, CancellationToken.None))
-                .ReturnsAsync(operationMock.Object);
-            operationMock.Setup(x => x.ReadAsync(default)).Returns(Producer());
-            ISocketOperationManager manager = managerMock.Object;
-            var connection = new WebSocketConnection(manager);
-            var results = new List<Response<JsonDocument>>();
-
-            // act
-            await foreach (var response in connection.ExecuteAsync(operationRequest))
-            {
-                results.Add(response);
-            }
-
-            // assert
-            Response<JsonDocument>? res = Assert.Single(results);
-            res?.Exception?.Message.MatchSnapshot();
         }
 
         [Fact]

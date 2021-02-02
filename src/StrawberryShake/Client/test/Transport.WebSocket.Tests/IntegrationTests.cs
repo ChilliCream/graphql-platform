@@ -27,6 +27,7 @@ namespace StrawberryShake.Transport.WebSockets
         public async Task Simple_Request()
         {
             // arrange
+            CancellationToken ct = new CancellationTokenSource(20_000).Token;
             using IWebHost host = TestServerHelper.CreateServer(
                 x => x.AddTypeExtension<StringSubscriptionExtensions>(),
                 out int port);
@@ -47,14 +48,13 @@ namespace StrawberryShake.Transport.WebSockets
             OperationRequest request = new("Test", document);
 
             // act
-            ISocketClient socketClient = await connectionPool.RentAsync("Foo");
+            ISocketClient socketClient = await connectionPool.RentAsync("Foo", ct);
 
             try
             {
                 await using var manager = new SocketOperationManager(socketClient);
                 var connection = new WebSocketConnection(manager);
-                await foreach (var response in connection
-                    .ExecuteAsync(request, new CancellationTokenSource(1000_000).Token))
+                await foreach (var response in connection.ExecuteAsync(request, ct))
                 {
                     if (response.Body is not null)
                     {
@@ -69,7 +69,7 @@ namespace StrawberryShake.Transport.WebSockets
             }
             finally
             {
-                await connectionPool.ReturnAsync(socketClient);
+                await connectionPool.ReturnAsync(socketClient, ct);
             }
 
 
@@ -81,6 +81,7 @@ namespace StrawberryShake.Transport.WebSockets
         public async Task Execution_Error()
         {
             // arrange
+            CancellationToken ct = new CancellationTokenSource(20_000).Token;
             using IWebHost host = TestServerHelper.CreateServer(
                 x => x.AddTypeExtension<StringSubscriptionExtensions>(),
                 out int port);
@@ -101,14 +102,13 @@ namespace StrawberryShake.Transport.WebSockets
             OperationRequest request = new("Test", document);
 
             // act
-            ISocketClient socketClient = await connectionPool.RentAsync("Foo");
+            ISocketClient socketClient = await connectionPool.RentAsync("Foo", ct);
 
             try
             {
                 await using var manager = new SocketOperationManager(socketClient);
                 var connection = new WebSocketConnection(manager);
-                await foreach (var response in connection
-                    .ExecuteAsync(request, new CancellationTokenSource(1000_000).Token))
+                await foreach (var response in connection.ExecuteAsync(request, ct))
                 {
                     if (response.Body is not null)
                     {
@@ -123,7 +123,7 @@ namespace StrawberryShake.Transport.WebSockets
             }
             finally
             {
-                await connectionPool.ReturnAsync(socketClient);
+                await connectionPool.ReturnAsync(socketClient, ct);
             }
 
 
@@ -135,6 +135,7 @@ namespace StrawberryShake.Transport.WebSockets
         public async Task Validation_Error()
         {
             // arrange
+            CancellationToken ct = new CancellationTokenSource(30_000).Token;
             using IWebHost host = TestServerHelper.CreateServer(
                 x => x.AddTypeExtension<StringSubscriptionExtensions>(),
                 out int port);
@@ -155,14 +156,13 @@ namespace StrawberryShake.Transport.WebSockets
             OperationRequest request = new("Test", document);
 
             // act
-            ISocketClient socketClient = await connectionPool.RentAsync("Foo");
+            ISocketClient socketClient = await connectionPool.RentAsync("Foo", ct);
 
             try
             {
                 await using var manager = new SocketOperationManager(socketClient);
                 var connection = new WebSocketConnection(manager);
-                await foreach (var response in connection
-                    .ExecuteAsync(request, new CancellationTokenSource(1000_000).Token))
+                await foreach (var response in connection.ExecuteAsync(request, ct))
                 {
                     if (response.Body is not null)
                     {
@@ -177,7 +177,7 @@ namespace StrawberryShake.Transport.WebSockets
             }
             finally
             {
-                await connectionPool.ReturnAsync(socketClient);
+                await connectionPool.ReturnAsync(socketClient, ct);
             }
 
 
@@ -189,6 +189,7 @@ namespace StrawberryShake.Transport.WebSockets
         public async Task Parallel_Request()
         {
             // arrange
+            CancellationToken ct = new CancellationTokenSource(20_000).Token;
             using IWebHost host = TestServerHelper
                 .CreateServer(
                     x => x.AddTypeExtension<StringSubscriptionExtensions>(),
@@ -207,7 +208,7 @@ namespace StrawberryShake.Transport.WebSockets
 
 
             // act
-            ISocketClient socketClient = await connectionPool.RentAsync("Foo");
+            ISocketClient socketClient = await connectionPool.RentAsync("Foo", ct);
             await using var manager = new SocketOperationManager(socketClient);
             var connection = new WebSocketConnection(manager);
 
@@ -218,7 +219,7 @@ namespace StrawberryShake.Transport.WebSockets
                     var document =
                         new MockDocument($"subscription Test {{ onTest(id:{id.ToString()}) }}");
                     var request = new OperationRequest("Test", document);
-                    await foreach (var response in connection.ExecuteAsync(request))
+                    await foreach (var response in connection.ExecuteAsync(request, ct))
                     {
                         if (response.Body is not null)
                         {
@@ -239,23 +240,42 @@ namespace StrawberryShake.Transport.WebSockets
                 }
 
                 var list = new List<Task>();
-                for (var i = 0; i < 50; i++)
+                for (var i = 0; i < 150; i++)
                 {
                     list.Add(CreateSubscription(i));
                 }
 
                 await Task.WhenAll(list);
             }
+            catch (Exception ex)
+            {
+            }
             finally
             {
-                await connectionPool.ReturnAsync(socketClient);
+                await connectionPool.ReturnAsync(socketClient, ct);
             }
 
             // assert
-            results.Values
-                .SelectMany(x => x.Select(x => x.RootElement.ToString()).ToList())
-                .Aggregate((acc, res) => acc + "\n" + res)
-                .MatchSnapshot();
+            var str = "";
+            foreach (var sub in results)
+            {
+                JsonDocument[] jsonDocuments = sub.Value.ToArray();
+
+                Assert.Equal(10, jsonDocuments.Length);
+
+                for (var index = 0; index < jsonDocuments.Length; index++)
+                {
+                    JsonDocument? result = jsonDocuments[index];
+                    var res = result.RootElement.GetProperty("data")
+                        .GetProperty("onTest")
+                        .GetString()
+                        ?.Split("num");
+                    str += res[0] + "num" + res[1];
+                    Assert.Equal(sub.Key.ToString(), res?.FirstOrDefault());
+                    Assert.Equal(index.ToString(), res?.LastOrDefault());
+                }
+            }
+            str.MatchSnapshot();
         }
 
         [ExtendObjectType("Subscription")]

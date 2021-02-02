@@ -1,7 +1,8 @@
 ﻿{
   "Payload": {
-    "Length": 15,
-    "IsEmpty": false
+    "RootElement": {
+      "ValueKind": "Object"
+    }
   },
   "Type": "Data"
 }

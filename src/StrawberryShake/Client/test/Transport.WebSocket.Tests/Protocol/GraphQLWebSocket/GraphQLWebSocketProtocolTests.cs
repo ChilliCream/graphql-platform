@@ -1,5 +1,6 @@
 using System;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualBasic;
@@ -241,10 +242,10 @@ namespace StrawberryShake.Transport.WebSockets
             var protocol = new GraphQLWebSocketProtocol(socketClient);
             protocol.Subscribe((operationId, operationMessage, token) =>
             {
-                if (operationMessage is DataDocumentOperationMessage msg)
+                if (operationMessage is DataDocumentOperationMessage<JsonDocument> msg)
                 {
                     id = operationId;
-                    payload = Encoding.UTF8.GetString(msg.Payload.Span);
+                    payload = msg.Payload.RootElement.ToString();
                 }
 
                 semaphoreSlim.Release();
@@ -258,7 +259,7 @@ namespace StrawberryShake.Transport.WebSockets
 
             // assert
             Assert.Equal("123", id);
-            Assert.Equal(@"""Foo""", payload);
+            Assert.Equal("Foo", payload);
         }
 
         [Fact]
