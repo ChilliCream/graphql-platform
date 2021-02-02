@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Options;
@@ -20,8 +21,10 @@ namespace StrawberryShake.Transport.WebSockets
             IOptionsMonitor<SocketClientFactoryOptions> optionsMonitor,
             IEnumerable<ISocketProtocolFactory> protocolFactories)
         {
-            _optionsMonitor = optionsMonitor;
-            _protocolFactories = protocolFactories.ToArray();
+            _optionsMonitor =
+                optionsMonitor ?? throw new ArgumentNullException(nameof(optionsMonitor));
+            _protocolFactories = protocolFactories?.ToArray() ??
+                throw new ArgumentNullException(nameof(protocolFactories));
         }
 
         /// <inheritdoc />

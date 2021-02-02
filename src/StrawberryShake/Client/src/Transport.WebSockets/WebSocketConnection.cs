@@ -1,14 +1,14 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading;
-using StrawberryShake.Transport.Http;
-using StrawberryShake.Transport.Subscriptions;
+using StrawberryShake.Transport.WebSockets;
+using StrawberryShake.Transport.WebSockets.Messages;
 
 namespace StrawberryShake.Http.Subscriptions
 {
-
     /// <summary>
     /// A WebSocket connection to a GraphQL server and allows to execute requests against it.
     /// </summary>
@@ -22,7 +22,8 @@ namespace StrawberryShake.Http.Subscriptions
         /// <param name="operationManager"></param>
         public WebSocketConnection(ISocketOperationManager operationManager)
         {
-            _operationManager = operationManager ?? throw new ArgumentNullException(nameof(operationManager));
+            _operationManager = operationManager ??
+                throw new ArgumentNullException(nameof(operationManager));
         }
 
         /// <inheritdoc />
@@ -30,13 +31,53 @@ namespace StrawberryShake.Http.Subscriptions
             OperationRequest request,
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
-            await using SocketOperation operation =
+            if (request is null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            await using ISocketOperation operation =
                 await _operationManager.StartOperationAsync(request, cancellationToken);
 
-            await foreach (var result in operation.ReadAsync(cancellationToken))
+            await foreach (var message in operation.ReadAsync(cancellationToken))
             {
-                // TODO : Exception? --------------------------------V
-                yield return new Response<JsonDocument>(result, null);
+                switch (message.Type)
+                {
+                    case OperationMessageType.Data when message is DataDocumentOperationMessage msg:
+                        Exception? exception = null;
+                        JsonDocument? document = null;
+                        try
+                        {
+                            document = msg.ParseDocument();
+                        }
+                        catch (Exception ex)
+                        {
+                            exception = ex;
+                        }
+
+                        yield return new Response<JsonDocument>(document, exception);
+
+                        if (exception is not null)
+                        {
+                            yield break;
+                        }
+
+                        break;
+                    case OperationMessageType.Error when message is ErrorOperationMessage msg:
+                        yield return new Response<JsonDocument>(
+                            null,
+                            new SocketOperationException(msg.Message));
+                        yield break;
+                    case OperationMessageType.Cancelled:
+                        yield return new Response<JsonDocument>(
+                            null,
+                            new OperationCanceledException());
+                        yield break;
+                    case OperationMessageType.Complete:
+                        yield break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
             }
         }
     }

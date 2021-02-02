@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO.Pipelines;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
+using StrawberryShake.Properties;
 
 namespace StrawberryShake.Transport.WebSockets
 {
@@ -32,8 +34,9 @@ namespace StrawberryShake.Transport.WebSockets
             string name,
             IReadOnlyList<ISocketProtocolFactory> protocolFactories)
         {
-            _protocolFactories = protocolFactories;
-            _name = name;
+            _name = name ?? throw new ArgumentNullException(nameof(name));
+            _protocolFactories = protocolFactories ??
+                throw new ArgumentNullException(nameof(protocolFactories));
             _socket = new ClientWebSocket();
 
             for (var i = 0; i < _protocolFactories.Count; i++)
@@ -46,7 +49,7 @@ namespace StrawberryShake.Transport.WebSockets
         public Uri? Uri { get; set; }
 
         /// <inheritdoc />
-        public string? Name => _name;
+        public string Name => _name;
 
         /// <inheritdoc />
         public bool IsClosed =>
@@ -63,8 +66,7 @@ namespace StrawberryShake.Transport.WebSockets
 
             if (Uri is null)
             {
-                // TODO: Uri should not be null
-                throw new InvalidOperationException();
+                throw ThrowHelper.SocketClient_URIWasNotSpecified(Name);
             }
 
             await _socket.ConnectAsync(Uri, cancellationToken).ConfigureAwait(false);
@@ -81,13 +83,12 @@ namespace StrawberryShake.Transport.WebSockets
             if (_activeProtocol is null)
             {
                 await CloseAsync(
-                        "Failed to initialize protocol",
+                        Resources.SocketClient_FailedToInitializeProtocol,
                         SocketCloseStatus.ProtocolError,
                         cancellationToken)
                     .ConfigureAwait(false);
 
-                // TODO throw error
-                throw new InvalidOperationException();
+                throw ThrowHelper.SocketClient_ProtocolNotFound(_socket.SubProtocol ?? "null");
             }
 
             await _activeProtocol.InitializeAsync(cancellationToken).ConfigureAwait(false);
@@ -108,7 +109,16 @@ namespace StrawberryShake.Transport.WebSockets
 
                 if (_activeProtocol is not null)
                 {
-                    await _activeProtocol.TerminateAsync(cancellationToken).ConfigureAwait(false);
+                    try
+                    {
+                        await _activeProtocol.TerminateAsync(cancellationToken)
+                            .ConfigureAwait(false);
+                    }
+                    catch
+                    {
+                        // In case termination of the protocol failed we still want to close the
+                        // socket
+                    }
                 }
 
                 await _socket.CloseOutputAsync(
@@ -126,15 +136,16 @@ namespace StrawberryShake.Transport.WebSockets
         }
 
         /// <inheritdoc />
-        public ISocketProtocol GetProtocol()
+        public bool TryGetProtocol([NotNullWhen(true)] out ISocketProtocol? protocol )
         {
-            if (_activeProtocol is null)
+            if (!IsClosed && _activeProtocol is not null)
             {
-                // TODO: Connection not established
-                throw new InvalidOperationException();
+                protocol = _activeProtocol;
+                return true;
             }
 
-            return _activeProtocol;
+            protocol = null;
+            return false;
         }
 
         /// <inheritdoc />

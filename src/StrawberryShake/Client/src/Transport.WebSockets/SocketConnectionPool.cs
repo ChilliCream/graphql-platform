@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using StrawberryShake.Properties;
 
 namespace StrawberryShake.Transport.WebSockets
 {
@@ -10,7 +11,7 @@ namespace StrawberryShake.Transport.WebSockets
         : ISocketClientPool
     {
         private readonly SemaphoreSlim _semaphoreSlim = new(1, 1);
-        private readonly Dictionary<string, ClientInfo> _connections = new();
+        private readonly Dictionary<string, ClientInfo> _clients = new();
         private readonly ISocketClientFactory _socketClientFactory;
 
         private bool _disposed;
@@ -31,7 +32,7 @@ namespace StrawberryShake.Transport.WebSockets
 
             try
             {
-                if (_connections.TryGetValue(name, out ClientInfo? connectionInfo))
+                if (_clients.TryGetValue(name, out ClientInfo? connectionInfo))
                 {
                     connectionInfo.Rentals++;
                 }
@@ -42,7 +43,7 @@ namespace StrawberryShake.Transport.WebSockets
                     await connectionInfo.Client.OpenAsync(cancellationToken)
                         .ConfigureAwait(false);
 
-                    _connections.Add(name, connectionInfo);
+                    _clients.Add(name, connectionInfo);
                 }
 
                 return connectionInfo.Client;
@@ -55,31 +56,29 @@ namespace StrawberryShake.Transport.WebSockets
 
         /// <inheritdoc />
         public async Task ReturnAsync(
-            ISocketClient connection,
+            ISocketClient client,
             CancellationToken cancellationToken = default)
         {
             await _semaphoreSlim.WaitAsync(cancellationToken).ConfigureAwait(false);
 
             try
             {
-                if (_connections.TryGetValue(connection.Name, out ClientInfo? connectionInfo))
+                if (_clients.TryGetValue(client.Name, out ClientInfo? connectionInfo))
                 {
                     connectionInfo.Rentals--;
                 }
                 else
                 {
-                    throw new ArgumentException(
-                        "The specified connection does not belong to this pool.",
-                        nameof(connection));
+                    throw ThrowHelper.SocketClientPool_ClientNotFromPool(nameof(client));
                 }
 
                 if (connectionInfo.Rentals < 1)
                 {
                     try
                     {
-                        _connections.Remove(connection.Name);
-                        await connection.CloseAsync(
-                                "All subscriptions closed.",
+                        _clients.Remove(client.Name);
+                        await client.CloseAsync(
+                                Resources.SocketClient_AllOperationsFinished,
                                 SocketCloseStatus.NormalClosure,
                                 cancellationToken)
                             .ConfigureAwait(false);
@@ -90,7 +89,7 @@ namespace StrawberryShake.Transport.WebSockets
                     }
                     finally
                     {
-                        await connection.DisposeAsync();
+                        await client.DisposeAsync();
                     }
                 }
             }
@@ -104,11 +103,11 @@ namespace StrawberryShake.Transport.WebSockets
         {
             if (!_disposed)
             {
-                foreach (ClientInfo connection in _connections.Values)
+                foreach (ClientInfo connection in _clients.Values)
                 {
                     await connection.Client.DisposeAsync();
                 }
-                _connections.Clear();
+                _clients.Clear();
                 _disposed = true;
             }
         }

@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,7 +21,7 @@ namespace StrawberryShake.Transport
         /// <summary>
         /// The name of the socket
         /// </summary>
-        string? Name { get; }
+        string Name { get; }
 
         /// <summary>
         /// If the socket is open or closed
@@ -68,9 +69,10 @@ namespace StrawberryShake.Transport
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Returns the protocol that was negotiated with the server
+        /// Tries to resolve the protocol that was negotiated with the server
         /// </summary>
-        /// <returns></returns>
-        ISocketProtocol GetProtocol();
+        /// <param name="protocol">The protocol that was negotiated</param>
+        /// <returns>true if a protocol is found</returns>
+        bool TryGetProtocol([NotNullWhen(true)] out ISocketProtocol? protocol);
     }
 }

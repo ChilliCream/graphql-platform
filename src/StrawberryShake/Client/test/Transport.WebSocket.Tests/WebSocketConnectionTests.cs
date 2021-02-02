@@ -14,7 +14,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
-using StrawberryShake.Transport.Subscriptions;
 using Xunit;
 
 namespace StrawberryShake.Transport.WebSockets
@@ -53,13 +52,17 @@ namespace StrawberryShake.Transport.WebSockets
 
             // act
             var results = new List<JsonDocument>();
-            await using var manager = new SocketOperationManager(socketClient.GetProtocol());
+            var obj = new object();
+            await using var manager = new SocketOperationManager(socketClient);
             var connection = new StrawberryShake.Http.Subscriptions.WebSocketConnection(manager);
             await foreach (var response in connection.ExecuteAsync(request))
             {
                 if (response.Body is not null)
                 {
-                    results.Add(response.Body);
+                    lock (obj)
+                    {
+                        results.Add(response.Body);
+                    }
                 }
 
                 if (results.Count == 10)

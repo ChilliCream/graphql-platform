@@ -1,3 +1,4 @@
+using System;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace StrawberryShake.Transport.WebSockets
@@ -15,8 +16,8 @@ namespace StrawberryShake.Transport.WebSockets
         /// <param name="name">The name of the websocket</param>
         public DefaultWebSocketClientBuilder(IServiceCollection services, string name)
         {
-            Services = services;
-            Name = name;
+            Services = services ?? throw new ArgumentNullException(nameof(services));
+            Name = name ?? throw new ArgumentNullException(nameof(name));
         }
 
         /// <inheritdoc />

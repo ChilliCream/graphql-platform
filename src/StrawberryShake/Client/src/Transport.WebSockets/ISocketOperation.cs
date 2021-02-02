@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Text.Json;
 using System.Threading;
+using StrawberryShake.Transport.WebSockets.Messages;
 
-namespace StrawberryShake.Transport.Subscriptions
+namespace StrawberryShake.Transport.WebSockets
 {
     /// <summary>
     /// Represents a operation on a socket
@@ -17,7 +17,7 @@ namespace StrawberryShake.Transport.Subscriptions
         /// </summary>
         string Id { get; }
 
-        IAsyncEnumerable<JsonDocument> ReadAsync(
+        IAsyncEnumerable<OperationMessage> ReadAsync(
             [EnumeratorCancellation] CancellationToken cancellationToken);
     }
 }

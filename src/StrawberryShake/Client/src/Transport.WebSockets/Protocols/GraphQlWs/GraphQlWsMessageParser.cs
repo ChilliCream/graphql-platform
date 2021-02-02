@@ -2,6 +2,7 @@ using System;
 using System.Buffers;
 using System.Runtime.Serialization;
 using System.Text.Json;
+using StrawberryShake.Transport;
 using StrawberryShake.Transport.WebSockets;
 
 namespace StrawberryShake.Http.Subscriptions
@@ -13,9 +14,16 @@ namespace StrawberryShake.Http.Subscriptions
     internal ref struct GraphQlWsMessageParser
     {
         private readonly ReadOnlySequence<byte> _messageData;
-        private const byte _t = (byte)'t';
+        private const byte _a = (byte)'a';
+        private const byte _c = (byte)'c';
+        private const byte _d = (byte)'d';
+        private const byte _e = (byte)'e';
         private const byte _i = (byte)'i';
+        private const byte _k = (byte)'k';
+        private const byte _m = (byte)'m';
         private const byte _p = (byte)'p';
+        private const byte _s = (byte)'s';
+        private const byte _t = (byte)'t';
 
         private static ReadOnlySpan<byte> Type => new[]
         {
@@ -77,7 +85,7 @@ namespace StrawberryShake.Http.Subscriptions
                 _reader.Read();
             }
 
-            if (message.Type is null)
+            if (message.Type == GraphQlWsMessageType.None)
             {
                 throw ThrowHelper.Serialization_MessageHadNoTypeSpecified();
             }
@@ -97,7 +105,7 @@ namespace StrawberryShake.Http.Subscriptions
                     if (fieldName.SequenceEqual(Type))
                     {
                         Expect(JsonTokenType.String);
-                        message.Type = _reader.GetString();
+                        message.Type = ParseMessageType();
                     }
 
                     break;
@@ -127,6 +135,91 @@ namespace StrawberryShake.Http.Subscriptions
                 default:
                     throw ThrowHelper.Serialization_UnknownField(fieldName);
             }
+        }
+
+        private GraphQlWsMessageType ParseMessageType()
+        {
+            ReadOnlySpan<byte> typeName = _reader.ValueSpan;
+            if (typeName.IsEmpty)
+            {
+                throw ThrowHelper.Serialization_MessageHadNoTypeSpecified();
+            }
+
+            switch (typeName[0])
+            {
+                case _k:
+                    if (typeName.SequenceEqual(GraphQlWsMessageTypeSpans.KeepAlive))
+                    {
+                        return GraphQlWsMessageType.KeepAlive;
+                    }
+
+                    break;
+                case _d:
+                    if (typeName.SequenceEqual(GraphQlWsMessageTypeSpans.Data))
+                    {
+                        return GraphQlWsMessageType.Data;
+                    }
+
+                    break;
+                case _e:
+                    if (typeName.SequenceEqual(GraphQlWsMessageTypeSpans.Error))
+                    {
+                        return GraphQlWsMessageType.Error;
+                    }
+
+                    break;
+                case _s when typeName[2] is _a:
+                    if (typeName.SequenceEqual(GraphQlWsMessageTypeSpans.Start))
+                    {
+                        return GraphQlWsMessageType.Start;
+                    }
+
+                    break;
+                case _s:
+                    if (typeName.SequenceEqual(GraphQlWsMessageTypeSpans.Stop))
+                    {
+                        return GraphQlWsMessageType.Stop;
+                    }
+
+                    break;
+                case _c when typeName[2] is _m:
+                    if (typeName.SequenceEqual(GraphQlWsMessageTypeSpans.Complete))
+                    {
+                        return GraphQlWsMessageType.Complete;
+                    }
+
+                    break;
+                case _c when typeName[11] is _i:
+                    if (typeName.SequenceEqual(GraphQlWsMessageTypeSpans.ConnectionInitialize))
+                    {
+                        return GraphQlWsMessageType.ConnectionInit;
+                    }
+
+                    break;
+                case _c when typeName[11] is _a:
+                    if (typeName.SequenceEqual(GraphQlWsMessageTypeSpans.ConnectionAccept))
+                    {
+                        return GraphQlWsMessageType.ConnectionAccept;
+                    }
+
+                    break;
+                case _c when typeName[11] is _e:
+                    if (typeName.SequenceEqual(GraphQlWsMessageTypeSpans.ConnectionError))
+                    {
+                        return GraphQlWsMessageType.ConnectionError;
+                    }
+
+                    break;
+                case _c when typeName[11] is _t:
+                    if (typeName.SequenceEqual(GraphQlWsMessageTypeSpans.ConnectionTerminate))
+                    {
+                        return GraphQlWsMessageType.ConnectionTerminate;
+                    }
+
+                    break;
+            }
+
+            throw ThrowHelper.Serialization_InvalidMessageType(typeName);
         }
 
         private void Expect(JsonTokenType type)

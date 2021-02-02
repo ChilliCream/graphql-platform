@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace StrawberryShake.Transport.Subscriptions
+namespace StrawberryShake.Transport.WebSockets
 {
     /// <summary>
     /// Represents a manager for socket operations. This manager can be used to start and stop
@@ -16,7 +16,7 @@ namespace StrawberryShake.Transport.Subscriptions
         /// </summary>
         /// <param name="request">The request that opens the operations</param>
         /// <param name="cancellationToken">The cancellation token to cancel the operation</param>
-        Task<SocketOperation> StartOperationAsync(
+        Task<ISocketOperation> StartOperationAsync(
             OperationRequest request,
             CancellationToken cancellationToken = default);
 

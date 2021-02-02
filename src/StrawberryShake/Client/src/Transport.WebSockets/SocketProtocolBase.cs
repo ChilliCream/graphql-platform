@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using StrawberryShake.Transport.WebSockets.Messages;
 
 namespace StrawberryShake.Transport.WebSockets
 {
@@ -51,17 +51,17 @@ namespace StrawberryShake.Transport.WebSockets
         /// Notify all listeners that a message is received
         /// </summary>
         /// <param name="operationId">The ide of the operation that the message belongs to</param>
-        /// <param name="document">The json payload of the message</param>
+        /// <param name="message">The operation message</param>
         /// <param name="cancellationToken">A token to cancel processing the message</param>
         /// <returns>A value task that is completed once all subscribers are notified</returns>
         protected async ValueTask Notify(
             string operationId,
-            JsonDocument document,
+            OperationMessage message,
             CancellationToken cancellationToken)
         {
             foreach (var listener in _listeners)
             {
-                await listener(operationId, document, cancellationToken).ConfigureAwait(false);
+                await listener(operationId, message, cancellationToken).ConfigureAwait(false);
             }
         }
 

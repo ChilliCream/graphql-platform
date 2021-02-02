@@ -35,14 +35,19 @@ namespace StrawberryShake.Http.Subscriptions
             if (Interlocked.CompareExchange(ref _state, State.Running, State.Stopped) ==
                 State.Stopped)
             {
-                var pipe = new Pipe();
-
-                _cts = new CancellationTokenSource();
-                _innerTask = Task.WhenAll(
-                    MessageReceiver.Start(pipe.Writer, _client, _cts.Token),
-                    MessageProcessor.Start(pipe.Reader, _processAsync, _cts.Token));
-
-                Interlocked.Exchange(ref _state, State.Running);
+                try
+                {
+                    var pipe = new Pipe();
+                    _cts = new CancellationTokenSource();
+                    _innerTask = Task.WhenAll(
+                        MessageReceiver.Start(pipe.Writer, _client, _cts.Token),
+                        MessageProcessor.Start(pipe.Reader, _processAsync, _cts.Token));
+                }
+                catch (TaskCanceledException) { }
+                finally
+                {
+                    Interlocked.Exchange(ref _state, State.Running);
+                }
             }
         }
 
@@ -54,10 +59,16 @@ namespace StrawberryShake.Http.Subscriptions
             if (Interlocked.CompareExchange(ref _state, State.Stopped, State.Running) ==
                 State.Running)
             {
-                _cts.Cancel();
-                await _innerTask.ConfigureAwait(false);
-
-                Interlocked.Exchange(ref _state, State.Stopped);
+                try
+                {
+                    _cts.Cancel();
+                    await _innerTask.ConfigureAwait(false);
+                }
+                catch (TaskCanceledException) { }
+                finally
+                {
+                    Interlocked.Exchange(ref _state, State.Stopped);
+                }
             }
         }
 

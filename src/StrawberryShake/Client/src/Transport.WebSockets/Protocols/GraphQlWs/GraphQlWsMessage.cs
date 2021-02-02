@@ -1,4 +1,5 @@
 using System.Buffers;
+using StrawberryShake.Transport;
 using StrawberryShake.Transport.WebSockets;
 
 namespace StrawberryShake.Http.Subscriptions
@@ -17,7 +18,7 @@ namespace StrawberryShake.Http.Subscriptions
         /// <summary>
         /// The identifier of the type of the message.
         /// </summary>
-        public string? Type { get; set; }
+        public GraphQlWsMessageType Type { get; set; }
 
         /// <summary>
         /// The payload of the message

@@ -1,10 +1,11 @@
 using System;
 using System.Buffers;
+using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using StrawberryShake.Http.Subscriptions;
+using StrawberryShake.Transport.WebSockets.Messages;
 
 namespace StrawberryShake.Transport.WebSockets
 {
@@ -26,7 +27,7 @@ namespace StrawberryShake.Transport.WebSockets
         /// </param>
         public GraphQlWsProtocol(ISocketClient socketClient)
         {
-            _socketClient = socketClient;
+            _socketClient = socketClient ?? throw new ArgumentNullException(nameof(socketClient));
             _receiver = new MessagePipeline(socketClient, ProcessAsync);
             _sender = new SynchronizedMessageWriter(socketClient);
         }
@@ -109,21 +110,60 @@ namespace StrawberryShake.Transport.WebSockets
             {
                 GraphQlWsMessage message = GraphQlWsMessageParser.Parse(slice);
 
-                switch (message.Type)
+                if (message.Id is { } id)
                 {
-                    case GraphQlWsMessageTypes.Operation.Data when message is { Id : { } messageId }:
-                        var reader = new Utf8JsonReader(message.Payload);
-                        return Notify(messageId,
-                            JsonDocument.ParseValue(ref reader),
-                            cancellationToken);
+                    switch (message.Type)
+                    {
+                        case GraphQlWsMessageType.Data:
+                            if (SequenceMarshal.TryGetReadOnlyMemory(message.Payload,
+                                out var memory))
+                            {
+                                return Notify(
+                                    id,
+                                    new DataDocumentOperationMessage(memory),
+                                    cancellationToken);
+                            }
+                            break;
+                        case GraphQlWsMessageType.Complete:
+                            return Notify(
+                                id,
+                                CompleteOperationMessage.Default,
+                                cancellationToken);
+                        case GraphQlWsMessageType.Error:
+                            return Notify(
+                                id,
+                                ErrorOperationMessage.UnexpectedServerError,
+                                cancellationToken);
+                        case GraphQlWsMessageType.ConnectionError:
+                            return Notify(
+                                id,
+                                ErrorOperationMessage.ConnectionError,
+                                cancellationToken);
+                        default:
+                            return CloseSocketOnProtocolError(
+                                "Invalid message type received: " + message.Type,
+                                cancellationToken);
+                    }
                 }
             }
-            catch (SerializationException ex)
+            catch (Exception ex)
             {
-                // TODO: Not sure what we do now
+                return CloseSocketOnProtocolError(
+                    "Invalid message received: " + ex.Message,
+                    cancellationToken);
             }
 
             return default;
+        }
+
+        private async ValueTask CloseSocketOnProtocolError(
+            string message,
+            CancellationToken cancellationToken)
+        {
+            await _socketClient.CloseAsync(message,
+                    SocketCloseStatus.ProtocolError,
+                    cancellationToken)
+                .ConfigureAwait(false);
         }
 
         /// <inheritdoc />

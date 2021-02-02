@@ -1,7 +1,7 @@
 using System;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using StrawberryShake.Transport.WebSockets.Messages;
 
 namespace StrawberryShake.Transport
 {
@@ -9,11 +9,11 @@ namespace StrawberryShake.Transport
     /// Delegate that is invoked whenever a message is received by the protocol
     /// </summary>
     /// <param name="operationId">The ide of the operation that the message belongs to</param>
-    /// <param name="document">The json payload of the message</param>
+    /// <param name="message">The message</param>
     /// <param name="cancellationToken">A token to cancel processing the message</param>
     public delegate ValueTask OnReceiveAsync(
         string operationId,
-        JsonDocument document,
+        OperationMessage message,
         CancellationToken cancellationToken);
 
     /// <summary>

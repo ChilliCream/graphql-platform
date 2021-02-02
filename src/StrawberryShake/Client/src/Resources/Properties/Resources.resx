@@ -39,6 +39,9 @@
   <data name="Serialization_MessageHadNoTypeSpecified" xml:space="preserve">
     <value>The GraphQL socket message had no type property specified.</value>
   </data>
+  <data name="Serialization_InvalidMessageType" xml:space="preserve">
+    <value>Message type {0} is not known</value>
+  </data>
   <data name="Serialization_InvalidToken" xml:space="preserve">
     <value>Could not parse the message. The token {0} was invalid</value>
   </data>
@@ -53,5 +56,32 @@
   </data>
   <data name="Argument_IsNullOrEmpty" xml:space="preserve">
     <value>The argument {0} must not be null or empty</value>
+  </data>
+  <data name="SocketClient_URIWasNotSpecified" xml:space="preserve">
+    <value>The configuration of socket client {0} is invalid. Uri was missing.</value>
+  </data>
+  <data name="SocketClient_URIWasNotSpecified" xml:space="preserve">
+    <value>The configuration of socket client {0} is invalid. Uri was missing.</value>
+  </data>
+  <data name="SocketClient_ProtocolNotFound" xml:space="preserve">
+    <value>There was no protocol of type {0} registered.</value>
+  </data>
+  <data name="SocketClient_" xml:space="preserve">
+    <value>There was no protocol of type {0} registered.</value>
+  </data>
+  <data name="SocketClient_FailedToInitializeProtocol" xml:space="preserve">
+    <value>Failed to initialize protocol</value>
+  </data>
+  <data name="SocketClient_AllOperationsFinished" xml:space="preserve">
+    <value>All operations finished</value>
+  </data>
+  <data name="OperationManager_SocketWasNotInitialized" xml:space="preserve">
+    <value>Could not get the protocol from socket {0}. The socket is in a invalid state</value>
+  </data>
+  <data name="OperationManager_OperationWasAlreadyRegistered" xml:space="preserve">
+    <value>Operation with id {0} was already registered on the operation manager</value>
+  </data>
+  <data name="SocketClientPool_ClientNotFromPool" xml:space="preserve">
+    <value>The specified client does not belong to this pool.</value>
   </data>
 </root>

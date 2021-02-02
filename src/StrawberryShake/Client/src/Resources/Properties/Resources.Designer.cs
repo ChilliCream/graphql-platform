@@ -87,6 +87,12 @@ namespace StrawberryShake.Properties {
             }
         }
         
+        internal static string Serialization_InvalidMessageType {
+            get {
+                return ResourceManager.GetString("Serialization_InvalidMessageType", resourceCulture);
+            }
+        }
+        
         internal static string Serialization_InvalidToken {
             get {
                 return ResourceManager.GetString("Serialization_InvalidToken", resourceCulture);
@@ -114,6 +120,54 @@ namespace StrawberryShake.Properties {
         internal static string Argument_IsNullOrEmpty {
             get {
                 return ResourceManager.GetString("Argument_IsNullOrEmpty", resourceCulture);
+            }
+        }
+        
+        internal static string SocketClient_URIWasNotSpecified {
+            get {
+                return ResourceManager.GetString("SocketClient_URIWasNotSpecified", resourceCulture);
+            }
+        }
+        
+        internal static string SocketClient_ProtocolNotFound {
+            get {
+                return ResourceManager.GetString("SocketClient_ProtocolNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string SocketClient_ {
+            get {
+                return ResourceManager.GetString("SocketClient_", resourceCulture);
+            }
+        }
+        
+        internal static string SocketClient_FailedToInitializeProtocol {
+            get {
+                return ResourceManager.GetString("SocketClient_FailedToInitializeProtocol", resourceCulture);
+            }
+        }
+        
+        internal static string SocketClient_AllOperationsFinished {
+            get {
+                return ResourceManager.GetString("SocketClient_AllOperationsFinished", resourceCulture);
+            }
+        }
+        
+        internal static string OperationManager_SocketWasNotInitialized {
+            get {
+                return ResourceManager.GetString("OperationManager_SocketWasNotInitialized", resourceCulture);
+            }
+        }
+        
+        internal static string OperationManager_OperationWasAlreadyRegistered {
+            get {
+                return ResourceManager.GetString("OperationManager_OperationWasAlreadyRegistered", resourceCulture);
+            }
+        }
+        
+        internal static string SocketClientPool_ClientNotFromPool {
+            get {
+                return ResourceManager.GetString("SocketClientPool_ClientNotFromPool", resourceCulture);
             }
         }
     }

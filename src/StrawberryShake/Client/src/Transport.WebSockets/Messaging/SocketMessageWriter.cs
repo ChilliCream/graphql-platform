@@ -55,13 +55,13 @@ namespace StrawberryShake.Transport
         public async ValueTask DisposeAsync()
         {
             await Writer.DisposeAsync();
-            Dispose();
+            base.Dispose(true);
         }
 
         /// <inheritdoc />
         protected override void Dispose(bool disposing)
         {
-            DisposeAsync();
+            Writer.Dispose();
             base.Dispose(disposing);
         }
     }

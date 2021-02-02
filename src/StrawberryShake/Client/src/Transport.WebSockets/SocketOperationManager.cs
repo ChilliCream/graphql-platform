@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Concurrent;
 using System.Linq;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using StrawberryShake.Transport.WebSockets.Messages;
 
-namespace StrawberryShake.Transport.Subscriptions
+namespace StrawberryShake.Transport.WebSockets
 {
     /// <inheritdoc />
     public sealed class SocketOperationManager : ISocketOperationManager
@@ -18,17 +18,21 @@ namespace StrawberryShake.Transport.Subscriptions
         /// <summary>
         /// Creates a new instance <see cref="SocketOperationManager"/>
         /// </summary>
-        /// <param name="socketProtocol"></param>
-        public SocketOperationManager(ISocketProtocol socketProtocol)
+        public SocketOperationManager(ISocketClient socketClient)
         {
-            _socketProtocol = socketProtocol ??
-                throw new ArgumentNullException(nameof(socketProtocol));
+            if (socketClient is null)
+            {
+                throw new ArgumentNullException(nameof(socketClient));
+            }
 
+            socketClient.TryGetProtocol(out ISocketProtocol? socketProtocol);
+            _socketProtocol = socketProtocol ??
+                throw ThrowHelper.OperationManager_SocketWasNotInitialized(socketClient.Name);
             _socketProtocol.Subscribe(ReceiveMessage);
         }
 
         /// <inheritdoc />
-        public Task<SocketOperation> StartOperationAsync(
+        public Task<ISocketOperation> StartOperationAsync(
             OperationRequest request,
             CancellationToken cancellationToken = default)
         {
@@ -41,7 +45,7 @@ namespace StrawberryShake.Transport.Subscriptions
         }
 
 
-        private async Task<SocketOperation> StartOperationAsyncInternal(
+        private async Task<ISocketOperation> StartOperationAsyncInternal(
             OperationRequest request,
             CancellationToken cancellationToken)
         {
@@ -64,8 +68,7 @@ namespace StrawberryShake.Transport.Subscriptions
             }
             else
             {
-                // TODO: I guess this should not happen?
-                throw new InvalidOperationException();
+                throw ThrowHelper.OperationManager_OperationWasAlreadyRegistered(operation.Id);
             }
 
             return operation;
@@ -76,11 +79,13 @@ namespace StrawberryShake.Transport.Subscriptions
             string operationId,
             CancellationToken cancellationToken = default)
         {
-            if (_operations.TryRemove(operationId, out _))
+            if (_operations.TryRemove(operationId, out var operation))
             {
                 await _socketProtocol
                     .StopOperationAsync(operationId, cancellationToken)
                     .ConfigureAwait(false);
+
+                await operation.DisposeAsync().ConfigureAwait(false);
             }
         }
 
@@ -88,35 +93,39 @@ namespace StrawberryShake.Transport.Subscriptions
         /// Receive a message from the socket
         /// </summary>
         /// <param name="operationId">Id of the operation</param>
-        /// <param name="payload">The payload of the message</param>
+        /// <param name="message">The payload of the message</param>
         /// <param name="cancellationToken">
         /// The cancellation token to cancel
         /// </param>
         private async ValueTask ReceiveMessage(
             string operationId,
-            JsonDocument payload,
+            OperationMessage message,
             CancellationToken cancellationToken = default)
         {
-            if (_operations.TryGetValue(operationId, out var operation))
+            if (_operations.TryGetValue(operationId, out SocketOperation? operation))
             {
-                await operation.ReceiveAsync(payload, cancellationToken);
+                await operation.ReceiveMessageAsync(message, cancellationToken);
             }
         }
 
         /// <inheritdoc />
         public async ValueTask DisposeAsync()
         {
-            if (!_disposed && _operations.Count > 0)
+            if (!_disposed)
             {
                 _disposed = true;
-                SocketOperation[] operations = _operations.Values.ToArray();
-
-                for (var i = 0; i < operations.Length; i++)
+                if (_operations.Count > 0)
                 {
-                    await operations[i].DisposeAsync();
+                    SocketOperation[] operations = _operations.Values.ToArray();
+
+                    for (var i = 0; i < operations.Length; i++)
+                    {
+                        await operations[i].DisposeAsync();
+                    }
+
+                    _operations.Clear();
                 }
 
-                _operations.Clear();
                 _socketProtocol.Unsubscribe(ReceiveMessage);
             }
         }

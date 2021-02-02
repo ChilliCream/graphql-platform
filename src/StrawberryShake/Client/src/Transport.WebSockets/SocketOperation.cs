@@ -1,20 +1,20 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using StrawberryShake.Transport.WebSockets.Messages;
 
-namespace StrawberryShake.Transport.Subscriptions
+namespace StrawberryShake.Transport.WebSockets
 {
     /// <summary>
     /// Represents a operation on a socket
     /// </summary>
-    public class SocketOperation : ISocketOperation
+    public sealed class SocketOperation : ISocketOperation
     {
         private readonly ISocketOperationManager _manager;
-        private readonly Channel<JsonDocument> _channel;
+        private readonly Channel<OperationMessage> _channel;
         private bool _disposed;
 
         /// <summary>
@@ -46,13 +46,13 @@ namespace StrawberryShake.Transport.Subscriptions
             ISocketOperationManager manager,
             string id)
         {
-            _manager = manager;
-            Id = id;
-            _channel = Channel.CreateUnbounded<JsonDocument>();
+            _manager = manager ?? throw new ArgumentNullException(nameof(manager));
+            Id = id ?? throw new ArgumentNullException(nameof(id));
+            _channel = Channel.CreateUnbounded<OperationMessage>();
         }
 
         /// <inheritdoc />
-        public async IAsyncEnumerable<JsonDocument> ReadAsync(
+        public async IAsyncEnumerable<OperationMessage> ReadAsync(
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             if (_disposed)
@@ -60,22 +60,27 @@ namespace StrawberryShake.Transport.Subscriptions
                 yield break;
             }
 
-            ChannelReader<JsonDocument> reader = _channel.Reader;
+            ChannelReader<OperationMessage> reader = _channel.Reader;
 
             while (!_disposed && !reader.Completion.IsCompleted)
             {
                 if (await reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    yield return await reader.ReadAsync(cancellationToken).ConfigureAwait(false);
+                    yield return await reader
+                        .ReadAsync(cancellationToken)
+                        .ConfigureAwait(false);
                 }
             }
         }
 
-        public async ValueTask ReceiveAsync(
-            JsonDocument message,
+        internal async ValueTask ReceiveMessageAsync(
+            OperationMessage message,
             CancellationToken cancellationToken)
         {
-            await _channel.Writer.WriteAsync(message, cancellationToken).ConfigureAwait(false);
+            if (!_disposed)
+            {
+                await _channel.Writer.WriteAsync(message, cancellationToken).ConfigureAwait(false);
+            }
         }
 
         /// <inheritdoc />
