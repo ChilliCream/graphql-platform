@@ -1,5 +1,4 @@
 using System;
-using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate;
 using HotChocolate.AspNetCore.Serialization;
@@ -87,12 +86,12 @@ namespace Microsoft.Extensions.DependencyInjection
             ISchema schema,
             int maxAllowedRequestSize = 20 * 1000 * 1000) =>
             RequestExecutorBuilderLegacyHelper.SetSchema(
-                    services
-                        .AddGraphQLServerCore(maxAllowedRequestSize)
-                        .AddGraphQL()
-                        .AddDefaultHttpRequestInterceptor()
-                        .AddSubscriptionServices(),
-                    schema)
+                services
+                    .AddGraphQLServerCore(maxAllowedRequestSize)
+                    .AddGraphQL()
+                    .AddDefaultHttpRequestInterceptor()
+                    .AddSubscriptionServices(),
+                schema)
                 .Services;
 
         [Obsolete(
@@ -119,12 +118,12 @@ namespace Microsoft.Extensions.DependencyInjection
             ISchemaBuilder schemaBuilder,
             int maxAllowedRequestSize = 20 * 1000 * 1000) =>
             RequestExecutorBuilderLegacyHelper.SetSchemaBuilder(
-                    services
-                        .AddGraphQLServerCore(maxAllowedRequestSize)
-                        .AddGraphQL()
-                        .AddDefaultHttpRequestInterceptor()
-                        .AddSubscriptionServices(),
-                    schemaBuilder)
+                services
+                    .AddGraphQLServerCore(maxAllowedRequestSize)
+                    .AddGraphQL()
+                    .AddDefaultHttpRequestInterceptor()
+                    .AddSubscriptionServices(),
+                schemaBuilder)
                 .Services;
     }
 }
