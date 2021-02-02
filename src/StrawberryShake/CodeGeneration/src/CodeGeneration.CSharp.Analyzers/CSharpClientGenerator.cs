@@ -39,7 +39,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 {
                     context.AddSource(
                         document.Name + ".cs",
-                        SourceText.From(document.Source, Encoding.UTF8));
+                        SourceText.From(document.SourceText, Encoding.UTF8));
                 }
             }
             catch(Exception ex)

@@ -28,6 +28,10 @@
   <ItemGroup>
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Client\src\Core\StrawberryShake.Core.csproj" />
+    <ProjectReference Include="..\..\..\Client\src\Transport.Http\StrawberryShake.Transport.Http.csproj" />
+  </ItemGroup>
 
   <Target Name="Roslyn44093Workaround" BeforeTargets="CoreCompile;ResolveProjectReferences;$(PrepareProjectReferencesDependsOn)" Condition="'$(DesignTimeBuild)' == 'true'">
     <ItemGroup>

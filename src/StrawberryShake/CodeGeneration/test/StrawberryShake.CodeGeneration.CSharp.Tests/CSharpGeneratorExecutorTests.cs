@@ -74,7 +74,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 documents.AppendLine("// " + document.Name);
                 documents.AppendLine();
-                documents.AppendLine(document.Source);
+                documents.AppendLine(document.SourceText);
                 documents.AppendLine();
             }
 

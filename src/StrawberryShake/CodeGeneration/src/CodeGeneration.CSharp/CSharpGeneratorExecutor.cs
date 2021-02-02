@@ -75,11 +75,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
         public CSharpDocument(string name, string source)
         {
             Name = name;
-            Source = source;
+            SourceText = source;
         }
 
         public string Name { get; }
 
-        public string Source { get; }
+        public string SourceText { get; }
     }
 }

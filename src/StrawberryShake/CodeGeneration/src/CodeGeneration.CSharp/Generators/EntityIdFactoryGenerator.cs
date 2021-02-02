@@ -42,7 +42,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 var createSpecificEntityId = MethodBuilder
                     .New()
                     .SetStatic()
-                    .SetAccessModifier(AccessModifier.Public)
+                    .SetAccessModifier(AccessModifier.Private)
                     .SetName($"Create{entity.Name}EntityId")
                     .SetReturnType(TypeNames.EntityId)
                     .AddParameter(obj)
@@ -59,7 +59,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             var sourceText = new StringBuilder();
 
             sourceText.AppendLine(
-                "string typeName = obj.GetProperty(\"__typename\").GetString()!;");
+                $"{TypeNames.String} typeName = obj.GetProperty(\"__typename\").GetString()!;");
             sourceText.AppendLine();
 
             sourceText.AppendLine("return typeName switch");
@@ -116,7 +116,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return CodeBlockBuilder.From(sourceText);
         }
 
-        private static string GetSerializerMethod(EntityIdDescriptor field) => 
+        private static string GetSerializerMethod(EntityIdDescriptor field) =>
             $"Get{field.TypeName.Split(".").Last()}";
     }
 }

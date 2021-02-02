@@ -4,6 +4,9 @@
     <GraphQL>
       <Generator>MSBuild:GraphQL_Compile</Generator>
     </GraphQL>
+    <GraphQLConfig>
+      <Generator>MSBuild:GraphQL_Compile</Generator>
+    </GraphQLConfig>
   </ItemDefinitionGroup>
 
   <ItemGroup>
@@ -11,6 +14,7 @@
       <Context>File;BrowseObject</Context>
     </PropertyPageSchema>
     <AvailableItemName Include="GraphQL" />
+    <AvailableItemName Include="GraphQLConfig" />
   </ItemGroup>
 
 </Project>

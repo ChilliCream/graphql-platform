@@ -19,7 +19,9 @@ namespace StrawberryShake.CodeGeneration
         public static IError Generator_SyntaxException(SyntaxException syntaxException) =>
             ErrorBuilder.New()
                 .SetMessage(Throwhelper_Generator_SyntaxError)
-                .AddLocation(new HotChocolate.Location(syntaxException.Line, syntaxException.Column))
+                .AddLocation(new HotChocolate.Location(
+                    syntaxException.Line,
+                    syntaxException.Column))
                 .Build();
     }
 }

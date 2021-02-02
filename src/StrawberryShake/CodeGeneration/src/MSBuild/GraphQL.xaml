@@ -2,8 +2,10 @@
   <FileExtension Name=".graphql" ContentType="GraphQL" />
 
   <ContentType Name="GraphQL" DisplayName="GraphQL query or schema file" ItemType="GraphQL" />
+  <ContentType Name="GraphQLConfig" DisplayName="GraphQL query or schema file" ItemType="GraphQLConfig" />
 
   <ItemType Name="GraphQL" DisplayName="GraphQL compiler" />
+  <ItemType Name="GraphQLConfig" DisplayName="GraphQL compiler" />
 
   <Rule Name="GraphQL" DisplayName="file Properties" PageTemplate="generic" Description="File Properties">
     <Rule.DataSource>
