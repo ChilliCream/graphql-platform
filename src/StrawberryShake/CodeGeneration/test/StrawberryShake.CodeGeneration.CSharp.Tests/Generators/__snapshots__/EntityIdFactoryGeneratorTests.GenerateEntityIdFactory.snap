@@ -3,7 +3,7 @@ public static partial class EntityIdFactory
 {
     public static global::StrawberryShake.EntityId CreateEntityId(global::System.Text.Json.JsonElement obj)
     {
-        string typeName = obj.GetProperty("__typename").GetString()!;
+        global::System.String typeName = obj.GetProperty("__typename").GetString()!;
         
         return typeName switch
         {
@@ -13,7 +13,7 @@ public static partial class EntityIdFactory
         };
     }
 
-    public static global::StrawberryShake.EntityId CreateFooEntityId(
+    private static global::StrawberryShake.EntityId CreateFooEntityId(
         global::System.Text.Json.JsonElement obj,
         global::System.String type)
     {
@@ -22,7 +22,7 @@ public static partial class EntityIdFactory
             obj.GetProperty("id").GetString()!);
     }
 
-    public static global::StrawberryShake.EntityId CreateBarEntityId(
+    private static global::StrawberryShake.EntityId CreateBarEntityId(
         global::System.Text.Json.JsonElement obj,
         global::System.String type)
     {

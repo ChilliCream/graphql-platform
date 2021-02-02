@@ -20,13 +20,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     classBuilder,
                     constructorBuilder);
 
-                classBuilder.AddMethod(
-                    MethodBuilder
+                classBuilder.AddProperty(
+                    PropertyBuilder
                         .New()
                         .SetAccessModifier(AccessModifier.Public)
-                        .SetReturnType(operation.Name)
+                        .SetType(operation.Name)
                         .SetName(operation.Name)
-                        .AddCode($"return {operation.Name.ToFieldName()};"));
+                        .AsLambda(operation.Name.ToFieldName()));
             }
 
             CodeFileBuilder

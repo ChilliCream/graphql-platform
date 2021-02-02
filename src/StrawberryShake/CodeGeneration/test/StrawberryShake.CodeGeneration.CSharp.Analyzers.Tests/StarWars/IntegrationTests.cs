@@ -4,12 +4,11 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
+using Foo;
 using StrawberryShake.Serialization;
 using Xunit;
-using Foo;
-using Microsoft.Extensions.DependencyInjection;
 
-namespace StrawberryShake.Integration
+namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
 {
     public class IntegrationTests
     {

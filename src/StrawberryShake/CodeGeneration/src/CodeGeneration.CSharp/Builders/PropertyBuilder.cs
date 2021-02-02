@@ -1,12 +1,10 @@
 using System;
-using System.Collections.Generic;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public class PropertyBuilder : ICodeBuilder
     {
         private AccessModifier _accessModifier;
-        private bool _isAutoProperty = true;
         private bool _isReadOnly = true;
         private string? _lambdaResolver;
         private TypeReferenceBuilder? _type;

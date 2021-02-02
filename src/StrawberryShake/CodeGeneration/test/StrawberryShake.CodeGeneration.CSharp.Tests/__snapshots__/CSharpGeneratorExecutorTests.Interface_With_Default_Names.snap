@@ -522,10 +522,7 @@ namespace Foo
                  ?? throw new global::System.ArgumentNullException(nameof(getHeroQuery));
         }
 
-        public GetHeroQuery GetHeroQuery()
-        {
-            return _getHeroQuery;
-        }
+        public GetHeroQuery GetHeroQuery => _getHeroQuery;
     }
 }
 
@@ -537,7 +534,7 @@ public static partial class EntityIdFactory
 {
     public static global::StrawberryShake.EntityId CreateEntityId(global::System.Text.Json.JsonElement obj)
     {
-        string typeName = obj.GetProperty("__typename").GetString()!;
+        global::System.String typeName = obj.GetProperty("__typename").GetString()!;
         
         return typeName switch
         {
@@ -547,7 +544,7 @@ public static partial class EntityIdFactory
         };
     }
 
-    public static global::StrawberryShake.EntityId CreateDroidEntityId(
+    private static global::StrawberryShake.EntityId CreateDroidEntityId(
         global::System.Text.Json.JsonElement obj,
         global::System.String type)
     {
@@ -556,7 +553,7 @@ public static partial class EntityIdFactory
             obj.GetProperty("id").GetString()!);
     }
 
-    public static global::StrawberryShake.EntityId CreateHumanEntityId(
+    private static global::StrawberryShake.EntityId CreateHumanEntityId(
         global::System.Text.Json.JsonElement obj,
         global::System.String type)
     {
