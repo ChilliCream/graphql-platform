@@ -9,13 +9,14 @@ using StrawberryShake.CodeGeneration.Extensions;
 
 namespace StrawberryShake.CodeGeneration.Mappers
 {
-    public static class TypeDescriptorMapper
+    public static partial class TypeDescriptorMapper
     {
         public static void Map(
             ClientModel model,
             IMapperContext context)
         {
             var typeDescriptors = new Dictionary<NameString, TypeDescriptorModel>();
+            var inputTypeDescriptors = new Dictionary<NameString, InputTypeDescriptorModel>();
             var scalarTypeDescriptors = new Dictionary<NameString, NamedTypeDescriptor>();
 
             CollectTypes(
@@ -28,7 +29,25 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 typeDescriptors,
                 scalarTypeDescriptors);
 
+            CollectInputTypes(
+                model,
+                context,
+                inputTypeDescriptors);
+
+            AddInputTypeProperties(
+                model,
+                context,
+                inputTypeDescriptors,
+                scalarTypeDescriptors);
+
             foreach (TypeDescriptorModel descriptorModel in typeDescriptors.Values)
+            {
+                context.Register(
+                    descriptorModel.NamedTypeDescriptor.Name,
+                    descriptorModel.NamedTypeDescriptor);
+            }
+
+            foreach (InputTypeDescriptorModel descriptorModel in inputTypeDescriptors.Values)
             {
                 context.Register(
                     descriptorModel.NamedTypeDescriptor.Name,
@@ -41,6 +60,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     typeDescriptor.Name,
                     typeDescriptor);
             }
+
+
         }
 
         private static void CollectTypes(
@@ -273,6 +294,20 @@ namespace StrawberryShake.CodeGeneration.Mappers
             }
 
             public OutputTypeModel TypeModel { get; }
+
+            public NamedTypeDescriptor NamedTypeDescriptor { get; }
+        }
+
+        private readonly struct InputTypeDescriptorModel
+        {
+            public InputTypeDescriptorModel(InputObjectTypeModel typeModel,
+                NamedTypeDescriptor namedTypeDescriptor)
+            {
+                TypeModel = typeModel;
+                NamedTypeDescriptor = namedTypeDescriptor;
+            }
+
+            public InputObjectTypeModel TypeModel { get; }
 
             public NamedTypeDescriptor NamedTypeDescriptor { get; }
         }

@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
@@ -46,24 +47,22 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     $"{TypeNames.IOperationResult}<" +
                     $"{operationDescriptor.ResultTypeReference.Name}>>")
                 .SetAccessModifier(AccessModifier.Public)
-                .SetName(TypeNames.Watch)
-                .AddParameter(
-                    ParameterBuilder.New()
-                        .SetName(strategyVariableName)
-                        .SetType(
-                            TypeReferenceBuilder.New()
-                                .SetIsNullable(true)
-                                .SetName(TypeNames.ExecutionStrategy))
-                        .SetDefault("null"));
+                .SetName(TypeNames.Watch);
+
+            var createRequestMethodCall = MethodCallBuilder.New()
+                .SetMethodName(CreateRequestMethodName)
+                .SetDetermineStatement(false);
 
             foreach (var arg in operationDescriptor.Arguments)
             {
                 var typeReferenceBuilder = arg.Type.ToBuilder();
 
+                var paramName = arg.Name.WithLowerFirstChar();
                 var paramBuilder = ParameterBuilder.New()
-                    .SetName(arg.Name.WithLowerFirstChar())
+                    .SetName(paramName)
                     .SetType(typeReferenceBuilder);
 
+                createRequestMethodCall.AddArgument(paramName);
                 executeMethod?.AddParameter(paramBuilder);
                 watchMethod.AddParameter(paramBuilder);
             }
@@ -80,21 +79,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
             var requestBuilder = CodeBlockBuilder.New();
             requestBuilder
                 .AddCode(
-                    CodeLineBuilder.New()
-                        .SetLine($"var {requestVariableName} = {CreateRequestMethodName}();"));
+                    AssignmentBuilder.New()
+                        .SetLefthandSide($"var {requestVariableName}")
+                        .SetRighthandSide(createRequestMethodCall));
 
             executeMethod?.AddCode(requestBuilder);
             watchMethod?.AddCode(requestBuilder);
             watchMethod?.AddCode(
                 $"return {OperationExecutorFieldName}" +
                 $".Watch({requestVariableName}, {strategyVariableName});");
-
-            foreach (var arg in operationDescriptor.Arguments)
-            {
-                requestBuilder.AddCode(
-                    CodeLineBuilder.New()
-                        .SetLine($"request.Variables.Add(\"{arg.Name}\", {arg.Name}, );"));
-            }
 
             executeMethod?.AddCode(
                 CodeLineBuilder.New()
@@ -122,6 +115,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             if (watchMethod is not null)
             {
+                watchMethod.AddParameter(
+                    ParameterBuilder.New()
+                        .SetName(strategyVariableName)
+                        .SetType(
+                            TypeReferenceBuilder.New()
+                                .SetIsNullable(true)
+                                .SetName(TypeNames.ExecutionStrategy))
+                        .SetDefault("null"));
                 classBuilder.AddMethod(watchMethod);
             }
 
@@ -138,16 +139,43 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             string typeName = DocumentTypeNameFromOperationName(operationDescriptor.Name);
 
-            return MethodBuilder
+            var method = MethodBuilder
                 .New()
                 .SetName(CreateRequestMethodName)
-                .SetReturnType(TypeNames.OperationRequest)
-                .AddCode(
-                    MethodCallBuilder.New()
-                        .SetPrefix("return ")
-                        .SetMethodName("new")
-                        .AddArgument($"\"{operationDescriptor.ResultTypeReference.Name}\"")
-                        .AddArgument($"{typeName}.Instance"));
+                .SetReturnType(TypeNames.OperationRequest);
+
+            var requestConstructor = MethodCallBuilder.New()
+                .SetPrefix("return ")
+                .SetMethodName($"new {TypeNames.OperationRequest}")
+                .AddArgument($"\"{operationDescriptor.ResultTypeReference.Name}\"")
+                .AddArgument($"{typeName}.Instance");
+
+            var first = true;
+            foreach (var arg in operationDescriptor.Arguments)
+            {
+                if (first)
+                {
+                    var argumentsDictName = "arguments";
+                    method.AddCode($"var {argumentsDictName} = new {TypeNames.Dictionary}<string, object?>();");
+                    requestConstructor.AddArgument(argumentsDictName);
+                }
+                first = false;
+
+                var argName = arg.Name.WithLowerFirstChar();
+
+                method.AddParameter(ParameterBuilder.New()
+                    .SetName(argName)
+                    .SetType(arg.Type.ToBuilder()));
+
+                method.AddCode(
+                    CodeLineBuilder.New()
+                        .SetLine($"arguments.Add(\"{arg.Name}\", {argName});"));
+            }
+
+            method.AddEmptyLine();
+            method.AddCode(requestConstructor);
+
+            return method;
         }
     }
 }

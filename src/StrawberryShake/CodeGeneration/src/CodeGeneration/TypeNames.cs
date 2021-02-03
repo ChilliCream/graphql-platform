@@ -1,3 +1,5 @@
+using System;
+
 namespace StrawberryShake.CodeGeneration
 {
     public static class TypeNames
@@ -60,5 +62,6 @@ namespace StrawberryShake.CodeGeneration
 
         public const string GenericCollectionsNamespace = "global::System.Collections.Generic.";
         public const string StrawberryshakeNamespace = "global::StrawberryShake.";
+        public const string Dictionary = "global::System.Collections.Generic.Dictionary";
     }
 }

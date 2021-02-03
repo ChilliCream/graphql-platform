@@ -31,6 +31,36 @@ namespace StrawberryShake.CodeGeneration.CSharp
         }
 
         [Fact]
+        public async Task Interface_With_Leaf_Query_Arg()
+        {
+            // arrange
+            ClientModel clientModel =
+                await TestHelper.CreateClientModelAsync(
+                    @"query GetHero($episode: Episode) {
+                        hero(episode: $episode) {
+                            name
+                            appearsIn
+                        }
+                    }
+
+                    mutation createReview($episode: Episode!, $review: ReviewInput!) {
+                      createReview(episode: $episode, review: $review) {
+                        stars
+                        commentary
+                      }
+                    }
+                    ",
+                    "extend schema @key(fields: \"id\")");
+
+            // act
+            var documents = new StringBuilder();
+            var generator = new CSharpGeneratorExecutor();
+
+            // assert
+            AssertResult(clientModel, generator, documents);
+        }
+
+        [Fact]
         public async Task Interface_With_Fragment_Definition_Two_Models()
         {
             // arrange

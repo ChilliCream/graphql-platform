@@ -22,6 +22,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             new ResultFromEntityTypeMapperGenerator(),
             new ResultInfoGenerator(),
             new ResultTypeGenerator(),
+            new InputTypeGenerator(),
             new ResultInterfaceGenerator()
         };
 

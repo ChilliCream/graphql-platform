@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 
 namespace StrawberryShake.CodeGeneration.Mappers
@@ -14,6 +15,13 @@ namespace StrawberryShake.CodeGeneration.Mappers
         {
             foreach (OperationModel modelOperation in model.Operations)
             {
+
+                var arguments = modelOperation.Arguments.Select(arg =>
+                        new PropertyDescriptor(
+                            arg.Name,
+                            context.Types.Single(type => type.Name == arg.Type.TypeName()))
+                    ).ToList();
+
                 switch (modelOperation.Operation.Operation)
                 {
                     case OperationType.Query:
@@ -24,7 +32,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                                 context.Types.Single(
                                     t => t.Name.Equals(modelOperation.ResultType.Name)),
                                 context.Namespace,
-                                new List<PropertyDescriptor>(),
+                                arguments,
                                 modelOperation.Document.ToString()));
                         break;
                     case OperationType.Mutation:
@@ -35,7 +43,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                                 context.Types.Single(
                                     t => t.Name.Equals(modelOperation.ResultType.Name)),
                                 context.Namespace,
-                                new List<PropertyDescriptor>(),
+                                arguments,
                                 modelOperation.Document.ToString()));
                         break;
                     case OperationType.Subscription:
@@ -46,7 +54,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                                 context.Types.Single(
                                     t => t.Name.Equals(modelOperation.ResultType.Name)),
                                 context.Namespace,
-                                new List<PropertyDescriptor>(),
+                                arguments,
                                 modelOperation.Document.ToString()));
                         break;
                     default:
