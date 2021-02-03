@@ -30,23 +30,21 @@ namespace StrawberryShake.Transport.WebSockets
 
             try
             {
-                /*
                 if (_sessions.TryGetValue(name, out SessionInfo? sessionInfo))
                 {
                     sessionInfo.Rentals++;
                 }
                 else
                 {
-                    */
                     ISocketClient client = _socketClientFactory.CreateClient(name);
 
-                    var sessionInfo = SessionInfo.From(client, this);
- //                   _sessions.Add(name, sessionInfo);
+                    sessionInfo = SessionInfo.From(client, this);
+                    _sessions.Add(name, sessionInfo);
 
                     await sessionInfo.Session
                         .OpenSessionAsync(cancellationToken)
                         .ConfigureAwait(false);
-//                }
+                }
 
                 return sessionInfo.Proxy;
             }
@@ -91,7 +89,6 @@ namespace StrawberryShake.Transport.WebSockets
             ISession session,
             CancellationToken cancellationToken = default)
         {
-            return;
             await _semaphoreSlim.WaitAsync(cancellationToken).ConfigureAwait(false);
 
             try

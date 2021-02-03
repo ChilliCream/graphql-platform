@@ -56,11 +56,6 @@ namespace StrawberryShake.Transport.WebSockets
                 {
                     results.Add(response.Body);
                 }
-
-                if (results.Count == 10)
-                {
-                    break;
-                }
             }
 
 
@@ -146,7 +141,7 @@ namespace StrawberryShake.Transport.WebSockets
         }
 
         [Fact]
-        public async Task Parallel_Request()
+        public async Task Parallel_Request_SameSocket()
         {
             // arrange
             CancellationToken ct = new CancellationTokenSource(20_000).Token;
@@ -185,11 +180,6 @@ namespace StrawberryShake.Transport.WebSockets
                                 return l;
                             });
                     }
-
-                    if (results[id].Count == 10)
-                    {
-                        break;
-                    }
                 }
             }
 
@@ -204,26 +194,166 @@ namespace StrawberryShake.Transport.WebSockets
 
             // assert
             var str = "";
-            foreach (var sub in results)
+            foreach (var sub in results.OrderBy(x => x.Key))
             {
                 JsonDocument[] jsonDocuments = sub.Value.ToArray();
 
-                Assert.Equal(10, jsonDocuments.Length);
-
+                str += "Operation " + sub.Key + "\n";
                 for (var index = 0; index < jsonDocuments.Length; index++)
                 {
-                    JsonDocument? result = jsonDocuments[index];
-                    var res = result.RootElement.GetProperty("data")
-                        .GetProperty("onTest")
-                        .GetString()
-                        ?.Split("num");
-                    str += res[0] + "num" + res[1];
-                    Assert.Equal(sub.Key.ToString(), res?.FirstOrDefault());
-                    Assert.Equal(index.ToString(), res?.LastOrDefault());
+                    str += "Operation " + jsonDocuments[index].RootElement + "\n";
                 }
             }
 
             str.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Parallel_Request_DifferentSockets()
+        {
+            // arrange
+            CancellationToken ct = new CancellationTokenSource(20_000).Token;
+            using IWebHost host = TestServerHelper
+                .CreateServer(
+                    x => x.AddTypeExtension<StringSubscriptionExtensions>(),
+                    out int port);
+
+            ServiceCollection serviceCollection = new();
+            serviceCollection
+                .AddProtocol<GraphQLWebSocketProtocolFactory>();
+
+            for (var i = 0; i < 10; i++)
+            {
+                serviceCollection.AddWebSocketClient(
+                    "Foo" + i,
+                    c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
+            }
+
+            IServiceProvider services = serviceCollection.BuildServiceProvider();
+
+            ISessionPool sessionPool = services.GetRequiredService<ISessionPool>();
+            ConcurrentDictionary<int, List<JsonDocument>> results = new();
+
+            async Task? CreateSubscription(int client, int id)
+            {
+                var connection =
+                    new WebSocketConnection(() => sessionPool.CreateAsync("Foo" + client, ct));
+                var document =
+                    new MockDocument($"subscription Test {{ onTest(id:{id.ToString()}) }}");
+                var request = new OperationRequest("Test", document);
+                await foreach (var response in connection.ExecuteAsync(request, ct))
+                {
+                    if (response.Body is not null)
+                    {
+                        results.AddOrUpdate(client * 100 + id,
+                            _ => new List<JsonDocument> { response.Body },
+                            (_, l) =>
+                            {
+                                l.Add(response.Body);
+                                return l;
+                            });
+                    }
+                }
+            }
+
+            // act
+            var list = new List<Task>();
+            for (var i = 0; i < 5; i++)
+            {
+                for (var j = 0; j < 10; j++)
+                {
+                    list.Add(CreateSubscription(i, j));
+                }
+            }
+
+            await Task.WhenAll(list);
+
+            // assert
+            var str = "";
+            foreach (var sub in results.OrderBy(x => x.Key))
+            {
+                JsonDocument[] jsonDocuments = sub.Value.ToArray();
+
+                str += "Operation " + sub.Key + "\n";
+                for (var index = 0; index < jsonDocuments.Length; index++)
+                {
+                    str += "Operation " + jsonDocuments[index].RootElement + "\n";
+                }
+            }
+
+            str.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task LoadTest_MessagesReceivedInCorrectOrder()
+        {
+            // arrange
+            CancellationToken ct = new CancellationTokenSource(20_000).Token;
+            using IWebHost host = TestServerHelper
+                .CreateServer(
+                    x => x.AddTypeExtension<StringSubscriptionExtensions>(),
+                    out int port);
+
+            ServiceCollection serviceCollection = new();
+            serviceCollection
+                .AddProtocol<GraphQLWebSocketProtocolFactory>();
+
+
+            for (var i = 0; i < 10; i++)
+            {
+                serviceCollection.AddWebSocketClient(
+                    "Foo" + i,
+                    c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
+            }
+
+            IServiceProvider services = serviceCollection.BuildServiceProvider();
+
+            ISessionPool sessionPool = services.GetRequiredService<ISessionPool>();
+
+            var globalCounter = 0;
+
+            async Task? CreateSubscription(int client, int id)
+            {
+                var connection =
+                    new WebSocketConnection(() => sessionPool.CreateAsync("Foo" + client, ct));
+                var document =
+                    new MockDocument($"subscription Test {{ countUp }}");
+                var request = new OperationRequest("Test", document);
+                var counter = 0;
+                await foreach (var response in connection.ExecuteAsync(request, ct))
+                {
+                    if (response.Body is not null)
+                    {
+                        Interlocked.Increment(ref globalCounter);
+                        var received = response.Body.RootElement
+                            .GetProperty("data")
+                            .GetProperty("countUp")
+                            .GetInt32();
+
+                        if (counter != received)
+                        {
+                            throw new InvalidOperationException();
+                        }
+
+                        counter++;
+                    }
+                }
+            }
+
+            // act
+            var list = new List<Task>();
+            for (var i = 0; i < 10; i++)
+            {
+                for (var j = 0; j < 10; j++)
+                {
+                    list.Add(CreateSubscription(i, j));
+                }
+            }
+
+            await Task.WhenAll(list);
+
+            // assert
+            Assert.Equal(10000, globalCounter);
         }
 
         [ExtendObjectType("Subscription")]
@@ -236,6 +366,16 @@ namespace StrawberryShake.Transport.WebSockets
                 {
                     await Task.Delay(1);
                     yield return $"{id.Value}num{i}";
+                }
+            }
+
+            [SubscribeAndResolve]
+            public async IAsyncEnumerable<int> CountUp()
+            {
+                for (var i = 0; i < 100; i++)
+                {
+                    await Task.Delay(1);
+                    yield return i;
                 }
             }
         }
