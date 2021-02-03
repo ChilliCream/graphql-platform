@@ -14,7 +14,7 @@ namespace HotChocolate.Types
         /// </summary>
         public PositiveIntType()
             : this(
-                WellKnownScalarTypes.PositiveIntType,
+                WellKnownScalarTypes.PositiveInt,
                 ScalarResources.PositiveIntType_Description)
         {
         }

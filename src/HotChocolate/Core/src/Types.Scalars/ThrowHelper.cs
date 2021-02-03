@@ -2,13 +2,35 @@ namespace HotChocolate.Types.Scalars
 {
     internal static class ThrowHelper
     {
+        public static SerializationException EmailAddressType_ParseLiteral_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.EmailAddress_IsInvalid_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.EmailAddress)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException EmailAddressType_ParseValue_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.EmailAddress_IsInvalid_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.EmailAddress)
+                    .Build(),
+                type);
+        }
+
         public static SerializationException NonEmptyStringType_ParseLiteral_IsEmpty(IType type)
         {
             return new SerializationException(
                 ErrorBuilder.New()
                     .SetMessage(ScalarResources.NonEmptyStringType_IsEmpty_ParseLiteral)
                     .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
-                    .SetExtension("actualType", "NonEmptyString")
+                    .SetExtension("actualType", WellKnownScalarTypes.NonEmptyString)
                     .Build(),
                 type);
         }
@@ -19,19 +41,18 @@ namespace HotChocolate.Types.Scalars
                 ErrorBuilder.New()
                     .SetMessage(ScalarResources.NonEmptyStringType_IsEmpty_ParseValue)
                     .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                    .SetExtension("actualType", "NonEmptyString")
+                    .SetExtension("actualType", WellKnownScalarTypes.NonEmptyString)
                     .Build(),
                 type);
         }
 
-        public static SerializationException PositiveIntType_ParseLiteral_ZeroOrLess(
-            IType type)
+        public static SerializationException PositiveIntType_ParseLiteral_ZeroOrLess(IType type)
         {
             return new SerializationException(
                 ErrorBuilder.New()
                     .SetMessage(ScalarResources.PositiveIntType_ZeroOrLess_ParseLiteral)
                     .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                    .SetExtension("actualType", "PositiveInt")
+                    .SetExtension("actualType", WellKnownScalarTypes.PositiveInt)
                     .Build(),
                 type);
         }
@@ -42,7 +63,7 @@ namespace HotChocolate.Types.Scalars
                 ErrorBuilder.New()
                     .SetMessage(ScalarResources.PositiveIntType_ZeroOrLess_ParseValue)
                     .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                    .SetExtension("actualType", "PositiveInt")
+                    .SetExtension("actualType", WellKnownScalarTypes.PositiveInt)
                     .Build(),
                 type);
         }
@@ -53,7 +74,7 @@ namespace HotChocolate.Types.Scalars
                 ErrorBuilder.New()
                     .SetMessage(ScalarResources.NegativeIntType_IsNotNegative_ParseLiteral)
                     .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
-                    .SetExtension("actualType", "NegativeInt")
+                    .SetExtension("actualType", WellKnownScalarTypes.NegativeInt)
                     .Build(),
                 type);
         }
@@ -64,7 +85,7 @@ namespace HotChocolate.Types.Scalars
                 ErrorBuilder.New()
                     .SetMessage(ScalarResources.NegativeIntType_IsNotNegative_ParseValue)
                     .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                    .SetExtension("actualType", "NegativeInt")
+                    .SetExtension("actualType", WellKnownScalarTypes.NegativeInt)
                     .Build(),
                 type);
         }
