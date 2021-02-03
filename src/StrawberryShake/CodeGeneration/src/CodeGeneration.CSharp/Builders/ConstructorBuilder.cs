@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
@@ -29,6 +30,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         {
             _parameters.Add(value);
             return this;
+        }
+
+        public bool HasParameters()
+        {
+            return _parameters.Any();
         }
 
         public ConstructorBuilder AddCode(ICode value)

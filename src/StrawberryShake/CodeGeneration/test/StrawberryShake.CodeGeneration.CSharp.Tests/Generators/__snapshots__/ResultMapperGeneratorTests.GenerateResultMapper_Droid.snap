@@ -4,14 +4,6 @@
     public partial class DroidFromDroidEntityMapper
         : global::StrawberryShake.IEntityMapper<DroidEntity, Droid>
     {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-
-        public DroidFromDroidEntityMapper(global::StrawberryShake.IEntityStore entityStore)
-        {
-            _entityStore = entityStore
-                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-        }
-
         public Droid Map(DroidEntity entity)
         {
             return new Droid(entity.Name);

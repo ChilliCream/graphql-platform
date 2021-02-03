@@ -1,0 +1,28 @@
+﻿namespace FooBarNamespace
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class MetasyntacticVariableParser
+    {
+        private MetasyntacticVariable Parse(global::System.String serializedValue)
+        {
+            return serializedValue switch
+            {
+                "FOO" => MetasyntacticVariable.Foo,
+                "BAR" => MetasyntacticVariable.Bar,
+                "BAZ" => MetasyntacticVariable.Baz,
+                _ => throw new global::StrawberryShake.GraphQLClientException()
+            };
+        }
+
+        public object Format(object runtimeValue)
+        {
+            return runtimeValue switch
+            {
+                MetasyntacticVariable.Foo => "FOO",
+                MetasyntacticVariable.Bar => "BAR",
+                MetasyntacticVariable.Baz => "BAZ",
+                _ => throw new global::StrawberryShake.GraphQLClientException()
+            };
+        }
+    }
+}

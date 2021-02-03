@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Text;
-using System.Threading.Tasks;
 using Snapshooter.Xunit;
 using StrawberryShake.CodeGeneration;
 using StrawberryShake.CodeGeneration.CSharp;
@@ -26,11 +25,11 @@ namespace StrawberryShake.Integration
         {
             // arrange
             var descriptor = new EnumDescriptor(
-                "Abc", 
-                "Def", 
+                "Abc",
+                "Def",
                 new List<EnumValueDescriptor>
                 {
-                    new EnumValueDescriptor("Ghi")
+                    new EnumValueDescriptor("Ghi", "GHI")
                 });
 
             // act
@@ -45,12 +44,12 @@ namespace StrawberryShake.Integration
         {
             // arrange
             var descriptor = new EnumDescriptor(
-                "Abc", 
-                "Def", 
+                "Abc",
+                "Def",
                 new List<EnumValueDescriptor>
                 {
-                    new EnumValueDescriptor("Ghi"),
-                    new EnumValueDescriptor("Jkl")
+                    new EnumValueDescriptor("Ghi", "GHI"),
+                    new EnumValueDescriptor("Jkl", "JKL")
                 });
 
             // act
@@ -65,11 +64,11 @@ namespace StrawberryShake.Integration
         {
             // arrange
             var descriptor = new EnumDescriptor(
-                "Abc", 
-                "Def", 
+                "Abc",
+                "Def",
                 new List<EnumValueDescriptor>
                 {
-                    new EnumValueDescriptor("Ghi")
+                    new EnumValueDescriptor("Ghi", "GHI")
                 },
                 "global::Underlying.Type");
 
@@ -85,11 +84,11 @@ namespace StrawberryShake.Integration
         {
             // arrange
             var descriptor = new EnumDescriptor(
-                "Abc", 
-                "Def", 
+                "Abc",
+                "Def",
                 new List<EnumValueDescriptor>
                 {
-                    new EnumValueDescriptor("Ghi", 123)
+                    new EnumValueDescriptor("Ghi", "GHI", 123)
                 });
 
             // act

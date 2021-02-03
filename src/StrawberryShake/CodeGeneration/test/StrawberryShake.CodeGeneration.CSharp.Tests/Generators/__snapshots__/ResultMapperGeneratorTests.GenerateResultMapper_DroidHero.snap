@@ -4,15 +4,10 @@
     public partial class DroidHeroFromDroidEntityMapper
         : global::StrawberryShake.IEntityMapper<DroidEntity, DroidHero>
     {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly IEntityMapper<FriendsConnectionData, FriendsConnection> _friendsConnectionFromDataMapper;
 
-        public DroidHeroFromDroidEntityMapper(
-            global::StrawberryShake.IEntityStore entityStore,
-            IEntityMapper<FriendsConnectionData, FriendsConnection> friendsConnectionFromDataMapper)
+        public DroidHeroFromDroidEntityMapper(IEntityMapper<FriendsConnectionData, FriendsConnection> friendsConnectionFromDataMapper)
         {
-            _entityStore = entityStore
-                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
             _friendsConnectionFromDataMapper = friendsConnectionFromDataMapper
                  ?? throw new global::System.ArgumentNullException(nameof(friendsConnectionFromDataMapper));
         }

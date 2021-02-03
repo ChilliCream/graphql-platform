@@ -17,7 +17,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                         enumType.Name,
                         context.Namespace,
                         enumType.Values
-                            .Select(value => new EnumValueDescriptor(value.Name))
+                            .Select(value => new EnumValueDescriptor(value.Name, value.Value.Name))
                             .ToList()));
             }
         }

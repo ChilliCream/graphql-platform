@@ -145,14 +145,6 @@ namespace Foo
     public partial class DroidFromDroidEntityMapper
         : global::StrawberryShake.IEntityMapper<DroidEntity, Droid>
     {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-
-        public DroidFromDroidEntityMapper(global::StrawberryShake.IEntityStore entityStore)
-        {
-            _entityStore = entityStore
-                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-        }
-
         public Droid Map(DroidEntity entity)
         {
             return new Droid();
@@ -184,14 +176,6 @@ namespace Foo
     public partial class HumanFromHumanEntityMapper
         : global::StrawberryShake.IEntityMapper<HumanEntity, Human>
     {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-
-        public HumanFromHumanEntityMapper(global::StrawberryShake.IEntityStore entityStore)
-        {
-            _entityStore = entityStore
-                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-        }
-
         public Human Map(HumanEntity entity)
         {
             return new Human();

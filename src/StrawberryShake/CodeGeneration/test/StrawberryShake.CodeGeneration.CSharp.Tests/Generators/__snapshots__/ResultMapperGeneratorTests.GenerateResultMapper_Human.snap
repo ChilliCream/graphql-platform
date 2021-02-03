@@ -4,14 +4,6 @@
     public partial class HumanFromHumanEntityMapper
         : global::StrawberryShake.IEntityMapper<HumanEntity, Human>
     {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-
-        public HumanFromHumanEntityMapper(global::StrawberryShake.IEntityStore entityStore)
-        {
-            _entityStore = entityStore
-                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-        }
-
         public Human Map(HumanEntity entity)
         {
             return new Human(entity.Name);

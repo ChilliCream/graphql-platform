@@ -199,60 +199,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
         }
 
-        // private void AddDeserializeMethod(
-        //     ITypeDescriptor typeReference,
-        //     ClassBuilder classBuilder,
-        //     ITypeDescriptor? originalTypeReference = null)
-        // {
-        //     ITypeDescriptor originalTypeDescriptor = originalTypeReference ?? typeReference;
-        //
-        //     switch (typeReference)
-        //     {
-        //         case ListTypeDescriptor listTypeDescriptor:
-        //
-        //             break;
-        //
-        //         case NamedTypeDescriptor typeDescriptor:
-        //             switch (typeDescriptor.Kind)
-        //             {
-        //                 case TypeKind.LeafType:
-        //                     AddScalarTypeDeserializerMethod(
-        //                         typeDescriptor,
-        //                         originalTypeDescriptor,
-        //                         classBuilder);
-        //                     break;
-        //
-        //                 case TypeKind.DataType:
-        //                     AddDataTypeDeserializerMethod(
-        //                         typeDescriptor,
-        //                         originalTypeDescriptor,
-        //                         classBuilder);
-        //                     break;
-        //
-        //                 case TypeKind.EntityType:
-        //                     AddUpdateEntityMethod(
-        //                         typeDescriptor,
-        //                         originalTypeDescriptor,
-        //                         classBuilder);
-        //                     break;
-        //
-        //                 default:
-        //                     throw new ArgumentOutOfRangeException();
-        //             }
-        //
-        //             break;
-        //         case NonNullTypeDescriptor nonNullTypeDescriptor:
-        //             AddDeserializeMethod(
-        //                 nonNullTypeDescriptor.InnerType,
-        //                 classBuilder,
-        //                 originalTypeDescriptor);
-        //             break;
-        //
-        //         default:
-        //             throw new ArgumentOutOfRangeException(nameof(typeReference));
-        //     }
-        // }
-
         private void AddBuildMethod(
             NamedTypeDescriptor resultNamedType,
             ClassBuilder classBuilder)
