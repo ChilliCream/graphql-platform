@@ -7,6 +7,7 @@ using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 using static StrawberryShake.CodeGeneration.Utilities.TypeHelpers;
@@ -15,15 +16,87 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 {
     public static class FragmentHelper
     {
+        public static string? GetReturnTypeName(FieldSelection fieldSelection)
+        {
+            DirectiveNode? directive =
+                fieldSelection.SyntaxNode.Directives.FirstOrDefault(
+                    t => t.Name.Value.Equals("returns"));
+            if (directive is not null &&
+                directive.Arguments.Count == 1 &&
+                directive.Arguments[0] is
+                {
+                    Name: { Value: "fragment" },
+                    Value: StringValueNode { Value: { Length: > 0 } } sv
+                })
+            {
+                return sv.Value;
+            }
+
+            return null;
+        }
+
+        public static FragmentNode? GetFragment(FragmentNode fragmentNode, string name)
+        {
+            if (fragmentNode.Fragment.Kind == FragmentKind.Named &&
+                fragmentNode.Fragment.Name.EqualsOrdinal(name))
+            {
+                return fragmentNode;
+            }
+
+            foreach (FragmentNode child in fragmentNode.Nodes)
+            {
+                if (GetFragment(child, name) is { } n)
+                {
+                    return n;
+                }
+            }
+
+            return null;
+        }
+
+        public static OutputTypeModel CreateClass(
+            IDocumentAnalyzerContext context,
+            FragmentNode fragmentNode,
+            SelectionSet selectionSet,
+            OutputTypeModel @interface)
+        {
+            NameString name = context.ResolveTypeName(
+                GetClassName(fragmentNode.Fragment.Name),
+                fragmentNode.Fragment.SelectionSet);
+
+            var fields = selectionSet.Fields
+                .Select(
+                    t => new OutputFieldModel(
+                        GetPropertyName(t.ResponseName),
+                        t.Field.Description,
+                        t.Field,
+                        t.Field.Type,
+                        t.SyntaxNode,
+                        t.Path))
+                .ToList();
+
+            var typeModel = new OutputTypeModel(
+                name,
+                fragmentNode.Fragment.TypeCondition.Description,
+                isInterface: false,
+                fragmentNode.Fragment.TypeCondition,
+                fragmentNode.Fragment.SelectionSet,
+                fields,
+                new[] { @interface });
+            context.RegisterModel(name, typeModel);
+
+            return typeModel;
+        }
+
         public static OutputTypeModel CreateInterface(
             IDocumentAnalyzerContext context,
-            FragmentNode returnTypeFragment,
+            FragmentNode fragmentNode,
             Path path)
         {
             var levels = new Stack<ISet<string>>();
             var rootImplements = new List<OutputTypeModel>();
             levels.Push(new HashSet<string>());
-            return CreateInterface(context, returnTypeFragment, path, levels, rootImplements);
+            return CreateInterface(context, fragmentNode, path, levels, rootImplements);
         }
 
         private static OutputTypeModel CreateInterface(
@@ -209,7 +282,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             return returnType;
         }
 
-        private static string CreateName(
+        public static string CreateName(
             Path selectionPath,
             Func<string, string> nameFormatter)
         {
