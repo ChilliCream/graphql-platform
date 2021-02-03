@@ -4,8 +4,8 @@ using HotChocolate.Language;
 namespace HotChocolate.Types.Scalars
 {
     /// <summary>
-    /// The `EmailAddress` scalar type represents a email address, represented as UTF-8 character sequences.
-    /// The scalar follows the specification defined in RFC 5322
+    /// The `EmailAddress` scalar type represents a email address, represented as UTF-8 character
+    /// sequences. The scalar follows the specification defined in RFC 5322.
     /// </summary>
     public class EmailAddressType : StringType
     {
