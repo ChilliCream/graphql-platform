@@ -272,7 +272,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 name += "_" + selectionSet.Type.NamedType().Name;
             }
 
-            var returnType = new FragmentNode(new Fragment(
+            var returnType = new FragmentNode(
+                new Fragment(
                     name,
                     FragmentKind.Structure,
                     namedType,
@@ -280,6 +281,28 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 selectionSet.FragmentNodes);
 
             return returnType;
+        }
+
+        public static FragmentNode CreateFragmentNode(
+            INamedType namedType,
+            Path selectionPath,
+            SelectionSet selectionSet,
+            bool appendTypeName = false)
+        {
+            string name = CreateName(selectionPath, GetClassName);
+
+            if (appendTypeName)
+            {
+                name += "_" + selectionSet.Type.NamedType().Name;
+            }
+
+            return new FragmentNode(
+                new Fragment(
+                    name,
+                    FragmentKind.Structure,
+                    namedType,
+                    selectionSet.SyntaxNode),
+                selectionSet.FragmentNodes);
         }
 
         public static string CreateName(

@@ -32,7 +32,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                         }
                     }
 
-                    fragment Characters on Character {
+                    fragment Characters on Character @remove {
                         ... Human
                         ... Droid
                     }
@@ -94,27 +94,22 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             var document =
                 Utf8GraphQLParser.Parse(@"
                     query GetHero {
-                        hero(episode: NEW_HOPE) @returns(fragment: ""hero"") {
-                            ... Characters
+                        hero(episode: NEW_HOPE) {
+                            ... Hero
                         }
-                    }
-
-                    fragment Characters on Character {
-                        ... Human
-                        ... Droid
                     }
 
                     fragment Hero on Character {
                         name
+                        ... Human
+                        ... Droid
                     }
 
                     fragment Human on Human {
-                        ... Hero
                         homePlanet
                     }
 
                     fragment Droid on Droid {
-                        ... Hero
                         primaryFunction
                     }");
 
