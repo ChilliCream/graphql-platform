@@ -9,7 +9,7 @@ using StrawberryShake.CodeGeneration.Analyzers.Models;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
 {
-    internal interface IDocumentAnalyzerContext
+    public interface IDocumentAnalyzerContext
     {
         ISchema Schema { get; }
 

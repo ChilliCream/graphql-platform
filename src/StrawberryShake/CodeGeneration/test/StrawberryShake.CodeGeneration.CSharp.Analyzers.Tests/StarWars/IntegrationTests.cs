@@ -5,7 +5,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
 using Foo;
+using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake.Serialization;
+using StrawberryShake.Transport.Http;
 using Xunit;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
@@ -83,12 +85,32 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
 
             public Episode Parse(string serializedValue)
             {
-                return Enum.Parse<Episode>(serializedValue);
+                switch (serializedValue)
+                {
+                    case "NEW_HOPE":
+                        return Episode.NewHope;
+
+                    case "Episode":
+                        return Episode.NewHope;
+
+                    default:
+                        throw new GraphQLClientException();
+                }
             }
 
             public object Format(object runtimeValue)
             {
-                return runtimeValue.ToString()!.ToUpperInvariant();
+                switch (runtimeValue)
+                {
+                    case "NEW_HOPE":
+                        return Episode.NewHope;
+
+                    case "Episode":
+                        return Episode.NewHope;
+
+                    default:
+                        throw new GraphQLClientException();
+                }
             }
         }
     }

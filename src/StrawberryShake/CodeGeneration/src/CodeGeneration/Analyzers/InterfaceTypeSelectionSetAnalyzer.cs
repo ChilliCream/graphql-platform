@@ -59,7 +59,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                             context,
                             fieldSelection,
                             modelSelectionSet,
-                            true);
+                            appendTypeName: true);
 
                     CreateClassModel(
                         context,
