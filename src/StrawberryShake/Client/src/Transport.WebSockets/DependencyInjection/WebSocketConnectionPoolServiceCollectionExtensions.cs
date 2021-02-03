@@ -6,12 +6,12 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
     /// Extensions methods to configure an <see cref="IServiceCollection"/> for
-    /// <see cref="ISocketSessionPool"/>.
+    /// <see cref="ISessionPool"/>.
     /// </summary>
     public static class WebSocketClientPoolServiceCollectionExtensions
     {
         /// <summary>
-        /// Registers the <see cref="ISocketSessionPool"/> on the <see cref="IServiceCollection"/>
+        /// Registers the <see cref="ISessionPool"/> on the <see cref="IServiceCollection"/>
         /// </summary>
         /// <param name="services">
         /// The <see cref="IServiceCollection"/>
@@ -29,7 +29,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(services));
             }
 
-            services.TryAddSingleton<ISocketSessionPool, SocketSessionPool>();
+            services.TryAddSingleton<ISessionPool, SessionPool>();
             return services;
         }
     }

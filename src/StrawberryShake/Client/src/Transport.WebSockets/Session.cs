@@ -9,7 +9,7 @@ using StrawberryShake.Transport.WebSockets.Messages;
 namespace StrawberryShake.Transport.WebSockets
 {
     /// <inheritdoc />
-    public sealed class SessionManager : ISessionManager
+    public sealed class Session : ISession
     {
         private readonly ISocketClient _socketClient;
         private ISocketProtocol? _socketProtocol;
@@ -18,9 +18,9 @@ namespace StrawberryShake.Transport.WebSockets
         private bool _disposed;
 
         /// <summary>
-        /// Creates a new instance <see cref="SessionManager"/>
+        /// Creates a new instance <see cref="Session"/>
         /// </summary>
-        public SessionManager(ISocketClient socketClient)
+        public Session(ISocketClient socketClient)
         {
             _socketClient = socketClient ??
                 throw new ArgumentNullException(nameof(socketClient));
@@ -90,7 +90,10 @@ namespace StrawberryShake.Transport.WebSockets
             }
         }
 
-        /// <inheritdoc />
+        /// <inhe      /// <summary>
+        /// Opens a session over the socket
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation token to cancel the operation</param>
         public async Task OpenSessionAsync(CancellationToken cancellationToken = default)
         {
             ISocketProtocol socketProtocol = await _socketClient.OpenAsync(cancellationToken)
@@ -102,7 +105,11 @@ namespace StrawberryShake.Transport.WebSockets
             _socketProtocol.Subscribe(ReceiveMessage);
         }
 
-        /// <inheritdoc />
+
+        /// <summary>
+        /// Closes a session over the socket
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation token to cancel the operation</param>
         public async Task CloseSessionAsync(CancellationToken cancellationToken = default)
         {
             await _socketClient.CloseAsync(

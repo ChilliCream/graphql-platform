@@ -41,35 +41,26 @@ namespace StrawberryShake.Transport.WebSockets
             IServiceProvider services =
                 serviceCollection.BuildServiceProvider();
 
-            ISocketSessionPool socketSessionPool =
-                services.GetRequiredService<ISocketSessionPool>();
+            ISessionPool sessionPool =
+                services.GetRequiredService<ISessionPool>();
 
             List<JsonDocument> results = new();
             MockDocument document = new("subscription Test { onTest(id:1) }");
             OperationRequest request = new("Test", document);
 
             // act
-            ISessionManager sessionManager = await socketSessionPool.RentAsync("Foo", ct);
-
-            try
+            var connection = new WebSocketConnection(() => sessionPool.CreateAsync("Foo", ct));
+            await foreach (var response in connection.ExecuteAsync(request, ct))
             {
-                var connection = new WebSocketConnection(sessionManager);
-                await foreach (var response in connection.ExecuteAsync(request, ct))
+                if (response.Body is not null)
                 {
-                    if (response.Body is not null)
-                    {
-                        results.Add(response.Body);
-                    }
-
-                    if (results.Count == 10)
-                    {
-                        break;
-                    }
+                    results.Add(response.Body);
                 }
-            }
-            finally
-            {
-                await socketSessionPool.ReturnAsync(sessionManager, ct);
+
+                if (results.Count == 10)
+                {
+                    break;
+                }
             }
 
 
@@ -94,30 +85,21 @@ namespace StrawberryShake.Transport.WebSockets
             IServiceProvider services =
                 serviceCollection.BuildServiceProvider();
 
-            ISocketSessionPool socketSessionPool =
-                services.GetRequiredService<ISocketSessionPool>();
+            ISessionPool sessionPool =
+                services.GetRequiredService<ISessionPool>();
 
             List<JsonDocument> results = new();
             MockDocument document = new("subscription Test { onTest }");
             OperationRequest request = new("Test", document);
 
             // act
-            ISessionManager sessionManager = await socketSessionPool.RentAsync("Foo", ct);
-
-            try
+            var connection = new WebSocketConnection(() => sessionPool.CreateAsync("Foo", ct));
+            await foreach (var response in connection.ExecuteAsync(request, ct))
             {
-                var connection = new WebSocketConnection(sessionManager);
-                await foreach (var response in connection.ExecuteAsync(request, ct))
+                if (response.Body is not null)
                 {
-                    if (response.Body is not null)
-                    {
-                        results.Add(response.Body);
-                    }
+                    results.Add(response.Body);
                 }
-            }
-            finally
-            {
-                await socketSessionPool.ReturnAsync(sessionManager, ct);
             }
 
 
@@ -142,32 +124,22 @@ namespace StrawberryShake.Transport.WebSockets
             IServiceProvider services =
                 serviceCollection.BuildServiceProvider();
 
-            ISocketSessionPool socketSessionPool =
-                services.GetRequiredService<ISocketSessionPool>();
+            ISessionPool sessionPool =
+                services.GetRequiredService<ISessionPool>();
 
             List<JsonDocument> results = new();
             MockDocument document = new(@"subscription Test { onTest(id:""Foo"") }");
             OperationRequest request = new("Test", document);
 
             // act
-            ISessionManager sessionManager = await socketSessionPool.RentAsync("Foo", ct);
-
-            try
+            var connection = new WebSocketConnection(() => sessionPool.CreateAsync("Foo", ct));
+            await foreach (var response in connection.ExecuteAsync(request, ct))
             {
-                var connection = new WebSocketConnection(sessionManager);
-                await foreach (var response in connection.ExecuteAsync(request, ct))
+                if (response.Body is not null)
                 {
-                    if (response.Body is not null)
-                    {
-                        results.Add(response.Body);
-                    }
+                    results.Add(response.Body);
                 }
             }
-            finally
-            {
-                await socketSessionPool.ReturnAsync(sessionManager, ct);
-            }
-
 
             // assert
             results.Select(x => x.RootElement.ToString()).ToList().MatchSnapshot();
@@ -191,56 +163,44 @@ namespace StrawberryShake.Transport.WebSockets
                     c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
             IServiceProvider services = serviceCollection.BuildServiceProvider();
 
-            ISocketSessionPool socketSessionPool = services.GetRequiredService<ISocketSessionPool>();
+            ISessionPool sessionPool = services.GetRequiredService<ISessionPool>();
             ConcurrentDictionary<int, List<JsonDocument>> results = new();
 
-
-            // act
-            ISessionManager sessionManager = await socketSessionPool.RentAsync("Foo", ct);
-            var connection = new WebSocketConnection(sessionManager);
-
-            try
+            async Task? CreateSubscription(int id)
             {
-                async Task? CreateSubscription(int id)
+                var connection =
+                    new WebSocketConnection(() => sessionPool.CreateAsync("Foo", ct));
+                var document =
+                    new MockDocument($"subscription Test {{ onTest(id:{id.ToString()}) }}");
+                var request = new OperationRequest("Test", document);
+                await foreach (var response in connection.ExecuteAsync(request, ct))
                 {
-                    var document =
-                        new MockDocument($"subscription Test {{ onTest(id:{id.ToString()}) }}");
-                    var request = new OperationRequest("Test", document);
-                    await foreach (var response in connection.ExecuteAsync(request, ct))
+                    if (response.Body is not null)
                     {
-                        if (response.Body is not null)
-                        {
-                            results.AddOrUpdate(id,
-                                _ => new List<JsonDocument> { response.Body },
-                                (_, l) =>
-                                {
-                                    l.Add(response.Body);
-                                    return l;
-                                });
-                        }
+                        results.AddOrUpdate(id,
+                            _ => new List<JsonDocument> { response.Body },
+                            (_, l) =>
+                            {
+                                l.Add(response.Body);
+                                return l;
+                            });
+                    }
 
-                        if (results[id].Count == 10)
-                        {
-                            break;
-                        }
+                    if (results[id].Count == 10)
+                    {
+                        break;
                     }
                 }
+            }
 
-                var list = new List<Task>();
-                for (var i = 0; i < 150; i++)
-                {
-                    list.Add(CreateSubscription(i));
-                }
+            // act
+            var list = new List<Task>();
+            for (var i = 0; i < 15; i++)
+            {
+                list.Add(CreateSubscription(i));
+            }
 
-                await Task.WhenAll(list);
-            }
-            catch (Exception ex)
-            {
-            }
-            finally
-            {
-                await socketSessionPool.ReturnAsync(sessionManager, ct);
-            }
+            await Task.WhenAll(list);
 
             // assert
             var str = "";
@@ -262,6 +222,7 @@ namespace StrawberryShake.Transport.WebSockets
                     Assert.Equal(index.ToString(), res?.LastOrDefault());
                 }
             }
+
             str.MatchSnapshot();
         }
 

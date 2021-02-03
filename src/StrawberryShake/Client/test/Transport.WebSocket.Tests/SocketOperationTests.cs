@@ -15,8 +15,8 @@ namespace StrawberryShake.Transport.WebSockets
         public void Constructor_SingleArgs_CreateObject()
         {
             // arrange
-            ISessionManager manager =
-                new Mock<ISessionManager>().Object;
+            ISession manager =
+                new Mock<ISession>().Object;
 
             // act
             Exception? exception = Record.Exception(() =>
@@ -30,8 +30,8 @@ namespace StrawberryShake.Transport.WebSockets
         public void Constructor_SingleArgs_CreateUniqueId()
         {
             // arrange
-            ISessionManager manager =
-                new Mock<ISessionManager>().Object;
+            ISession manager =
+                new Mock<ISession>().Object;
 
             // act
             var first = new SocketOperation(manager);
@@ -47,8 +47,8 @@ namespace StrawberryShake.Transport.WebSockets
         public void Constructor_AllArgs_CreateObject()
         {
             // arrange
-            ISessionManager manager =
-                new Mock<ISessionManager>().Object;
+            ISession manager =
+                new Mock<ISession>().Object;
             string id = "123";
 
             // act
@@ -63,7 +63,7 @@ namespace StrawberryShake.Transport.WebSockets
         public void Constructor_MonitorNull_CreateObject()
         {
             // arrange
-            ISessionManager manager = null!;
+            ISession manager = null!;
             string id = "123";
 
             // act
@@ -78,8 +78,8 @@ namespace StrawberryShake.Transport.WebSockets
         public void Constructor_FactoriesNull_CreateObject()
         {
             // arrange
-            ISessionManager manager =
-                new Mock<ISessionManager>().Object;
+            ISession manager =
+                new Mock<ISession>().Object;
             string id = null!;
 
             // act
@@ -94,7 +94,7 @@ namespace StrawberryShake.Transport.WebSockets
         public async Task ReadAsync_IsDisposed_Return()
         {
             // arrange
-            ISessionManager manager = new Mock<ISessionManager>().Object;
+            ISession manager = new Mock<ISession>().Object;
             string id = "123";
             var operation = new SocketOperation(manager, id);
             await operation.DisposeAsync();
@@ -114,7 +114,7 @@ namespace StrawberryShake.Transport.WebSockets
         public async Task ReadAsync_IsDisposedDuringReceiving_Return()
         {
             // arrange
-            ISessionManager manager = new Mock<ISessionManager>().Object;
+            ISession manager = new Mock<ISession>().Object;
             string id = "123";
             var operation = new SocketOperation(manager, id);
             List<OperationMessage> messages = new();
@@ -138,12 +138,12 @@ namespace StrawberryShake.Transport.WebSockets
         public async Task Dispose_IsNotDisposed_StopOperationAsync()
         {
             // arrange
-            var managerMock = new Mock<ISessionManager>(MockBehavior.Strict);
+            var managerMock = new Mock<ISession>(MockBehavior.Strict);
             string id = "123";
             managerMock
                 .Setup(x => x.StopOperationAsync(id, It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
-            ISessionManager manager = managerMock.Object;
+            ISession manager = managerMock.Object;
             var operation = new SocketOperation(manager, id);
 
             // act
@@ -157,12 +157,12 @@ namespace StrawberryShake.Transport.WebSockets
         public async Task Dispose_IsDisposed_StopOperationAsync()
         {
             // arrange
-            var managerMock = new Mock<ISessionManager>(MockBehavior.Strict);
+            var managerMock = new Mock<ISession>(MockBehavior.Strict);
             string id = "123";
             managerMock
                 .Setup(x => x.StopOperationAsync(id, It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
-            ISessionManager manager = managerMock.Object;
+            ISession manager = managerMock.Object;
             var operation = new SocketOperation(manager, id);
 
             // act

@@ -11,7 +11,7 @@ using Xunit;
 
 namespace StrawberryShake.Transport.WebSockets
 {
-    public class SocketSessionManagerTests
+    public class SessionTests
     {
         [Fact]
         public void Constructor_AllArgs_CreateObject()
@@ -20,7 +20,7 @@ namespace StrawberryShake.Transport.WebSockets
             var client = new SocketClientStub() { Protocol = new Mock<ISocketProtocol>().Object };
 
             // act
-            Exception? exception = Record.Exception(() => new SessionManager(client));
+            Exception? exception = Record.Exception(() => new Session(client));
 
             // assert
             Assert.Null(exception);
@@ -33,7 +33,7 @@ namespace StrawberryShake.Transport.WebSockets
             ISocketClient client = null!;
 
             // act
-            Exception? exception = Record.Exception(() => new SessionManager(client));
+            Exception? exception = Record.Exception(() => new Session(client));
 
             // assert
             Assert.IsType<ArgumentNullException>(exception);
@@ -44,7 +44,7 @@ namespace StrawberryShake.Transport.WebSockets
         {
             // arrange
             var client = new SocketClientStub { Protocol = null! };
-            var manager = new SessionManager(client);
+            var manager = new Session(client);
 
             // act
             Exception? exception = await Record.ExceptionAsync(() => manager.OpenSessionAsync());
@@ -60,7 +60,7 @@ namespace StrawberryShake.Transport.WebSockets
             var protocolMock = new Mock<ISocketProtocol>(MockBehavior.Strict);
             var client = new SocketClientStub() { Protocol = protocolMock.Object };
             protocolMock.Setup(x => x.Subscribe(It.IsAny<OnReceiveAsync>()));
-            var manager = new SessionManager(client);
+            var manager = new Session(client);
 
             // act
             await manager.OpenSessionAsync().ConfigureAwait(false);
@@ -75,7 +75,7 @@ namespace StrawberryShake.Transport.WebSockets
             // arrange
             var protocolMock = new Mock<ISocketProtocol>();
             var client = new SocketClientStub() { Protocol = protocolMock.Object };
-            var manager = new SessionManager(client);
+            var manager = new Session(client);
 
             // act
             await manager.OpenSessionAsync().ConfigureAwait(false);
@@ -91,7 +91,7 @@ namespace StrawberryShake.Transport.WebSockets
             // arrange
             var protocolMock = new Mock<ISocketProtocol>();
             var client = new SocketClientStub() { Protocol = protocolMock.Object };
-            var manager = new SessionManager(client);
+            var manager = new Session(client);
 
             // act
             await manager.CloseSessionAsync().ConfigureAwait(false);
@@ -108,7 +108,7 @@ namespace StrawberryShake.Transport.WebSockets
             var client = new SocketClientStub() { Protocol = protocolMock.Object };
             protocolMock.Setup(x => x.Subscribe(It.IsAny<OnReceiveAsync>()));
             OperationRequest request = null!;
-            var manager = new SessionManager(client);
+            var manager = new Session(client);
             await manager.OpenSessionAsync();
 
             // act
@@ -126,7 +126,7 @@ namespace StrawberryShake.Transport.WebSockets
             var protocolMock = new Mock<ISocketProtocol>(MockBehavior.Strict);
             var client = new SocketClientStub() { Protocol = protocolMock.Object };
             OperationRequest request = new("Foo", GetHeroQueryDocument.Instance);
-            var manager = new SessionManager(client);
+            var manager = new Session(client);
 
             // act
             Exception? exception =
@@ -143,7 +143,7 @@ namespace StrawberryShake.Transport.WebSockets
             var protocolMock = new Mock<ISocketProtocol>();
             var client = new SocketClientStub() { Protocol = protocolMock.Object };
             OperationRequest request = new("Foo", GetHeroQueryDocument.Instance);
-            var manager = new SessionManager(client);
+            var manager = new Session(client);
             await manager.OpenSessionAsync();
             protocolMock
                 .Setup(x =>
@@ -166,7 +166,7 @@ namespace StrawberryShake.Transport.WebSockets
             var protocolMock = new Mock<ISocketProtocol>();
             var client = new SocketClientStub() { Protocol = protocolMock.Object };
             OperationRequest request = new("Foo", GetHeroQueryDocument.Instance);
-            var manager = new SessionManager(client);
+            var manager = new Session(client);
             await manager.OpenSessionAsync();
             protocolMock
                 .Setup(x =>
@@ -193,7 +193,7 @@ namespace StrawberryShake.Transport.WebSockets
             var protocolMock = new Mock<ISocketProtocol>();
             var client = new SocketClientStub() { Protocol = protocolMock.Object };
             OperationRequest request = new("Foo", GetHeroQueryDocument.Instance);
-            var manager = new SessionManager(client);
+            var manager = new Session(client);
             await manager.OpenSessionAsync();
             protocolMock
                 .Setup(x =>
@@ -220,7 +220,7 @@ namespace StrawberryShake.Transport.WebSockets
             var protocolMock = new Mock<ISocketProtocol>(MockBehavior.Strict);
             var client = new SocketClientStub() { Protocol = protocolMock.Object };
             OperationRequest request = new("Foo", GetHeroQueryDocument.Instance);
-            var manager = new SessionManager(client);
+            var manager = new Session(client);
 
             // act
             Exception? exception =
@@ -237,7 +237,7 @@ namespace StrawberryShake.Transport.WebSockets
             var protocolMock = new Mock<ISocketProtocol>();
             var client = new SocketClientStub() { Protocol = protocolMock.Object };
             OperationRequest request = new("Foo", GetHeroQueryDocument.Instance);
-            var manager = new SessionManager(client);
+            var manager = new Session(client);
             await manager.OpenSessionAsync();
             List<OperationMessage> messages = new();
 
@@ -268,7 +268,7 @@ namespace StrawberryShake.Transport.WebSockets
                 {
                     listener = subscribe;
                 });
-            var manager = new SessionManager(client);
+            var manager = new Session(client);
             await manager.OpenSessionAsync();
             OperationRequest request = new("Foo", GetHeroQueryDocument.Instance);
             List<OperationMessage> messages = new();
@@ -296,7 +296,7 @@ namespace StrawberryShake.Transport.WebSockets
             var client = new SocketClientStub() { Protocol = protocolMock.Object };
             protocolMock.Setup(x => x.Unsubscribe(It.IsAny<OnReceiveAsync>()));
             OperationRequest request = null!;
-            var manager = new SessionManager(client);
+            var manager = new Session(client);
             await manager.OpenSessionAsync();
 
             // act
@@ -313,7 +313,7 @@ namespace StrawberryShake.Transport.WebSockets
             var protocolMock = new Mock<ISocketProtocol>();
             var client = new SocketClientStub() { Protocol = protocolMock.Object };
             OperationRequest request = new("Foo", GetHeroQueryDocument.Instance);
-            var manager = new SessionManager(client);
+            var manager = new Session(client);
             await manager.OpenSessionAsync();
             ISocketOperation operation = await manager.StartOperationAsync(request);
             List<OperationMessage> messages = new();

@@ -19,10 +19,11 @@ namespace StrawberryShake.Transport.WebSockets
         public void Constructor_AllArgs_CreateObject()
         {
             // arrange
-            ISessionManager manager = new Mock<ISessionManager>().Object;
+            Func<Task<ISession>> sessionFactory =
+                () => Task.FromResult(new Mock<ISession>().Object);
 
             // act
-            Exception? exception = Record.Exception(() => new WebSocketConnection(manager));
+            Exception? exception = Record.Exception(() => new WebSocketConnection(sessionFactory));
 
             // assert
             Assert.Null(exception);
@@ -32,10 +33,10 @@ namespace StrawberryShake.Transport.WebSockets
         public void Constructor_ManagerNull_CreateObject()
         {
             // arrange
-            ISessionManager manager = null!;
+            Func<Task<ISession>> sessionFactory = null!;
 
             // act
-            Exception? exception = Record.Exception(() => new WebSocketConnection(manager));
+            Exception? exception = Record.Exception(() => new WebSocketConnection(sessionFactory));
 
             // assert
             Assert.IsType<ArgumentNullException>(exception);
@@ -52,14 +53,14 @@ namespace StrawberryShake.Transport.WebSockets
             }
 
             var operationRequest = new OperationRequest("foo", GetHeroQueryDocument.Instance);
-            var managerMock = new Mock<ISessionManager>();
+            var managerMock = new Mock<ISession>();
             var operationMock = new Mock<ISocketOperation>();
             managerMock
                 .Setup(x => x.StartOperationAsync(operationRequest, CancellationToken.None))
                 .ReturnsAsync(operationMock.Object);
             operationMock.Setup(x => x.ReadAsync(default)).Returns(Producer());
-            ISessionManager manager = managerMock.Object;
-            var connection = new WebSocketConnection(manager);
+            Func<Task<ISession>> sessionFactory = () => Task.FromResult(managerMock.Object);
+            var connection = new WebSocketConnection(sessionFactory);
             var results = new List<Response<JsonDocument>>();
 
             // act
@@ -86,14 +87,14 @@ namespace StrawberryShake.Transport.WebSockets
             }
 
             var operationRequest = new OperationRequest("foo", GetHeroQueryDocument.Instance);
-            var managerMock = new Mock<ISessionManager>();
+            var managerMock = new Mock<ISession>();
             var operationMock = new Mock<ISocketOperation>();
             managerMock
                 .Setup(x => x.StartOperationAsync(operationRequest, CancellationToken.None))
                 .ReturnsAsync(operationMock.Object);
             operationMock.Setup(x => x.ReadAsync(default)).Returns(Producer());
-            ISessionManager manager = managerMock.Object;
-            var connection = new WebSocketConnection(manager);
+            Func<Task<ISession>> sessionFactory = () => Task.FromResult(managerMock.Object);
+            var connection = new WebSocketConnection(sessionFactory);
             var results = new List<Response<JsonDocument>>();
 
             // act
@@ -117,14 +118,14 @@ namespace StrawberryShake.Transport.WebSockets
             }
 
             var operationRequest = new OperationRequest("foo", GetHeroQueryDocument.Instance);
-            var managerMock = new Mock<ISessionManager>();
+            var managerMock = new Mock<ISession>();
             var operationMock = new Mock<ISocketOperation>();
             managerMock
                 .Setup(x => x.StartOperationAsync(operationRequest, CancellationToken.None))
                 .ReturnsAsync(operationMock.Object);
             operationMock.Setup(x => x.ReadAsync(default)).Returns(Producer());
-            ISessionManager manager = managerMock.Object;
-            var connection = new WebSocketConnection(manager);
+            Func<Task<ISession>> sessionFactory = () => Task.FromResult(managerMock.Object);
+            var connection = new WebSocketConnection(sessionFactory);
             var results = new List<Response<JsonDocument>>();
 
             // act
@@ -149,14 +150,14 @@ namespace StrawberryShake.Transport.WebSockets
             }
 
             var operationRequest = new OperationRequest("foo", GetHeroQueryDocument.Instance);
-            var managerMock = new Mock<ISessionManager>();
+            var managerMock = new Mock<ISession>();
             var operationMock = new Mock<ISocketOperation>();
             managerMock
                 .Setup(x => x.StartOperationAsync(operationRequest, CancellationToken.None))
                 .ReturnsAsync(operationMock.Object);
             operationMock.Setup(x => x.ReadAsync(default)).Returns(Producer());
-            ISessionManager manager = managerMock.Object;
-            var connection = new WebSocketConnection(manager);
+            Func<Task<ISession>> sessionFactory = () => Task.FromResult(managerMock.Object);
+            var connection = new WebSocketConnection(sessionFactory);
             var results = new List<Response<JsonDocument>>();
 
             // act
@@ -181,14 +182,14 @@ namespace StrawberryShake.Transport.WebSockets
             }
 
             var operationRequest = new OperationRequest("foo", GetHeroQueryDocument.Instance);
-            var managerMock = new Mock<ISessionManager>();
+            var managerMock = new Mock<ISession>();
             var operationMock = new Mock<ISocketOperation>();
             managerMock
                 .Setup(x => x.StartOperationAsync(operationRequest, CancellationToken.None))
                 .ReturnsAsync(operationMock.Object);
             operationMock.Setup(x => x.ReadAsync(default)).Returns(Producer());
-            ISessionManager manager = managerMock.Object;
-            var connection = new WebSocketConnection(manager);
+            Func<Task<ISession>> sessionFactory = () => Task.FromResult(managerMock.Object);
+            var connection = new WebSocketConnection(sessionFactory);
             var results = new List<Response<JsonDocument>>();
 
             // act

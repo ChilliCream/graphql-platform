@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading;
+using System.Threading.Tasks;
 using StrawberryShake.Transport.WebSockets;
 using StrawberryShake.Transport.WebSockets.Messages;
 
@@ -13,16 +14,16 @@ namespace StrawberryShake.Http.Subscriptions
     /// </summary>
     public class WebSocketConnection : IConnection<JsonDocument>
     {
-        private readonly ISessionManager _sessionManager;
+        private readonly Func<Task<ISession>> _sessionFactory;
 
         /// <summary>
         /// Creates a new instance of a <see cref="WebSocketConnection"/>
         /// </summary>
-        /// <param name="sessionManager"></param>
-        public WebSocketConnection(ISessionManager sessionManager)
+        /// <param name="sessionFactory"></param>
+        public WebSocketConnection(Func<Task<ISession>> sessionFactory)
         {
-            _sessionManager = sessionManager ??
-                throw new ArgumentNullException(nameof(sessionManager));
+            _sessionFactory = sessionFactory ??
+                throw new ArgumentNullException(nameof(sessionFactory));
         }
 
         /// <inheritdoc />
@@ -35,8 +36,10 @@ namespace StrawberryShake.Http.Subscriptions
                 throw new ArgumentNullException(nameof(request));
             }
 
+            await using ISession session = await _sessionFactory();
+
             await using ISocketOperation operation =
-                await _sessionManager.StartOperationAsync(request, cancellationToken);
+                await session.StartOperationAsync(request, cancellationToken);
 
             await foreach (var message in operation.ReadAsync(cancellationToken))
             {
