@@ -59,7 +59,9 @@ namespace HotChocolate.Types.Scalars
 
         [Theory]
         [InlineData(typeof(StringValueNode), "test@chillicream.com", "test@chillicream.com")]
-        [InlineData(typeof(StringValueNode), "CapitalizeTest@chillicream.com", "CapitalizeTest@chillicream.com")]
+        [InlineData(typeof(StringValueNode),
+            "CapitalizeTest@chillicream.com",
+            "CapitalizeTest@chillicream.com")]
         [InlineData(typeof(NullValueNode), null, null)]
         public void ParseLiteral_GivenValueNode_MatchExpected(
             Type type,

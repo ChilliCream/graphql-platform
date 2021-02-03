@@ -23,6 +23,7 @@ namespace HotChocolate.Types.Scalars
                     .Build(),
                 type);
         }
+
         public static SerializationException NonEmptyStringType_ParseLiteral_IsEmpty(IType type)
         {
             return new SerializationException(
@@ -45,8 +46,7 @@ namespace HotChocolate.Types.Scalars
                 type);
         }
 
-        public static SerializationException PositiveIntType_ParseLiteral_ZeroOrLess(
-            IType type)
+        public static SerializationException PositiveIntType_ParseLiteral_ZeroOrLess(IType type)
         {
             return new SerializationException(
                 ErrorBuilder.New()

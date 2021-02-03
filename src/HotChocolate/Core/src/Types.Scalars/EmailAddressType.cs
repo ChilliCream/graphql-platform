@@ -13,12 +13,11 @@ namespace HotChocolate.Types.Scalars
         /// Well established regex for email validation
         /// Source : https://emailregex.com/
         /// </summary>
-        private static readonly string _validationPattern = @"(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|""(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*"")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])";
+        private static readonly string _validationPattern =
+            ScalarResources.EmailAddress_ValidationPattern;
 
         private static readonly Regex _validationRegex =
-            new Regex(
-                _validationPattern,
-                RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            new( _validationPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         public EmailAddressType()
             : this(
@@ -65,7 +64,6 @@ namespace HotChocolate.Types.Scalars
         /// <inheritdoc />
         protected override StringValueNode ParseValue(string runtimeValue)
         {
-
             if(!_validationRegex.IsMatch(runtimeValue))
             {
                 throw ThrowHelper.EmailAddressType_ParseValue_IsInvalid(this);
