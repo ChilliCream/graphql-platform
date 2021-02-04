@@ -11,12 +11,12 @@ namespace StrawberryShake.CodeGeneration.Utilities
 {
     public static class SchemaHelper
     {
-        public static ISchema Load(params DocumentNode[] documents)
+        public static ISchema Load(params (string, DocumentNode)[] documents)
         {
-            return Load((IEnumerable<DocumentNode>)documents);
+            return Load((IEnumerable<(string, DocumentNode)>)documents);
         }
 
-        public static ISchema Load(IEnumerable<DocumentNode> documents)
+        public static ISchema Load(IEnumerable<(string, DocumentNode)> documents)
         {
             if (documents is null)
             {
@@ -28,7 +28,7 @@ namespace StrawberryShake.CodeGeneration.Utilities
             var globalEntityPatterns = new List<SelectionSetNode>();
             var typeEntityPatterns = new Dictionary<NameString, SelectionSetNode>();
 
-            foreach (DocumentNode document in documents)
+            foreach (DocumentNode document in documents.Select(doc => doc.Item2))
             {
                 if (document.Definitions.Any(t => t is ITypeSystemExtensionNode))
                 {

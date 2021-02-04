@@ -69,7 +69,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                             string[] runtimeTypeName = scalarType.GetRuntimeType().Split('.');
 
                             fieldType = new NamedTypeDescriptor(
-                                scalarType.Name,
+                                runtimeTypeName.Last(),
                                 string.Join(
                                     ".",
                                     runtimeTypeName.Take(runtimeTypeName.Length - 1)),

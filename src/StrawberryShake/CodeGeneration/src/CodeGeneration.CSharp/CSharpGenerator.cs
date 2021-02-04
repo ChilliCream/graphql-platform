@@ -23,17 +23,20 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
 
             var errors = new List<IError>();
-            var documents = new List<DocumentNode>();
+            var documents = new List<(string file, DocumentNode document)>();
 
             foreach (var file in graphQLFiles)
             {
                 try
                 {
-                    documents.Add(Utf8GraphQLParser.Parse(File.ReadAllBytes(file)));
+                    documents.Add((file, Utf8GraphQLParser.Parse(File.ReadAllBytes(file))));
                 }
                 catch (SyntaxException syntaxException)
                 {
-                    errors.Add(Generator_SyntaxException(syntaxException));
+                    errors.Add(
+                        Generator_SyntaxException(
+                            syntaxException,
+                            file));
                 }
             }
 
@@ -72,22 +75,37 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .GetRequiredService<IDocumentValidatorFactory>()
                 .CreateValidator();
 
-            foreach (var result in executableDocs
-                .Select(
-                    operation => validator.Validate(
-                        schema,
-                        operation))
-                .Where(result => result.HasErrors))
+            foreach ((string file, DocumentNode document) executableDoc in executableDocs)
             {
-                errors.AddRange(result.Errors);
+                var validationResult = validator.Validate(
+                    schema,
+                    executableDoc.document);
+                if (validationResult.HasErrors)
+                {
+                    errors.AddRange(
+                        validationResult.Errors
+                            .Select(
+                                error => error.WithExtensions(
+                                    new Dictionary<string, object?>
+                                    {
+                                        {FileExtensionKey, executableDoc.file}
+                                    })));
+                }
+            }
+
+            if (errors.Any())
+            {
+                return new CSharpGeneratorResult(
+                    new List<CSharpDocument>(),
+                    errors);
             }
 
             var analyzer = new DocumentAnalyzer();
             analyzer.SetSchema(schema);
 
-            foreach (DocumentNode executableDocument in executableDocs)
+            foreach ((string file, DocumentNode document) executableDocument in executableDocs)
             {
-                analyzer.AddDocument(executableDocument);
+                analyzer.AddDocument(executableDocument.document);
             }
 
             ClientModel clientModel = analyzer.Analyze();

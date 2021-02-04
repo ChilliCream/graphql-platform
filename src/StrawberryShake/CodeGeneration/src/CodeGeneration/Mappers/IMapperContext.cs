@@ -6,7 +6,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
     public interface IMapperContext
     {
         string ClientName { get; }
-        
+
         string Namespace { get; }
 
         IReadOnlyCollection<NamedTypeDescriptor> Types { get; }
@@ -14,7 +14,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
         IReadOnlyCollection<EntityTypeDescriptor> EntityTypes { get; }
 
         IReadOnlyCollection<EnumDescriptor> EnumTypes { get; }
-        
+
         IReadOnlyCollection<OperationDescriptor> Operations { get; }
 
         ClientDescriptor Client { get; }
@@ -24,11 +24,11 @@ namespace StrawberryShake.CodeGeneration.Mappers
         void Register(NameString codeTypeName, EntityTypeDescriptor entityTypeDescriptor);
 
         void Register(NameString codeTypeName, EnumDescriptor enumTypeDescriptor);
-        
+
         void Register(NameString operationName, OperationDescriptor operationDescriptor);
-        
+
         void Register(NameString resultBuilderName, ResultBuilderDescriptor operationDescriptor);
-        
+
         void Register(ClientDescriptor clientDescriptor);
 
         void Register(EntityIdFactoryDescriptor entityIdFactoryDescriptor);

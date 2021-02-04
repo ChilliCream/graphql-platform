@@ -27,9 +27,9 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 SchemaHelper.Load(
                     new[]
                     {
-                        schema.ToDocument(),
-                        Utf8GraphQLParser.Parse(
-                            @"extend scalar String @runtimeType(name: ""Abc"")")
+                        ("", schema.ToDocument()),
+                        ("", Utf8GraphQLParser.Parse(
+                            @"extend scalar String @runtimeType(name: ""Abc"")"))
                     });
 
             var document =

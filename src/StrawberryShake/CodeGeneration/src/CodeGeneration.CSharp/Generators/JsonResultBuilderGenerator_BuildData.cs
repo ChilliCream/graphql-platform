@@ -60,7 +60,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 }
                 else
                 {
-                    resultInfoConstructor.AddArgument(BuildUpdateMethodCall(property));
+                    resultInfoConstructor.AddArgument(BuildUpdateMethodCall(property, ""));
                 }
             }
 

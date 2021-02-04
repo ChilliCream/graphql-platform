@@ -15,12 +15,25 @@ namespace StrawberryShake.CodeGeneration.Mappers
         {
             foreach (OperationModel modelOperation in model.Operations)
             {
+                var arguments = modelOperation.Arguments.Select(
+                    arg =>
+                    {
+                        if (arg.Type.IsEnumType())
+                        {
+                            var enumType = context.EnumTypes.Single(type => type.Name == arg.Type.TypeName());
 
-                var arguments = modelOperation.Arguments.Select(arg =>
-                        new PropertyDescriptor(
+                            return new PropertyDescriptor(
+                                arg.Name,
+                                new NamedTypeDescriptor(
+                                    enumType.Name,
+                                    enumType.Namespace,
+                                    false));
+                        }
+
+                        return new PropertyDescriptor(
                             arg.Name,
-                            context.Types.Single(type => type.Name == arg.Type.TypeName()))
-                    ).ToList();
+                            context.Types.Single(type => type.Name == arg.Type.TypeName()));
+                    }).ToList();
 
                 switch (modelOperation.Operation.Operation)
                 {

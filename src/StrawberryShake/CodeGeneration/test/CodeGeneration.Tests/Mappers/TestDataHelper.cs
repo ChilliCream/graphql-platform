@@ -25,7 +25,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     .AddStarWars()
                     .BuildSchemaAsync();
 
-            schema = SchemaHelper.Load(schema.ToDocument());
+            schema = SchemaHelper.Load(("", schema.ToDocument()));
 
             DocumentNode document = Utf8GraphQLParser.Parse(query);
 

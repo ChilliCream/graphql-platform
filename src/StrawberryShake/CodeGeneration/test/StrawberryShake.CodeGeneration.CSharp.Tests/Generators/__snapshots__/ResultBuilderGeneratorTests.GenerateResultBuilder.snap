@@ -58,7 +58,7 @@
 
             var resultInfo = new GetHeroResultInfo(
                 heroId,
-                DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "version")),
+                DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj, "version")),
                 entityIds,
                 session.Version
             );

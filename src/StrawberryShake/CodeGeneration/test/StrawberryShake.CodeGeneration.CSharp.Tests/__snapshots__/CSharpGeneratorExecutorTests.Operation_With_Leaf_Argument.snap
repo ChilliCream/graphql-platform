@@ -85,20 +85,11 @@ namespace Foo
         : global::StrawberryShake.IOperationResultDataFactory<GetHero>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<DroidEntity, GetHero_Hero_Droid> _getHero_Hero_DroidFromDroidEntityMapper;
-        private readonly global::StrawberryShake.IEntityMapper<HumanEntity, GetHero_Hero_Human> _getHero_Hero_HumanFromHumanEntityMapper;
 
-        public GetHeroFactory(
-            global::StrawberryShake.IEntityStore entityStore,
-            global::StrawberryShake.IEntityMapper<DroidEntity, GetHero_Hero_Droid> getHero_Hero_DroidFromDroidEntityMapper,
-            global::StrawberryShake.IEntityMapper<HumanEntity, GetHero_Hero_Human> getHero_Hero_HumanFromHumanEntityMapper)
+        public GetHeroFactory(global::StrawberryShake.IEntityStore entityStore)
         {
             _entityStore = entityStore
                  ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-            _getHero_Hero_DroidFromDroidEntityMapper = getHero_Hero_DroidFromDroidEntityMapper
-                 ?? throw new global::System.ArgumentNullException(nameof(getHero_Hero_DroidFromDroidEntityMapper));
-            _getHero_Hero_HumanFromHumanEntityMapper = getHero_Hero_HumanFromHumanEntityMapper
-                 ?? throw new global::System.ArgumentNullException(nameof(getHero_Hero_HumanFromHumanEntityMapper));
         }
 
         public GetHero Create(global::StrawberryShake.IOperationResultDataInfo dataInfo)
@@ -108,22 +99,6 @@ namespace Foo
                 IGetHero_Hero hero = default!;
 
                 var heroInfo = info.Hero ?? throw new global::System.ArgumentNullException();
-                if (heroInfo.Name.Equals(
-                    "Droid",
-                    global::System.StringComparison.Ordinal
-                ))
-                {
-                    hero = _getHero_Hero_DroidFromDroidEntityMapper.Map(_entityStore.GetEntity<DroidEntity>(heroInfo) ?? throw new global::System.ArgumentNullException());
-                }
-
-                if (heroInfo.Name.Equals(
-                    "Human",
-                    global::System.StringComparison.Ordinal
-                ))
-                {
-                    hero = _getHero_Hero_HumanFromHumanEntityMapper.Map(_entityStore.GetEntity<HumanEntity>(heroInfo) ?? throw new global::System.ArgumentNullException());
-                }
-
                 return new GetHero(hero);
             }
 
@@ -216,7 +191,7 @@ namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_Hero_Droid
-        : IGetHero_Hero
+        : IGetHero_Hero_Droid
     {
         public GetHero_Hero_Droid(
             global::System.String name,
@@ -258,7 +233,7 @@ namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_Hero_Human
-        : IGetHero_Hero
+        : IGetHero_Hero_Human
     {
         public GetHero_Hero_Human(
             global::System.String name,
@@ -301,6 +276,34 @@ namespace Foo
 }
 
 
+// IGetHero_Hero_Droid
+
+namespace Foo
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IGetHero_Hero_Droid
+    {
+        public global::System.String Name { get; }
+
+        public global::System.Collections.Generic.IReadOnlyList<Episode?>? AppearsIn { get; }
+    }
+}
+
+
+// IGetHero_Hero_Human
+
+namespace Foo
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IGetHero_Hero_Human
+    {
+        public global::System.String Name { get; }
+
+        public global::System.Collections.Generic.IReadOnlyList<Episode?>? AppearsIn { get; }
+    }
+}
+
+
 // CreateReview
 
 namespace Foo
@@ -310,16 +313,11 @@ namespace Foo
         : global::StrawberryShake.IOperationResultDataFactory<CreateReview>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<ReviewEntity, CreateReview_CreateReview> _createReview_CreateReviewFromReviewEntityMapper;
 
-        public CreateReviewFactory(
-            global::StrawberryShake.IEntityStore entityStore,
-            global::StrawberryShake.IEntityMapper<ReviewEntity, CreateReview_CreateReview> createReview_CreateReviewFromReviewEntityMapper)
+        public CreateReviewFactory(global::StrawberryShake.IEntityStore entityStore)
         {
             _entityStore = entityStore
                  ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-            _createReview_CreateReviewFromReviewEntityMapper = createReview_CreateReviewFromReviewEntityMapper
-                 ?? throw new global::System.ArgumentNullException(nameof(createReview_CreateReviewFromReviewEntityMapper));
         }
 
         public CreateReview Create(global::StrawberryShake.IOperationResultDataInfo dataInfo)
@@ -329,14 +327,6 @@ namespace Foo
                 ICreateReview_CreateReview createReview = default!;
 
                 var createReviewInfo = info.CreateReview ?? throw new global::System.ArgumentNullException();
-                if (createReviewInfo.Name.Equals(
-                    "Review",
-                    global::System.StringComparison.Ordinal
-                ))
-                {
-                    createReview = _createReview_CreateReviewFromReviewEntityMapper.Map(_entityStore.GetEntity<ReviewEntity>(createReviewInfo) ?? throw new global::System.ArgumentNullException());
-                }
-
                 return new CreateReview(createReview);
             }
 
@@ -404,29 +394,6 @@ namespace Foo
 }
 
 
-// CreateReview_CreateReview
-
-namespace Foo
-{
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class CreateReview_CreateReview
-        : ICreateReview_CreateReview
-    {
-        public CreateReview_CreateReview(
-            global::System.Int stars,
-            global::System.String? commentary)
-        {
-            Stars = stars;
-            Commentary = commentary;
-        }
-
-        public global::System.Int Stars { get; }
-
-        public global::System.String? Commentary { get; }
-    }
-}
-
-
 // ICreateReview
 
 namespace Foo
@@ -446,7 +413,7 @@ namespace Foo
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ICreateReview_CreateReview
     {
-        public global::System.Int Stars { get; }
+        public global::System.Int32 Stars { get; }
 
         public global::System.String? Commentary { get; }
     }
@@ -460,7 +427,7 @@ namespace Foo
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ReviewInput
     {
-        public global::System.Int Stars { get; set; }
+        public global::System.Int32 Stars { get; set; }
 
         public global::System.String? Commentary { get; set; }
     }
@@ -518,7 +485,7 @@ namespace Foo
         }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetHero>> Execute(
-            Episode? episode,
+            Foo.Episode? episode,
             global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(episode);
@@ -532,14 +499,14 @@ namespace Foo
         }
 
         public global::System.IObservable<global::StrawberryShake.IOperationResult<IGetHero>> Watch(
-            Episode? episode,
+            Foo.Episode? episode,
             global::StrawberryShake.ExecutionStrategy? strategy = null)
         {
             var request = CreateRequest(episode);
             return _operationExecutor.Watch(request, strategy);
         }
 
-        private global::StrawberryShake.OperationRequest CreateRequest(Episode? episode)
+        private global::StrawberryShake.OperationRequest CreateRequest(Foo.Episode? episode)
         {
             var arguments = new global::System.Collections.Generic.Dictionary<string, object?>();
             arguments.Add("episode", episode);
@@ -605,7 +572,7 @@ namespace Foo
         }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ICreateReview>> Execute(
-            Episode? episode,
+            Foo.Episode? episode,
             ReviewInput? review,
             global::System.Threading.CancellationToken cancellationToken = default)
         {
@@ -623,7 +590,7 @@ namespace Foo
         }
 
         public global::System.IObservable<global::StrawberryShake.IOperationResult<ICreateReview>> Watch(
-            Episode? episode,
+            Foo.Episode? episode,
             ReviewInput? review,
             global::StrawberryShake.ExecutionStrategy? strategy = null)
         {
@@ -635,7 +602,7 @@ namespace Foo
         }
 
         private global::StrawberryShake.OperationRequest CreateRequest(
-            Episode? episode,
+            Foo.Episode? episode,
             ReviewInput? review)
         {
             var arguments = new global::System.Collections.Generic.Dictionary<string, object?>();
@@ -733,24 +700,6 @@ namespace Foo
             global::StrawberryShake.EntityId entityId = _extractId(obj.Value);
             entityIds.Add(entityId);
 
-
-            if (entityId.Name.Equals("GetHero_Hero_Droid", global::System.StringComparison.Ordinal))
-            {
-                DroidEntity entity = _entityStore.GetOrCreate<DroidEntity>(entityId);
-                entity.Name = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "name"));
-                entity.AppearsIn = DeserializeEpisodeArray(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "appearsIn"));
-
-                return entityId;
-            }
-
-            if (entityId.Name.Equals("GetHero_Hero_Human", global::System.StringComparison.Ordinal))
-            {
-                HumanEntity entity = _entityStore.GetOrCreate<HumanEntity>(entityId);
-                entity.Name = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "name"));
-                entity.AppearsIn = DeserializeEpisodeArray(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "appearsIn"));
-
-                return entityId;
-            }
 
             throw new global::System.NotSupportedException();
         }
@@ -856,7 +805,7 @@ namespace Foo
 
             var resultInfo = new CreateReviewInfo(
                 DeserializeNonNullableICreateReview_CreateReviewData(
-                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "createReview"),
+                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj, "createReview"),
                     entityIds
                 ),
                 entityIds,
@@ -874,19 +823,19 @@ namespace Foo
             }
 
             return new ICreateReview_CreateReviewData(
-                DeserializeNonNullableInt(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "stars")),
+                DeserializeNonNullableInt32(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "stars")),
                 DeserializeString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "commentary"))
             );
         }
 
-        private global::System.Int DeserializeNonNullableInt(global::System.Text.Json.JsonElement? obj)
+        private global::System.Int32 DeserializeNonNullableInt32(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {
                 throw new global::System.ArgumentNullException();
             }
 
-            return _intParser.Parse(obj.Value.GetInt()!);
+            return _int32Parser.Parse(obj.Value.GetInt32()!);
         }
 
         private global::System.String? DeserializeString(global::System.Text.Json.JsonElement? obj)

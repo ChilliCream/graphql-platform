@@ -43,11 +43,11 @@ namespace StrawberryShake
                     .BuildSchemaAsync();
 
             var documents = sourceText
-                .Select(Utf8GraphQLParser.Parse)
+                .Select(sourceText => ("", Utf8GraphQLParser.Parse(sourceText)))
                 .ToList();
 
             var typeSystemDocs = documents.GetTypeSystemDocuments().ToList();
-            typeSystemDocs.Add(schema.ToDocument());
+            typeSystemDocs.Add(("", schema.ToDocument()));
 
             var executableDocs = documents.GetExecutableDocuments().ToList();
 
@@ -55,7 +55,7 @@ namespace StrawberryShake
 
             analyzer.SetSchema(SchemaHelper.Load(typeSystemDocs));
 
-            foreach (DocumentNode executable in executableDocs)
+            foreach (DocumentNode executable in executableDocs.Select(doc => doc.document))
             {
                 analyzer.AddDocument(executable);
             }

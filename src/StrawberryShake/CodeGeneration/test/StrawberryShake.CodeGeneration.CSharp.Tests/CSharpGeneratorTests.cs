@@ -9,7 +9,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
     public class CSharpGeneratorTests
     {
         [Fact]
-        public void Generate_Query()
+        public void Generate_NoErrors()
         {
             // arrange
             string[] fileNames =
@@ -26,6 +26,45 @@ namespace StrawberryShake.CodeGeneration.CSharp
             // assert
             AssertResult(result);
         }
+
+        [Fact]
+        public void Generate_SyntaxError()
+        {
+            // arrange
+            string[] fileNames =
+            {
+                Path.Combine("__resources__", "Query_SyntaxError.graphql"),
+                Path.Combine("__resources__", "Schema.extensions.graphql"),
+                Path.Combine("__resources__", "Schema.graphql")
+            };
+
+            // act
+            var generator = new CSharpGenerator();
+            var result = generator.Generate(fileNames);
+
+            // assert
+            AssertResult(result);
+        }
+
+        [Fact]
+        public void Generate_SchemaValidationError()
+        {
+            // arrange
+            string[] fileNames =
+            {
+                Path.Combine("__resources__", "Query_SchemaValidationError.graphql"),
+                Path.Combine("__resources__", "Schema.extensions.graphql"),
+                Path.Combine("__resources__", "Schema.graphql")
+            };
+
+            // act
+            var generator = new CSharpGenerator();
+            var result = generator.Generate(fileNames);
+
+            // assert
+            AssertResult(result);
+        }
+
         private static void AssertResult(
             CSharpGeneratorResult result)
         {

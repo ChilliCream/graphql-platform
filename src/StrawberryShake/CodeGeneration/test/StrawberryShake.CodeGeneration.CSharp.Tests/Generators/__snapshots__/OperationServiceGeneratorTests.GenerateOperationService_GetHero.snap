@@ -31,7 +31,8 @@
 
         private global::StrawberryShake.OperationRequest CreateRequest()
         {
-            return new(
+
+            return new global::StrawberryShake.OperationRequest(
                 "GetHeroResult",
                 GetHeroQueryDocument.Instance
             );

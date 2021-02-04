@@ -7,6 +7,7 @@ namespace StrawberryShake.CodeGeneration
 {
     public static class CodeGenerationThrowHelper
     {
+        public const string FileExtensionKey = "file";
         public static IReadOnlyList<IError> Generator_NoExecutableDocumentsFound() =>
             new CodeGeneratorException(Throwhelper_Generator_NoExecutableDocumentsFound).Errors;
 
@@ -16,8 +17,9 @@ namespace StrawberryShake.CodeGeneration
         public static IReadOnlyList<IError> Generator_NoTypeDocumentsFound() =>
             new CodeGeneratorException(Throwhelper_Generator_NoTypeDocumentsFound).Errors;
 
-        public static IError Generator_SyntaxException(SyntaxException syntaxException) =>
+        public static IError Generator_SyntaxException(SyntaxException syntaxException, string file) =>
             ErrorBuilder.New()
+                .SetExtension(FileExtensionKey, file)
                 .SetMessage(Throwhelper_Generator_SyntaxError)
                 .AddLocation(new HotChocolate.Location(
                     syntaxException.Line,

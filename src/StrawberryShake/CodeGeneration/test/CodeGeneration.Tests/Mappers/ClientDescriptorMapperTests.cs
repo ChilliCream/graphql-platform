@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using Xunit;

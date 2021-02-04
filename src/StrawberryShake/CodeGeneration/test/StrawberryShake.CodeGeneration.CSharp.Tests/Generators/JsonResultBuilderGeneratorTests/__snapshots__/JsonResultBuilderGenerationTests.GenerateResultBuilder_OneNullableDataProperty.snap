@@ -54,7 +54,7 @@
 
             var resultInfo = new FooInfo(
                 DeserializeBarData(
-                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "theBar"),
+                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj, "theBar"),
                     entityIds
                 ),
                 entityIds,

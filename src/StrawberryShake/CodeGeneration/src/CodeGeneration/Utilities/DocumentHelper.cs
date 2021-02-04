@@ -7,8 +7,8 @@ namespace StrawberryShake.CodeGeneration.Utilities
 {
     public static class DocumentHelper
     {
-        public static IEnumerable<DocumentNode> GetTypeSystemDocuments(
-            this IEnumerable<DocumentNode> documentNodes)
+        public static IEnumerable<(string file, DocumentNode document)> GetTypeSystemDocuments(
+            this IEnumerable<(string file, DocumentNode document)> documentNodes)
         {
             if (documentNodes is null)
             {
@@ -16,12 +16,12 @@ namespace StrawberryShake.CodeGeneration.Utilities
             }
 
             return documentNodes.Where(doc =>
-                doc.Definitions.All(def =>
+                doc.Item2.Definitions.All(def =>
                     def is ITypeSystemDefinitionNode or ITypeSystemExtensionNode));
         }
 
-        public static IEnumerable<DocumentNode> GetExecutableDocuments(
-            this IEnumerable<DocumentNode> documentNodes)
+        public static IEnumerable<(string file, DocumentNode document)> GetExecutableDocuments(
+            this IEnumerable<(string  file, DocumentNode document)> documentNodes)
         {
             if (documentNodes is null)
             {
@@ -29,7 +29,7 @@ namespace StrawberryShake.CodeGeneration.Utilities
             }
 
             return documentNodes.Where(doc =>
-                doc.Definitions.All(def => def is IExecutableDefinitionNode));
+                doc.Item2.Definitions.All(def => def is IExecutableDefinitionNode));
         }
     }
 }
