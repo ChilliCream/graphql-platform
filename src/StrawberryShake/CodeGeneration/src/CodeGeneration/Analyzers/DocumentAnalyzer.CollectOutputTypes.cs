@@ -8,8 +8,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 {
     public partial class DocumentAnalyzer
     {
-        private static readonly InterfaceTypeSelectionSetAnalyzer _interfaceSelectionAnalyzer = new();
-        private static readonly ObjectTypeSelectionSetAnalyzer _objectSelectionAnalyzer = new();
+        private static readonly InterfaceTypeSelectionSetAnalyzer _selectionAnalyzer = new();
 
         private static OperationModel CreateOperationModel(
             IDocumentAnalyzerContext context)
@@ -66,7 +65,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
             EnqueueFields(selectionSetVariants, backlog);
 
-            return _objectSelectionAnalyzer.AnalyzeOperation(
+            return _selectionAnalyzer.AnalyzeOperation(
                 context,
                 selectionSetVariants);
         }
@@ -88,14 +87,14 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
             if (namedType is UnionType or InterfaceType)
             {
-                _interfaceSelectionAnalyzer.Analyze(
+                _selectionAnalyzer.Analyze(
                     context,
                     fieldSelection,
                     selectionSetVariants);
             }
             else if (namedType is ObjectType)
             {
-                _objectSelectionAnalyzer.Analyze(
+                _selectionAnalyzer.Analyze(
                     context,
                     fieldSelection,
                     selectionSetVariants);

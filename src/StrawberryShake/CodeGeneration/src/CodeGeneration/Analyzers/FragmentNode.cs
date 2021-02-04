@@ -26,5 +26,15 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
             return new FragmentNode(fragment, Nodes);
         }
+
+        public FragmentNode WithNodes(IReadOnlyList<FragmentNode> nodes)
+        {
+            if (nodes is null)
+            {
+                throw new ArgumentNullException(nameof(nodes));
+            }
+
+            return new FragmentNode(Fragment, nodes);
+        }
     }
 }

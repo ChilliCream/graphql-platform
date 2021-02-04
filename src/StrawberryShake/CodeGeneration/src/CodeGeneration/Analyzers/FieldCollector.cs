@@ -167,9 +167,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             IDictionary<string, FieldSelection> fields)
         {
             NameString fieldName = fieldSyntax.Name.Value;
-            NameString responseName = fieldSyntax.Alias == null
-                ? fieldSyntax.Name.Value
-                : fieldSyntax.Alias.Value;
+            NameString responseName = fieldSyntax.Alias?.Value ?? fieldSyntax.Name.Value;
 
             if (type.Fields.TryGetField(fieldName, out IOutputField? field))
             {
