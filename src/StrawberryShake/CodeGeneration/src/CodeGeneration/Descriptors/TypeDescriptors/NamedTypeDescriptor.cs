@@ -78,7 +78,6 @@ namespace StrawberryShake.CodeGeneration
         /// </summary>
         public IReadOnlyList<NamedTypeDescriptor> ImplementedBy { get; }
 
-
         public void Complete(IReadOnlyList<PropertyDescriptor> properties)
         {
             Properties = properties;

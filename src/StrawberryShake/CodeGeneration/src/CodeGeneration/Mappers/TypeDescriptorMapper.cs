@@ -139,6 +139,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                             : TypeKind.DataType),
                         graphQLTypeName: outputType.Type.Name,
                         implementedBy: operationModel?.GetImplementations(outputType)
+                            .Where(t => !t.IsInterface)
                             .Select(t => typeDescriptors[t.Name])
                             .Select(t => t.NamedTypeDescriptor)
                             .ToList() ?? new List<NamedTypeDescriptor>()));
