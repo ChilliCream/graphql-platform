@@ -24,46 +24,24 @@ namespace HotChocolate.Types.Scalars
                 type);
         }
 
-        public static SerializationException NonEmptyStringType_ParseLiteral_IsEmpty(IType type)
+        public static SerializationException NegativeFloatType_ParseLiteral_IsNotNegative(IType type)
         {
             return new SerializationException(
                 ErrorBuilder.New()
-                    .SetMessage(ScalarResources.NonEmptyStringType_IsEmpty_ParseLiteral)
+                    .SetMessage(ScalarResources.NegativeFloatType_IsNotNegative_ParseLiteral)
                     .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
-                    .SetExtension("actualType", WellKnownScalarTypes.NonEmptyString)
+                    .SetExtension("actualType", WellKnownScalarTypes.NegativeFloat)
                     .Build(),
                 type);
         }
 
-        public static SerializationException NonEmptyStringType_ParseValue_IsEmpty(IType type)
+        public static SerializationException NegativeFloatType_ParseValue_IsNotNegative(IType type)
         {
             return new SerializationException(
                 ErrorBuilder.New()
-                    .SetMessage(ScalarResources.NonEmptyStringType_IsEmpty_ParseValue)
+                    .SetMessage(ScalarResources.NegativeFloatType_IsNotNegative_ParseValue)
                     .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                    .SetExtension("actualType", WellKnownScalarTypes.NonEmptyString)
-                    .Build(),
-                type);
-        }
-
-        public static SerializationException PositiveIntType_ParseLiteral_ZeroOrLess(IType type)
-        {
-            return new SerializationException(
-                ErrorBuilder.New()
-                    .SetMessage(ScalarResources.PositiveIntType_ZeroOrLess_ParseLiteral)
-                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                    .SetExtension("actualType", WellKnownScalarTypes.PositiveInt)
-                    .Build(),
-                type);
-        }
-
-        public static SerializationException PositiveIntType_ParseValue_ZeroOrLess(IType type)
-        {
-            return new SerializationException(
-                ErrorBuilder.New()
-                    .SetMessage(ScalarResources.PositiveIntType_ZeroOrLess_ParseValue)
-                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                    .SetExtension("actualType", WellKnownScalarTypes.PositiveInt)
+                    .SetExtension("actualType", WellKnownScalarTypes.NegativeFloat)
                     .Build(),
                 type);
         }
@@ -86,6 +64,49 @@ namespace HotChocolate.Types.Scalars
                     .SetMessage(ScalarResources.NegativeIntType_IsNotNegative_ParseValue)
                     .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
                     .SetExtension("actualType", WellKnownScalarTypes.NegativeInt)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException NonEmptyStringType_ParseLiteral_IsEmpty(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.NonEmptyStringType_IsEmpty_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.NonEmptyString)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException NonEmptyStringType_ParseValue_IsEmpty(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.NonEmptyStringType_IsEmpty_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.NonEmptyString)
+                    .Build(),
+                type);
+        }
+        public static SerializationException PositiveIntType_ParseLiteral_ZeroOrLess(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.PositiveIntType_ZeroOrLess_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.PositiveInt)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException PositiveIntType_ParseValue_ZeroOrLess(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.PositiveIntType_ZeroOrLess_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.PositiveInt)
                     .Build(),
                 type);
         }
