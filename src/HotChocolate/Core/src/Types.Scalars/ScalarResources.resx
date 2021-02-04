@@ -90,6 +90,18 @@
   <data name="NonEmptyStringType_IsEmpty_ParseValue" xml:space="preserve">
     <value>NonEmptyString cannot parse the provided value. The provided string was empty.</value>
   </data>
+  <data name="PhoneNumber_Description" xml:space="preserve">
+    <value>The PhoneNumber scalar type represents a value that conforms to the standard E.164 format as specified in: https://en.wikipedia.org/wiki/E.164.</value>
+  </data>
+  <data name="PhoneNumber_IsInvalid_ParseLiteral" xml:space="preserve">
+    <value>PhoneNumber cannot parse the provided literal. The provided value does not meet the standard E.164 format as specified in: https://en.wikipedia.org/wiki/E.164.</value>
+  </data>
+  <data name="PhoneNumber_IsInvalid_ParseValue" xml:space="preserve">
+    <value>PhoneNumber cannot parse the provided value. The provided value does not meet the standard E.164 format as specified in: https://en.wikipedia.org/wiki/E.164.</value>
+  </data>
+  <data name="PhoneNumber_ValidationPattern" xml:space="preserve">
+    <value>(^\+[1-9]\d{1,14}$)</value>
+  </data>
   <data name="PositiveIntType_Description" xml:space="preserve">
     <value>The PositiveInt scalar type represents a signed 32-bit numeric non-fractional value of at least the value 1.</value>
   </data>

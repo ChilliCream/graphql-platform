@@ -17,9 +17,31 @@ namespace HotChocolate.Types.Scalars
         {
             return new SerializationException(
                 ErrorBuilder.New()
-                    .SetMessage(ScalarResources.EmailAddress_IsInvalid_ParseLiteral)
+                    .SetMessage(ScalarResources.EmailAddress_IsInvalid_ParseValue)
                     .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
                     .SetExtension("actualType", WellKnownScalarTypes.EmailAddress)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException NegativeIntType_ParseLiteral_IsNotNegative(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.NegativeIntType_IsNotNegative_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.NegativeInt)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException NegativeIntType_ParseValue_IsNotNegative(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.NegativeIntType_IsNotNegative_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.NegativeInt)
                     .Build(),
                 type);
         }
@@ -46,6 +68,28 @@ namespace HotChocolate.Types.Scalars
                 type);
         }
 
+        public static SerializationException PhoneNumber_ParseLiteral_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.PhoneNumber_IsInvalid_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.PhoneNumber)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException PhoneNumber_ParseValue_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.PhoneNumber_IsInvalid_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.PhoneNumber)
+                    .Build(),
+                type);
+        }
+
         public static SerializationException PositiveIntType_ParseLiteral_ZeroOrLess(IType type)
         {
             return new SerializationException(
@@ -64,28 +108,6 @@ namespace HotChocolate.Types.Scalars
                     .SetMessage(ScalarResources.PositiveIntType_ZeroOrLess_ParseValue)
                     .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
                     .SetExtension("actualType", WellKnownScalarTypes.PositiveInt)
-                    .Build(),
-                type);
-        }
-
-        public static SerializationException NegativeIntType_ParseLiteral_IsNotNegative(IType type)
-        {
-            return new SerializationException(
-                ErrorBuilder.New()
-                    .SetMessage(ScalarResources.NegativeIntType_IsNotNegative_ParseLiteral)
-                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
-                    .SetExtension("actualType", WellKnownScalarTypes.NegativeInt)
-                    .Build(),
-                type);
-        }
-
-        public static SerializationException NegativeIntType_ParseValue_IsNotNegative(IType type)
-        {
-            return new SerializationException(
-                ErrorBuilder.New()
-                    .SetMessage(ScalarResources.NegativeIntType_IsNotNegative_ParseValue)
-                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                    .SetExtension("actualType", WellKnownScalarTypes.NegativeInt)
                     .Build(),
                 type);
         }
