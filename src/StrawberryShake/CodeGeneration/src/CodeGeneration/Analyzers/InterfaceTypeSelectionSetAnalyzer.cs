@@ -135,7 +135,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     FragmentHelper.CreateInterface(
                         context,
                         returnTypeFragment,
-                        fieldSelection.Path);
+                        fieldSelection.Path,
+                        new[] { returnType });
 
                 FragmentHelper.CreateClass(
                     context,

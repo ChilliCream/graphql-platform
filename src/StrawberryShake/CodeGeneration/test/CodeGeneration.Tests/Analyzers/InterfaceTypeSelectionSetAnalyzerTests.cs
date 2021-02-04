@@ -184,7 +184,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             var result = analyzer.Analyze(context, fieldSelection, selectionSetVariants);
 
             // assert
-            Assert.Equal("IHero", result.Name);
+            Assert.Equal("IGetHero_Hero", result.Name);
 
             Assert.Collection(
                 context.GetImplementations(result),

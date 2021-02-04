@@ -25,8 +25,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 directive.Arguments.Count == 1 &&
                 directive.Arguments[0] is
                 {
-                    Name: { Value: "fragment" },
-                    Value: StringValueNode { Value: { Length: > 0 } } sv
+                    Name: {Value: "fragment"},
+                    Value: StringValueNode {Value: {Length: > 0}} sv
                 })
             {
                 return sv.Value;
@@ -82,7 +82,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 fragmentNode.Fragment.TypeCondition,
                 fragmentNode.Fragment.SelectionSet,
                 fields,
-                new[] { @interface });
+                new[] {@interface});
             context.RegisterModel(name, typeModel);
 
             return typeModel;
@@ -91,10 +91,11 @@ namespace StrawberryShake.CodeGeneration.Analyzers
         public static OutputTypeModel CreateInterface(
             IDocumentAnalyzerContext context,
             FragmentNode fragmentNode,
-            Path path)
+            Path path,
+            IEnumerable<OutputTypeModel>? implements = null)
         {
             var levels = new Stack<ISet<string>>();
-            var rootImplements = new List<OutputTypeModel>();
+            var rootImplements = implements?.ToList() ?? new List<OutputTypeModel>();
             levels.Push(new HashSet<string>());
             return CreateInterface(context, fragmentNode, path, levels, rootImplements);
         }
@@ -121,6 +122,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     implementedFields,
                     rootImplements);
 
+            // We will check for a cached version of this type to have essentially one instance
+            // for each type.
             if (context.TryGetModel(name, out OutputTypeModel? typeModel))
             {
                 foreach (var model in implements)
@@ -131,9 +134,15 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     }
                 }
 
+                // important: we mark the fields of this type as resolved for the higher level
+                // interfaces.
+                AddImplementedFields(typeModel, implementedFields);
+
                 return typeModel;
             }
 
+            // if we are on the first level we need to merge the
+            // implements and the root implements.
             if (levels.Count == 1 && rootImplements.Count > 0)
             {
                 foreach (var model in implements)
@@ -146,6 +155,23 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
                 implements = rootImplements;
             }
+
+            // mark fields as resolved that come with the implemented types.
+            // we mainly do this to include the global implements that are passed into
+            // this discovery.
+            var implementsCopy = implements.ToList();
+
+            foreach (var model in implements)
+            {
+                AddImplementedFields(model, implementedFields);
+
+                if (IsImplementedBy(implements, model))
+                {
+                    implementsCopy.Remove(model);
+                }
+            }
+
+            implements = implementsCopy;
 
             typeModel = new OutputTypeModel(
                 name,
@@ -217,6 +243,58 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             {
                 FieldCollector.ResolveFieldSelection(selection, complexType, path, fields);
             }
+        }
+
+        private static void AddImplementedFields(
+            OutputTypeModel @interface,
+            ISet<string> implementedFields)
+        {
+            foreach (var field in @interface.Fields)
+            {
+                implementedFields.Add(
+                    field.SyntaxNode.Alias?.Value ??
+                    field.SyntaxNode.Name.Value);
+            }
+        }
+
+        private static bool IsImplementedBy(
+            IEnumerable<OutputTypeModel> implements,
+            OutputTypeModel possibleInterface)
+        {
+            foreach (var impl in implements)
+            {
+                if (IsImplementedBy(impl, possibleInterface))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool IsImplementedBy(
+            OutputTypeModel parent,
+            OutputTypeModel possibleInterface)
+        {
+            if (ReferenceEquals(parent, possibleInterface))
+            {
+                return false;
+            }
+
+            if (parent.Implements.Contains(possibleInterface))
+            {
+                return true;
+            }
+
+            foreach (var impl in parent.Implements)
+            {
+                if (IsImplementedBy(impl, possibleInterface))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static IReadOnlyList<OutputTypeModel> CreateImplements(
