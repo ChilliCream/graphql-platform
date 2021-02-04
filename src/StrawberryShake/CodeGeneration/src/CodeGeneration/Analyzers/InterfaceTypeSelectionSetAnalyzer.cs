@@ -69,6 +69,11 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     context,
                     returnTypeFragment,
                     fieldSelection.Path);
+            
+            context.RegisterSelectionSet(
+                returnType.Type, 
+                selectionVariants.ReturnType.SyntaxNode,
+                returnType.SelectionSet);
 
             foreach (SelectionSet selectionSet in selectionVariants.Variants)
             {
@@ -81,13 +86,20 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     FragmentHelper.CreateInterface(
                         context,
                         returnTypeFragment,
-                        fieldSelection.Path);
+                        fieldSelection.Path,
+                        new[] { returnType });
 
-                FragmentHelper.CreateClass(
-                    context,
-                    returnTypeFragment,
-                    selectionSet,
-                    @interface);
+                OutputTypeModel @class =
+                    FragmentHelper.CreateClass(
+                        context,
+                        returnTypeFragment,
+                        selectionSet,
+                        @interface);
+                
+                context.RegisterSelectionSet(
+                    selectionSet.Type, 
+                    selectionSet.SyntaxNode,
+                    @class.SelectionSet);
             }
 
             return returnType;
@@ -117,6 +129,11 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             OutputTypeModel returnType =
                 FragmentHelper.CreateInterface(context, returnTypeFragment, fieldSelection.Path);
 
+            context.RegisterSelectionSet(
+                returnType.Type, 
+                selectionVariants.ReturnType.SyntaxNode,
+                returnType.SelectionSet);
+
             foreach (SelectionSet selectionSet in selectionVariants.Variants)
             {
                 returnTypeFragment = FragmentHelper.CreateFragmentNode(
@@ -138,11 +155,17 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                         fieldSelection.Path,
                         new[] { returnType });
 
-                FragmentHelper.CreateClass(
-                    context,
-                    returnTypeFragment,
-                    selectionSet,
-                    @interface);
+                OutputTypeModel @class =
+                    FragmentHelper.CreateClass(
+                        context,
+                        returnTypeFragment,
+                        selectionSet,
+                        @interface);
+
+                context.RegisterSelectionSet(
+                    selectionSet.Type, 
+                    selectionSet.SyntaxNode,
+                    @class.SelectionSet);
             }
 
             return returnType;
