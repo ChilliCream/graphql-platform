@@ -3,7 +3,7 @@ path: "/blog/2021/01/10/hot-chocolate-logging"
 date: "2021-01-10"
 title: "Log Your Queries While Building a GraphQL Server"
 tags: ["hotchocolate", "graphql", "dotnet", "aspnetcore"]
-featuredImage: "hot-chocolate-11-banner.png"
+featuredImage: "hot-chocolate-11-logging-banner.png"
 author: Peter Kellner
 authorUrl: https://peterkellner.net
 authorImageUrl: https://avatars3.githubusercontent.com/u/241170?s=60&v=4
@@ -185,7 +185,7 @@ query person($upperCase: Boolean) {
 
 with the associated `Boolean` variable in your POST `upperCase`
 
-```graphql
+```json
 {
   "upperCase": true
 }
@@ -193,7 +193,7 @@ with the associated `Boolean` variable in your POST `upperCase`
 
 You console output will show this
 
-```text
+```bash
 Executing endpoint 'Hot Chocolate GraphQL Pipeline'
 info: logging.ConsoleQueryLogger[0]
 
@@ -283,7 +283,7 @@ I could have implemented it with the ILogger interface and that would have given
 
 We do need to install the MiniProfiler package for ASP.NET Core so let's do that at the command line with `nuget`. That command is:
 
-```dos
+```bash
 dotnet add package MiniProfiler.AspNetCore.Mvc
 ```
 
@@ -357,7 +357,7 @@ It's worth mentioning that <a href="https://miniprofiler.com" target="_blank">Mi
 
 If you've gotten everything working, it's trivial to add Entity Framework support so that inside your GraphQL requests, you can see the actual SQL sent to the server and the associated timing. Literally, all you have to do is install one `nuget` package
 
-```dos
+```bash
 dotnet add package MiniProfiler.EntityFrameworkCore
 ```
 
