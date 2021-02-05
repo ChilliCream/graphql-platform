@@ -1,5 +1,4 @@
-﻿// Code:
-// DroidEntity
+﻿// DroidEntity
 
 namespace Foo
 {
@@ -41,6 +40,38 @@ namespace Foo
         NewHope,
         Empire,
         Jedi
+    }
+}
+
+
+// Episode
+
+namespace Foo
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class EpisodeParser
+    {
+        private Episode Parse(global::System.String serializedValue)
+        {
+            return serializedValue switch
+            {
+                "NEW_HOPE" => Episode.NewHope,
+                "EMPIRE" => Episode.Empire,
+                "JEDI" => Episode.Jedi,
+                _ => throw new global::StrawberryShake.GraphQLClientException()
+            };
+        }
+
+        public object Format(object runtimeValue)
+        {
+            return runtimeValue switch
+            {
+                Episode.NewHope => "NEW_HOPE",
+                Episode.Empire => "EMPIRE",
+                Episode.Jedi => "JEDI",
+                _ => throw new global::StrawberryShake.GraphQLClientException()
+            };
+        }
     }
 }
 
@@ -185,7 +216,7 @@ namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_Hero_Droid
-        : IGetHero_Hero
+        : IGetHero_Hero_Droid
     {
         public GetHero_Hero_Droid(
             global::System.String name,
@@ -210,8 +241,6 @@ namespace Foo
     public partial class GetHero_Hero_HumanFromHumanEntityMapper
         : global::StrawberryShake.IEntityMapper<HumanEntity, GetHero_Hero_Human>
     {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-
         public GetHero_Hero_Human Map(HumanEntity entity)
         {
             return new GetHero_Hero_Human(
@@ -229,7 +258,7 @@ namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_Hero_Human
-        : IGetHero_Hero
+        : IGetHero_Hero_Human
     {
         public GetHero_Hero_Human(
             global::System.String name,
@@ -272,6 +301,30 @@ namespace Foo
 }
 
 
+// IGetHero_Hero_Droid
+
+namespace Foo
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IGetHero_Hero_Droid
+        : IGetHero_Hero
+    {
+    }
+}
+
+
+// IGetHero_Hero_Human
+
+namespace Foo
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IGetHero_Hero_Human
+        : IGetHero_Hero
+    {
+    }
+}
+
+
 // GetHeroQuery
 
 namespace Foo
@@ -280,7 +333,7 @@ namespace Foo
     public partial class GetHeroQueryDocument
         : global::StrawberryShake.IDocument
     {
-        private const global::System.String _bodyString =
+        private const global::System.String _bodyString = 
             @"query GetHero {
   hero(episode: NEW_HOPE) {
     name
@@ -325,7 +378,7 @@ namespace Foo
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetHero>> Execute(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest();
-
+            
             return await _operationExecutor
                 .ExecuteAsync(
                     request,
@@ -342,7 +395,8 @@ namespace Foo
 
         private global::StrawberryShake.OperationRequest CreateRequest()
         {
-            return new(
+
+            return new global::StrawberryShake.OperationRequest(
                 "IGetHero",
                 GetHeroQueryDocument.Instance
             );
@@ -509,11 +563,7 @@ namespace Foo
                  ?? throw new global::System.ArgumentNullException(nameof(getHeroQuery));
         }
 
-        // TODO : MAKE PROP
-        public GetHeroQuery GetHeroQuery()
-        {
-            return _getHeroQuery;
-        }
+        public GetHeroQuery GetHeroQuery => _getHeroQuery;
     }
 }
 
@@ -525,8 +575,8 @@ public static partial class EntityIdFactory
 {
     public static global::StrawberryShake.EntityId CreateEntityId(global::System.Text.Json.JsonElement obj)
     {
-        string typeName = obj.GetProperty("__typename").GetString()!;
-
+        global::System.String typeName = obj.GetProperty("__typename").GetString()!;
+        
         return typeName switch
         {
             "Droid" => CreateDroidEntityId(obj, typeName),
@@ -535,8 +585,7 @@ public static partial class EntityIdFactory
         };
     }
 
-    // TODO : Make Privat
-    public static global::StrawberryShake.EntityId CreateDroidEntityId(
+    private static global::StrawberryShake.EntityId CreateDroidEntityId(
         global::System.Text.Json.JsonElement obj,
         global::System.String type)
     {
@@ -545,7 +594,7 @@ public static partial class EntityIdFactory
             obj.GetProperty("id").GetString()!);
     }
 
-    public static global::StrawberryShake.EntityId CreateHumanEntityId(
+    private static global::StrawberryShake.EntityId CreateHumanEntityId(
         global::System.Text.Json.JsonElement obj,
         global::System.String type)
     {

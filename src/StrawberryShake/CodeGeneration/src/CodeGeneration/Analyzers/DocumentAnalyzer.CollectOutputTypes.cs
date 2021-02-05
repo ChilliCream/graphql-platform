@@ -3,6 +3,7 @@ using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
+using StrawberryShake.CodeGeneration.Utilities;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
 {
@@ -19,8 +20,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             return new(
                 context.OperationName,
                 context.OperationType,
-                context.Document,
-                context.OperationDefinition,
+                QueryDocumentRewriter.Rewrite(context.Document, context.Schema),
+                context.OperationDefinition.Operation,
                 CreateOperationArguments(context),
                 GetResultType(context),
                 context.TypeModels.OfType<LeafTypeModel>().ToList(),
@@ -145,4 +146,5 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             }
         }
     }
+   
 }

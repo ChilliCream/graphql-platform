@@ -16,7 +16,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
             NameString name,
             ObjectType type,
             DocumentNode document,
-            OperationDefinitionNode operation,
+            OperationType operationType,
             IReadOnlyList<ArgumentModel> arguments,
             OutputTypeModel resultType,
             IReadOnlyList<LeafTypeModel> leafTypes,
@@ -29,8 +29,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
                 throw new ArgumentNullException(nameof(type));
             Document = document ??
                 throw new ArgumentNullException(nameof(document));
-            Operation = operation ??
-                throw new ArgumentNullException(nameof(operation));
+            OperationType = operationType;
             Arguments = arguments ??
                 throw new ArgumentNullException(nameof(arguments));
             ResultType = resultType ??
@@ -51,7 +50,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
 
         public DocumentNode Document { get; }
 
-        public OperationDefinitionNode Operation { get; }
+        public OperationType OperationType { get; }
 
         public IReadOnlyList<ArgumentModel> Arguments { get; }
 

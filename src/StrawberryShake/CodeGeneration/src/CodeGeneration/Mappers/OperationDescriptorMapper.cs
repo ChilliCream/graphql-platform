@@ -35,7 +35,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                             context.Types.Single(type => type.Name == arg.Type.TypeName()));
                     }).ToList();
 
-                switch (modelOperation.Operation.Operation)
+                switch (modelOperation.OperationType)
                 {
                     case OperationType.Query:
                         context.Register(
