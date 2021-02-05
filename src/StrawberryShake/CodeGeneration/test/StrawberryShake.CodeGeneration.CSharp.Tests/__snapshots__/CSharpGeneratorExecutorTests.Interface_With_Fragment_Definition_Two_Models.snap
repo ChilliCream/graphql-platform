@@ -352,7 +352,14 @@ namespace Foo
         private const global::System.String _bodyString = 
             @"query GetHero {
   hero(episode: NEW_HOPE) {
+    __typename
     ... Hero
+    ... on Droid {
+      id
+    }
+    ... on Human {
+      id
+    }
   }
 }
 

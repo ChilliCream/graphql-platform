@@ -185,6 +185,7 @@ namespace Foo
         private const global::System.String _bodyString = 
             @"mutation createReview($episode: Episode!, $review: ReviewInput!) {
   createReview(episode: $episode, review: $review) {
+    __typename
     stars
     commentary
   }

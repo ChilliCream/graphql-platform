@@ -466,8 +466,15 @@ namespace Foo
         private const global::System.String _bodyString = 
             @"query GetHero($episode: Episode) {
   hero(episode: $episode) {
+    __typename
     name
     appearsIn
+    ... on Droid {
+      id
+    }
+    ... on Human {
+      id
+    }
   }
 }";
         private static readonly byte[] _body = global::System.Text.Encoding.UTF8.GetBytes(_bodyString);
@@ -553,6 +560,7 @@ namespace Foo
         private const global::System.String _bodyString = 
             @"mutation createReview($episode: Episode!, $review: ReviewInput!) {
   createReview(episode: $episode, review: $review) {
+    __typename
     stars
     commentary
   }
