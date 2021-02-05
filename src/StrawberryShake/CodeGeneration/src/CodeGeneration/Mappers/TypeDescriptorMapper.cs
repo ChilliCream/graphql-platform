@@ -23,6 +23,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 model,
                 context,
                 typeDescriptors);
+
             AddProperties(
                 model,
                 context,
@@ -57,7 +58,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
             foreach (NamedTypeDescriptor typeDescriptor in scalarTypeDescriptors.Values)
             {
                 context.Register(
-                    typeDescriptor.Name,
+                    typeDescriptor.Name + "_" +  typeDescriptor.GraphQLTypeName!.Value,
                     typeDescriptor);
             }
         }
@@ -125,10 +126,10 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 outputType.Name,
                 out TypeDescriptorModel descriptorModel))
             {
-                IReadOnlyList<NamedTypeDescriptor> implementedBy = 
+                IReadOnlyList<NamedTypeDescriptor> implementedBy =
                     Array.Empty<NamedTypeDescriptor>();
 
-                if(operationModel is not null) 
+                if(operationModel is not null)
                 {
                     var classes = new HashSet<NamedTypeDescriptor>();
                     CollectClassesThatImplementInterface(

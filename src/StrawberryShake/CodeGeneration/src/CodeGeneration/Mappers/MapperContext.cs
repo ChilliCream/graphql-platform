@@ -34,11 +34,11 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
         public IReadOnlyCollection<ResultBuilderDescriptor> ResultBuilders => _resultBuilder.Values;
 
-        public ClientDescriptor Client => 
+        public ClientDescriptor Client =>
             _client ?? throw new NotImplementedException();
 
-        public EntityIdFactoryDescriptor EntityIdFactory => 
-            _entityIdFactory ?? throw new NotImplementedException(); 
+        public EntityIdFactoryDescriptor EntityIdFactory =>
+            _entityIdFactory ?? throw new NotImplementedException();
 
         public IEnumerable<ICodeDescriptor> GetAllDescriptors()
         {

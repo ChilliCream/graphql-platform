@@ -99,6 +99,18 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 },
                 type =>
                 {
+                    Assert.Equal("IGetHero_Hero_Droid", type.Name);
+                    Assert.Equal("Foo.Bar", type.Namespace);
+                    Assert.True(type.IsDataType());
+                },
+                type =>
+                {
+                    Assert.Equal("IGetHero_Hero_Human", type.Name);
+                    Assert.Equal("Foo.Bar", type.Namespace);
+                    Assert.True(type.IsDataType());
+                },
+                type =>
+                {
                     Assert.Equal("String", type.Name);
                     Assert.Equal("global::System", type.Namespace);
                     Assert.True(type.IsLeafType());
