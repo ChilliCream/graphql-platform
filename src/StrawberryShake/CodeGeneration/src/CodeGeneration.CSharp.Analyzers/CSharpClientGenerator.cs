@@ -1,37 +1,15 @@
 ﻿using System;
-using System.IO;
 using System.Linq;
 using System.Text;
 using HotChocolate;
-using HotChocolate.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
-using StrawberryShake.CodeGeneration.Analyzers;
-using StrawberryShake.CodeGeneration.Analyzers.Models;
-using StrawberryShake.CodeGeneration.Utilities;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 {
     [Generator]
     public class CSharpClientGenerator : ISourceGenerator
     {
-        private static readonly DiagnosticDescriptor GraphQlSyntaxError = new DiagnosticDescriptor(
-            id: "SS0001",
-            title: "GraphQL syntax error",
-            messageFormat: "The .graphql file '{0}' has syntax errors.",
-            category: "StrawberryShakeGenerator",
-            DiagnosticSeverity.Error,
-            isEnabledByDefault: true);
-
-        private static readonly DiagnosticDescriptor SchemaValidationError =
-            new DiagnosticDescriptor(
-                id: "SS0002",
-                title: "Schema validation error",
-                messageFormat: "The .graphql file '{0}' has syntax errors.",
-                category: "StrawberryShakeGenerator",
-                DiagnosticSeverity.Error,
-                isEnabledByDefault: true);
-
         public void Initialize(GeneratorInitializationContext context)
         {
         }
@@ -51,27 +29,60 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 {
                     foreach (IError generatorResultError in generatorResult.Errors)
                     {
+                        string title = (generatorResultError
+                                           .Extensions?[CodeGenerationThrowHelper
+                                               .TitleExtensionKey] as string)
+                                       ?? throw new ArgumentNullException();
+
+                        string code = generatorResultError.Code ??
+                                      throw new ArgumentNullException();
+
                         if (generatorResultError.Extensions is not null
                             && generatorResultError.Extensions.TryGetValue(
                                 CodeGenerationThrowHelper.FileExtensionKey,
                                 out var file)
                             && file is string fileString)
                         {
-                            // context.ReportDiagnostic(Diagnostic.Create(
-                            //     GraphQlSyntaxError,
-                            //     Microsoft.CodeAnalysis.Location.Create(
-                            //         fileString,
-                            //         TextSpan.FromBounds(
-                            //             1,
-                            //             1),
-                            //         new LinePositionSpan(
-                            //             new LinePosition(
-                            //                 1,
-                            //                 1))))
+                            HotChocolate.Location location =
+                                generatorResultError.Locations?.First() ??
+                                throw new ArgumentNullException();
+
+                            context.ReportDiagnostic(
+                                Diagnostic.Create(
+                                    new DiagnosticDescriptor(
+                                        id: code,
+                                        title: title,
+                                        messageFormat: "The .graphql file '{0}' has errors.",
+                                        category: "StrawberryShakeGenerator",
+                                        DiagnosticSeverity.Error,
+                                        isEnabledByDefault: true,
+                                        description: generatorResultError.Message),
+                                    Microsoft.CodeAnalysis.Location.Create(
+                                        fileString,
+                                        TextSpan.FromBounds(
+                                            1,
+                                            2),
+                                        new LinePositionSpan(
+                                            new LinePosition(
+                                                location.Line,
+                                                location.Column),
+                                            new LinePosition(
+                                                location.Line,
+                                                location.Column + 1)))));
                         }
                         else
                         {
-
+                            context.ReportDiagnostic(
+                                Diagnostic.Create(
+                                    new DiagnosticDescriptor(
+                                        id: code,
+                                        title: title,
+                                        messageFormat: "An error occured during generation.",
+                                        category: "StrawberryShakeGenerator",
+                                        DiagnosticSeverity.Error,
+                                        isEnabledByDefault: true,
+                                        description: generatorResultError.Message),
+                                    Microsoft.CodeAnalysis.Location.None));
                         }
                     }
                 }
