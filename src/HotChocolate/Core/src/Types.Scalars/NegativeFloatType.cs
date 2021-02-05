@@ -19,7 +19,7 @@ namespace HotChocolate.Types.Scalars
             NameString name,
             string? description = null,
             BindingBehavior bind = BindingBehavior.Explicit)
-            : base(name, description, double.MinValue, -0, bind)
+            : base(name, description, double.MinValue, 0, bind)
         {
             Description = description;
         }
