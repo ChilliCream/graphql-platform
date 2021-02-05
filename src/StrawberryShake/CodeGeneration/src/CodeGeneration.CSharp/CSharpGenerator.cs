@@ -85,10 +85,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     errors.AddRange(
                         validationResult.Errors
                             .Select(
-                                error => error.WithExtensions(
-                                    new Dictionary<string, object?>
+                                error => error
+                                    .WithCode(CodeGenerationErrorCodes.SchemaValidationError)
+                                    .WithExtensions(new Dictionary<string, object?>
                                     {
-                                        {FileExtensionKey, executableDoc.file}
+                                        {FileExtensionKey, executableDoc.file},
+                                        {TitleExtensionKey, "Schema validation error"}
                                     })));
                 }
             }
