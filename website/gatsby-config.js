@@ -30,7 +30,7 @@ module.exports = {
     ],
     tools: {
       github: `https://github.com/ChilliCream/hotchocolate`,
-      slack: `https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q`,
+      slack: `https://join.slack.com/t/hotchocolategraphql/shared_invite/zt-lqkb8z7b-aFepT0Qrsgv5_yKy0yoyzw`,
       twitter: `https://twitter.com/Chilli_Cream`,
     },
   },
