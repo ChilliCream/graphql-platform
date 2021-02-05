@@ -44,8 +44,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
             Assert.Collection(
                 context.GetImplementations(result).OrderBy(m => m.Name),
-                model => Assert.Equal("GetHero_Hero_Droid", model.Name),
-                model => Assert.Equal("GetHero_Hero_Human", model.Name));
+                model => Assert.Equal("IGetHero_Hero_Droid", model.Name),
+                model => Assert.Equal("IGetHero_Hero_Human", model.Name));
 
             Assert.Collection(
                 result.Fields,
@@ -88,8 +88,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
              Assert.Collection(
                 context.GetImplementations(result),
-                model => Assert.Equal("GetHero_Hero_Human", model.Name),
-                model => Assert.Equal("GetHero_Hero_Droid", model.Name));
+                model => Assert.Equal("IGetHero_Hero_Human", model.Name),
+                model => Assert.Equal("IGetHero_Hero_Droid", model.Name));
 
             Assert.Collection(
                 result.Fields,
@@ -129,16 +129,14 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             var result = analyzer.Analyze(context, fieldSelection, selectionSetVariants);
 
             // assert
-            Assert.Equal("IHero", result.Name);
+            Assert.Equal("IGetHero_Hero", result.Name);
 
             Assert.Collection(
                 context.GetImplementations(result).OrderBy(t => t.Name),
-                model => Assert.Equal("GetHero_Hero_Droid", model.Name),
-                model => Assert.Equal("GetHero_Hero_Human", model.Name));
+                model => Assert.Equal("IGetHero_Hero_Droid", model.Name),
+                model => Assert.Equal("IGetHero_Hero_Human", model.Name));
 
-            Assert.Collection(
-                result.Fields,
-                field => Assert.Equal("Name", field.Name));
+            Assert.Empty(result.Fields);
         }
 
         [Fact]
@@ -188,12 +186,10 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
             Assert.Collection(
                 context.GetImplementations(result),
-                model => Assert.Equal("Human", model.Name),
-                model => Assert.Equal("Droid", model.Name));
+                model => Assert.Equal("IGetHero_Hero_Human", model.Name),
+                model => Assert.Equal("IGetHero_Hero_Droid", model.Name));
 
-            Assert.Collection(
-                result.Fields,
-                field => Assert.Equal("Name", field.Name));
+            Assert.Empty(result.Fields);
         }
 
         [Fact]
@@ -248,9 +244,9 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
             Assert.Collection(
                 context.GetImplementations(result),
-                model => Assert.Equal("Starship", model.Name),
-                model => Assert.Equal("Human", model.Name),
-                model => Assert.Equal("Droid", model.Name));
+                model => Assert.Equal("IGetHero_Search_Starship", model.Name),
+                model => Assert.Equal("IGetHero_Search_Human", model.Name),
+                model => Assert.Equal("IGetHero_Search_Droid", model.Name));
 
             Assert.Empty(result.Fields);
         }

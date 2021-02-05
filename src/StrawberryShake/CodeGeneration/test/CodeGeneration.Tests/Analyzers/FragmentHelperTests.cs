@@ -421,7 +421,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 });
         }
 
-        [Fact(Skip = "MST")]
+        [Fact]
         public async Task Create_TypeModels_Infer_From_Fragments_With_HoistedFragment()
         {
             // arrange
@@ -487,6 +487,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     fieldSelection.Path,
                     appendTypeName: true);
 
+                returnTypeFragment = FragmentHelper.RewriteForConcreteType(returnTypeFragment);
+
                 OutputTypeModel @interface = FragmentHelper.CreateInterface(
                     context,
                     returnTypeFragment,
@@ -522,8 +524,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
                     Assert.Collection(
                         type.Implements,
-                        impl => Assert.Equal("ICharacter", impl.Name),
-                        impl => Assert.Equal("IDroid", impl.Name));
+                        impl => Assert.Equal("ICharacters_Droid", impl.Name));
 
                     Assert.Empty(type.Fields);
                 },
@@ -546,8 +547,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
                     Assert.Collection(
                         type.Implements,
-                        impl => Assert.Equal("ICharacter", impl.Name),
-                        impl => Assert.Equal("IHuman", impl.Name));
+                        impl => Assert.Equal("ICharacters_Human", impl.Name));
 
                     Assert.Empty(type.Fields);
                 },

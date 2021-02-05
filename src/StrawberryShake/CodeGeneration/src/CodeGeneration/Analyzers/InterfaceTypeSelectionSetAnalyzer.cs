@@ -39,6 +39,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     rootSelectionPath,
                     selectionSetVariants.ReturnType);
 
+            returnTypeFragment = FragmentHelper.RewriteForConcreteType(returnTypeFragment);
+
             OutputTypeModel returnType =
                 FragmentHelper.CreateInterface(
                     context,
@@ -69,9 +71,9 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     context,
                     returnTypeFragment,
                     fieldSelection.Path);
-            
+
             context.RegisterSelectionSet(
-                returnType.Type, 
+                returnType.Type,
                 selectionVariants.ReturnType.SyntaxNode,
                 returnType.SelectionSet);
 
@@ -81,6 +83,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     selectionSet,
                     fieldSelection.Path,
                     appendTypeName: true);
+
+                returnTypeFragment = FragmentHelper.RewriteForConcreteType(returnTypeFragment);
 
                 OutputTypeModel @interface =
                     FragmentHelper.CreateInterface(
@@ -95,9 +99,9 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                         returnTypeFragment,
                         selectionSet,
                         @interface);
-                
+
                 context.RegisterSelectionSet(
-                    selectionSet.Type, 
+                    selectionSet.Type,
                     selectionSet.SyntaxNode,
                     @class.SelectionSet);
             }
@@ -130,7 +134,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 FragmentHelper.CreateInterface(context, returnTypeFragment, fieldSelection.Path);
 
             context.RegisterSelectionSet(
-                returnType.Type, 
+                returnType.Type,
                 selectionVariants.ReturnType.SyntaxNode,
                 returnType.SelectionSet);
 
@@ -140,6 +144,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     selectionSet,
                     fieldSelection.Path,
                     appendTypeName: true);
+
+                returnTypeFragment = FragmentHelper.RewriteForConcreteType(returnTypeFragment);
 
                 if (FragmentHelper.GetFragment(returnTypeFragment, fragmentName) is null)
                 {
@@ -163,7 +169,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                         @interface);
 
                 context.RegisterSelectionSet(
-                    selectionSet.Type, 
+                    selectionSet.Type,
                     selectionSet.SyntaxNode,
                     @class.SelectionSet);
             }

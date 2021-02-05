@@ -54,6 +54,44 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             return null;
         }
 
+        public static FragmentNode RewriteForConcreteType(FragmentNode fragmentNode)
+        {
+            var list = new List<FragmentNode>();
+
+            foreach (var child in fragmentNode.Nodes)
+            {
+                if (child.Fragment.Kind == FragmentKind.Named)
+                {
+                    list.Add(RewriteForConcreteType(child));
+                }
+                else
+                {
+                    list.Add(child);
+                }
+            }
+
+            if (fragmentNode.Fragment.TypeCondition.IsInterfaceType())
+            {
+                Fragment? objectFragment =
+                    list
+                        .FirstOrDefault(t => t.Fragment.TypeCondition.IsObjectType())?
+                        .Fragment;
+
+                if (objectFragment is not null)
+                {
+                    var fragment = new Fragment(
+                        fragmentNode.Fragment.Name + "_" + objectFragment.TypeCondition.Name,
+                        fragmentNode.Fragment.Kind,
+                        objectFragment.TypeCondition,
+                        fragmentNode.Fragment.SelectionSet);
+
+                    return new FragmentNode(fragment, list);
+                }
+            }
+
+            return new FragmentNode(fragmentNode.Fragment, list);
+        }
+
         public static OutputTypeModel CreateClass(
             IDocumentAnalyzerContext context,
             FragmentNode fragmentNode,
