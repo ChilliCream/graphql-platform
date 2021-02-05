@@ -134,7 +134,7 @@ namespace HotChocolate.Types.Scalars
             // arrange
             // act
             // assert
-            ExpectDeserializeToThrowSerializationException<EmailAddressType>(value);
+            ExpectDeserializeToThrowSerializationException<PhoneNumberType>(value);
         }
 
         [Theory]

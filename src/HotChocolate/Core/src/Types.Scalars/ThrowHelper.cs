@@ -95,7 +95,7 @@ namespace HotChocolate.Types.Scalars
             return new SerializationException(
                 ErrorBuilder.New()
                     .SetMessage(ScalarResources.PositiveIntType_ZeroOrLess_ParseLiteral)
-                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
                     .SetExtension("actualType", WellKnownScalarTypes.PositiveInt)
                     .Build(),
                 type);
