@@ -127,6 +127,17 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 outputType.Name,
                 out TypeDescriptorModel descriptorModel))
             {
+                IReadOnlyList<NamedTypeDescriptor> implementedBy = 
+                    Array.Empty<NamedTypeDescriptor>();
+
+                if(operationModel is not null) 
+                {
+                    var classes = new HashSet<NamedTypeDescriptor>();
+                    CollectClassesThatImplementInterface(
+                        operationModel, outputType, typeDescriptors, classes);
+                    implementedBy = classes.ToList();
+                }
+
                 descriptorModel = new TypeDescriptorModel(
                     outputType,
                     new NamedTypeDescriptor(
@@ -138,15 +149,30 @@ namespace StrawberryShake.CodeGeneration.Mappers
                             ? TypeKind.EntityType
                             : TypeKind.DataType),
                         graphQLTypeName: outputType.Type.Name,
-                        implementedBy: operationModel?.GetImplementations(outputType)
-                            .Where(t => !t.IsInterface)
-                            .Select(t => typeDescriptors[t.Name])
-                            .Select(t => t.NamedTypeDescriptor)
-                            .ToList() ?? new List<NamedTypeDescriptor>()));
+                        implementedBy: implementedBy));
 
                 typeDescriptors.Add(
                     outputType.Name,
                     descriptorModel);
+            }
+        }
+
+        private static void CollectClassesThatImplementInterface(
+            OperationModel operation,
+            OutputTypeModel outputType,
+            Dictionary<NameString, TypeDescriptorModel> typeDescriptors,
+            HashSet<NamedTypeDescriptor> classes)
+        {
+            foreach (var type in operation.GetImplementations(outputType))
+            {
+                if (type.IsInterface)
+                {
+                    CollectClassesThatImplementInterface(operation, type, typeDescriptors, classes);
+                }
+                else
+                {
+                    classes.Add(typeDescriptors[type.Name].NamedTypeDescriptor);
+                }
             }
         }
 
