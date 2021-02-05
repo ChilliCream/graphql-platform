@@ -60,8 +60,6 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     typeDescriptor.Name,
                     typeDescriptor);
             }
-
-
         }
 
         private static void CollectTypes(

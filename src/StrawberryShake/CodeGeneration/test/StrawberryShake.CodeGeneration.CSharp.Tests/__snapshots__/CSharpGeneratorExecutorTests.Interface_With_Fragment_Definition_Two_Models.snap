@@ -277,6 +277,19 @@ namespace Foo
 }
 
 
+// IHero_Droid
+
+namespace Foo
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IHero_Droid
+        : IDroid
+    {
+        public global::System.String Name { get; }
+    }
+}
+
+
 // IGetHero_Hero_Droid
 
 namespace Foo
@@ -284,7 +297,7 @@ namespace Foo
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetHero_Hero_Droid
         : IGetHero_Hero
-        , IDroid
+        , IHero_Droid
     {
     }
 }
@@ -302,6 +315,19 @@ namespace Foo
 }
 
 
+// IHero_Human
+
+namespace Foo
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IHero_Human
+        : IHuman
+    {
+        public global::System.String Name { get; }
+    }
+}
+
+
 // IGetHero_Hero_Human
 
 namespace Foo
@@ -309,7 +335,7 @@ namespace Foo
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetHero_Hero_Human
         : IGetHero_Hero
-        , IHuman
+        , IHero_Human
     {
     }
 }
