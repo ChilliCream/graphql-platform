@@ -16,6 +16,9 @@ namespace HotChocolate.Data.Filters.Expressions
         {
             IValueNode value = node.Value;
             object? parsedValue = field.Type.ParseLiteral(value);
+            parsedValue = field.Formatter is not null
+                ? field.Formatter.OnAfterDeserialize(parsedValue)
+                : parsedValue;
 
             if ((!context.RuntimeTypes.Peek().IsNullable || !CanBeNull) && parsedValue is null)
             {

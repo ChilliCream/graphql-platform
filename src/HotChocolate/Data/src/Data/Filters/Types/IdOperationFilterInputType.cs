@@ -1,53 +1,75 @@
-using System.Collections.Generic;
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Data.Filters
 {
-    public class ComparableOperationFilterInputType<T>
+    public class IdOperationFilterInputType<TEntityType, TIdType>
         : FilterInputType
         , IComparableOperationFilterInputType
     {
         protected override void Configure(IFilterInputTypeDescriptor descriptor)
         {
             descriptor.Operation(DefaultFilterOperations.Equals)
-                .Type(typeof(T))
+                .Type<IdType>()
+                .ID<TEntityType, TIdType>()
                 .MakeNullable();
             descriptor.Operation(DefaultFilterOperations.NotEquals)
-                .Type(typeof(T))
+                .Type<IdType>()
+                .ID<TEntityType, TIdType>()
                 .MakeNullable();
             descriptor.Operation(DefaultFilterOperations.In)
-                .Type(typeof(IEnumerable<T>))
+                .Type<ListType<IdType>>()
+                .ID<TEntityType, TIdType>()
                 .MakeNullable();
             descriptor.Operation(DefaultFilterOperations.NotIn)
-                .Type(typeof(IEnumerable<T>))
+                .Type<ListType<IdType>>()
+                .ID<TEntityType, TIdType>()
                 .MakeNullable();
             descriptor.Operation(DefaultFilterOperations.GreaterThan)
-                .Type(typeof(T))
+                .Type<IdType>()
+                .ID<TEntityType, TIdType>()
                 .MakeNullable();
             descriptor.Operation(DefaultFilterOperations.NotGreaterThan)
-                .Type(typeof(T))
+                .Type<IdType>()
+                .ID<TEntityType, TIdType>()
                 .MakeNullable();
             descriptor.Operation(DefaultFilterOperations.GreaterThanOrEquals)
-                .Type(typeof(T))
+                .Type<IdType>()
+                .ID<TEntityType, TIdType>()
                 .MakeNullable();
             descriptor.Operation(DefaultFilterOperations.NotGreaterThanOrEquals)
-                .Type(typeof(T))
+                .Type<IdType>()
+                .ID<TEntityType, TIdType>()
                 .MakeNullable();
             descriptor.Operation(DefaultFilterOperations.LowerThan)
-                .Type(typeof(T))
+                .Type<IdType>()
+                .ID<TEntityType, TIdType>()
                 .MakeNullable();
             descriptor.Operation(DefaultFilterOperations.NotLowerThan)
-                .Type(typeof(T))
+                .Type<IdType>()
+                .ID<TEntityType, TIdType>()
                 .MakeNullable();
             descriptor.Operation(DefaultFilterOperations.LowerThanOrEquals)
-                .Type(typeof(T))
+                .Type<IdType>()
+                .ID<TEntityType, TIdType>()
                 .MakeNullable();
             descriptor.Operation(DefaultFilterOperations.NotLowerThanOrEquals)
-                .Type(typeof(T))
+                .Type<IdType>()
+                .ID<TEntityType, TIdType>()
                 .MakeNullable();
             descriptor.AllowAnd(false).AllowOr(false);
+        }
+
+        protected override void OnRegisterDependencies(
+            ITypeDiscoveryContext context,
+            InputObjectTypeDefinition definition)
+        {
+            IExtendedType ouputType =
+                context.TypeInspector.GetType(typeof(ObjectType<TEntityType>));
+            context.RegisterDependency(TypeDependency.FromSchemaType(ouputType));
+            base.OnRegisterDependencies(context, definition);
         }
     }
 }
