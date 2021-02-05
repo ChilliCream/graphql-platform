@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using HotChocolate.Configuration;
@@ -218,8 +219,55 @@ namespace HotChocolate.Types
 
         public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
         {
-            runtimeValue = resultValue;
-            return true;
+            object? elementValue;
+            runtimeValue = null;
+            switch (resultValue)
+            {
+                case IDictionary<string, object> dictionary:
+                {
+                    var result = new Dictionary<string, object?>();
+                    foreach (KeyValuePair<string, object> element in dictionary)
+                    {
+                        if(TryDeserialize(element.Value, out elementValue ))
+                        {
+                            result[element.Key] = elementValue;
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+
+                    runtimeValue = result;
+                    return true;
+                }
+                case IList list:
+                {
+                    var result = new object?[list.Count];
+                    for (var i = 0; i < list.Count; i++)
+                    {
+                        if(TryDeserialize(list[i], out elementValue ))
+                        {
+                            result[i] = elementValue;
+                        }
+                        else
+                        {
+                            return false;
+                        }
+
+                    }
+                    runtimeValue = result;
+                    return true;
+                }
+
+                case IValueNode literal:
+                    runtimeValue = ParseLiteral(literal);
+                    return true;
+
+                default:
+                    runtimeValue = resultValue;
+                    return true;
+            }
         }
     }
 }
