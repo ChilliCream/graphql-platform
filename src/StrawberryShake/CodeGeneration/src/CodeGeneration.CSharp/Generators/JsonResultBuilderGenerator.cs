@@ -64,7 +64,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             foreach (var valueParser in resultBuilderDescriptor.ValueParsers)
             {
                 var parserFieldName =
-                    $"_{valueParser.RuntimeType.Split(".").Last().WithLowerFirstChar()}Parser";
+                    $"_{valueParser.RuntimeType.Split('.').Last().WithLowerFirstChar()}Parser";
                 classBuilder.AddField(
                     FieldBuilder.New().SetName(parserFieldName).SetType(
                         TypeReferenceBuilder.New()

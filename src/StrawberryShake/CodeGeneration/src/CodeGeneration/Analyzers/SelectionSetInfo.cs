@@ -24,7 +24,13 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             obj is SelectionSetInfo other &&
             Equals(other);
 
-        public override int GetHashCode() =>
-            HashCode.Combine(Type, SelectionSet);
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return Type.GetHashCode() * 397 ^
+                    SelectionSet.GetHashCode() * 397;
+            }
+        }
     }
 }

@@ -159,17 +159,19 @@ namespace StrawberryShake
 
          public override int GetHashCode()
          {
-             var hash = new HashCode();
-             hash.Add(Id);
-             hash.Add(Name);
-             hash.Add(Document);
-
-             foreach (KeyValuePair<string, object?> variable in _variables)
+             unchecked
              {
-                 hash.Add(variable);
-             }
+                 var hash = Id.GetHashCode() * 397 ^
+                    Name.GetHashCode() * 397 ^
+                    Document.GetHashCode() * 397;
 
-             return hash.ToHashCode();
+                 foreach (KeyValuePair<string, object?> variable in _variables)
+                 {
+                     hash ^= variable.GetHashCode();
+                 }
+
+                 return hash;
+             }
          }
     }
 }

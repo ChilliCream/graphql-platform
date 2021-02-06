@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using static StrawberryShake.CodeGeneration.NamingConventions;
@@ -15,16 +16,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .AddProperty(PropertyBuilder.New().SetName("Id").SetType(TypeNames.EntityId));
 
             // Add Properties to class
-            foreach (var (_, prop) in descriptor.Properties)
+            foreach (KeyValuePair<string, PropertyDescriptor> item in descriptor.Properties)
             {
-                switch (prop.Type.Kind)
+                switch (item.Value.Type.Kind)
                 {
                     case TypeKind.LeafType:
                         PropertyBuilder propBuilder =
                             PropertyBuilder
                                 .New()
-                                .SetName(prop.Name)
-                                .SetType(prop.Type.ToBuilder())
+                                .SetName(item.Value.Name)
+                                .SetType(item.Value.Type.ToBuilder())
                                 .MakeSettable()
                                 .SetAccessModifier(AccessModifier.Public);
                         classBuilder.AddProperty(propBuilder);
@@ -34,9 +35,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         PropertyBuilder dataBuilder =
                             PropertyBuilder
                                 .New()
-                                .SetName(prop.Name)
+                                .SetName(item.Value.Name)
                                 .SetType(
-                                    prop.Type.ToBuilder(DataTypeNameFromTypeName(prop.Type.Name)))
+                                    item.Value.Type.ToBuilder(
+                                        DataTypeNameFromTypeName(item.Value.Type.Name)))
                                 .MakeSettable()
                                 .SetAccessModifier(AccessModifier.Public);
                         classBuilder.AddProperty(dataBuilder);
@@ -45,8 +47,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     case TypeKind.EntityType:
                         PropertyBuilder referencePropertyBuilder = PropertyBuilder
                             .New()
-                            .SetName(prop.Name)
-                            .SetType(prop.Type.ToBuilder().SetName(TypeNames.EntityId))
+                            .SetName(item.Value.Name)
+                            .SetType(item.Value.Type.ToBuilder().SetName(TypeNames.EntityId))
                             .MakeSettable()
                             .SetAccessModifier(AccessModifier.Public);
                         classBuilder.AddProperty(referencePropertyBuilder);

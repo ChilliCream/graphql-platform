@@ -117,6 +117,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
         }
 
         private static string GetSerializerMethod(EntityIdDescriptor field) =>
-            $"Get{field.TypeName.Split(".").Last()}";
+            $"Get{field.TypeName.Split('.').Last()}";
     }
 }

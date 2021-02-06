@@ -59,7 +59,7 @@ namespace StrawberryShake
             if (_results.TryGetValue(operationRequest, out var storedOperation) &&
                 storedOperation is StoredOperation<T> { LastResult: not null } casted)
             {
-                result = casted.LastResult;
+                result = casted.LastResult!;
                 return true;
             }
 

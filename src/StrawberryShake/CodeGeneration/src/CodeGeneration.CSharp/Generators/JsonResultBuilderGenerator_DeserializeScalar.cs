@@ -11,7 +11,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             NamedTypeDescriptor namedType)
         {
             var jsonGetterTypeName =
-                namedType.SerializationType?.Split(".").Last()
+                namedType.SerializationType?.Split('.').Last()
                 ?? namedType.Name.WithCapitalFirstChar();
             methodBuilder.AddCode(
                 $"return {namedType.Name.ToFieldName()}Parser.Parse({_objParamName}.Value" +

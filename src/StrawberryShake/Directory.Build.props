@@ -1,5 +1,6 @@
 <Project>
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Nullable.props', '$(MSBuildThisFileDirectory)..\'))" />
 
   <PropertyGroup>
     <Nullable>enable</Nullable>
@@ -20,7 +21,7 @@
 
   <PropertyGroup>
     <TestTargetFrameworks>net5.0; netcoreapp3.1</TestTargetFrameworks>
-    <LibraryTargetFrameworks>net5.0; netcoreapp3.1; netstandard2.1</LibraryTargetFrameworks>
+    <LibraryTargetFrameworks>net5.0; netcoreapp3.1; netstandard2.1; netstandard2.0</LibraryTargetFrameworks>
   </PropertyGroup>
 
 </Project>

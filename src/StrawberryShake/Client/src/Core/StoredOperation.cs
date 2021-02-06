@@ -24,7 +24,7 @@ namespace StrawberryShake
 
         public IReadOnlyCollection<EntityId> EntityIds =>
             LastResult?.DataInfo?.EntityIds ??
-            ArraySegment<EntityId>.Empty;
+            Array.Empty<EntityId>();
 
         public ulong Version => LastResult?.DataInfo?.Version ?? 0;
 

@@ -66,8 +66,14 @@ namespace StrawberryShake
 
         /// <summary>Returns the hash code for this instance.</summary>
         /// <returns>A 32-bit signed integer that is the hash code for this instance.</returns>
-        public override int GetHashCode() =>
-            HashCode.Combine(Name, Value);
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return Name.GetHashCode() * 397 ^
+                    Value.GetHashCode() * 397;
+            }
+        }
 
         public static bool operator ==(EntityId x, EntityId y) =>
             x.Equals(y);
