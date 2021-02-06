@@ -400,5 +400,13 @@ scalar NonEmptyString
 """
 The EmailAddress scalar type represents a email address, represented as UTF-8 character sequences that follows the specification defined in RFC 5322
 """
-scalar NonEmptyString
+scalar EmailAddress
+```
+
+## PhoneNumber
+```sdl
+"""
+The PhoneNumber scalar type represents a value that conforms to the standard E.164 format as specified in: https://en.wikipedia.org/wiki/E.164.
+"""
+scalar PhoneNumber
 ```
