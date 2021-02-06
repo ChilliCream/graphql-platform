@@ -6,7 +6,7 @@
 
 interface Character {
   id: ID!
-  name: String
+  name: String!
   friends(first: Int after: String last: Int before: String): CharacterConnection
   appearsIn: [Episode]
   height(unit: Unit): Float
@@ -32,20 +32,20 @@ type CharacterEdge {
 
 type Droid implements Character {
   id: ID!
+  name: String!
   appearsIn: [Episode]
   friends(first: Int after: String last: Int before: String): CharacterConnection
   height(unit: Unit): Float
-  name: String
   primaryFunction: String
 }
 
 type Human implements Character {
   id: ID!
+  name: String!
   appearsIn: [Episode]
   friends(first: Int after: String last: Int before: String): CharacterConnection
   otherHuman: Human
   height(unit: Unit): Float
-  name: String
   homePlanet: String
 }
 
@@ -80,9 +80,9 @@ type Review {
 }
 
 type Starship {
-  id: String
-  name: String
-  length: Float!
+  id: ID!
+  name: String!
+  length(unit: Unit): Float!
 }
 
 type Subscription {

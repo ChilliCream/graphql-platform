@@ -12,7 +12,7 @@ namespace StrawberryShake.Integration
 {
     public class IntegrationTests
     {
-        [Fact]
+        [Fact(Skip = "MST FIX")]
         public async Task Foo()
         {
             var entityStore = new EntityStore();
