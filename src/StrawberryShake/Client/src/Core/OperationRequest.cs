@@ -161,7 +161,7 @@ namespace StrawberryShake
          {
              unchecked
              {
-                 var hash = Id.GetHashCode() * 397 ^
+                 var hash = (Id?.GetHashCode() ?? 0) * 397 ^
                     Name.GetHashCode() * 397 ^
                     Document.GetHashCode() * 397;
 
