@@ -8,7 +8,6 @@
     <IncludeBuildOutput>false</IncludeBuildOutput> <!-- Do not include the generator as a lib dependency -->
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <Version>0.0.9</Version>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks> 
   </PropertyGroup>
 
   <ItemGroup>
