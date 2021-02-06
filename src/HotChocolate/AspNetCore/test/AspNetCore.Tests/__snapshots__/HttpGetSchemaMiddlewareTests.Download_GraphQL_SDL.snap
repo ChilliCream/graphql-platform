@@ -82,9 +82,9 @@ type Review {
 }
 
 type Starship {
-  id: String
-  name: String
-  length: Float!
+  id: ID!
+  name: String!
+  length(unit: Unit): Float!
 }
 
 type Subscription {
