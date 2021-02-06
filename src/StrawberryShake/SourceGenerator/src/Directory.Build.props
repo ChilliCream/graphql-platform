@@ -2,7 +2,8 @@
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks> 
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <NoWarn>$(NoWarn);CA1812</NoWarn>
   </PropertyGroup>
 

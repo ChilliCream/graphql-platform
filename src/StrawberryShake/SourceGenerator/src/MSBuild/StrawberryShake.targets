@@ -16,5 +16,5 @@
     <AvailableItemName Include="GraphQL" />
     <AvailableItemName Include="GraphQLConfig" />
   </ItemGroup>
-
+  
 </Project>

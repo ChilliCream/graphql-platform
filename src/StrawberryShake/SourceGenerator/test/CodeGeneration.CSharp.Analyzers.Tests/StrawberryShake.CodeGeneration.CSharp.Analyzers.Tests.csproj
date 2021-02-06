@@ -21,7 +21,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.8.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2" PrivateAssets="all" />
-    <PackageReference Include="StrawberryShake.CodeGeneration.CSharp.Analyzers" Version="0.0.9" PrivateAssets="all" />
+    <PackageReference Include="StrawberryShake.CodeGeneration.CSharp.Analyzers" Version="0.0.11" PrivateAssets="all" />
   </ItemGroup>
 
   <!--For Visual Studio for Mac Test Explorer we need this reference here-->

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using HotChocolate;
 using Microsoft.CodeAnalysis;
@@ -10,8 +11,32 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
     [Generator]
     public class CSharpClientGenerator : ISourceGenerator
     {
+        private static string _location = System.IO.Path.GetDirectoryName(
+            typeof(CSharpClientGenerator).Assembly.Location);
+
         public void Initialize(GeneratorInitializationContext context)
         {
+            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomainOnAssemblyResolve;
+        }
+
+        private static Assembly? CurrentDomainOnAssemblyResolve(object sender, ResolveEventArgs args)
+        {
+            try
+            {
+                AssemblyName assemblyName = new AssemblyName(args.Name);
+                if (assemblyName.Name.EndsWith(".resources", StringComparison.OrdinalIgnoreCase)
+                    && !assemblyName.CultureName.EndsWith("neutral", StringComparison.OrdinalIgnoreCase))
+                {
+                    return null;
+                }
+
+                string path = System.IO.Path.Combine(_location, assemblyName.Name + ".dll");
+                return Assembly.LoadFrom(path);
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         public void Execute(GeneratorExecutionContext context)
@@ -23,8 +48,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     .Where(t => t.EndsWith(".graphql"));
 
                 var generator = new CSharpGenerator();
-
                 var generatorResult = generator.Generate(documents);
+
                 if (generatorResult.HasErrors())
                 {
                     foreach (IError generatorResultError in generatorResult.Errors)
@@ -100,7 +125,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             {
                 context.AddSource(
                     "error.cs",
-                    "/* " + ex.Message + " */");
+                    "/* 12 " + ex.Message + " " + ex.StackTrace + "  */");
             }
         }
     }
