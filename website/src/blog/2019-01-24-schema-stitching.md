@@ -171,7 +171,7 @@ foo(id:123) {
 
 Since, we did not want to cram a query like this into one string we allow this to be done with a flat path.
 
-```
+```text
 foo(id:$arguments:arg1).bar.baz(top:1)
 ```
 
@@ -307,7 +307,7 @@ HTTP directives let you decorate a schema SDL and thus let you map REST services
 
 Moreover, we will introduce a cast feature to our delegation path. This will basically allow you to use fragments without having to write the code.
 
-```
+```text
 foo.bar<baz>(a:1).qux(b:1)
 ```
 
@@ -352,7 +352,7 @@ The following query might be a good starting point since it will expose the ids 
 }
 ```
 
-If you have further questions or need help you join our [slack channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q).
+If you have further questions or need help you join our slack channel.
 
 [hot chocolate]: https://hotchocolate.io
 [hot chocolate source code]: https://github.com/ChilliCream/hotchocolate

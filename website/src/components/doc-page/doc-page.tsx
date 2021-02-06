@@ -31,6 +31,7 @@ import {
   ArticleWrapperElement,
 } from "./doc-page-article-wrapper";
 import { State } from "../../state";
+import { MDXRenderer } from "gatsby-plugin-mdx";
 
 interface DocPageProperties {
   data: DocPageFragment;
@@ -42,7 +43,7 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
   originPath,
 }) => {
   const dispatch = useDispatch();
-  const { fields, frontmatter, html } = data.file!.childMarkdownRemark!;
+  const { fields, frontmatter, body } = data.file!.childMdx!;
   const slug = fields!.slug!.substring(1);
   const path = `/docs/${slug}`;
   const productAndVersionPattern = /^([\w-]*?)\/(v\d+)?/g;
@@ -91,14 +92,16 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
               </ResponsiveMenuWrapper>
               <ArticleTitle>{title}</ArticleTitle>
             </ArticleHeader>
-            <ArticleContent dangerouslySetInnerHTML={{ __html: html! }} />
+            <ArticleContent>
+              <MDXRenderer>{body}</MDXRenderer>
+            </ArticleContent>
           </Article>
           {false && <ArticleComments data={data} path={path} title={title} />}
         </ArticleContainer>
       </ArticleWrapper>
       <DocPageAside>
         <DocPageCommunity data={data} originPath={originPath} />
-        <ArticleSections data={data.file!.childMarkdownRemark!} />
+        <ArticleSections data={data.file!.childMdx!} />
       </DocPageAside>
     </Container>
   );
@@ -110,14 +113,14 @@ export const DocPageGraphQLFragment = graphql`
       sourceInstanceName: { eq: "docs" }
       relativePath: { eq: $originPath }
     ) {
-      childMarkdownRemark {
+      childMdx {
         fields {
           slug
         }
         frontmatter {
           title
         }
-        html
+        body
         ...ArticleSections
       }
     }

@@ -38,7 +38,7 @@ namespace HotChocolate.AspNetCore
             // arrange
             TestServer server = CreateStarWarsServer(
                 configureConventions: e => e.WithOptions(
-                    new GraphQLServerOptions 
+                    new GraphQLServerOptions
                     {
                         Tool = { Enable = false }
                     }));
@@ -68,7 +68,7 @@ namespace HotChocolate.AspNetCore
                 }
             };
             TestServer server = CreateStarWarsServer("/graphql",
-                builder => builder.WithOptions(options));
+                configureConventions: builder => builder.WithOptions(options));
 
             // act
             Result result = await GetAsync(server);

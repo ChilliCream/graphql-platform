@@ -16,7 +16,7 @@ const DocPageTemplate: FunctionComponent<DocPageTemplateProperties> = ({
 }) => {
   return (
     <Layout>
-      <SEO title={data.file!.childMarkdownRemark!.frontmatter!.title!} />
+      <SEO title={data.file!.childMdx!.frontmatter!.title!} />
       <DocPage data={data} originPath={pageContext.originPath} />
     </Layout>
   );

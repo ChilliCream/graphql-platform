@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.TestHost;
 using HotChocolate.AspNetCore.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
@@ -23,6 +24,36 @@ namespace HotChocolate.AspNetCore
 
             // act
             ClientQueryResult result = await server.PostAsync(
+                new ClientQueryRequest { Query = "{ __typename }" });
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Serialize_Payload_With_Whitespaces()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer(
+                configureServices: sc => sc.AddHttpResultSerializer(indented: true));
+
+            // act
+            ClientRawResult result = await server.PostRawAsync(
+                new ClientQueryRequest { Query = "{ __typename }" });
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Serialize_Payload_Without_Extra_Whitespaces()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer(
+                configureServices: sc => sc.AddHttpResultSerializer(indented: false));
+
+            // act
+            ClientRawResult result = await server.PostRawAsync(
                 new ClientQueryRequest { Query = "{ __typename }" });
 
             // assert

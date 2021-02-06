@@ -1,4 +1,5 @@
 using System;
+using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Serialization;
@@ -86,21 +87,31 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="batchSerialization">
         /// Specifies the batch serialization format.
         /// </param>
-        /// <param name="deferSerialization"></param>
+        /// <param name="deferSerialization">
         /// Specifies the defer/stream serialization format.
+        /// </param>
+        /// <param name="indented">
+        /// Defines whether the underlying <see cref="Utf8JsonWriter"/>
+        /// should pretty print the JSON which includes:
+        /// indenting nested JSON tokens, adding new lines, and adding
+        /// white space between property names and values.
+        /// By default, the JSON is written without extra white spaces.
+        /// </param>
         /// <returns>
         /// Returns the <see cref="IServiceCollection"/> so that configuration can be chained.
         /// </returns>
         public static IServiceCollection AddHttpResultSerializer(
             this IServiceCollection services,
             HttpResultSerialization batchSerialization = HttpResultSerialization.MultiPartChunked,
-            HttpResultSerialization deferSerialization = HttpResultSerialization.MultiPartChunked)
+            HttpResultSerialization deferSerialization = HttpResultSerialization.MultiPartChunked,
+            bool indented = false)
         {
             services.RemoveAll<IHttpResultSerializer>();
             services.AddSingleton<IHttpResultSerializer>(
                 new DefaultHttpResultSerializer(
                     batchSerialization,
-                    deferSerialization));
+                    deferSerialization,
+                    indented));
             return services;
         }
 
