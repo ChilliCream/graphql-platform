@@ -45,5 +45,15 @@ namespace HotChocolate.Types.Scalars
             // assert
             ExpectIsInstanceOfTypeToMatch<NegativeFloatType>(valueNode, expected);
         }
+
+        [Theory]
+        [InlineData(1d, false)]
+        public void IsInstanceOfType_GivenObject_MatchExpected(object value, bool expected)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectIsInstanceOfTypeToMatch<NegativeFloatType>(value, expected);
+        }
     }
 }
