@@ -1,5 +1,5 @@
 {
-  "schema": "schema.graphql",
+  "schema": "Schema.graphql",
   "documents": "**/*.graphql",
   "extensions": {
     "strawberryShake": {

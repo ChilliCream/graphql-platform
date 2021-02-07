@@ -12,23 +12,25 @@ namespace StrawberryShake.Transport.Http
 {
     public class HttpConnection : IConnection<JsonDocument>
     {
-        private readonly HttpClient _client;
+        private readonly Func<HttpClient> _createClient;
         private readonly JsonOperationRequestSerializer _serializer = new();
 
-        public HttpConnection(HttpClient client)
+        public HttpConnection(Func<HttpClient> createClient)
         {
-            _client = client ?? throw new ArgumentNullException(nameof(client));
+            _createClient = createClient ?? throw new ArgumentNullException(nameof(createClient));
         }
 
         public async IAsyncEnumerable<Response<JsonDocument>> ExecuteAsync(
             OperationRequest request,
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
-            HttpRequestMessage requestMessage =
-                CreateRequestMessage(request, _client.BaseAddress);
+            using HttpClient client = _createClient();
 
-            HttpResponseMessage responseMessage =
-                await _client
+            using HttpRequestMessage requestMessage =
+                CreateRequestMessage(request, client.BaseAddress!);
+
+            using HttpResponseMessage responseMessage =
+                await client
                     .SendAsync(requestMessage, cancellationToken)
                     .ConfigureAwait(false);
 

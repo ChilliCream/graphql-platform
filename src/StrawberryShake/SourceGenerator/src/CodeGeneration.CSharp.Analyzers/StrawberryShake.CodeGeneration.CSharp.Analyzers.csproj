@@ -7,7 +7,8 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild> <!-- Generates a package at build -->
     <IncludeBuildOutput>false</IncludeBuildOutput> <!-- Do not include the generator as a lib dependency -->
-    <Version>0.0.15</Version>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <Version>0.0.18</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,13 +20,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="StrawberryShake.CodeGeneration.CSharp" Version="11.1.0-preview.9" PrivateAssets="all" GeneratePathProperty="true" />
+    <PackageReference Include="StrawberryShake.CodeGeneration.CSharp" Version="11.1.0-preview.10" PrivateAssets="all" GeneratePathProperty="true" />
   </ItemGroup>
 
   <ItemGroup>
     <!-- Package the generator in the analyzer directory of the nuget package -->
     <None Include="$(OutputPath)\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-
+    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\GraphQL.xaml" Pack="true" PackagePath="build/GraphQL.xaml" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\StrawberryShake.props" Pack="true" PackagePath="build/StrawberryShake.CodeGeneration.CSharp.Analyzers.props" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\StrawberryShake.targets" Pack="true" PackagePath="build/StrawberryShake.CodeGeneration.CSharp.Analyzers.targets" Visible="false" />
   </ItemGroup>
 
 </Project>
