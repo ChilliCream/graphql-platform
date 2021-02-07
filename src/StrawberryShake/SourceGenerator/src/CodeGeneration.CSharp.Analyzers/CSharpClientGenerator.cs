@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -13,6 +14,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
     {
         private static string _location = System.IO.Path.GetDirectoryName(
             typeof(CSharpClientGenerator).Assembly.Location);
+        private static List<string> _errors = new List<string>();
 
         public void Initialize(GeneratorInitializationContext context)
         {
@@ -21,21 +23,23 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
         private static Assembly? CurrentDomainOnAssemblyResolve(object sender, ResolveEventArgs args)
         {
-            try
+            lock (_errors)
             {
-                AssemblyName assemblyName = new AssemblyName(args.Name);
-                if (assemblyName.Name.EndsWith(".resources", StringComparison.OrdinalIgnoreCase)
-                    && !assemblyName.CultureName.EndsWith("neutral", StringComparison.OrdinalIgnoreCase))
+                try
                 {
+                    AssemblyName assemblyName = new AssemblyName(args.Name);
+                    string path = System.IO.Path.Combine(_location, assemblyName.Name + ".dll");
+
+                    _errors.Add(args.Name);
+                    _errors.Add(path);
+
+                    return Assembly.LoadFrom(path);
+                }
+                catch (Exception ex)
+                {
+                    _errors.Add(ex.Message);
                     return null;
                 }
-
-                string path = System.IO.Path.Combine(_location, assemblyName.Name + ".dll");
-                return Assembly.LoadFrom(path);
-            }
-            catch
-            {
-                return null;
             }
         }
 
@@ -123,9 +127,18 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             }
             catch (Exception ex)
             {
-                context.AddSource(
-                    "error.cs",
-                    "/* 12 " + ex.Message + " " + ex.StackTrace + "  */");
+
+                var sb = new StringBuilder();
+                sb.AppendLine("/*");
+                sb.AppendLine(ex.Message);
+                sb.AppendLine(ex.StackTrace);
+                sb.AppendLine(ex.GetType().FullName);
+
+                _errors.ForEach(s => sb.AppendLine(s));
+
+                sb.AppendLine("*/");
+
+                context.AddSource("error.cs", sb.ToString());
             }
         }
     }
