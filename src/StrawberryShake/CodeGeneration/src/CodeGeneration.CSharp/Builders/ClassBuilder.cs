@@ -21,6 +21,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
         public static ClassBuilder New() => new();
 
+        public static ClassBuilder New(string className) => new ClassBuilder().SetName(className);
+
         public ClassBuilder SetAccessModifier(AccessModifier value)
         {
             _accessModifier = value;
@@ -99,7 +101,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
         public ClassBuilder SetStatic()
         {
-
             _isStatic = true;
             _isSealed = false;
             _isAbstract = false;
@@ -108,7 +109,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
         public ClassBuilder SetSealed()
         {
-
             _isStatic = false;
             _isSealed = true;
             _isAbstract = false;
@@ -117,7 +117,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
         public ClassBuilder SetAbstract()
         {
-
             _isStatic = false;
             _isSealed = false;
             _isAbstract = true;
@@ -185,6 +184,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                     {
                         builder.Build(writer);
                     }
+
                     writeLine = true;
                 }
 
@@ -196,10 +196,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                         {
                             writer.WriteLine();
                         }
+
                         _constructors[i]
                             .SetTypeName(_name!)
                             .Build(writer);
                     }
+
                     writeLine = true;
                 }
 
@@ -211,8 +213,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                         {
                             writer.WriteLine();
                         }
+
                         _properties[i].Build(writer);
                     }
+
                     writeLine = true;
                 }
 
@@ -224,6 +228,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                         {
                             writer.WriteLine();
                         }
+
                         _methods[i].Build(writer);
                     }
                 }

@@ -11,30 +11,38 @@ namespace StrawberryShake.CodeGeneration.CSharp
             out string fileName)
         {
             fileName = NamingConventions.EnumParserNameFromEnumName(descriptor.Name);
-            var classBuilder = ClassBuilder.New()
-                .SetName(fileName);
 
+            ClassBuilder classBuilder = ClassBuilder
+                .New(fileName)
+                .AddImplements(TypeNames.IInputValueFormatter)
+                .AddImplements(
+                    TypeNames.ILeafValueParser.WithGeneric(TypeNames.String, descriptor.Name));
 
-            var serializedValueParamName = "serializedValue";
-            var parseMethod = MethodBuilder.New()
+            const string serializedValueParamName = "serializedValue";
+            classBuilder
+                .AddMethod("Parse")
                 .AddParameter(ParameterBuilder.New()
                     .SetName(serializedValueParamName)
                     .SetType(TypeNames.String))
-                .SetName("Parse")
+                .SetAccessModifier(AccessModifier.Public)
                 .SetReturnType(descriptor.Name)
                 .AddCode(CreateEnumParsingSwitch(serializedValueParamName, descriptor));
-            classBuilder.AddMethod(parseMethod);
 
-            var runtimeValueParamName = "runtimeValue";
-            var formatMethod = MethodBuilder.New()
-                .SetName("Format")
+            const string runtimeValueParamName = "runtimeValue";
+            classBuilder
+                .AddMethod("Format")
                 .SetAccessModifier(AccessModifier.Public)
                 .SetReturnType("object")
                 .AddParameter(ParameterBuilder.New()
                     .SetType("object")
                     .SetName(runtimeValueParamName))
                 .AddCode(CreateEnumFormatingSwitch(runtimeValueParamName, descriptor));
-            classBuilder.AddMethod(formatMethod);
+
+            classBuilder
+                .AddProperty("TypeName")
+                .AsLambda(descriptor.Name.AsStringToken())
+                .SetPublic()
+                .SetType(TypeNames.String);
 
             CodeFileBuilder
                 .New()
@@ -47,19 +55,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
             string paramName,
             EnumDescriptor descriptor)
         {
-            var sourceText = new StringBuilder();
-
-            sourceText.AppendLine($"return {paramName} switch");
-            sourceText.AppendLine("{");
-
-            foreach (var enumValue in descriptor.Values)
-            {
-                sourceText.AppendLine(
-                    $"    \"{enumValue.GraphQLName}\" => {descriptor.Name}.{enumValue.Name},");
-            }
-
-            sourceText.AppendLine($"    _ => throw new {TypeNames.IGraphQLClientException}()");
-            sourceText.AppendLine("};");
+            StringBuilder sourceText = new StringBuilder()
+                .AppendLine($"return {paramName} switch")
+                .AppendLine("{")
+                .AppendLineForEach(
+                    descriptor.Values,
+                    x => $"    \"{x.GraphQLName}\" => {descriptor.Name}.{x.Name},")
+                .AppendLine($"    _ => throw new {TypeNames.IGraphQLClientException}()")
+                .AppendLine("};");
 
             return CodeBlockBuilder.From(sourceText);
         }

@@ -2,8 +2,12 @@
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class MetasyntacticVariableParser
+        : global::StrawberryShake.Serialization.IInputValueFormatter
+        , global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, MetasyntacticVariable>
     {
-        private MetasyntacticVariable Parse(global::System.String serializedValue)
+        public global::System.String TypeName => "MetasyntacticVariable";
+
+        public MetasyntacticVariable Parse(global::System.String serializedValue)
         {
             return serializedValue switch
             {
