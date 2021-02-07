@@ -1093,7 +1093,7 @@ The example used in this post can be found [here](https://github.com/ChilliCream
 
 We also have a more complex real-time GraphQL server example in multiple flavors and different database integrations [here](https://github.com/ChilliCream/hotchocolate-examples/tree/master/workshop/src/Server).
 
-If you want to get into contact with us head over to our [slack channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q) and join our community.
+If you want to get into contact with us head over to our slack channel and join our community.
 
 [hot chocolate]: https://hotchocolate.io
 [hot chocolate source code]: https://github.com/ChilliCream/hotchocolate
