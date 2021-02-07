@@ -21,7 +21,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomainOnAssemblyResolve;
         }
 
-        private static Assembly? CurrentDomainOnAssemblyResolve(object sender, ResolveEventArgs args)
+        private static Assembly? CurrentDomainOnAssemblyResolve(
+            object sender,
+            ResolveEventArgs args)
         {
             lock (_errors)
             {
@@ -59,12 +61,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     foreach (IError generatorResultError in generatorResult.Errors)
                     {
                         string title = (generatorResultError
-                                           .Extensions?[CodeGenerationThrowHelper
-                                               .TitleExtensionKey] as string)
-                                       ?? throw new ArgumentNullException();
+                                .Extensions?[CodeGenerationThrowHelper
+                                    .TitleExtensionKey] as string)
+                            ?? throw new ArgumentNullException();
 
                         string code = generatorResultError.Code ??
-                                      throw new ArgumentNullException();
+                            throw new ArgumentNullException();
 
                         if (generatorResultError.Extensions is not null
                             && generatorResultError.Extensions.TryGetValue(
