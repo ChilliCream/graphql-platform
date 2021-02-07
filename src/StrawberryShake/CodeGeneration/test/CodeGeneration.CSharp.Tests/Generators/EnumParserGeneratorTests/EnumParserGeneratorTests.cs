@@ -18,7 +18,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Other
         }
 
         [Fact]
-        public void GenrateEnumParser()
+        public void GenerateEnumParser()
         {
             _generator.Generate(
                 _codeWriter,
@@ -30,7 +30,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Other
                         new EnumValueDescriptor("Foo", "FOO"),
                         new EnumValueDescriptor("Bar", "BAR"),
                         new EnumValueDescriptor("Baz", "BAZ")
-                    }));
+                    }),
+                out string fileName);
+
             _stringBuilder.ToString().MatchSnapshot();
         }
     }

@@ -7,14 +7,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public class OperationDocumentGenerator: ClassBaseGenerator<OperationDescriptor>
     {
-        protected override void Generate(CodeWriter writer, OperationDescriptor descriptor)
+        protected override void Generate(CodeWriter writer, OperationDescriptor descriptor, out string fileName)
         {
             var (classBuilder, constructorBuilder) = CreateClassBuilder();
 
-            var documentClassName = DocumentTypeNameFromOperationName(descriptor.Name);
+            fileName = DocumentTypeNameFromOperationName(descriptor.Name);
             classBuilder
                 .AddImplements(TypeNames.IDocument)
-                .SetName(documentClassName);
+                .SetName(fileName);
             constructorBuilder.SetAccessModifier(AccessModifier.Private);
 
             classBuilder.AddField(
@@ -52,9 +52,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
             classBuilder.AddProperty(
                 PropertyBuilder.New()
                     .SetStatic()
-                    .SetType(documentClassName)
+                    .SetType(fileName)
                     .SetName("Instance")
-                    .SetValue($"new {documentClassName}()"));
+                    .SetValue($"new {fileName}()"));
 
             classBuilder.AddProperty(
                 PropertyBuilder.New()

@@ -26,7 +26,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
             new ResultInterfaceGenerator()
         };
 
-        public IEnumerable<CSharpDocument> Generate(ClientModel clientModel, string ns, string clientName)
+        public IEnumerable<CSharpDocument> Generate(
+            ClientModel clientModel,
+            string ns,
+            string clientName)
         {
             if (clientModel is null)
             {
@@ -65,10 +68,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             using var writer = new CodeWriter(code);
 
-            generator.Generate(writer, descriptor);
+            generator.Generate(writer, descriptor, out string fileName);
 
             writer.Flush();
-            return new(descriptor.Name, code.ToString());
+            return new(fileName, code.ToString());
         }
     }
 

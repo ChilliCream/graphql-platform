@@ -25,7 +25,8 @@ namespace StrawberryShake.Integration
         {
             _generator.Generate(
                 _codeWriter,
-                IntegrationDescriptors.CreateGetHeroQueryDescriptor());
+                IntegrationDescriptors.CreateGetHeroQueryDescriptor(),
+                out _);
 
             _stringBuilder.ToString().MatchSnapshot();
         }

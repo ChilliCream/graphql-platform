@@ -8,11 +8,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public class EntityTypeGenerator : CodeGenerator<EntityTypeDescriptor>
     {
-        protected override void Generate(CodeWriter writer, EntityTypeDescriptor descriptor)
+        protected override void Generate(
+            CodeWriter writer,
+            EntityTypeDescriptor descriptor,
+            out string fileName)
         {
             // Setup class
+            fileName = EntityTypeNameFromGraphQLTypeName(descriptor.GraphQLTypeName);
+
             ClassBuilder classBuilder = ClassBuilder.New()
-                .SetName(EntityTypeNameFromGraphQLTypeName(descriptor.GraphQLTypeName))
+                .SetName(fileName)
                 .AddProperty(PropertyBuilder.New().SetName("Id").SetType(TypeNames.EntityId));
 
             // Add Properties to class

@@ -16,12 +16,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return descriptor.Kind == TypeKind.ResultType && !descriptor.IsInterface();
         }
 
-        protected override void Generate(CodeWriter writer, NamedTypeDescriptor descriptor)
+        protected override void Generate(
+            CodeWriter writer,
+            NamedTypeDescriptor descriptor,
+            out string fileName)
         {
             var (classBuilder, constructorBuilder) = CreateClassBuilder();
 
+            fileName = ResultFactoryNameFromTypeName(descriptor.Name);
             classBuilder
-                .SetName(ResultFactoryNameFromTypeName(descriptor.Name))
+                .SetName(fileName)
                 .AddImplements($"{TypeNames.IOperationResultDataFactory}<{descriptor.Name}>");
 
             constructorBuilder
@@ -135,15 +139,19 @@ namespace StrawberryShake.CodeGeneration.CSharp
                             codeContainer.AddCode(
                                 IfBuilder.New()
                                     .SetCondition(
-                                        ConditionBuilder.New().Set(
-                                            MethodCallBuilder.New()
-                                                .SetDetermineStatement(false)
-                                                .SetMethodName($"{nonNullVarName}.Name.Equals")
-                                                .AddArgument($"\"{implementee.GraphQLTypeName}\"")
-                                                .AddArgument(TypeNames.OrdinalStringComparisson)))
+                                        ConditionBuilder.New()
+                                            .Set(
+                                                MethodCallBuilder.New()
+                                                    .SetDetermineStatement(false)
+                                                    .SetMethodName($"{nonNullVarName}.Name.Equals")
+                                                    .AddArgument(
+                                                        $"\"{implementee.GraphQLTypeName}\"")
+                                                    .AddArgument(TypeNames
+                                                        .OrdinalStringComparisson)))
                                     .AddCode(AssignmentBuilder.New()
                                         .SetLefthandSide(varName)
-                                        .SetRighthandSide(GetMappingCall(implementee, nonNullVarName))));
+                                        .SetRighthandSide(GetMappingCall(implementee,
+                                            nonNullVarName))));
 
                             codeContainer.AddEmptyLine();
                         }
@@ -157,6 +165,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                             returnBuilder.AddArgument(GetMappingCall(nonList, idName));
                         }
                     }
+
                     break;
 
                 case NonNullTypeDescriptor nonNullTypeDescriptor:
@@ -172,7 +181,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
         }
 
-        private MethodCallBuilder GetMappingCall(NamedTypeDescriptor namedTypeDescriptor, string idName)
+        private MethodCallBuilder GetMappingCall(
+            NamedTypeDescriptor namedTypeDescriptor,
+            string idName)
         {
             return MethodCallBuilder.New()
                 .SetMethodName(
@@ -180,7 +191,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                             namedTypeDescriptor.Name,
                             namedTypeDescriptor.GraphQLTypeName
                             ?? throw new ArgumentNullException("GraphQLTypeName"))
-                        .ToFieldName()+ ".Map")
+                        .ToFieldName() + ".Map")
                 .SetDetermineStatement(false)
                 .AddArgument(
                     $"{StoreParamName}.GetEntity<" +
@@ -198,7 +209,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 NamedTypeDescriptor typeDescriptor1 =>
                     typeDescriptor1.IsInterface
                         ? typeDescriptor1.ImplementedBy
-                        : new[] { typeDescriptor1 },
+                        : new[]
+                        {
+                            typeDescriptor1
+                        },
 
                 NonNullTypeDescriptor nonNullTypeDescriptor =>
                     GetMappers(nonNullTypeDescriptor.InnerType),

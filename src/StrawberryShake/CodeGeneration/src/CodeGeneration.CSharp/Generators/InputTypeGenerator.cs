@@ -11,10 +11,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return descriptor.Kind == TypeKind.InputType;
         }
 
-        protected override void Generate(CodeWriter writer, NamedTypeDescriptor namedTypeDescriptor)
+        protected override void Generate(
+            CodeWriter writer,
+            NamedTypeDescriptor namedTypeDescriptor,
+            out string fileName)
         {
+            fileName = namedTypeDescriptor.Name;
             ClassBuilder classBuilder = ClassBuilder.New()
-                .SetName(namedTypeDescriptor.Name);
+                .SetName(fileName);
 
             foreach (var prop in namedTypeDescriptor.Properties)
             {

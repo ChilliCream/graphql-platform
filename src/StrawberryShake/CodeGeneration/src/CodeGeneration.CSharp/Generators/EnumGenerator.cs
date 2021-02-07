@@ -1,16 +1,19 @@
-using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
     public class EnumGenerator : CodeGenerator<EnumDescriptor>
     {
-        protected override void Generate(CodeWriter writer, EnumDescriptor descriptor)
+        protected override void Generate(
+            CodeWriter writer,
+            EnumDescriptor descriptor,
+            out string fileName)
         {
+            fileName = descriptor.Name;
             EnumBuilder enumBuilder =
                 EnumBuilder
                     .New()
-                    .SetName(descriptor.Name)
+                    .SetName(fileName)
                     .SetUnderlyingType(descriptor.UnderlyingType);
 
             foreach (EnumValueDescriptor element in descriptor.Values)

@@ -14,12 +14,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         protected override void Generate(
             CodeWriter writer,
-            OperationDescriptor operationDescriptor)
+            OperationDescriptor operationDescriptor,
+            out string fileName)
         {
             var (classBuilder, constructorBuilder) = CreateClassBuilder();
 
-            classBuilder.SetName(operationDescriptor.Name);
-            constructorBuilder.SetTypeName(operationDescriptor.Name);
+            fileName = operationDescriptor.Name;
+            classBuilder.SetName(fileName);
+            constructorBuilder.SetTypeName(fileName);
 
             AddConstructorAssignedField(
                 TypeReferenceBuilder.New()

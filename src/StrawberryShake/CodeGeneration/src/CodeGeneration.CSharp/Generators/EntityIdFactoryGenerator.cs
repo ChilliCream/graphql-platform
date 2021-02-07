@@ -8,13 +8,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
     {
         protected override void Generate(
             CodeWriter writer,
-            EntityIdFactoryDescriptor descriptor)
+            EntityIdFactoryDescriptor descriptor, out string fileName)
         {
+            fileName = descriptor.Name;
+
             var factory = ClassBuilder
                 .New()
                 .SetStatic()
                 .SetAccessModifier(AccessModifier.Public)
-                .SetName(descriptor.Name);
+                .SetName(fileName);
 
             var obj = ParameterBuilder
                 .New()

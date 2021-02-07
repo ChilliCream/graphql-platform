@@ -33,7 +33,8 @@ namespace StrawberryShake.Other
                     properties: new[]
                     {
                         TestHelper.GetNamedNonNullStringTypeReference("SomeText"),
-                    }));
+                    }),
+                out _);
             _stringBuilder.ToString().MatchSnapshot();
         }
 
@@ -57,7 +58,8 @@ namespace StrawberryShake.Other
                                     "BarNamespace",
                                     false,
                                     kind: TypeKind.EntityType)))
-                    }));
+                    }),
+                out _);
             _stringBuilder.ToString().MatchSnapshot();
         }
 
@@ -73,7 +75,8 @@ namespace StrawberryShake.Other
                     properties: new[]
                     {
                         TestHelper.GetNamedNullableStringTypeReference("SomeText"),
-                    }));
+                    }),
+                out _);
             _stringBuilder.ToString().MatchSnapshot();
         }
 
@@ -96,7 +99,8 @@ namespace StrawberryShake.Other
                                 "BarNamespace",
                                 false,
                                 kind: TypeKind.EntityType))
-                    }));
+                    }),
+                out _);
             _stringBuilder.ToString().MatchSnapshot();
         }
 
@@ -120,7 +124,8 @@ namespace StrawberryShake.Other
                                     "BarNamespace",
                                     false,
                                     kind: TypeKind.EntityType)))
-                    }));
+                    }),
+                out _);
             _stringBuilder.ToString().MatchSnapshot();
         }
 
@@ -154,7 +159,8 @@ namespace StrawberryShake.Other
                                 "BazNamespace",
                                 false,
                                 kind: TypeKind.EntityType))
-                    }));
+                    }),
+                out _);
             _stringBuilder.ToString().MatchSnapshot();
         }
     }

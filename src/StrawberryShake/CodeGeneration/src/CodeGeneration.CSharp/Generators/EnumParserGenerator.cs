@@ -3,12 +3,16 @@ using StrawberryShake.CodeGeneration.CSharp.Builders;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public class EnumParserGenerator: CodeGenerator<EnumDescriptor>
+    public class EnumParserGenerator : CodeGenerator<EnumDescriptor>
     {
-        protected override void Generate(CodeWriter writer, EnumDescriptor descriptor)
+        protected override void Generate(
+            CodeWriter writer,
+            EnumDescriptor descriptor,
+            out string fileName)
         {
+            fileName = NamingConventions.EnumParserNameFromEnumName(descriptor.Name);
             var classBuilder = ClassBuilder.New()
-                .SetName(NamingConventions.EnumParserNameFromEnumName(descriptor.Name));
+                .SetName(fileName);
 
 
             var serializedValueParamName = "serializedValue";
@@ -39,7 +43,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .Build(writer);
         }
 
-        private CodeBlockBuilder CreateEnumParsingSwitch(string paramName, EnumDescriptor descriptor)
+        private CodeBlockBuilder CreateEnumParsingSwitch(
+            string paramName,
+            EnumDescriptor descriptor)
         {
             var sourceText = new StringBuilder();
 
@@ -58,7 +64,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return CodeBlockBuilder.From(sourceText);
         }
 
-        private CodeBlockBuilder CreateEnumFormatingSwitch(string paramName, EnumDescriptor descriptor)
+        private CodeBlockBuilder CreateEnumFormatingSwitch(
+            string paramName,
+            EnumDescriptor descriptor)
         {
             var sourceText = new StringBuilder();
 

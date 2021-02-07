@@ -44,7 +44,7 @@ namespace Foo
 }
 
 
-// Episode
+// EpisodeParser
 
 namespace Foo
 {
@@ -76,7 +76,7 @@ namespace Foo
 }
 
 
-// GetHero
+// GetHeroFactory
 
 namespace Foo
 {
@@ -133,7 +133,7 @@ namespace Foo
 }
 
 
-// GetHero
+// GetHeroInfo
 
 namespace Foo
 {
@@ -191,7 +191,7 @@ namespace Foo
 }
 
 
-// GetHero_Hero_Droid
+// GetHero_Hero_DroidFromDroidEntityMapper
 
 namespace Foo
 {
@@ -233,7 +233,7 @@ namespace Foo
 }
 
 
-// GetHero_Hero_Human
+// GetHero_Hero_HumanFromHumanEntityMapper
 
 namespace Foo
 {
@@ -325,7 +325,7 @@ namespace Foo
 }
 
 
-// CreateReview
+// CreateReviewFactory
 
 namespace Foo
 {
@@ -357,7 +357,7 @@ namespace Foo
 }
 
 
-// CreateReview
+// CreateReviewInfo
 
 namespace Foo
 {
@@ -455,7 +455,7 @@ namespace Foo
 }
 
 
-// GetHeroQuery
+// GetHeroQueryDocument
 
 namespace Foo
 {
@@ -549,7 +549,7 @@ namespace Foo
 }
 
 
-// createReviewMutation
+// createReviewMutationDocument
 
 namespace Foo
 {

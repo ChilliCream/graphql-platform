@@ -1,4 +1,3 @@
-using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Extensions;
@@ -10,8 +9,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private void AddArrayHandler(
             ClassBuilder classBuilder,
             MethodBuilder methodBuilder,
-            ListTypeDescriptor listTypeDescriptor
-            )
+            ListTypeDescriptor listTypeDescriptor)
         {
             var listVarName = listTypeDescriptor.Name.WithLowerFirstChar() + "s";
 
@@ -23,15 +21,17 @@ namespace StrawberryShake.CodeGeneration.CSharp
                             .AddCode("new ")
                             .AddCode(TypeNames.List)
                             .AddCode("<")
-                            .AddCode(listTypeDescriptor.InnerType.ToEntityIdBuilder().SkipTraliingSpace())
+                            .AddCode(listTypeDescriptor.InnerType.ToEntityIdBuilder()
+                                .SkipTraliingSpace())
                             .AddCode(">")
                             .AddCode("()")
-                        ));
+                    ));
             methodBuilder.AddEmptyLine();
 
             methodBuilder.AddCode(
                 ForEachBuilder.New()
-                    .SetLoopHeader($"{TypeNames.JsonElement} child in {_objParamName}.Value.EnumerateArray()")
+                    .SetLoopHeader(
+                        $"{TypeNames.JsonElement} child in {_objParamName}.Value.EnumerateArray()")
                     .AddCode(
                         MethodCallBuilder.New()
                             .SetPrefix($"{listVarName}.")

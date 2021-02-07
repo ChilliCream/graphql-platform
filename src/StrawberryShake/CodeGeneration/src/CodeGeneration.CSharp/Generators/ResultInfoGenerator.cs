@@ -14,7 +14,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return descriptor.Kind == TypeKind.ResultType && !descriptor.IsInterface();
         }
 
-        protected override void Generate(CodeWriter writer, ITypeDescriptor typeDescriptor)
+        protected override void Generate(
+            CodeWriter writer,
+            ITypeDescriptor typeDescriptor,
+            out string fileName)
         {
             NamedTypeDescriptor namedTypeDescriptor = typeDescriptor switch
             {
@@ -25,11 +28,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             var (classBuilder, constructorBuilder) = CreateClassBuilder();
 
-            var className = ResultInfoNameFromTypeName(namedTypeDescriptor.Name);
+            fileName = ResultInfoNameFromTypeName(namedTypeDescriptor.Name);
 
             classBuilder
                 .AddImplements(TypeNames.IOperationResultDataInfo)
-                .SetName(className);
+                .SetName(fileName);
 
             constructorBuilder
                 .SetTypeName(namedTypeDescriptor.Name)
@@ -37,7 +40,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             var constructorCaller = MethodCallBuilder.New()
                 .SetPrefix("return new ")
-                .SetMethodName(className);
+                .SetMethodName(fileName);
 
             var withVersion = MethodBuilder.New()
                 .SetAccessModifier(AccessModifier.Public)

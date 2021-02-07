@@ -1,24 +1,29 @@
-using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Extensions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public class ResultTypeGenerator: CodeGenerator<NamedTypeDescriptor>
+    public class ResultTypeGenerator : CodeGenerator<NamedTypeDescriptor>
     {
         protected override bool CanHandle(NamedTypeDescriptor descriptor)
         {
-            return descriptor.Kind != TypeKind.LeafType && descriptor.Kind != TypeKind.InputType && !descriptor.IsInterface();
+            return descriptor.Kind != TypeKind.LeafType &&
+                descriptor.Kind != TypeKind.InputType &&
+                !descriptor.IsInterface();
         }
 
-        protected override void Generate(CodeWriter writer, NamedTypeDescriptor namedTypeDescriptor)
+        protected override void Generate(
+            CodeWriter writer,
+            NamedTypeDescriptor namedTypeDescriptor,
+            out string fileName)
         {
+            fileName = namedTypeDescriptor.Name;
             ClassBuilder classBuilder = ClassBuilder.New()
-                .SetName(namedTypeDescriptor.Name);
+                .SetName(fileName);
 
             ConstructorBuilder constructorBuilder = ConstructorBuilder.New()
-                .SetTypeName(namedTypeDescriptor.Name)
+                .SetTypeName(fileName)
                 .SetAccessModifier(AccessModifier.Public);
 
             foreach (var prop in namedTypeDescriptor.Properties)

@@ -41,7 +41,8 @@ namespace StrawberryShake.Other
                                 kind: TypeKind.EntityType,
                                 graphQLTypeName: "BarType",
                                 properties: new[] {GetNamedNullableStringTypeReference("name")}))
-                    }));
+                    }),
+                    out _);
 
             _stringBuilder.ToString().MatchSnapshot();
         }
@@ -67,7 +68,8 @@ namespace StrawberryShake.Other
                                     {
                                         GetNamedNonNullStringTypeReference("name")
                                     })))
-                    }));
+                    }),
+                out _);
 
             _stringBuilder.ToString().MatchSnapshot();
         }
@@ -102,7 +104,8 @@ namespace StrawberryShake.Other
                                                 GetNamedNullableStringTypeReference("Name")
                                             }))
                                 }))
-                    }));
+                    }),
+                out _);
 
             _stringBuilder.ToString().MatchSnapshot();
         }
@@ -124,7 +127,8 @@ namespace StrawberryShake.Other
                                 kind: TypeKind.DataType,
                                 graphQLTypeName: "BarType",
                                 properties: new[] {GetNamedNullableStringTypeReference("name")}))
-                    }));
+                    }),
+                out _);
 
             _stringBuilder.ToString().MatchSnapshot();
         }
@@ -150,7 +154,8 @@ namespace StrawberryShake.Other
                                     {
                                         GetNamedNonNullStringTypeReference("name")
                                     })))
-                    }));
+                    }),
+                out _);
 
             _stringBuilder.ToString().MatchSnapshot();
         }
@@ -172,7 +177,8 @@ namespace StrawberryShake.Other
                                     false,
                                     graphQLTypeName: "BarType",
                                     kind: TypeKind.EntityType)))
-                    }));
+                    }),
+                out _);
 
             _stringBuilder.ToString().MatchSnapshot();
         }

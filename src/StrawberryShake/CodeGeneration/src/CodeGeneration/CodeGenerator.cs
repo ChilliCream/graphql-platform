@@ -11,7 +11,7 @@ namespace StrawberryShake.CodeGeneration
 
         protected virtual bool CanHandle(TDescriptor descriptor) => true;
 
-        public void Generate(CodeWriter writer, ICodeDescriptor descriptor)
+        public void Generate(CodeWriter writer, ICodeDescriptor descriptor, out string fileName)
         {
             if (writer is null)
             {
@@ -23,10 +23,13 @@ namespace StrawberryShake.CodeGeneration
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            Generate(writer, (TDescriptor)descriptor);
+            Generate(writer, (TDescriptor)descriptor, out fileName);
         }
 
 
-        protected abstract void Generate(CodeWriter writer, TDescriptor descriptor);
+        protected abstract void Generate(
+            CodeWriter writer,
+            TDescriptor descriptor,
+            out string fileName);
     }
 }

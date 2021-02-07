@@ -26,7 +26,8 @@ namespace StrawberryShake.Other
                                     "BarNamespace",
                                     false,
                                     kind: TypeKind.EntityType))),
-                    }));
+                    }),
+                out _);
             _stringBuilder.ToString().MatchSnapshot();
         }
 
@@ -51,7 +52,8 @@ namespace StrawberryShake.Other
                                         "BarNamespace",
                                         false,
                                         kind: TypeKind.EntityType)))),
-                    }));
+                    }),
+                out _);
             _stringBuilder.ToString().MatchSnapshot();
         }
 
@@ -76,7 +78,8 @@ namespace StrawberryShake.Other
                                         "BarNamespace",
                                         false,
                                         kind: TypeKind.EntityType)))),
-                    }));
+                    }),
+                out _);
             _stringBuilder.ToString().MatchSnapshot();
         }
 
@@ -102,7 +105,8 @@ namespace StrawberryShake.Other
                                             "BarNamespace",
                                             false,
                                             kind: TypeKind.EntityType))))),
-                    }));
+                    }),
+                out _);
             _stringBuilder.ToString().MatchSnapshot();
         }
 
@@ -127,7 +131,8 @@ namespace StrawberryShake.Other
                                         "BarNamespace",
                                         false,
                                         kind: TypeKind.EntityType)))),
-                    }));
+                    }),
+                out _);
             _stringBuilder.ToString().MatchSnapshot();
         }
 
@@ -155,7 +160,8 @@ namespace StrawberryShake.Other
                                                     "BarNamespace",
                                                     false,
                                                     kind: TypeKind.EntityType))))))),
-                    }));
+                    }),
+                out _);
             _stringBuilder.ToString().MatchSnapshot();
         }
     }

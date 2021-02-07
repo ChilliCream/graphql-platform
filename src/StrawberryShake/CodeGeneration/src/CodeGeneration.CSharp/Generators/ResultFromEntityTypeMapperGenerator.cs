@@ -18,18 +18,29 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return descriptor.Kind == TypeKind.EntityType && !descriptor.IsInterface();
         }
 
-        protected override void Generate(CodeWriter writer, ITypeDescriptor typeDescriptor)
+        protected override void Generate(
+            CodeWriter writer,
+            ITypeDescriptor typeDescriptor,
+            out string fileName)
         {
             var (classBuilder, constructorBuilder) = CreateClassBuilder(false);
 
             NamedTypeDescriptor descriptor = typeDescriptor switch
             {
                 NamedTypeDescriptor nullableNamedType => nullableNamedType,
-                NonNullTypeDescriptor {InnerType: NamedTypeDescriptor namedType} => namedType,
+                NonNullTypeDescriptor { InnerType: NamedTypeDescriptor namedType } => namedType,
                 _ => throw new ArgumentException(nameof(typeDescriptor))
             };
 
             // Setup class
+            fileName = descriptor.Kind == TypeKind.EntityType
+                ? EntityMapperNameFromGraphQLTypeName(
+                    descriptor.Name,
+                    descriptor.GraphQLTypeName)
+                : DataMapperNameFromGraphQLTypeName(
+                    descriptor.Name,
+                    descriptor.GraphQLTypeName);
+
             classBuilder
                 .AddImplements(
                     $"{TypeNames.IEntityMapper}<" +
@@ -37,14 +48,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         ? EntityTypeNameFromGraphQLTypeName(descriptor.GraphQLTypeName)
                         : DataTypeNameFromTypeName(descriptor.Name)) +
                     $", {descriptor.Name}>")
-                .SetName(
-                    descriptor.Kind == TypeKind.EntityType
-                        ? EntityMapperNameFromGraphQLTypeName(
-                            descriptor.Name,
-                            descriptor.GraphQLTypeName)
-                        : DataMapperNameFromGraphQLTypeName(
-                            descriptor.Name,
-                            descriptor.GraphQLTypeName));
+                .SetName(fileName);
 
             constructorBuilder.SetTypeName(descriptor.Name);
 
@@ -98,6 +102,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 classBuilder.AddConstructor(constructorBuilder);
             }
+
             classBuilder.AddMethod(mapMethod);
 
             CodeFileBuilder
@@ -340,8 +345,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             var mappingArgument = namedTypeDescriptor.Kind == TypeKind.EntityType
                 ? $"{_storeFieldName}.GetEntity<" +
-                  $"{EntityTypeNameFromGraphQLTypeName(namedTypeDescriptor.GraphQLTypeName)}" +
-                  $">({argumentName})"
+                $"{EntityTypeNameFromGraphQLTypeName(namedTypeDescriptor.GraphQLTypeName)}" +
+                $">({argumentName})"
                 : argumentName;
 
             var entityMapperCall = MappingCall(

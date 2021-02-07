@@ -45,10 +45,10 @@ namespace StrawberryShake.Integration
                 });
 
             // act
-            _generator.Generate(_codeWriter, descriptor);
+            _generator.Generate(_codeWriter, descriptor, out _);
 
             // assert
             _stringBuilder.ToString().MatchSnapshot();
-        }      
+        }
     }
 }

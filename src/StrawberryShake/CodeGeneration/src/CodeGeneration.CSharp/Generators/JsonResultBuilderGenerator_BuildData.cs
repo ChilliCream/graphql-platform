@@ -8,7 +8,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuilderDescriptor>
     {
-        private void AddBuildDataMethod(NamedTypeDescriptor resultNamedType, ClassBuilder classBuilder)
+        private void AddBuildDataMethod(
+            NamedTypeDescriptor resultNamedType,
+            ClassBuilder classBuilder)
         {
             var objParameter = "obj";
             var buildDataMethod = MethodBuilder.New()
@@ -34,7 +36,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
             var entityIdsName = "entityIds";
             buildDataMethod.AddCode(
                 CodeLineBuilder.New()
-                    .SetLine($"var {entityIdsName} = new {TypeNames.HashSet}<{TypeNames.EntityId}>();"));
+                    .SetLine(
+                        $"var {entityIdsName} = new {TypeNames.HashSet}<{TypeNames.EntityId}>();"));
 
             buildDataMethod.AddEmptyLine();
             foreach (PropertyDescriptor property in
@@ -49,7 +52,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
 
             var resultInfoConstructor = MethodCallBuilder.New()
-                .SetMethodName($"new {ResultInfoNameFromTypeName(resultNamedType.ImplementedBy[0].Name)}")
+                .SetMethodName(
+                    $"new {ResultInfoNameFromTypeName(resultNamedType.ImplementedBy[0].Name)}")
                 .SetDetermineStatement(false);
 
             foreach (PropertyDescriptor property in resultNamedType.Properties)
@@ -65,7 +69,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
 
             resultInfoConstructor.AddArgument(entityIdsName);
-            resultInfoConstructor.AddArgument($"{sessionName}.{TypeNames.IEntityUpdateSession_Version}");
+            resultInfoConstructor.AddArgument(
+                $"{sessionName}.{TypeNames.IEntityUpdateSession_Version}");
 
             buildDataMethod.AddEmptyLine();
             var resultInfoName = "resultInfo";

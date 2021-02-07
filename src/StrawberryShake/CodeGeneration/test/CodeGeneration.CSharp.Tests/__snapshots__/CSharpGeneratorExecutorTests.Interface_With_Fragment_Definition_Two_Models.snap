@@ -30,7 +30,7 @@ namespace Foo
 }
 
 
-// GetHero
+// GetHeroFactory
 
 namespace Foo
 {
@@ -87,7 +87,7 @@ namespace Foo
 }
 
 
-// GetHero
+// GetHeroInfo
 
 namespace Foo
 {
@@ -145,7 +145,7 @@ namespace Foo
 }
 
 
-// GetHero_Hero_Droid
+// GetHero_Hero_DroidFromDroidEntityMapper
 
 namespace Foo
 {
@@ -187,7 +187,7 @@ namespace Foo
 }
 
 
-// GetHero_Hero_Human
+// GetHero_Hero_HumanFromHumanEntityMapper
 
 namespace Foo
 {
@@ -341,7 +341,7 @@ namespace Foo
 }
 
 
-// GetHeroQuery
+// GetHeroQueryDocument
 
 namespace Foo
 {

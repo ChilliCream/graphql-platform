@@ -11,10 +11,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return descriptor.IsInterface();
         }
 
-        protected override void Generate(CodeWriter writer, NamedTypeDescriptor descriptor)
+        protected override void Generate(
+            CodeWriter writer,
+            NamedTypeDescriptor descriptor,
+            out string fileName)
         {
+            fileName = descriptor.Name;
             var interfaceBuilder = InterfaceBuilder.New()
-                .SetName(descriptor.Name);
+                .SetName(fileName);
 
             foreach (var prop in descriptor.Properties)
             {

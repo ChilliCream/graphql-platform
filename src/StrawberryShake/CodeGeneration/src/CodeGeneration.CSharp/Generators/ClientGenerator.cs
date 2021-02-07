@@ -5,12 +5,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public class ClientGenerator : ClassBaseGenerator<ClientDescriptor>
     {
-        protected override void Generate(CodeWriter writer, ClientDescriptor descriptor)
+        protected override void Generate(
+            CodeWriter writer,
+            ClientDescriptor descriptor,
+            out string fileName)
         {
             var (classBuilder, constructorBuilder) = CreateClassBuilder();
 
-            classBuilder.SetName(descriptor.Name);
-            constructorBuilder.SetTypeName(descriptor.Name);
+            fileName = descriptor.Name;
+            classBuilder.SetName(fileName);
+            constructorBuilder.SetTypeName(fileName);
 
             foreach (OperationDescriptor operation in descriptor.Operations)
             {

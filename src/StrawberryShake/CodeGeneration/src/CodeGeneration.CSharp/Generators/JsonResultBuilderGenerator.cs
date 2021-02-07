@@ -20,14 +20,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         protected override void Generate(
             CodeWriter writer,
-            ResultBuilderDescriptor resultBuilderDescriptor)
+            ResultBuilderDescriptor resultBuilderDescriptor, out string fileName)
         {
             var resultTypeDescriptor = resultBuilderDescriptor.ResultNamedType;
             var (classBuilder, constructorBuilder) = CreateClassBuilder();
 
-            classBuilder.SetName(resultBuilderDescriptor.Name);
+            fileName = resultBuilderDescriptor.Name;
+            classBuilder.SetName(fileName);
 
-            constructorBuilder.SetTypeName(resultBuilderDescriptor.Name);
+            constructorBuilder.SetTypeName(fileName);
 
             classBuilder.AddImplements(
                 $"{TypeNames.IOperationResultBuilder}<{TypeNames.JsonDocument}," +
