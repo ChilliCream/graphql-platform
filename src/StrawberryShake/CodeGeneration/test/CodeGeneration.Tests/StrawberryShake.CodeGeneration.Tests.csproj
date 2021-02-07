@@ -8,6 +8,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\CodeGeneration\StrawberryShake.CodeGeneration.csproj" />
     <ProjectReference Include="..\..\..\..\HotChocolate\AspNetCore\test\AspNetCore.Tests\HotChocolate.AspNetCore.Tests.csproj" />
+    <ProjectReference Include="..\..\..\Client\src\Core\StrawberryShake.Core.csproj" />
+    <ProjectReference Include="..\..\..\Client\src\Transport.Http\StrawberryShake.Transport.Http.csproj" />
   </ItemGroup>
 
   <ItemGroup>

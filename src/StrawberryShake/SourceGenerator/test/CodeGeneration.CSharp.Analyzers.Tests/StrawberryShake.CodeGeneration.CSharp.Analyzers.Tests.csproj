@@ -1,13 +1,27 @@
 <Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 
-  <Import Project="$(MSBuildThisFileDirectory)..\..\src\MSBuild\StrawberryShake.props" />
-
   <PropertyGroup>
     <AssemblyName>StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests</AssemblyName>
     <RootNamespace>StrawberryShake.CodeGeneration.CSharp.Analyzers</RootNamespace>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)\GeneratedFiles</CompilerGeneratedFilesOutputPath>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.8.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2" PrivateAssets="all" />
+    <PackageReference Include="StrawberryShake.CodeGeneration.CSharp.Analyzers" Version="0.0.18" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Client\src\Core\StrawberryShake.Core.csproj" />
+    <ProjectReference Include="..\..\..\Client\src\Transport.Http\StrawberryShake.Transport.Http.csproj" />
+  </ItemGroup>
+
+  <!--For Visual Studio for Mac Test Explorer we need this reference here-->
+  <ItemGroup>
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+  </ItemGroup>
 
   <ItemGroup>
     <None Update="$(MSBuildProjectDirectory)\__resources__\*.*">
@@ -17,40 +31,5 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.8.0" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2" PrivateAssets="all" />
-    <PackageReference Include="StrawberryShake.CodeGeneration.CSharp.Analyzers" Version="0.0.14" PrivateAssets="all" />
-  </ItemGroup>
-
-  <!--For Visual Studio for Mac Test Explorer we need this reference here-->
-  <ItemGroup>
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Client\src\Core\StrawberryShake.Core.csproj" />
-    <ProjectReference Include="..\..\..\Client\src\Transport.Http\StrawberryShake.Transport.Http.csproj" />
-  </ItemGroup>
-
-  <Target Name="Roslyn44093Workaround" BeforeTargets="CoreCompile;ResolveProjectReferences;$(PrepareProjectReferencesDependsOn)" Condition="'$(DesignTimeBuild)' == 'true'">
-    <ItemGroup>
-      <!-- This is slightly over-zealous since it removes in-solution analyzers too -->
-      <_AnalyzerProjectReferencesToRemove Include="@(ProjectReference)" Condition="'%(OutputItemType)' == 'Analyzer'" />
-      <ProjectReference Remove="@(_AnalyzerProjectReferencesToRemove)" />
-
-      <Compile Include="$(CompilerGeneratedFilesOutputPath)/%(_AnalyzerProjectReferencesToRemove.Filename)/**/*.cs" Visible="false" />
-    </ItemGroup>
-  </Target>
-
-  <!-- Workaround for https://github.com/dotnet/roslyn/issues/47966 and https://github.com/dotnet/roslyn/issues/49125 -->
-  <Target Name="Roslyn46966And49125Workaround" BeforeTargets="CoreCompile;Clean" Condition="'$(DesignTimeBuild)' != 'true' and '$(CompilerGeneratedFilesOutputPath)' != ''">
-    <ItemGroup>
-      <_GeneratedSourceFileToRemove Include="$(CompilerGeneratedFilesOutputPath)/**/*.cs" />
-    </ItemGroup>
-    <Delete Files="@(_GeneratedSourceFileToRemove)" />
-  </Target>
-
-  <Import Project="$(MSBuildThisFileDirectory)..\..\src\MSBuild\StrawberryShake.targets" />
 
 </Project>
