@@ -15,7 +15,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public class CSharpGenerator
     {
-        public CSharpGeneratorResult Generate(IEnumerable<string> graphQLFiles)
+        public CSharpGeneratorResult Generate(
+            IEnumerable<string> graphQLFiles,
+            string clientName = "GraphQL",
+            string @namespace = "StrawberryShake.GraphQL")
         {
             if (graphQLFiles is null)
             {
@@ -117,8 +120,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return new CSharpGeneratorResult(
                 executor.Generate(
                     clientModel,
-                    "Foo",
-                    "FooClient").ToList(),
+                    @namespace,
+                    clientName).ToList(),
                 errors);
         }
     }
