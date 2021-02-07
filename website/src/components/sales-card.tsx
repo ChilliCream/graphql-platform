@@ -3,18 +3,18 @@ import styled from "styled-components";
 
 export interface SalesCardProps {
   price: number;
+  cycle: string;
   name: string;
   description: string;
   perks: string[];
-  onBuy: () => void;
 }
 
 export const SalesCard: FunctionComponent<SalesCardProps> = ({
   name,
   description,
   price,
+  cycle,
   perks,
-  onBuy,
 }) => {
   return (
     <Container>
@@ -22,9 +22,11 @@ export const SalesCard: FunctionComponent<SalesCardProps> = ({
         <Name>{name}</Name>
         <Description>{description}</Description>
         <PriceRow>
-          <Price>${price}</Price> <PerMonth>/mo</PerMonth>
+          <Price>${USFormat.format(price)}</Price> <PerMonth>/{cycle}</PerMonth>
         </PriceRow>
-        <Buy onClick={() => onBuy()}>Buy {name}</Buy>
+        <Buy href={`mailto:sales@chillicream.com?subject=${name}`}>
+          Buy {name}
+        </Buy>
       </TopHalf>
       <BottomHalf>
         <PerkLeadingText>What's included</PerkLeadingText>
@@ -43,7 +45,7 @@ export const SalesCard: FunctionComponent<SalesCardProps> = ({
                   clip-rule="evenodd"
                 />
               </PerkIcon>
-              <PerkText>{p}</PerkText>
+              <PerkText dangerouslySetInnerHTML={{ __html: p }} />
             </Perk>
           ))}
         </Perks>
@@ -51,6 +53,8 @@ export const SalesCard: FunctionComponent<SalesCardProps> = ({
     </Container>
   );
 };
+
+const USFormat = new Intl.NumberFormat();
 
 const Container = styled.div`
   box-shadow: 0 0 #0000, 0 0 #0000, 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -97,7 +101,9 @@ const PerMonth = styled.span`
   font-weight: 500;
 `;
 
-const Buy = styled.button`
+const Buy = styled.a`
+  display: block;
+  text-align: center;
   cursor: pointer;
   font-family: "Roboto", sans-serif;
   margin-top: 2rem;
@@ -147,6 +153,7 @@ const Perk = styled.li`
 `;
 
 const PerkIcon = styled.svg`
+  flex-shrink: 0;
   width: 1.25rem;
   height: 1.25rem;
   color: rgb(16, 185, 129);

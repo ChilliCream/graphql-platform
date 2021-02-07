@@ -1,8 +1,23 @@
 import { createGlobalStyle } from "styled-components";
 
 export const GlobalLayoutStyle = createGlobalStyle`
+ html {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+    height: 100%;
+  }
+
   body {
-      > div {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+    height: 100%;
+    margin: 0;
+
+    > div {
         height: 100%;
         display: block;
         > div {
@@ -25,25 +40,12 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   html {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    overflow: hidden;
-    height: 100%;
-
     font-family: sans-serif;
     -ms-text-size-adjust: 100%;
     -webkit-text-size-adjust: 100%;
   }
 
   body {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    overflow: hidden;
-    height: 100%;
-    margin: 0;
-
     font-size: 18px;
     line-height: 30px;
     color: #667;
@@ -71,7 +73,7 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   a {
-    color: var(----brand-color);
+    color: var(--brand-color);
     text-decoration: none;
   }
 
@@ -102,7 +104,7 @@ export const GlobalStyle = createGlobalStyle`
     code {
       padding: 2px 5px;
       font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace;
-      font-size: var(----font-size);
+      font-size: var(--font-size);
     }
   }
 
@@ -210,7 +212,7 @@ export const GlobalStyle = createGlobalStyle`
     border-bottom: 1px solid #aaa;
     padding: 5px 10px;
     font-feature-settings: "tnum";
-    font-size: var(----font-size);
+    font-size: var(--font-size);
     line-height: 1.667em;
     text-align: left;
   }

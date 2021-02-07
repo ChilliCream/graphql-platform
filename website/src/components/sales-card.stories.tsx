@@ -3,7 +3,7 @@ import { Story, Meta } from "@storybook/react";
 import { SalesCard, SalesCardProps } from "./sales-card";
 
 export default {
-  title: "Chillicream/SalesCard",
+  title: "Components/SalesCard",
   component: SalesCard,
 } as Meta;
 
@@ -14,6 +14,7 @@ Basic.args = {
   name: "Startup",
   description: "All the basics for starting a new business",
   price: 32,
+  cycle: "mo",
   perks: [
     "Potenti felis, in cras at at ligula nunc.",
     "Orci neque eget pellentesque.",

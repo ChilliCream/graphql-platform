@@ -3,7 +3,7 @@ import { Story, Meta } from "@storybook/react";
 import { ExampleTabs } from "./example-tabs";
 
 export default {
-  title: "Chillicream/ExampleTabs",
+  title: "Components/ExampleTabs",
   component: ExampleTabs,
 } as Meta;
 
