@@ -3,6 +3,8 @@
   "documents": "**/*.graphql",
   "extensions": {
     "strawberryShake": {
+      "name": "Foo",
+      "namespace": "Foo",
       "url": "http://localhost:5000",
       "dependencyInjection": true,
       "protocols": [
