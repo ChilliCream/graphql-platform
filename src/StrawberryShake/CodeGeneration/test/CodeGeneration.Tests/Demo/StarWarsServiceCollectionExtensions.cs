@@ -11,7 +11,7 @@ namespace Foo
 {
     public static class StarWarsServiceCollectionExtensions
     {
-        public static IServiceCollection AddStarWarsClient(
+        public static IServiceCollection AddFooClient(
             IServiceCollection services,
             ExecutionStrategy strategy = ExecutionStrategy.NetworkOnly)
         {

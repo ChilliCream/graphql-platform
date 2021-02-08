@@ -31,7 +31,7 @@ namespace StrawberryShake.Transport.Http
 
             // act
             var results = new List<JsonDocument>();
-            var connection = new HttpConnection(client);
+            var connection = new HttpConnection(() => client);
             await foreach (var response in connection.ExecuteAsync(request))
             {
                 if (response.Body is not null)

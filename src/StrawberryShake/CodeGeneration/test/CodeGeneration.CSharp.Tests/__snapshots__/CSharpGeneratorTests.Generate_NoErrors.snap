@@ -1,7 +1,7 @@
 ﻿// Code:
 // DroidEntity
 
-namespace Foo
+namespace StrawberryShake.GraphQL
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class DroidEntity
@@ -17,7 +17,7 @@ namespace Foo
 
 // HumanEntity
 
-namespace Foo
+namespace StrawberryShake.GraphQL
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class HumanEntity
@@ -33,7 +33,7 @@ namespace Foo
 
 // Episode
 
-namespace Foo
+namespace StrawberryShake.GraphQL
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public enum Episode
@@ -47,7 +47,7 @@ namespace Foo
 
 // EpisodeParser
 
-namespace Foo
+namespace StrawberryShake.GraphQL
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class EpisodeParser
@@ -83,7 +83,7 @@ namespace Foo
 
 // GetHeroFactory
 
-namespace Foo
+namespace StrawberryShake.GraphQL
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroFactory
@@ -140,7 +140,7 @@ namespace Foo
 
 // GetHeroInfo
 
-namespace Foo
+namespace StrawberryShake.GraphQL
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroInfo
@@ -180,7 +180,7 @@ namespace Foo
 
 // GetHero
 
-namespace Foo
+namespace StrawberryShake.GraphQL
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero
@@ -198,7 +198,7 @@ namespace Foo
 
 // GetHero_Hero_DroidFromDroidEntityMapper
 
-namespace Foo
+namespace StrawberryShake.GraphQL
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_Hero_DroidFromDroidEntityMapper
@@ -217,7 +217,7 @@ namespace Foo
 
 // GetHero_Hero_Droid
 
-namespace Foo
+namespace StrawberryShake.GraphQL
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_Hero_Droid
@@ -240,7 +240,7 @@ namespace Foo
 
 // GetHero_Hero_HumanFromHumanEntityMapper
 
-namespace Foo
+namespace StrawberryShake.GraphQL
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_Hero_HumanFromHumanEntityMapper
@@ -259,7 +259,7 @@ namespace Foo
 
 // GetHero_Hero_Human
 
-namespace Foo
+namespace StrawberryShake.GraphQL
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_Hero_Human
@@ -282,7 +282,7 @@ namespace Foo
 
 // IGetHero
 
-namespace Foo
+namespace StrawberryShake.GraphQL
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetHero
@@ -294,7 +294,7 @@ namespace Foo
 
 // IGetHero_Hero
 
-namespace Foo
+namespace StrawberryShake.GraphQL
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetHero_Hero
@@ -308,7 +308,7 @@ namespace Foo
 
 // IGetHero_Hero_Droid
 
-namespace Foo
+namespace StrawberryShake.GraphQL
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetHero_Hero_Droid
@@ -320,7 +320,7 @@ namespace Foo
 
 // IGetHero_Hero_Human
 
-namespace Foo
+namespace StrawberryShake.GraphQL
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetHero_Hero_Human
@@ -332,7 +332,7 @@ namespace Foo
 
 // GetHeroQueryDocument
 
-namespace Foo
+namespace StrawberryShake.GraphQL
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroQueryDocument
@@ -374,7 +374,7 @@ namespace Foo
 
 // GetHeroQuery
 
-namespace Foo
+namespace StrawberryShake.GraphQL
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroQuery
@@ -419,7 +419,7 @@ namespace Foo
 
 // GetHeroBuilder
 
-namespace Foo
+namespace StrawberryShake.GraphQL
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroBuilder
@@ -560,16 +560,16 @@ namespace Foo
 }
 
 
-// FooClient
+// GraphQL
 
-namespace Foo
+namespace StrawberryShake.GraphQL
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class FooClient
+    public partial class GraphQL
     {
         private readonly GetHeroQuery _getHeroQuery;
 
-        public FooClient(GetHeroQuery getHeroQuery)
+        public GraphQL(GetHeroQuery getHeroQuery)
         {
             _getHeroQuery = getHeroQuery
                  ?? throw new global::System.ArgumentNullException(nameof(getHeroQuery));
