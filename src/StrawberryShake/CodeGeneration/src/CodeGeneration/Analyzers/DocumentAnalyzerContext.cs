@@ -91,7 +91,14 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
         public void RegisterModel(NameString name, ITypeModel typeModel)
         {
-            _typeModels.Add(name, typeModel);
+            if (_typeModels.TryGetValue(name, out ITypeModel? registeredTypeModel) &&
+                !ReferenceEquals(registeredTypeModel, typeModel))
+            {
+                // TODO : lets revisit this
+                // throw new GraphQLException("A type model name must be unique.");
+            }
+            
+            _typeModels[name] = typeModel;
         }
 
         public void RegisterType(INamedType type)
@@ -118,8 +125,18 @@ namespace StrawberryShake.CodeGeneration.Analyzers
         public void RegisterSelectionSet(
             INamedType namedType,
             SelectionSetNode from,
-            SelectionSetNode to) =>
-            _selectionSets.Add(new(namedType, from), to);
+            SelectionSetNode to)
+        {
+            var key = new SelectionSetInfo(namedType, from);
+
+            if (_selectionSets.TryGetValue(key, out var selectionSet) && !
+                ReferenceEquals(selectionSet, to))
+            {
+                throw new GraphQLException("A selection-set lookup must be unique.");
+            }
+
+            _selectionSets[key] = to;
+        }
 
         public IEnumerable<OutputTypeModel> GetImplementations(OutputTypeModel outputTypeModel)
         {

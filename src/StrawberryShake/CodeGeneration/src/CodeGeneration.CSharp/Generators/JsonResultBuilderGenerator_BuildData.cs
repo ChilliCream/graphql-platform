@@ -6,7 +6,7 @@ using static StrawberryShake.CodeGeneration.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuilderDescriptor>
+    public partial class JsonResultBuilderGenerator
     {
         private void AddBuildDataMethod(
             NamedTypeDescriptor resultNamedType,

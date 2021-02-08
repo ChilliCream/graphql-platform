@@ -1,6 +1,6 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Extensions;
@@ -120,7 +120,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
         }
 
-        private void AddDeserializeMethod(ITypeDescriptor typeReference, ClassBuilder classBuilder)
+        private void AddDeserializeMethod(
+            ITypeDescriptor typeReference,
+            ClassBuilder classBuilder)
         {
             var returnType = typeReference.ToEntityIdBuilder();
 
@@ -144,6 +146,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 EnsureProperNullability(isNonNullType: typeReference.IsNonNullableType()));
 
             classBuilder.AddMethod(methodBuilder);
+
             AddDeserializeMethodBody(
                 classBuilder,
                 methodBuilder,
@@ -151,7 +154,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
         }
 
         private void AddDeserializeMethodBody(ClassBuilder classBuilder,
-            MethodBuilder methodBuilder, ITypeDescriptor typeDescriptor)
+            MethodBuilder methodBuilder,
+            ITypeDescriptor typeDescriptor)
         {
             switch (typeDescriptor)
             {
@@ -276,7 +280,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return codeBuilder;
         }
 
-        private MethodCallBuilder BuildUpdateMethodCall(PropertyDescriptor property, string propertyAccess = ".Value")
+        private MethodCallBuilder BuildUpdateMethodCall(
+            PropertyDescriptor property,
+            string propertyAccess = ".Value")
         {
             var deserializeMethodCaller =
                 MethodCallBuilder
@@ -285,7 +291,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetMethodName(DeserializerMethodNameFromTypeName(property.Type));
 
             deserializeMethodCaller.AddArgument(
-                $"{TypeNames.GetPropertyOrNull}({_objParamName}{propertyAccess}, \"{property.Name.WithLowerFirstChar()}\")");
+                $"{TypeNames.GetPropertyOrNull}({_objParamName}{propertyAccess}, " +
+                $"\"{property.Name.WithLowerFirstChar()}\")");
 
             if (!property.Type.IsLeafType())
             {
