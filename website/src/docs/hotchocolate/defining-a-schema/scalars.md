@@ -408,5 +408,5 @@ scalar NonEmptyString
 """
 The NegativeFloat scalar type represents a signed real number with a value less than 0
 """
-scalar NonEmptyString
+scalar NegativeFloat
 ```
