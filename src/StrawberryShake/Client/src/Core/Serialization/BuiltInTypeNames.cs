@@ -1,6 +1,6 @@
 namespace StrawberryShake.Serialization
 {
-    internal static class BuiltInTypeNames
+    public static class BuiltInTypeNames
     {
         public const string String = "String";
         public const string ID = "ID";
