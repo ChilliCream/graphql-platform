@@ -46,6 +46,28 @@ namespace HotChocolate.Types.Scalars
                 type);
         }
 
+        public static SerializationException NonNegativeFloatType_ParseLiteral_IsEmpty(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.NonEmptyStringType_IsEmpty_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.NonEmptyString)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException NonNegativeFloatType_ParseValue_IsEmpty(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.NonEmptyStringType_IsEmpty_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.NonEmptyString)
+                    .Build(),
+                type);
+        }
+
         public static SerializationException NonEmptyStringType_ParseLiteral_IsEmpty(IType type)
         {
             return new SerializationException(
