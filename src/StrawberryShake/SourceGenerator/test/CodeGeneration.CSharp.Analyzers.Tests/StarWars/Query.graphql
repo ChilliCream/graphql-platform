@@ -2,10 +2,12 @@ query GetHero {
   hero(episode: NEW_HOPE) {
     name
     appearsIn
-    friends {
-      nodes {
-        name
-      }
-    }
+  }
+}
+
+subscription OnReviewSub {
+  onReview(episode: EMPIRE) {
+    commentary
+    stars
   }
 }
