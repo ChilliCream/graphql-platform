@@ -65,5 +65,126 @@ namespace HotChocolate.Types.Scalars
             // assert
             ExpectIsInstanceOfTypeToMatch<NegativeFloatType>(value, expected);
         }
+
+        [Theory]
+        [InlineData(typeof(IntValueNode), -12, -12d)]
+        [InlineData(typeof(FloatValueNode), -12.0, -12.0)]
+        [InlineData(typeof(NullValueNode), null, null)]
+        public void ParseLiteral_GivenValueNode_MatchExpected(
+            Type type,
+            object value,
+            object expected)
+        {
+            // arrange
+            IValueNode valueNode = CreateValueNode(type, value);
+
+            // act
+            // assert
+            ExpectParseLiteralToMatch<NegativeFloatType>(valueNode, expected);
+        }
+
+        [Theory]
+        [InlineData(typeof(EnumValueNode), TestEnum.Foo)]
+        [InlineData(typeof(FloatValueNode), 1d)]
+        [InlineData(typeof(IntValueNode), 0)]
+        [InlineData(typeof(IntValueNode), 1)]
+        [InlineData(typeof(BooleanValueNode), true)]
+        [InlineData(typeof(StringValueNode), "")]
+        public void ParseLiteral_GivenValueNode_ThrowSerializationException(Type type, object value)
+        {
+            // arrange
+            IValueNode valueNode = CreateValueNode(type, value);
+
+            // act
+            // assert
+            ExpectParseLiteralToThrowSerializationException<NegativeFloatType>(valueNode);
+        }
+
+        [Theory]
+        [InlineData(typeof(FloatValueNode), -1d)]
+        [InlineData(typeof(FloatValueNode), -0.0000001d)]
+        [InlineData(typeof(NullValueNode), null)]
+        public void ParseValue_GivenObject_MatchExpectedType(Type type, object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseValueToMatchType<NegativeFloatType>(value, type);
+        }
+
+        [Theory]
+        [InlineData(TestEnum.Foo)]
+        [InlineData(1d)]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(true)]
+        [InlineData("")]
+        public void ParseLiteral_GivenObject_ThrowSerializationException(object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseValueToThrowSerializationException<NegativeFloatType>(value);
+        }
+
+        [Theory]
+        [InlineData(-1d, -1d)]
+        [InlineData(double.MinValue, double.MinValue)]
+        [InlineData(null, null)]
+        public void Deserialize_GivenValue_MatchExpected(
+            object resultValue,
+            object runtimeValue)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectDeserializeToMatch<NegativeFloatType>(resultValue, runtimeValue);
+        }
+
+        [Theory]
+        [InlineData(TestEnum.Foo)]
+        [InlineData(1d)]
+        [InlineData(true)]
+        [InlineData("foo")]
+        [InlineData(int.MaxValue)]
+        [InlineData(1)]
+        [InlineData(0)]
+        public void Deserialize_GivenValue_ThrowSerializationException(object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectDeserializeToThrowSerializationException<NegativeFloatType>(value);
+        }
+
+        [Theory]
+        [InlineData(-1d, -1d)]
+        [InlineData(double.MinValue, double.MinValue)]
+        [InlineData(null, null)]
+        public void Serialize_GivenObject_MatchExpectedType(
+            object runtimeValue,
+            object resultValue)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectSerializeToMatch<NegativeFloatType>(runtimeValue, resultValue);
+        }
+
+        [Theory]
+        [InlineData(TestEnum.Foo)]
+        [InlineData(1d)]
+        [InlineData(true)]
+        [InlineData("foo")]
+        [InlineData(int.MaxValue)]
+        [InlineData(1)]
+        [InlineData(0)]
+        public void Serialize_GivenObject_ThrowSerializationException(object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectSerializeToThrowSerializationException<NegativeFloatType>(value);
+        }
     }
 }

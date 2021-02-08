@@ -39,7 +39,7 @@ namespace HotChocolate.Types.Scalars
         /// <inheritdoc />
         protected override double ParseLiteral(IFloatValueLiteral valueSyntax)
         {
-            if (valueSyntax.ToDouble() > MaxValue)
+            if (valueSyntax.ToDouble() >= MaxValue)
             {
                 throw ThrowHelper.NegativeFloatType_ParseLiteral_IsNotNegative(this);
             }
@@ -49,7 +49,7 @@ namespace HotChocolate.Types.Scalars
 
         protected override FloatValueNode ParseValue(double runtimeValue)
         {
-            if (runtimeValue > MaxValue)
+            if (runtimeValue >= MaxValue)
             {
                 throw ThrowHelper.NegativeFloatType_ParseValue_IsNotNegative(this);
             }
