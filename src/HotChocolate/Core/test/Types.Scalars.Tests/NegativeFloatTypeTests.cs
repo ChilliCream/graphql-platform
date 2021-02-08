@@ -48,6 +48,16 @@ namespace HotChocolate.Types.Scalars
 
         [Theory]
         [InlineData(1d, false)]
+        [InlineData(-1d, true)]
+        [InlineData(0.00000001d, false)]
+        [InlineData(-0.0000001d, true)]
+        [InlineData(double.MinValue, true)]
+        [InlineData(0, false)]
+        [InlineData(1, false)]
+        [InlineData(true, false)]
+        [InlineData("", false)]
+        [InlineData("foo", false)]
+        [InlineData(null, true)]
         public void IsInstanceOfType_GivenObject_MatchExpected(object value, bool expected)
         {
             // arrange
