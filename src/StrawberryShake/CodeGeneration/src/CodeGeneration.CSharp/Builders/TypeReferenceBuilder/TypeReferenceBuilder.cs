@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using HotChocolate.Language;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
+using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.NamingConventions;
 
@@ -25,29 +26,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             var (classBuilder, constructorBuilder) = CreateClassBuilder(false);
 
-            NamedTypeDescriptor descriptor = typeDescriptor switch
-            {
-                NamedTypeDescriptor nullableNamedType => nullableNamedType,
-                NonNullTypeDescriptor { InnerType: NamedTypeDescriptor namedType } => namedType,
-                _ => throw new ArgumentException(nameof(typeDescriptor))
-            };
+
+            NamedTypeDescriptor descriptor = typeDescriptor.ExtractNamedType();
 
             // Setup class
-            fileName = descriptor.Kind == TypeKind.EntityType
-                ? EntityMapperNameFromGraphQLTypeName(
-                    descriptor.Name,
-                    descriptor.GraphQLTypeName)
-                : DataMapperNameFromGraphQLTypeName(
-                    descriptor.Name,
-                    descriptor.GraphQLTypeName);
+            fileName = descriptor.ExtractMapperName();
 
             classBuilder
                 .AddImplements(
-                    $"{TypeNames.IEntityMapper}<" +
-                    (typeDescriptor.IsEntityType()
-                        ? EntityTypeNameFromGraphQLTypeName(descriptor.GraphQLTypeName)
-                        : DataTypeNameFromTypeName(descriptor.Name)) +
-                    $", {descriptor.Name}>")
+                    TypeNames.IEntityMapper
+                        .WithGeneric(descriptor.ExtractTypeName(), descriptor.Name))
                 .SetName(fileName);
 
             constructorBuilder.SetTypeName(descriptor.Name);

@@ -13,6 +13,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             new ClientGenerator(),
             new EntityTypeGenerator(),
             new EntityIdFactoryGenerator(),
+            new DependencyInjectionGenerator(),
             new EnumGenerator(),
             new EnumParserGenerator(),
             new JsonResultBuilderGenerator(),
@@ -44,6 +45,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             OperationDescriptorMapper.Map(clientModel, context);
             ClientDescriptorMapper.Map(clientModel, context);
             ResultBuilderDescriptorMapper.Map(clientModel, context);
+            DependencyInjectionMapper.Map(clientModel, context);
 
             var code = new StringBuilder();
 

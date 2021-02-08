@@ -53,5 +53,9 @@ namespace StrawberryShake.CodeGeneration
 
         public static string EnumParserNameFromEnumName(in NameString descriptorName) =>
             descriptorName.Value + "Parser";
+
+        public static string ServiceCollectionExtensionsFromClientName(
+            string clientName) =>
+            clientName + "ServiceCollectionExtensions";
     }
 }

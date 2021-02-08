@@ -1,11 +1,36 @@
 using System;
+using HotChocolate;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Extensions;
+using static StrawberryShake.CodeGeneration.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Extensions
 {
     public static class DescriptorExtensions
     {
+        public static NameString ExtractMapperName(this NamedTypeDescriptor descriptor)
+        {
+            return descriptor.Kind == TypeKind.EntityType
+                ? EntityMapperNameFromGraphQLTypeName(descriptor.Name, descriptor.GraphQLTypeName!)
+                : DataMapperNameFromGraphQLTypeName(descriptor.Name, descriptor.GraphQLTypeName!);
+        }
+        public static NameString ExtractTypeName(this NamedTypeDescriptor descriptor)
+        {
+            return descriptor.IsEntityType()
+                ? EntityTypeNameFromGraphQLTypeName(descriptor.GraphQLTypeName!)
+                : DataTypeNameFromTypeName(descriptor.Name);
+        }
+
+        public static NamedTypeDescriptor ExtractNamedType(this ITypeDescriptor typeDescriptor)
+        {
+            return typeDescriptor switch
+            {
+                NamedTypeDescriptor nullableNamedType => nullableNamedType,
+                NonNullTypeDescriptor { InnerType: NamedTypeDescriptor namedType } => namedType,
+                _ => throw new ArgumentException(nameof(typeDescriptor))
+            };
+        }
+
         public static TypeReferenceBuilder ToBuilder(
             this ITypeDescriptor typeReferenceDescriptor,
             string? nameOverride = null,
@@ -35,6 +60,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
                     {
                         actualBuilder.SetName(nameOverride ?? namedTypeDescriptor.Name);
                     }
+
                     break;
                 case NonNullTypeDescriptor nonNullTypeDescriptor:
                     ToBuilder(

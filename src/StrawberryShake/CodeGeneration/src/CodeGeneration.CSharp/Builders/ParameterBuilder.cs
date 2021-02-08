@@ -8,6 +8,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private TypeReferenceBuilder? _type;
         private string? _name;
         private string? _default;
+        private bool _this;
 
         public static ParameterBuilder New() => new();
 
@@ -32,6 +33,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
+        public ParameterBuilder SetThis(bool value = true)
+        {
+            _this = value;
+            return this;
+        }
+
         public ParameterBuilder SetDefault(string value = "default", bool condition = true)
         {
             if (condition)
@@ -53,9 +60,19 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 throw new ArgumentNullException(nameof(_type));
             }
 
+            if (_this)
+            {
+                writer.Write("this ");
+            }
+
             _type.Build(writer);
 
-            writer.Write(_default is null ? $"{_name}" : $"{_name} = {_default}");
+            writer.Write(_name);
+
+            if (_default is not null)
+            {
+                writer.Write($" = {_default}");
+            }
         }
     }
 }

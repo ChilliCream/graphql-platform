@@ -15,6 +15,17 @@ namespace StrawberryShake.CodeGeneration.Mappers
             ClientModel model,
             IMapperContext context)
         {
+            foreach (var (nameString, namedTypeDescriptor) in
+                CollectTypeDescriptors(model, context))
+            {
+                context.Register(nameString, namedTypeDescriptor);
+            }
+        }
+
+        public static IEnumerable<(NameString, NamedTypeDescriptor )> CollectTypeDescriptors(
+            ClientModel model,
+            IMapperContext context)
+        {
             var typeDescriptors = new Dictionary<NameString, TypeDescriptorModel>();
             var inputTypeDescriptors = new Dictionary<NameString, InputTypeDescriptorModel>();
             var scalarTypeDescriptors = new Dictionary<NameString, NamedTypeDescriptor>();
@@ -43,22 +54,22 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
             foreach (TypeDescriptorModel descriptorModel in typeDescriptors.Values)
             {
-                context.Register(
+                yield return (
                     descriptorModel.NamedTypeDescriptor.Name,
                     descriptorModel.NamedTypeDescriptor);
             }
 
             foreach (InputTypeDescriptorModel descriptorModel in inputTypeDescriptors.Values)
             {
-                context.Register(
+                yield return (
                     descriptorModel.NamedTypeDescriptor.Name,
                     descriptorModel.NamedTypeDescriptor);
             }
 
             foreach (NamedTypeDescriptor typeDescriptor in scalarTypeDescriptors.Values)
             {
-                context.Register(
-                    typeDescriptor.Name + "_" +  typeDescriptor.GraphQLTypeName!.Value,
+                yield return (
+                    typeDescriptor.Name + "_" + typeDescriptor.GraphQLTypeName!.Value,
                     typeDescriptor);
             }
         }
@@ -115,7 +126,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
             }
         }
 
-        private static void RegisterType(ClientModel model,
+        private static void RegisterType(
+            ClientModel model,
             IMapperContext context,
             Dictionary<NameString, TypeDescriptorModel> typeDescriptors,
             OutputTypeModel outputType,
@@ -129,11 +141,14 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 IReadOnlyList<NamedTypeDescriptor> implementedBy =
                     Array.Empty<NamedTypeDescriptor>();
 
-                if(operationModel is not null)
+                if (operationModel is not null)
                 {
                     var classes = new HashSet<NamedTypeDescriptor>();
                     CollectClassesThatImplementInterface(
-                        operationModel, outputType, typeDescriptors, classes);
+                        operationModel,
+                        outputType,
+                        typeDescriptors,
+                        classes);
                     implementedBy = classes.ToList();
                 }
 
@@ -312,7 +327,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
         private readonly struct TypeDescriptorModel
         {
-            public TypeDescriptorModel(OutputTypeModel typeModel,
+            public TypeDescriptorModel(
+                OutputTypeModel typeModel,
                 NamedTypeDescriptor namedTypeDescriptor)
             {
                 TypeModel = typeModel;
@@ -326,7 +342,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
         private readonly struct InputTypeDescriptorModel
         {
-            public InputTypeDescriptorModel(InputObjectTypeModel typeModel,
+            public InputTypeDescriptorModel(
+                InputObjectTypeModel typeModel,
                 NamedTypeDescriptor namedTypeDescriptor)
             {
                 TypeModel = typeModel;

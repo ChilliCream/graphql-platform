@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 
@@ -9,17 +10,27 @@ namespace StrawberryShake.CodeGeneration.Mappers
             ClientModel model,
             IMapperContext context)
         {
-            foreach (EnumTypeModel enumType in model.LeafTypes.OfType<EnumTypeModel>())
+            foreach (var descriptor in CollectEnumDescriptors(model, context))
             {
-                context.Register(
-                    enumType.Name,
-                    new EnumDescriptor(
-                        enumType.Name,
-                        context.Namespace,
-                        enumType.Values
-                            .Select(value => new EnumValueDescriptor(value.Name, value.Value.Name))
-                            .ToList()));
+                context.Register(descriptor.Name, descriptor);
             }
+        }
+
+        public static IEnumerable<EnumDescriptor> CollectEnumDescriptors(
+            ClientModel model,
+            IMapperContext context)
+        {
+            return model.LeafTypes
+                .OfType<EnumTypeModel>()
+                .Select(
+                    enumType =>
+                        new EnumDescriptor(
+                            enumType.Name,
+                            context.Namespace,
+                            enumType.Values
+                                .Select(value =>
+                                    new EnumValueDescriptor(value.Name, value.Value.Name))
+                                .ToList()));
         }
     }
 }

@@ -5,15 +5,22 @@ namespace StrawberryShake.CodeGeneration
     public static class TypeNames
     {
         public const string IEntityStore = StrawberryshakeNamespace + "IEntityStore";
+        public const string EntityStore = StrawberryshakeNamespace + "EntityStore";
+        public const string IOperationStore = StrawberryshakeNamespace + "IOperationStore";
+        public const string OperationStore = StrawberryshakeNamespace + "OperationStore";
         public const string IOperationExecutor = StrawberryshakeNamespace + "IOperationExecutor";
+        public const string OperationExecutor = StrawberryshakeNamespace + "OperationExecutor";
         public const string IOperationResult = StrawberryshakeNamespace + "IOperationResult";
         public const string OperationResult = StrawberryshakeNamespace + "OperationResult";
         public const string IOperationResultDataFactory = StrawberryshakeNamespace + "IOperationResultDataFactory";
         public const string IOperationResultDataInfo = StrawberryshakeNamespace + "IOperationResultDataInfo";
         public const string IOperationResultBuilder = StrawberryshakeNamespace + "IOperationResultBuilder";
         public const string ISerializerResolver = StrawberryshakeNamespace + "Serialization.ISerializerResolver";
+        public const string SerializerResolver = StrawberryshakeNamespace + "Serialization.SerializerResolver";
+        public const string ISerializer = StrawberryshakeNamespace + "Serialization.ISerializer";
         public const string ILeafValueParser = StrawberryshakeNamespace + "Serialization.ILeafValueParser";
         public const string IInputValueFormatter = StrawberryshakeNamespace + "Serialization.IInputValueFormatter ";
+        public const string IConnection = StrawberryshakeNamespace + "IConnection";
         public const string IEntityMapper = StrawberryshakeNamespace + "IEntityMapper";
         public const string IDocument = StrawberryshakeNamespace + "IDocument";
         public const string IGraphQLClientException = StrawberryshakeNamespace + "GraphQLClientException";
@@ -29,6 +36,7 @@ namespace StrawberryShake.CodeGeneration
         public const string OperationRequest = StrawberryshakeNamespace + "OperationRequest";
         public const string ExecutionStrategy = StrawberryshakeNamespace + "ExecutionStrategy";
         public const string GetPropertyOrNull = StrawberryshakeNamespace + "Transport.Http.JsonElementExtensions.GetPropertyOrNull";
+        public const string HttpConnection= StrawberryshakeNamespace + "Transport.Http.HttpConnection";
 
         public const string JsonElement = "global::System.Text.Json.JsonElement";
         public const string JsonDocument = "global::System.Text.Json.JsonDocument";
@@ -61,8 +69,20 @@ namespace StrawberryShake.CodeGeneration
         public const string ArgumentNullException = "global::System.ArgumentNullException";
         public const string ArgumentException = "global::System.ArgumentException";
 
+        public const string IServiceCollection = DependencyInjectionNamepsace + "IServiceCollection";
+        public const string GetRequiredService = DependencyInjectionNamepsace +
+            "ServiceProviderServiceExtensions.GetRequiredService";
+        public const string AddSingleton = DependencyInjectionNamepsace +
+            "ServiceCollectionServiceExtensions.AddSingleton";
+        public const string IHttpClientFactory = "System.Net.Http.IHttpClientFactory";
+        public const string TryAddSingleton= DependencyInjectionExtensions + "TryAddSingleton";
         public const string GenericCollectionsNamespace = "global::System.Collections.Generic.";
         public const string StrawberryshakeNamespace = "global::StrawberryShake.";
         public const string Dictionary = "global::System.Collections.Generic.Dictionary";
+        public const string DependencyInjectionNamepsace = "global::Microsoft.Extensions.DependencyInjection.";
+        public const string DependencyInjectionExtensions =  DependencyInjectionNamepsace +"Extensions.ServiceCollectionDescriptorExtensions.";
+
+        public const string StringSerializer = StrawberryshakeNamespace + "Serialization.StringSerializer";
+
     }
 }
