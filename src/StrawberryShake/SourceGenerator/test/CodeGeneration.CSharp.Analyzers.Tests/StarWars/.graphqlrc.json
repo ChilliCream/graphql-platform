@@ -3,8 +3,8 @@
   "documents": "**/*.graphql",
   "extensions": {
     "strawberryShake": {
-      "name": "Foo",
-      "namespace": "Foo",
+      "name": "StarWarsClient",
+      "namespace": "StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars",
       "url": "http://localhost:5000",
       "dependencyInjection": true,
       "protocols": [

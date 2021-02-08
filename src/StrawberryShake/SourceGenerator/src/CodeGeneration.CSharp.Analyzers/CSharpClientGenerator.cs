@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -46,30 +47,38 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
         public void Execute(GeneratorExecutionContext context)
         {
-            var documents = GetGraphQLFiles(context);
-
-            foreach (var config in GetGraphQLConfigs(context))
+            try
             {
-                config.Documents ??= IOPath.Combine(
-                    IOPath.GetDirectoryName(config.Location)!,
-                    "**",
-                    "*.graphql");
+                var documents = GetGraphQLFiles(context);
 
-                var glob = Glob.Parse(config.Documents);
-                var configDocuments = documents.Where(t => glob.IsMatch(t)).ToList();
-                var result = GenerateClient(documents, config.Extensions.StrawberryShake);
-
-                if (result.HasErrors())
+                foreach (var config in GetGraphQLConfigs(context))
                 {
-                    CreateDiagnosticErrors(context, result.Errors);
-                }
+                    config.Documents ??= IOPath.Combine("**", "*.graphql");
+                    string root = IOPath.GetDirectoryName(config.Location)!;
 
-                foreach (CSharpDocument document in result.CSharpDocuments)
-                {
-                    context.AddSource(
-                        document.Name + ".cs",
-                        SourceText.From(document.SourceText, Encoding.UTF8));
+                    var glob = Glob.Parse(config.Documents);
+                    var configDocuments = documents
+                        .Where(t => t.StartsWith(root) && glob.IsMatch(t))
+                        .ToList();
+
+                    var result = GenerateClient(documents, config.Extensions.StrawberryShake);
+
+                    if (result.HasErrors())
+                    {
+                        CreateDiagnosticErrors(context, result.Errors);
+                    }
+
+                    foreach (CSharpDocument document in result.CSharpDocuments)
+                    {
+                        context.AddSource(
+                            document.Name + ".cs",
+                            SourceText.From(document.SourceText, Encoding.UTF8));
+                    }
                 }
+            }
+            catch (GraphQLException ex)
+            {
+                CreateDiagnosticErrors(context, ex.Errors);
             }
         }
 
@@ -81,6 +90,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             {
                 var generator = new CSharpGenerator();
                 return generator.Generate(documents, settings.Name, settings.Namespace);
+            }
+            catch (GraphQLException)
+            {
+                throw;
             }
             catch (Exception ex)
             {
@@ -175,7 +188,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             {
                 try
                 {
-                    var config = JsonConvert.DeserializeObject<GraphQLConfig>(configLocation);
+                    string json = File.ReadAllText(configLocation);
+                    var config = JsonConvert.DeserializeObject<GraphQLConfig>(json);
                     config.Location = configLocation;
                     list.Add(config);
                 }

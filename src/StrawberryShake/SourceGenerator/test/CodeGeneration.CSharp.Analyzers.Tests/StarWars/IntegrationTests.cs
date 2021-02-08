@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using ChilliCream.Testing;
-using Foo;
 using StrawberryShake.Serialization;
 using StrawberryShake.Transport.Http;
 using Xunit;
