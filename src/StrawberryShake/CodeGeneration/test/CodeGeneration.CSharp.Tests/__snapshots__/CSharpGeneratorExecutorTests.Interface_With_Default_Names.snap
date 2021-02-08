@@ -657,7 +657,7 @@ namespace Foo
                 {
                     var clientFactory =
                         global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<
-                            System.Net.Http.IHttpClientFactory
+                            global::System.Net.Http.IHttpClientFactory
                             >(sp);
             
                     return new global::StrawberryShake.Transport.Http.HttpConnection(

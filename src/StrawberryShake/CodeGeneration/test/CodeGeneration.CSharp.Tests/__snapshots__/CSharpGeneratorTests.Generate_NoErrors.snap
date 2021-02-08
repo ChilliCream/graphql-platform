@@ -617,14 +617,14 @@ public static partial class EntityIdFactory
 }
 
 
-// FooClientServiceCollectionExtensions
+// GraphQLServiceCollectionExtensions
 
-namespace Foo
+namespace StrawberryShake.GraphQL
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public static partial class FooClientServiceCollectionExtensions
+    public static partial class GraphQLServiceCollectionExtensions
     {
-        public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddFooClientClient(
+        public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddGraphQLClient(
             this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
             global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
@@ -658,11 +658,11 @@ namespace Foo
                 {
                     var clientFactory =
                         global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<
-                            System.Net.Http.IHttpClientFactory
+                            global::System.Net.Http.IHttpClientFactory
                             >(sp);
             
                     return new global::StrawberryShake.Transport.Http.HttpConnection(
-                        () => clientFactory.CreateClient("FooClient"));
+                        () => clientFactory.CreateClient("GraphQL"));
                 });
             
             // register mappers
@@ -696,7 +696,7 @@ namespace Foo
                         strategy));
             
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<GetHeroQuery>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<FooClient>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<GraphQL>(services);
             
             return services;
         }
