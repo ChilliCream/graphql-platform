@@ -2,9 +2,20 @@ using System;
 
 namespace StrawberryShake.Serialization
 {
+    public abstract class ScalarSerializer<T> : ScalarSerializer<T, T>
+    {
+        public ScalarSerializer(string typeName) : base(typeName)
+        {
+        }
+
+        public override T Parse(T serializedValue) => serializedValue;
+
+        protected override T Format(T runtimeValue) => runtimeValue;
+    }
+
     public abstract class ScalarSerializer<TSerialized, TRuntime>
         : ILeafValueParser<TSerialized, TRuntime>
-            , IInputValueFormatter
+        , IInputValueFormatter
     {
         protected ScalarSerializer(string typeName)
         {
