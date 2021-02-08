@@ -4,16 +4,17 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using HotChocolate.Types.Descriptors.Definitions;
 
+#nullable enable
+
 namespace HotChocolate.Configuration
 {
-    internal sealed class AggregateTypeInterceptor
-        : ITypeInterceptor
-        , ITypeInitializationFlowInterceptor
+    internal sealed class AggregateTypeInterceptor : TypeInterceptor
     {
         private readonly IReadOnlyCollection<ITypeInitializationInterceptor> _initInterceptors;
         private readonly IReadOnlyCollection<ITypeInitializationInterceptor> _agrInterceptors;
         private readonly IReadOnlyCollection<ITypeScopeInterceptor> _scopeInterceptors;
         private readonly IReadOnlyCollection<ITypeInitializationFlowInterceptor> _flowInterceptors;
+        private readonly IReadOnlyCollection<ITypeRegistryInterceptor> _registryInterceptors;
 
         public AggregateTypeInterceptor()
         {
@@ -21,6 +22,7 @@ namespace HotChocolate.Configuration
             _agrInterceptors = Array.Empty<ITypeInitializationInterceptor>();
             _scopeInterceptors = Array.Empty<ITypeScopeInterceptor>();
             _flowInterceptors = Array.Empty<ITypeInitializationFlowInterceptor>();
+            _registryInterceptors = Array.Empty<ITypeRegistryInterceptor>();
             TriggerAggregations = false;
         }
 
@@ -35,14 +37,15 @@ namespace HotChocolate.Configuration
             _agrInterceptors = _initInterceptors.Where(t => t.TriggerAggregations).ToList();
             _scopeInterceptors = interceptors.OfType<ITypeScopeInterceptor>().ToList();
             _flowInterceptors = interceptors.OfType<ITypeInitializationFlowInterceptor>().ToList();
+            _registryInterceptors = interceptors.OfType<ITypeRegistryInterceptor>().ToList();
             TriggerAggregations = _agrInterceptors.Count > 0;
         }
 
-        public bool TriggerAggregations { get; }
+        public override bool TriggerAggregations { get; }
 
-        public bool CanHandle(ITypeSystemObjectContext context) => true;
+        public override bool CanHandle(ITypeSystemObjectContext context) => true;
 
-        public void OnBeforeDiscoverTypes()
+        public override void OnBeforeDiscoverTypes()
         {
             foreach (ITypeInitializationFlowInterceptor interceptor in _flowInterceptors)
             {
@@ -50,7 +53,7 @@ namespace HotChocolate.Configuration
             }
         }
 
-        public void OnAfterDiscoverTypes()
+        public override void OnAfterDiscoverTypes()
         {
             foreach (ITypeInitializationFlowInterceptor interceptor in _flowInterceptors)
             {
@@ -58,7 +61,7 @@ namespace HotChocolate.Configuration
             }
         }
 
-        public void OnBeforeInitialize(
+        public override void OnBeforeInitialize(
             ITypeDiscoveryContext discoveryContext)
         {
             foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
@@ -70,10 +73,10 @@ namespace HotChocolate.Configuration
             }
         }
 
-        public void OnAfterInitialize(
+        public override void OnAfterInitialize(
             ITypeDiscoveryContext discoveryContext,
-            DefinitionBase definition,
-            IDictionary<string, object> contextData)
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
         {
             foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
             {
@@ -85,7 +88,15 @@ namespace HotChocolate.Configuration
             }
         }
 
-        public void OnTypesInitialized(
+        public override void OnTypeRegistered(ITypeDiscoveryContext discoveryContext)
+        {
+            foreach (ITypeRegistryInterceptor interceptor in _registryInterceptors)
+            {
+                interceptor.OnTypeRegistered(discoveryContext);
+            }
+        }
+
+        public override void OnTypesInitialized(
             IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
         {
             if (_agrInterceptors.Count > 0)
@@ -109,10 +120,10 @@ namespace HotChocolate.Configuration
             }
         }
 
-        public void OnAfterRegisterDependencies(
+        public override void OnAfterRegisterDependencies(
             ITypeDiscoveryContext discoveryContext,
-            DefinitionBase definition,
-            IDictionary<string, object> contextData)
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
         {
             foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
             {
@@ -124,10 +135,10 @@ namespace HotChocolate.Configuration
             }
         }
 
-        public void OnBeforeRegisterDependencies(
+        public override void OnBeforeRegisterDependencies(
             ITypeDiscoveryContext discoveryContext,
-            DefinitionBase definition,
-            IDictionary<string, object> contextData)
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
         {
             foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
             {
@@ -139,7 +150,7 @@ namespace HotChocolate.Configuration
             }
         }
 
-        public void OnBeforeCompleteTypeNames()
+        public override void OnBeforeCompleteTypeNames()
         {
             foreach (ITypeInitializationFlowInterceptor interceptor in _flowInterceptors)
             {
@@ -147,7 +158,7 @@ namespace HotChocolate.Configuration
             }
         }
 
-        public void OnAfterCompleteTypeNames()
+        public override void OnAfterCompleteTypeNames()
         {
             foreach (ITypeInitializationFlowInterceptor interceptor in _flowInterceptors)
             {
@@ -155,10 +166,10 @@ namespace HotChocolate.Configuration
             }
         }
 
-        public void OnBeforeCompleteName(
+        public override void OnBeforeCompleteName(
             ITypeCompletionContext completionContext,
-            DefinitionBase definition,
-            IDictionary<string, object> contextData)
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
         {
             foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
             {
@@ -169,10 +180,10 @@ namespace HotChocolate.Configuration
             }
         }
 
-        public void OnAfterCompleteName(
+        public override void OnAfterCompleteName(
             ITypeCompletionContext completionContext,
-            DefinitionBase definition,
-            IDictionary<string, object> contextData)
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
         {
             foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
             {
@@ -183,7 +194,7 @@ namespace HotChocolate.Configuration
             }
         }
 
-        public void OnTypesCompletedName(
+        public override void OnTypesCompletedName(
             IReadOnlyCollection<ITypeCompletionContext> completionContexts)
         {
             if (_agrInterceptors.Count > 0)
@@ -207,7 +218,7 @@ namespace HotChocolate.Configuration
             }
         }
 
-        public void OnBeforeMergeTypeExtensions()
+        public override void OnBeforeMergeTypeExtensions()
         {
             foreach (ITypeInitializationFlowInterceptor interceptor in _flowInterceptors)
             {
@@ -215,7 +226,7 @@ namespace HotChocolate.Configuration
             }
         }
 
-        public void OnAfterMergeTypeExtensions()
+        public override void OnAfterMergeTypeExtensions()
         {
             foreach (ITypeInitializationFlowInterceptor interceptor in _flowInterceptors)
             {
@@ -223,7 +234,7 @@ namespace HotChocolate.Configuration
             }
         }
 
-        public void OnBeforeCompleteTypes()
+        public override void OnBeforeCompleteTypes()
         {
             foreach (ITypeInitializationFlowInterceptor interceptor in _flowInterceptors)
             {
@@ -231,7 +242,7 @@ namespace HotChocolate.Configuration
             }
         }
 
-        public void OnAfterCompleteTypes()
+        public override void OnAfterCompleteTypes()
         {
             foreach (ITypeInitializationFlowInterceptor interceptor in _flowInterceptors)
             {
@@ -239,10 +250,10 @@ namespace HotChocolate.Configuration
             }
         }
 
-        public void OnBeforeCompleteType(
+        public override void OnBeforeCompleteType(
             ITypeCompletionContext completionContext,
-            DefinitionBase definition,
-            IDictionary<string, object> contextData)
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
         {
             foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
             {
@@ -253,10 +264,10 @@ namespace HotChocolate.Configuration
             }
         }
 
-        public void OnAfterCompleteType(
+        public override void OnAfterCompleteType(
             ITypeCompletionContext completionContext,
-            DefinitionBase definition,
-            IDictionary<string, object> contextData)
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
         {
             foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
             {
@@ -267,9 +278,9 @@ namespace HotChocolate.Configuration
             }
         }
 
-        public bool TryCreateScope(
+        public override bool TryCreateScope(
             ITypeDiscoveryContext discoveryContext,
-            [NotNullWhen(true)] out IReadOnlyList<TypeDependency> typeDependencies)
+            [NotNullWhen(true)] out IReadOnlyList<TypeDependency>? typeDependencies)
         {
             foreach (ITypeScopeInterceptor interceptor in _scopeInterceptors)
             {
@@ -283,7 +294,7 @@ namespace HotChocolate.Configuration
             return false;
         }
 
-        public void OnTypesCompleted(
+        public override void OnTypesCompleted(
             IReadOnlyCollection<ITypeCompletionContext> completionContexts)
         {
             if (_agrInterceptors.Count > 0)
