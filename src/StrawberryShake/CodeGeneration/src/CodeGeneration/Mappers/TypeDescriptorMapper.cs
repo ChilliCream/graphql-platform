@@ -113,7 +113,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 {
                     if (!typeDescriptors.TryGetValue(
                         outputType.Name,
-                        out TypeDescriptorModel descriptorModel))
+                        out TypeDescriptorModel _))
                     {
                         RegisterType(
                             model,
@@ -141,7 +141,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 IReadOnlyList<NamedTypeDescriptor> implementedBy =
                     Array.Empty<NamedTypeDescriptor>();
 
-                if (operationModel is not null)
+                if (operationModel is not null && outputType.IsInterface)
                 {
                     var classes = new HashSet<NamedTypeDescriptor>();
                     CollectClassesThatImplementInterface(

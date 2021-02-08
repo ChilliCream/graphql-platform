@@ -94,10 +94,9 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             if (_typeModels.TryGetValue(name, out ITypeModel? registeredTypeModel) &&
                 !ReferenceEquals(registeredTypeModel, typeModel))
             {
-                // TODO : lets revisit this
-                // throw new GraphQLException("A type model name must be unique.");
+                throw new GraphQLException("A type model name must be unique.");
             }
-            
+
             _typeModels[name] = typeModel;
         }
 

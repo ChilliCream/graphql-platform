@@ -14,7 +14,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
         private readonly List<DocumentNode> _documents = new();
         private ISchema? _schema;
 
-        public static DocumentAnalyzer New() => new DocumentAnalyzer();
+        public static DocumentAnalyzer New() => new();
 
         public DocumentAnalyzer SetSchema(ISchema schema)
         {

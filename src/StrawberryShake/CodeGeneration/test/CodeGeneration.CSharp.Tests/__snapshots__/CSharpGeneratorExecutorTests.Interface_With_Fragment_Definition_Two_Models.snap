@@ -263,6 +263,24 @@ namespace Foo
 }
 
 
+// GetHero_Hero_Friends_CharacterConnection
+
+namespace Foo
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetHero_Hero_Friends_CharacterConnection
+        : IGetHero_Hero_Friends_CharacterConnection
+    {
+        public GetHero_Hero_Friends_CharacterConnection(global::System.Collections.Generic.IReadOnlyList<IGetHero_Hero_Friends_Nodes?>? nodes)
+        {
+            Nodes = nodes;
+        }
+
+        public global::System.Collections.Generic.IReadOnlyList<IGetHero_Hero_Friends_Nodes?>? Nodes { get; }
+    }
+}
+
+
 // GetHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper
 
 namespace Foo
@@ -457,6 +475,18 @@ namespace Foo
     public interface IGetHero_Hero_Friends
     {
         public global::System.Collections.Generic.IReadOnlyList<IGetHero_Hero_Friends_Nodes?>? Nodes { get; }
+    }
+}
+
+
+// IGetHero_Hero_Friends_CharacterConnection
+
+namespace Foo
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IGetHero_Hero_Friends_CharacterConnection
+        : IGetHero_Hero_Friends
+    {
     }
 }
 
@@ -711,6 +741,93 @@ namespace Foo
                     global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "friends"),
                     entityIds
                 );
+
+                return entityId;
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::System.String DeserializeNonNullableString(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            return _stringParser.Parse(obj.Value.GetString()!);
+        }
+
+        private global::System.String? DeserializeString(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            return _stringParser.Parse(obj.Value.GetString()!);
+        }
+
+        private IGetHero_Hero_Friends? DeserializeIGetHero_Hero_FriendsData(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            return new IGetHero_Hero_FriendsData(UpdateIGetHero_Hero_Friends_NodesEntityArray(
+                global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "nodes"),
+                entityIds
+            ));
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? UpdateIGetHero_Hero_Friends_NodesEntityArray(
+            global::System.Text.Json.JsonElement? obj,
+            global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        {
+            if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            var iGetHero_Hero_Friends_Nodess = new global::System.Collections.Generic.List<global::StrawberryShake.EntityId?>();
+
+            foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
+            {
+                iGetHero_Hero_Friends_Nodess.Add(UpdateIGetHero_Hero_Friends_NodesEntity(
+                    child,
+                    entityIds
+                ));
+            }
+
+            return iGetHero_Hero_Friends_Nodess;
+        }
+
+        private global::StrawberryShake.EntityId? UpdateIGetHero_Hero_Friends_NodesEntity(
+            global::System.Text.Json.JsonElement? obj,
+            global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        {
+            if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            global::StrawberryShake.EntityId entityId = _extractId(obj.Value);
+            entityIds.Add(entityId);
+
+
+            if (entityId.Name.Equals("GetHero_Hero_Friends_Nodes_Droid", global::System.StringComparison.Ordinal))
+            {
+                DroidEntity entity = _entityStore.GetOrCreate<DroidEntity>(entityId);
+                entity.Name = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "name"));
+
+                return entityId;
+            }
+
+            if (entityId.Name.Equals("GetHero_Hero_Friends_Nodes_Human", global::System.StringComparison.Ordinal))
+            {
+                HumanEntity entity = _entityStore.GetOrCreate<HumanEntity>(entityId);
+                entity.Name = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "name"));
 
                 return entityId;
             }

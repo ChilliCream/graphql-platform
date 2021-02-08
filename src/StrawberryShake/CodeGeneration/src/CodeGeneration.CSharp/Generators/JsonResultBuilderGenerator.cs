@@ -22,6 +22,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             CodeWriter writer,
             ResultBuilderDescriptor resultBuilderDescriptor, out string fileName)
         {
+            var processed = new HashSet<string>();
             var resultTypeDescriptor = resultBuilderDescriptor.ResultNamedType;
             var (classBuilder, constructorBuilder) = CreateClassBuilder();
 
@@ -97,7 +98,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             AddRequiredDeserializeMethods(
                 resultBuilderDescriptor.ResultNamedType,
-                classBuilder);
+                classBuilder,
+                processed);
 
             CodeFileBuilder.New()
                 .SetNamespace(resultBuilderDescriptor.ResultNamedType.Namespace)
@@ -110,52 +112,78 @@ namespace StrawberryShake.CodeGeneration.CSharp
         /// </summary>
         private void AddRequiredDeserializeMethods(
             NamedTypeDescriptor namedTypeDescriptor,
-            ClassBuilder classBuilder)
+            ClassBuilder classBuilder,
+            HashSet<string> processed)
         {
-            foreach (var property in namedTypeDescriptor.Properties)
+            if (namedTypeDescriptor.IsInterface)
             {
-                AddDeserializeMethod(
-                    property.Type,
-                    classBuilder);
+                foreach (var @class in namedTypeDescriptor.ImplementedBy)
+                {
+                    AddRequiredDeserializeMethods(@class, classBuilder, processed);
+                }
+            }
+            else
+            {
+                foreach (var property in namedTypeDescriptor.Properties)
+                {
+                    AddDeserializeMethod(
+                        property.Type,
+                        classBuilder,
+                        processed);
+
+                    if (property.Type.NamedType() is NamedTypeDescriptor nt &&
+                        !nt.IsLeafType())
+                    {
+                        AddRequiredDeserializeMethods(nt, classBuilder, processed);
+                    }
+                }
             }
         }
 
         private void AddDeserializeMethod(
             ITypeDescriptor typeReference,
-            ClassBuilder classBuilder)
+            ClassBuilder classBuilder,
+            HashSet<string> processed)
         {
-            var returnType = typeReference.ToEntityIdBuilder();
+            string methodName = DeserializerMethodNameFromTypeName(typeReference);
 
-            var methodBuilder = MethodBuilder.New()
-                .SetAccessModifier(AccessModifier.Private)
-                .SetName(DeserializerMethodNameFromTypeName(typeReference))
-                .SetReturnType(returnType)
-                .AddParameter(
-                    ParameterBuilder.New()
-                        .SetType(_jsonElementParamName)
-                        .SetName(_objParamName));
-            if (typeReference.IsEntityType())
+            if (processed.Add(methodName))
             {
-                methodBuilder.AddParameter(
-                    ParameterBuilder.New()
-                        .SetType($"{TypeNames.ISet}<{TypeNames.EntityId}>")
-                        .SetName(_entityIdsParam));
+                var returnType = typeReference.ToEntityIdBuilder();
+
+                var methodBuilder = MethodBuilder.New()
+                    .SetAccessModifier(AccessModifier.Private)
+                    .SetName(methodName)
+                    .SetReturnType(returnType)
+                    .AddParameter(
+                        ParameterBuilder.New()
+                            .SetType(_jsonElementParamName)
+                            .SetName(_objParamName));
+                if (typeReference.IsEntityType())
+                {
+                    methodBuilder.AddParameter(
+                        ParameterBuilder.New()
+                            .SetType($"{TypeNames.ISet}<{TypeNames.EntityId}>")
+                            .SetName(_entityIdsParam));
+                }
+
+                methodBuilder.AddCode(
+                    EnsureProperNullability(isNonNullType: typeReference.IsNonNullableType()));
+
+                classBuilder.AddMethod(methodBuilder);
+
+                AddDeserializeMethodBody(
+                    classBuilder,
+                    methodBuilder,
+                    typeReference,
+                    processed);
             }
-
-            methodBuilder.AddCode(
-                EnsureProperNullability(isNonNullType: typeReference.IsNonNullableType()));
-
-            classBuilder.AddMethod(methodBuilder);
-
-            AddDeserializeMethodBody(
-                classBuilder,
-                methodBuilder,
-                typeReference);
         }
 
         private void AddDeserializeMethodBody(ClassBuilder classBuilder,
             MethodBuilder methodBuilder,
-            ITypeDescriptor typeDescriptor)
+            ITypeDescriptor typeDescriptor,
+            HashSet<string> processed)
         {
             switch (typeDescriptor)
             {
@@ -163,8 +191,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     AddArrayHandler(
                         classBuilder,
                         methodBuilder,
-                        listTypeDescriptor);
+                        listTypeDescriptor,
+                        processed);
                     break;
+
                 case NamedTypeDescriptor namedTypeDescriptor:
                     switch (typeDescriptor.Kind)
                     {
@@ -178,27 +208,31 @@ namespace StrawberryShake.CodeGeneration.CSharp
                             AddDataTypeDeserializerMethod(
                                 classBuilder,
                                 methodBuilder,
-                                namedTypeDescriptor);
+                                namedTypeDescriptor,
+                                processed);
                             break;
 
                         case TypeKind.EntityType:
                             AddUpdateEntityMethod(
                                 classBuilder,
                                 methodBuilder,
-                                namedTypeDescriptor);
+                                namedTypeDescriptor,
+                                processed);
                             break;
 
                         default:
                             throw new ArgumentOutOfRangeException();
                     }
-
                     break;
+
                 case NonNullTypeDescriptor nonNullTypeDescriptor:
                     AddDeserializeMethodBody(
                         classBuilder,
                         methodBuilder,
-                        nonNullTypeDescriptor.InnerType);
+                        nonNullTypeDescriptor.InnerType,
+                        processed);
                     break;
+
                 default:
                     throw new ArgumentOutOfRangeException(nameof(typeDescriptor));
             }
