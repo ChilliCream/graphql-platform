@@ -4,7 +4,7 @@ using HotChocolate.Language;
 namespace HotChocolate.Types.Scalars
 {
     /// <summary>
-    /// The NegativeFloatType scalar represents a real number with a value less than 0.
+    /// The NegativeFloatType scalar represents double‐precision fractional value less than 0.
     /// </summary>
     public class NegativeFloatType : FloatType
     {
@@ -50,7 +50,6 @@ namespace HotChocolate.Types.Scalars
             return base.ParseLiteral(valueSyntax);
         }
 
-        /// <inheritdoc />
         protected override FloatValueNode ParseValue(double runtimeValue)
         {
             if (runtimeValue >= MaxValue)

@@ -414,7 +414,7 @@ scalar PhoneNumber
 ## NegativeFloat
 ```sdl
 """
-The NegativeFloat scalar type represents a signed real number with a value less than 0
+The NegativeFloat scalar type represents a real number with a value less than 0
 """
 scalar NegativeFloat
 ```
