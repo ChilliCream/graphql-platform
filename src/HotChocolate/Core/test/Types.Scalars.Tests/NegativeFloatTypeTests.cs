@@ -22,6 +22,7 @@ namespace HotChocolate.Types.Scalars
         [InlineData(typeof(EnumValueNode), TestEnum.Foo, false)]
         [InlineData(typeof(FloatValueNode), 1d, false)]
         [InlineData(typeof(FloatValueNode), -1.0d, true)]
+        [InlineData(typeof(FloatValueNode), 0d, false)]
         [InlineData(typeof(FloatValueNode), 0.00000001d, false)]
         [InlineData(typeof(FloatValueNode), -0.0000001d, true)]
         [InlineData(typeof(FloatValueNode), double.MinValue, true)]

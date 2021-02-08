@@ -24,7 +24,8 @@ namespace HotChocolate.Types.Scalars
                 type);
         }
 
-        public static SerializationException NegativeFloatType_ParseLiteral_IsNotNegative(IType type)
+        public static SerializationException NegativeFloatType_ParseLiteral_IsNotNegative(
+            IType type)
         {
             return new SerializationException(
                 ErrorBuilder.New()
