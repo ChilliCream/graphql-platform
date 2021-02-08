@@ -13,6 +13,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
         private readonly Dictionary<NameString, ResultBuilderDescriptor> _resultBuilder = new();
         private ClientDescriptor? _client;
         private EntityIdFactoryDescriptor? _entityIdFactory;
+        private DependencyInjectionDescriptor? _dependencyInjectionDescriptor;
 
         public MapperContext(string ns, string clientName)
         {
@@ -39,6 +40,9 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
         public EntityIdFactoryDescriptor EntityIdFactory =>
             _entityIdFactory ?? throw new NotImplementedException();
+
+        public DependencyInjectionDescriptor DependencyInjection =>
+            _dependencyInjectionDescriptor ?? throw new NotImplementedException();
 
         public IEnumerable<ICodeDescriptor> GetAllDescriptors()
         {
@@ -70,6 +74,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
             yield return Client;
 
             yield return EntityIdFactory;
+
+            yield return DependencyInjection;
         }
 
         public void Register(NameString codeTypeName, NamedTypeDescriptor typeDescriptor)
@@ -117,6 +123,11 @@ namespace StrawberryShake.CodeGeneration.Mappers
         public void Register(EntityIdFactoryDescriptor entityIdFactoryDescriptor)
         {
             _entityIdFactory = entityIdFactoryDescriptor;
+        }
+
+        public void Register(DependencyInjectionDescriptor dependencyInjectionDescriptor)
+        {
+            _dependencyInjectionDescriptor = dependencyInjectionDescriptor;
         }
     }
 }

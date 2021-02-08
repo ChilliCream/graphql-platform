@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
-    public class LambdaBuilder: ICode
+    public class LambdaBuilder : ICode
     {
         private readonly List<string> _arguments = new();
         private ICode? _code;
@@ -39,6 +39,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 {
                     writer.Write(',');
                 }
+
                 writer.Write(_arguments[i]);
             }
 
@@ -50,5 +51,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             writer.Write(" => ");
             _code.Build(writer);
         }
+
+        public static LambdaBuilder New() => new();
     }
 }

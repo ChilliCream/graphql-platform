@@ -68,6 +68,17 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             return builder.SetAccessModifier(AccessModifier.Protected);
         }
+
+        public static MethodBuilder AddParameter(
+            this MethodBuilder builder,
+            string name,
+            Action<ParameterBuilder> configure)
+        {
+            ParameterBuilder? parameterBuilder = ParameterBuilder.New().SetName(name);
+            configure(parameterBuilder);
+            builder.AddParameter(parameterBuilder);
+            return builder;
+        }
     }
 
     internal static class StringExtensions

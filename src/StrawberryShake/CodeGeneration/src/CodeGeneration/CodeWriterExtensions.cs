@@ -1,5 +1,4 @@
 using System;
-using System.Threading.Tasks;
 
 namespace StrawberryShake.CodeGeneration
 {
@@ -17,6 +16,13 @@ namespace StrawberryShake.CodeGeneration
 
             writer.WriteIndentedLine(
                 $"[global::System.CodeDom.Compiler.GeneratedCode(\"StrawberryShake\", \"11.0.0\")]");
+        }
+
+        public static CodeWriter WriteComment(this CodeWriter writer, string comment)
+        {
+            writer.Write("// ");
+            writer.WriteLine(comment);
+            return writer;
         }
     }
 }

@@ -9,6 +9,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private bool _determineStatement = true;
         private string? _prefix;
         private readonly List<ICode> _arguments = new List<ICode>();
+        private readonly List<ICode> _generics = new List<ICode>();
         private readonly List<ICode> _chainedCode = new List<ICode>();
 
         public static MethodCallBuilder New() => new MethodCallBuilder();
@@ -34,6 +35,18 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         public MethodCallBuilder AddArgument(ICode value)
         {
             _arguments.Add(value);
+            return this;
+        }
+
+        public MethodCallBuilder AddGeneric(ICode value)
+        {
+            _generics.Add(value);
+            return this;
+        }
+
+        public MethodCallBuilder AddGeneric(string value)
+        {
+            _generics.Add(CodeInlineBuilder.New().SetText(value));
             return this;
         }
 
@@ -66,6 +79,25 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             if (_methodName != null)
             {
                 writer.Write(_methodName);
+
+                if (_generics.Count > 0)
+                {
+                    writer.Write("<");
+                    for (int i = 0; i < _generics.Count; i++)
+                    {
+                        _generics[i].Build(writer);
+                        if (i == _generics.Count - 1)
+                        {
+                            writer.Write(">");
+                        }
+                        else
+                        {
+                            writer.Write(",");
+                        }
+                    }
+
+                    writer.Write(">");
+                }
 
                 writer.Write("(");
 

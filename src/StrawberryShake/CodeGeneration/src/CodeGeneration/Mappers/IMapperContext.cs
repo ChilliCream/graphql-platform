@@ -32,5 +32,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
         void Register(ClientDescriptor clientDescriptor);
 
         void Register(EntityIdFactoryDescriptor entityIdFactoryDescriptor);
+
+        void Register(DependencyInjectionDescriptor dependencyInjectionDescriptor);
     }
 }

@@ -8,7 +8,6 @@ namespace StrawberryShake.CodeGeneration
     /// </summary>
     public abstract class OperationDescriptor : ICodeDescriptor
     {
-        protected readonly NameString _operationName;
 
         public OperationDescriptor(
             NameString operationName,
@@ -17,7 +16,7 @@ namespace StrawberryShake.CodeGeneration
             IReadOnlyList<PropertyDescriptor> arguments,
             string bodyString)
         {
-            _operationName = operationName;
+            OperationName = operationName;
             ResultTypeReference = resultTypeReference;
             Arguments = arguments;
             BodyString = bodyString;
@@ -37,6 +36,8 @@ namespace StrawberryShake.CodeGeneration
         public ITypeDescriptor ResultTypeReference { get; }
 
         public string BodyString { get; }
+
+        public  NameString OperationName { get; }
 
         /// <summary>
         /// The arguments the operation takes.
