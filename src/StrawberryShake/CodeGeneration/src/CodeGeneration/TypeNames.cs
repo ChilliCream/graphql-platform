@@ -74,7 +74,7 @@ namespace StrawberryShake.CodeGeneration
             "ServiceProviderServiceExtensions.GetRequiredService";
         public const string AddSingleton = DependencyInjectionNamepsace +
             "ServiceCollectionServiceExtensions.AddSingleton";
-        public const string IHttpClientFactory = "System.Net.Http.IHttpClientFactory";
+        public const string IHttpClientFactory = "global::System.Net.Http.IHttpClientFactory";
         public const string TryAddSingleton= DependencyInjectionExtensions + "TryAddSingleton";
         public const string GenericCollectionsNamespace = "global::System.Collections.Generic.";
         public const string StrawberryshakeNamespace = "global::StrawberryShake.";
