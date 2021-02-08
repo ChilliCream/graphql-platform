@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Moq;
 using Snapshooter.Xunit;
-using StrawberryShake.Http.Subscriptions;
 using StrawberryShake.Transport.WebSockets.Messages;
 using Xunit;
 

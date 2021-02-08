@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO.Pipelines;
 using System.Net.WebSockets;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using StrawberryShake.Properties;
@@ -137,20 +138,23 @@ namespace StrawberryShake.Transport.WebSockets
         }
 
         /// <inheritdoc />
-        public ValueTask SendAsync(
+        public async ValueTask SendAsync(
             ReadOnlyMemory<byte> message,
             CancellationToken cancellationToken = default)
         {
             if (IsClosed)
             {
-                return default;
+                return;
             }
 
-            return _socket.SendAsync(
-                message,
-                WebSocketMessageType.Text,
-                true,
-                cancellationToken);
+            if (MemoryMarshal.TryGetArray(message, out ArraySegment<byte> buffer))
+            {
+                await _socket.SendAsync(
+                    buffer,
+                    WebSocketMessageType.Text,
+                    true,
+                    cancellationToken);
+            }
         }
 
         /// <inheritdoc />
@@ -165,22 +169,25 @@ namespace StrawberryShake.Transport.WebSockets
 
             try
             {
-                ValueWebSocketReceiveResult? socketResult;
+                WebSocketReceiveResult? socketResult = null;
                 do
                 {
                     Memory<byte> memory = writer.GetMemory(_maxMessageSize);
                     try
                     {
-                        socketResult = await _socket
-                            .ReceiveAsync(memory, cancellationToken)
-                            .ConfigureAwait(false);
-
-                        if (socketResult.Value.Count == 0)
+                        if (MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> buffer))
                         {
-                            break;
-                        }
+                            socketResult = await _socket
+                                .ReceiveAsync(buffer, cancellationToken)
+                                .ConfigureAwait(false);
 
-                        writer.Advance(socketResult.Value.Count);
+                            if (socketResult.Count == 0)
+                            {
+                                break;
+                            }
+
+                            writer.Advance(socketResult.Count);
+                        }
                     }
                     catch
                     {
@@ -195,7 +202,7 @@ namespace StrawberryShake.Transport.WebSockets
                     {
                         break;
                     }
-                } while (!socketResult.Value.EndOfMessage);
+                } while (socketResult == null || !socketResult.EndOfMessage);
             }
             catch (ObjectDisposedException)
             {
@@ -239,6 +246,7 @@ namespace StrawberryShake.Transport.WebSockets
                 {
                     await _activeProtocol.DisposeAsync().ConfigureAwait(false);
                 }
+
                 _socket.Dispose();
                 _disposed = true;
             }

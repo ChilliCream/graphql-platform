@@ -198,7 +198,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddOptions();
 
-            services.AddSingleton<DefaultSocketClientFactory>();
+            services.TryAddSingleton<DefaultSocketClientFactory>();
             services.TryAddSingleton<ISocketClientFactory>(sp =>
                 sp.GetRequiredService<DefaultSocketClientFactory>());
             services.AddWebSocketClientPool();

@@ -4,10 +4,9 @@ using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using StrawberryShake.Transport.WebSockets;
 using StrawberryShake.Transport.WebSockets.Messages;
 
-namespace StrawberryShake.Http.Subscriptions
+namespace StrawberryShake.Transport.WebSockets
 {
     /// <summary>
     /// A WebSocket connection to a GraphQL server and allows to execute requests against it.

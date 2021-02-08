@@ -13,15 +13,15 @@ namespace StrawberryShake.Transport.WebSockets
         public static SerializationException Serialization_InvalidMessageType(
             ReadOnlySpan<byte> token) =>
             new(string.Format(Resources.Serialization_InvalidMessageType,
-                Encoding.UTF8.GetString(token)));
+                Encoding.UTF8.GetString(token.ToArray())));
 
         public static SerializationException Serialization_InvalidToken(ReadOnlySpan<byte> token) =>
             new(string.Format(Resources.Serialization_InvalidToken,
-                Encoding.UTF8.GetString(token)));
+                Encoding.UTF8.GetString(token.ToArray())));
 
         public static SerializationException Serialization_UnknownField(ReadOnlySpan<byte> token) =>
             new(string.Format(Resources.Serialization_UnknownField,
-                Encoding.UTF8.GetString(token)));
+                Encoding.UTF8.GetString(token.ToArray())));
 
         public static SocketOperationException Protocol_CannotStartOperationOnClosedSocket(
             string operationId) =>

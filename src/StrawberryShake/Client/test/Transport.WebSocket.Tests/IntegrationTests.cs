@@ -11,7 +11,6 @@ using HotChocolate.Types;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
-using StrawberryShake.Http.Subscriptions;
 using StrawberryShake.Transport.WebSockets.Protocol;
 using Xunit;
 

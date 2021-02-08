@@ -2,7 +2,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
-using StrawberryShake.Http.Subscriptions;
 using Xunit;
 
 namespace StrawberryShake.Transport.WebSockets
