@@ -6,6 +6,7 @@ namespace HotChocolate.Types
         public const string NegativeFloat = nameof(NegativeFloat);
         public const string NegativeInt = nameof(NegativeInt);
         public const string NonEmptyString = nameof(NonEmptyString);
+        public const string PhoneNumber = nameof(PhoneNumber);
         public const string PositiveInt = nameof(PositiveInt);
     }
 }

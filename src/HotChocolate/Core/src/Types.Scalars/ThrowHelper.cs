@@ -17,7 +17,7 @@ namespace HotChocolate.Types.Scalars
         {
             return new SerializationException(
                 ErrorBuilder.New()
-                    .SetMessage(ScalarResources.EmailAddress_IsInvalid_ParseLiteral)
+                    .SetMessage(ScalarResources.EmailAddress_IsInvalid_ParseValue)
                     .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
                     .SetExtension("actualType", WellKnownScalarTypes.EmailAddress)
                     .Build(),
@@ -89,12 +89,35 @@ namespace HotChocolate.Types.Scalars
                     .Build(),
                 type);
         }
+
+        public static SerializationException PhoneNumber_ParseLiteral_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.PhoneNumber_IsInvalid_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.PhoneNumber)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException PhoneNumber_ParseValue_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.PhoneNumber_IsInvalid_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.PhoneNumber)
+                    .Build(),
+                type);
+        }
+
         public static SerializationException PositiveIntType_ParseLiteral_ZeroOrLess(IType type)
         {
             return new SerializationException(
                 ErrorBuilder.New()
                     .SetMessage(ScalarResources.PositiveIntType_ZeroOrLess_ParseLiteral)
-                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
                     .SetExtension("actualType", WellKnownScalarTypes.PositiveInt)
                     .Build(),
                 type);
