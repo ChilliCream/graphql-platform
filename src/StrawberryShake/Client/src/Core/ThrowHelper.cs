@@ -11,6 +11,25 @@ namespace StrawberryShake
             new(new ClientError(
                 $"The runtime value is expected to be {runtimeType} for {scalarType}."));
 
+        internal static GraphQLClientException DateTimeSerializer_InvalidFormat(
+            string serializedValue) =>
+            new(new ClientError(
+                "The serialized format for DateTime must be `yyyy-MM-ddTHH\\:mm\\:ss.fffzzz`. " +
+                "For more information read: `https://www.graphql-scalars.com/date-time`.",
+                extensions: new Dictionary<string, object?>
+                {
+                    { "serializedValue", serializedValue }
+                }));
+
+        internal static GraphQLClientException DateSerializer_InvalidFormat(
+            string serializedValue) =>
+            new(new ClientError(
+                "The serialized format for Date must be `yyyy-MM-dd`.",
+                extensions: new Dictionary<string, object?>
+                {
+                    { "serializedValue", serializedValue }
+                }));
+
         internal static GraphQLClientException UrlFormatter_CouldNotParseUri(string value) =>
             new(new ClientError(
                 $"The URL serializer could not parse value{value}. Invalid format. "));
