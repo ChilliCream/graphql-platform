@@ -402,3 +402,11 @@ The EmailAddress scalar type represents a email address, represented as UTF-8 ch
 """
 scalar NonEmptyString
 ```
+
+## NegativeFloat
+```sdl
+"""
+The NegativeFloat scalar type represents a signed real number with a value less than 0
+"""
+scalar NonEmptyString
+```
