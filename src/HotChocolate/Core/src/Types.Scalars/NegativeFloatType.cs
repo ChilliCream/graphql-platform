@@ -3,6 +3,9 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types.Scalars
 {
+    /// <summary>
+    /// The NegativeFloatType scalar represents a signed real number with a value less than 0.
+    /// </summary>
     public class NegativeFloatType : FloatType
     {
         public NegativeFloatType()
