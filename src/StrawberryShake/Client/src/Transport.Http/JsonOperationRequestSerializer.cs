@@ -12,6 +12,11 @@ namespace StrawberryShake.Transport.Http
         {
             using var jsonWriter = new Utf8JsonWriter(bufferWriter);
 
+            Serialize(request, jsonWriter);
+        }
+
+        public void Serialize(OperationRequest request, Utf8JsonWriter jsonWriter)
+        {
             jsonWriter.WriteStartObject();
 
             WriteRequest(request, jsonWriter);
@@ -150,5 +155,7 @@ namespace StrawberryShake.Transport.Http
 
             writer.WriteEndArray();
         }
+
+        public static readonly JsonOperationRequestSerializer Default = new();
     }
 }
