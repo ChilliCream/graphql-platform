@@ -74,7 +74,7 @@ namespace HotChocolate.Types
             || _status == TypeStatus.Named
             || _status == TypeStatus.Completed;
 
-        protected bool IsNamed =>
+        protected internal bool IsNamed =>
             _status == TypeStatus.Named
             || _status == TypeStatus.Completed;
 

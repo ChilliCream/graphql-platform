@@ -8,7 +8,9 @@ namespace HotChocolate.Configuration
         /// <summary>
         /// This event is called after the type was registered with the type registry.
         /// </summary>
-        /// <param name="context"></param>
-        void OnTypeRegistered(ITypeDiscoveryContext context);
+        /// <param name="discoveryContext">
+        /// The type discovery context.
+        /// </param>
+        void OnTypeRegistered(ITypeDiscoveryContext discoveryContext);
     }
 }
