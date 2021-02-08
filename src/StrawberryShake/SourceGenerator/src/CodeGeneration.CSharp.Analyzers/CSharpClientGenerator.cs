@@ -137,11 +137,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                             new DiagnosticDescriptor(
                                 id: code,
                                 title: title,
-                                messageFormat: "The .graphql file '{0}' has errors.",
+                                messageFormat: error.Message,
                                 category: "StrawberryShakeGenerator",
                                 DiagnosticSeverity.Error,
-                                isEnabledByDefault: true,
-                                description: error.Message),
+                                isEnabledByDefault: true),
                             Microsoft.CodeAnalysis.Location.Create(
                                 filePath,
                                 TextSpan.FromBounds(

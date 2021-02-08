@@ -8,7 +8,7 @@
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild> <!-- Generates a package at build -->
     <IncludeBuildOutput>false</IncludeBuildOutput> <!-- Do not include the generator as a lib dependency -->
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-    <Version>0.0.21</Version>
+    <Version>0.0.22</Version>
   </PropertyGroup>
 
   <ItemGroup>
