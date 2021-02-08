@@ -10,7 +10,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private void AddUpdateEntityMethod(
             ClassBuilder classBuilder,
             MethodBuilder methodBuilder,
-            NamedTypeDescriptor namedTypeDescriptor)
+            NamedTypeDescriptor namedTypeDescriptor,
+            HashSet<string> processed)
         {
             var entityIdVarName = "entityId";
             methodBuilder.AddCode(
@@ -78,7 +79,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             AddRequiredDeserializeMethods(
                 namedTypeDescriptor,
-                classBuilder);
+                classBuilder,
+                processed);
         }
 
         private void WriteEntityLoader<T>(

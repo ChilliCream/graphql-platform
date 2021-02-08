@@ -102,6 +102,13 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 GetClassName(fragmentNode.Fragment.Name),
                 fragmentNode.Fragment.SelectionSet);
 
+            // We will check for a cached version of this type to have essentially one instance
+            // for each type.
+            if (context.TryGetModel(name, out OutputTypeModel? typeModel))
+            {
+                return typeModel;
+            }
+
             var fields = selectionSet.Fields
                 .Select(
                     t => new OutputFieldModel(
@@ -113,7 +120,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                         t.Path))
                 .ToList();
 
-            var typeModel = new OutputTypeModel(
+            typeModel = new OutputTypeModel(
                 name,
                 fragmentNode.Fragment.TypeCondition.Description,
                 isInterface: false,

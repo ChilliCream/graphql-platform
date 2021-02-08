@@ -55,5 +55,16 @@ namespace StrawberryShake.CodeGeneration.Extensions
 
             return typeDescriptor;
         }
+
+        public static ITypeDescriptor NamedType(this ITypeDescriptor typeDescriptor)
+        {
+            return typeDescriptor
+                .InnerType()
+                .InnerType()
+                .InnerType()
+                .InnerType()
+                .InnerType()
+                .InnerType();
+        }
     }
 }

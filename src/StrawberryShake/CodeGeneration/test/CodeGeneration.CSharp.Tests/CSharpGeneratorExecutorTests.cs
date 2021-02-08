@@ -101,6 +101,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         name
                         ... Human
                         ... Droid
+                        friends {
+                            nodes {
+                                name
+                            }
+                        }
                     }
 
                     fragment Human on Human {

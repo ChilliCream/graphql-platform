@@ -106,6 +106,16 @@
             throw new global::System.NotSupportedException();
         }
 
+        private global::System..string DeserializeNonNullableString(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            return _stringParser.Parse(obj.Value.GetString()!);
+        }
+
         private FriendsConnection DeserializeNonNullableFriendsConnectionData(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
@@ -184,16 +194,6 @@
             }
 
             return _intParser.Parse(obj.Value.GetInt()!);
-        }
-
-        private global::System..string DeserializeNonNullableString(global::System.Text.Json.JsonElement? obj)
-        {
-            if (!obj.HasValue)
-            {
-                throw new global::System.ArgumentNullException();
-            }
-
-            return _stringParser.Parse(obj.Value.GetString()!);
         }
     }
 }

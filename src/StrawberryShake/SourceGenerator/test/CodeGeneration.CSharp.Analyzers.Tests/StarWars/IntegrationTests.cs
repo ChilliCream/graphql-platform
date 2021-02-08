@@ -75,42 +75,5 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
                 yield return new Response<JsonDocument>(JsonDocument.Parse(json), null);
             }
         }
-
-        public class EpisodeParser
-            : ILeafValueParser<string, Episode>
-            , IInputValueFormatter
-        {
-            public string TypeName { get; } = "Episode";
-
-            public Episode Parse(string serializedValue)
-            {
-                switch (serializedValue)
-                {
-                    case "NEW_HOPE":
-                        return Episode.NewHope;
-
-                    case "Episode":
-                        return Episode.NewHope;
-
-                    default:
-                        throw new GraphQLClientException();
-                }
-            }
-
-            public object Format(object runtimeValue)
-            {
-                switch (runtimeValue)
-                {
-                    case "NEW_HOPE":
-                        return Episode.NewHope;
-
-                    case "Episode":
-                        return Episode.NewHope;
-
-                    default:
-                        throw new GraphQLClientException();
-                }
-            }
-        }
     }
 }

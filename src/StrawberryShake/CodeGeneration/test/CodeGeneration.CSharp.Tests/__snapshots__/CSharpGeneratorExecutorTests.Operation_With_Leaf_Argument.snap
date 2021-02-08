@@ -338,11 +338,16 @@ namespace Foo
         : global::StrawberryShake.IOperationResultDataFactory<CreateReview>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityMapper<ReviewEntity, CreateReview_CreateReview_Review> _createReview_CreateReview_ReviewFromReviewEntityMapper;
 
-        public CreateReviewFactory(global::StrawberryShake.IEntityStore entityStore)
+        public CreateReviewFactory(
+            global::StrawberryShake.IEntityStore entityStore,
+            global::StrawberryShake.IEntityMapper<ReviewEntity, CreateReview_CreateReview_Review> createReview_CreateReview_ReviewFromReviewEntityMapper)
         {
             _entityStore = entityStore
                  ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _createReview_CreateReview_ReviewFromReviewEntityMapper = createReview_CreateReview_ReviewFromReviewEntityMapper
+                 ?? throw new global::System.ArgumentNullException(nameof(createReview_CreateReview_ReviewFromReviewEntityMapper));
         }
 
         public CreateReview Create(global::StrawberryShake.IOperationResultDataInfo dataInfo)
@@ -352,6 +357,14 @@ namespace Foo
                 ICreateReview_CreateReview createReview = default!;
 
                 var createReviewInfo = info.CreateReview ?? throw new global::System.ArgumentNullException();
+                if (createReviewInfo.Name.Equals(
+                    "Review",
+                    global::System.StringComparison.Ordinal
+                ))
+                {
+                    createReview = _createReview_CreateReview_ReviewFromReviewEntityMapper.Map(_entityStore.GetEntity<ReviewEntity>(createReviewInfo) ?? throw new global::System.ArgumentNullException());
+                }
+
                 return new CreateReview(createReview);
             }
 
@@ -419,6 +432,29 @@ namespace Foo
 }
 
 
+// CreateReview_CreateReview_Review
+
+namespace Foo
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class CreateReview_CreateReview_Review
+        : ICreateReview_CreateReview_Review
+    {
+        public CreateReview_CreateReview_Review(
+            global::System.Int32 stars,
+            global::System.String? commentary)
+        {
+            Stars = stars;
+            Commentary = commentary;
+        }
+
+        public global::System.Int32 Stars { get; }
+
+        public global::System.String? Commentary { get; }
+    }
+}
+
+
 // ICreateReview
 
 namespace Foo
@@ -441,6 +477,18 @@ namespace Foo
         public global::System.Int32 Stars { get; }
 
         public global::System.String? Commentary { get; }
+    }
+}
+
+
+// ICreateReview_CreateReview_Review
+
+namespace Foo
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface ICreateReview_CreateReview_Review
+        : ICreateReview_CreateReview
+    {
     }
 }
 

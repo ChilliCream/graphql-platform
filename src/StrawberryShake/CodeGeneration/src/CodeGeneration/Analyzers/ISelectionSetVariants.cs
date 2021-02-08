@@ -6,11 +6,11 @@ namespace StrawberryShake.CodeGeneration.Analyzers
     public class SelectionSetVariants
     {
         public SelectionSetVariants(
-            SelectionSet returnType, 
+            SelectionSet returnType,
             IReadOnlyList<SelectionSet>? variants = null)
         {
             ReturnType = returnType;
-            Variants = variants ?? Array.Empty<SelectionSet>();
+            Variants = variants ?? new [] { returnType };
         }
 
         public SelectionSet ReturnType { get; }
