@@ -54,43 +54,31 @@ namespace HotChocolate.Data
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
+            void BindComparableAndNullable<T>() => descriptor
+                .BindRuntimeType<T, ComparableOperationFilterInputType<T>>()
+                .BindRuntimeType<T?, ComparableOperationFilterInputType<T?>>();
+
             descriptor
                 .BindRuntimeType<string, StringOperationFilterInputType>()
                 .BindRuntimeType<bool, BooleanOperationFilterInputType>()
-                .BindRuntimeType<byte, ComparableOperationFilterInputType<byte>>()
-                .BindRuntimeType<short, ComparableOperationFilterInputType<short>>()
-                .BindRuntimeType<int, ComparableOperationFilterInputType<int>>()
-                .BindRuntimeType<long, ComparableOperationFilterInputType<long>>()
-                .BindRuntimeType<float, ComparableOperationFilterInputType<float>>()
-                .BindRuntimeType<double, ComparableOperationFilterInputType<double>>()
-                .BindRuntimeType<decimal, ComparableOperationFilterInputType<decimal>>()
-                .BindRuntimeType<sbyte, ComparableOperationFilterInputType<sbyte>>()
-                .BindRuntimeType<ushort, ComparableOperationFilterInputType<ushort>>()
-                .BindRuntimeType<uint, ComparableOperationFilterInputType<uint>>()
-                .BindRuntimeType<ulong, ComparableOperationFilterInputType<ulong>>()
-                .BindRuntimeType<Guid, ComparableOperationFilterInputType<Guid>>()
-                .BindRuntimeType<DateTime, ComparableOperationFilterInputType<DateTime>>()
-                .BindRuntimeType<DateTimeOffset,
-                    ComparableOperationFilterInputType<DateTimeOffset>>()
-                .BindRuntimeType<TimeSpan, ComparableOperationFilterInputType<TimeSpan>>()
-                .BindRuntimeType<bool?, BooleanOperationFilterInputType>()
-                .BindRuntimeType<byte?, ComparableOperationFilterInputType<byte?>>()
-                .BindRuntimeType<short?, ComparableOperationFilterInputType<short?>>()
-                .BindRuntimeType<int?, ComparableOperationFilterInputType<int?>>()
-                .BindRuntimeType<long?, ComparableOperationFilterInputType<long?>>()
-                .BindRuntimeType<float?, ComparableOperationFilterInputType<float?>>()
-                .BindRuntimeType<double?, ComparableOperationFilterInputType<double?>>()
-                .BindRuntimeType<decimal?, ComparableOperationFilterInputType<decimal?>>()
-                .BindRuntimeType<sbyte?, ComparableOperationFilterInputType<sbyte>>()
-                .BindRuntimeType<ushort?, ComparableOperationFilterInputType<ushort>>()
-                .BindRuntimeType<uint?, ComparableOperationFilterInputType<uint>>()
-                .BindRuntimeType<ulong?, ComparableOperationFilterInputType<ulong>>()
-                .BindRuntimeType<Guid?, ComparableOperationFilterInputType<Guid?>>()
-                .BindRuntimeType<DateTime?, ComparableOperationFilterInputType<DateTime?>>()
-                .BindRuntimeType<DateTimeOffset?,
-                    ComparableOperationFilterInputType<DateTimeOffset?>>()
-                .BindRuntimeType<TimeSpan?, ComparableOperationFilterInputType<TimeSpan?>>();
-                
+                .BindRuntimeType<bool?, BooleanOperationFilterInputType>();
+
+            BindComparableAndNullable<byte>();
+            BindComparableAndNullable<short>();
+            BindComparableAndNullable<int>();
+            BindComparableAndNullable<long>();
+            BindComparableAndNullable<float>();
+            BindComparableAndNullable<double>();
+            BindComparableAndNullable<decimal>();
+            BindComparableAndNullable<sbyte>();
+            BindComparableAndNullable<ushort>();
+            BindComparableAndNullable<uint>();
+            BindComparableAndNullable<ulong>();
+            BindComparableAndNullable<Guid>();
+            BindComparableAndNullable<DateTime>();
+            BindComparableAndNullable<DateTimeOffset>();
+            BindComparableAndNullable<TimeSpan>();
+
             return descriptor;
         }
     }
