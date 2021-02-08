@@ -12,7 +12,21 @@ namespace StrawberryShake.CodeGeneration.CSharp
     {
         private static string[] _serializers = new[]
         {
-            TypeNames.StringSerializer
+            TypeNames.StringSerializer,
+            TypeNames.BooleanSerializer,
+            TypeNames.ByteSerializer,
+            TypeNames.ShortSerializer,
+            TypeNames.IntSerializer,
+            TypeNames.LongSerializer,
+            TypeNames.FloatSerializer,
+            TypeNames.DecimalSerializer,
+            TypeNames.UrlSerializer,
+            TypeNames.UuidSerializer,
+            TypeNames.IDSerializer,
+            TypeNames.DateTimeSerializer,
+            TypeNames.DateSerializer,
+            TypeNames.ByteArraySerializer,
+            TypeNames.TimeSpanSerializer
         };
 
         private static string[] _websocketProtocols = new[]
