@@ -262,7 +262,7 @@ const IndexPage: FunctionComponent = () => {
                   <GiaLogoSvg />
                 </Link>
               </Logo>
-              <Logo width={160}>
+              <Logo width={200}>
                 <Link to="https://www.incloud.de/">
                   <IncloudLogoSvg />
                 </Link>
