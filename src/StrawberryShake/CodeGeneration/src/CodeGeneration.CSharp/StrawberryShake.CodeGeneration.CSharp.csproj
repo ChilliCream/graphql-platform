@@ -9,6 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\Client\src\Core\StrawberryShake.Core.csproj" />
     <ProjectReference Include="..\..\..\Client\src\Transport.Http\StrawberryShake.Transport.Http.csproj" />
+    <ProjectReference Include="..\..\..\Client\src\Transport.WebSockets\StrawberryShake.Transport.WebSockets.csproj" />
     <ProjectReference Include="..\CodeGeneration\StrawberryShake.CodeGeneration.csproj" />
   </ItemGroup>
 

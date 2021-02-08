@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Text;
 using HotChocolate;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
@@ -12,6 +13,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private static string[] _serializers = new[]
         {
             TypeNames.StringSerializer
+        };
+
+        private static string[] _websocketProtocols = new[]
+        {
+            TypeNames.GraphQLWebSocketProtocolFactory
         };
 
         protected override void Generate(
@@ -51,13 +57,28 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         private ICode GenerateMethodBody(DependencyInjectionDescriptor descriptor)
         {
+            bool hasSubscriptions =
+                descriptor.Operations.OfType<SubscriptionOperationDescriptor>().Any();
+            bool hasQueries =
+                descriptor.Operations.OfType<QueryOperationDescriptor>().Any();
+            bool hasMutations =
+                descriptor.Operations.OfType<MutationOperationDescriptor>().Any();
+
             var stringBuilder = new StringBuilder();
             var codeWriter = new CodeWriter(stringBuilder);
 
             stringBuilder.AppendLine(_staticCode);
 
             codeWriter.WriteComment("register connections");
-            stringBuilder.AppendLine(RegisterConnection(descriptor.Name));
+            if (hasSubscriptions)
+            {
+                stringBuilder.AppendLine(RegisterWebSocketConnection(descriptor.Name));
+            }
+
+            if (hasQueries || hasMutations)
+            {
+                stringBuilder.AppendLine(RegisterHttpConnection(descriptor.Name));
+            }
 
             codeWriter.WriteComment("register mappers");
             codeWriter.WriteLine();
@@ -104,6 +125,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
             codeWriter.WriteComment("register operations");
             foreach (var operation in descriptor.Operations)
             {
+                string connectionKind = operation is SubscriptionOperationDescriptor
+                    ? TypeNames.WebSocketConnection
+                    : TypeNames.HttpConnection;
                 NameString operationName = operation.OperationName;
                 NameString fullName = operation.Name;
                 NameString operationInterface = operation.ResultTypeReference.Name;
@@ -111,6 +135,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 var resultBuilder = ResultBuilderNameFromTypeName(operationName);
                 stringBuilder.AppendLine(
                     RegisterOperation(
+                        connectionKind,
                         descriptor.Name,
                         operationName,
                         fullName,
@@ -119,10 +144,25 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         resultBuilder));
             }
 
+            if (hasSubscriptions)
+            {
+                codeWriter.WriteLine();
+                codeWriter.WriteComment("register websocket protocols");
+
+                foreach (var protocol in _websocketProtocols)
+                {
+                    AddProtocol(codeWriter, protocol);
+                }
+            }
+
+            stringBuilder.AppendLine();
+            stringBuilder.AppendLine("return services;");
+
             return CodeBlockBuilder.From(stringBuilder);
         }
 
         private static string RegisterOperation(
+            string connectionKind,
             string clientName,
             string operationName,
             string fullName,
@@ -141,17 +181,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
     {TypeNames.IOperationExecutor.WithGeneric(operationInterface)}>(
         services,
         sp => new {TypeNames.OperationExecutor.WithGeneric(TypeNames.JsonDocument, operationInterface)}(
-            {TypeNames.GetRequiredService.WithGeneric(TypeNames.IConnection.WithGeneric(TypeNames.JsonDocument))}(sp),
+            {TypeNames.GetRequiredService.WithGeneric(connectionKind)}(sp),
             () => {TypeNames.GetRequiredService.WithGeneric(TypeNames.IOperationResultBuilder.WithGeneric(TypeNames.JsonDocument, operationInterface))}(sp),
             {TypeNames.GetRequiredService.WithGeneric(TypeNames.IOperationStore)}(sp),
             strategy));
 
 {TypeNames.AddSingleton.WithGeneric(fullName)}(services);
-{TypeNames.AddSingleton.WithGeneric(clientName)}(services);
+{TypeNames.AddSingleton.WithGeneric(clientName)}(services);";
 
-return services;";
-
-        private static string RegisterConnection(string clientName) => $@"
+        private static string RegisterHttpConnection(string clientName) => $@"
 {TypeNames.AddSingleton}(
     services,
     sp =>
@@ -163,6 +201,21 @@ return services;";
 
         return new {TypeNames.HttpConnection}(
             () => clientFactory.CreateClient(""{clientName}""));
+    }});
+";
+
+        private static string RegisterWebSocketConnection(string clientName) => $@"
+{TypeNames.AddSingleton}(
+    services,
+    sp =>
+    {{
+        var sessionPool =
+            {TypeNames.GetRequiredService}<
+                {TypeNames.ISessionPool}
+                >(sp);
+
+        return new {TypeNames.WebSocketConnection}(
+            () => sessionPool.CreateAsync(""{clientName}"", default));
     }});
 ";
 
@@ -194,7 +247,14 @@ if (services is null)
             string @interface,
             string type)
         {
-            writer.WriteLine(TypeNames.AddSingleton.WithGeneric(@interface, type) + "(services);") ;
+            writer.WriteLine(TypeNames.AddSingleton.WithGeneric(@interface, type) + "(services);");
+        }
+
+        private void AddProtocol(
+            CodeWriter writer,
+            string protocol)
+        {
+            writer.WriteLine(TypeNames.AddProtocol.WithGeneric(protocol) + "(services);");
         }
     }
 }

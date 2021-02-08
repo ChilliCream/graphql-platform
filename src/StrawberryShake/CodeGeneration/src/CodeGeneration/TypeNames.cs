@@ -37,6 +37,10 @@ namespace StrawberryShake.CodeGeneration
         public const string ExecutionStrategy = StrawberryshakeNamespace + "ExecutionStrategy";
         public const string GetPropertyOrNull = StrawberryshakeNamespace + "Transport.Http.JsonElementExtensions.GetPropertyOrNull";
         public const string HttpConnection= StrawberryshakeNamespace + "Transport.Http.HttpConnection";
+        public const string WebSocketConnection= StrawberryshakeNamespace + "Transport.WebSockets.WebSocketConnection";
+        public const string ISessionPool= StrawberryshakeNamespace + "Transport.WebSockets.ISessionPool";
+        public const string AddProtocol= DependencyInjectionNamepsace + "WebSocketClientFactoryServiceCollectionExtensions.AddProtocol";
+        public const string GraphQLWebSocketProtocolFactory= StrawberryshakeNamespace + "Transport.WebSockets.Protocol.GraphQLWebSocketProtocolFactory";
 
         public const string JsonElement = "global::System.Text.Json.JsonElement";
         public const string JsonDocument = "global::System.Text.Json.JsonDocument";
