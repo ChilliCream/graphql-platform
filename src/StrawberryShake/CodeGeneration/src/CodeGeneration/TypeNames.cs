@@ -87,6 +87,19 @@ namespace StrawberryShake.CodeGeneration
         public const string DependencyInjectionExtensions =  DependencyInjectionNamepsace +"Extensions.ServiceCollectionDescriptorExtensions.";
 
         public const string StringSerializer = StrawberryshakeNamespace + "Serialization.StringSerializer";
-
+        public const string BooleanSerializer = StrawberryshakeNamespace + "Serialization.BooleanSerializer";
+        public const string ByteSerializer = StrawberryshakeNamespace + "Serialization.ByteSerializer";
+        public const string ShortSerializer = StrawberryshakeNamespace + "Serialization.ShortSerializer";
+        public const string IntSerializer = StrawberryshakeNamespace + "Serialization.IntSerializer";
+        public const string LongSerializer = StrawberryshakeNamespace + "Serialization.LongSerializer";
+        public const string FloatSerializer = StrawberryshakeNamespace + "Serialization.FloatSerializer";
+        public const string DecimalSerializer = StrawberryshakeNamespace + "Serialization.DecimalSerializer";
+        public const string UrlSerializer = StrawberryshakeNamespace + "Serialization.UrlSerializer";
+        public const string UuidSerializer = StrawberryshakeNamespace + "Serialization.UuidSerializer";
+        public const string IDSerializer = StrawberryshakeNamespace + "Serialization.IDSerializer";
+        public const string DateTimeSerializer = StrawberryshakeNamespace + "Serialization.DateTimeSerializer";
+        public const string DateSerializer = StrawberryshakeNamespace + "Serialization.DateSerializer";
+        public const string ByteArraySerializer = StrawberryshakeNamespace + "Serialization.ByteArraySerializer";
+        public const string TimeSpanSerializer = StrawberryshakeNamespace + "Serialization.TimeSpanSerializer";
     }
 }
