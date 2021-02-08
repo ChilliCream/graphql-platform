@@ -64,6 +64,10 @@ namespace HotChocolate.Data
                 .BindRuntimeType<float, ComparableOperationFilterInputType<float>>()
                 .BindRuntimeType<double, ComparableOperationFilterInputType<double>>()
                 .BindRuntimeType<decimal, ComparableOperationFilterInputType<decimal>>()
+                .BindRuntimeType<sbyte, ComparableOperationFilterInputType<sbyte>>()
+                .BindRuntimeType<ushort, ComparableOperationFilterInputType<ushort>>()
+                .BindRuntimeType<uint, ComparableOperationFilterInputType<uint>>()
+                .BindRuntimeType<ulong, ComparableOperationFilterInputType<ulong>>()
                 .BindRuntimeType<Guid, ComparableOperationFilterInputType<Guid>>()
                 .BindRuntimeType<DateTime, ComparableOperationFilterInputType<DateTime>>()
                 .BindRuntimeType<DateTimeOffset,
@@ -77,15 +81,15 @@ namespace HotChocolate.Data
                 .BindRuntimeType<float?, ComparableOperationFilterInputType<float?>>()
                 .BindRuntimeType<double?, ComparableOperationFilterInputType<double?>>()
                 .BindRuntimeType<decimal?, ComparableOperationFilterInputType<decimal?>>()
+                .BindRuntimeType<sbyte?, ComparableOperationFilterInputType<sbyte>>()
+                .BindRuntimeType<ushort?, ComparableOperationFilterInputType<ushort>>()
+                .BindRuntimeType<uint?, ComparableOperationFilterInputType<uint>>()
+                .BindRuntimeType<ulong?, ComparableOperationFilterInputType<ulong>>()
                 .BindRuntimeType<Guid?, ComparableOperationFilterInputType<Guid?>>()
                 .BindRuntimeType<DateTime?, ComparableOperationFilterInputType<DateTime?>>()
                 .BindRuntimeType<DateTimeOffset?,
                     ComparableOperationFilterInputType<DateTimeOffset?>>()
                 .BindRuntimeType<TimeSpan?, ComparableOperationFilterInputType<TimeSpan?>>();
-                .BindRuntimeType<sbyte, ComparableOperationFilterInputType<sbyte>>()
-                .BindRuntimeType<ushort, ComparableOperationFilterInputType<ushort>>()
-                .BindRuntimeType<uint, ComparableOperationFilterInputType<uint>>()
-                .BindRuntimeType<ulong, ComparableOperationFilterInputType<ulong>>()
                 
             return descriptor;
         }
