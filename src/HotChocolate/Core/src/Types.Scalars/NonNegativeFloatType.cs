@@ -4,7 +4,7 @@ using HotChocolate.Language;
 namespace HotChocolate.Types.Scalars
 {
     /// <summary>
-    /// The NonNegativeFloatType scalar represents double‐precision fractional value greater than
+    /// The NonNegativeFloatType scalar represents a double‐precision fractional value greater than
     /// or equal to 0.
     /// </summary>
     public class NonNegativeFloatType : FloatType
