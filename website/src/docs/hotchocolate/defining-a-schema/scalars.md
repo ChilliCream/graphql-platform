@@ -418,5 +418,3 @@ The NonNegativeFloat scalar type represents a double‐precision fractional valu
 """
 scalar NonNegativeFloat
 ```
-
-
