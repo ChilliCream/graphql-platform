@@ -85,6 +85,25 @@ namespace StrawberryShake.CodeGeneration.CSharp
         }
 
         [Fact]
+        public void Generate_ChatClient_MapperMapsEntityOnRootCorrectly()
+        {
+            // arrange
+            string[] fileNames =
+            {
+                Path.Combine("__resources__", "ChatSendMessage.graphql"),
+                Path.Combine("__resources__", "Schema.extensions.graphql"),
+                Path.Combine("__resources__", "ChatSchema.graphql")
+            };
+
+            // act
+            var generator = new CSharpGenerator();
+            var result = generator.Generate(fileNames);
+
+            // assert
+            AssertResult(result);
+        }
+
+        [Fact]
         public void Generate_ChatClient_InvalidNullCheck()
         {
             // arrange

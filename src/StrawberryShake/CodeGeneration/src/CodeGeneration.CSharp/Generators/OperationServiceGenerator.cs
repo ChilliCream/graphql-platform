@@ -12,7 +12,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
     public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
     {
         private static string _keyValuePair =
-            TypeNames.KeyValuePair.WithGeneric(TypeNames.String, TypeNames.Object.MakeNullable());
+            TypeNames.KeyValuePair.WithGeneric(
+                TypeNames.String,
+                TypeNames.Object.MakeNullable());
+
         private const string OperationExecutorFieldName = "_operationExecutor";
         private const string CreateRequestMethodName = "CreateRequest";
 
@@ -48,9 +51,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 var namedType = (NamedTypeDescriptor)property.Type.NamedType();
                 var type = InputValueFormatterFromType(namedType);
-                var typeWithNamespace = namedType.Kind == TypeKind.LeafType
-                    ? TypeNames.StrawberryshakeNamespace + "Serialization." + type
-                    : type;
+                var typeWithNamespace =
+                    namedType.Kind == TypeKind.InputType || namedType.IsEnum
+                    ? type
+                    : TypeNames.StrawberryshakeNamespace + "Serialization." + type;
                 var parameterName = InputValueFormatterFromType(namedType).WithLowerFirstChar();
                 var fieldName = "_" + parameterName;
 
@@ -174,11 +178,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
             foreach (var argument in operationDescriptor.Arguments)
             {
                 classBuilder.AddMethod("Format" + argument.Name.WithCapitalFirstChar())
-                    .AddParameter("value", x => x.SetType(argument.Type.ToBuilder()))
+                    .AddParameter(
+                        "value",
+                        x => x.SetType(argument.Type.ToBuilder()))
                     .SetReturnType(TypeNames.Object.MakeNullable())
                     .SetPrivate()
                     .AddCode(
-                        InputValueFormatterGenerator.GenerateSerializer(argument.Type, "value"));
+                        InputValueFormatterGenerator.GenerateSerializer(
+                            argument.Type,
+                            "value"));
             }
 
             CodeFileBuilder
@@ -218,9 +226,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
                 var argName = arg.Name.WithLowerFirstChar();
 
-                method.AddParameter(ParameterBuilder.New()
-                    .SetName(argName)
-                    .SetType(arg.Type.ToBuilder()));
+                method.AddParameter(
+                    ParameterBuilder.New()
+                        .SetName(argName)
+                        .SetType(arg.Type.ToBuilder()));
 
                 method.AddCode(
                     CodeLineBuilder.New()

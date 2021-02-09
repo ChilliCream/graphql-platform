@@ -30,7 +30,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
                                         _ => new NamedTypeDescriptor(
                                             enumType.Name,
                                             enumType.Namespace,
-                                            false)));
+                                            false,
+                                            isEnum: true)));
                             }
 
                             return new PropertyDescriptor(

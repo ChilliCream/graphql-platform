@@ -328,7 +328,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 $"{TypeNames.GetPropertyOrNull}({_objParamName}{propertyAccess}, " +
                 $"\"{property.Name.WithLowerFirstChar()}\")");
 
-            if (!property.Type.IsLeafType())
+            if (property.Type.IsEntityType() || property.Type.ContainsEntity())
             {
                 deserializeMethodCaller.AddArgument(_entityIdsParam);
             }

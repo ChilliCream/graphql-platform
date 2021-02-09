@@ -68,7 +68,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             ClientModel clientModel =
                 await TestHelper.CreateClientModelAsync(
                     @"
-                    mutation createReview($episode: Episode!, $review: ReviewInput!) {
+                    mutation createReviewMut($episode: Episode!, $review: ReviewInput!) {
                       createReview(episode: $episode, review: $review) {
                         stars
                         commentary
@@ -131,7 +131,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             // arrange
             ClientModel clientModel =
                 await TestHelper.CreateClientModelAsync(
-                    @"subscription OnReview {
+                    @"subscription OnReviewSub {
                         onReview(episode: NEW_HOPE) {
                             stars
                             commentary
