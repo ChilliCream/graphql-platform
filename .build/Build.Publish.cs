@@ -23,7 +23,7 @@ partial class Build : NukeBuild
     [Parameter("NuGet Api Key")] readonly string NuGetApiKey;
 
     Target Pack => _ => _
-        .DependsOn(PackLocal)
+        .DependsOn(Restore, PackLocal)
         .Produces(PackageDirectory / "*.nupkg")
         .Produces(PackageDirectory / "*.snupkg")
         .Requires(() => Configuration.Equals("Release"))
@@ -37,7 +37,6 @@ partial class Build : NukeBuild
         });
 
     Target PackLocal => _ => _
-        .DependsOn(Restore)
         .Produces(PackageDirectory / "*.nupkg")
         .Produces(PackageDirectory / "*.snupkg")
         .Executes(() =>
