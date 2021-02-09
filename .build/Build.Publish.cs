@@ -1,14 +1,19 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using Microsoft.Build.Evaluation;
 using Nuke.Common;
 using Nuke.Common.CI;
 using Nuke.Common.IO;
+using Nuke.Common.ProjectModel;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.NuGet;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Helpers;
 using static Nuke.Common.Tools.NuGet.NuGetTasks;
+using Project = Microsoft.Build.Evaluation.Project;
 
 
 partial class Build : NukeBuild
@@ -58,6 +63,24 @@ partial class Build : NukeBuild
                 .SetVersion(GitVersion.SemVer));
 
 
+            var projects = ProjectModelTasks.ParseSolution(SgSolutionFile)
+                    .AllProjects.Where(x => !x.Name.Contains("Tests"));
+
+            foreach (Nuke.Common.ProjectModel.Project project in projects)
+            {
+                Project parsedProject = ProjectModelTasks.ParseProject(project);
+                ProjectItem packageReference = parsedProject.Items
+                    .FirstOrDefault(x => x.ItemType == "PackageReference" &&
+                        !x.IsImported &&
+                        x.EvaluatedInclude == "StrawberryShake.CodeGeneration.CSharp");
+
+                packageReference?.SetMetadataValue("Version", GitVersion.SemVer);
+
+                parsedProject.SetProperty("Version", GitVersion.SemVer);
+
+                parsedProject.Save();
+            }
+
             /*
             NuGetPack(c => c
                 .SetVersion(GitVersion.SemVer)
@@ -90,4 +113,6 @@ partial class Build : NukeBuild
                 degreeOfParallelism: 2,
                 completeOnFailure: true);
         });
+
+
 }
