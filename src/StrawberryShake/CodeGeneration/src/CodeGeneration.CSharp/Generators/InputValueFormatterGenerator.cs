@@ -50,6 +50,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             foreach (var property in neededSerializers.Values)
             {
                 var namedType = (NamedTypeDescriptor)property.Type.NamedType();
+
                 var type = InputValueFormatterFromType(namedType);
                 var typeWithNamespace = namedType.Kind == TypeKind.LeafType
                     ? TypeNames.StrawberryshakeNamespace + "Serialization." + type
@@ -57,11 +58,20 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 var parameterName = InputValueFormatterFromType(namedType).WithLowerFirstChar();
                 var fieldName = "_" + parameterName;
 
-                ParameterBuilder parameterBuilder = ParameterBuilder.New()
-                    .SetType(typeWithNamespace)
-                    .SetName(type.WithLowerFirstChar());
+                var isSelfReference = namedType.Name == typeName;
+                if (isSelfReference)
+                {
+                    parameterName = "this";
+                }
+                else
+                {
+                    ParameterBuilder parameterBuilder = ParameterBuilder.New()
+                        .SetType(typeWithNamespace)
+                        .SetName(type.WithLowerFirstChar());
 
-                constructorBuilder.AddParameter(parameterBuilder);
+                    constructorBuilder.AddParameter(parameterBuilder);
+                }
+
 
                 FieldBuilder field = FieldBuilder.New()
                     .SetName(fieldName)

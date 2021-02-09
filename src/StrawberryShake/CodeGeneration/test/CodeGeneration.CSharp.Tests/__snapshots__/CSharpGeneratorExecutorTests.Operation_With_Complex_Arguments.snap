@@ -108,12 +108,10 @@ namespace Foo
         private readonly global::StrawberryShake.Serialization.StringSerializer _stringSerializer;
         private readonly BarInputValueFormatter _barInputValueFormatter;
 
-        public BarInputValueFormatter(
-            global::StrawberryShake.Serialization.StringSerializer stringSerializer,
-            BarInputValueFormatter barInputValueFormatter)
+        public BarInputValueFormatter(global::StrawberryShake.Serialization.StringSerializer stringSerializer)
         {
             _stringSerializer = stringSerializer;
-            _barInputValueFormatter = barInputValueFormatter;
+            _barInputValueFormatter = this;
         }
 
         public global::System.String TypeName => "Bar";
@@ -204,12 +202,12 @@ namespace Foo
 }
 
 
-// testQueryDocument
+// TestQueryDocument
 
 namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class testQueryDocument
+    public partial class TestQueryDocument
         : global::StrawberryShake.IDocument
     {
         private const global::System.String _bodyString = 
@@ -218,11 +216,11 @@ namespace Foo
 }";
         private static readonly byte[] _body = global::System.Text.Encoding.UTF8.GetBytes(_bodyString);
 
-        private testQueryDocument()
+        private TestQueryDocument()
         {
         }
 
-        public static testQueryDocument Instance { get; } = new testQueryDocument();
+        public static TestQueryDocument Instance { get; } = new TestQueryDocument();
 
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
 
@@ -236,17 +234,17 @@ namespace Foo
 }
 
 
-// testQuery
+// TestQuery
 
 namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class testQuery
+    public partial class TestQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<ITest> _operationExecutor;
         private readonly BarInputValueFormatter _barInputValueFormatter;
 
-        public testQuery(
+        public TestQuery(
             global::StrawberryShake.IOperationExecutor<ITest> operationExecutor,
             BarInputValueFormatter barInputValueFormatter)
         {
@@ -301,7 +299,7 @@ namespace Foo
 
             return new global::StrawberryShake.OperationRequest(
                 "ITest",
-                testQueryDocument.Instance,
+                TestQueryDocument.Instance,
                 arguments
             );
         }
@@ -342,12 +340,12 @@ namespace Foo
 }
 
 
-// testBuilder
+// TestBuilder
 
 namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class testBuilder
+    public partial class TestBuilder
         : global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, ITest>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -355,7 +353,7 @@ namespace Foo
         private readonly global::StrawberryShake.IOperationResultDataFactory<ITest> _resultDataFactory;
         private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
 
-        public testBuilder(
+        public TestBuilder(
             global::StrawberryShake.IEntityStore entityStore,
             global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> extractId,
             global::StrawberryShake.IOperationResultDataFactory<ITest> resultDataFactory,
@@ -424,15 +422,15 @@ namespace Foo
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient
     {
-        private readonly testQuery _testQuery;
+        private readonly TestQuery _testQuery;
 
-        public FooClient(testQuery testQuery)
+        public FooClient(TestQuery testQuery)
         {
             _testQuery = testQuery
                  ?? throw new global::System.ArgumentNullException(nameof(testQuery));
         }
 
-        public testQuery testQuery => _testQuery;
+        public TestQuery TestQuery => _testQuery;
     }
 }
 
@@ -531,12 +529,12 @@ namespace Foo
             // register operations
             
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
-                global::StrawberryShake.IOperationResultDataFactory<test>,
-                testFactory>(
+                global::StrawberryShake.IOperationResultDataFactory<Test>,
+                TestFactory>(
                     services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
                 global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, ITest>,
-                testBuilder>(
+                TestBuilder>(
                     services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
                 global::StrawberryShake.IOperationExecutor<ITest>>(
@@ -547,7 +545,7 @@ namespace Foo
                         global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
                         strategy));
             
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<testQuery>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<TestQuery>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<FooClient>(services);
             
             return services;
