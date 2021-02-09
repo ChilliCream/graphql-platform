@@ -378,11 +378,11 @@ namespace Foo
     public partial class GetHeroQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetHero> _operationExecutor;
-        private readonly global::StrawberryShake.Serialization.EpisodeSerializer _episodeSerializer;
+        private readonly EpisodeSerializer _episodeSerializer;
 
         public GetHeroQuery(
             global::StrawberryShake.IOperationExecutor<IGetHero> operationExecutor,
-            global::StrawberryShake.Serialization.EpisodeSerializer episodeSerializer)
+            EpisodeSerializer episodeSerializer)
         {
             _operationExecutor = operationExecutor
                  ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
@@ -390,7 +390,7 @@ namespace Foo
         }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetHero>> ExecuteAsync(
-            Foo.Episode? episode,
+            Episode? episode,
             global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(episode);
@@ -404,14 +404,14 @@ namespace Foo
         }
 
         public global::System.IObservable<global::StrawberryShake.IOperationResult<IGetHero>> Watch(
-            Foo.Episode? episode,
+            Episode? episode,
             global::StrawberryShake.ExecutionStrategy? strategy = null)
         {
             var request = CreateRequest(episode);
             return _operationExecutor.Watch(request, strategy);
         }
 
-        private global::StrawberryShake.OperationRequest CreateRequest(Foo.Episode? episode)
+        private global::StrawberryShake.OperationRequest CreateRequest(Episode? episode)
         {
             var arguments = new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>();
             arguments.Add("episode", FormatEpisode(episode));
@@ -423,7 +423,7 @@ namespace Foo
             );
         }
 
-        private global::System.Object? FormatEpisode(Foo.Episode? value)
+        private global::System.Object? FormatEpisode(Episode? value)
         {
             return _episodeSerializer.Format(value);
         }
