@@ -41,7 +41,7 @@ stages:
         steps:          
           - task: CmdLine@2
             inputs:
-              script: "./build.cmd pack --skip"
+              script: "./build.cmd pack"
           - task: PublishBuildArtifacts@1
             inputs:
               artifactName: packages
