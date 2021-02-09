@@ -65,6 +65,44 @@ namespace StrawberryShake.CodeGeneration.CSharp
             AssertResult(result);
         }
 
+        [Fact]
+        public void Generate_ChatClient_ConnectionNotAnEntity()
+        {
+            // arrange
+            string[] fileNames =
+            {
+                Path.Combine("__resources__", "ChatPeopleNodes.graphql"),
+                Path.Combine("__resources__", "Schema.extensions.graphql"),
+                Path.Combine("__resources__", "ChatSchema.graphql")
+            };
+
+            // act
+            var generator = new CSharpGenerator();
+            var result = generator.Generate(fileNames);
+
+            // assert
+            AssertResult(result);
+        }
+
+        [Fact]
+        public void Generate_ChatClient_InvalidNullCheck()
+        {
+            // arrange
+            string[] fileNames =
+            {
+                Path.Combine("__resources__", "ChatMeFiendsNodes.graphql"),
+                Path.Combine("__resources__", "Schema.extensions.graphql"),
+                Path.Combine("__resources__", "ChatSchema.graphql")
+            };
+
+            // act
+            var generator = new CSharpGenerator();
+            var result = generator.Generate(fileNames);
+
+            // assert
+            AssertResult(result);
+        }
+
         private static void AssertResult(
             CSharpGeneratorResult result)
         {
