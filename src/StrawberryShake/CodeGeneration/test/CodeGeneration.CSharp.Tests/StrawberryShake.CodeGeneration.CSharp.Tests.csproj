@@ -46,7 +46,6 @@
     <Folder Include="Generators\EnumParserGeneratorTests\__snapshots__\__mismatch__" />
     <Folder Include="Generators\__snapshots__\__mismatch__" />
     <Folder Include="__snapshots__" />
-    <Folder Include="__snapshots__\__mismatch__" />
   </ItemGroup>
   
 </Project>

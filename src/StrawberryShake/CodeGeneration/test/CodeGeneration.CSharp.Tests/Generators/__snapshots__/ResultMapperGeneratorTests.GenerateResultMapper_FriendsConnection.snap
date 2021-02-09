@@ -42,13 +42,13 @@
         {
 
 
-            if (entityId?.Name.Equals("Droid", global::System.StringComparison.Ordinal) ?? false)
+            if (entityId.Name.Equals("Droid", global::System.StringComparison.Ordinal))
             {
-                return _droidFromDroidEntityMapper.Map(_entityStore.GetEntity<DroidEntity>(entityId.Value));
+                return _droidFromDroidEntityMapper.Map(_entityStore.GetEntity<DroidEntity>(entityId));
             }
-            else if (entityId?.Name.Equals("Human", global::System.StringComparison.Ordinal) ?? false)
+            else if (entityId.Name.Equals("Human", global::System.StringComparison.Ordinal))
             {
-                return _humanFromHumanEntityMapper.Map(_entityStore.GetEntity<HumanEntity>(entityId.Value));
+                return _humanFromHumanEntityMapper.Map(_entityStore.GetEntity<HumanEntity>(entityId));
             }
             else {
                 throw new global::System.NotSupportedException();
