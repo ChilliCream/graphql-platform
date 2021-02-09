@@ -601,7 +601,7 @@ namespace StrawberryShake.GraphQL
             entityIds.Add(entityId);
 
 
-            if (entityId.Name.Equals("GetPeople_Me_Person", global::System.StringComparison.Ordinal))
+            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
             {
                 PersonEntity entity = _entityStore.GetOrCreate<PersonEntity>(entityId);
                 entity.Friends = DeserializeIGetPeople_Me_Friends(
@@ -675,7 +675,7 @@ namespace StrawberryShake.GraphQL
             entityIds.Add(entityId);
 
 
-            if (entityId.Name.Equals("GetPeople_Me_Friends_Nodes_Person", global::System.StringComparison.Ordinal))
+            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
             {
                 PersonEntity entity = _entityStore.GetOrCreate<PersonEntity>(entityId);
                 entity.Name = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "name"));

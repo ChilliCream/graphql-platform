@@ -35,7 +35,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     methodBuilder.AddEmptyLine();
                     var ifStatement = IfBuilder.New()
                         .SetCondition(
-                            $"entityId.Name.Equals(\"{concreteType.Name}\", " +
+                            $"entityId.Name.Equals(\"{concreteType.GraphQLTypeName}\", " +
                             $"{TypeNames.OrdinalStringComparisson})");
 
                     var entityTypeName =

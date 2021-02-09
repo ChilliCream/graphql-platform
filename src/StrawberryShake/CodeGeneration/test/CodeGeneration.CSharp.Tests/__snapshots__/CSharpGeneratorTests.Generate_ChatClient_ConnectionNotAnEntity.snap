@@ -556,7 +556,7 @@ namespace StrawberryShake.GraphQL
             entityIds.Add(entityId);
 
 
-            if (entityId.Name.Equals("GetPeople_People_Nodes_Person", global::System.StringComparison.Ordinal))
+            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
             {
                 PersonEntity entity = _entityStore.GetOrCreate<PersonEntity>(entityId);
                 entity.Name = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "name"));

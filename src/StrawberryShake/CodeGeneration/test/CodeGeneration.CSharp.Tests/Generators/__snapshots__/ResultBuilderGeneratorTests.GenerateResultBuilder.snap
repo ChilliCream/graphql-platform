@@ -79,7 +79,7 @@
             entityIds.Add(entityId);
 
 
-            if (entityId.Name.Equals("HumanHero", global::System.StringComparison.Ordinal))
+            if (entityId.Name.Equals("Human", global::System.StringComparison.Ordinal))
             {
                 HumanEntity entity = _entityStore.GetOrCreate<HumanEntity>(entityId);
                 entity.Name = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "name"));
@@ -91,7 +91,7 @@
                 return entityId;
             }
 
-            if (entityId.Name.Equals("DroidHero", global::System.StringComparison.Ordinal))
+            if (entityId.Name.Equals("Droid", global::System.StringComparison.Ordinal))
             {
                 DroidEntity entity = _entityStore.GetOrCreate<DroidEntity>(entityId);
                 entity.Name = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "name"));

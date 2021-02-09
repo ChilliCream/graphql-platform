@@ -497,7 +497,7 @@ namespace Foo
             entityIds.Add(entityId);
 
 
-            if (entityId.Name.Equals("GetHero_Hero_Droid", global::System.StringComparison.Ordinal))
+            if (entityId.Name.Equals("Droid", global::System.StringComparison.Ordinal))
             {
                 DroidEntity entity = _entityStore.GetOrCreate<DroidEntity>(entityId);
                 entity.Name = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "name"));
@@ -506,7 +506,7 @@ namespace Foo
                 return entityId;
             }
 
-            if (entityId.Name.Equals("GetHero_Hero_Human", global::System.StringComparison.Ordinal))
+            if (entityId.Name.Equals("Human", global::System.StringComparison.Ordinal))
             {
                 HumanEntity entity = _entityStore.GetOrCreate<HumanEntity>(entityId);
                 entity.Name = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "name"));
