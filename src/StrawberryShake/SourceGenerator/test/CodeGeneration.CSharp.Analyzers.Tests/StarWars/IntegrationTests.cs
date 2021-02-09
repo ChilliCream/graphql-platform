@@ -16,6 +16,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
         [Fact]
         public async Task Foo()
         {
+            var serviceCollection = new ServiceCollection();
+            // serviceCollection.AddStarWarsClientClient();
+            // serviceCollection.AddWebSocketClient("", "");
+            
+
             var entityStore = new EntityStore();
             var operationStore = new OperationStore(entityStore.Watch());
 

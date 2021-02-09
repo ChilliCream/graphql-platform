@@ -46,7 +46,7 @@ namespace Foo
             services.AddSingleton<IOperationResultBuilder<JsonDocument, IGetHero>, GetHeroBuilder>();
             services.AddSingleton<IOperationExecutor<IGetHero>>(
                 sp => new OperationExecutor<JsonDocument, IGetHero>(
-                    sp.GetRequiredService<IConnection<JsonDocument>>(),
+                    sp.GetRequiredService<HttpConnection>(),
                     () => sp.GetRequiredService<IOperationResultBuilder<JsonDocument, IGetHero>>(),
                     sp.GetRequiredService<IOperationStore>(),
                     strategy));

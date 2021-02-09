@@ -55,7 +55,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 factory.AddMethod(createSpecificEntityId);
             }
 
-            factory.Build(writer);
+            CodeFileBuilder
+                .New()
+                .SetNamespace(descriptor.Namespace)
+                .AddType(factory)
+                .Build(writer);
         }
 
         private ICode CreateEntityIdBody(EntityIdFactoryDescriptor descriptor)

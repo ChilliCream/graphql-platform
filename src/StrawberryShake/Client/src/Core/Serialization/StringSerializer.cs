@@ -1,13 +1,12 @@
+using System.Runtime.CompilerServices;
+
 namespace StrawberryShake.Serialization
 {
-    public class StringSerializer
-        : ILeafValueParser<string, string>
-        , IInputValueFormatter
+    public class StringSerializer : ScalarSerializer<string>
     {
-        public string TypeName => BuiltInTypeNames.String;
-
-        public string Parse(string serializedValue) => serializedValue;
-
-        public object Format(object runtimeValue) => runtimeValue;
+        public StringSerializer(string typeName = BuiltInTypeNames.String)
+            : base(typeName)
+        {
+        }
     }
 }

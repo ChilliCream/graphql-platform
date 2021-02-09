@@ -42,7 +42,8 @@ namespace StrawberryShake.Integration
                             new EntityIdDescriptor("id", "Int16"),
                             new EntityIdDescriptor("b", "Boolean")
                         })
-                });
+                },
+                "Foo");
 
             // act
             _generator.Generate(_codeWriter, descriptor, out _);

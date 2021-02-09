@@ -23,12 +23,27 @@ namespace StrawberryShake
         TEntity GetOrCreate<TEntity>(EntityId id)
             where TEntity : class, new();
 
+        /// <summary>
+        /// Gets an entity object that is tracked by the store.
+        /// </summary>
+        /// <param name="id">
+        /// The entity id.
+        /// </param>
+        /// <typeparam name="TEntity">
+        /// The entity type.
+        /// </typeparam>
+        /// <returns>
+        /// The retrieved entity instance.
+        /// </returns>
         TEntity? GetEntity<TEntity>(EntityId id)
             where TEntity : class;
 
         IReadOnlyList<TEntity> GetEntities<TEntity>(IEnumerable<EntityId> ids)
             where TEntity : class;
 
+        /// <summary>
+        /// Begins a session that allows to safely update and read from this store.
+        /// </summary>
         IEntityUpdateSession BeginUpdate();
 
         IObservable<EntityUpdate> Watch();

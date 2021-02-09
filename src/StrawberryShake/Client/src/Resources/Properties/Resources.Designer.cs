@@ -80,5 +80,113 @@ namespace StrawberryShake.Properties {
                 return ResourceManager.GetString("CodeFileBuilder_NamespaceCannotBeNull", resourceCulture);
             }
         }
+        
+        internal static string Serialization_MessageHadNoTypeSpecified {
+            get {
+                return ResourceManager.GetString("Serialization_MessageHadNoTypeSpecified", resourceCulture);
+            }
+        }
+        
+        internal static string Serialization_InvalidMessageType {
+            get {
+                return ResourceManager.GetString("Serialization_InvalidMessageType", resourceCulture);
+            }
+        }
+        
+        internal static string Serialization_InvalidToken {
+            get {
+                return ResourceManager.GetString("Serialization_InvalidToken", resourceCulture);
+            }
+        }
+        
+        internal static string Serialization_UnknownField {
+            get {
+                return ResourceManager.GetString("Serialization_UnknownField", resourceCulture);
+            }
+        }
+        
+        internal static string Protocol_CannotStartOperationOnClosedSocket {
+            get {
+                return ResourceManager.GetString("Protocol_CannotStartOperationOnClosedSocket", resourceCulture);
+            }
+        }
+        
+        internal static string Protocol_CannotInitializeOnClosedSocket {
+            get {
+                return ResourceManager.GetString("Protocol_CannotInitializeOnClosedSocket", resourceCulture);
+            }
+        }
+        
+        internal static string Argument_IsNullOrEmpty {
+            get {
+                return ResourceManager.GetString("Argument_IsNullOrEmpty", resourceCulture);
+            }
+        }
+        
+        internal static string SocketClient_URIWasNotSpecified {
+            get {
+                return ResourceManager.GetString("SocketClient_URIWasNotSpecified", resourceCulture);
+            }
+        }
+        
+        internal static string SocketClient_ProtocolNotFound {
+            get {
+                return ResourceManager.GetString("SocketClient_ProtocolNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string SocketClient_FailedToInitializeProtocol {
+            get {
+                return ResourceManager.GetString("SocketClient_FailedToInitializeProtocol", resourceCulture);
+            }
+        }
+        
+        internal static string SocketClient_AllOperationsFinished {
+            get {
+                return ResourceManager.GetString("SocketClient_AllOperationsFinished", resourceCulture);
+            }
+        }
+        
+        internal static string SessionManager_SessionIsNotOpen {
+            get {
+                return ResourceManager.GetString("SessionManager_SessionIsNotOpen", resourceCulture);
+            }
+        }
+        
+        internal static string SessionManager_SocketWasNotInitialized {
+            get {
+                return ResourceManager.GetString("SessionManager_SocketWasNotInitialized", resourceCulture);
+            }
+        }
+        
+        internal static string SessionManager_OperationWasAlreadyRegistered {
+            get {
+                return ResourceManager.GetString("SessionManager_OperationWasAlreadyRegistered", resourceCulture);
+            }
+        }
+        
+        internal static string SocketClientPool_ClientNotFromPool {
+            get {
+                return ResourceManager.GetString("SocketClientPool_ClientNotFromPool", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorOperationMessage_UnexpectedServerError {
+            get {
+                return ResourceManager.GetString("ErrorOperationMessage_UnexpectedServerError", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorOperationMessage_ConnectionInitializationError {
+            get {
+                return ResourceManager.GetString("ErrorOperationMessage_ConnectionInitializationError", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorOperationMessage_ResponseParsingError {
+            get {
+                return ResourceManager.GetString("ErrorOperationMessage_ResponseParsingError", resourceCulture);
+            }
+        }
     }
 }

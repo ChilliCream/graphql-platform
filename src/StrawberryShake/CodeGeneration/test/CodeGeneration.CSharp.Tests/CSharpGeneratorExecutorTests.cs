@@ -118,6 +118,28 @@ namespace StrawberryShake.CodeGeneration.CSharp
             AssertResult(clientModel, generator, documents);
         }
 
+        [Fact]
+        public async Task Subscription_With_Default_Names()
+        {
+            // arrange
+            ClientModel clientModel =
+                await TestHelper.CreateClientModelAsync(
+                    @"subscription OnReview {
+                        onReview(episode: NEW_HOPE) {
+                            stars
+                            commentary
+                        }
+                    }",
+                    "extend schema @key(fields: \"id\")");
+
+            // act
+            var documents = new StringBuilder();
+            var generator = new CSharpGeneratorExecutor();
+
+            // assert
+            AssertResult(clientModel, generator, documents);
+        }
+
         private static void AssertResult(
             ClientModel clientModel,
             CSharpGeneratorExecutor generator,

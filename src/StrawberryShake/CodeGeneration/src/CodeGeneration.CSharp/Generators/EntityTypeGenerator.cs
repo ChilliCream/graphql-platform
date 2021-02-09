@@ -17,8 +17,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             fileName = EntityTypeNameFromGraphQLTypeName(descriptor.GraphQLTypeName);
 
             ClassBuilder classBuilder = ClassBuilder.New()
-                .SetName(fileName)
-                .AddProperty(PropertyBuilder.New().SetName("Id").SetType(TypeNames.EntityId));
+                .SetName(fileName);
 
             // Add Properties to class
             foreach (KeyValuePair<string, PropertyDescriptor> item in descriptor.Properties)
