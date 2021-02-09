@@ -1,0 +1,42 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <ItemDefinitionGroup>
+    <GraphQL>
+      <Generator>MSBuild:Compile</Generator>
+    </GraphQL>
+    <GraphQLConfig>
+      <Generator>MSBuild:Compile</Generator>
+    </GraphQLConfig>
+  </ItemDefinitionGroup>
+
+  <ItemGroup>
+    <PropertyPageSchema Include="$(GraphQLPropertyPageSchema)">
+      <Context>File;BrowseObject</Context>
+    </PropertyPageSchema>
+    <AvailableItemName Include="GraphQL" />
+    <AvailableItemName Include="GraphQLConfig" />
+  </ItemGroup>
+
+  <Target Name="Roslyn44093Workaround" BeforeTargets="CoreCompile;ResolveProjectReferences;$(PrepareProjectReferencesDependsOn)" Condition="'$(DesignTimeBuild)' == 'true'">
+    <ItemGroup>
+      <!-- This is slightly over-zealous since it removes in-solution analyzers too -->
+      <_AnalyzerProjectReferencesToRemove Include="@(ProjectReference)" Condition="'%(OutputItemType)' == 'Analyzer'" />
+      <ProjectReference Remove="@(_AnalyzerProjectReferencesToRemove)" />
+
+      <Compile Include="$(CompilerGeneratedFilesOutputPath)/%(_AnalyzerProjectReferencesToRemove.Filename)/**/*.cs" Visible="false" />
+    </ItemGroup>
+  </Target>
+
+  <!-- Workaround for https://github.com/dotnet/roslyn/issues/47966 and https://github.com/dotnet/roslyn/issues/49125 -->
+  <Target Name="Roslyn46966And49125Workaround" BeforeTargets="CoreCompile;Clean" Condition="'$(DesignTimeBuild)' != 'true' and '$(CompilerGeneratedFilesOutputPath)' != ''">
+    <ItemGroup>
+      <_GeneratedSourceFileToRemove Include="$(CompilerGeneratedFilesOutputPath)/**/*.cs" />
+    </ItemGroup>
+    <Delete Files="@(_GeneratedSourceFileToRemove)" />
+  </Target>
+
+  <Target Name="SayHello">
+    <Message Text="Say Hello" Importance="High" />
+  </Target>
+  
+</Project>

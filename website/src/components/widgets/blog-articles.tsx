@@ -56,7 +56,7 @@ export const BlogArticles: FunctionComponent<BlogArticlesProperties> = ({
 };
 
 export const BlogArticlesGraphQLFragment = graphql`
-  fragment BlogArticles on MarkdownRemarkConnection {
+  fragment BlogArticles on MdxConnection {
     edges {
       node {
         id

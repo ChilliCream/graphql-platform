@@ -115,7 +115,9 @@ namespace HotChocolate.Types
         {
             foreach (InputFieldDefinition fieldDefinition in definition.Fields)
             {
-                fields.Add(new InputField(fieldDefinition));
+                fields.Add(new InputField(
+                    fieldDefinition,
+                    new FieldCoordinate(Name, fieldDefinition.Name)));
             }
         }
     }

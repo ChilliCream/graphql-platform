@@ -5,7 +5,11 @@ using Nuke.Common.IO;
 partial class Build : NukeBuild
 {
     AbsolutePath SourceDirectory => RootDirectory / "src";
+
     AbsolutePath AllSolutionFile => SourceDirectory / "All.sln";
+
+    AbsolutePath SgSolutionFile => SourceDirectory / "StrawberryShake" / "SourceGenerator" / "StrawberryShake.SourceGenerator.sln";
+
     AbsolutePath OutputDirectory => RootDirectory / "output";
     AbsolutePath TestResultDirectory => OutputDirectory / "test-results";
     AbsolutePath CoverageReportDirectory => OutputDirectory / "coberage-reports";
@@ -21,4 +25,3 @@ partial class Build : NukeBuild
 
     AbsolutePath EmptyServerProj => RootDirectory / "templates" / "Server" / "content" / "HotChocolate.Server.Template.csproj";
 }
-

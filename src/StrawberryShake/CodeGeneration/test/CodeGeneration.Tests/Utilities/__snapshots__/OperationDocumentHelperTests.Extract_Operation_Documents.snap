@@ -1,0 +1,4 @@
+﻿[
+  "query GetBookTitles {\n  books {\n    ... BookInfo\n  }\n}\n\nfragment BookInfo on Book {\n  title\n}",
+  "query GetBooksAndAuthor {\n  books {\n    ... BookInfo\n    author {\n      ... AuthorInfo\n    }\n  }\n}\n\nfragment BookInfo on Book {\n  title\n}\n\nfragment AuthorInfo on Author {\n  name\n}"
+]

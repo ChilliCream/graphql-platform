@@ -2,14 +2,53 @@
 title: "Versioning"
 ---
 
-Hi,
+import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
-We're currently working on the version 11 documentation. Probably right now at this very moment. However, this is an open-source project, and we need any help we can get! You can jump in at any time and help us improve the documentation for hundreds or even thousands of developers!
+GraphQL versioning works differently as the versioning you know from REST.
+While nothing stops you from versioning a GraphQL API like a REST API, it is not best practice to do so and most often is not needed.
 
-In case you might need help, check out our [Slack channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q) and get immediate help from the core contributors or the community itself.
+A GraphQL API can evolve. Many changes to a GraphQL Schema are non-breaking changes.
+You are free to add fields to a type for example. This does not break existing queries.
 
-Sorry for any inconvenience, and thank you for being patient!
+If you remove fields or change the nullability of a field, the contract with existing queries is broken.
+In GraphQL it is possible to deprecate fields.
+You can mark a field as deprecated to signal API consumers that a field is obsolete and will be removed in the future.
 
-The ChilliCream Team
+<ExampleTabs>
+<ExampleTabs.Annotation>
 
-<br><br><br>
+```csharp
+public class Query
+{
+    [Deprecated("Use `persons` field instead")]
+    public User[] GetUsers() { ... }
+
+    public User[] GetPersons() { ... }
+}
+```
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+```csharp
+public class Query : QueryType<Query>
+{
+    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
+    {
+        descriptor.Field(x => x.GetUsers()).Deprecated("Use `persons` field instead");
+    }
+}
+```
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+```sdl
+type Query {
+    users: [Users] @deprecated("Use `persons` field instead")
+    persons: [Users]
+}
+```
+
+</ExampleTabs.Schema>
+</ExampleTabs>

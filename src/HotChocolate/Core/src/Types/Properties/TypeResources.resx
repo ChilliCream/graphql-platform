@@ -261,7 +261,7 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
     <value>The inner value of enum value cannot be null or empty.</value>
   </data>
   <data name="FieldInitHelper_InvalidDefaultValue" xml:space="preserve">
-    <value>Could not parse the native value of input field `{0}.{1}`.</value>
+    <value>Could not parse the native value of input field `{0}`.</value>
   </data>
   <data name="FieldInitHelper_NoFields" xml:space="preserve">
     <value>{0} `{1}` has no fields declared.</value>

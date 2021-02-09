@@ -7,7 +7,7 @@ using Nuke.Common.Tools.DotNet;
 
 class Helpers
 {
-    static readonly string[] _directories = new string[]
+    static readonly string[] _directories =
     {
         "GreenDonut",
         // Path.Combine("HotChocolate", "ApolloFederation"),
@@ -20,7 +20,9 @@ class Helpers
         Path.Combine("HotChocolate", "Filters"),
         Path.Combine("HotChocolate", "MongoDb"),
         Path.Combine("HotChocolate", "Stitching"),
-        Path.Combine("HotChocolate", "Spatial")
+        Path.Combine("HotChocolate", "Spatial"),
+        Path.Combine("StrawberryShake", "Client"),
+        Path.Combine("StrawberryShake", "CodeGeneration")
     };
 
     public static IEnumerable<string> GetAllProjects(string sourceDirectory)

@@ -1,9 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public interface ICodeBuilder
     {
-        Task BuildAsync(CodeWriter writer);
+        void Build(CodeWriter writer);
     }
 }

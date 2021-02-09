@@ -1,0 +1,23 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <GraphQLPropertyPageSchema>$(MSBuildThisFileDirectory)GraphQL.xaml</GraphQLPropertyPageSchema>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- GraphQL Files -->
+    <None Remove="**/*.graphql" />
+    <GraphQL Include="**/*.graphql" />
+    <Watch Include="**/*.graphql" />
+    <AdditionalFiles Include="@(GraphQL)" GraphQL="true" />
+    <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="GraphQL" />
+
+    <!-- GraphQL Config Files -->
+    <None Remove="**/.graphqlrc.json" />
+    <GraphQLConfig Include="**/.graphqlrc.json" />
+    <Watch Include="**/.graphqlrc.json" />
+    <AdditionalFiles Include="@(GraphQLConfig)" GraphQLConfig="true" />
+    <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="GraphQLConfig" />
+  </ItemGroup>
+
+</Project>

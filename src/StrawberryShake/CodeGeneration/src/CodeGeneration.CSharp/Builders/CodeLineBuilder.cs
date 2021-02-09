@@ -1,39 +1,49 @@
 using System;
-using System.Threading.Tasks;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
-    public class CodeLineBuilder
-        : ICode
+    public class CodeLineBuilder : ICode
     {
-        private string? _value;
+        private ICode? _value;
+        private string? _sourceText;
 
         public static CodeLineBuilder New() => new CodeLineBuilder();
 
+        public static CodeLineBuilder From(string line) => New().SetLine(line);
+
         public CodeLineBuilder SetLine(string value)
         {
-            _value = value;
+            _sourceText = value;
+            _value = null;
             return this;
         }
 
-        public Task BuildAsync(CodeWriter writer)
+        public CodeLineBuilder SetLine(ICode value)
+        {
+            _value = value;
+            _sourceText = null;
+            return this;
+        }
+
+        public void Build(CodeWriter writer)
         {
             if (writer is null)
             {
                 throw new ArgumentNullException(nameof(writer));
             }
 
-            if (_value is null)
+            if (_value is not null)
             {
-                return Task.CompletedTask;
+                writer.WriteIndent();
+                _value.Build(writer);
+            }
+            else if (_sourceText is not null)
+            {
+                writer.WriteIndent();
+                writer.Write(_sourceText);
             }
 
-            if (_value.Length == 0)
-            {
-                return writer.WriteLineAsync();
-            }
-
-            return writer.WriteIndentedLineAsync(_value);
+            writer.WriteLine();
         }
     }
 }

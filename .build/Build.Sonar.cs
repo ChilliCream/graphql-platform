@@ -34,7 +34,7 @@ partial class Build : NukeBuild
 
             DotNetRestore(c => c
                 .SetProjectFile(AllSolutionFile)
-                .SetWorkingDirectory(RootDirectory));
+                .SetProcessWorkingDirectory(RootDirectory));
 
             SonarScannerBegin(SonarBeginPrSettings);
             DotNetBuild(SonarBuildAll);
@@ -60,7 +60,7 @@ partial class Build : NukeBuild
 
     SonarScannerBeginSettings SonarBeginPrSettings(SonarScannerBeginSettings settings) =>
         SonarBeginBaseSettings(settings)
-            .SetArgumentConfigurator(t => t
+            .SetProcessArgumentConfigurator(t => t
                 .Add("/o:{0}", "chillicream")
                 .Add("/d:sonar.pullrequest.provider={0}", "github")
                 .Add("/d:sonar.pullrequest.github.repository={0}", GitHubRepository)
@@ -80,19 +80,19 @@ partial class Build : NukeBuild
             .SetLogin(SonarToken)
             .AddOpenCoverPaths(TestResultDirectory / "*.xml")
             .SetVSTestReports(TestResultDirectory / "*.trx")
-            .SetArgumentConfigurator(t => t
+            .SetProcessArgumentConfigurator(t => t
                 .Add("/o:{0}", "chillicream")
                 .Add("/d:sonar.cs.roslyn.ignoreIssues={0}", "true"));
 
     SonarScannerBeginSettings SonarBaseSettings(SonarScannerBeginSettings settings) =>
         settings
             .SetLogin(SonarToken)
-            .SetWorkingDirectory(RootDirectory);
+            .SetProcessWorkingDirectory(RootDirectory);
 
     SonarScannerEndSettings SonarEndSettings(SonarScannerEndSettings settings) =>
         settings
             .SetLogin(SonarToken)
-            .SetWorkingDirectory(RootDirectory);
+            .SetProcessWorkingDirectory(RootDirectory);
 
     DotNetBuildSettings SonarBuildAll(DotNetBuildSettings settings) =>
         SonarBuildBaseSettings(settings)
@@ -101,6 +101,6 @@ partial class Build : NukeBuild
     DotNetBuildSettings SonarBuildBaseSettings(DotNetBuildSettings settings) =>
         settings
             .SetNoRestore(InvokedTargets.Contains(Restore))
-            .SetConfiguration(Configuration.Debug)
-            .SetWorkingDirectory(RootDirectory);
+            .SetConfiguration("Debug")
+            .SetProcessWorkingDirectory(RootDirectory);
 }

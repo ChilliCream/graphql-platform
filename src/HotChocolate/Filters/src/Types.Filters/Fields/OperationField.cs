@@ -7,7 +7,7 @@ namespace HotChocolate.Types.Filters
         , IFilterOperationField
     {
         internal FilterOperationField(FilterOperationDefintion definition)
-            : base(definition)
+            : base(definition, default)
         {
             Operation = definition.Operation ??
                 throw new ArgumentNullException(nameof(definition.Operation));
