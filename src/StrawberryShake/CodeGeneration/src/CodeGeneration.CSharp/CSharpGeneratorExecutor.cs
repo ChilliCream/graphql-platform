@@ -14,6 +14,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             new EntityTypeGenerator(),
             new EntityIdFactoryGenerator(),
             new DependencyInjectionGenerator(),
+            new InputValueFormatterGenerator(),
             new EnumGenerator(),
             new EnumParserGenerator(),
             new JsonResultBuilderGenerator(),

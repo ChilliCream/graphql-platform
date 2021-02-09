@@ -47,7 +47,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetAccessModifier(AccessModifier.Public);
 
             factory
-                .AddMethod($"Add{descriptor.Name}Client")
+                .AddMethod($"Add{descriptor.Name}")
                 .SetPublic()
                 .SetStatic()
                 .SetReturnType(TypeNames.IServiceCollection)
@@ -101,7 +101,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 if (typeDescriptor.Kind == TypeKind.EntityType && !typeDescriptor.IsInterface())
                 {
-                    NamedTypeDescriptor namedTypeDescriptor = typeDescriptor.ExtractNamedType();
+                    NamedTypeDescriptor namedTypeDescriptor =
+                        (NamedTypeDescriptor)typeDescriptor.NamedType();
                     NameString className = namedTypeDescriptor.ExtractMapperName();
 
                     var interfaceName =
@@ -131,6 +132,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     codeWriter,
                     TypeNames.ISerializer,
                     serializer);
+            }
+
+            foreach (var inputTypeDescriptor in descriptor.TypeDescriptors
+                .Where(x => x.Kind is TypeKind.InputType))
+            {
+                AddSingleton(
+                    codeWriter,
+                    TypeNames.ISerializer,
+                    InputValueFormatterFromType(
+                        (NamedTypeDescriptor)inputTypeDescriptor.NamedType()));
             }
 
             AddSingleton(codeWriter, TypeNames.ISerializerResolver, TypeNames.SerializerResolver);

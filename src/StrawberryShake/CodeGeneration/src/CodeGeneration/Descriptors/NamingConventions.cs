@@ -4,28 +4,22 @@ namespace StrawberryShake.CodeGeneration
 {
     public static class NamingConventions
     {
-        public static string ResultInfoNameFromTypeName(
-            string typeName) =>
+        public static string ResultInfoNameFromTypeName(string typeName) =>
             typeName + "Info";
 
-        public static string MutationServiceNameFromTypeName(
-            string typeName) =>
+        public static string MutationServiceNameFromTypeName(string typeName) =>
             typeName + "Mutation";
 
-        public static string SubscriptionServiceNameFromTypeName(
-            string typeName) =>
+        public static string SubscriptionServiceNameFromTypeName(string typeName) =>
             typeName + "Subscription";
 
-        public static string QueryServiceNameFromTypeName(
-            string typeName) =>
+        public static string QueryServiceNameFromTypeName(string typeName) =>
             typeName + "Query";
 
-        public static string EntityTypeNameFromGraphQLTypeName(
-            string typeName) =>
+        public static string EntityTypeNameFromGraphQLTypeName(string typeName) =>
             typeName + "Entity";
 
-        public static string DocumentTypeNameFromOperationName(
-            string typeName) =>
+        public static string DocumentTypeNameFromOperationName(string typeName) =>
             typeName + "Document";
 
         public static NameString DataMapperNameFromGraphQLTypeName(
@@ -38,8 +32,7 @@ namespace StrawberryShake.CodeGeneration
             string graphqlTypename) =>
             typeName + "From" + EntityTypeNameFromGraphQLTypeName(graphqlTypename) + "Mapper";
 
-        public static string RequestNameFromOperationServiceName(
-            string operationServiceName) =>
+        public static string RequestNameFromOperationServiceName(string operationServiceName) =>
             operationServiceName + "Request";
 
         public static string ResultFactoryNameFromTypeName(string typeName) =>
@@ -54,8 +47,12 @@ namespace StrawberryShake.CodeGeneration
         public static string EnumParserNameFromEnumName(in NameString descriptorName) =>
             descriptorName.Value + "Parser";
 
-        public static string ServiceCollectionExtensionsFromClientName(
-            string clientName) =>
+        public static string ServiceCollectionExtensionsFromClientName(string clientName) =>
             clientName + "ServiceCollectionExtensions";
+
+        public static string InputValueFormatterFromType(NamedTypeDescriptor type) =>
+            type.Kind == TypeKind.InputType
+                ? (type.GraphQLTypeName?.Value ?? type.Name) + "InputValueFormatter"
+                : (type.GraphQLTypeName?.Value ?? type.Name) + "Serializer";
     }
 }

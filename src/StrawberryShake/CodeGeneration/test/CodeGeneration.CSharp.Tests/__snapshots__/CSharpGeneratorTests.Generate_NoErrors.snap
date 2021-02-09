@@ -623,7 +623,7 @@ namespace StrawberryShake.GraphQL
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class GraphQLServiceCollectionExtensions
     {
-        public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddGraphQLClient(
+        public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddGraphQL(
             this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
             global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {

@@ -21,16 +21,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
                 : descriptor.Name;
         }
 
-        public static NamedTypeDescriptor ExtractNamedType(this ITypeDescriptor typeDescriptor)
-        {
-            return typeDescriptor switch
-            {
-                NamedTypeDescriptor nullableNamedType => nullableNamedType,
-                NonNullTypeDescriptor { InnerType: NamedTypeDescriptor namedType } => namedType,
-                _ => throw new ArgumentException(nameof(typeDescriptor))
-            };
-        }
-
         public static TypeReferenceBuilder ToBuilder(
             this ITypeDescriptor typeReferenceDescriptor,
             string? nameOverride = null,

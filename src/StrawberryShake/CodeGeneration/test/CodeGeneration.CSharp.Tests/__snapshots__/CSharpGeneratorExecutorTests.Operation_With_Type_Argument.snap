@@ -257,15 +257,50 @@ namespace Foo
 }
 
 
-// ICreateReview_CreateReview_ReviewData
+// ReviewInputInputValueFormatter
 
 namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ICreateReview_CreateReview_ReviewData
-        : ICreateReview_CreateReviewData
+    public partial class ReviewInputInputValueFormatter
+        : global::StrawberryShake.Serialization.IInputValueFormatter 
     {
-        public global::System.String __typename { get; }
+        private readonly global::StrawberryShake.Serialization.IntSerializer _intSerializer;
+        private readonly global::StrawberryShake.Serialization.StringSerializer _stringSerializer;
+
+        public ReviewInputInputValueFormatter(
+            global::StrawberryShake.Serialization.IntSerializer intSerializer,
+            global::StrawberryShake.Serialization.StringSerializer stringSerializer)
+        {
+            _intSerializer = intSerializer;
+            _stringSerializer = stringSerializer;
+        }
+
+        public global::System.String TypeName => "ReviewInput";
+
+        public global::System.Object? Format(global::System.Object? runtimeValue)
+        {
+            
+            if(!(runtimeValue is ReviewInput d)) {
+                throw new global::System.ArgumentException(nameof(runtimeValue));
+            }
+            
+            return new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>[] {
+                new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>(
+                    "stars", FormatStars(d.Stars)),
+                new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>(
+                    "commentary", FormatCommentary(d.Commentary))};
+        }
+
+        private global::System.Object? FormatStars(global::System.Int32 value)
+        {
+            return _intSerializer.Format(value);
+        }
+
+        private global::System.Object? FormatCommentary(global::System.String? value)
+        {
+            return _stringSerializer.Format(value);
+        }
     }
 }
 
@@ -328,11 +363,18 @@ namespace Foo
     public partial class createReviewMutation
     {
         private readonly global::StrawberryShake.IOperationExecutor<ICreateReview> _operationExecutor;
+        private readonly global::StrawberryShake.Serialization.EpisodeSerializer _episodeSerializer;
+        private readonly ReviewInputInputValueFormatter _reviewInputInputValueFormatter;
 
-        public createReviewMutation(global::StrawberryShake.IOperationExecutor<ICreateReview> operationExecutor)
+        public createReviewMutation(
+            global::StrawberryShake.IOperationExecutor<ICreateReview> operationExecutor,
+            global::StrawberryShake.Serialization.EpisodeSerializer episodeSerializer,
+            ReviewInputInputValueFormatter reviewInputInputValueFormatter)
         {
             _operationExecutor = operationExecutor
                  ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
+            _episodeSerializer = episodeSerializer;
+            _reviewInputInputValueFormatter = reviewInputInputValueFormatter;
         }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ICreateReview>> Execute(
@@ -369,15 +411,25 @@ namespace Foo
             Foo.Episode? episode,
             ReviewInput? review)
         {
-            var arguments = new global::System.Collections.Generic.Dictionary<string, object?>();
-            arguments.Add("episode", episode);
-            arguments.Add("review", review);
+            var arguments = new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>();
+            arguments.Add("episode", FormatEpisode(episode));
+            arguments.Add("review", FormatReview(review));
 
             return new global::StrawberryShake.OperationRequest(
                 "ICreateReview",
                 createReviewMutationDocument.Instance,
                 arguments
             );
+        }
+
+        private global::System.Object? FormatEpisode(Foo.Episode? value)
+        {
+            return _episodeSerializer.Format(value);
+        }
+
+        private global::System.Object? FormatReview(ReviewInput? value)
+        {
+            return _reviewInputInputValueFormatter.Format(value);
         }
     }
 }
@@ -545,7 +597,7 @@ namespace Foo
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class FooClientServiceCollectionExtensions
     {
-        public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddFooClientClient(
+        public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddFooClient(
             this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
             global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
@@ -607,6 +659,7 @@ namespace Foo
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, ReviewInputInputValueFormatter>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializerResolver, global::StrawberryShake.Serialization.SerializerResolver>(services);
             
             // register operations
