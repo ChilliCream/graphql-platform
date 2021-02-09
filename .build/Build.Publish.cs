@@ -23,6 +23,20 @@ partial class Build : NukeBuild
     [Parameter("NuGet Api Key")] readonly string NuGetApiKey;
 
     Target Pack => _ => _
+        .DependsOn(PackLocal)
+        .Produces(PackageDirectory / "*.nupkg")
+        .Produces(PackageDirectory / "*.snupkg")
+        .Requires(() => Configuration.Equals("Release"))
+        .Executes(() =>
+        {
+            var projFile = File.ReadAllText(StarWarsProj);
+            File.WriteAllText(StarWarsProj, projFile.Replace("11.0.0-rc.1", GitVersion.SemVer));
+
+            projFile = File.ReadAllText(EmptyServerProj);
+            File.WriteAllText(EmptyServerProj, projFile.Replace("11.0.0-rc.1", GitVersion.SemVer));
+        });
+
+    Target PackLocal => _ => _
         .DependsOn(Restore)
         .Produces(PackageDirectory / "*.nupkg")
         .Produces(PackageDirectory / "*.snupkg")
@@ -41,12 +55,6 @@ partial class Build : NukeBuild
                 .SetOutputDirectory(PackageDirectory)
                 .SetVersion(GitVersion.SemVer));
 
-            var projFile = File.ReadAllText(StarWarsProj);
-            File.WriteAllText(StarWarsProj, projFile.Replace("11.0.0-rc.1", GitVersion.SemVer));
-
-            projFile = File.ReadAllText(EmptyServerProj);
-            File.WriteAllText(EmptyServerProj, projFile.Replace("11.0.0-rc.1", GitVersion.SemVer));
-
             NuGetPack(c => c
                 .SetVersion(GitVersion.SemVer)
                 .SetOutputDirectory(PackageDirectory)
@@ -54,14 +62,6 @@ partial class Build : NukeBuild
                 .CombineWith(
                     t => t.SetTargetPath(StarWarsTemplateNuSpec),
                     t => t.SetTargetPath(EmptyServerTemplateNuSpec)));
-
-            DotNetPack(c => c
-                .SetProject(SgSolutionFile)
-                .SetNoBuild(InvokedTargets.Contains(Compile))
-                .SetConfiguration(Configuration)
-                .SetOutputDirectory(PackageDirectory)
-                .SetVersion(GitVersion.SemVer));
-
 
             var projects = ProjectModelTasks.ParseSolution(SgSolutionFile)
                     .AllProjects.Where(x => !x.Name.Contains("Tests"));
@@ -76,7 +76,27 @@ partial class Build : NukeBuild
 
                 packageReference?.SetMetadataValue("Version", GitVersion.SemVer);
 
-                parsedProject.SetProperty("Version", GitVersion.SemVer);
+                parsedProject.Save();
+            }
+
+            DotNetPack(c => c
+                .SetProject(SgSolutionFile)
+                .SetNoBuild(InvokedTargets.Contains(Compile))
+                .SetConfiguration(Configuration)
+                .SetOutputDirectory(PackageDirectory)
+                .SetIncludeSymbols(false)
+                .SetVersion(GitVersion.SemVer));
+
+            // update test projects that use the source generators
+            foreach (Nuke.Common.ProjectModel.Project project in projects)
+            {
+                Project parsedProject = ProjectModelTasks.ParseProject(project);
+                ProjectItem packageReference = parsedProject.Items
+                    .FirstOrDefault(x => x.ItemType == "PackageReference" &&
+                        !x.IsImported &&
+                        x.EvaluatedInclude == "StrawberryShake.CodeGeneration.CSharp.Analyzers");
+
+                packageReference?.SetMetadataValue("Version", GitVersion.SemVer);
 
                 parsedProject.Save();
             }
