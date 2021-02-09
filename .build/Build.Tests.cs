@@ -15,10 +15,9 @@ using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Nuke.Common.Tools.ReportGenerator.ReportGeneratorTasks;
 using static Helpers;
 
-
 partial class Build : NukeBuild
 {
-    readonly HashSet<string> ExcludedTests= new HashSet<string>
+    readonly HashSet<string> ExcludedTests = new()
     {
         "HotChocolate.Types.Selections.PostgreSql.Tests"
     };

@@ -50,6 +50,13 @@ partial class Build : NukeBuild
                     t => t.SetTargetPath(StarWarsTemplateNuSpec),
                     t => t.SetTargetPath(EmptyServerTemplateNuSpec)));
 
+            DotNetPack(c => c
+                .SetProject(SgSolutionFile)
+                .SetNoBuild(InvokedTargets.Contains(Compile))
+                .SetConfiguration(Configuration)
+                .SetOutputDirectory(PackageDirectory)
+                .SetVersion(GitVersion.SemVer));
+
 
             /*
             NuGetPack(c => c
