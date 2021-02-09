@@ -1,0 +1,15 @@
+# Example for data types that are interfaces
+
+interface SomeInterface {
+  name: String!
+}
+
+type SomeTypeA implements SomeInterface {
+  name: String!
+  kuchen: String!
+}
+
+type SomeTypeB implements SomeInterface {
+  name: String!
+  tee: String!
+}

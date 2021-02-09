@@ -18,7 +18,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
         {
             return descriptor.IsEntityType()
                 ? EntityTypeNameFromGraphQLTypeName(descriptor.GraphQLTypeName!)
-                : DataTypeNameFromTypeName(descriptor.Name);
+                : descriptor.Name;
         }
 
         public static NamedTypeDescriptor ExtractNamedType(this ITypeDescriptor typeDescriptor)
@@ -77,12 +77,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
         }
 
         public static TypeReferenceBuilder ToEntityIdBuilder(
-            this ITypeDescriptor typeReferenceDescriptor,
+            this ITypeDescriptor typeDescriptor,
             TypeReferenceBuilder? builder = null,
             bool isNonNull = false)
         {
             var actualBuilder = builder ?? TypeReferenceBuilder.New();
-            switch (typeReferenceDescriptor)
+            switch (typeDescriptor)
             {
                 case ListTypeDescriptor listTypeDescriptor:
                     actualBuilder.SetIsNullable(!isNonNull);
@@ -97,13 +97,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
                     {
                         actualBuilder.SetName(
                             $"{namedTypeDescriptor.Namespace}.{namedTypeDescriptor.Name}");
+                    } else if (namedTypeDescriptor.IsDataType())
+                    {
+                        actualBuilder.SetName(DataTypeNameFromTypeName(typeDescriptor.Name));
+                    } else if (namedTypeDescriptor.IsEntityType())
+                    {
+                        actualBuilder.SetName(TypeNames.EntityId);
                     }
                     else
                     {
-                        actualBuilder.SetName(
-                            typeReferenceDescriptor.IsEntityType()
-                                ? TypeNames.EntityId
-                                : typeReferenceDescriptor.Name);
+                        actualBuilder.SetName(typeDescriptor.Name);
                     }
 
                     break;
@@ -114,7 +117,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
                         true);
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(typeReferenceDescriptor));
+                    throw new ArgumentOutOfRangeException(nameof(typeDescriptor));
             }
 
             return actualBuilder;

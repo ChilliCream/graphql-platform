@@ -159,7 +159,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         ParameterBuilder.New()
                             .SetType(_jsonElementParamName)
                             .SetName(_objParamName));
-                if (typeReference.IsEntityType())
+                if (typeReference.IsEntityType() || typeReference.ContainsEntity())
                 {
                     methodBuilder.AddParameter(
                         ParameterBuilder.New()
@@ -375,7 +375,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     return namedTypeDescriptor.Kind switch
                     {
                         TypeKind.LeafType => typeDescriptor.Name.WithCapitalFirstChar(),
-                        TypeKind.DataType => DataTypeNameFromTypeName(typeDescriptor.Name),
+                        TypeKind.DataType => typeDescriptor.Name,
                         TypeKind.EntityType => EntityTypeNameFromGraphQLTypeName(
                             typeDescriptor.Name),
                         _ => throw new ArgumentOutOfRangeException()

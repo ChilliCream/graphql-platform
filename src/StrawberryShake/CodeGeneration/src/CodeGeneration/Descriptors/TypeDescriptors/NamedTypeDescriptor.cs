@@ -48,7 +48,11 @@ namespace StrawberryShake.CodeGeneration
         /// </summary>
         public NameString? GraphQLTypeName { get; }
 
+        /// <summary>
+        /// The runtimetype including namespace of the GraphQL scalar type
+        /// </summary>
         public string? SerializationType { get; }
+
         public bool IsEnum { get; }
 
         /// <summary>

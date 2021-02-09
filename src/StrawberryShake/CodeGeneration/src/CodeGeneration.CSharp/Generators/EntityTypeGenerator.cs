@@ -23,45 +23,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
             // Add Properties to class
             foreach (KeyValuePair<string, PropertyDescriptor> item in descriptor.Properties)
             {
-                switch (item.Value.Type.Kind)
-                {
-                    case TypeKind.LeafType:
-                        PropertyBuilder propBuilder =
-                            PropertyBuilder
-                                .New()
-                                .SetName(item.Value.Name)
-                                .SetType(item.Value.Type.ToBuilder())
-                                .MakeSettable()
-                                .SetAccessModifier(AccessModifier.Public);
-                        classBuilder.AddProperty(propBuilder);
-                        break;
-
-                    case TypeKind.DataType:
-                        PropertyBuilder dataBuilder =
-                            PropertyBuilder
-                                .New()
-                                .SetName(item.Value.Name)
-                                .SetType(
-                                    item.Value.Type.ToBuilder(
-                                        DataTypeNameFromTypeName(item.Value.Type.Name)))
-                                .MakeSettable()
-                                .SetAccessModifier(AccessModifier.Public);
-                        classBuilder.AddProperty(dataBuilder);
-                        break;
-
-                    case TypeKind.EntityType:
-                        PropertyBuilder referencePropertyBuilder = PropertyBuilder
-                            .New()
-                            .SetName(item.Value.Name)
-                            .SetType(item.Value.Type.ToBuilder().SetName(TypeNames.EntityId))
-                            .MakeSettable()
-                            .SetAccessModifier(AccessModifier.Public);
-                        classBuilder.AddProperty(referencePropertyBuilder);
-                        break;
-
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
+                PropertyBuilder referencePropertyBuilder = PropertyBuilder
+                    .New()
+                    .SetName(item.Value.Name)
+                    .SetType(item.Value.Type.ToEntityIdBuilder())
+                    .MakeSettable()
+                    .SetAccessModifier(AccessModifier.Public);
+                classBuilder.AddProperty(referencePropertyBuilder);
             }
 
             CodeFileBuilder

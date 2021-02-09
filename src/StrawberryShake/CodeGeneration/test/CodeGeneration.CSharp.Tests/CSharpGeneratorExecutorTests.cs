@@ -43,13 +43,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
                             appearsIn
                         }
                     }
-
-                    mutation createReview($episode: Episode!, $review: ReviewInput!) {
-                      createReview(episode: $episode, review: $review) {
-                        stars
-                        commentary
-                      }
-                    }
                     ",
                     "extend schema @key(fields: \"id\")");
 
