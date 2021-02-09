@@ -162,7 +162,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     RegisterOperation(
                         connectionKind,
                         descriptor.Name,
-                        operationName,
                         fullName,
                         operationInterface,
                         factory,
@@ -189,13 +188,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private static string RegisterOperation(
             string connectionKind,
             string clientName,
-            string operationName,
             string fullName,
             string operationInterface,
             string factory,
             string resultBuilder) => $@"
 {TypeNames.AddSingleton}<
-    {TypeNames.IOperationResultDataFactory.WithGeneric(operationName)},
+    {TypeNames.IOperationResultDataFactory.WithGeneric(operationInterface)},
     {factory}>(
         services);
 {TypeNames.AddSingleton}<
@@ -249,6 +247,10 @@ if (services is null)
 {{
     throw new {TypeNames.ArgumentNullException}(nameof(services));
 }}
+
+// register entity id factory
+
+{TypeNames.AddSingleton.WithGeneric(TypeNames.Func.WithGeneric(TypeNames.JsonElement, TypeNames.EntityId))}(services, EntityIdFactory.CreateEntityId)
 
 // register stores
 
