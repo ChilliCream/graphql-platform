@@ -455,6 +455,10 @@ namespace Foo
                 throw new global::System.ArgumentNullException(nameof(services));
             }
             
+            // register entity id factory
+            
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId>>(services, EntityIdFactory.CreateEntityId)
+            
             // register stores
             
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<
@@ -511,8 +515,13 @@ namespace Foo
             // register operations
             
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
+<<<<<<< HEAD
                 global::StrawberryShake.IOperationResultDataFactory<OnReviewSub>,
                 OnReviewSubFactory>(
+=======
+                global::StrawberryShake.IOperationResultDataFactory<IOnReview>,
+                OnReviewFactory>(
+>>>>>>> 63e7af5bd0755be88f696dba2784ada65b2cf63e
                     services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
                 global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, IOnReviewSub>,

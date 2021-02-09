@@ -636,6 +636,10 @@ namespace StrawberryShake.GraphQL
                 throw new global::System.ArgumentNullException(nameof(services));
             }
             
+            // register entity id factory
+            
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId>>(services, EntityIdFactory.CreateEntityId)
+            
             // register stores
             
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<
@@ -695,7 +699,7 @@ namespace StrawberryShake.GraphQL
             // register operations
             
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
-                global::StrawberryShake.IOperationResultDataFactory<GetHero>,
+                global::StrawberryShake.IOperationResultDataFactory<IGetHero>,
                 GetHeroFactory>(
                     services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
