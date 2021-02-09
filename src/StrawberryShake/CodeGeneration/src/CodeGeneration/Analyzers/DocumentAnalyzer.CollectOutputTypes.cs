@@ -4,6 +4,7 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Utilities;
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
 {
@@ -18,7 +19,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             CollectInputObjectTypes(context);
 
             return new(
-                context.OperationName,
+                GetClassName(context.OperationName),
                 context.OperationType,
                 QueryDocumentRewriter.Rewrite(context.Document, context.Schema),
                 context.OperationDefinition.Operation,

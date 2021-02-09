@@ -257,6 +257,19 @@ namespace Foo
 }
 
 
+// ICreateReview_CreateReview_ReviewData
+
+namespace Foo
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface ICreateReview_CreateReview_ReviewData
+        : ICreateReview_CreateReviewData
+    {
+        public global::System.String __typename { get; }
+    }
+}
+
+
 // ReviewInputInputValueFormatter
 
 namespace Foo
@@ -378,8 +391,8 @@ namespace Foo
         }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ICreateReview>> Execute(
-            Foo.Episode? episode,
-            ReviewInput? review,
+            Foo.Episode episode,
+            ReviewInput review,
             global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(
@@ -396,8 +409,8 @@ namespace Foo
         }
 
         public global::System.IObservable<global::StrawberryShake.IOperationResult<ICreateReview>> Watch(
-            Foo.Episode? episode,
-            ReviewInput? review,
+            Foo.Episode episode,
+            ReviewInput review,
             global::StrawberryShake.ExecutionStrategy? strategy = null)
         {
             var request = CreateRequest(
@@ -408,8 +421,8 @@ namespace Foo
         }
 
         private global::StrawberryShake.OperationRequest CreateRequest(
-            Foo.Episode? episode,
-            ReviewInput? review)
+            Foo.Episode episode,
+            ReviewInput review)
         {
             var arguments = new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>();
             arguments.Add("episode", FormatEpisode(episode));
@@ -422,12 +435,12 @@ namespace Foo
             );
         }
 
-        private global::System.Object? FormatEpisode(Foo.Episode? value)
+        private global::System.Object? FormatEpisode(Foo.Episode value)
         {
             return _episodeSerializer.Format(value);
         }
 
-        private global::System.Object? FormatReview(ReviewInput? value)
+        private global::System.Object? FormatReview(ReviewInput value)
         {
             return _reviewInputInputValueFormatter.Format(value);
         }
