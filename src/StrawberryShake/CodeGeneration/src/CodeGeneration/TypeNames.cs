@@ -30,7 +30,7 @@ namespace StrawberryShake.CodeGeneration
         public const string IEntityUpdateSession = StrawberryshakeNamespace + "IEntityUpdateSession";
         public const string IEntityUpdateSession_Version = "Version";
 
-        public const string Execute = "Execute";
+        public const string Execute = "ExecuteAsync";
         public const string Watch = "Watch";
         public const string Response = StrawberryshakeNamespace + "Response";
         public const string OperationRequest = StrawberryshakeNamespace + "OperationRequest";

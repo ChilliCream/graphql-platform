@@ -790,7 +790,7 @@ namespace Foo
                  ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
         }
 
-        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetHero>> Execute(global::System.Threading.CancellationToken cancellationToken = default)
+        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetHero>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest();
             
@@ -812,7 +812,7 @@ namespace Foo
         {
 
             return new global::StrawberryShake.OperationRequest(
-                "IGetHero",
+                "GetHero",
                 GetHeroQueryDocument.Instance
             );
         }

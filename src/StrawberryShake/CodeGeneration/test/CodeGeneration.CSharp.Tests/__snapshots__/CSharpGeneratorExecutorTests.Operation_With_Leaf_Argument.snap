@@ -389,7 +389,7 @@ namespace Foo
             _episodeSerializer = episodeSerializer;
         }
 
-        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetHero>> Execute(
+        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetHero>> ExecuteAsync(
             Foo.Episode? episode,
             global::System.Threading.CancellationToken cancellationToken = default)
         {
@@ -417,7 +417,7 @@ namespace Foo
             arguments.Add("episode", FormatEpisode(episode));
 
             return new global::StrawberryShake.OperationRequest(
-                "IGetHero",
+                "GetHero",
                 GetHeroQueryDocument.Instance,
                 arguments
             );

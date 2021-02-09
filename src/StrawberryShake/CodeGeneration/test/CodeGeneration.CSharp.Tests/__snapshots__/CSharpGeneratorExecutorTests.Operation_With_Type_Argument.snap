@@ -391,7 +391,7 @@ namespace Foo
             _reviewInputInputValueFormatter = reviewInputInputValueFormatter;
         }
 
-        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ICreateReview>> Execute(
+        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ICreateReview>> ExecuteAsync(
             Foo.Episode episode,
             ReviewInput review,
             global::System.Threading.CancellationToken cancellationToken = default)
@@ -430,7 +430,7 @@ namespace Foo
             arguments.Add("review", FormatReview(review));
 
             return new global::StrawberryShake.OperationRequest(
-                "ICreateReview",
+                "CreateReview",
                 CreateReviewMutationDocument.Instance,
                 arguments
             );

@@ -398,7 +398,7 @@ namespace StrawberryShake.GraphQL
                  ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
         }
 
-        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetPeople>> Execute(global::System.Threading.CancellationToken cancellationToken = default)
+        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetPeople>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest();
             
@@ -420,7 +420,7 @@ namespace StrawberryShake.GraphQL
         {
 
             return new global::StrawberryShake.OperationRequest(
-                "IGetPeople",
+                "GetPeople",
                 GetPeopleQueryDocument.Instance
             );
         }

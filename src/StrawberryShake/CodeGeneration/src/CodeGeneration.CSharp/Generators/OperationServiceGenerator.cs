@@ -200,7 +200,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             var requestConstructor = MethodCallBuilder.New()
                 .SetPrefix("return ")
                 .SetMethodName($"new {TypeNames.OperationRequest}")
-                .AddArgument($"\"{operationDescriptor.ResultTypeReference.Name}\"")
+                .AddArgument($"\"{operationDescriptor.OperationName}\"")
                 .AddArgument($"{typeName}.Instance");
 
             var first = true;

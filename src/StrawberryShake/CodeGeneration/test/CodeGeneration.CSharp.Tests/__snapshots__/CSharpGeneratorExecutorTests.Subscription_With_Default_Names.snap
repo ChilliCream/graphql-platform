@@ -282,7 +282,7 @@ namespace Foo
         {
 
             return new global::StrawberryShake.OperationRequest(
-                "IOnReview",
+                "OnReview",
                 OnReviewSubscriptionDocument.Instance
             );
         }

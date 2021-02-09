@@ -253,7 +253,7 @@ namespace Foo
             _barInputValueFormatter = barInputValueFormatter;
         }
 
-        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ITest>> Execute(
+        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ITest>> ExecuteAsync(
             Bar single,
             global::System.Collections.Generic.IReadOnlyList<Bar> list,
             global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<Bar>?>? nestedList,
@@ -298,7 +298,7 @@ namespace Foo
             arguments.Add("nestedList", FormatNestedList(nestedList));
 
             return new global::StrawberryShake.OperationRequest(
-                "ITest",
+                "Test",
                 TestQueryDocument.Instance,
                 arguments
             );
