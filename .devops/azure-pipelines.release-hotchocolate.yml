@@ -48,7 +48,7 @@ stages:
               pathtoPublish: "output/packages"
       - job: Publish
         displayName: "Publish"
-        dependsOn: [Test, Pack]
+        dependsOn: [Pack]
         steps:
           - task: DownloadBuildArtifacts@0
             inputs:
