@@ -1,7 +1,7 @@
 ﻿namespace FooBarNamespace
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class MetasyntacticVariableParser
+    public partial class MetasyntacticVariableSerializer
         : global::StrawberryShake.Serialization.IInputValueFormatter 
         , global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, MetasyntacticVariable>
     {

@@ -77,10 +77,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .New()
                     .SetLefthandSide(item.Name)
                     .SetRighthandSide(itemParamName);
-                if (item.Type.IsNonNullableType())
-                {
-                    assignment.AssertNonNull();
-                }
 
                 var paramType = item.Type.IsEntityType()
                     ? item.Type.ToEntityIdBuilder()

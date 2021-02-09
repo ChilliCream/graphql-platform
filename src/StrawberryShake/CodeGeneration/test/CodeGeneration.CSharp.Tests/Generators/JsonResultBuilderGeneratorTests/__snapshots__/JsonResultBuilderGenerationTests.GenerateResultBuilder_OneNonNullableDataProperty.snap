@@ -53,10 +53,7 @@
 
 
             var resultInfo = new FooInfo(
-                DeserializeNonNullableBar(
-                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj, "theBar"),
-                    entityIds
-                ),
+                DeserializeNonNullableBar(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj, "theBar")),
                 entityIds,
                 session.Version
             );

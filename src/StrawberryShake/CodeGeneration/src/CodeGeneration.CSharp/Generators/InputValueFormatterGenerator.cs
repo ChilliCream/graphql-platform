@@ -15,7 +15,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
     public class InputValueFormatterGenerator : CodeGenerator<NamedTypeDescriptor>
     {
         private static string _keyValuePair =
-            TypeNames.KeyValuePair.WithGeneric(TypeNames.String, TypeNames.Object.MakeNullable());
+            TypeNames.KeyValuePair.WithGeneric(
+                TypeNames.String,
+                TypeNames.Object.MakeNullable());
 
         protected override bool CanHandle(NamedTypeDescriptor descriptor)
         {
@@ -52,9 +54,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 var namedType = (NamedTypeDescriptor)property.Type.NamedType();
 
                 var type = InputValueFormatterFromType(namedType);
-                var typeWithNamespace = namedType.Kind == TypeKind.LeafType
-                    ? TypeNames.StrawberryshakeNamespace + "Serialization." + type
-                    : type;
+                var typeWithNamespace = namedType.Kind == TypeKind.InputType || namedType.IsEnum
+                    ? type
+                    : TypeNames.StrawberryshakeNamespace + "Serialization." + type;
                 var parameterName = InputValueFormatterFromType(namedType).WithLowerFirstChar();
                 var fieldName = "_" + parameterName;
 
@@ -93,7 +95,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
             // Format Method
             var formatBody = new StringBuilder();
 
-            formatBody.AppendLine(@$"
+            formatBody.AppendLine(
+                @$"
 if(!(runtimeValue is {typeName} d)) {{
     throw new {TypeNames.ArgumentException}(nameof(runtimeValue));
 }}
@@ -120,7 +123,9 @@ return new {_keyValuePair}[] {{");
                 .AddMethod(nameof(IInputValueFormatter.Format))
                 .SetPublic()
                 .SetReturnType(TypeNames.Object.MakeNullable())
-                .AddParameter("runtimeValue", x => x.SetType(TypeNames.Object.MakeNullable()))
+                .AddParameter(
+                    "runtimeValue",
+                    x => x.SetType(TypeNames.Object.MakeNullable()))
                 .AddCode(CodeBlockBuilder.From(formatBody));
 
             // generate serialization methods
@@ -128,10 +133,15 @@ return new {_keyValuePair}[] {{");
             foreach (var property in namedTypeDescriptor.Properties)
             {
                 classBuilder.AddMethod("Format" + property.Name)
-                    .AddParameter("value", x => x.SetType(property.Type.ToBuilder()))
+                    .AddParameter(
+                        "value",
+                        x => x.SetType(property.Type.ToBuilder()))
                     .SetReturnType(TypeNames.Object.MakeNullable())
                     .SetPrivate()
-                    .AddCode(GenerateSerializer(property.Type, "value"));
+                    .AddCode(
+                        GenerateSerializer(
+                            property.Type,
+                            "value"));
             }
 
             CodeFileBuilder
@@ -156,7 +166,10 @@ return new {_keyValuePair}[] {{");
                         ? CodeLineBuilder.From("return " + methodCall + ";")
                         : CodeLineBuilder.From($"{assignment}.Add({methodCall});");
                 case NonNullTypeDescriptor descriptor:
-                    return GenerateSerializer(descriptor.InnerType(), variableName, assignment);
+                    return GenerateSerializer(
+                        descriptor.InnerType(),
+                        variableName,
+                        assignment);
                 case ListTypeDescriptor descriptor:
                     return CodeBlockBuilder.New()
                         .AddCode(

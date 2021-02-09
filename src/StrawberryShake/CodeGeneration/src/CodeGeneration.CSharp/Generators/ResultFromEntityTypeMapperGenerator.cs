@@ -67,14 +67,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 foreach (PropertyDescriptor property in namedTypeDescriptor.Properties)
                 {
-                    if (property.Type.IsEntityType())
-                    {
-                        constructorCall.AddArgument($"{property.Name.WithLowerFirstChar()}Id");
-                    }
-                    else
-                    {
-                        constructorCall.AddArgument(BuildMapMethodCall(_entityParamName, property));
-                    }
+                    constructorCall.AddArgument(BuildMapMethodCall(_entityParamName, property));
                 }
             }
 
