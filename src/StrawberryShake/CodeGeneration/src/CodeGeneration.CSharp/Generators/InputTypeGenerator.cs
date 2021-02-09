@@ -1,10 +1,10 @@
+using System.Collections.Generic;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
-using StrawberryShake.CodeGeneration.Extensions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public class InputTypeGenerator: CodeGenerator<NamedTypeDescriptor>
+    public class InputTypeGenerator : CodeGenerator<NamedTypeDescriptor>
     {
         protected override bool CanHandle(NamedTypeDescriptor descriptor)
         {

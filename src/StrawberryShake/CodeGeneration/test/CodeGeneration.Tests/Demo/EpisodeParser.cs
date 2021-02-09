@@ -1,4 +1,5 @@
-﻿using StrawberryShake.Serialization;
+﻿using System.Collections.Generic;
+using StrawberryShake.Serialization;
 
 namespace Foo
 {

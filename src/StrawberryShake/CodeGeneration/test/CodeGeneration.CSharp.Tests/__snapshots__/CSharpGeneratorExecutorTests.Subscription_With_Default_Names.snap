@@ -379,7 +379,7 @@ namespace Foo
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class FooClientServiceCollectionExtensions
     {
-        public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddFooClientClient(
+        public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddFooClient(
             this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
             global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {

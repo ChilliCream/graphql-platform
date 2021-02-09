@@ -1,4 +1,6 @@
+using System;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
@@ -9,6 +11,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
     {
+        private static string _keyValuePair =
+            TypeNames.KeyValuePair.WithGeneric(TypeNames.String, TypeNames.Object.MakeNullable());
         private const string OperationExecutorFieldName = "_operationExecutor";
         private const string CreateRequestMethodName = "CreateRequest";
 
@@ -30,6 +34,43 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 OperationExecutorFieldName,
                 classBuilder,
                 constructorBuilder);
+
+            /// sterializer - start
+            var neededSerializers = operationDescriptor.Arguments
+                .ToLookup(x => x.Type.Name)
+                .Select(x => x.First())
+                .ToDictionary(x => x.Type.Name);
+
+            var code = CodeBlockBuilder.New();
+            constructorBuilder.AddCode(code);
+
+            foreach (var property in neededSerializers.Values)
+            {
+                var namedType = (NamedTypeDescriptor)property.Type.NamedType();
+                var type = InputValueFormatterFromType(namedType);
+                var typeWithNamespace = namedType.Kind == TypeKind.LeafType
+                    ? TypeNames.StrawberryshakeNamespace + "Serialization." + type
+                    : type;
+                var parameterName = InputValueFormatterFromType(namedType).WithLowerFirstChar();
+                var fieldName = "_" + parameterName;
+
+                ParameterBuilder parameterBuilder = ParameterBuilder.New()
+                    .SetType(typeWithNamespace)
+                    .SetName(type.WithLowerFirstChar());
+
+                constructorBuilder.AddParameter(parameterBuilder);
+
+                FieldBuilder field = FieldBuilder.New()
+                    .SetName(fieldName)
+                    .SetAccessModifier(AccessModifier.Private)
+                    .SetType(typeWithNamespace)
+                    .SetReadOnly();
+
+                classBuilder.AddField(field);
+
+                code.AddCode($"            {fieldName} = {parameterName};\n");
+            }
+            /// serializers - end
 
             MethodBuilder? executeMethod = null;
             if (operationDescriptor is not SubscriptionOperationDescriptor)
@@ -130,6 +171,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             classBuilder.AddMethod(CreateRequestMethod(operationDescriptor));
 
+            foreach (var argument in operationDescriptor.Arguments)
+            {
+                classBuilder.AddMethod("Format" + argument.Name.WithCapitalFirstChar())
+                    .AddParameter("value", x => x.SetType(argument.Type.ToBuilder()))
+                    .SetReturnType(TypeNames.Object.MakeNullable())
+                    .SetPrivate()
+                    .AddCode(
+                        InputValueFormatterGenerator.GenerateSerializer(argument.Type, "value"));
+            }
+
             CodeFileBuilder
                 .New()
                 .SetNamespace(operationDescriptor.Namespace)
@@ -158,9 +209,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 if (first)
                 {
                     var argumentsDictName = "arguments";
-                    method.AddCode($"var {argumentsDictName} = new {TypeNames.Dictionary}<string, object?>();");
+                    method.AddCode(
+                        $"var {argumentsDictName} = new {TypeNames.Dictionary.WithGeneric(TypeNames.String, TypeNames.Object.MakeNullable())}();");
                     requestConstructor.AddArgument(argumentsDictName);
                 }
+
                 first = false;
 
                 var argName = arg.Name.WithLowerFirstChar();
@@ -171,7 +224,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
                 method.AddCode(
                     CodeLineBuilder.New()
-                        .SetLine($"arguments.Add(\"{arg.Name}\", {argName});"));
+                        .SetLine(
+                            $"arguments.Add(\"{arg.Name}\", Format{arg.Name.WithCapitalFirstChar()}({argName}));"));
             }
 
             method.AddEmptyLine();

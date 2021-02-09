@@ -16,24 +16,31 @@ namespace StrawberryShake.CodeGeneration.Mappers
             foreach (OperationModel modelOperation in model.Operations)
             {
                 var arguments = modelOperation.Arguments.Select(
-                    arg =>
-                    {
-                        if (arg.Type.IsEnumType())
+                        arg =>
                         {
-                            var enumType = context.EnumTypes.Single(type => type.Name == arg.Type.TypeName());
+                            if (arg.Type.IsEnumType())
+                            {
+                                var enumType =
+                                    context.EnumTypes.Single(type =>
+                                        type.Name == arg.Type.TypeName());
+
+                                return new PropertyDescriptor(
+                                    arg.Name,
+                                    Unwrap(arg.Type,
+                                        _ => new NamedTypeDescriptor(
+                                            enumType.Name,
+                                            enumType.Namespace,
+                                            false)));
+                            }
 
                             return new PropertyDescriptor(
                                 arg.Name,
-                                new NamedTypeDescriptor(
-                                    enumType.Name,
-                                    enumType.Namespace,
-                                    false));
-                        }
-
-                        return new PropertyDescriptor(
-                            arg.Name,
-                            context.Types.Single(type => type.Name == arg.Type.TypeName()));
-                    }).ToList();
+                                Unwrap(arg.Type,
+                                    _ => context.Types.Single(
+                                        type => type.Name == arg.Type.TypeName()
+                                    )));
+                        })
+                    .ToList();
 
                 switch (modelOperation.OperationType)
                 {
@@ -73,6 +80,23 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
+            }
+        }
+
+        private static ITypeDescriptor Unwrap(
+            IType type,
+            Func<INamedType, NamedTypeDescriptor> mapNamedType)
+        {
+            switch (type)
+            {
+                case NonNullType descriptor:
+                    return new NonNullTypeDescriptor(Unwrap(descriptor.InnerType(), mapNamedType));
+                case ListType descriptor:
+                    return new ListTypeDescriptor(Unwrap(descriptor.InnerType(), mapNamedType));
+                case INamedType descriptor:
+                    return mapNamedType(descriptor);
+                default:
+                    throw new InvalidOperationException();
             }
         }
     }

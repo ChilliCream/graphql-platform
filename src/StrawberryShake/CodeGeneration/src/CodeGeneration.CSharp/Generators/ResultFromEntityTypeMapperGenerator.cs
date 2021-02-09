@@ -27,7 +27,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             var (classBuilder, constructorBuilder) = CreateClassBuilder(false);
 
 
-            NamedTypeDescriptor descriptor = typeDescriptor.ExtractNamedType();
+            NamedTypeDescriptor descriptor = (NamedTypeDescriptor)typeDescriptor.NamedType();
 
             // Setup class
             fileName = descriptor.ExtractMapperName();

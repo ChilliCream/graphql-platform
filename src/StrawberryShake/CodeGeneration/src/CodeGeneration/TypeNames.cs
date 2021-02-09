@@ -54,12 +54,14 @@ namespace StrawberryShake.CodeGeneration
         public const string Decimal = "global::System.Decimal";
         public const string Uri = "global::System.Uri";
         public const string Boolean = "global::System.Boolean";
+        public const string Object = "global::System.Object";
         public const string Guid = "global::System.Guid";
         public const string DateTime = "global::System.DateTime";
         public const string EncodingUtf8 = "global::System.Text.Encoding.UTF8";
         public const string List = GenericCollectionsNamespace + "List";
         public const string IList = GenericCollectionsNamespace + "IList";
         public const string IReadOnlyCollection = GenericCollectionsNamespace + "IReadOnlyCollection";
+        public const string IReadOnlyList = GenericCollectionsNamespace + "IReadOnlyList";
         public const string HashSet = GenericCollectionsNamespace + "HashSet";
         public const string ISet = GenericCollectionsNamespace + "ISet";
         public const string IReadOnlySpan = "global::System.ReadOnlySpan";
@@ -83,6 +85,7 @@ namespace StrawberryShake.CodeGeneration
         public const string GenericCollectionsNamespace = "global::System.Collections.Generic.";
         public const string StrawberryshakeNamespace = "global::StrawberryShake.";
         public const string Dictionary = "global::System.Collections.Generic.Dictionary";
+        public const string KeyValuePair = "global::System.Collections.Generic.KeyValuePair";
         public const string DependencyInjectionNamepsace = "global::Microsoft.Extensions.DependencyInjection.";
         public const string DependencyInjectionExtensions =  DependencyInjectionNamepsace +"Extensions.ServiceCollectionDescriptorExtensions.";
 

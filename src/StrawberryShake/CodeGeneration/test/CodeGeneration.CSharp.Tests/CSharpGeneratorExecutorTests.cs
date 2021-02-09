@@ -1,7 +1,14 @@
 using System.Text;
 using System.Threading.Tasks;
+using HotChocolate.Types;
+using HotChocolate.Execution;
+using HotChocolate.Language;
+using HotChocolate.Resolvers;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
+using StrawberryShake.CodeGeneration.Analyzers;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
+using StrawberryShake.CodeGeneration.Utilities;
 using Xunit;
 
 namespace StrawberryShake.CodeGeneration.CSharp
@@ -138,6 +145,49 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         }
                     }",
                     "extend schema @key(fields: \"id\")");
+
+            // act
+            var documents = new StringBuilder();
+            var generator = new CSharpGeneratorExecutor();
+
+            // assert
+            AssertResult(clientModel, generator, documents);
+        }
+
+        [Fact]
+        public void Operation_With_Complex_Arguments()
+        {
+            // arrange
+            ClientModel clientModel = new DocumentAnalyzer()
+                .SetSchema(
+                    SchemaHelper.Load(
+                        ("",
+                            Utf8GraphQLParser.Parse(@"
+                            schema {
+                                query: Query
+                            }
+
+                            type Query {
+                                foo(single: Bar!, list: [Bar!]!, nestedList: [[Bar]]): String
+                            }
+
+                            input Bar {
+                                str: String
+                                strNonNullable: String!
+                                nested: Bar
+                                nestedList: [Bar!]!
+                                nestedMatrix: [[Bar]]
+                            }"))
+                    ))
+                .AddDocument(
+                    Utf8GraphQLParser.Parse(
+                        @"
+                        query test($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
+                          foo(single: $single, list: $list, nestedList:$nestedList)
+                        }
+                    "))
+                .AddDocument(Utf8GraphQLParser.Parse("extend schema @key(fields: \"id\")"))
+                .Analyze();
 
             // act
             var documents = new StringBuilder();
