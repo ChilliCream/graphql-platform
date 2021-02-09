@@ -7,37 +7,38 @@ namespace Foo
         : global::StrawberryShake.IOperationResultDataFactory<OnReview>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<ReviewEntity, OnReview_OnReview_Review> _onReview_OnReview_ReviewFromReviewEntityMapper;
 
-        public OnReviewFactory(
-            global::StrawberryShake.IEntityStore entityStore,
-            global::StrawberryShake.IEntityMapper<ReviewEntity, OnReview_OnReview_Review> onReview_OnReview_ReviewFromReviewEntityMapper)
+        public OnReviewFactory(global::StrawberryShake.IEntityStore entityStore)
         {
             _entityStore = entityStore
                  ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-            _onReview_OnReview_ReviewFromReviewEntityMapper = onReview_OnReview_ReviewFromReviewEntityMapper
-                 ?? throw new global::System.ArgumentNullException(nameof(onReview_OnReview_ReviewFromReviewEntityMapper));
         }
 
         public OnReview Create(global::StrawberryShake.IOperationResultDataInfo dataInfo)
         {
             if (dataInfo is OnReviewInfo info)
             {
-                IOnReview_OnReview onReview = default!;
-
-                var onReviewInfo = info.OnReview ?? throw new global::System.ArgumentNullException();
-                if (onReviewInfo.Name.Equals(
-                    "Review",
-                    global::System.StringComparison.Ordinal
-                ))
-                {
-                    onReview = _onReview_OnReview_ReviewFromReviewEntityMapper.Map(_entityStore.GetEntity<ReviewEntity>(onReviewInfo) ?? throw new global::System.ArgumentNullException());
-                }
-
-                return new OnReview(onReview);
+                return new OnReview(MapNonNullableIOnReview_OnReview(info.OnReview));
             }
 
             throw new global::System.ArgumentException("OnReviewInfo expected.");
+        }
+
+        private IOnReview_OnReview MapNonNullableIOnReview_OnReview(IOnReview_OnReviewData data)
+        {
+            IOnReview_OnReview returnValue = default!;
+
+            if (data.__typename.Equals("Review", global::System.StringComparison.Ordinal))
+            {
+                returnValue = new OnReview_OnReview_Review(
+                    data.Stars,
+                    data.Commentary
+                );
+            }
+            else {
+                throw new global::System.NotSupportedException();
+            }
+            return returnValue;
         }
     }
 }

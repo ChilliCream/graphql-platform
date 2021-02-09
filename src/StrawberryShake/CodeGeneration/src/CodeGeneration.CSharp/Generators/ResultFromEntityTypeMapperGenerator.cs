@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Extensions;
@@ -8,7 +6,7 @@ using static StrawberryShake.CodeGeneration.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public partial class ResultFromEntityTypeMapperGenerator : ClassBaseGenerator<ITypeDescriptor>
+    public class ResultFromEntityTypeMapperGenerator : TypeMapperGenerator
     {
         const string _entityParamName = "entity";
         const string _storeFieldName = "_entityStore";
@@ -81,7 +79,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
 
 
-            var processed = new HashSet<string>();
 
             mapMethod.AddCode(constructorCall);
 
@@ -91,6 +88,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
 
             classBuilder.AddMethod(mapMethod);
+
+            var processed = new HashSet<string>();
             AddRequiredMapMethods(_entityParamName, descriptor, classBuilder, constructorBuilder, processed);
 
             CodeFileBuilder

@@ -6,32 +6,37 @@ using static StrawberryShake.CodeGeneration.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public partial class ResultFromEntityTypeMapperGenerator
+    public partial class TypeMapperGenerator
     {
         private const string EntityIdParamName = "entityId";
 
         private void AddEntityHandler(
-            ITypeDescriptor rootDescriptor,
             ClassBuilder classBuilder,
             ConstructorBuilder constructorBuilder,
             MethodBuilder method,
             NamedTypeDescriptor namedTypeDescriptor,
-            HashSet<string> processed)
+            HashSet<string> processed,
+            bool isNonNullable)
         {
             var nullabilityAdditive = "?";
-            if (rootDescriptor.IsNonNullableType())
+            if (isNonNullable)
             {
                 nullabilityAdditive = "";
             }
+
             method.AddParameter(
                 ParameterBuilder.New()
                     .SetType(TypeNames.EntityId + nullabilityAdditive)
                     .SetName(EntityIdParamName));
 
-            method.AddCode(
-                EnsureProperNullability(
-                    EntityIdParamName,
-                    rootDescriptor.IsNonNullableType()));
+            if (!isNonNullable)
+            {
+                method.AddCode(
+                    EnsureProperNullability(
+                        EntityIdParamName,
+                        isNonNullable));
+            }
+
 
             foreach (NamedTypeDescriptor implementee in namedTypeDescriptor.ImplementedBy)
             {
@@ -39,17 +44,19 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     EntityMapperNameFromGraphQLTypeName(
                         implementee.Name,
                         implementee.GraphQLTypeName);
+                if (processed.Add(dataMapperName))
+                {
+                    var dataMapperType =
+                        $"{TypeNames.IEntityMapper}<" +
+                        $"{EntityTypeNameFromGraphQLTypeName(implementee.GraphQLTypeName)}, " +
+                        $"{implementee.Name}>";
 
-                var dataMapperType =
-                    $"{TypeNames.IEntityMapper}<" +
-                    $"{EntityTypeNameFromGraphQLTypeName(implementee.GraphQLTypeName)}, " +
-                    $"{implementee.Name}>";
-
-                AddConstructorAssignedField(
-                    dataMapperType,
-                    dataMapperName.ToFieldName(),
-                    classBuilder,
-                    constructorBuilder);
+                    AddConstructorAssignedField(
+                        dataMapperType,
+                        dataMapperName.ToFieldName(),
+                        classBuilder,
+                        constructorBuilder);
+                }
             }
 
             var ifChain = InterfaceImplementeeIf(namedTypeDescriptor.ImplementedBy[0]);
@@ -71,19 +78,39 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 var dataMapperName =
                     EntityMapperNameFromGraphQLTypeName(
-                        interfaceImplementee.Name,
-                        interfaceImplementee.GraphQLTypeName)
+                            interfaceImplementee.Name,
+                            interfaceImplementee.GraphQLTypeName)
                         .ToFieldName();
 
-                var ifCorrectType = IfBuilder.New()
-                    .SetCondition(
+                var ifCorrectType = IfBuilder.New();
+
+                if (isNonNullable)
+                {
+                    ifCorrectType.SetCondition(
+                        $"{EntityIdParamName}.Name.Equals(\"" +
+                        $"{interfaceImplementee.GraphQLTypeName}\", {TypeNames.OrdinalStringComparisson})");
+                }
+                else
+                {
+                    ifCorrectType.SetCondition(
                         $"{EntityIdParamName}?.Name.Equals(\"" +
                         $"{interfaceImplementee.GraphQLTypeName}\", {TypeNames.OrdinalStringComparisson}) ?? false");
+                }
 
                 var constructorCall = MethodCallBuilder.New()
                     .SetPrefix($"return {dataMapperName}.")
-                    .SetMethodName("Map")
-                    .AddArgument($"{_storeFieldName}.GetEntity<{EntityTypeNameFromGraphQLTypeName(interfaceImplementee.GraphQLTypeName)}>({EntityIdParamName}.Value)");
+                    .SetMethodName("Map");
+
+                if (isNonNullable)
+                {
+                    constructorCall.AddArgument(
+                        $"{_storeFieldName}.GetEntity<{EntityTypeNameFromGraphQLTypeName(interfaceImplementee.GraphQLTypeName)}>({EntityIdParamName})");
+                }
+                else
+                {
+                    constructorCall.AddArgument(
+                        $"{_storeFieldName}.GetEntity<{EntityTypeNameFromGraphQLTypeName(interfaceImplementee.GraphQLTypeName)}>({EntityIdParamName}.Value)");
+                }
 
                 method.AddEmptyLine();
                 ifCorrectType.AddCode(constructorCall);

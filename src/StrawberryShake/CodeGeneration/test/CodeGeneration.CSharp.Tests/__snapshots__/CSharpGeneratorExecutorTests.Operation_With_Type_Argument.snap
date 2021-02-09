@@ -57,37 +57,38 @@ namespace Foo
         : global::StrawberryShake.IOperationResultDataFactory<CreateReview>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<ReviewEntity, CreateReview_CreateReview_Review> _createReview_CreateReview_ReviewFromReviewEntityMapper;
 
-        public CreateReviewFactory(
-            global::StrawberryShake.IEntityStore entityStore,
-            global::StrawberryShake.IEntityMapper<ReviewEntity, CreateReview_CreateReview_Review> createReview_CreateReview_ReviewFromReviewEntityMapper)
+        public CreateReviewFactory(global::StrawberryShake.IEntityStore entityStore)
         {
             _entityStore = entityStore
                  ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-            _createReview_CreateReview_ReviewFromReviewEntityMapper = createReview_CreateReview_ReviewFromReviewEntityMapper
-                 ?? throw new global::System.ArgumentNullException(nameof(createReview_CreateReview_ReviewFromReviewEntityMapper));
         }
 
         public CreateReview Create(global::StrawberryShake.IOperationResultDataInfo dataInfo)
         {
             if (dataInfo is CreateReviewInfo info)
             {
-                ICreateReview_CreateReview createReview = default!;
-
-                var createReviewInfo = info.CreateReview ?? throw new global::System.ArgumentNullException();
-                if (createReviewInfo.Name.Equals(
-                    "Review",
-                    global::System.StringComparison.Ordinal
-                ))
-                {
-                    createReview = _createReview_CreateReview_ReviewFromReviewEntityMapper.Map(_entityStore.GetEntity<ReviewEntity>(createReviewInfo) ?? throw new global::System.ArgumentNullException());
-                }
-
-                return new CreateReview(createReview);
+                return new CreateReview(MapNonNullableICreateReview_CreateReview(info.CreateReview));
             }
 
             throw new global::System.ArgumentException("CreateReviewInfo expected.");
+        }
+
+        private ICreateReview_CreateReview MapNonNullableICreateReview_CreateReview(ICreateReview_CreateReviewData data)
+        {
+            ICreateReview_CreateReview returnValue = default!;
+
+            if (data.__typename.Equals("Review", global::System.StringComparison.Ordinal))
+            {
+                returnValue = new CreateReview_CreateReview_Review(
+                    data.Stars,
+                    data.Commentary
+                );
+            }
+            else {
+                throw new global::System.NotSupportedException();
+            }
+            return returnValue;
         }
     }
 }

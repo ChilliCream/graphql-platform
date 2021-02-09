@@ -25,32 +25,30 @@
         {
             if (dataInfo is GetHeroResultInfo info)
             {
-                IHero hero = default!;
-
-                var heroInfo = info.Hero ?? throw new global::System.ArgumentNullException();
-                if (heroInfo.Name.Equals(
-                    "Human",
-                    global::System.StringComparison.Ordinal
-                ))
-                {
-                    hero = _humanHeroFromHumanEntityMapper.Map(_entityStore.GetEntity<HumanEntity>(heroInfo) ?? throw new global::System.ArgumentNullException());
-                }
-
-                if (heroInfo.Name.Equals(
-                    "Droid",
-                    global::System.StringComparison.Ordinal
-                ))
-                {
-                    hero = _droidHeroFromDroidEntityMapper.Map(_entityStore.GetEntity<DroidEntity>(heroInfo) ?? throw new global::System.ArgumentNullException());
-                }
-
                 return new GetHeroResult(
-                    hero,
+                    MapNonNullableIHero(info.Hero),
                     info.Version
                 );
             }
 
             throw new global::System.ArgumentException("GetHeroResultInfo expected.");
+        }
+
+        private IHero MapNonNullableIHero(global::StrawberryShake.EntityId entityId)
+        {
+
+
+            if (entityId?.Name.Equals("Human", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return _humanHeroFromHumanEntityMapper.Map(_entityStore.GetEntity<HumanEntity>(entityId.Value));
+            }
+            else if (entityId?.Name.Equals("Droid", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return _droidHeroFromDroidEntityMapper.Map(_entityStore.GetEntity<DroidEntity>(entityId.Value));
+            }
+            else {
+                throw new global::System.NotSupportedException();
+            }
         }
     }
 }

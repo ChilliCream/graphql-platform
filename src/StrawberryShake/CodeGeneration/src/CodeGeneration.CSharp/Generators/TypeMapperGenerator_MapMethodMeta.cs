@@ -6,17 +6,18 @@ using StrawberryShake.CodeGeneration.Extensions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public partial class ResultFromEntityTypeMapperGenerator
+    public partial class TypeMapperGenerator
     {
         /// <summary>
         /// Adds all required deserializers of the given type descriptors properties
         /// </summary>
-        private void AddRequiredMapMethods(
+        protected void AddRequiredMapMethods(
             string propAccess,
             NamedTypeDescriptor namedTypeDescriptor,
             ClassBuilder classBuilder,
             ConstructorBuilder constructorBuilder,
-            HashSet<string> processed)
+            HashSet<string> processed,
+            bool stopAtEntityMappers = false)
         {
             if (namedTypeDescriptor.IsInterface)
             {
@@ -42,7 +43,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         processed);
 
                     if (property.Type.NamedType() is NamedTypeDescriptor nt &&
-                        !nt.IsLeafType())
+                        !nt.IsLeafType() && !stopAtEntityMappers)
                     {
                         AddRequiredMapMethods(
                             propAccess,
@@ -124,14 +125,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
         }
 
         private CodeBlockBuilder EnsureProperNullability(
-            string propertyName = _entityParamName,
+            string propertyName,
             bool isNonNullType = false)
         {
             var ifBuilder = IfBuilder
                 .New()
                 .SetCondition(
                     ConditionBuilder.New()
-                        .Set($"{propertyName} == null"));
+                        .Set($"{propertyName} == default"));
             ifBuilder.AddCode(
                 isNonNullType
                     ? $"throw new {TypeNames.ArgumentNullException}();"
@@ -144,7 +145,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return codeBuilder;
         }
 
-        private ICode BuildMapMethodCall(string objectName, PropertyDescriptor property)
+        protected ICode BuildMapMethodCall(string objectName, PropertyDescriptor property)
         {
             switch (property.Type.Kind)
             {
@@ -169,7 +170,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
         }
 
-        private MethodCallBuilder BuildMapMethodCall(ITypeDescriptor property, string firstArg)
+        protected MethodCallBuilder BuildMapMethodCall(ITypeDescriptor property, string firstArg)
         {
             var deserializeMethodCaller = MethodCallBuilder.New()
                 .SetDetermineStatement(false)
@@ -185,18 +186,19 @@ namespace StrawberryShake.CodeGeneration.CSharp
             ConstructorBuilder constructorBuilder,
             MethodBuilder methodBuilder,
             ITypeDescriptor typeDescriptor,
-            HashSet<string> processed)
+            HashSet<string> processed,
+            bool isNonNullable = false)
         {
             switch (typeDescriptor)
             {
                 case ListTypeDescriptor listTypeDescriptor:
                     AddArrayHandler(
-                        typeDescriptor,
                         classBuilder,
                         constructorBuilder,
                         methodBuilder,
                         listTypeDescriptor,
-                        processed);
+                        processed,
+                        isNonNullable);
                     break;
 
                 case NamedTypeDescriptor namedTypeDescriptor:
@@ -207,22 +209,22 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
                         case TypeKind.DataType:
                             AddDataHandler(
-                                typeDescriptor,
                                 classBuilder,
                                 constructorBuilder,
                                 methodBuilder,
                                 namedTypeDescriptor,
-                                processed);
+                                processed,
+                                isNonNullable);
                             break;
 
                         case TypeKind.EntityType:
                             AddEntityHandler(
-                                typeDescriptor,
                                 classBuilder,
                                 constructorBuilder,
                                 methodBuilder,
                                 namedTypeDescriptor,
-                                processed);
+                                processed,
+                                isNonNullable);
                             break;
 
                         default:
@@ -232,6 +234,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     break;
 
                 case NonNullTypeDescriptor nonNullTypeDescriptor:
+                    AddMapMethodBody(
+                        classBuilder,
+                        constructorBuilder,
+                        methodBuilder,
+                        nonNullTypeDescriptor.InnerType,
+                        processed,
+                        true);
                     break;
 
                 default:

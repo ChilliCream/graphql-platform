@@ -5,11 +5,20 @@
         : global::StrawberryShake.IEntityMapper<HumanEntity, HumanHero>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityMapper<DroidEntity, Droid> _droidFromDroidEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<HumanEntity, Human> _humanFromHumanEntityMapper;
 
-        public HumanHeroFromHumanEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        public HumanHeroFromHumanEntityMapper(
+            global::StrawberryShake.IEntityStore entityStore,
+            global::StrawberryShake.IEntityMapper<DroidEntity, Droid> droidFromDroidEntityMapper,
+            global::StrawberryShake.IEntityMapper<HumanEntity, Human> humanFromHumanEntityMapper)
         {
             _entityStore = entityStore
                  ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _droidFromDroidEntityMapper = droidFromDroidEntityMapper
+                 ?? throw new global::System.ArgumentNullException(nameof(droidFromDroidEntityMapper));
+            _humanFromHumanEntityMapper = humanFromHumanEntityMapper
+                 ?? throw new global::System.ArgumentNullException(nameof(humanFromHumanEntityMapper));
         }
 
         public HumanHero Map(HumanEntity entity)
@@ -20,12 +29,40 @@
             );
         }
 
-        private FriendsConnection MapNonNullableFriendsConnection()
+        private FriendsConnection MapNonNullableFriendsConnection(FriendsConnectionData data)
         {
+            FriendsConnection returnValue = default!;
+
+            return returnValue;
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<ICharacter> MapNonNullableICharacterNonNullableArray()
+        private global::System.Collections.Generic.IReadOnlyList<ICharacter> MapNonNullableICharacterNonNullableArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId>? list)
         {
+            var iCharacters = new global::System.Collections.Generic.List<ICharacter>();
+
+            foreach (global::StrawberryShake.EntityId child in list)
+            {
+                iCharacters.Add(MapNonNullableICharacter(child));
+            }
+
+            return iCharacters;
+        }
+
+        private ICharacter MapNonNullableICharacter(global::StrawberryShake.EntityId entityId)
+        {
+
+
+            if (entityId?.Name.Equals("Droid", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return _droidFromDroidEntityMapper.Map(_entityStore.GetEntity<DroidEntity>(entityId.Value));
+            }
+            else if (entityId?.Name.Equals("Human", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return _humanFromHumanEntityMapper.Map(_entityStore.GetEntity<HumanEntity>(entityId.Value));
+            }
+            else {
+                throw new global::System.NotSupportedException();
+            }
         }
     }
 }

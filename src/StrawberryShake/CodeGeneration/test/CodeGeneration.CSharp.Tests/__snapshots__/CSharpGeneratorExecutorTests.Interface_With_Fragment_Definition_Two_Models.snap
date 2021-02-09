@@ -59,29 +59,32 @@ namespace Foo
         {
             if (dataInfo is GetHeroInfo info)
             {
-                IGetHero_Hero hero = default!;
-
-                var heroInfo = info.Hero ?? throw new global::System.ArgumentNullException();
-                if (heroInfo.Name.Equals(
-                    "Droid",
-                    global::System.StringComparison.Ordinal
-                ))
-                {
-                    hero = _getHero_Hero_DroidFromDroidEntityMapper.Map(_entityStore.GetEntity<DroidEntity>(heroInfo) ?? throw new global::System.ArgumentNullException());
-                }
-
-                if (heroInfo.Name.Equals(
-                    "Human",
-                    global::System.StringComparison.Ordinal
-                ))
-                {
-                    hero = _getHero_Hero_HumanFromHumanEntityMapper.Map(_entityStore.GetEntity<HumanEntity>(heroInfo) ?? throw new global::System.ArgumentNullException());
-                }
-
-                return new GetHero(hero);
+                return new GetHero(MapIGetHero_Hero(info.Hero));
             }
 
             throw new global::System.ArgumentException("GetHeroInfo expected.");
+        }
+
+        private IGetHero_Hero? MapIGetHero_Hero(global::StrawberryShake.EntityId? entityId)
+        {
+            if (entityId == default)
+            {
+                return null;
+            }
+
+
+
+            if (entityId?.Name.Equals("Droid", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return _getHero_Hero_DroidFromDroidEntityMapper.Map(_entityStore.GetEntity<DroidEntity>(entityId.Value));
+            }
+            else if (entityId?.Name.Equals("Human", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return _getHero_Hero_HumanFromHumanEntityMapper.Map(_entityStore.GetEntity<HumanEntity>(entityId.Value));
+            }
+            else {
+                throw new global::System.NotSupportedException();
+            }
         }
     }
 }
@@ -181,7 +184,7 @@ namespace Foo
 
         private IGetHero_Hero_Friends? MapIGetHero_Hero_Friends(IGetHero_Hero_FriendsData data)
         {
-            if (data == null)
+            if (data == default)
             {
                 return null;
             }
@@ -200,7 +203,7 @@ namespace Foo
 
         private global::System.Collections.Generic.IReadOnlyList<IGetHero_Hero_Friends_Nodes?>? MapIGetHero_Hero_Friends_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
         {
-            if (list == null)
+            if (list == default)
             {
                 return null;
             }
@@ -217,7 +220,7 @@ namespace Foo
 
         private IGetHero_Hero_Friends_Nodes? MapIGetHero_Hero_Friends_Nodes(global::StrawberryShake.EntityId? entityId)
         {
-            if (entityId == null)
+            if (entityId == default)
             {
                 return null;
             }
@@ -303,7 +306,7 @@ namespace Foo
 
         private IGetHero_Hero_Friends? MapIGetHero_Hero_Friends(IGetHero_Hero_FriendsData data)
         {
-            if (data == null)
+            if (data == default)
             {
                 return null;
             }
@@ -322,7 +325,7 @@ namespace Foo
 
         private global::System.Collections.Generic.IReadOnlyList<IGetHero_Hero_Friends_Nodes?>? MapIGetHero_Hero_Friends_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
         {
-            if (list == null)
+            if (list == default)
             {
                 return null;
             }
@@ -339,7 +342,7 @@ namespace Foo
 
         private IGetHero_Hero_Friends_Nodes? MapIGetHero_Hero_Friends_Nodes(global::StrawberryShake.EntityId? entityId)
         {
-            if (entityId == null)
+            if (entityId == default)
             {
                 return null;
             }
