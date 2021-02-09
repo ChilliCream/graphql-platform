@@ -22,7 +22,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             TypeNames.DecimalSerializer,
             TypeNames.UrlSerializer,
             TypeNames.UuidSerializer,
-            TypeNames.IDSerializer,
+            TypeNames.IdSerializer,
             TypeNames.DateTimeSerializer,
             TypeNames.DateSerializer,
             TypeNames.ByteArraySerializer,

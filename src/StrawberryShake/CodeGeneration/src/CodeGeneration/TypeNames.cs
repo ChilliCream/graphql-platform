@@ -99,7 +99,7 @@ namespace StrawberryShake.CodeGeneration
         public const string DecimalSerializer = StrawberryshakeNamespace + "Serialization.DecimalSerializer";
         public const string UrlSerializer = StrawberryshakeNamespace + "Serialization.UrlSerializer";
         public const string UuidSerializer = StrawberryshakeNamespace + "Serialization.UuidSerializer";
-        public const string IDSerializer = StrawberryshakeNamespace + "Serialization.IDSerializer";
+        public const string IdSerializer = StrawberryshakeNamespace + "Serialization.IdSerializer";
         public const string DateTimeSerializer = StrawberryshakeNamespace + "Serialization.DateTimeSerializer";
         public const string DateSerializer = StrawberryshakeNamespace + "Serialization.DateSerializer";
         public const string ByteArraySerializer = StrawberryshakeNamespace + "Serialization.ByteArraySerializer";
