@@ -4,3 +4,29 @@ query GetHero {
     ... Droid
   }
 }
+
+fragment Hero on Character {
+  id
+  name
+  appearsIn
+}
+
+fragment Human on Human {
+  ... Hero
+  homePlanet
+  friends {
+    nodes {
+      ... Hero
+    }
+  }
+}
+
+fragment Droid on Droid {
+  ... Hero
+  primaryFunction
+  friends {
+    nodes {
+      ... Hero
+    }
+  }
+}
