@@ -4,22 +4,28 @@
     public partial class DroidHeroFromDroidEntityMapper
         : global::StrawberryShake.IEntityMapper<DroidEntity, DroidHero>
     {
-        private readonly IEntityMapper<FriendsConnectionData, FriendsConnection> _friendsConnectionFromDataMapper;
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
 
-        public DroidHeroFromDroidEntityMapper(IEntityMapper<FriendsConnectionData, FriendsConnection> friendsConnectionFromDataMapper)
+        public DroidHeroFromDroidEntityMapper(global::StrawberryShake.IEntityStore entityStore)
         {
-            _friendsConnectionFromDataMapper = friendsConnectionFromDataMapper
-                 ?? throw new global::System.ArgumentNullException(nameof(friendsConnectionFromDataMapper));
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
         }
 
         public DroidHero Map(DroidEntity entity)
         {
-            var friends = _friendsConnectionFromDataMapper.Map(entity.Friends);
-
             return new DroidHero(
                 entity.Name,
-                friends
+                MapNonNullableFriendsConnection(entity.Friends)
             );
+        }
+
+        private FriendsConnection MapNonNullableFriendsConnection()
+        {
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<ICharacter> MapNonNullableICharacterNonNullableArray()
+        {
         }
     }
 }

@@ -105,7 +105,7 @@ namespace Foo
         private readonly ulong _version;
 
         public CreateReviewInfo(
-            ICreateReview_CreateReview createReview,
+            ICreateReview_CreateReviewData createReview,
             global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds,
             ulong version)
         {
@@ -115,7 +115,7 @@ namespace Foo
             _version = version;
         }
 
-        public ICreateReview_CreateReview CreateReview { get; }
+        public ICreateReview_CreateReviewData CreateReview { get; }
 
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
 
@@ -174,6 +174,35 @@ namespace Foo
 }
 
 
+// CreateReview_CreateReview_ReviewData
+
+namespace Foo
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class CreateReview_CreateReview_ReviewData
+        : ICreateReview_CreateReview_ReviewData
+    {
+        public CreateReview_CreateReview_ReviewData(
+            global::System.String typename,
+            global::System.Int32 stars,
+            global::System.String? commentary)
+        {
+            __typename = typename
+                 ?? throw new global::System.ArgumentNullException(nameof(typename));
+            Stars = stars
+                 ?? throw new global::System.ArgumentNullException(nameof(stars));
+            Commentary = commentary;
+        }
+
+        public global::System.String __typename { get; }
+
+        public global::System.Int32 Stars { get; }
+
+        public global::System.String? Commentary { get; }
+    }
+}
+
+
 // ICreateReview
 
 namespace Foo
@@ -200,6 +229,22 @@ namespace Foo
 }
 
 
+// ICreateReview_CreateReviewData
+
+namespace Foo
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface ICreateReview_CreateReviewData
+    {
+        public global::System.String __typename { get; }
+
+        public global::System.Int32 Stars { get; }
+
+        public global::System.String? Commentary { get; }
+    }
+}
+
+
 // ICreateReview_CreateReview_Review
 
 namespace Foo
@@ -208,6 +253,19 @@ namespace Foo
     public interface ICreateReview_CreateReview_Review
         : ICreateReview_CreateReview
     {
+    }
+}
+
+
+// ICreateReview_CreateReview_ReviewData
+
+namespace Foo
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface ICreateReview_CreateReview_ReviewData
+        : ICreateReview_CreateReviewData
+    {
+        public global::System.String __typename { get; }
     }
 }
 
@@ -385,7 +443,7 @@ namespace Foo
 
 
             var resultInfo = new CreateReviewInfo(
-                DeserializeNonNullableICreateReview_CreateReviewData(
+                DeserializeNonNullableICreateReview_CreateReview(
                     global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj, "createReview"),
                     entityIds
                 ),
@@ -396,17 +454,25 @@ namespace Foo
             return (_resultDataFactory.Create(resultInfo), resultInfo);
         }
 
-        private ICreateReview_CreateReview DeserializeNonNullableICreateReview_CreateReviewData(global::System.Text.Json.JsonElement? obj)
+        private ICreateReview_CreateReviewData DeserializeNonNullableICreateReview_CreateReview(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {
                 throw new global::System.ArgumentNullException();
             }
 
-            return new ICreateReview_CreateReviewData(
-                DeserializeNonNullableInt32(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "stars")),
-                DeserializeString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "commentary"))
-            );
+            var typename = obj.Value.GetProperty("__typename").GetString();
+
+            if (typename.Equals("Review", global::System.StringComparison.Ordinal))
+            {
+                return new CreateReview_CreateReview_ReviewData(
+                    typename,
+                    DeserializeNonNullableInt32(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "stars")),
+                    DeserializeString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "commentary"))
+                );
+            }
+
+            throw new global::System.NotSupportedException();
         }
 
         private global::System.Int32 DeserializeNonNullableInt32(global::System.Text.Json.JsonElement? obj)

@@ -55,7 +55,7 @@ namespace Foo
         private readonly ulong _version;
 
         public OnReviewInfo(
-            IOnReview_OnReview onReview,
+            IOnReview_OnReviewData onReview,
             global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds,
             ulong version)
         {
@@ -65,7 +65,7 @@ namespace Foo
             _version = version;
         }
 
-        public IOnReview_OnReview OnReview { get; }
+        public IOnReview_OnReviewData OnReview { get; }
 
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
 
@@ -124,6 +124,35 @@ namespace Foo
 }
 
 
+// OnReview_OnReview_ReviewData
+
+namespace Foo
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class OnReview_OnReview_ReviewData
+        : IOnReview_OnReview_ReviewData
+    {
+        public OnReview_OnReview_ReviewData(
+            global::System.String typename,
+            global::System.Int32 stars,
+            global::System.String? commentary)
+        {
+            __typename = typename
+                 ?? throw new global::System.ArgumentNullException(nameof(typename));
+            Stars = stars
+                 ?? throw new global::System.ArgumentNullException(nameof(stars));
+            Commentary = commentary;
+        }
+
+        public global::System.String __typename { get; }
+
+        public global::System.Int32 Stars { get; }
+
+        public global::System.String? Commentary { get; }
+    }
+}
+
+
 // IOnReview
 
 namespace Foo
@@ -150,6 +179,22 @@ namespace Foo
 }
 
 
+// IOnReview_OnReviewData
+
+namespace Foo
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IOnReview_OnReviewData
+    {
+        public global::System.String __typename { get; }
+
+        public global::System.Int32 Stars { get; }
+
+        public global::System.String? Commentary { get; }
+    }
+}
+
+
 // IOnReview_OnReview_Review
 
 namespace Foo
@@ -158,6 +203,19 @@ namespace Foo
     public interface IOnReview_OnReview_Review
         : IOnReview_OnReview
     {
+    }
+}
+
+
+// IOnReview_OnReview_ReviewData
+
+namespace Foo
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IOnReview_OnReview_ReviewData
+        : IOnReview_OnReviewData
+    {
+        public global::System.String __typename { get; }
     }
 }
 
@@ -288,7 +346,7 @@ namespace Foo
 
 
             var resultInfo = new OnReviewInfo(
-                DeserializeNonNullableIOnReview_OnReviewData(
+                DeserializeNonNullableIOnReview_OnReview(
                     global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj, "onReview"),
                     entityIds
                 ),
@@ -299,17 +357,25 @@ namespace Foo
             return (_resultDataFactory.Create(resultInfo), resultInfo);
         }
 
-        private IOnReview_OnReview DeserializeNonNullableIOnReview_OnReviewData(global::System.Text.Json.JsonElement? obj)
+        private IOnReview_OnReviewData DeserializeNonNullableIOnReview_OnReview(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {
                 throw new global::System.ArgumentNullException();
             }
 
-            return new IOnReview_OnReviewData(
-                DeserializeNonNullableInt32(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "stars")),
-                DeserializeString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "commentary"))
-            );
+            var typename = obj.Value.GetProperty("__typename").GetString();
+
+            if (typename.Equals("Review", global::System.StringComparison.Ordinal))
+            {
+                return new OnReview_OnReview_ReviewData(
+                    typename,
+                    DeserializeNonNullableInt32(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "stars")),
+                    DeserializeString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "commentary"))
+                );
+            }
+
+            throw new global::System.NotSupportedException();
         }
 
         private global::System.Int32 DeserializeNonNullableInt32(global::System.Text.Json.JsonElement? obj)

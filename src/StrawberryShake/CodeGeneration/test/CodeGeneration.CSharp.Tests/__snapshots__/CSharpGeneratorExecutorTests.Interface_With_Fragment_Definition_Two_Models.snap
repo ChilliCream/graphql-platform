@@ -5,8 +5,6 @@ namespace Foo
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class DroidEntity
     {
-        public global::StrawberryShake.EntityId Id { get; }
-
         public global::System.String Name { get; set; }
 
         public global::System.String? PrimaryFunction { get; set; }
@@ -23,8 +21,6 @@ namespace Foo
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class HumanEntity
     {
-        public global::StrawberryShake.EntityId Id { get; }
-
         public global::System.String Name { get; set; }
 
         public global::System.String? HomePlanet { get; set; }
@@ -157,23 +153,88 @@ namespace Foo
     public partial class GetHero_Hero_DroidFromDroidEntityMapper
         : global::StrawberryShake.IEntityMapper<DroidEntity, GetHero_Hero_Droid>
     {
-        private readonly IEntityMapper<IGetHero_Hero_FriendsData, IGetHero_Hero_Friends> _iGetHero_Hero_FriendsFromCharacterConnectionDataMapper;
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityMapper<DroidEntity, GetHero_Hero_Friends_Nodes_Droid> _getHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<HumanEntity, GetHero_Hero_Friends_Nodes_Human> _getHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper;
 
-        public GetHero_Hero_DroidFromDroidEntityMapper(IEntityMapper<IGetHero_Hero_FriendsData, IGetHero_Hero_Friends> iGetHero_Hero_FriendsFromCharacterConnectionDataMapper)
+        public GetHero_Hero_DroidFromDroidEntityMapper(
+            global::StrawberryShake.IEntityStore entityStore,
+            global::StrawberryShake.IEntityMapper<DroidEntity, GetHero_Hero_Friends_Nodes_Droid> getHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper,
+            global::StrawberryShake.IEntityMapper<HumanEntity, GetHero_Hero_Friends_Nodes_Human> getHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper)
         {
-            _iGetHero_Hero_FriendsFromCharacterConnectionDataMapper = iGetHero_Hero_FriendsFromCharacterConnectionDataMapper
-                 ?? throw new global::System.ArgumentNullException(nameof(iGetHero_Hero_FriendsFromCharacterConnectionDataMapper));
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _getHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper = getHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper
+                 ?? throw new global::System.ArgumentNullException(nameof(getHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper));
+            _getHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper = getHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper
+                 ?? throw new global::System.ArgumentNullException(nameof(getHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper));
         }
 
         public GetHero_Hero_Droid Map(DroidEntity entity)
         {
-            var friends = _iGetHero_Hero_FriendsFromCharacterConnectionDataMapper.Map(entity.Friends);
-
             return new GetHero_Hero_Droid(
                 entity.Name,
                 entity.PrimaryFunction,
-                friends
+                MapIGetHero_Hero_Friends(entity.Friends)
             );
+        }
+
+        private IGetHero_Hero_Friends? MapIGetHero_Hero_Friends(IGetHero_Hero_FriendsData data)
+        {
+            if (data == null)
+            {
+                return null;
+            }
+
+            IGetHero_Hero_Friends returnValue = default!;
+
+            if (data?.__typename.Equals("CharacterConnection", global::System.StringComparison.Ordinal) ?? false)
+            {
+                returnValue = new GetHero_Hero_Friends_CharacterConnection(MapIGetHero_Hero_Friends_NodesArray(data.Nodes));
+            }
+            else {
+                throw new global::System.NotSupportedException();
+            }
+            return returnValue;
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<IGetHero_Hero_Friends_Nodes?>? MapIGetHero_Hero_Friends_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
+        {
+            if (list == null)
+            {
+                return null;
+            }
+
+            var iGetHero_Hero_Friends_Nodess = new global::System.Collections.Generic.List<IGetHero_Hero_Friends_Nodes?>();
+
+            foreach (global::StrawberryShake.EntityId? child in list)
+            {
+                iGetHero_Hero_Friends_Nodess.Add(MapIGetHero_Hero_Friends_Nodes(child));
+            }
+
+            return iGetHero_Hero_Friends_Nodess;
+        }
+
+        private IGetHero_Hero_Friends_Nodes? MapIGetHero_Hero_Friends_Nodes(global::StrawberryShake.EntityId? entityId)
+        {
+            if (entityId == null)
+            {
+                return null;
+            }
+
+
+
+            if (entityId?.Name.Equals("Droid", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return _getHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper.Map(_entityStore.GetEntity<DroidEntity>(entityId.Value));
+            }
+            else if (entityId?.Name.Equals("Human", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return _getHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper.Map(_entityStore.GetEntity<HumanEntity>(entityId.Value));
+            }
+            else {
+                throw new global::System.NotSupportedException();
+            }
         }
     }
 }
@@ -214,23 +275,88 @@ namespace Foo
     public partial class GetHero_Hero_HumanFromHumanEntityMapper
         : global::StrawberryShake.IEntityMapper<HumanEntity, GetHero_Hero_Human>
     {
-        private readonly IEntityMapper<IGetHero_Hero_FriendsData, IGetHero_Hero_Friends> _iGetHero_Hero_FriendsFromCharacterConnectionDataMapper;
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityMapper<DroidEntity, GetHero_Hero_Friends_Nodes_Droid> _getHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<HumanEntity, GetHero_Hero_Friends_Nodes_Human> _getHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper;
 
-        public GetHero_Hero_HumanFromHumanEntityMapper(IEntityMapper<IGetHero_Hero_FriendsData, IGetHero_Hero_Friends> iGetHero_Hero_FriendsFromCharacterConnectionDataMapper)
+        public GetHero_Hero_HumanFromHumanEntityMapper(
+            global::StrawberryShake.IEntityStore entityStore,
+            global::StrawberryShake.IEntityMapper<DroidEntity, GetHero_Hero_Friends_Nodes_Droid> getHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper,
+            global::StrawberryShake.IEntityMapper<HumanEntity, GetHero_Hero_Friends_Nodes_Human> getHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper)
         {
-            _iGetHero_Hero_FriendsFromCharacterConnectionDataMapper = iGetHero_Hero_FriendsFromCharacterConnectionDataMapper
-                 ?? throw new global::System.ArgumentNullException(nameof(iGetHero_Hero_FriendsFromCharacterConnectionDataMapper));
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _getHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper = getHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper
+                 ?? throw new global::System.ArgumentNullException(nameof(getHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper));
+            _getHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper = getHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper
+                 ?? throw new global::System.ArgumentNullException(nameof(getHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper));
         }
 
         public GetHero_Hero_Human Map(HumanEntity entity)
         {
-            var friends = _iGetHero_Hero_FriendsFromCharacterConnectionDataMapper.Map(entity.Friends);
-
             return new GetHero_Hero_Human(
                 entity.Name,
                 entity.HomePlanet,
-                friends
+                MapIGetHero_Hero_Friends(entity.Friends)
             );
+        }
+
+        private IGetHero_Hero_Friends? MapIGetHero_Hero_Friends(IGetHero_Hero_FriendsData data)
+        {
+            if (data == null)
+            {
+                return null;
+            }
+
+            IGetHero_Hero_Friends returnValue = default!;
+
+            if (data?.__typename.Equals("CharacterConnection", global::System.StringComparison.Ordinal) ?? false)
+            {
+                returnValue = new GetHero_Hero_Friends_CharacterConnection(MapIGetHero_Hero_Friends_NodesArray(data.Nodes));
+            }
+            else {
+                throw new global::System.NotSupportedException();
+            }
+            return returnValue;
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<IGetHero_Hero_Friends_Nodes?>? MapIGetHero_Hero_Friends_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
+        {
+            if (list == null)
+            {
+                return null;
+            }
+
+            var iGetHero_Hero_Friends_Nodess = new global::System.Collections.Generic.List<IGetHero_Hero_Friends_Nodes?>();
+
+            foreach (global::StrawberryShake.EntityId? child in list)
+            {
+                iGetHero_Hero_Friends_Nodess.Add(MapIGetHero_Hero_Friends_Nodes(child));
+            }
+
+            return iGetHero_Hero_Friends_Nodess;
+        }
+
+        private IGetHero_Hero_Friends_Nodes? MapIGetHero_Hero_Friends_Nodes(global::StrawberryShake.EntityId? entityId)
+        {
+            if (entityId == null)
+            {
+                return null;
+            }
+
+
+
+            if (entityId?.Name.Equals("Droid", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return _getHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper.Map(_entityStore.GetEntity<DroidEntity>(entityId.Value));
+            }
+            else if (entityId?.Name.Equals("Human", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return _getHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper.Map(_entityStore.GetEntity<HumanEntity>(entityId.Value));
+            }
+            else {
+                throw new global::System.NotSupportedException();
+            }
         }
     }
 }
@@ -277,6 +403,30 @@ namespace Foo
         }
 
         public global::System.Collections.Generic.IReadOnlyList<IGetHero_Hero_Friends_Nodes?>? Nodes { get; }
+    }
+}
+
+
+// GetHero_Hero_Friends_CharacterConnectionData
+
+namespace Foo
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetHero_Hero_Friends_CharacterConnectionData
+        : IGetHero_Hero_Friends_CharacterConnectionData
+    {
+        public GetHero_Hero_Friends_CharacterConnectionData(
+            global::System.String typename,
+            global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? nodes)
+        {
+            __typename = typename
+                 ?? throw new global::System.ArgumentNullException(nameof(typename));
+            Nodes = nodes;
+        }
+
+        public global::System.String __typename { get; }
+
+        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Nodes { get; }
     }
 }
 
@@ -479,6 +629,20 @@ namespace Foo
 }
 
 
+// IGetHero_Hero_FriendsData
+
+namespace Foo
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IGetHero_Hero_FriendsData
+    {
+        public global::System.String __typename { get; }
+
+        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Nodes { get; }
+    }
+}
+
+
 // IGetHero_Hero_Friends_CharacterConnection
 
 namespace Foo
@@ -487,6 +651,19 @@ namespace Foo
     public interface IGetHero_Hero_Friends_CharacterConnection
         : IGetHero_Hero_Friends
     {
+    }
+}
+
+
+// IGetHero_Hero_Friends_CharacterConnectionData
+
+namespace Foo
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IGetHero_Hero_Friends_CharacterConnectionData
+        : IGetHero_Hero_FriendsData
+    {
+        public global::System.String __typename { get; }
     }
 }
 
@@ -724,7 +901,7 @@ namespace Foo
                 DroidEntity entity = _entityStore.GetOrCreate<DroidEntity>(entityId);
                 entity.Name = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "name"));
                 entity.PrimaryFunction = DeserializeString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "primaryFunction"));
-                entity.Friends = DeserializeIGetHero_Hero_FriendsData(
+                entity.Friends = DeserializeIGetHero_Hero_Friends(
                     global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "friends"),
                     entityIds
                 );
@@ -737,7 +914,7 @@ namespace Foo
                 HumanEntity entity = _entityStore.GetOrCreate<HumanEntity>(entityId);
                 entity.Name = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "name"));
                 entity.HomePlanet = DeserializeString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "homePlanet"));
-                entity.Friends = DeserializeIGetHero_Hero_FriendsData(
+                entity.Friends = DeserializeIGetHero_Hero_Friends(
                     global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "friends"),
                     entityIds
                 );
@@ -768,17 +945,29 @@ namespace Foo
             return _stringParser.Parse(obj.Value.GetString()!);
         }
 
-        private IGetHero_Hero_Friends? DeserializeIGetHero_Hero_FriendsData(global::System.Text.Json.JsonElement? obj)
+        private IGetHero_Hero_FriendsData? DeserializeIGetHero_Hero_Friends(
+            global::System.Text.Json.JsonElement? obj,
+            global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
             if (!obj.HasValue)
             {
                 return null;
             }
 
-            return new IGetHero_Hero_FriendsData(UpdateIGetHero_Hero_Friends_NodesEntityArray(
-                global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "nodes"),
-                entityIds
-            ));
+            var typename = obj.Value.GetProperty("__typename").GetString();
+
+            if (typename.Equals("CharacterConnection", global::System.StringComparison.Ordinal))
+            {
+                return new GetHero_Hero_Friends_CharacterConnectionData(
+                    typename,
+                    UpdateIGetHero_Hero_Friends_NodesEntityArray(
+                        global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "nodes"),
+                        entityIds
+                    )
+                );
+            }
+
+            throw new global::System.NotSupportedException();
         }
 
         private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? UpdateIGetHero_Hero_Friends_NodesEntityArray(

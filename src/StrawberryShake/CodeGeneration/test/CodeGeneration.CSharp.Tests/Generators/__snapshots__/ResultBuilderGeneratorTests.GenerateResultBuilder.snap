@@ -83,7 +83,7 @@
             {
                 HumanEntity entity = _entityStore.GetOrCreate<HumanEntity>(entityId);
                 entity.Name = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "name"));
-                entity.Friends = DeserializeNonNullableFriendsConnectionData(
+                entity.Friends = DeserializeNonNullableFriendsConnection(
                     global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "friends"),
                     entityIds
                 );
@@ -95,7 +95,7 @@
             {
                 DroidEntity entity = _entityStore.GetOrCreate<DroidEntity>(entityId);
                 entity.Name = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "name"));
-                entity.Friends = DeserializeNonNullableFriendsConnectionData(
+                entity.Friends = DeserializeNonNullableFriendsConnection(
                     global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "friends"),
                     entityIds
                 );
@@ -116,14 +116,16 @@
             return _stringParser.Parse(obj.Value.GetString()!);
         }
 
-        private FriendsConnection DeserializeNonNullableFriendsConnectionData(global::System.Text.Json.JsonElement? obj)
+        private FriendsConnectionData DeserializeNonNullableFriendsConnection(
+            global::System.Text.Json.JsonElement? obj,
+            global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
             if (!obj.HasValue)
             {
                 throw new global::System.ArgumentNullException();
             }
 
-            return new FriendsConnectionData(
+            return new FriendsConnection(
                 UpdateNonNullableICharacterEntityNonNullableArray(
                     global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "nodes"),
                     entityIds

@@ -4,22 +4,28 @@
     public partial class HumanHeroFromHumanEntityMapper
         : global::StrawberryShake.IEntityMapper<HumanEntity, HumanHero>
     {
-        private readonly IEntityMapper<FriendsConnectionData, FriendsConnection> _friendsConnectionFromDataMapper;
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
 
-        public HumanHeroFromHumanEntityMapper(IEntityMapper<FriendsConnectionData, FriendsConnection> friendsConnectionFromDataMapper)
+        public HumanHeroFromHumanEntityMapper(global::StrawberryShake.IEntityStore entityStore)
         {
-            _friendsConnectionFromDataMapper = friendsConnectionFromDataMapper
-                 ?? throw new global::System.ArgumentNullException(nameof(friendsConnectionFromDataMapper));
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
         }
 
         public HumanHero Map(HumanEntity entity)
         {
-            var friends = _friendsConnectionFromDataMapper.Map(entity.Friends);
-
             return new HumanHero(
                 entity.Name,
-                friends
+                MapNonNullableFriendsConnection(entity.Friends)
             );
+        }
+
+        private FriendsConnection MapNonNullableFriendsConnection()
+        {
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<ICharacter> MapNonNullableICharacterNonNullableArray()
+        {
         }
     }
 }

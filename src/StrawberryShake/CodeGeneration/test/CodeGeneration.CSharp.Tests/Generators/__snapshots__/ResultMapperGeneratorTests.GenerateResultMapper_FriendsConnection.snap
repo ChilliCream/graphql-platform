@@ -2,53 +2,23 @@
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FriendsConnectionFromDataMapper
-        : global::StrawberryShake.IEntityMapper<FriendsConnectionData, FriendsConnection>
+        : global::StrawberryShake.IEntityMapper<FriendsConnection, FriendsConnection>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly IEntityMapper<DroidEntity, Droid> _droidFromDroidEntityMapper;
-        private readonly IEntityMapper<HumanEntity, Human> _humanFromHumanEntityMapper;
 
-        public FriendsConnectionFromDataMapper(
-            global::StrawberryShake.IEntityStore entityStore,
-            IEntityMapper<DroidEntity, Droid> droidFromDroidEntityMapper,
-            IEntityMapper<HumanEntity, Human> humanFromHumanEntityMapper)
+        public FriendsConnectionFromDataMapper(global::StrawberryShake.IEntityStore entityStore)
         {
             _entityStore = entityStore
                  ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-            _droidFromDroidEntityMapper = droidFromDroidEntityMapper
-                 ?? throw new global::System.ArgumentNullException(nameof(droidFromDroidEntityMapper));
-            _humanFromHumanEntityMapper = humanFromHumanEntityMapper
-                 ?? throw new global::System.ArgumentNullException(nameof(humanFromHumanEntityMapper));
         }
 
-        public FriendsConnection Map(FriendsConnectionData entity)
+        public FriendsConnection Map(FriendsConnection entity)
         {
-            var nodes = new List<ICharacter>();
-            foreach (var nodesItem in entity.Nodes)
-            {
-                ICharacter mappedItem = default!;
+            return new FriendsConnection();
+        }
 
-                if (nodesItem.Name.Equals("Droid", global::System.StringComparison.Ordinal))
-                {
-                    mappedItem = _droidFromDroidEntityMapper.Map(_entityStore.GetEntity<DroidEntity>(nodesItem));
-
-                }
-                else if (nodesItem.Name.Equals("Human", global::System.StringComparison.Ordinal))
-                {
-                    mappedItem = _humanFromHumanEntityMapper.Map(_entityStore.GetEntity<HumanEntity>(nodesItem));
-
-                }
-                else {
-                    throw new global::System.NotSupportedException();
-                }
-
-                nodes.Add(mappedItem);
-            }
-
-            return new FriendsConnection(
-                nodes,
-                entity.TotalCount
-            );
+        private global::System.Collections.Generic.IReadOnlyList<ICharacter> MapNonNullableICharacterNonNullableArray()
+        {
         }
     }
 }
