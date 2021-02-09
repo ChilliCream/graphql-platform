@@ -376,12 +376,12 @@ namespace Foo
     public partial class CreateReviewMutMutation
     {
         private readonly global::StrawberryShake.IOperationExecutor<ICreateReviewMut> _operationExecutor;
-        private readonly global::StrawberryShake.Serialization.EpisodeSerializer _episodeSerializer;
+        private readonly EpisodeSerializer _episodeSerializer;
         private readonly ReviewInputInputValueFormatter _reviewInputInputValueFormatter;
 
         public CreateReviewMutMutation(
             global::StrawberryShake.IOperationExecutor<ICreateReviewMut> operationExecutor,
-            global::StrawberryShake.Serialization.EpisodeSerializer episodeSerializer,
+            EpisodeSerializer episodeSerializer,
             ReviewInputInputValueFormatter reviewInputInputValueFormatter)
         {
             _operationExecutor = operationExecutor
@@ -391,7 +391,7 @@ namespace Foo
         }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ICreateReviewMut>> ExecuteAsync(
-            Foo.Episode episode,
+            Episode episode,
             ReviewInput review,
             global::System.Threading.CancellationToken cancellationToken = default)
         {
@@ -409,7 +409,7 @@ namespace Foo
         }
 
         public global::System.IObservable<global::StrawberryShake.IOperationResult<ICreateReviewMut>> Watch(
-            Foo.Episode episode,
+            Episode episode,
             ReviewInput review,
             global::StrawberryShake.ExecutionStrategy? strategy = null)
         {
@@ -421,7 +421,7 @@ namespace Foo
         }
 
         private global::StrawberryShake.OperationRequest CreateRequest(
-            Foo.Episode episode,
+            Episode episode,
             ReviewInput review)
         {
             var arguments = new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>();
@@ -435,7 +435,7 @@ namespace Foo
             );
         }
 
-        private global::System.Object? FormatEpisode(Foo.Episode value)
+        private global::System.Object? FormatEpisode(Episode value)
         {
             return _episodeSerializer.Format(value);
         }
@@ -619,7 +619,7 @@ namespace Foo
             
             // register entity id factory
             
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId>>(services, EntityIdFactory.CreateEntityId)
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId>>(services, EntityIdFactory.CreateEntityId);
             
             // register stores
             
@@ -679,13 +679,8 @@ namespace Foo
             // register operations
             
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
-<<<<<<< HEAD
-                global::StrawberryShake.IOperationResultDataFactory<CreateReviewMut>,
+                global::StrawberryShake.IOperationResultDataFactory<ICreateReviewMut>,
                 CreateReviewMutFactory>(
-=======
-                global::StrawberryShake.IOperationResultDataFactory<ICreateReview>,
-                CreateReviewFactory>(
->>>>>>> 63e7af5bd0755be88f696dba2784ada65b2cf63e
                     services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
                 global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, ICreateReviewMut>,

@@ -457,7 +457,7 @@ namespace Foo
             
             // register entity id factory
             
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId>>(services, EntityIdFactory.CreateEntityId)
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId>>(services, EntityIdFactory.CreateEntityId);
             
             // register stores
             
@@ -515,13 +515,8 @@ namespace Foo
             // register operations
             
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
-<<<<<<< HEAD
-                global::StrawberryShake.IOperationResultDataFactory<OnReviewSub>,
+                global::StrawberryShake.IOperationResultDataFactory<IOnReviewSub>,
                 OnReviewSubFactory>(
-=======
-                global::StrawberryShake.IOperationResultDataFactory<IOnReview>,
-                OnReviewFactory>(
->>>>>>> 63e7af5bd0755be88f696dba2784ada65b2cf63e
                     services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
                 global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, IOnReviewSub>,
