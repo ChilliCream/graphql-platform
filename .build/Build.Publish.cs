@@ -79,10 +79,9 @@ partial class Build : NukeBuild
 
             DotNetPack(c => c
                 .SetProject(SgSolutionFile)
-                .SetNoBuild(InvokedTargets.Contains(Compile))
                 .SetConfiguration(Configuration)
                 .SetOutputDirectory(PackageDirectory)
-                .SetIncludeSymbols(false)
+                .SetProcessWorkingDirectory(Path.GetDirectoryName(SgSolutionFile))
                 .SetVersion(GitVersion.SemVer));
 
             // update test projects that use the source generators
