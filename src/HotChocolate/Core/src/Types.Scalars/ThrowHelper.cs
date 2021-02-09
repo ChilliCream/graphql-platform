@@ -50,9 +50,9 @@ namespace HotChocolate.Types.Scalars
         {
             return new SerializationException(
                 ErrorBuilder.New()
-                    .SetMessage(ScalarResources.NonEmptyStringType_IsEmpty_ParseLiteral)
+                    .SetMessage(ScalarResources.NonNegativeFloatType_IsNotNonNegative_ParseLiteral)
                     .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
-                    .SetExtension("actualType", WellKnownScalarTypes.NonEmptyString)
+                    .SetExtension("actualType", WellKnownScalarTypes.NonNegativeFloat)
                     .Build(),
                 type);
         }
@@ -61,9 +61,9 @@ namespace HotChocolate.Types.Scalars
         {
             return new SerializationException(
                 ErrorBuilder.New()
-                    .SetMessage(ScalarResources.NonEmptyStringType_IsEmpty_ParseValue)
+                    .SetMessage(ScalarResources.NonNegativeFloatType_IsNotNonNegative_ParseValue)
                     .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                    .SetExtension("actualType", WellKnownScalarTypes.NonEmptyString)
+                    .SetExtension("actualType", WellKnownScalarTypes.NonNegativeFloat)
                     .Build(),
                 type);
         }

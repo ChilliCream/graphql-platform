@@ -91,7 +91,7 @@
     <value>NonEmptyString cannot parse the provided value. The provided string was empty.</value>
   </data>
   <data name="NonNegativeFloatType_Description" xml:space="preserve">
-    <value>The NonNegativeFloat scalar type represents double‐precision fractional value greater than or equal to 0.</value>
+    <value>The NonNegativeFloat scalar type represents a double‐precision fractional value greater than or equal to 0.</value>
   </data>
   <data name="NonNegativeFloatType_IsNotNonNegative_ParseLiteral" xml:space="preserve">
     <value>NonNegativeFloatType cannot parse the provided literal. The provided value was not greater than or equal to 0.</value>
