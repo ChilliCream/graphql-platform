@@ -7,20 +7,23 @@ using static StrawberryShake.CodeGeneration.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public class ResultDataFactoryGenerator : ClassBaseGenerator<NamedTypeDescriptor>
+    public class ResultDataFactoryGenerator : TypeMapperGenerator
     {
         const string StoreParamName = "_entityStore";
 
-        protected override bool CanHandle(NamedTypeDescriptor descriptor)
+        protected override bool CanHandle(ITypeDescriptor descriptor)
         {
             return descriptor.Kind == TypeKind.ResultType && !descriptor.IsInterface();
         }
 
         protected override void Generate(
             CodeWriter writer,
-            NamedTypeDescriptor descriptor,
+            ITypeDescriptor iTypeDescriptor,
             out string fileName)
         {
+            NamedTypeDescriptor descriptor = iTypeDescriptor as NamedTypeDescriptor
+                                             ?? throw new InvalidOperationException();
+
             var (classBuilder, constructorBuilder) = CreateClassBuilder();
 
             fileName = ResultFactoryNameFromTypeName(descriptor.Name);
@@ -38,28 +41,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 classBuilder,
                 constructorBuilder);
 
-            var mappersToInject = descriptor.Properties
-                .Where(prop => !prop.Type.IsLeafType())
-                .SelectMany(prop => GetMappers(prop.Type));
-
-            foreach (var mapperType in mappersToInject)
-            {
-                var gqlTypeName = mapperType.GraphQLTypeName ?? throw new ArgumentNullException();
-
-                var typeName = TypeReferenceBuilder
-                    .New()
-                    .SetName(TypeNames.IEntityMapper)
-                    .AddGeneric(EntityTypeNameFromGraphQLTypeName(gqlTypeName))
-                    .AddGeneric(mapperType.Name);
-
-                AddConstructorAssignedField(
-                    typeName,
-                    EntityMapperNameFromGraphQLTypeName(mapperType.Name, gqlTypeName)
-                        .ToFieldName(),
-                    classBuilder,
-                    constructorBuilder);
-            }
-
             var createMethod = MethodBuilder.New()
                 .SetAccessModifier(AccessModifier.Public)
                 .SetName("Create")
@@ -67,31 +48,21 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .AddParameter(
                     ParameterBuilder.New()
                         .SetName("dataInfo")
-                        .SetType(TypeNames.IOperationResultDataInfo)
-                );
+                        .SetType(TypeNames.IOperationResultDataInfo));
 
             var returnStatement = MethodCallBuilder.New()
                 .SetPrefix("return new ")
                 .SetMethodName(descriptor.Name);
 
             var ifHasCorrectType = IfBuilder.New()
-                .SetCondition(
-                    $"dataInfo is {ResultInfoNameFromTypeName(descriptor.Name)} info");
+                .SetCondition($"dataInfo is {ResultInfoNameFromTypeName(descriptor.Name)} info");
 
-            foreach (var prop in descriptor.Properties)
+            foreach (PropertyDescriptor property in descriptor.Properties)
             {
-                if (prop.Type.Kind == TypeKind.LeafType)
-                {
-                    returnStatement.AddArgument($"info.{prop.Name}");
-                }
-                else
-                {
-                    GenerateMappingAssignment(
-                        ifHasCorrectType,
-                        returnStatement,
-                        prop,
-                        prop.Type);
-                }
+                returnStatement.AddArgument(
+                    BuildMapMethodCall(
+                        "info",
+                        property));
             }
 
             ifHasCorrectType.AddCode(returnStatement);
@@ -102,6 +73,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 $"{ResultInfoNameFromTypeName(descriptor.Name)} expected.\");");
 
             classBuilder.AddMethod(createMethod);
+
+            var processed = new HashSet<string>();
+            AddRequiredMapMethods(
+                "info",
+                descriptor,
+                classBuilder,
+                constructorBuilder,
+                processed,
+                true);
 
             CodeFileBuilder
                 .New()
@@ -123,48 +103,62 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     break;
 
                 case NamedTypeDescriptor namedType:
-                    var idName = $"{propertyDescriptor.Name}";
-                    var varName = propertyDescriptor.Name.WithLowerFirstChar();
-                    if (namedType.IsInterface)
+                    if (namedType.IsEntityType())
                     {
-                        codeContainer.AddCode($"{namedType.Name} {varName} = default!;");
-                        codeContainer.AddEmptyLine();
-                        var nonNullVarName = $"{idName.WithLowerFirstChar()}Info";
-                        codeContainer.AddCode(
-                            $"var {nonNullVarName} = info.{idName} " +
-                            $"?? throw new {TypeNames.ArgumentNullException}();");
-
-                        foreach (NamedTypeDescriptor implementee in namedType.ImplementedBy)
+                        var idName = $"{propertyDescriptor.Name}";
+                        var varName = propertyDescriptor.Name.WithLowerFirstChar();
+                        if (namedType.IsInterface)
                         {
-                            codeContainer.AddCode(
-                                IfBuilder.New()
-                                    .SetCondition(
-                                        ConditionBuilder.New()
-                                            .Set(
-                                                MethodCallBuilder.New()
-                                                    .SetDetermineStatement(false)
-                                                    .SetMethodName($"{nonNullVarName}.Name.Equals")
-                                                    .AddArgument(
-                                                        $"\"{implementee.GraphQLTypeName}\"")
-                                                    .AddArgument(TypeNames
-                                                        .OrdinalStringComparisson)))
-                                    .AddCode(AssignmentBuilder.New()
-                                        .SetLefthandSide(varName)
-                                        .SetRighthandSide(GetMappingCall(implementee,
-                                            nonNullVarName))));
-
+                            codeContainer.AddCode($"{namedType.Name} {varName} = default!;");
                             codeContainer.AddEmptyLine();
-                        }
 
-                        returnBuilder.AddArgument(varName);
-                    }
-                    else
-                    {
-                        if (typeDescriptor is NamedTypeDescriptor nonList)
+
+                            var nonNullVarName = $"{idName.WithLowerFirstChar()}Info";
+
+                            // TODO Add non null check for non nullable types.
+                            codeContainer.AddCode($"var {nonNullVarName} = info.{idName};");
+
+                            foreach (NamedTypeDescriptor implementee in namedType.ImplementedBy)
+                            {
+                                codeContainer.AddCode(
+                                    IfBuilder.New()
+                                        .SetCondition(
+                                            ConditionBuilder.New()
+                                                .Set(
+                                                    MethodCallBuilder.New()
+                                                        .SetDetermineStatement(false)
+                                                        .SetMethodName(
+                                                            $"{nonNullVarName}.Name.Equals")
+                                                        .AddArgument(
+                                                            $"\"{implementee.GraphQLTypeName}\"")
+                                                        .AddArgument(
+                                                            TypeNames
+                                                                .OrdinalStringComparisson)))
+                                        .AddCode(
+                                            AssignmentBuilder.New()
+                                                .SetLefthandSide(varName)
+                                                .SetRighthandSide(
+                                                    GetMappingCall(
+                                                        implementee,
+                                                        nonNullVarName))));
+
+                                codeContainer.AddEmptyLine();
+                            }
+
+                            returnBuilder.AddArgument(varName);
+                        }
+                        else
                         {
-                            returnBuilder.AddArgument(GetMappingCall(nonList, idName));
+                            if (typeDescriptor is NamedTypeDescriptor nonList)
+                            {
+                                returnBuilder.AddArgument(
+                                    GetMappingCall(
+                                        nonList,
+                                        idName));
+                            }
                         }
                     }
+
 
                     break;
 
@@ -199,26 +193,5 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     $"({idName}) ?? throw new {TypeNames.ArgumentNullException}()");
         }
 
-        private IEnumerable<NamedTypeDescriptor> GetMappers(ITypeDescriptor typeDescriptor)
-        {
-            return typeDescriptor switch
-            {
-                ListTypeDescriptor listTypeDescriptor =>
-                    GetMappers(listTypeDescriptor.InnerType),
-
-                NamedTypeDescriptor typeDescriptor1 =>
-                    typeDescriptor1.IsInterface
-                        ? typeDescriptor1.ImplementedBy
-                        : new[]
-                        {
-                            typeDescriptor1
-                        },
-
-                NonNullTypeDescriptor nonNullTypeDescriptor =>
-                    GetMappers(nonNullTypeDescriptor.InnerType),
-
-                _ => throw new ArgumentOutOfRangeException()
-            };
-        }
     }
 }

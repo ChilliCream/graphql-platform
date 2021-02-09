@@ -18,7 +18,7 @@ namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class EpisodeParser
-        : global::StrawberryShake.Serialization.IInputValueFormatter 
+        : global::StrawberryShake.Serialization.IInputValueFormatter
         , global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, Episode>
     {
         public global::System.String TypeName => "Episode";
@@ -57,37 +57,38 @@ namespace Foo
         : global::StrawberryShake.IOperationResultDataFactory<CreateReview>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<ReviewEntity, CreateReview_CreateReview_Review> _createReview_CreateReview_ReviewFromReviewEntityMapper;
 
-        public CreateReviewFactory(
-            global::StrawberryShake.IEntityStore entityStore,
-            global::StrawberryShake.IEntityMapper<ReviewEntity, CreateReview_CreateReview_Review> createReview_CreateReview_ReviewFromReviewEntityMapper)
+        public CreateReviewFactory(global::StrawberryShake.IEntityStore entityStore)
         {
             _entityStore = entityStore
                  ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-            _createReview_CreateReview_ReviewFromReviewEntityMapper = createReview_CreateReview_ReviewFromReviewEntityMapper
-                 ?? throw new global::System.ArgumentNullException(nameof(createReview_CreateReview_ReviewFromReviewEntityMapper));
         }
 
         public CreateReview Create(global::StrawberryShake.IOperationResultDataInfo dataInfo)
         {
             if (dataInfo is CreateReviewInfo info)
             {
-                ICreateReview_CreateReview createReview = default!;
-
-                var createReviewInfo = info.CreateReview ?? throw new global::System.ArgumentNullException();
-                if (createReviewInfo.Name.Equals(
-                    "Review",
-                    global::System.StringComparison.Ordinal
-                ))
-                {
-                    createReview = _createReview_CreateReview_ReviewFromReviewEntityMapper.Map(_entityStore.GetEntity<ReviewEntity>(createReviewInfo) ?? throw new global::System.ArgumentNullException());
-                }
-
-                return new CreateReview(createReview);
+                return new CreateReview(MapNonNullableICreateReview_CreateReview(info.CreateReview));
             }
 
             throw new global::System.ArgumentException("CreateReviewInfo expected.");
+        }
+
+        private ICreateReview_CreateReview MapNonNullableICreateReview_CreateReview(ICreateReview_CreateReviewData data)
+        {
+            ICreateReview_CreateReview returnValue = default!;
+
+            if (data.__typename.Equals("Review", global::System.StringComparison.Ordinal))
+            {
+                returnValue = new CreateReview_CreateReview_Review(
+                    data.Stars,
+                    data.Commentary
+                );
+            }
+            else {
+                throw new global::System.NotSupportedException();
+            }
+            return returnValue;
         }
     }
 }
@@ -276,7 +277,7 @@ namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ReviewInputInputValueFormatter
-        : global::StrawberryShake.Serialization.IInputValueFormatter 
+        : global::StrawberryShake.Serialization.IInputValueFormatter
     {
         private readonly global::StrawberryShake.Serialization.IntSerializer _intSerializer;
         private readonly global::StrawberryShake.Serialization.StringSerializer _stringSerializer;
@@ -293,11 +294,11 @@ namespace Foo
 
         public global::System.Object? Format(global::System.Object? runtimeValue)
         {
-            
+
             if(!(runtimeValue is ReviewInput d)) {
                 throw new global::System.ArgumentException(nameof(runtimeValue));
             }
-            
+
             return new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>[] {
                 new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>(
                     "stars", FormatStars(d.Stars)),
@@ -340,8 +341,8 @@ namespace Foo
     public partial class CreateReviewMutationDocument
         : global::StrawberryShake.IDocument
     {
-        private const global::System.String _bodyString = 
-            @"mutation createReview($episode: Episode!, $review: ReviewInput!) {
+        private const global::System.String _bodyString =
+            @"mutation CreateReview($episode: Episode!, $review: ReviewInput!) {
   createReview(episode: $episode, review: $review) {
     __typename
     stars
@@ -390,7 +391,7 @@ namespace Foo
             _reviewInputInputValueFormatter = reviewInputInputValueFormatter;
         }
 
-        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ICreateReview>> Execute(
+        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ICreateReview>> ExecuteAsync(
             Foo.Episode episode,
             ReviewInput review,
             global::System.Threading.CancellationToken cancellationToken = default)
@@ -399,7 +400,7 @@ namespace Foo
                 episode,
                 review
             );
-            
+
             return await _operationExecutor
                 .ExecuteAsync(
                     request,
@@ -429,7 +430,7 @@ namespace Foo
             arguments.Add("review", FormatReview(review));
 
             return new global::StrawberryShake.OperationRequest(
-                "ICreateReview",
+                "CreateReview",
                 CreateReviewMutationDocument.Instance,
                 arguments
             );
@@ -593,7 +594,7 @@ namespace Foo
         public static global::StrawberryShake.EntityId CreateEntityId(global::System.Text.Json.JsonElement obj)
         {
             global::System.String typeName = obj.GetProperty("__typename").GetString()!;
-            
+
             return typeName switch
             {
                 _ => throw new global::System.NotSupportedException()
@@ -614,18 +615,18 @@ namespace Foo
             this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
             global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
-            
+
             if (services is null)
             {
                 throw new global::System.ArgumentNullException(nameof(services));
             }
-            
+
             // register entity id factory
-            
+
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId>>(services, EntityIdFactory.CreateEntityId)
-            
+
             // register stores
-            
+
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<
                 global::StrawberryShake.IEntityStore,
                 global::StrawberryShake.EntityStore>(
@@ -639,9 +640,9 @@ namespace Foo
                             >(sp)
                         .Watch()
                         ));
-            
+
             // register connections
-            
+
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
                 sp =>
@@ -650,16 +651,16 @@ namespace Foo
                         global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<
                             global::System.Net.Http.IHttpClientFactory
                             >(sp);
-            
+
                     return new global::StrawberryShake.Transport.Http.HttpConnection(
                         () => clientFactory.CreateClient("FooClient"));
                 });
-            
+
             // register mappers
-            
-            
+
+
             // register serializers
-            
+
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, EpisodeParser>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.StringSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.BooleanSerializer>(services);
@@ -678,9 +679,9 @@ namespace Foo
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, ReviewInputInputValueFormatter>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializerResolver, global::StrawberryShake.Serialization.SerializerResolver>(services);
-            
+
             // register operations
-            
+
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
                 global::StrawberryShake.IOperationResultDataFactory<ICreateReview>,
                 CreateReviewFactory>(
@@ -697,10 +698,10 @@ namespace Foo
                         () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, ICreateReview>>(sp),
                         global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
                         strategy));
-            
+
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<CreateReviewMutation>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<FooClient>(services);
-            
+
             return services;
         }
     }

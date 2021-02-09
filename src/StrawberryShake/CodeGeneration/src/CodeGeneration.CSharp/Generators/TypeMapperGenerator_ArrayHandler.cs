@@ -5,24 +5,28 @@ using StrawberryShake.CodeGeneration.Extensions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public partial class ResultFromEntityTypeMapperGenerator
+    public partial class TypeMapperGenerator
     {
         private const string ListParamName = "list";
 
         private void AddArrayHandler(
-            ITypeDescriptor rootDescriptor,
             ClassBuilder classBuilder,
             ConstructorBuilder constructorBuilder,
             MethodBuilder methodBuilder,
             ListTypeDescriptor listTypeDescriptor,
-            HashSet<string> processed)
+            HashSet<string> processed,
+            bool isNonNullable)
         {
             methodBuilder.AddParameter(
                 ParameterBuilder.New()
                     .SetType(listTypeDescriptor.ToEntityIdBuilder())
                     .SetName(ListParamName));
             var listVarName = listTypeDescriptor.Name.WithLowerFirstChar() + "s";
-            methodBuilder.AddCode(EnsureProperNullability(ListParamName, rootDescriptor.IsNonNullableType()));
+
+            if (!isNonNullable)
+            {
+                methodBuilder.AddCode(EnsureProperNullability(ListParamName, isNonNullable));
+            }
 
             methodBuilder.AddCode(
                 AssignmentBuilder.New()

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using HotChocolate;
 using HotChocolate.Language;
-
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 namespace StrawberryShake.CodeGeneration.Utilities
 {
     /// <summary>
@@ -38,7 +38,19 @@ namespace StrawberryShake.CodeGeneration.Utilities
 
             foreach (DocumentNode document in documents)
             {
-                definitions.AddRange(document.Definitions);
+                foreach (IDefinitionNode definition in document.Definitions)
+                {
+                    if (definition is OperationDefinitionNode { Name: { } name } op)
+                    {
+                        name = name.WithValue(GetClassName(name.Value));
+                        op = op.WithName(name);
+                        definitions.Add(op);
+                    }
+                    else
+                    {
+                        definitions.Add(definition);
+                    }
+                }
             }
 
             ValidateDocument(definitions);
