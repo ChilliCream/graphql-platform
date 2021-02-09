@@ -78,6 +78,25 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .GetRequiredService<IDocumentValidatorFactory>()
                 .CreateValidator();
 
+            // TODO: MST we need to rework this to reflect back on the correct file
+            var merged = new DocumentNode(
+                executableDocs.SelectMany(t => t.document.Definitions).ToList());
+            var validationResult = validator.Validate(
+                schema,
+                merged);
+            if (validationResult.HasErrors)
+            {
+                errors.AddRange(
+                    validationResult.Errors.Select(
+                        error => error
+                            .WithCode(CodeGenerationErrorCodes.SchemaValidationError)
+                            .WithExtensions(new Dictionary<string, object?>
+                            {
+                                { TitleExtensionKey, "Schema validation error" }
+                            })));
+            }
+
+            /*
             foreach ((string file, DocumentNode document) executableDoc in executableDocs)
             {
                 var validationResult = validator.Validate(
@@ -92,11 +111,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                     .WithCode(CodeGenerationErrorCodes.SchemaValidationError)
                                     .WithExtensions(new Dictionary<string, object?>
                                     {
-                                        {FileExtensionKey, executableDoc.file},
-                                        {TitleExtensionKey, "Schema validation error"}
+                                        { FileExtensionKey, executableDoc.file },
+                                        { TitleExtensionKey, "Schema validation error" }
                                     })));
                 }
             }
+            */
 
             if (errors.Any())
             {

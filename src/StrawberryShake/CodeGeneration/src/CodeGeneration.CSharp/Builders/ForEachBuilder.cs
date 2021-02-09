@@ -4,7 +4,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public class ForEachBuilder : ICodeContainer<ForEachBuilder>
     {
-        private string? _loopHeader;
+        private ICode? _loopHeader;
         private readonly List<ICode> _lines = new List<ICode>();
 
         public static ForEachBuilder New() => new();
@@ -35,6 +35,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
         public ForEachBuilder SetLoopHeader(string elementCode)
         {
+            _loopHeader = CodeInlineBuilder.New().SetText(elementCode);
+            return this;
+        }
+
+        public ForEachBuilder SetLoopHeader(ICode elementCode)
+        {
             _loopHeader = elementCode;
             return this;
         }
@@ -43,7 +49,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         {
             writer.WriteIndent();
             writer.Write("foreach (");
-            writer.Write(_loopHeader);
+            _loopHeader?.Build(writer);
             writer.Write(")");
             writer.WriteLine();
             writer.WriteIndent();

@@ -5,7 +5,7 @@ using StrawberryShake.CodeGeneration.Extensions;
 
 namespace StrawberryShake.CodeGeneration.Mappers
 {
-    public class EntityIdFactoryDescriptorMapper
+    public static class EntityIdFactoryDescriptorMapper
     {
         public static void Map(
             ClientModel model,
@@ -20,14 +20,15 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 foreach (var field in entity.Fields)
                 {
                     fields.Add(new EntityIdDescriptor(
-                        field.Name, 
+                        field.Name,
                         ((ILeafType)field.Type.NamedType()).GetSerializationType()));
                 }
 
                 entities.Add(new EntityIdDescriptor(entity.Name, entity.Name, fields));
             }
 
-            context.Register(new EntityIdFactoryDescriptor("EntityIdFactory", entities));
+            context.Register(
+                new EntityIdFactoryDescriptor("EntityIdFactory", entities, context.Namespace));
         }
     }
 }

@@ -25,7 +25,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
             new ResultInfoGenerator(),
             new ResultTypeGenerator(),
             new InputTypeGenerator(),
-            new ResultInterfaceGenerator()
+            new ResultInterfaceGenerator(),
+            new DataTypeGenerator()
         };
 
         public IEnumerable<CSharpDocument> Generate(

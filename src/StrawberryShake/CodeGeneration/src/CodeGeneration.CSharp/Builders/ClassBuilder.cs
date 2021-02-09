@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using StrawberryShake.Properties;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
-    public class ClassBuilder : ITypeBuilder
+    public class ClassBuilder : AbstractTypeBuilder
     {
         private AccessModifier _accessModifier;
         private bool _isPartial = true;
@@ -13,10 +12,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private bool _isSealed;
         private bool _isAbstract;
         private string? _name;
-        private readonly List<string> _implements = new();
         private readonly List<FieldBuilder> _fields = new();
         private readonly List<ConstructorBuilder> _constructors = new();
-        private readonly List<PropertyBuilder> _properties = new();
         private readonly List<MethodBuilder> _methods = new();
 
         public static ClassBuilder New() => new();
@@ -42,16 +39,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public ClassBuilder AddImplements(string value)
+        public new ClassBuilder AddImplements(string value)
         {
-            if (string.IsNullOrEmpty(value))
-            {
-                throw new ArgumentException(
-                    Resources.ClassBuilder_AddImplements_TypeNameCannotBeNull,
-                    nameof(value));
-            }
-
-            _implements.Add(value);
+            base.AddImplements(value);
             return this;
         }
 
@@ -77,14 +67,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public ClassBuilder AddProperty(PropertyBuilder property)
+        public new ClassBuilder AddProperty(PropertyBuilder property)
         {
-            if (property is null)
-            {
-                throw new ArgumentNullException(nameof(property));
-            }
-
-            _properties.Add(property);
+            base.AddProperty(property);
             return this;
         }
 
@@ -123,7 +108,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public void Build(CodeWriter writer)
+        public override void Build(CodeWriter writer)
         {
             if (writer is null)
             {
@@ -159,15 +144,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             writer.Write("class ");
             writer.WriteLine(_name);
 
-            if (!_isStatic && _implements.Count > 0)
+            if (!_isStatic && Implements.Count > 0)
             {
                 using (writer.IncreaseIndent())
                 {
-                    for (var i = 0; i < _implements.Count; i++)
+                    for (var i = 0; i < Implements.Count; i++)
                     {
                         writer.WriteIndentedLine(i == 0
-                            ? $": {_implements[i]}"
-                            : $", {_implements[i]}");
+                            ? $": {Implements[i]}"
+                            : $", {Implements[i]}");
                     }
                 }
             }
@@ -205,16 +190,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                     writeLine = true;
                 }
 
-                if (_properties.Count > 0)
+                if (Properties.Count > 0)
                 {
-                    for (var i = 0; i < _properties.Count; i++)
+                    for (var i = 0; i < Properties.Count; i++)
                     {
                         if (writeLine || i > 0)
                         {
                             writer.WriteLine();
                         }
 
-                        _properties[i].Build(writer);
+                        Properties[i].Build(writer);
                     }
 
                     writeLine = true;

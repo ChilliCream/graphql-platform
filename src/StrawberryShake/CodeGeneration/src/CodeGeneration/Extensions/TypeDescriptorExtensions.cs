@@ -21,7 +21,8 @@ namespace StrawberryShake.CodeGeneration.Extensions
                 ListTypeDescriptor listTypeDescriptor =>
                     listTypeDescriptor.InnerType.ContainsEntity(),
                 NamedTypeDescriptor namedTypeDescriptor =>
-                    namedTypeDescriptor.Properties.Any(prop => prop.Type.IsEntityType()),
+                    namedTypeDescriptor.Properties.Any(prop => prop.Type.IsEntityType()
+                                                               || prop.Type.ContainsEntity()),
                 NonNullTypeDescriptor nonNullTypeDescriptor =>
                     nonNullTypeDescriptor.InnerType.ContainsEntity(),
                 _ => throw new ArgumentOutOfRangeException(nameof(typeDescriptor))

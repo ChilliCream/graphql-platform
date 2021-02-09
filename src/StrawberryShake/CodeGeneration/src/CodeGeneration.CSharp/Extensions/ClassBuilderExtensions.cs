@@ -22,6 +22,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
             builder.AddProperty(propertyBuilder);
             return propertyBuilder;
         }
+
+        public static PropertyBuilder AddProperty(this AbstractTypeBuilder builder, string name)
+        {
+            var propertyBuilder = PropertyBuilder.New().SetName(name);
+            builder.AddProperty(propertyBuilder);
+            return propertyBuilder;
+        }
     }
 
     internal static class PropertyBuilderExtensions

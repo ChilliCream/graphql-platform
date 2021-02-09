@@ -357,17 +357,20 @@ namespace Foo
 
 // EntityIdFactory
 
-[global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-public static partial class EntityIdFactory
+namespace Foo
 {
-    public static global::StrawberryShake.EntityId CreateEntityId(global::System.Text.Json.JsonElement obj)
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public static partial class EntityIdFactory
     {
-        global::System.String typeName = obj.GetProperty("__typename").GetString()!;
-        
-        return typeName switch
+        public static global::StrawberryShake.EntityId CreateEntityId(global::System.Text.Json.JsonElement obj)
         {
-            _ => throw new global::System.NotSupportedException()
-        };
+            global::System.String typeName = obj.GetProperty("__typename").GetString()!;
+            
+            return typeName switch
+            {
+                _ => throw new global::System.NotSupportedException()
+            };
+        }
     }
 }
 
