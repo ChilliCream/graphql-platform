@@ -16,8 +16,6 @@ stages:
       - job: SonarPr
         displayName: "Sonar Pull-Request"
         dependsOn: []
-        strategy:
-          parallel: 5
         steps:
           - task: UseDotNet@2
             displayName: "Install .NET Core"
@@ -39,4 +37,4 @@ stages:
               HC_GITHUB_BASE_REF: $(System.PullRequest.TargetBranch)
             inputs:
               displayName: "Run Sonar"
-              script: "./build.cmd SonarPrSplit  --sonar-partition $(System.JobPositionInPhase)"
+              script: "./build.cmd SonarPr"
