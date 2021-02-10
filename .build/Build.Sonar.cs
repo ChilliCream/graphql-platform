@@ -7,10 +7,6 @@ using Nuke.Common.Tools.SonarScanner;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Nuke.Common.Tools.SonarScanner.SonarScannerTasks;
 using static Helpers;
-using System.Collections.Generic;
-using Nuke.Common.ProjectModel;
-using Nuke.Common.IO;
-using System.Linq;
 
 partial class Build : NukeBuild
 {
@@ -36,47 +32,9 @@ partial class Build : NukeBuild
                 .SetProcessWorkingDirectory(RootDirectory));
 
             SonarScannerBegin(SonarBeginPrSettings);
-            /* 
             DotNetBuild(SonarBuildAll);
             DotNetTest(
-                CoverNoBuildSettingsOnly50,
-                degreeOfParallelism: DegreeOfParallelism, 
-                completeOnFailure: true);
-            */
-            SonarScannerEnd(SonarEndSettings);
-        });
-
-    [Partition(5)] readonly Partition SonarPartition;
-
-    IEnumerable<string> SonarDirectories => SonarPartition.GetCurrent(Helpers.Directories);
-
-    IEnumerable<Project> GetSonarTestProjects(AbsolutePath solution) => 
-        ProjectModelTasks.ParseSolution(solution).GetProjects("*.Tests")
-            .Where((t => !ExcludedTests.Contains(t.Name)));
-
-    Target SonarPrSplit => _ => _
-        .Requires(() => GitHubRepository != null)
-        .Requires(() => GitHubHeadRef != null)
-        .Requires(() => GitHubBaseRef != null)
-        .Requires(() => GitHubPRNumber != null)
-        .Executes(() =>
-        {
-            Console.WriteLine($"GitHubRepository: {GitHubRepository}");
-            Console.WriteLine($"GitHubHeadRef: {GitHubHeadRef}");
-            Console.WriteLine($"GitHubBaseRef: {GitHubBaseRef}");
-            Console.WriteLine($"GitHubPRNumber: {GitHubPRNumber}");
-
-            DotNetBuildSonarSolution(SonarSolutionFile, SonarDirectories);
-
-            DotNetRestore(c => c
-                .SetProjectFile(SonarSolutionFile)
-                .SetProcessWorkingDirectory(RootDirectory));
-
-            SonarScannerBegin(SonarBeginPrSettings);
-            DotNetBuild(
-                c => SonarBuildAll(c, SonarSolutionFile));
-            DotNetTest(
-                c => CoverNoBuildSettingsOnly50(c, GetSonarTestProjects(SonarSolutionFile)),
+                c => CoverNoBuildSettingsOnly50(c, TestProjects),
                 degreeOfParallelism: DegreeOfParallelism, 
                 completeOnFailure: true);
             SonarScannerEnd(SonarEndSettings);
@@ -94,11 +52,9 @@ partial class Build : NukeBuild
 
             Logger.Info("Creating Sonar analysis for version: {0} ...", GitVersion.SemVer);
             SonarScannerBegin(SonarBeginFullSettings);
-            //DotNetBuild(SonarBuildAll);
+            DotNetBuild(SonarBuildAll);
             SonarScannerEnd(SonarEndSettings);
         });
-
-        // sonar.project.monorepo.enabled
 
     SonarScannerBeginSettings SonarBeginPrSettings(SonarScannerBeginSettings settings) =>
         SonarBeginBaseSettings(settings)
@@ -141,11 +97,9 @@ partial class Build : NukeBuild
             .SetProcessWorkingDirectory(RootDirectory)
             .SetFramework(Net50);
 
-    DotNetBuildSettings SonarBuildAll(
-        DotNetBuildSettings settings, 
-        AbsolutePath solution) =>
+    DotNetBuildSettings SonarBuildAll(DotNetBuildSettings settings) =>
         settings
-            .SetProjectFile(solution)
+            .SetProjectFile(AllSolutionFile)
             .SetNoRestore(true)
             .SetConfiguration(Debug)
             .SetProcessWorkingDirectory(RootDirectory);
