@@ -51,7 +51,7 @@ partial class Build : NukeBuild
     IEnumerable<string> SonarDirectories => SonarPartition.GetCurrent(Helpers.Directories);
 
     IEnumerable<Project> GetSonarTestProjects(AbsolutePath solution) => 
-        ProjectModelTasks.ParseSolution(AllSolutionFile).GetProjects("*.Tests")
+        ProjectModelTasks.ParseSolution(solution).GetProjects("*.Tests")
             .Where((t => !ExcludedTests.Contains(t.Name)));
 
     Target SonarPrSplit => _ => _
