@@ -120,7 +120,9 @@ partial class Build : NukeBuild
                 .SetProjectFile(v)
                 .SetLogger($"trx;LogFileName={v.Name}.trx"));
 
-    IEnumerable<DotNetTestSettings> CoverNoBuildSettingsOnly50(DotNetTestSettings settings) =>
+    IEnumerable<DotNetTestSettings> CoverNoBuildSettingsOnly50(
+        DotNetTestSettings settings, 
+        IEnumerable<Project> projects) =>
         TestBaseSettings(settings)
             .SetNoRestore(true)
             .SetNoBuild(true)
@@ -129,7 +131,7 @@ partial class Build : NukeBuild
             .SetExcludeByFile("*.Generated.cs")
             .SetFramework(Net50)
             .SetConfiguration(Debug)
-            .CombineWith(TestProjects, (_, v) => _
+            .CombineWith(projects, (_, v) => _
                 .SetProjectFile(v)
                 .SetLogger($"trx;LogFileName={v.Name}.trx")
                 .SetCoverletOutput(TestResultDirectory / $"{v.Name}.xml"));

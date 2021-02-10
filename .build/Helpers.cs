@@ -8,7 +8,7 @@ using Nuke.Common.Tools.DotNet;
 
 class Helpers
 {
-    static readonly string[] _directories =
+    public static readonly string[] Directories =
     {
         "GreenDonut",
         // Path.Combine("HotChocolate", "ApolloFederation"),
@@ -26,9 +26,11 @@ class Helpers
         Path.Combine("StrawberryShake", "CodeGeneration")
     };
 
-    public static IEnumerable<string> GetAllProjects(string sourceDirectory)
+    public static IEnumerable<string> GetAllProjects(
+        string sourceDirectory, 
+        IEnumerable<string> directories)
     {
-        foreach (var directory in _directories)
+        foreach (var directory in directories)
         {
             var fullDirectory = Path.Combine(sourceDirectory, directory);
             foreach (var file in Directory.EnumerateFiles(fullDirectory, "*.csproj", SearchOption.AllDirectories))
@@ -48,14 +50,17 @@ class Helpers
     }
 
     public static IReadOnlyCollection<Output> DotNetBuildSonarSolution(
-        string solutionFile)
+        string solutionFile,
+        IEnumerable<string> directories = null)
     {
         if (File.Exists(solutionFile))
         {
             return Array.Empty<Output>();
         }
 
-        IEnumerable<string> projects = GetAllProjects(Path.GetDirectoryName(solutionFile));
+        directories ??= Directories;
+
+        IEnumerable<string> projects = GetAllProjects(Path.GetDirectoryName(solutionFile), directories);
         var workingDirectory = Path.GetDirectoryName(solutionFile);
         var list = new List<Output>();
 
