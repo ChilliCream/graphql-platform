@@ -4,6 +4,9 @@ using Nuke.Common.IO;
 
 partial class Build : NukeBuild
 {
+    const string Debug = "Debug";
+    const string Release = "Release";
+
     int DegreeOfParallelism =
         System.Environment.ProcessorCount < 5
             ? System.Environment.ProcessorCount * 2

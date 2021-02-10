@@ -29,20 +29,19 @@ partial class Build : NukeBuild
                 .Where((t => !ExcludedTests.Contains(t.Name))));
 
     Target Test => _ => _
-        .DependsOn(Compile)
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() =>
         {
-            if (!InvokedTargets.Contains(Restore))
-            {
-                DotNetBuildSonarSolution(AllSolutionFile);
-            }
+            DotNetBuildSonarSolution(AllSolutionFile);
+            DotNetBuild(c => c
+                .SetProjectFile(AllSolutionFile)
+                .SetConfiguration(Debug));
 
             try
             {
                 DotNetTest(
                     TestSettings,
-                    degreeOfParallelism: 2,
+                    degreeOfParallelism: DegreeOfParallelism,
                     completeOnFailure: true);
             }
             finally
@@ -136,7 +135,7 @@ partial class Build : NukeBuild
 
     DotNetTestSettings TestBaseSettings(DotNetTestSettings settings) =>
         settings
-            .SetConfiguration("Debug")
+            .SetConfiguration(Debug)
             .SetNoRestore(true)
             .SetNoBuild(true)
             .ResetVerbosity()
