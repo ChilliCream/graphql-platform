@@ -35,7 +35,7 @@ partial class Build : NukeBuild
             DotNetBuild(SonarBuildAll);
             DotNetTest(
                 CoverNoBuildSettingsOnly50,
-                degreeOfParallelism: DegreeOfParallelism * 2, 
+                degreeOfParallelism: DegreeOfParallelism, 
                 completeOnFailure: true);
             SonarScannerEnd(SonarEndSettings);
         });
