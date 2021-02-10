@@ -3,7 +3,7 @@ using HotChocolate.Language;
 namespace HotChocolate.Types.Scalars
 {
     /// <summary>
-    /// The NonNegativeIntType scalar type represents a signed 32-bit numeric non-fractional value
+    /// The NonNegativeIntType scalar type represents a unsigned 32-bit numeric non-fractional value
     /// greater than or equal to 0.
     /// </summary>
     public class NonNegativeIntType : IntType
