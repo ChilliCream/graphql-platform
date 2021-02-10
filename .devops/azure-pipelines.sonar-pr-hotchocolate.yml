@@ -17,13 +17,20 @@ stages:
         displayName: "Sonar Pull-Request"
         dependsOn: []
         steps:
+          - task: UseDotNet@2
+            displayName: "Install .NET Core"
+            inputs:
+              packageType: 'sdk'
+              useGlobalJson: true
           - task: JavaToolInstaller@0
+            displayName: "Install Java"
             inputs:
               versionSpec: "11"
               jdkArchitectureOption: "x64"
               jdkSourceOption: "PreInstalled"
               jdkDestinationDirectory: ./.java
           - task: CmdLine@2
+            displayName: "Run Sonar Analysis"
             env:
               HC_GITHUB_PR_NR: $(System.PullRequest.PullRequestNumber)
               HC_GITHUB_HEAD_REF: $(System.PullRequest.SourceBranch)
