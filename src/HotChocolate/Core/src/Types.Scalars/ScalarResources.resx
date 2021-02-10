@@ -90,6 +90,15 @@
   <data name="NonEmptyStringType_IsEmpty_ParseValue" xml:space="preserve">
     <value>NonEmptyString cannot parse the provided value. The provided string was empty.</value>
   </data>
+  <data name="NonPositiveFloatType_Description" xml:space="preserve">
+    <value>The NonPositiveFloatType scalar type represents a double‐precision fractional value less than or equal to 0.</value>
+  </data>
+  <data name="NonPositiveFloatType_IsNotNonPositive_ParseLiteral" xml:space="preserve">
+    <value>NonPositiveFloatType cannot parse the provided literal. The provided value was not less than or equal to 0.</value>
+  </data>
+  <data name="NonPositiveFloatType_IsNotNonPositive_ParseValue" xml:space="preserve">
+    <value>NonPositiveFloatType cannot parse the provided value. The provided value was not less than or equal to 0.</value>
+  </data>
   <data name="PhoneNumber_Description" xml:space="preserve">
     <value>The PhoneNumber scalar type represents a value that conforms to the standard E.164 format as specified in: https://en.wikipedia.org/wiki/E.164.</value>
   </data>

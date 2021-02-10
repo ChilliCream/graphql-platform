@@ -1,3 +1,5 @@
+using HotChocolate.Types.Scalars;
+
 namespace HotChocolate.Types
 {
     internal static class WellKnownScalarTypes
@@ -5,6 +7,7 @@ namespace HotChocolate.Types
         public const string EmailAddress = nameof(EmailAddress);
         public const string NegativeInt = nameof(NegativeInt);
         public const string NonEmptyString = nameof(NonEmptyString);
+        public const string NonPositiveFloat = nameof(NonPositiveFloat);
         public const string PhoneNumber = nameof(PhoneNumber);
         public const string PositiveInt = nameof(PositiveInt);
     }
