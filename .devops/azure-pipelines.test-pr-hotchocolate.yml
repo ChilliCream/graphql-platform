@@ -33,8 +33,6 @@ stages:
         continueOnError: true
         displayName: "Test"
         dependsOn: []
-        strategy:
-          parallel: 4
         steps:
           - task: UseDotNet@2
             displayName: "Install .NET Core"
@@ -44,7 +42,7 @@ stages:
           - task: CmdLine@2
             displayName: "Run Tests"
             inputs:
-              script: "./build.cmd Test --test-partition $(System.JobPositionInPhase)"
+              script: "./build.cmd Test"
           - task: PublishBuildArtifacts@1
             displayName: "Upload Test Results"
             inputs:
