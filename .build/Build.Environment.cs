@@ -4,6 +4,11 @@ using Nuke.Common.IO;
 
 partial class Build : NukeBuild
 {
+    int DegreeOfParallelism =
+        System.Environment.ProcessorCount < 5
+            ? System.Environment.ProcessorCount * 2
+            : 10;
+
     AbsolutePath SourceDirectory => RootDirectory / "src";
 
     AbsolutePath AllSolutionFile => SourceDirectory / "All.sln";

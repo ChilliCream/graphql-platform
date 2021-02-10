@@ -26,8 +26,8 @@ stages:
         displayName: "Test"
         dependsOn: []
         strategy:
-          parallel: 8
-        steps:          
+          parallel: 4
+        steps:
           - task: CmdLine@2
             inputs:
               script: "./build.cmd test --skip --test-partition $(System.JobPositionInPhase)"
@@ -38,7 +38,7 @@ stages:
       - job: Pack
         displayName: "Pack"
         dependsOn: []
-        steps:          
+        steps:
           - task: CmdLine@2
             inputs:
               script: "./build.cmd pack"

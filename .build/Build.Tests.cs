@@ -22,7 +22,7 @@ partial class Build : NukeBuild
         "HotChocolate.Types.Selections.PostgreSql.Tests"
     };
 
-    [Partition(8)] readonly Partition TestPartition;
+    [Partition(4)] readonly Partition TestPartition;
 
     IEnumerable<Project> TestProjects => TestPartition.GetCurrent(
         ProjectModelTasks.ParseSolution(AllSolutionFile).GetProjects("*.Tests")
@@ -41,7 +41,10 @@ partial class Build : NukeBuild
 
             try
             {
-                DotNetTest(TestSettings, degreeOfParallelism: 2, completeOnFailure: true);
+                DotNetTest(
+                    TestSettings,
+                    degreeOfParallelism: DegreeOfParallelism,
+                    completeOnFailure: true);
             }
             finally
             {
@@ -64,7 +67,10 @@ partial class Build : NukeBuild
                 DotNetBuildSonarSolution(AllSolutionFile);
             }
 
-            DotNetTest(CoverSettings);
+            DotNetTest(
+                CoverSettings,
+                degreeOfParallelism: DegreeOfParallelism,
+                completeOnFailure: true);
 
             TestResultDirectory.GlobFiles("*.trx").ForEach(x =>
                 DevOpsPipeLine?.PublishTestResults(
