@@ -14,9 +14,9 @@ stages:
       vmImage: "ubuntu-20.04"
     jobs:
       - job: Test
-        continueOnError: true
         displayName: "Test"
         dependsOn: []
+        continueOnError: true
         strategy:
           parallel: 5
         steps:
