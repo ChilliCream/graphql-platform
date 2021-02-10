@@ -68,6 +68,28 @@ namespace HotChocolate.Types.Scalars
                 type);
         }
 
+        public static SerializationException NonNegativeIntType_ParseLiteral_IsNotNegative(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.NonNegativeIntType_IsNotNonNegative_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.NonNegativeInt)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException NonNegativeIntType_ParseValue_IsNotNegative(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.NonNegativeIntType_IsNotNonNegative_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.NonNegativeInt)
+                    .Build(),
+                type);
+        }
+
         public static SerializationException PhoneNumber_ParseLiteral_IsInvalid(IType type)
         {
             return new SerializationException(
