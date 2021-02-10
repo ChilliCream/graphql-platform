@@ -63,6 +63,7 @@ namespace HotChocolate.Types.Scalars
         }
 
         [Theory]
+        [InlineData(typeof(IntValueNode), 0, 0)]
         [InlineData(typeof(IntValueNode), 1, 1)]
         [InlineData(typeof(IntValueNode), int.MaxValue, int.MaxValue)]
         [InlineData(typeof(NullValueNode), null, null)]
@@ -97,6 +98,7 @@ namespace HotChocolate.Types.Scalars
         }
 
         [Theory]
+        [InlineData(typeof(IntValueNode), 0)]
         [InlineData(typeof(IntValueNode), 1)]
         [InlineData(typeof(IntValueNode), int.MaxValue)]
         [InlineData(typeof(NullValueNode), null)]
@@ -124,6 +126,7 @@ namespace HotChocolate.Types.Scalars
         }
 
         [Theory]
+        [InlineData(0, 0)]
         [InlineData(1, 1)]
         [InlineData(int.MaxValue, int.MaxValue)]
         [InlineData(null, null)]
@@ -153,6 +156,7 @@ namespace HotChocolate.Types.Scalars
         }
 
         [Theory]
+        [InlineData(0, 0)]
         [InlineData(1, 1)]
         [InlineData(int.MaxValue, int.MaxValue)]
         [InlineData(null, null)]
