@@ -67,10 +67,13 @@ partial class Build : NukeBuild
                 .Add("/d:sonar.pullrequest.key={0}", GitHubPRNumber)
                 .Add("/d:sonar.pullrequest.branch={0}", GitHubHeadRef)
                 .Add("/d:sonar.pullrequest.base={0}", GitHubBaseRef)
-                .Add("/d:sonar.cs.roslyn.ignoreIssues={0}", "true"));
+                .Add("/d:sonar.cs.roslyn.ignoreIssues={0}", "true"))
+            .SetFramework("net5.0");
 
     SonarScannerBeginSettings SonarBeginFullSettings(SonarScannerBeginSettings settings) =>
-        SonarBeginBaseSettings(settings).SetVersion(GitVersion.SemVer);
+        SonarBeginBaseSettings(settings)
+            .SetVersion(GitVersion.SemVer)
+            .SetFramework("net5.0");
 
     SonarScannerBeginSettings SonarBeginBaseSettings(SonarScannerBeginSettings settings) =>
         SonarBaseSettings(settings)
@@ -92,7 +95,8 @@ partial class Build : NukeBuild
     SonarScannerEndSettings SonarEndSettings(SonarScannerEndSettings settings) =>
         settings
             .SetLogin(SonarToken)
-            .SetProcessWorkingDirectory(RootDirectory);
+            .SetProcessWorkingDirectory(RootDirectory)
+            .SetFramework("net5.0");
 
     DotNetBuildSettings SonarBuildAll(DotNetBuildSettings settings) =>
         SonarBuildBaseSettings(settings)
