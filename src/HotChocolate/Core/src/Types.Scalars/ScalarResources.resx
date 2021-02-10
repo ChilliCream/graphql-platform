@@ -91,7 +91,7 @@
     <value>NonEmptyString cannot parse the provided value. The provided string was empty.</value>
   </data>
   <data name="NonNegativeIntType_Description" xml:space="preserve">
-    <value>The NonNegativeIntType scalar type represents a signed 32-bit numeric non-fractional value equal to or greater than 0.</value>
+    <value>The NonNegativeIntType scalar type represents a signed 32-bit numeric non-fractional value greater than or equal to 0.</value>
   </data>
   <data name="NonNegativeIntType_IsNotNonNegative_ParseLiteral" xml:space="preserve">
     <value>NonNegativeIntType cannot parse the provided literal. The provided value was not equal to or greater than 0.</value>
