@@ -23,11 +23,11 @@ pr:
   - main
 
 stages:
-  - stage: ubuntu_latest
-    displayName: "ubuntu-latest"
+  - stage: ubuntu
+    displayName: "Ubuntu 20.04"
     dependsOn: []
     pool:
-      vmImage: "ubuntu-latest"
+      vmImage: "ubuntu-20.04"
     jobs:
       - job: Test
         continueOnError: true
