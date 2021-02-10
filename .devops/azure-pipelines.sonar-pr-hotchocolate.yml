@@ -26,30 +26,6 @@ stages:
     pool:
       vmImage: "ubuntu-latest"
     jobs:
-      - job: Cover
-        displayName: "Cover"
-        dependsOn: []
-        strategy:
-          parallel: 4
-        steps:
-          - task: CmdLine@2
-            inputs:
-              script: "./build.cmd Cover --test-partition $(System.JobPositionInPhase)"
-          - task: PublishBuildArtifacts@1
-            inputs:
-              artifactName: test-results
-              pathtoPublish: "output/test-results"
-      - job: ReportCoverage
-        displayName: "ReportCoverage"
-        dependsOn: [Cover]
-        steps:
-          - task: DownloadBuildArtifacts@0
-            inputs:
-              artifactName: "test-results"
-              downloadPath: "$(Build.Repository.LocalPath)/output"
-          - task: CmdLine@2
-            inputs:
-              script: "./build.cmd ReportCoverage --skip"
       - job: SonarPr
         displayName: "SonarPr"
         dependsOn: []

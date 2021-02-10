@@ -122,11 +122,13 @@ partial class Build : NukeBuild
         {
             IReadOnlyCollection<AbsolutePath> packages = PackageDirectory.GlobFiles("*.nupkg");
 
-            DotNetNuGetPush(_ => _
+            DotNetNuGetPush(
+                _ => _
                     .SetSource(NuGetSource)
                     .SetApiKey(NuGetApiKey)
-                    .CombineWith(packages, (_, v) => _
-                        .SetTargetPath(v)),
+                    .CombineWith(
+                        packages,
+                        (_, v) => _.SetTargetPath(v)),
                 degreeOfParallelism: 2,
                 completeOnFailure: true);
         });
