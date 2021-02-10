@@ -29,6 +29,7 @@ namespace HotChocolate.Types
                 .ToString()
                 .MatchSnapshot();
             #endif
+            
         }
 
         [Fact]
