@@ -34,7 +34,7 @@ stages:
         displayName: "Test"
         dependsOn: []
         strategy:
-          parallel: 4
+          parallel: 1
         steps:
           - task: CmdLine@2
             inputs:
