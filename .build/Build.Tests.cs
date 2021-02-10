@@ -29,7 +29,7 @@ partial class Build : NukeBuild
                 .Where((t => !ExcludedTests.Contains(t.Name))));
 
     Target Test => _ => _
-        .DependsOn(Restore)
+        .DependsOn(Compile)
         .Produces(TestResultDirectory / "*.trx")
         .Partition(() => TestPartition)
         .Executes(() =>

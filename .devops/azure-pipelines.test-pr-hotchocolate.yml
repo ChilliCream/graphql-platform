@@ -34,7 +34,7 @@ stages:
         displayName: "Test"
         dependsOn: []
         strategy:
-          parallel: 1
+          parallel: 4
         steps:
           - task: UseDotNet@2
             displayName: "Install .NET Core"
