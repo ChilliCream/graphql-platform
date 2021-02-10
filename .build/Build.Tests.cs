@@ -124,25 +124,12 @@ partial class Build : NukeBuild
         DotNetTestSettings settings, 
         IEnumerable<Project> projects) =>
         TestBaseSettings(settings)
-            .SetNoRestore(true)
-            .SetNoBuild(true)
             .EnableCollectCoverage()
             .SetCoverletOutputFormat(CoverletOutputFormat.opencover)
+            .SetProcessArgumentConfigurator(a => a.Add("--collect:\"XPlat Code Coverage\""))
             .SetExcludeByFile("*.Generated.cs")
             .SetFramework(Net50)
-            .SetConfiguration(Debug)
             .CombineWith(projects, (_, v) => _
-                .SetProjectFile(v)
-                .SetLogger($"trx;LogFileName={v.Name}.trx")
-                .SetCoverletOutput(TestResultDirectory / $"{v.Name}.xml"));
-
-    IEnumerable<DotNetTestSettings> CoverNoBuildSettings(DotNetTestSettings settings) =>
-        TestBaseSettings(settings)
-            .SetNoBuild(true)
-            .EnableCollectCoverage()
-            .SetCoverletOutputFormat(CoverletOutputFormat.opencover)
-            .SetExcludeByFile("*.Generated.cs")
-            .CombineWith(TestProjects, (_, v) => _
                 .SetProjectFile(v)
                 .SetLogger($"trx;LogFileName={v.Name}.trx")
                 .SetCoverletOutput(TestResultDirectory / $"{v.Name}.xml"));
@@ -151,6 +138,7 @@ partial class Build : NukeBuild
         TestBaseSettings(settings)
             .EnableCollectCoverage()
             .SetCoverletOutputFormat(CoverletOutputFormat.opencover)
+            .SetProcessArgumentConfigurator(a => a.Add("--collect:\"XPlat Code Coverage\""))
             .SetExcludeByFile("*.Generated.cs")
             .CombineWith(TestProjects, (_, v) => _
                 .SetProjectFile(v)
