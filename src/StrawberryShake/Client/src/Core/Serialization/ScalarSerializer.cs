@@ -38,7 +38,9 @@ namespace StrawberryShake.Serialization
                 return Format(r);
             }
 
-            throw ThrowHelper.InputFormatter_InvalidType(typeof(TRuntime).FullName, TypeName);
+            throw ThrowHelper.InputFormatter_InvalidType(
+                typeof(TRuntime).FullName ?? typeof(TRuntime).Name, 
+                TypeName);
         }
 
         protected abstract TSerialized Format(TRuntime runtimeValue);
