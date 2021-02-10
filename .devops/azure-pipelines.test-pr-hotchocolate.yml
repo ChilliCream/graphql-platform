@@ -36,6 +36,10 @@ stages:
         strategy:
           parallel: 1
         steps:
+          - task: UseDotNet@2
+            inputs:
+              packageType: 'sdk'
+              useGlobalJson: true
           - task: CmdLine@2
             inputs:
               script: "./build.cmd Test --test-partition $(System.JobPositionInPhase)"
