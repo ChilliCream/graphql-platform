@@ -410,3 +410,11 @@ The PhoneNumber scalar type represents a value that conforms to the standard E.1
 """
 scalar PhoneNumber
 ```
+
+## NonNegativeInt
+```sdl
+"""
+The NonNegativeIntType scalar type represents a signed 32-bit numeric non-fractional value greater than or equal to 0.
+"""
+scalar NonNegativeInt
+```
