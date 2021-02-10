@@ -73,7 +73,7 @@ partial class Build : NukeBuild
 
                 DotNetTest(
                     CoverSettings,
-                    degreeOfParallelism: DegreeOfParallelism * 2,
+                    degreeOfParallelism: DegreeOfParallelism,
                     completeOnFailure: true);
             }
             finally
