@@ -313,7 +313,7 @@ namespace HotChocolate.Types
 
             Assert.Equal(
                 "value",
-                Assert.IsType<ArgumentException>(ex).ParamName);
+                Assert.IsType<ArgumentNullException>(ex).ParamName);
         }
 
         [Fact]
