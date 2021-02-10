@@ -1,11 +1,9 @@
 query GetPeople {
-  me {
-    friends {
-      nodes {
+  people(order_by: { name: ASC }) {
+    nodes {
         name
-        email
-        isOnline
-      }
+  email
+  isOnline
     }
   }
 }

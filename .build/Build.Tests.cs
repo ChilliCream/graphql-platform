@@ -22,26 +22,29 @@ partial class Build : NukeBuild
         "HotChocolate.Types.Selections.PostgreSql.Tests"
     };
 
-    [Partition(8)] readonly Partition TestPartition;
+    [Partition(5)] readonly Partition TestPartition;
 
     IEnumerable<Project> TestProjects => TestPartition.GetCurrent(
         ProjectModelTasks.ParseSolution(AllSolutionFile).GetProjects("*.Tests")
                 .Where((t => !ExcludedTests.Contains(t.Name))));
 
     Target Test => _ => _
-        .DependsOn(Restore)
         .Produces(TestResultDirectory / "*.trx")
-        .Partition(() => TestPartition)
         .Executes(() =>
         {
-            if (!InvokedTargets.Contains(Restore))
-            {
-                DotNetBuildSonarSolution(AllSolutionFile);
-            }
+            DotNetBuildSonarSolution(AllSolutionFile);
+            DotNetBuildTestSolution(TestSolutionFile, TestProjects);
+
+            DotNetBuild(c => c
+                .SetProjectFile(TestSolutionFile)
+                .SetConfiguration(Debug));
 
             try
             {
-                DotNetTest(TestSettings);
+                DotNetTest(
+                    TestSettings,
+                    degreeOfParallelism: DegreeOfParallelism,
+                    completeOnFailure: true);
             }
             finally
             {
@@ -53,24 +56,34 @@ partial class Build : NukeBuild
             }
         });
 
-    Target Cover => _ => _.DependsOn(Restore)
+    Target Cover => _ => _
         .Produces(TestResultDirectory / "*.trx")
         .Produces(TestResultDirectory / "*.xml")
         .Partition(() => TestPartition)
         .Executes(() =>
         {
-            if (!InvokedTargets.Contains(Restore))
+            try
             {
                 DotNetBuildSonarSolution(AllSolutionFile);
+                DotNetBuildTestSolution(TestSolutionFile, TestProjects);
+
+                DotNetBuild(c => c
+                    .SetProjectFile(TestSolutionFile)
+                    .SetConfiguration(Debug));
+
+                DotNetTest(
+                    CoverSettings,
+                    degreeOfParallelism: DegreeOfParallelism,
+                    completeOnFailure: true);
             }
-
-            DotNetTest(CoverSettings);
-
-            TestResultDirectory.GlobFiles("*.trx").ForEach(x =>
-                DevOpsPipeLine?.PublishTestResults(
-                    type: AzurePipelinesTestResultsType.VSTest,
-                    title: $"{Path.GetFileNameWithoutExtension(x)} ({DevOpsPipeLine.StageDisplayName})",
-                    files: new string[] { x }));
+            finally
+            {
+                TestResultDirectory.GlobFiles("*.trx").ForEach(x =>
+                    DevOpsPipeLine?.PublishTestResults(
+                        type: AzurePipelinesTestResultsType.VSTest,
+                        title: $"{Path.GetFileNameWithoutExtension(x)} ({DevOpsPipeLine.StageDisplayName})",
+                        files: new string[] { x }));
+            }
         });
 
     Target ReportCoverage => _ => _.DependsOn(Restore)
@@ -101,25 +114,16 @@ partial class Build : NukeBuild
                 .SetProjectFile(v)
                 .SetLogger($"trx;LogFileName={v.Name}.trx"));
 
-    IEnumerable<DotNetTestSettings> CoverNoBuildSettingsOnly50(DotNetTestSettings settings) =>
+    IEnumerable<DotNetTestSettings> CoverNoBuildSettingsOnly50(
+        DotNetTestSettings settings, 
+        IEnumerable<Project> projects) =>
         TestBaseSettings(settings)
-            .SetNoBuild(true)
             .EnableCollectCoverage()
             .SetCoverletOutputFormat(CoverletOutputFormat.opencover)
+            .SetProcessArgumentConfigurator(a => a.Add("--collect:\"XPlat Code Coverage\""))
             .SetExcludeByFile("*.Generated.cs")
-            .SetFramework("net5.0")
-            .CombineWith(TestProjects, (_, v) => _
-                .SetProjectFile(v)
-                .SetLogger($"trx;LogFileName={v.Name}.trx")
-                .SetCoverletOutput(TestResultDirectory / $"{v.Name}.xml"));
-
-    IEnumerable<DotNetTestSettings> CoverNoBuildSettings(DotNetTestSettings settings) =>
-        TestBaseSettings(settings)
-            .SetNoBuild(true)
-            .EnableCollectCoverage()
-            .SetCoverletOutputFormat(CoverletOutputFormat.opencover)
-            .SetExcludeByFile("*.Generated.cs")
-            .CombineWith(TestProjects, (_, v) => _
+            .SetFramework(Net50)
+            .CombineWith(projects, (_, v) => _
                 .SetProjectFile(v)
                 .SetLogger($"trx;LogFileName={v.Name}.trx")
                 .SetCoverletOutput(TestResultDirectory / $"{v.Name}.xml"));
@@ -128,6 +132,7 @@ partial class Build : NukeBuild
         TestBaseSettings(settings)
             .EnableCollectCoverage()
             .SetCoverletOutputFormat(CoverletOutputFormat.opencover)
+            .SetProcessArgumentConfigurator(a => a.Add("--collect:\"XPlat Code Coverage\""))
             .SetExcludeByFile("*.Generated.cs")
             .CombineWith(TestProjects, (_, v) => _
                 .SetProjectFile(v)
@@ -136,8 +141,9 @@ partial class Build : NukeBuild
 
     DotNetTestSettings TestBaseSettings(DotNetTestSettings settings) =>
         settings
-            .SetConfiguration("Debug")
-            .SetNoRestore(InvokedTargets.Contains(Restore))
+            .SetConfiguration(Debug)
+            .SetNoRestore(true)
+            .SetNoBuild(true)
             .ResetVerbosity()
             .SetResultsDirectory(TestResultDirectory);
 }

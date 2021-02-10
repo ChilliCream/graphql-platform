@@ -36,7 +36,7 @@ partial class Build : NukeBuild
     public static int Main() => Execute<Build>(x => x.Compile);
 
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
-    readonly string Configuration = IsLocalBuild ? "Debug" : "Release";
+    readonly string Configuration = IsLocalBuild ? Debug : Release;
 
     [CI] readonly AzurePipelines DevOpsPipeLine;
 

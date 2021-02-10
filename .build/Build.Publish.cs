@@ -26,7 +26,7 @@ partial class Build : NukeBuild
         .DependsOn(Restore, PackLocal)
         .Produces(PackageDirectory / "*.nupkg")
         .Produces(PackageDirectory / "*.snupkg")
-        .Requires(() => Configuration.Equals("Release"))
+        .Requires(() => Configuration.Equals(Release))
         .Executes(() =>
         {
             var projFile = File.ReadAllText(StarWarsProj);
@@ -117,16 +117,18 @@ partial class Build : NukeBuild
         .Consumes(Pack)
         .Requires(() => NuGetSource)
         .Requires(() => NuGetApiKey)
-        .Requires(() => Configuration.Equals("Release"))
+        .Requires(() => Configuration.Equals(Release))
         .Executes(() =>
         {
             IReadOnlyCollection<AbsolutePath> packages = PackageDirectory.GlobFiles("*.nupkg");
 
-            DotNetNuGetPush(_ => _
+            DotNetNuGetPush(
+                _ => _
                     .SetSource(NuGetSource)
                     .SetApiKey(NuGetApiKey)
-                    .CombineWith(packages, (_, v) => _
-                        .SetTargetPath(v)),
+                    .CombineWith(
+                        packages,
+                        (_, v) => _.SetTargetPath(v)),
                 degreeOfParallelism: 2,
                 completeOnFailure: true);
         });

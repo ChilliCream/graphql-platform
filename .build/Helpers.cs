@@ -2,12 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Nuke.Common.ProjectModel;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
 
 class Helpers
 {
-    static readonly string[] _directories =
+    public static readonly string[] Directories =
     {
         "GreenDonut",
         // Path.Combine("HotChocolate", "ApolloFederation"),
@@ -25,9 +26,11 @@ class Helpers
         Path.Combine("StrawberryShake", "CodeGeneration")
     };
 
-    public static IEnumerable<string> GetAllProjects(string sourceDirectory)
+    public static IEnumerable<string> GetAllProjects(
+        string sourceDirectory, 
+        IEnumerable<string> directories)
     {
-        foreach (var directory in _directories)
+        foreach (var directory in directories)
         {
             var fullDirectory = Path.Combine(sourceDirectory, directory);
             foreach (var file in Directory.EnumerateFiles(fullDirectory, "*.csproj", SearchOption.AllDirectories))
@@ -47,14 +50,38 @@ class Helpers
     }
 
     public static IReadOnlyCollection<Output> DotNetBuildSonarSolution(
-        string solutionFile)
+        string solutionFile,
+        IEnumerable<string> directories = null)
     {
         if (File.Exists(solutionFile))
         {
             return Array.Empty<Output>();
         }
 
-        IEnumerable<string> projects = GetAllProjects(Path.GetDirectoryName(solutionFile));
+        directories ??= Directories;
+
+        IEnumerable<string> projects = GetAllProjects(Path.GetDirectoryName(solutionFile), directories);
+        var workingDirectory = Path.GetDirectoryName(solutionFile);
+        var list = new List<Output>();
+
+        list.AddRange(DotNetTasks.DotNet($"new sln -n {Path.GetFileNameWithoutExtension(solutionFile)}", workingDirectory));
+
+        var projectsArg = string.Join(" ", projects.Select(t => $"\"{t}\""));
+
+        list.AddRange(DotNetTasks.DotNet($"sln \"{solutionFile}\" add {projectsArg}", workingDirectory));
+
+        return list;
+    }
+
+    public static IReadOnlyCollection<Output> DotNetBuildTestSolution(
+        string solutionFile,
+        IEnumerable<Project> projects)
+    {
+        if (File.Exists(solutionFile))
+        {
+            return Array.Empty<Output>();
+        }
+
         var workingDirectory = Path.GetDirectoryName(solutionFile);
         var list = new List<Output>();
 
