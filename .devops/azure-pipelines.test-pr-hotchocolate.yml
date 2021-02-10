@@ -46,7 +46,7 @@ stages:
             inputs:
               script: "./build.cmd Test --test-partition $(System.JobPositionInPhase)"
           - task: PublishBuildArtifacts@1
+            displayName: "Upload Test Results"
             inputs:
-              displayName: "Upload Test Results"
               artifactName: test-results
               pathtoPublish: "output/test-results"
