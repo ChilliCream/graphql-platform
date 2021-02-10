@@ -414,7 +414,7 @@ scalar PhoneNumber
 ## NonNegativeInt
 ```sdl
 """
-The NonNegativeIntType scalar type represents a signed 32-bit numeric non-fractional value greater than or equal to 0.
+The NonNegativeIntType scalar type represents a unsigned 32-bit numeric non-fractional value greater than or equal to 0.
 """
 scalar NonNegativeInt
 ```
