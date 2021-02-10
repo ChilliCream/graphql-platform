@@ -27,10 +27,7 @@ partial class Build : NukeBuild
             Console.WriteLine($"GitHubBaseRef: {GitHubBaseRef}");
             Console.WriteLine($"GitHubPRNumber: {GitHubPRNumber}");
 
-            if (!InvokedTargets.Contains(Cover))
-            {
-                DotNetBuildSonarSolution(AllSolutionFile);
-            }
+            DotNetBuildSonarSolution(AllSolutionFile);
 
             DotNetRestore(c => c
                 .SetProjectFile(AllSolutionFile)
