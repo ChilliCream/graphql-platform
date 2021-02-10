@@ -33,9 +33,10 @@ partial class Build : NukeBuild
         .Executes(() =>
         {
             DotNetBuildSonarSolution(AllSolutionFile);
+
             DotNetBuild(c => c
-                .SetProjectFile(AllSolutionFile)
-                .SetConfiguration(Debug));
+                .SetConfiguration(Debug)
+                .CombineWith(TestProjects, (_, v) => _.SetProjectFile(v)));
 
             try
             {
