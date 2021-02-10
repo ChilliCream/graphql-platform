@@ -139,6 +139,7 @@ partial class Build : NukeBuild
         settings
             .SetConfiguration("Debug")
             .SetNoRestore(true)
+            .SetNoBuild(true)
             .ResetVerbosity()
             .SetResultsDirectory(TestResultDirectory);
 }
