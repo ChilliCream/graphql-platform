@@ -81,6 +81,7 @@ partial class Build : NukeBuild
             .SetLogin(SonarToken)
             .AddOpenCoverPaths(TestResultDirectory / "*.xml")
             .SetVSTestReports(TestResultDirectory / "*.trx")
+            .AddSourceExclusions("**/Generated/**/*.*,**/*.Designer.cs,**/*.generated.cs,**/*.js,**/*.html,**/*.css,**/Sample/**/*.*,**/Samples.*/**/*.*,**/*Tools.*/**/*.*,**/Program.Dev.cs, **/Program.cs,**/*.ts,**/*.tsx,**/*EventSource.cs,**/*EventSources.cs,**/*.Samples.cs,**/*Tests.*/**/*.*,**/*Test.*/**/*.*")
             .SetProcessArgumentConfigurator(t => t
                 .Add("/o:{0}", "chillicream")
                 .Add("/d:sonar.cs.roslyn.ignoreIssues={0}", "true"));
