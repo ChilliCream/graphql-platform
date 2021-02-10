@@ -37,7 +37,7 @@ stages:
         steps:
           - task: CmdLine@2
             inputs:
-              script: "./build.cmd Cover --skip --test-partition $(System.JobPositionInPhase)"
+              script: "./build.cmd Cover --test-partition $(System.JobPositionInPhase)"
           - task: PublishBuildArtifacts@1
             inputs:
               artifactName: test-results

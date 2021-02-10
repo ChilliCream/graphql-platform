@@ -29,7 +29,7 @@ partial class Build : NukeBuild
                 .Where((t => !ExcludedTests.Contains(t.Name))));
 
     Target Test => _ => _
-        .DependsOn(Restore)
+        .DependsOn(Compile)
         .Produces(TestResultDirectory / "*.trx")
         .Partition(() => TestPartition)
         .Executes(() =>
@@ -56,17 +56,12 @@ partial class Build : NukeBuild
             }
         });
 
-    Target Cover => _ => _.DependsOn(Restore)
+    Target Cover => _ => _.DependsOn(Compile)
         .Produces(TestResultDirectory / "*.trx")
         .Produces(TestResultDirectory / "*.xml")
         .Partition(() => TestPartition)
         .Executes(() =>
         {
-            if (!InvokedTargets.Contains(Restore))
-            {
-                DotNetBuildSonarSolution(AllSolutionFile);
-            }
-
             DotNetTest(
                 CoverSettings,
                 degreeOfParallelism: DegreeOfParallelism,
@@ -143,7 +138,8 @@ partial class Build : NukeBuild
     DotNetTestSettings TestBaseSettings(DotNetTestSettings settings) =>
         settings
             .SetConfiguration("Debug")
-            .SetNoRestore(InvokedTargets.Contains(Restore))
+            .SetNoRestore(true)
+            .SetNoBuild(true)
             .ResetVerbosity()
             .SetResultsDirectory(TestResultDirectory);
 }

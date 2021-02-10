@@ -34,7 +34,7 @@ stages:
         steps:
           - task: CmdLine@2
             inputs:
-              script: "./build.cmd Cover --skip --test-partition $(System.JobPositionInPhase)"
+              script: "./build.cmd Cover --test-partition $(System.JobPositionInPhase)"
           - task: PublishBuildArtifacts@1
             inputs:
               artifactName: test-results
@@ -66,4 +66,4 @@ stages:
               HC_GITHUB_HEAD_REF: $(System.PullRequest.SourceBranch)
               HC_GITHUB_BASE_REF: $(System.PullRequest.TargetBranch)
             inputs:
-              script: "./build.cmd SonarPr --skip"
+              script: "./build.cmd SonarPr"
