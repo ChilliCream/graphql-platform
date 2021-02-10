@@ -34,7 +34,6 @@ partial class Build : NukeBuild
         {
             DotNetBuildSonarSolution(AllSolutionFile);
             DotNetBuildTestSolution(TestSolutionFile, TestProjects);
-            
 
             DotNetBuild(c => c
                 .SetProjectFile(TestSolutionFile)
@@ -57,22 +56,40 @@ partial class Build : NukeBuild
             }
         });
 
-    Target Cover => _ => _.DependsOn(Compile)
+    Target Cover => _ => _
         .Produces(TestResultDirectory / "*.trx")
         .Produces(TestResultDirectory / "*.xml")
         .Partition(() => TestPartition)
         .Executes(() =>
         {
-            DotNetTest(
-                CoverSettings,
-                degreeOfParallelism: DegreeOfParallelism,
-                completeOnFailure: true);
+            try
+            {
+                DotNetBuildSonarSolution(AllSolutionFile);
+                DotNetBuildTestSolution(TestSolutionFile, TestProjects);
 
-            TestResultDirectory.GlobFiles("*.trx").ForEach(x =>
-                DevOpsPipeLine?.PublishTestResults(
-                    type: AzurePipelinesTestResultsType.VSTest,
-                    title: $"{Path.GetFileNameWithoutExtension(x)} ({DevOpsPipeLine.StageDisplayName})",
-                    files: new string[] { x }));
+                DotNetBuild(c => c
+                    .SetProjectFile(TestSolutionFile)
+                    .SetConfiguration(Debug));
+
+                DotNetTest(
+                    CoverSettings,
+                    degreeOfParallelism: DegreeOfParallelism,
+                    completeOnFailure: true);
+
+                TestResultDirectory.GlobFiles("*.trx").ForEach(x =>
+                    DevOpsPipeLine?.PublishTestResults(
+                        type: AzurePipelinesTestResultsType.VSTest,
+                        title: $"{Path.GetFileNameWithoutExtension(x)} ({DevOpsPipeLine.StageDisplayName})",
+                        files: new string[] { x }));
+            }
+            finally
+            {
+                TestResultDirectory.GlobFiles("*.trx").ForEach(x =>
+                    DevOpsPipeLine?.PublishTestResults(
+                        type: AzurePipelinesTestResultsType.VSTest,
+                        title: $"{Path.GetFileNameWithoutExtension(x)} ({DevOpsPipeLine.StageDisplayName})",
+                        files: new string[] { x }));
+            }
         });
 
     Target ReportCoverage => _ => _.DependsOn(Restore)
@@ -105,11 +122,13 @@ partial class Build : NukeBuild
 
     IEnumerable<DotNetTestSettings> CoverNoBuildSettingsOnly50(DotNetTestSettings settings) =>
         TestBaseSettings(settings)
+            .SetNoRestore(true)
             .SetNoBuild(true)
             .EnableCollectCoverage()
             .SetCoverletOutputFormat(CoverletOutputFormat.opencover)
             .SetExcludeByFile("*.Generated.cs")
-            .SetFramework("net5.0")
+            .SetFramework(Net50)
+            .SetConfiguration(Debug)
             .CombineWith(TestProjects, (_, v) => _
                 .SetProjectFile(v)
                 .SetLogger($"trx;LogFileName={v.Name}.trx")

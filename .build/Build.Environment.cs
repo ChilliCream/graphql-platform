@@ -6,6 +6,7 @@ partial class Build : NukeBuild
 {
     const string Debug = "Debug";
     const string Release = "Release";
+    const string Net50 = "net5.0";
 
     int DegreeOfParallelism =
         System.Environment.ProcessorCount < 5

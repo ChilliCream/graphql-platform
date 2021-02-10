@@ -1,11 +1,9 @@
-using System.IO;
 using Colorful;
 using Nuke.Common;
 using Nuke.Common.CI;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.SonarScanner;
-using Nuke.Common.Utilities.Collections;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Nuke.Common.Tools.SonarScanner.SonarScannerTasks;
 using static Helpers;
@@ -37,7 +35,7 @@ partial class Build : NukeBuild
             DotNetBuild(SonarBuildAll);
             DotNetTest(
                 CoverNoBuildSettingsOnly50,
-                degreeOfParallelism: DegreeOfParallelism, 
+                degreeOfParallelism: DegreeOfParallelism * 2, 
                 completeOnFailure: true);
             SonarScannerEnd(SonarEndSettings);
         });
@@ -68,12 +66,12 @@ partial class Build : NukeBuild
                 .Add("/d:sonar.pullrequest.branch={0}", GitHubHeadRef)
                 .Add("/d:sonar.pullrequest.base={0}", GitHubBaseRef)
                 .Add("/d:sonar.cs.roslyn.ignoreIssues={0}", "true"))
-            .SetFramework("net5.0");
+            .SetFramework(Net50);
 
     SonarScannerBeginSettings SonarBeginFullSettings(SonarScannerBeginSettings settings) =>
         SonarBeginBaseSettings(settings)
             .SetVersion(GitVersion.SemVer)
-            .SetFramework("net5.0");
+            .SetFramework(Net50);
 
     SonarScannerBeginSettings SonarBeginBaseSettings(SonarScannerBeginSettings settings) =>
         SonarBaseSettings(settings)
@@ -96,15 +94,12 @@ partial class Build : NukeBuild
         settings
             .SetLogin(SonarToken)
             .SetProcessWorkingDirectory(RootDirectory)
-            .SetFramework("net5.0");
+            .SetFramework(Net50);
 
     DotNetBuildSettings SonarBuildAll(DotNetBuildSettings settings) =>
-        SonarBuildBaseSettings(settings)
-            .SetProjectFile(AllSolutionFile);
-
-    DotNetBuildSettings SonarBuildBaseSettings(DotNetBuildSettings settings) =>
         settings
-            .SetNoRestore(InvokedTargets.Contains(Restore))
-            .SetConfiguration("Debug")
+            .SetProjectFile(AllSolutionFile)
+            .SetNoRestore(true)
+            .SetConfiguration(Debug)
             .SetProcessWorkingDirectory(RootDirectory);
 }
