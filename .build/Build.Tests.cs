@@ -31,7 +31,6 @@ partial class Build : NukeBuild
     Target Test => _ => _
         .DependsOn(Compile)
         .Produces(TestResultDirectory / "*.trx")
-        .Partition(() => TestPartition)
         .Executes(() =>
         {
             if (!InvokedTargets.Contains(Restore))
