@@ -73,14 +73,8 @@ partial class Build : NukeBuild
 
                 DotNetTest(
                     CoverSettings,
-                    degreeOfParallelism: DegreeOfParallelism,
+                    degreeOfParallelism: DegreeOfParallelism * 2,
                     completeOnFailure: true);
-
-                TestResultDirectory.GlobFiles("*.trx").ForEach(x =>
-                    DevOpsPipeLine?.PublishTestResults(
-                        type: AzurePipelinesTestResultsType.VSTest,
-                        title: $"{Path.GetFileNameWithoutExtension(x)} ({DevOpsPipeLine.StageDisplayName})",
-                        files: new string[] { x }));
             }
             finally
             {
