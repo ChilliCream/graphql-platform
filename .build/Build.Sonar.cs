@@ -38,7 +38,13 @@ partial class Build : NukeBuild
 
             SonarScannerBegin(SonarBeginPrSettings);
             DotNetBuild(SonarBuildAll);
-            DotNetTest(CoverNoBuildSettingsOnly50);
+            DotNetTest(
+                CoverNoBuildSettingsOnly50, 
+                degreeOfParallelism: 
+                    System.Environment.ProcessorCount < 5
+                        ? System.Environment.ProcessorCount * 2
+                        : 10, 
+                completeOnFailure: true);
             SonarScannerEnd(SonarEndSettings);
         });
 

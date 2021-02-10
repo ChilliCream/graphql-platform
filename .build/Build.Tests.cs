@@ -41,7 +41,7 @@ partial class Build : NukeBuild
 
             try
             {
-                DotNetTest(TestSettings);
+                DotNetTest(TestSettings, degreeOfParallelism: 2, completeOnFailure: true);
             }
             finally
             {
