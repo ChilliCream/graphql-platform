@@ -29,7 +29,7 @@ partial class Build : NukeBuild
                 .Where((t => !ExcludedTests.Contains(t.Name))));
 
     Target Test => _ => _
-        .DependsOn(Compile)
+        .DependsOn(Restore)
         .Produces(TestResultDirectory / "*.trx")
         .Partition(() => TestPartition)
         .Executes(() =>
@@ -43,7 +43,7 @@ partial class Build : NukeBuild
             {
                 DotNetTest(
                     TestSettings,
-                    degreeOfParallelism: DegreeOfParallelism,
+                    degreeOfParallelism: 1,
                     completeOnFailure: true);
             }
             finally
@@ -139,7 +139,6 @@ partial class Build : NukeBuild
         settings
             .SetConfiguration("Debug")
             .SetNoRestore(true)
-            .SetNoBuild(true)
             .ResetVerbosity()
             .SetResultsDirectory(TestResultDirectory);
 }
