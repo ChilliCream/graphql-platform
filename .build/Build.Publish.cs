@@ -77,11 +77,24 @@ partial class Build : NukeBuild
                 parsedProject.Save();
             }
 
+            var analyzerProject = ProjectModelTasks
+                    .ParseSolution(SgSolutionFile)
+                    .GetProjects("*.Analyzers")
+                    .Single();
+
+            DotNetBuild(c => c
+                .SetProjectFile(analyzerProject)
+                .SetConfiguration(Configuration)
+                .SetAssemblyVersion(GitVersion.AssemblySemVer)
+                .SetFileVersion(GitVersion.AssemblySemFileVer)
+                .SetInformationalVersion(GitVersion.InformationalVersion)
+                .SetVersion(GitVersion.SemVer));
+
             DotNetPack(c => c
-                .SetProject(SgSolutionFile)
+                .SetProject(analyzerProject)
+                .SetNoBuild(InvokedTargets.Contains(Compile))
                 .SetConfiguration(Configuration)
                 .SetOutputDirectory(PackageDirectory)
-                .SetProcessWorkingDirectory(Path.GetDirectoryName(SgSolutionFile))
                 .SetVersion(GitVersion.SemVer));
 
             // update test projects that use the source generators

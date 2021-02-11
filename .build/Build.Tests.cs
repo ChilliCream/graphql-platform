@@ -147,4 +147,3 @@ partial class Build : NukeBuild
             .ResetVerbosity()
             .SetResultsDirectory(TestResultDirectory);
 }
-
