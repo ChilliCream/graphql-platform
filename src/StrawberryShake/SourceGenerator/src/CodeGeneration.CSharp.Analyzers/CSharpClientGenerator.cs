@@ -4,11 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Text;
 using DotNet.Globbing;
 using HotChocolate;
 using HotChocolate.Utilities;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 using Newtonsoft.Json;
 using IOPath = System.IO.Path;
 
@@ -17,6 +17,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
     [Generator]
     public class CSharpClientGenerator : ISourceGenerator
     {
+        private const string _category = "StrawberryShakeGenerator";
+
         private static string _location = System.IO.Path.GetDirectoryName(
             typeof(CSharpClientGenerator).Assembly.Location)!;
 
@@ -47,9 +49,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
         public void Execute(GeneratorExecutionContext context)
         {
+            EnsurePreconditionsAreMet(context);
+
             try
             {
+                int i = 1;
                 var documents = GetGraphQLFiles(context);
+                var documentNames = new HashSet<string>();
 
                 foreach (var config in GetGraphQLConfigs(context))
                 {
@@ -70,8 +76,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
                     foreach (CSharpDocument document in result.CSharpDocuments)
                     {
+                        string documentName =
+                            $"{config.Extensions.StrawberryShake.Name}.{document.Name}.{i}.cs";
+
+                        if (!documentNames.Add(documentName))
+                        {
+                            documentName = Guid.NewGuid().ToString("N") + documentName;
+                        }
+
                         context.AddSource(
-                            document.Name + ".cs",
+                            documentName,
                             SourceText.From(document.SourceText, Encoding.UTF8));
                     }
                 }
@@ -105,6 +119,46 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             }
         }
 
+        private static void EnsurePreconditionsAreMet(
+            GeneratorExecutionContext context)
+        {
+            EnsureDependencyExists(
+                context,
+                "StrawberryShake.Core",
+                "StrawberryShake.Core");
+
+            EnsureDependencyExists(
+                context,
+                "StrawberryShake.Transport.Http",
+                "StrawberryShake.Transport.Http");
+
+            EnsureDependencyExists(
+                context,
+                "Microsoft.Extensions.Http",
+                "Microsoft.Extensions.Http");
+        }
+
+        private static void EnsureDependencyExists(
+            GeneratorExecutionContext context,
+            string assemblyName,
+            string packageName)
+        {
+            if (!context.Compilation.ReferencedAssemblyNames.Any(
+                ai => ai.Name.Equals(assemblyName, StringComparison.OrdinalIgnoreCase)))
+            {
+                context.ReportDiagnostic(
+                        Diagnostic.Create(
+                            new DiagnosticDescriptor(
+                                id: CodeGenerationErrorCodes.NoTypeDocumentsFound,
+                                title: "Dependency Missing",
+                                messageFormat: $"The package reference `{packageName}` is missing.\r\n`dotnet add package {packageName}`",
+                                category: _category,
+                                DiagnosticSeverity.Error,
+                                isEnabledByDefault: true),
+                            Microsoft.CodeAnalysis.Location.None));
+            }
+        }
+
         private void CreateDiagnosticErrors(
             GeneratorExecutionContext context,
             IReadOnlyList<IError> errors)
@@ -120,7 +174,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                         ? s
                         : "Unexpected";
 
-                string code = error.Code ?? "Unexpected";
+                string code = error.Code ?? SourceGeneratorErrorCodes.Unexpected;
 
                 if (error.Extensions is not null &&
                     error.Extensions.TryGetValue(
@@ -138,7 +192,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                                 id: code,
                                 title: title,
                                 messageFormat: error.Message,
-                                category: "StrawberryShakeGenerator",
+                                category: _category,
                                 DiagnosticSeverity.Error,
                                 isEnabledByDefault: true),
                             Microsoft.CodeAnalysis.Location.Create(
@@ -162,7 +216,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                                 id: code,
                                 title: title,
                                 messageFormat: $"An error occured during generation: {error.Message}",
-                                category: "StrawberryShakeGenerator",
+                                category: _category,
                                 DiagnosticSeverity.Error,
                                 isEnabledByDefault: true,
                                 description: error.Message),
