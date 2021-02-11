@@ -90,4 +90,7 @@
   <data name="ErrorOperationMessage_ResponseParsingError" xml:space="preserve">
     <value>Could not parse the response of the server</value>
   </data>
+  <data name="ThrowHelper_InputFormatter_InvalidType" xml:space="preserve">
+    <value>The runtime value is expected to be {0} for {1}.</value>
+  </data>
 </root>

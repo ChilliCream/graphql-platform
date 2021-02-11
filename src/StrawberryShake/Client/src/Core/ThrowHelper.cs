@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using StrawberryShake.Properties;
 using StrawberryShake.Serialization;
 
 namespace StrawberryShake
@@ -10,7 +11,11 @@ namespace StrawberryShake
             string runtimeType,
             string scalarType) =>
             new(new ClientError(
-                $"The runtime value is expected to be {runtimeType} for {scalarType}."));
+                string.Format(
+                    Resources.ThrowHelper_InputFormatter_InvalidType,
+                    runtimeType,
+                    scalarType),
+                code: ErrorCodes.InvalidRuntimeType));
 
         internal static GraphQLClientException DateTimeSerializer_InvalidFormat(
             string serializedValue) =>
