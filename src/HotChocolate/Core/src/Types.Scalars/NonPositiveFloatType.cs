@@ -8,6 +8,9 @@ namespace HotChocolate.Types.Scalars
     /// </summary>
     public class NonPositiveFloatType : FloatType
     {
+        /// <summary>
+        /// Initializes a new instance of <see cref="NonPositiveFloatType"/>
+        /// </summary>
         public NonPositiveFloatType()
             : this(
                 WellKnownScalarTypes.NonPositiveFloat,

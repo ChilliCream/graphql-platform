@@ -18,6 +18,9 @@ namespace HotChocolate.Types.Scalars
         private static readonly Regex _validationRegex =
             new(_validationPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PhoneNumberType"/>
+        /// </summary>
         public PhoneNumberType()
             : this(
                 WellKnownScalarTypes.PhoneNumber,

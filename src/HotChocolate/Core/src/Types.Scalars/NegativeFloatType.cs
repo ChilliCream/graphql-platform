@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types.Scalars
@@ -8,6 +7,9 @@ namespace HotChocolate.Types.Scalars
     /// </summary>
     public class NegativeFloatType : FloatType
     {
+        /// <summary>
+        /// Initializes a new instance of <see cref="NegativeFloatType"/>
+        /// </summary>
         public NegativeFloatType()
             : this(
                 WellKnownScalarTypes.NegativeFloat,
@@ -50,6 +52,7 @@ namespace HotChocolate.Types.Scalars
             return base.ParseLiteral(valueSyntax);
         }
 
+        /// <inheritdoc />
         protected override FloatValueNode ParseValue(double runtimeValue)
         {
             if (runtimeValue >= MaxValue)
