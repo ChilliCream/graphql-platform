@@ -61,6 +61,29 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 {
                     config.Documents ??= IOPath.Combine("**", "*.graphql");
                     string root = IOPath.GetDirectoryName(config.Location)!;
+                    string generated = IOPath.Combine(root, "Generated");
+                    string changeFile = IOPath.Combine(generated, "StrawberryShake.client");
+
+                    if (Directory.Exists(generated))
+                    {
+                        foreach (string file in Directory.GetFiles(generated))
+                        {
+                            try
+                            {
+                                File.Delete(file);
+                            }
+                            catch { }
+                        }
+                    }
+                    else
+                    {
+                        Directory.CreateDirectory(generated);
+                    }
+
+                    if (!File.Exists(changeFile))
+                    {
+                        File.WriteAllText(changeFile, Guid.NewGuid().ToString("N"));
+                    }
 
                     var glob = Glob.Parse(config.Documents);
                     var configDocuments = documents
@@ -78,15 +101,22 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     {
                         string documentName =
                             $"{config.Extensions.StrawberryShake.Name}.{document.Name}.{i}.cs";
+                        string fileName = $"{document.Name}.StrawberryShake.cs";
 
                         if (!documentNames.Add(documentName))
                         {
-                            documentName = Guid.NewGuid().ToString("N") + documentName;
+                            string id = Guid.NewGuid().ToString("N");
+                            documentName = id + documentName;
+                            fileName = id + fileName;
                         }
 
                         context.AddSource(
                             documentName,
                             SourceText.From(document.SourceText, Encoding.UTF8));
+
+                        File.WriteAllText(
+                            IOPath.Combine(generated, fileName),
+                            document.SourceText);
                     }
                 }
             }
