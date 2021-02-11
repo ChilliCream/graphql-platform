@@ -45,7 +45,7 @@ namespace HotChocolate.Types.Scalars
         {
             if (valueSyntax.ToDouble() < MinValue)
             {
-                throw ThrowHelper.NonNegativeFloatType_IsNotNonNegative_ParseLiteral(this);
+                throw ThrowHelper.NonNegativeFloatType_ParseLiteral_IsNotNonNegative(this);
             }
 
             return base.ParseLiteral(valueSyntax);
@@ -55,7 +55,7 @@ namespace HotChocolate.Types.Scalars
         {
             if (runtimeValue < MinValue)
             {
-                throw ThrowHelper.NonNegativeFloatType_IsNotNonNegative_ParseValue(this);
+                throw ThrowHelper.NonNegativeFloatType_ParseValue_IsNotNonNegative(this);
             }
 
             return base.ParseValue(runtimeValue);
