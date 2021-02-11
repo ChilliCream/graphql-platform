@@ -72,7 +72,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     foreach (CSharpDocument document in result.CSharpDocuments)
                     {
                         context.AddSource(
-                            $"{i}.{config.Extensions.StrawberryShake.Name}.{document.Name}.cs",
+                            $"{config.Extensions.StrawberryShake.Name}.{document.Name}.{i}.cs",
                             SourceText.From(document.SourceText, Encoding.UTF8));
                     }
                 }
