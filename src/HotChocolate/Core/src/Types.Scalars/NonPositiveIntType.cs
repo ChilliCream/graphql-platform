@@ -3,7 +3,8 @@ using HotChocolate.Language;
 namespace HotChocolate.Types.Scalars
 {
     /// <summary>
-    /// The NonPositiveIntType scalar type represents a signed 32-bit numeric non-fractional value less than or equal to 0.
+    /// The NonPositiveIntType scalar type represents a signed 32-bit numeric non-fractional value
+    /// less than or equal to 0.
     /// </summary>
     public class NonPositiveIntType : IntType
     {
@@ -35,13 +36,13 @@ namespace HotChocolate.Types.Scalars
         /// <inheritdoc />
         protected override bool IsInstanceOfType(IntValueNode valueSyntax)
         {
-            return valueSyntax.ToDouble() <= MaxValue;
+            return valueSyntax.ToInt32() <= MaxValue;
         }
 
         /// <inheritdoc />
         protected override int ParseLiteral(IntValueNode valueSyntax)
         {
-            if (valueSyntax.ToDouble() > MaxValue)
+            if (valueSyntax.ToInt32() > MaxValue)
             {
                 throw ThrowHelper.NonPositiveIntType_ParseLiteral_IsNotNonPositive(this);
             }
