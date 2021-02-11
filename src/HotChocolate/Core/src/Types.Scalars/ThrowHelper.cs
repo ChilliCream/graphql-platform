@@ -68,7 +68,7 @@ namespace HotChocolate.Types.Scalars
                 type);
         }
 
-        public static SerializationException NonNegativeIntType_ParseLiteral_IsNotNegative(IType type)
+        public static SerializationException NonNegativeIntType_ParseLiteral_IsNotNonNegative(IType type)
         {
             return new SerializationException(
                 ErrorBuilder.New()
@@ -79,7 +79,7 @@ namespace HotChocolate.Types.Scalars
                 type);
         }
 
-        public static SerializationException NonNegativeIntType_ParseValue_IsNotNegative(IType type)
+        public static SerializationException NonNegativeIntType_ParseValue_IsNotNonNegative(IType type)
         {
             return new SerializationException(
                 ErrorBuilder.New()
