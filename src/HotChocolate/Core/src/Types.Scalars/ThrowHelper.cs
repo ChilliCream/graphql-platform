@@ -91,6 +91,102 @@ namespace HotChocolate.Types.Scalars
                 type);
         }
 
+        public static SerializationException NonNegativeIntType_ParseLiteral_IsNotNonNegative(
+            IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.NonNegativeIntType_IsNotNonNegative_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.NonNegativeInt)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException NonNegativeIntType_ParseValue_IsNotNonNegative(
+            IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.NonNegativeIntType_IsNotNonNegative_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.NonNegativeInt)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException NonPositiveIntType_ParseLiteral_IsNotNonPositive(
+            IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.NonPositiveIntType_IsNotNonPositive_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.NonPositiveInt)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException NonPositiveFloatType_ParseLiteral_IsNotNonPositive(
+            IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.NonPositiveFloatType_IsNotNonPositive_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.NonPositiveFloat)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException NonPositiveFloatType_ParseValue_IsNotNonPositive(
+            IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.NonPositiveFloatType_IsNotNonPositive_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.NonPositiveFloat)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException NonPositiveIntType_ParseValue_IsNotNonPositive(
+            IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.NonPositiveIntType_IsNotNonPositive_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.NonPositiveInt)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException NonNegativeFloatType_ParseLiteral_IsNotNonNegative(
+            IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.NonNegativeFloatType_IsNotNonNegative_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.NonNegativeFloat)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException NonNegativeFloatType_ParseValue_IsNotNonNegative(
+            IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.NonNegativeFloatType_IsNotNonNegative_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.NonNegativeFloat)
+                    .Build(),
+                type);
+        }
+
         public static SerializationException PhoneNumber_ParseLiteral_IsInvalid(IType type)
         {
             return new SerializationException(
