@@ -105,6 +105,24 @@ namespace HotChocolate.Types.Scalars {
             }
         }
         
+        internal static string NonNegativeIntType_Description {
+            get {
+                return ResourceManager.GetString("NonNegativeIntType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string NonNegativeIntType_IsNotNonNegative_ParseLiteral {
+            get {
+                return ResourceManager.GetString("NonNegativeIntType_IsNotNonNegative_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        internal static string NonNegativeIntType_IsNotNonNegative_ParseValue {
+            get {
+                return ResourceManager.GetString("NonNegativeIntType_IsNotNonNegative_ParseValue", resourceCulture);
+            }
+        }
+        
         internal static string NonPositiveFloatType_Description {
             get {
                 return ResourceManager.GetString("NonPositiveFloatType_Description", resourceCulture);

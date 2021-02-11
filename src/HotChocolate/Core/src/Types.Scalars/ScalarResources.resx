@@ -90,6 +90,15 @@
   <data name="NonEmptyStringType_IsEmpty_ParseValue" xml:space="preserve">
     <value>NonEmptyString cannot parse the provided value. The provided string was empty.</value>
   </data>
+  <data name="NonNegativeIntType_Description" xml:space="preserve">
+    <value>The NonNegativeIntType scalar type represents a unsigned 32-bit numeric non-fractional value equal to or greater than 0.</value>
+  </data>
+  <data name="NonNegativeIntType_IsNotNonNegative_ParseLiteral" xml:space="preserve">
+    <value>NonNegativeIntType cannot parse the provided literal. The provided value was not greater than or equal to 0.</value>
+  </data>
+  <data name="NonNegativeIntType_IsNotNonNegative_ParseValue" xml:space="preserve">
+    <value>NonNegativeIntType cannot parse the provided value. The provided value was not greater than or equal to 0.</value>
+  </data>
   <data name="NonPositiveFloatType_Description" xml:space="preserve">
     <value>The NonPositiveFloatType scalar type represents a double‐precision fractional value less than or equal to 0.</value>
   </data>
