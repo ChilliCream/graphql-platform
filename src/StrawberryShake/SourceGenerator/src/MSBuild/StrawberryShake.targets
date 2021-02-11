@@ -2,10 +2,10 @@
 
   <ItemDefinitionGroup>
     <GraphQL>
-      <Generator>MSBuild:Compile</Generator>
+      <Generator>MSBuild:GraphQLCompile</Generator>
     </GraphQL>
     <GraphQLConfig>
-      <Generator>MSBuild:Compile</Generator>
+      <Generator>MSBuild:GraphQLCompile</Generator>
     </GraphQLConfig>
   </ItemDefinitionGroup>
 
@@ -22,4 +22,6 @@
       <Compile Remove="**/*.StrawberryShake.cs" />
     </ItemGroup>
   </Target>
+
+  <Target Name="GraphQLCompile" />
 </Project>

@@ -62,6 +62,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     config.Documents ??= IOPath.Combine("**", "*.graphql");
                     string root = IOPath.GetDirectoryName(config.Location)!;
                     string generated = IOPath.Combine(root, "Generated");
+                    string changeFile = IOPath.Combine(generated, "StrawberryShake.client");
 
                     if (Directory.Exists(generated))
                     {
@@ -77,6 +78,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     else
                     {
                         Directory.CreateDirectory(generated);
+                    }
+
+                    if (!File.Exists(changeFile))
+                    {
+                        File.WriteAllText(changeFile, Guid.NewGuid().ToString("N"));
                     }
 
                     var glob = Glob.Parse(config.Documents);

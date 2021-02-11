@@ -18,6 +18,8 @@
     <Watch Include="**/.graphqlrc.json" />
     <AdditionalFiles Include="@(GraphQLConfig)" GraphQLConfig="true" />
     <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="GraphQLConfig" />
+
+    <Watch Include="**/StrawberryShake.client" />
   </ItemGroup>
 
 </Project>
