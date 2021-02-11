@@ -24,6 +24,29 @@ namespace HotChocolate.Types.Scalars
                 type);
         }
 
+        public static SerializationException NegativeFloatType_ParseLiteral_IsNotNegative(
+            IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.NegativeFloatType_IsNotNegative_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.NegativeFloat)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException NegativeFloatType_ParseValue_IsNotNegative(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.NegativeFloatType_IsNotNegative_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.NegativeFloat)
+                    .Build(),
+                type);
+        }
+
         public static SerializationException NegativeIntType_ParseLiteral_IsNotNegative(IType type)
         {
             return new SerializationException(
@@ -34,6 +57,7 @@ namespace HotChocolate.Types.Scalars
                     .Build(),
                 type);
         }
+
         public static SerializationException NegativeIntType_ParseValue_IsNotNegative(IType type)
         {
             return new SerializationException(
@@ -44,6 +68,7 @@ namespace HotChocolate.Types.Scalars
                     .Build(),
                 type);
         }
+
         public static SerializationException NonEmptyStringType_ParseLiteral_IsEmpty(IType type)
         {
             return new SerializationException(

@@ -69,6 +69,24 @@ namespace HotChocolate.Types.Scalars {
             }
         }
         
+        internal static string NegativeFloatType_Description {
+            get {
+                return ResourceManager.GetString("NegativeFloatType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string NegativeFloatType_IsNotNegative_ParseLiteral {
+            get {
+                return ResourceManager.GetString("NegativeFloatType_IsNotNegative_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        internal static string NegativeFloatType_IsNotNegative_ParseValue {
+            get {
+                return ResourceManager.GetString("NegativeFloatType_IsNotNegative_ParseValue", resourceCulture);
+            }
+        }
+        
         internal static string NegativeIntType_Description {
             get {
                 return ResourceManager.GetString("NegativeIntType_Description", resourceCulture);
@@ -102,6 +120,24 @@ namespace HotChocolate.Types.Scalars {
         internal static string NonEmptyStringType_IsEmpty_ParseValue {
             get {
                 return ResourceManager.GetString("NonEmptyStringType_IsEmpty_ParseValue", resourceCulture);
+            }
+        }
+        
+        internal static string NonNegativeIntType_Description {
+            get {
+                return ResourceManager.GetString("NonNegativeIntType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string NonNegativeIntType_IsNotNonNegative_ParseLiteral {
+            get {
+                return ResourceManager.GetString("NonNegativeIntType_IsNotNonNegative_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        internal static string NonNegativeIntType_IsNotNonNegative_ParseValue {
+            get {
+                return ResourceManager.GetString("NonNegativeIntType_IsNotNonNegative_ParseValue", resourceCulture);
             }
         }
         
@@ -156,24 +192,6 @@ namespace HotChocolate.Types.Scalars {
         internal static string NonNegativeFloatType_IsNotNonNegative_ParseValue {
             get {
                 return ResourceManager.GetString("NonNegativeFloatType_IsNotNonNegative_ParseValue", resourceCulture);
-            }
-        }
-        
-        internal static string NonNegativeIntType_Description {
-            get {
-                return ResourceManager.GetString("NonNegativeIntType_Description", resourceCulture);
-            }
-        }
-        
-        internal static string NonNegativeIntType_IsNotNonNegative_ParseLiteral {
-            get {
-                return ResourceManager.GetString("NonNegativeIntType_IsNotNonNegative_ParseLiteral", resourceCulture);
-            }
-        }
-        
-        internal static string NonNegativeIntType_IsNotNonNegative_ParseValue {
-            get {
-                return ResourceManager.GetString("NonNegativeIntType_IsNotNonNegative_ParseValue", resourceCulture);
             }
         }
         

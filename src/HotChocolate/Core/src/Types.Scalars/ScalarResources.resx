@@ -72,6 +72,15 @@
   <data name="EmailAddress_ValidationPattern" xml:space="preserve">
     <value>(?:[a-z0-9!#$%&amp;'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&amp;'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])</value>
   </data>
+  <data name="NegativeFloatType_Description" xml:space="preserve">
+    <value>The NegativeFloat scalar type represents a double‐precision fractional value less than 0.</value>
+  </data>
+  <data name="NegativeFloatType_IsNotNegative_ParseLiteral" xml:space="preserve">
+    <value>NegativeFloatType cannot parse the provided literal. The provided value was not negative.</value>
+  </data>
+  <data name="NegativeFloatType_IsNotNegative_ParseValue" xml:space="preserve">
+    <value>NegativeFloatType cannot parse the provided value. The provided value was not negative.</value>
+  </data>
   <data name="NegativeIntType_Description" xml:space="preserve">
     <value>The NegativeIntType scalar type represents a signed 32-bit numeric non-fractional with a maximum of -1.</value>
   </data>
@@ -89,6 +98,15 @@
   </data>
   <data name="NonEmptyStringType_IsEmpty_ParseValue" xml:space="preserve">
     <value>NonEmptyString cannot parse the provided value. The provided string was empty.</value>
+  </data>
+  <data name="NonNegativeIntType_Description" xml:space="preserve">
+    <value>The NonNegativeIntType scalar type represents a unsigned 32-bit numeric non-fractional value equal to or greater than 0.</value>
+  </data>
+  <data name="NonNegativeIntType_IsNotNonNegative_ParseLiteral" xml:space="preserve">
+    <value>NonNegativeIntType cannot parse the provided literal. The provided value was not greater than or equal to 0.</value>
+  </data>
+  <data name="NonNegativeIntType_IsNotNonNegative_ParseValue" xml:space="preserve">
+    <value>NonNegativeIntType cannot parse the provided value. The provided value was not greater than or equal to 0.</value>
   </data>
   <data name="NonPositiveFloatType_Description" xml:space="preserve">
     <value>The NonPositiveFloatType scalar type represents a double‐precision fractional value less than or equal to 0.</value>
@@ -116,15 +134,6 @@
   </data>
   <data name="NonNegativeFloatType_IsNotNonNegative_ParseValue" xml:space="preserve">
     <value>NonNegativeFloatType cannot parse the provided value. The provided value was not greater than or equal to 0.</value>
-  </data>
-  <data name="NonNegativeIntType_Description" xml:space="preserve">
-    <value>The NonNegativeIntType scalar type represents a unsigned 32-bit numeric non-fractional value equal to or greater than 0.</value>
-  </data>
-  <data name="NonNegativeIntType_IsNotNonNegative_ParseLiteral" xml:space="preserve">
-    <value>NonNegativeIntType cannot parse the provided literal. The provided value was not greater than or equal to 0.</value>
-  </data>
-  <data name="NonNegativeIntType_IsNotNonNegative_ParseValue" xml:space="preserve">
-    <value>NonNegativeIntType cannot parse the provided value. The provided value was not greater than or equal to 0.</value>
   </data>
   <data name="PhoneNumber_Description" xml:space="preserve">
     <value>The PhoneNumber scalar type represents a value that conforms to the standard E.164 format as specified in: https://en.wikipedia.org/wiki/E.164.</value>

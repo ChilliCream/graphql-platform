@@ -8,6 +8,9 @@ namespace HotChocolate.Types.Scalars
     /// </summary>
     public class NonNegativeIntType : IntType
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NonNegativeIntType"/> class.
+        /// </summary>
         public NonNegativeIntType()
             : this(
                 WellKnownScalarTypes.NonNegativeInt,

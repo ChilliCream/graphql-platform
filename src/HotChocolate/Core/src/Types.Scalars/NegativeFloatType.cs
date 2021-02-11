@@ -3,25 +3,24 @@ using HotChocolate.Language;
 namespace HotChocolate.Types.Scalars
 {
     /// <summary>
-    /// The NonPositiveFloat scalar type represents a double‐precision fractional value less than or
-    /// equal to 0.
+    /// The NegativeFloatType scalar represents a double‐precision fractional value less than 0.
     /// </summary>
-    public class NonPositiveFloatType : FloatType
+    public class NegativeFloatType : FloatType
     {
         /// <summary>
-        /// Initializes a new instance of <see cref="NonPositiveFloatType"/>
+        /// Initializes a new instance of <see cref="NegativeFloatType"/>
         /// </summary>
-        public NonPositiveFloatType()
+        public NegativeFloatType()
             : this(
-                WellKnownScalarTypes.NonPositiveFloat,
-                ScalarResources.NonPositiveFloatType_Description)
+                WellKnownScalarTypes.NegativeFloat,
+                ScalarResources.NegativeFloatType_Description)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="NonPositiveFloatType"/>
+        /// Initializes a new instance of <see cref="NegativeFloatType"/>
         /// </summary>
-        public NonPositiveFloatType(
+        public NegativeFloatType(
             NameString name,
             string? description = null,
             BindingBehavior bind = BindingBehavior.Explicit)
@@ -33,31 +32,32 @@ namespace HotChocolate.Types.Scalars
         /// <inheritdoc />
         protected override bool IsInstanceOfType(double runtimeValue)
         {
-            return runtimeValue <= MaxValue;
+            return runtimeValue < MaxValue;
         }
 
         /// <inheritdoc />
         protected override bool IsInstanceOfType(IFloatValueLiteral valueSyntax)
         {
-            return valueSyntax.ToDouble() <= MaxValue;
+            return valueSyntax.ToDouble() < MaxValue;
         }
 
         /// <inheritdoc />
         protected override double ParseLiteral(IFloatValueLiteral valueSyntax)
         {
-            if (valueSyntax.ToDouble() > MaxValue)
+            if (valueSyntax.ToDouble() >= MaxValue)
             {
-                throw ThrowHelper.NonPositiveFloatType_ParseLiteral_IsNotNonPositive(this);
+                throw ThrowHelper.NegativeFloatType_ParseLiteral_IsNotNegative(this);
             }
 
             return base.ParseLiteral(valueSyntax);
         }
 
+        /// <inheritdoc />
         protected override FloatValueNode ParseValue(double runtimeValue)
         {
-            if (runtimeValue > MaxValue)
+            if (runtimeValue >= MaxValue)
             {
-                throw ThrowHelper.NonPositiveFloatType_ParseValue_IsNotNonPositive(this);
+                throw ThrowHelper.NegativeFloatType_ParseValue_IsNotNegative(this);
             }
 
             return base.ParseValue(runtimeValue);

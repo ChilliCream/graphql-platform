@@ -24,7 +24,6 @@ The GraphQL specification defines the following scalars
 | `ID`      | Unique identifier                                           |
 
 In addition to the scalars defined by the specification, HotChocolate also supports the following set of scalar types:
-
 | Type        | Description                                                 |
 | ----------- | ----------------------------------------------------------- |
 | `Byte`      |                                                             |
@@ -39,10 +38,9 @@ In addition to the scalars defined by the specification, HotChocolate also suppo
 | `Any`       | This type can be anything, string, int, list or object etc. |
 
 # Using Scalars
-
 HotChocolate will automatically detect which scalars are in use and will only expose those in the introspection. This keeps the schema definition small, simple and clean.
 
-The schema discovers .NET types and binds the matching scalar to the type.
+The schema discovers .NET types and binds the matching scalar to the type. 
 HotChocolate, for example, automatically binds the `StringType` on a member of the type `System.String`.
 You can override these mappings by explicitly specifying type bindings on the request executor builder.
 
@@ -72,7 +70,7 @@ public void ConfigureServices(IServiceCollection services)
 
 # Any Type
 
-The `Any` scalar is a special type that can be compared to `object` in C#.
+The `Any` scalar is a special type that can be compared to `object` in C#. 
 `Any` allows us to specify any literal or return any output type.
 
 Consider the following type:
@@ -132,14 +130,13 @@ If you want to access an object dynamically without serializing it to a strongly
 Lists can be accessed generically by getting them as `IReadOnlyList<object>` or as `ListValueNode`.
 
 # Custom Converter
-
 HotChocolate converts .Net types to match the types supported by the scalar of the field.
-By default, all standard .Net types have converters registered.
+By default, all standard .Net types have converters registered. 
 You can register converters and reuse the built-in scalar types.
 In case you use a non-standard library, e.g. [NodeTime](https://nodatime.org/), you can register a converter and use the standard `DateTimeType`.
 
 ```csharp
-public class Query
+public class Query 
 {
     public OffsetDateTime GetDateTime(OffsetDateTime offsetDateTime)
     {
@@ -147,9 +144,7 @@ public class Query
     }
 }
 ```
-
-_Startup_
-
+*Startup*
 ```csharp
 public void ConfigureServices(IServiceCollection services)
 {
@@ -416,6 +411,22 @@ The PhoneNumber scalar type represents a value that conforms to the standard E.1
 scalar PhoneNumber
 ```
 
+## NegativeFloat
+```sdl
+"""
+The NegativeFloat scalar type represents a double‐precision fractional value less than 0
+"""
+scalar NegativeFloat
+```
+
+## NonNegativeInt
+```sdl
+"""
+The NonNegativeIntType scalar type represents a unsigned 32-bit numeric non-fractional value greater than or equal to 0.
+"""
+scalar NonNegativeInt
+```
+
 ## NonPositiveFloat
 ```sdl
 """
@@ -438,12 +449,4 @@ scalar NonPositiveInt
 The NonNegativeFloat scalar type represents a double‐precision fractional value greater than or equal to 0.
 """
 scalar NonNegativeFloat
-```
-
-## NonNegativeInt
-```sdl
-"""
-The NonNegativeIntType scalar type represents a unsigned 32-bit numeric non-fractional value greater than or equal to 0.
-"""
-scalar NonNegativeInt
 ```
