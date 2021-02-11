@@ -6,7 +6,7 @@ namespace StrawberryShake.Serialization
 {
     public class SerializerResolver : ISerializerResolver
     {
-        private readonly Dictionary<string, ISerializer> _serializers;
+        private readonly Dictionary<string, ISerializer> _serializers = new();
 
         public SerializerResolver(IEnumerable<ISerializer> serializers)
         {
@@ -15,7 +15,16 @@ namespace StrawberryShake.Serialization
                 throw new ArgumentNullException(nameof(serializers));
             }
 
-            _serializers = serializers.ToDictionary(t => t.TypeName);
+            foreach (ISerializer serializer in serializers)
+            {
+                _serializers[serializer.TypeName] = serializer;
+            }
+
+            foreach (IInputObjectFormatter serializer in
+                _serializers.Values.OfType<IInputObjectFormatter>())
+            {
+                serializer.Initialize(this);
+            }
         }
 
         public ILeafValueParser<TSerialized, TRuntime> GetLeafValueParser<TSerialized, TRuntime>(
