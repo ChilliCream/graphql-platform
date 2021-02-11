@@ -55,7 +55,7 @@ namespace HotChocolate.Types.Scalars
         {
             if (runtimeValue < MinValue)
             {
-                throw ThrowHelper.NonNegativeFloatType_IsNonNonNegative_ParseValue(this);
+                throw ThrowHelper.NonNegativeFloatType_IsNotNonNegative_ParseValue(this);
             }
 
             return base.ParseValue(runtimeValue);
