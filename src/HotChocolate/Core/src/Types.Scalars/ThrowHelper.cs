@@ -34,7 +34,6 @@ namespace HotChocolate.Types.Scalars
                     .Build(),
                 type);
         }
-
         public static SerializationException NegativeIntType_ParseValue_IsNotNegative(IType type)
         {
             return new SerializationException(
@@ -45,7 +44,6 @@ namespace HotChocolate.Types.Scalars
                     .Build(),
                 type);
         }
-
         public static SerializationException NonEmptyStringType_ParseLiteral_IsEmpty(IType type)
         {
             return new SerializationException(
@@ -64,6 +62,28 @@ namespace HotChocolate.Types.Scalars
                     .SetMessage(ScalarResources.NonEmptyStringType_IsEmpty_ParseValue)
                     .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
                     .SetExtension("actualType", WellKnownScalarTypes.NonEmptyString)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException NonNegativeFloatType_ParseLiteral_IsNotNonNegative(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.NonNegativeFloatType_IsNotNonNegative_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.NonNegativeFloat)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException NonNegativeFloatType_ParseValue_IsNotNonNegative(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.NonNegativeFloatType_IsNotNonNegative_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.NonNegativeFloat)
                     .Build(),
                 type);
         }
