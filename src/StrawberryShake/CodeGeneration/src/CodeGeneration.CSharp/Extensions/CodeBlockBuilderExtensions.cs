@@ -33,14 +33,31 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             return codeBlockBuilder;
         }
-    }
 
-    internal static class LambdaBuilderExtensions
-    {
-        public static LambdaBuilder SetCode(this LambdaBuilder builder, string code)
+        public static CodeBlockBuilder AddIf(
+            this CodeBlockBuilder builder,
+            Action<IfBuilder> configure)
         {
+            var ifBuilder = IfBuilder.New();
+            configure(ifBuilder);
+            return builder.AddCode(ifBuilder);
+        }
 
-            return builder.SetCode(CodeInlineBuilder.From(code));
+        public static CodeBlockBuilder ArgumentException(
+            this CodeBlockBuilder builder,
+            string argumentName,
+            string condition)
+        {
+            return builder.AddIf(x =>
+                x.SetCondition(condition)
+                    .AddCode($"throw new {TypeNames.ArgumentException}(nameof({argumentName}));"));
+        }
+
+        public static ArrayBuilder AddArray(this CodeBlockBuilder method)
+        {
+            var arrayBuilder = ArrayBuilder.New();
+            method.AddCode(arrayBuilder);
+            return arrayBuilder;
         }
     }
 }

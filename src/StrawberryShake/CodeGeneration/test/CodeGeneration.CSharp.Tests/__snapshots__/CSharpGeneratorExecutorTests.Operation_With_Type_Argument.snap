@@ -18,7 +18,7 @@ namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class EpisodeSerializer
-        : global::StrawberryShake.Serialization.IInputValueFormatter 
+        : global::StrawberryShake.Serialization.IInputValueFormatter
         , global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, Episode>
     {
         public global::System.String TypeName => "Episode";
@@ -276,43 +276,46 @@ namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ReviewInputInputValueFormatter
-        : global::StrawberryShake.Serialization.IInputValueFormatter 
+        : global::StrawberryShake.Serialization.IInputValueFormatter
     {
-        private readonly global::StrawberryShake.Serialization.IntSerializer _intSerializer;
-        private readonly global::StrawberryShake.Serialization.StringSerializer _stringSerializer;
-
-        public ReviewInputInputValueFormatter(
-            global::StrawberryShake.Serialization.IntSerializer intSerializer,
-            global::StrawberryShake.Serialization.StringSerializer stringSerializer)
-        {
-            _intSerializer = intSerializer;
-            _stringSerializer = stringSerializer;
-        }
+        private global::StrawberryShake.Serialization.IInputValueFormatter _intFormatter = default!;
+        private global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter = default!;
 
         public global::System.String TypeName => "ReviewInput";
 
+        public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
+        {
+            _intFormatter = serializerResolver.GetInputValueFormatter("Int");
+            _stringFormatter = serializerResolver.GetInputValueFormatter("String");
+        }
+
         public global::System.Object? Format(global::System.Object? runtimeValue)
         {
-            
-            if(!(runtimeValue is ReviewInput d)) {
+            if (!(runtimeValue is ReviewInput d))
+            {
                 throw new global::System.ArgumentException(nameof(runtimeValue));
             }
-            
+
             return new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>[] {
                 new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>(
-                    "stars", FormatStars(d.Stars)),
+                    "stars",
+                    FormatStars(d.Stars)
+                ),
                 new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>(
-                    "commentary", FormatCommentary(d.Commentary))};
+                    "commentary",
+                    FormatCommentary(d.Commentary)
+                )
+            };
         }
 
         private global::System.Object? FormatStars(global::System.Int32 value)
         {
-            return _intSerializer.Format(value);
+            return _intFormatter.Format(value);
         }
 
         private global::System.Object? FormatCommentary(global::System.String? value)
         {
-            return _stringSerializer.Format(value);
+            return _stringFormatter.Format(value);
         }
     }
 }
@@ -376,18 +379,17 @@ namespace Foo
     public partial class CreateReviewMutMutation
     {
         private readonly global::StrawberryShake.IOperationExecutor<ICreateReviewMut> _operationExecutor;
-        private readonly EpisodeSerializer _episodeSerializer;
-        private readonly ReviewInputInputValueFormatter _reviewInputInputValueFormatter;
+        private readonly global::StrawberryShake.Serialization.IInputValueFormatter _episodeFormatter;
+        private readonly global::StrawberryShake.Serialization.IInputValueFormatter _reviewInputFormatter;
 
         public CreateReviewMutMutation(
             global::StrawberryShake.IOperationExecutor<ICreateReviewMut> operationExecutor,
-            EpisodeSerializer episodeSerializer,
-            ReviewInputInputValueFormatter reviewInputInputValueFormatter)
+            global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor
                  ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
-            _episodeSerializer = episodeSerializer;
-            _reviewInputInputValueFormatter = reviewInputInputValueFormatter;
+            _episodeFormatter = serializerResolver.GetInputValueFormatter("Episode");
+            _reviewInputFormatter = serializerResolver.GetInputValueFormatter("ReviewInput");
         }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ICreateReviewMut>> ExecuteAsync(
@@ -437,12 +439,12 @@ namespace Foo
 
         private global::System.Object? FormatEpisode(Episode value)
         {
-            return _episodeSerializer.Format(value);
+            return _episodeFormatter.Format(value);
         }
 
         private global::System.Object? FormatReview(ReviewInput value)
         {
-            return _reviewInputInputValueFormatter.Format(value);
+            return _reviewInputFormatter.Format(value);
         }
     }
 }

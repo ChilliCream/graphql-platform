@@ -17,7 +17,8 @@ namespace StrawberryShake.CodeGeneration
         public const string SerializerResolver = StrawberryshakeNamespace + "Serialization.SerializerResolver";
         public const string ISerializer = StrawberryshakeNamespace + "Serialization.ISerializer";
         public const string ILeafValueParser = StrawberryshakeNamespace + "Serialization.ILeafValueParser";
-        public const string IInputValueFormatter = StrawberryshakeNamespace + "Serialization.IInputValueFormatter ";
+        public const string IInputValueFormatter = StrawberryshakeNamespace + "Serialization.IInputValueFormatter";
+        public const string IInputObjectFormatter = StrawberryshakeNamespace + "Serialization.IInputObjectFormatter";
         public const string IConnection = StrawberryshakeNamespace + "IConnection";
         public const string IEntityMapper = StrawberryshakeNamespace + "IEntityMapper";
         public const string IDocument = StrawberryshakeNamespace + "IDocument";

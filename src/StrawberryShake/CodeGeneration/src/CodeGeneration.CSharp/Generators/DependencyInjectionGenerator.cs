@@ -82,7 +82,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             factory.AddClass(_clientServiceProvider);
 
-
             CodeFileBuilder
                 .New()
                 .SetNamespace(descriptor.Namespace)

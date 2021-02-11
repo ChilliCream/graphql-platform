@@ -103,52 +103,63 @@ namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class BarInputValueFormatter
-        : global::StrawberryShake.Serialization.IInputValueFormatter 
+        : global::StrawberryShake.Serialization.IInputValueFormatter
     {
-        private readonly global::StrawberryShake.Serialization.StringSerializer _stringSerializer;
-        private readonly BarInputValueFormatter _barInputValueFormatter;
-
-        public BarInputValueFormatter(global::StrawberryShake.Serialization.StringSerializer stringSerializer)
-        {
-            _stringSerializer = stringSerializer;
-            _barInputValueFormatter = this;
-        }
+        private global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter = default!;
+        private global::StrawberryShake.Serialization.IInputValueFormatter _barFormatter = default!;
 
         public global::System.String TypeName => "Bar";
 
+        public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
+        {
+            _stringFormatter = serializerResolver.GetInputValueFormatter("String");
+            _barFormatter = serializerResolver.GetInputValueFormatter("Bar");
+        }
+
         public global::System.Object? Format(global::System.Object? runtimeValue)
         {
-            
-            if(!(runtimeValue is Bar d)) {
+            if (!(runtimeValue is Bar d))
+            {
                 throw new global::System.ArgumentException(nameof(runtimeValue));
             }
-            
+
             return new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>[] {
                 new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>(
-                    "str", FormatStr(d.Str)),
+                    "str",
+                    FormatStr(d.Str)
+                ),
                 new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>(
-                    "strNonNullable", FormatStrNonNullable(d.StrNonNullable)),
+                    "strNonNullable",
+                    FormatStrNonNullable(d.StrNonNullable)
+                ),
                 new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>(
-                    "nested", FormatNested(d.Nested)),
+                    "nested",
+                    FormatNested(d.Nested)
+                ),
                 new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>(
-                    "nestedList", FormatNestedList(d.NestedList)),
+                    "nestedList",
+                    FormatNestedList(d.NestedList)
+                ),
                 new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>(
-                    "nestedMatrix", FormatNestedMatrix(d.NestedMatrix))};
+                    "nestedMatrix",
+                    FormatNestedMatrix(d.NestedMatrix)
+                )
+            };
         }
 
         private global::System.Object? FormatStr(global::System.String? value)
         {
-            return _stringSerializer.Format(value);
+            return _stringFormatter.Format(value);
         }
 
         private global::System.Object? FormatStrNonNullable(global::System.String value)
         {
-            return _stringSerializer.Format(value);
+            return _stringFormatter.Format(value);
         }
 
         private global::System.Object? FormatNested(Bar? value)
         {
-            return _barInputValueFormatter.Format(value);
+            return _barFormatter.Format(value);
         }
 
         private global::System.Object? FormatNestedList(global::System.Collections.Generic.IReadOnlyList<Bar> value)
@@ -157,7 +168,7 @@ namespace Foo
 
             foreach (var value_elm in value)
             {
-                value_list.Add(_barInputValueFormatter.Format(value_elm));
+                value_list.Add(_barFormatter.Format(value_elm));
             }
             return value_list;
         }
@@ -172,7 +183,7 @@ namespace Foo
 
                 foreach (var value_elm_elm in value_elm)
                 {
-                    value_elm_list.Add(_barInputValueFormatter.Format(value_elm_elm));
+                    value_elm_list.Add(_barFormatter.Format(value_elm_elm));
                 }
                 value_list.Add(value_elm_list);
             }
@@ -242,15 +253,15 @@ namespace Foo
     public partial class TestQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<ITest> _operationExecutor;
-        private readonly BarInputValueFormatter _barInputValueFormatter;
+        private readonly global::StrawberryShake.Serialization.IInputValueFormatter _barFormatter;
 
         public TestQuery(
             global::StrawberryShake.IOperationExecutor<ITest> operationExecutor,
-            BarInputValueFormatter barInputValueFormatter)
+            global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor
                  ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
-            _barInputValueFormatter = barInputValueFormatter;
+            _barFormatter = serializerResolver.GetInputValueFormatter("Bar");
         }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ITest>> ExecuteAsync(
@@ -306,7 +317,7 @@ namespace Foo
 
         private global::System.Object? FormatSingle(Bar value)
         {
-            return _barInputValueFormatter.Format(value);
+            return _barFormatter.Format(value);
         }
 
         private global::System.Object? FormatList(global::System.Collections.Generic.IReadOnlyList<Bar> value)
@@ -315,7 +326,7 @@ namespace Foo
 
             foreach (var value_elm in value)
             {
-                value_list.Add(_barInputValueFormatter.Format(value_elm));
+                value_list.Add(_barFormatter.Format(value_elm));
             }
             return value_list;
         }
@@ -330,7 +341,7 @@ namespace Foo
 
                 foreach (var value_elm_elm in value_elm)
                 {
-                    value_elm_list.Add(_barInputValueFormatter.Format(value_elm_elm));
+                    value_elm_list.Add(_barFormatter.Format(value_elm_elm));
                 }
                 value_list.Add(value_elm_list);
             }

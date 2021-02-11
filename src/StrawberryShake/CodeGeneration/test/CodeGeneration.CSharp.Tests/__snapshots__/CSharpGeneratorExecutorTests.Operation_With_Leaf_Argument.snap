@@ -46,7 +46,7 @@ namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class EpisodeSerializer
-        : global::StrawberryShake.Serialization.IInputValueFormatter 
+        : global::StrawberryShake.Serialization.IInputValueFormatter
         , global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, Episode>
     {
         public global::System.String TypeName => "Episode";
@@ -378,15 +378,15 @@ namespace Foo
     public partial class GetHeroQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetHero> _operationExecutor;
-        private readonly EpisodeSerializer _episodeSerializer;
+        private readonly global::StrawberryShake.Serialization.IInputValueFormatter _episodeFormatter;
 
         public GetHeroQuery(
             global::StrawberryShake.IOperationExecutor<IGetHero> operationExecutor,
-            EpisodeSerializer episodeSerializer)
+            global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor
                  ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
-            _episodeSerializer = episodeSerializer;
+            _episodeFormatter = serializerResolver.GetInputValueFormatter("Episode");
         }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetHero>> ExecuteAsync(
@@ -425,7 +425,7 @@ namespace Foo
 
         private global::System.Object? FormatEpisode(Episode? value)
         {
-            return _episodeSerializer.Format(value);
+            return _episodeFormatter.Format(value);
         }
     }
 }

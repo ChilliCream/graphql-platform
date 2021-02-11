@@ -1330,15 +1330,15 @@ namespace StrawberryShake.GraphQL
     public partial class WriteMessageMutation
     {
         private readonly global::StrawberryShake.IOperationExecutor<IWriteMessage> _operationExecutor;
-        private readonly global::StrawberryShake.Serialization.StringSerializer _stringSerializer;
+        private readonly global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter;
 
         public WriteMessageMutation(
             global::StrawberryShake.IOperationExecutor<IWriteMessage> operationExecutor,
-            global::StrawberryShake.Serialization.StringSerializer stringSerializer)
+            global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor
                  ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
-            _stringSerializer = stringSerializer;
+            _stringFormatter = serializerResolver.GetInputValueFormatter("String");
         }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IWriteMessage>> ExecuteAsync(
@@ -1388,12 +1388,12 @@ namespace StrawberryShake.GraphQL
 
         private global::System.Object? FormatText(global::System.String value)
         {
-            return _stringSerializer.Format(value);
+            return _stringFormatter.Format(value);
         }
 
         private global::System.Object? FormatAddress(global::System.String value)
         {
-            return _stringSerializer.Format(value);
+            return _stringFormatter.Format(value);
         }
     }
 }

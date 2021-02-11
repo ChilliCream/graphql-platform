@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using HotChocolate;
@@ -7,14 +8,16 @@ using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Extensions;
+using StrawberryShake.Serialization;
 using static StrawberryShake.CodeGeneration.NamingConventions;
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 using IInputValueFormatter = StrawberryShake.Serialization.IInputValueFormatter;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
     public class InputValueFormatterGenerator : CodeGenerator<NamedTypeDescriptor>
     {
-        private static string _keyValuePair =
+        private static readonly string _keyValuePair =
             TypeNames.KeyValuePair.WithGeneric(
                 TypeNames.String,
                 TypeNames.Object.MakeNullable());
@@ -41,83 +44,64 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .Select(x => x.First())
                 .ToDictionary(x => x.Type.Name);
 
-            ConstructorBuilder constructorBuilder = ConstructorBuilder.New()
-                .SetAccessModifier(AccessModifier.Public)
-                .SetTypeName(fileName);
-            classBuilder.AddConstructor(constructorBuilder);
+            //  Initialize Method
 
-            var code = CodeBlockBuilder.New();
-            constructorBuilder.AddCode(code);
+            CodeBlockBuilder initialize = classBuilder
+                .AddMethod("Initialize")
+                .SetPublic()
+                .AddParameter("serializerResolver", x => x.SetType(TypeNames.ISerializerResolver))
+                .AddBody();
 
             foreach (var property in neededSerializers.Values)
             {
-                var namedType = (NamedTypeDescriptor)property.Type.NamedType();
-
-                var type = InputValueFormatterFromType(namedType);
-                var typeWithNamespace = namedType.Kind == TypeKind.InputType || namedType.IsEnum
-                    ? type
-                    : TypeNames.StrawberryshakeNamespace + "Serialization." + type;
-                var parameterName = InputValueFormatterFromType(namedType).WithLowerFirstChar();
-                var fieldName = "_" + parameterName;
-
-                var isSelfReference = namedType.Name == typeName;
-                if (isSelfReference)
+                if (property.Type.GetGraphQlTypeName()?.Value is { } name)
                 {
-                    parameterName = "this";
+                    MethodCallBuilder call = MethodCallBuilder.New()
+                        .SetMethodName("serializerResolver." +
+                            nameof(ISerializerResolver.GetInputValueFormatter))
+                        .AddArgument(name.AsStringToken() ?? "")
+                        .SetPrefix($"{GetFieldName(name)}Formatter = ");
+
+                    initialize.AddCode(call);
                 }
                 else
                 {
-                    ParameterBuilder parameterBuilder = ParameterBuilder.New()
-                        .SetType(typeWithNamespace)
-                        .SetName(type.WithLowerFirstChar());
-
-                    constructorBuilder.AddParameter(parameterBuilder);
+                    throw new InvalidOperationException(
+                        $"Serializer for property {namedTypeDescriptor.Name}.{property.Name} " +
+                        $"could not be created. GraphQLTypeName was empty");
                 }
+            }
 
+            // Serializer Fields
 
-                FieldBuilder field = FieldBuilder.New()
-                    .SetName(fieldName)
-                    .SetAccessModifier(AccessModifier.Private)
-                    .SetType(typeWithNamespace)
-                    .SetReadOnly();
+            foreach (var property in neededSerializers.Values)
+            {
+                if (property.Type.GetGraphQlTypeName()?.Value is { } name)
+                {
+                    FieldBuilder field = FieldBuilder.New()
+                        .SetName(GetFieldName(name) + "Formatter")
+                        .SetAccessModifier(AccessModifier.Private)
+                        .SetType(TypeNames.IInputValueFormatter)
+                        .SetValue("default!");
 
-                classBuilder.AddField(field);
-
-                code.AddCode($"            {fieldName} = {parameterName};\n");
+                    classBuilder.AddField(field);
+                }
+                else
+                {
+                    throw new InvalidOperationException(
+                        $"Serializer for property {namedTypeDescriptor.Name}.{property.Name} " +
+                        $"could not be created. GraphQLTypeName was empty");
+                }
             }
 
             // TypeName Method
+
             classBuilder
                 .AddProperty("TypeName")
                 .SetType(TypeNames.String)
                 .AsLambda(namedTypeDescriptor.Name.AsStringToken());
 
             // Format Method
-            var formatBody = new StringBuilder();
-
-            formatBody.AppendLine(
-                @$"
-if(!(runtimeValue is {typeName} d)) {{
-    throw new {TypeNames.ArgumentException}(nameof(runtimeValue));
-}}
-
-return new {_keyValuePair}[] {{");
-
-            for (var index = 0; index < namedTypeDescriptor.Properties.Count; index++)
-            {
-                PropertyDescriptor? property = namedTypeDescriptor.Properties[index];
-
-                formatBody.Append(
-                    $@"    new {_keyValuePair}(
-        {property.Name.WithLowerFirstChar().AsStringToken()}, Format{property.Name}(d.{property.Name}))");
-
-                if (index < namedTypeDescriptor.Properties.Count - 1)
-                {
-                    formatBody.AppendLine(",");
-                }
-            }
-
-            formatBody.AppendLine("};");
 
             classBuilder
                 .AddMethod(nameof(IInputValueFormatter.Format))
@@ -126,23 +110,35 @@ return new {_keyValuePair}[] {{");
                 .AddParameter(
                     "runtimeValue",
                     x => x.SetType(TypeNames.Object.MakeNullable()))
-                .AddCode(CodeBlockBuilder.From(formatBody));
+                .AddBody()
+                .ArgumentException("runtimeValue", $"!(runtimeValue is {typeName} d)")
+                .AddEmptyLine()
+                .AddArray()
+                .SetPrefix("return ")
+                .ForEach(namedTypeDescriptor.Properties,
+                    (builder, property) =>
+                        builder
+                            .SetType(_keyValuePair)
+                            .AddAssigment(MethodCallBuilder.New()
+                                .SetPrefix("new ")
+                                .SetDetermineStatement(false)
+                                .SetMethodName(_keyValuePair)
+                                .AddArgument(property.Name.WithLowerFirstChar().AsStringToken())
+                                .AddArgument(MethodCallBuilder.New()
+                                    .SetMethodName($"Format{property.Name}")
+                                    .SetDetermineStatement(false)
+                                    .AddArgument($"d.{property.Name}"))));
 
-            // generate serialization methods
+            // Serializer Methods
 
-            foreach (var property in namedTypeDescriptor.Properties)
-            {
-                classBuilder.AddMethod("Format" + property.Name)
-                    .AddParameter(
-                        "value",
-                        x => x.SetType(property.Type.ToBuilder()))
-                    .SetReturnType(TypeNames.Object.MakeNullable())
-                    .SetPrivate()
-                    .AddCode(
-                        GenerateSerializer(
-                            property.Type,
-                            "value"));
-            }
+            classBuilder.ForEach(
+                namedTypeDescriptor.Properties,
+                (builder, property) =>
+                    builder.AddMethod("Format" + property.Name)
+                        .AddParameter("value", x => x.SetType(property.Type.ToBuilder()))
+                        .SetReturnType(TypeNames.Object.MakeNullable())
+                        .SetPrivate()
+                        .AddCode(GenerateSerializer(property.Type, "value")));
 
             CodeFileBuilder
                 .New()
@@ -159,17 +155,14 @@ return new {_keyValuePair}[] {{");
             switch (typeDescriptor)
             {
                 case NamedTypeDescriptor descriptor:
-                    var type = InputValueFormatterFromType(descriptor);
-                    var serializerName = "_" + type.WithLowerFirstChar();
+                    var type = descriptor.GetGraphQlTypeName()?.Value + "Formatter";
+                    var serializerName = GetFieldName(type);
                     var methodCall = $"{serializerName}.Format({variableName})";
                     return assignment == "return"
                         ? CodeLineBuilder.From("return " + methodCall + ";")
                         : CodeLineBuilder.From($"{assignment}.Add({methodCall});");
                 case NonNullTypeDescriptor descriptor:
-                    return GenerateSerializer(
-                        descriptor.InnerType(),
-                        variableName,
-                        assignment);
+                    return GenerateSerializer(descriptor.InnerType(), variableName, assignment);
                 case ListTypeDescriptor descriptor:
                     return CodeBlockBuilder.New()
                         .AddCode(

@@ -1,11 +1,11 @@
 using System;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Extensions;
+using StrawberryShake.Serialization;
 using static StrawberryShake.CodeGeneration.NamingConventions;
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -33,44 +33,62 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 classBuilder,
                 constructorBuilder);
 
-            // sterializer - start
             var neededSerializers = operationDescriptor.Arguments
                 .ToLookup(x => x.Type.Name)
                 .Select(x => x.First())
                 .ToDictionary(x => x.Type.Name);
 
-            var code = CodeBlockBuilder.New();
-            constructorBuilder.AddCode(code);
-
-            foreach (var property in neededSerializers.Values)
+            if (neededSerializers.Any())
             {
-                var namedType = (NamedTypeDescriptor)property.Type.NamedType();
-                var type = InputValueFormatterFromType(namedType);
-                var typeWithNamespace =
-                    namedType.Kind == TypeKind.InputType || namedType.IsEnum
-                    ? type
-                    : TypeNames.StrawberryshakeNamespace + "Serialization." + type;
-                var parameterName = InputValueFormatterFromType(namedType).WithLowerFirstChar();
-                var fieldName = "_" + parameterName;
+                constructorBuilder
+                    .AddParameter(
+                        "serializerResolver",
+                        x => x.SetType(TypeNames.ISerializerResolver));
 
-                ParameterBuilder parameterBuilder = ParameterBuilder.New()
-                    .SetType(typeWithNamespace)
-                    .SetName(type.WithLowerFirstChar());
+                foreach (var property in neededSerializers.Values)
+                {
+                    if (property.Type.GetGraphQlTypeName()?.Value is { } name)
+                    {
+                        MethodCallBuilder call = MethodCallBuilder.New()
+                            .SetMethodName("serializerResolver." +
+                                nameof(ISerializerResolver.GetInputValueFormatter))
+                            .AddArgument(name.AsStringToken() ?? "")
+                            .SetPrefix($"{GetFieldName(name)}Formatter = ");
 
-                constructorBuilder.AddParameter(parameterBuilder);
+                        constructorBuilder.AddCode(call);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException(
+                            $"Serialized for property {operationDescriptor.Name}.{property.Name} " +
+                            $"could not be created. GraphQLTypeName was empty");
+                    }
+                }
 
-                FieldBuilder field = FieldBuilder.New()
-                    .SetName(fieldName)
-                    .SetAccessModifier(AccessModifier.Private)
-                    .SetType(typeWithNamespace)
-                    .SetReadOnly();
+                // Serializer Methods
 
-                classBuilder.AddField(field);
+                foreach (var property in neededSerializers.Values)
+                {
+                    if (property.Type.GetGraphQlTypeName()?.Value is { } name)
+                    {
+                        FieldBuilder field = FieldBuilder.New()
+                            .SetName(GetFieldName(name) + "Formatter")
+                            .SetAccessModifier(AccessModifier.Private)
+                            .SetType(TypeNames.IInputValueFormatter)
+                            .SetReadOnly();
 
-                code.AddCode($"            {fieldName} = {parameterName};\n");
+                        classBuilder.AddField(field);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException(
+                            $"Serializer for property {operationDescriptor.Name}.{property.Name} " +
+                            $"could not be created. GraphQLTypeName was empty");
+                    }
+                }
             }
-            // serializers - end
 
+            //
             MethodBuilder? executeMethod = null;
             if (operationDescriptor is not SubscriptionOperationDescriptor)
             {
@@ -169,6 +187,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
 
             classBuilder.AddMethod(CreateRequestMethod(operationDescriptor));
+
+            // Serializer Methods
 
             foreach (var argument in operationDescriptor.Arguments)
             {
