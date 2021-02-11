@@ -1,24 +1,25 @@
+using System.Linq;
 using Xunit;
 
 namespace StrawberryShake.Serialization
 {
-    public class ByteArraySerializerTests
+    public class ByteSerializerTests
     {
-        private ByteArraySerializer Serializer { get; } = new();
+        private ByteSerializer Serializer { get; } = new();
 
-        private ByteArraySerializer CustomSerializer { get; } = new("Abc");
+        private ByteSerializer CustomSerializer { get; } = new("Abc");
 
         [Fact]
         public void Parse()
         {
             // arrange
-            byte[] buffer = { 1 };
+            byte value = 1;
 
             // act
-            byte[] result = Serializer.Parse(buffer);
+            var result = Serializer.Parse(value);
 
             // assert
-            Assert.Same(buffer, result);
+            Assert.Equal(value, result);
         }
 
         [Fact]
@@ -37,13 +38,28 @@ namespace StrawberryShake.Serialization
         public void Format_Value()
         {
             // arrange
-            byte[] buffer = { 1 };
+            byte value = 1;
 
             // act
-            object? result = Serializer.Format(buffer);
+            object? result = Serializer.Format(value);
 
             // assert
-            Assert.Same(buffer, result);
+            Assert.Equal(value, result);
+        }
+
+        [Fact]
+        public void Format_Exception()
+        {
+            // arrange
+            string value = "1";
+
+            // act
+            void Action() => Serializer.Format(value);
+
+            // assert
+            Assert.Equal(
+                "SS0007",
+                Assert.Throws<GraphQLClientException>(Action).Errors.Single().Code);
         }
 
         [Fact]
@@ -55,7 +71,7 @@ namespace StrawberryShake.Serialization
             string typeName = Serializer.TypeName;
 
             // assert
-            Assert.Equal("ByteArray", typeName);
+            Assert.Equal("Byte", typeName);
         }
 
         [Fact]

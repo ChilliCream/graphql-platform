@@ -188,5 +188,11 @@ namespace StrawberryShake.Properties {
                 return ResourceManager.GetString("ErrorOperationMessage_ResponseParsingError", resourceCulture);
             }
         }
+        
+        internal static string ThrowHelper_InputFormatter_InvalidType {
+            get {
+                return ResourceManager.GetString("ThrowHelper_InputFormatter_InvalidType", resourceCulture);
+            }
+        }
     }
 }
