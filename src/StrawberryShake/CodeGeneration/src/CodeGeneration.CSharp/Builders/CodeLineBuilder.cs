@@ -4,6 +4,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public class CodeLineBuilder : ICode
     {
+        private bool _writeLine = true;
         private ICode? _value;
         private string? _sourceText;
 
@@ -25,6 +26,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
+        public CodeLineBuilder SetWriteLine(bool writeLine)
+        {
+            _writeLine = writeLine;
+            return this;
+        }
+
         public void Build(CodeWriter writer)
         {
             if (writer is null)
@@ -43,7 +50,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 writer.Write(_sourceText);
             }
 
-            writer.WriteLine();
+            if (_writeLine)
+            {
+                writer.WriteLine();
+            }
         }
     }
 }

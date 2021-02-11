@@ -15,6 +15,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private readonly List<FieldBuilder> _fields = new();
         private readonly List<ConstructorBuilder> _constructors = new();
         private readonly List<MethodBuilder> _methods = new();
+        private readonly List<ICodeBuilder> _classes = new();
 
         public static ClassBuilder New() => new();
 
@@ -81,6 +82,28 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             }
 
             _methods.Add(method);
+            return this;
+        }
+
+        public ClassBuilder AddClass(ClassBuilder classBuilder)
+        {
+            if (classBuilder is null)
+            {
+                throw new ArgumentNullException(nameof(classBuilder));
+            }
+
+            _classes.Add(classBuilder);
+            return this;
+        }
+
+        public ClassBuilder AddClass(string @class)
+        {
+            if (@class is null)
+            {
+                throw new ArgumentNullException(nameof(@class));
+            }
+
+            _classes.Add(CodeInlineBuilder.From(@class));
             return this;
         }
 
@@ -217,6 +240,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                         _methods[i].Build(writer);
                     }
                 }
+            }
+
+            foreach (var classBuilder in _classes)
+            {
+                classBuilder.Build(writer);
             }
 
             writer.WriteIndentedLine("}");

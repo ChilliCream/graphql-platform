@@ -1,6 +1,8 @@
+using System;
 using System.Linq;
 using System.Text;
 using HotChocolate;
+using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Extensions;
@@ -62,6 +64,25 @@ namespace StrawberryShake.CodeGeneration.CSharp
                             nameof(ExecutionStrategy.NetworkOnly)))
                 .AddCode(GenerateMethodBody(descriptor));
 
+            factory
+                .AddMethod("ConfigureClient")
+                .SetPrivate()
+                .SetStatic()
+                .SetReturnType(TypeNames.IServiceCollection)
+                .AddParameter(
+                    "services",
+                    x => x.SetType(TypeNames.IServiceCollection))
+                .AddParameter(
+                    "strategy",
+                    x => x.SetType(TypeNames.ExecutionStrategy)
+                        .SetDefault(
+                            TypeNames.ExecutionStrategy + "." +
+                            nameof(ExecutionStrategy.NetworkOnly)))
+                .AddCode(GenerateInternalMethodBody(descriptor));
+
+            factory.AddClass(_clientServiceProvider);
+
+
             CodeFileBuilder
                 .New()
                 .SetNamespace(descriptor.Namespace)
@@ -69,7 +90,43 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .Build(writer);
         }
 
-        private ICode GenerateMethodBody(DependencyInjectionDescriptor descriptor)
+        private static ICode GenerateMethodBody(DependencyInjectionDescriptor descriptor) =>
+            CodeBlockBuilder.New()
+                .AddLine($"var serviceCollection = new {TypeNames.ServiceCollection}();")
+                .AddEmptyLine()
+                .AddMethodCall(x => x.SetMethodName("ConfigureClient")
+                    .AddArgument("serviceCollection")
+                    .AddArgument("strategy"))
+                .AddEmptyLine()
+                .AddMethodCall(x =>
+                    x.SetMethodName(TypeNames.AddSingleton)
+                        .AddArgument("services")
+                        .AddArgument(LambdaBuilder.New()
+                            .AddArgument("sp")
+                            .SetCode("new ClientServiceProvider(sp)")))
+                .AddEmptyLine()
+                .ForEach(descriptor.Operations,
+                    (builder, operation) =>
+                        builder.AddMethodCall(m =>
+                            m.SetMethodName(TypeNames.AddSingleton)
+                                .AddArgument("services")
+                                .AddArgument(LambdaBuilder.New()
+                                    .AddArgument("sp")
+                                    .SetCode(MethodCallBuilder.New()
+                                        .SetMethodName(TypeNames.GetRequiredService)
+                                        .SetDetermineStatement(false)
+                                        .SetWrapArguments()
+                                        .AddArgument(CodeLineBuilder.New()
+                                            .SetLine(MethodCallBuilder.New()
+                                                .SetMethodName(TypeNames.GetRequiredService)
+                                                .SetDetermineStatement(false)
+                                                .AddGeneric("ClientServiceProvider")
+                                                .AddArgument("sp")))
+                                        .AddGeneric(operation.ResultTypeReference.Name)))))
+                .AddEmptyLine()
+                .AddLine("return services;");
+
+        private ICode GenerateInternalMethodBody(DependencyInjectionDescriptor descriptor)
         {
             bool hasSubscriptions =
                 descriptor.Operations.OfType<SubscriptionOperationDescriptor>().Any();
@@ -144,7 +201,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         (NamedTypeDescriptor)inputTypeDescriptor.NamedType()));
             }
 
-            AddSingleton(codeWriter, TypeNames.ISerializerResolver, TypeNames.SerializerResolver);
+            AddSingleton(codeWriter,
+                TypeNames.ISerializerResolver,
+                TypeNames.SerializerResolver);
 
             codeWriter.WriteLine();
             codeWriter.WriteComment("register operations");
@@ -183,6 +242,22 @@ namespace StrawberryShake.CodeGeneration.CSharp
             stringBuilder.AppendLine("return services;");
 
             return CodeBlockBuilder.From(stringBuilder);
+        }
+
+        private void AddSingleton(
+            CodeWriter writer,
+            string @interface,
+            string type)
+        {
+            writer.WriteLine(TypeNames.AddSingleton.WithGeneric(@interface, type) +
+                "(services);");
+        }
+
+        private void AddProtocol(
+            CodeWriter writer,
+            string protocol)
+        {
+            writer.WriteLine(TypeNames.AddProtocol.WithGeneric(protocol) + "(services);");
         }
 
         private static string RegisterOperation(
@@ -268,20 +343,31 @@ if (services is null)
             .Watch()
             ));
 ";
-
-        private void AddSingleton(
-            CodeWriter writer,
-            string @interface,
-            string type)
+        private static string _clientServiceProvider = @"
+        private class ClientServiceProvider
+            : System.IServiceProvider
+            , System.IDisposable
         {
-            writer.WriteLine(TypeNames.AddSingleton.WithGeneric(@interface, type) + "(services);");
-        }
+            private readonly System.IServiceProvider _provider;
 
-        private void AddProtocol(
-            CodeWriter writer,
-            string protocol)
-        {
-            writer.WriteLine(TypeNames.AddProtocol.WithGeneric(protocol) + "(services);");
+            public ClientServiceProvider(System.IServiceProvider provider)
+            {
+                _provider = provider;
+            }
+
+            public object? GetService(System.Type serviceType)
+            {
+                return _provider.GetService(serviceType);
+            }
+
+            public void Dispose()
+            {
+                if (_provider is System.IDisposable d)
+                {
+                    d.Dispose();
+                }
+            }
         }
+";
     }
 }

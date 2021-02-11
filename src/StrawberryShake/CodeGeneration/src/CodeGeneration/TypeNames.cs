@@ -74,6 +74,7 @@ namespace StrawberryShake.CodeGeneration
         public const string ArgumentException = "global::System.ArgumentException";
 
         public const string IServiceCollection = DependencyInjectionNamepsace + "IServiceCollection";
+        public const string ServiceCollection = DependencyInjectionNamepsace + "ServiceCollection";
         public const string GetRequiredService = DependencyInjectionNamepsace +
             "ServiceProviderServiceExtensions.GetRequiredService";
         public const string AddSingleton = DependencyInjectionNamepsace +
