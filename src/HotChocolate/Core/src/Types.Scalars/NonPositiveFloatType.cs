@@ -3,7 +3,8 @@ using HotChocolate.Language;
 namespace HotChocolate.Types.Scalars
 {
     /// <summary>
-    /// The NonPositiveFloat scalar type represents a double‐precision fractional value less than or equal to 0.
+    /// The NonPositiveFloat scalar type represents a double‐precision fractional value less than or
+    /// equal to 0.
     /// </summary>
     public class NonPositiveFloatType : FloatType
     {
