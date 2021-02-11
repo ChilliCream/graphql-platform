@@ -61,6 +61,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 {
                     config.Documents ??= IOPath.Combine("**", "*.graphql");
                     string root = IOPath.GetDirectoryName(config.Location)!;
+                    string generated = IOPath.Combine(root, "Generated");
 
                     var glob = Glob.Parse(config.Documents);
                     var configDocuments = documents
@@ -78,15 +79,23 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     {
                         string documentName =
                             $"{config.Extensions.StrawberryShake.Name}.{document.Name}.{i}.cs";
+                        string fileName = $"{document.Name}.StrawberryShake.cs";
 
                         if (!documentNames.Add(documentName))
                         {
-                            documentName = Guid.NewGuid().ToString("N") + documentName;
+                            string id = Guid.NewGuid().ToString("N");
+                            documentName = id + documentName;
+                            fileName = id + fileName;
                         }
 
                         context.AddSource(
                             documentName,
                             SourceText.From(document.SourceText, Encoding.UTF8));
+                        
+
+                        File.WriteAllText(
+                            Path.Combine(generated, fileName),
+                            document.SourceText);
                     }
                 }
             }
