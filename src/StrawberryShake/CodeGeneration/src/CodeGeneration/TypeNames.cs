@@ -1,5 +1,3 @@
-using System;
-
 namespace StrawberryShake.CodeGeneration
 {
     public static class TypeNames

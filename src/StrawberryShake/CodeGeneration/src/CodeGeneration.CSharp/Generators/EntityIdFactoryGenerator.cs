@@ -40,7 +40,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .AddCode(CreateEntityIdBody(descriptor));
             factory.AddMethod(createEntityId);
 
-
             foreach (var entity in descriptor.Entities)
             {
                 var createSpecificEntityId = MethodBuilder

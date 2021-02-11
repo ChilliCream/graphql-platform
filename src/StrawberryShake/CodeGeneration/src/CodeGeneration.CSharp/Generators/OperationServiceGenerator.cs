@@ -11,11 +11,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
     {
-        private static string _keyValuePair =
-            TypeNames.KeyValuePair.WithGeneric(
-                TypeNames.String,
-                TypeNames.Object.MakeNullable());
-
         private const string OperationExecutorFieldName = "_operationExecutor";
         private const string CreateRequestMethodName = "CreateRequest";
 
@@ -38,7 +33,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 classBuilder,
                 constructorBuilder);
 
-            /// sterializer - start
+            // sterializer - start
             var neededSerializers = operationDescriptor.Arguments
                 .ToLookup(x => x.Type.Name)
                 .Select(x => x.First())
@@ -74,7 +69,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
                 code.AddCode($"            {fieldName} = {parameterName};\n");
             }
-            /// serializers - end
+            // serializers - end
 
             MethodBuilder? executeMethod = null;
             if (operationDescriptor is not SubscriptionOperationDescriptor)
