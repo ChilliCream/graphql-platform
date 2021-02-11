@@ -99,6 +99,15 @@
   <data name="NonPositiveIntType_IsNotNonPositive_ParseValue" xml:space="preserve">
     <value>NonPositiveIntType cannot parse the provided value. The provided value was not less than or equal to 0.</value>
   </data>
+  <data name="NonNegativeFloatType_Description" xml:space="preserve">
+    <value>The NonNegativeFloat scalar type represents a double‐precision fractional value greater than or equal to 0.</value>
+  </data>
+  <data name="NonNegativeFloatType_IsNotNonNegative_ParseLiteral" xml:space="preserve">
+    <value>NonNegativeFloatType cannot parse the provided literal. The provided value was not greater than or equal to 0.</value>
+  </data>
+  <data name="NonNegativeFloatType_IsNotNonNegative_ParseValue" xml:space="preserve">
+    <value>NonNegativeFloatType cannot parse the provided value. The provided value was not greater than or equal to 0.</value>
+  </data>
   <data name="PhoneNumber_Description" xml:space="preserve">
     <value>The PhoneNumber scalar type represents a value that conforms to the standard E.164 format as specified in: https://en.wikipedia.org/wiki/E.164.</value>
   </data>

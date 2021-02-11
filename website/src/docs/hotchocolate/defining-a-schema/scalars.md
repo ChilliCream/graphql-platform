@@ -418,3 +418,11 @@ The NonPositiveInt scalar type represents a signed 32-bit numeric non-fractional
 """
 scalar NonPositiveInt
 ```
+
+## NonNegativeFloat
+```sdl
+"""
+The NonNegativeFloat scalar type represents a double‐precision fractional value greater than or equal to 0.
+"""
+scalar NonNegativeFloat
+```
