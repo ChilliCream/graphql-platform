@@ -63,6 +63,22 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     string root = IOPath.GetDirectoryName(config.Location)!;
                     string generated = IOPath.Combine(root, "Generated");
 
+                    if (Directory.Exists(generated))
+                    {
+                        foreach (string file in Directory.GetFiles(generated))
+                        {
+                            try
+                            {
+                                File.Delete(file);
+                            }
+                            catch { }
+                        }
+                    }
+                    else
+                    {
+                        Directory.CreateDirectory(generated);
+                    }
+
                     var glob = Glob.Parse(config.Documents);
                     var configDocuments = documents
                         .Where(t => t.StartsWith(root) && glob.IsMatch(t))
@@ -91,10 +107,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                         context.AddSource(
                             documentName,
                             SourceText.From(document.SourceText, Encoding.UTF8));
-                        
 
                         File.WriteAllText(
-                            Path.Combine(generated, fileName),
+                            IOPath.Combine(generated, fileName),
                             document.SourceText);
                     }
                 }
