@@ -49,6 +49,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
         {
             try
             {
+                int i = 1;
                 var documents = GetGraphQLFiles(context);
 
                 foreach (var config in GetGraphQLConfigs(context))
@@ -71,7 +72,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     foreach (CSharpDocument document in result.CSharpDocuments)
                     {
                         context.AddSource(
-                            document.Name + ".cs",
+                            $"{i}.{config.Extensions.StrawberryShake.Name}.{document.Name}.cs",
                             SourceText.From(document.SourceText, Encoding.UTF8));
                     }
                 }
