@@ -26,7 +26,7 @@ namespace HotChocolate.Types.Scalars
         }
 
         /// <summary>
-        /// Initialzes a new instance of the <see cref="PhoneNumberType"/>
+        /// Initializes a new instance of the <see cref="PhoneNumberType"/>
         /// </summary>
         public PhoneNumberType(
             NameString name,
