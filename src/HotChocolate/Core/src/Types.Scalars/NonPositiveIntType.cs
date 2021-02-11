@@ -40,7 +40,7 @@ namespace HotChocolate.Types.Scalars
         {
             if (valueSyntax.ToDouble() > MaxValue)
             {
-                throw ThrowHelper.NonPositiveIntType_ParseLiteral_IsNonPositive(this);
+                throw ThrowHelper.NonPositiveIntType_IsNotNonPositive_ParseLiteral(this);
             }
 
             return base.ParseLiteral(valueSyntax);
@@ -50,7 +50,7 @@ namespace HotChocolate.Types.Scalars
         {
             if (runtimeValue > MaxValue)
             {
-                throw ThrowHelper.NonPositiveIntType_ParseValue_IsNonPositive(this);
+                throw ThrowHelper.NonPositiveIntType_IsNotNonPositive_ParseValue(this);
             }
 
             return base.ParseValue(runtimeValue);
