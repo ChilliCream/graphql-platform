@@ -2,6 +2,9 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types.Scalars
 {
+    /// <summary>
+    /// The NonPositiveIntType scalar type represents a signed 32-bit numeric non-fractional value less than or equal to 0.
+    /// </summary>
     public class NonPositiveIntType : IntType
     {
         public NonPositiveIntType()
