@@ -104,26 +104,34 @@ namespace StrawberryShake.CodeGeneration.CSharp
                             .AddArgument("sp")
                             .SetCode("new ClientServiceProvider(sp)")))
                 .AddEmptyLine()
-                .ForEach(descriptor.Operations,
+                .ForEach(
+                    descriptor.Operations,
                     (builder, operation) =>
-                        builder.AddMethodCall(m =>
-                            m.SetMethodName(TypeNames.AddSingleton)
-                                .AddArgument("services")
-                                .AddArgument(LambdaBuilder.New()
-                                    .AddArgument("sp")
-                                    .SetCode(MethodCallBuilder.New()
-                                        .SetMethodName(TypeNames.GetRequiredService)
-                                        .SetDetermineStatement(false)
-                                        .SetWrapArguments()
-                                        .AddArgument(CodeLineBuilder.New()
-                                            .SetLine(MethodCallBuilder.New()
-                                                .SetMethodName(TypeNames.GetRequiredService)
-                                                .SetDetermineStatement(false)
-                                                .AddGeneric("ClientServiceProvider")
-                                                .AddArgument("sp")))
-                                        .AddGeneric(operation.ResultTypeReference.Name)))))
+                        builder.AddCode(ForwardSingletonToClientServiceProvider(operation.Name)))
+                .AddEmptyLine()
+                .AddCode(ForwardSingletonToClientServiceProvider(descriptor.Name))
                 .AddEmptyLine()
                 .AddLine("return services;");
+
+        private static ICode ForwardSingletonToClientServiceProvider(string generic)
+        {
+            return MethodCallBuilder.New()
+                .SetMethodName(TypeNames.AddSingleton)
+                .AddArgument("services")
+                .AddArgument(LambdaBuilder.New()
+                    .AddArgument("sp")
+                    .SetCode(MethodCallBuilder.New()
+                        .SetMethodName(TypeNames.GetRequiredService)
+                        .SetDetermineStatement(false)
+                        .SetWrapArguments()
+                        .AddArgument(CodeLineBuilder.New()
+                            .SetLine(MethodCallBuilder.New()
+                                .SetMethodName(TypeNames.GetRequiredService)
+                                .SetDetermineStatement(false)
+                                .AddGeneric("ClientServiceProvider")
+                                .AddArgument("sp")))
+                        .AddGeneric(generic)));
+        }
 
         private ICode GenerateInternalMethodBody(DependencyInjectionDescriptor descriptor)
         {
@@ -226,6 +234,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         resultBuilder));
             }
 
+            stringBuilder.AppendLine(
+                $"{TypeNames.AddSingleton.WithGeneric(descriptor.Name)}(services);");
+
             if (hasSubscriptions)
             {
                 codeWriter.WriteLine();
@@ -284,7 +295,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             strategy));
 
 {TypeNames.AddSingleton.WithGeneric(fullName)}(services);
-{TypeNames.AddSingleton.WithGeneric(clientName)}(services);";
+";
 
         private static string RegisterHttpConnection(string clientName) => $@"
 {TypeNames.AddSingleton}(

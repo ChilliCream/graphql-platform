@@ -190,6 +190,63 @@ namespace StrawberryShake.CodeGeneration.CSharp
             AssertResult(clientModel, generator, documents);
         }
 
+        [Fact]
+        public void Operation_With_MultipleOperations()
+        {
+            // arrange
+            ClientModel clientModel = new DocumentAnalyzer()
+                .SetSchema(
+                    SchemaHelper.Load(
+                        ("",
+                            Utf8GraphQLParser.Parse(@"
+                            schema {
+                                query: Query
+                            }
+
+                            type Query {
+                                foo(single: Bar!, list: [Bar!]!, nestedList: [[Bar]]): String
+                            }
+
+                            input Bar {
+                                str: String
+                                strNonNullable: String!
+                                nested: Bar
+                                nestedList: [Bar!]!
+                                nestedMatrix: [[Bar]]
+                            }"))
+                    ))
+                .AddDocument(
+                    Utf8GraphQLParser.Parse(
+                        @"
+                        query TestOperation($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
+                          foo(single: $single, list: $list, nestedList:$nestedList)
+                        }
+                    "))
+                .AddDocument(
+                    Utf8GraphQLParser.Parse(
+                        @"
+                        query TestOperation2($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
+                          foo(single: $single, list: $list, nestedList:$nestedList)
+                        }
+                    "))
+                .AddDocument(
+                    Utf8GraphQLParser.Parse(
+                        @"
+                        query TestOperation3($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
+                          foo(single: $single, list: $list, nestedList:$nestedList)
+                        }
+                    "))
+                .AddDocument(Utf8GraphQLParser.Parse("extend schema @key(fields: \"id\")"))
+                .Analyze();
+
+            // act
+            var documents = new StringBuilder();
+            var generator = new CSharpGeneratorExecutor();
+
+            // assert
+            AssertResult(clientModel, generator, documents);
+        }
+
         private static void AssertResult(
             ClientModel clientModel,
             CSharpGeneratorExecutor generator,
