@@ -43,7 +43,7 @@ namespace HotChocolate.Types.Scalars
         {
             if (valueSyntax.ToDouble() > MaxValue)
             {
-                throw ThrowHelper.NonPositiveFloatType_IsNotNonPositive_ParseLiteral(this);
+                throw ThrowHelper.NonPositiveFloatType_ParseLiteral_IsNotNonPositive(this);
             }
 
             return base.ParseLiteral(valueSyntax);
@@ -53,7 +53,7 @@ namespace HotChocolate.Types.Scalars
         {
             if (runtimeValue > MaxValue)
             {
-                throw ThrowHelper.NonPositiveFloatType_IsNotNonPositive_ParseValue(this);
+                throw ThrowHelper.NonPositiveFloatType_ParseValue_IsNotNonPositive(this);
             }
 
             return base.ParseValue(runtimeValue);
