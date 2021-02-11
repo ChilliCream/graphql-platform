@@ -411,6 +411,14 @@ The PhoneNumber scalar type represents a value that conforms to the standard E.1
 scalar PhoneNumber
 ```
 
+## NegativeFloat
+```sdl
+"""
+The NegativeFloat scalar type represents a double‐precision fractional value less than 0
+"""
+scalar NegativeFloat
+```
+
 ## NonNegativeInt
 ```sdl
 """
