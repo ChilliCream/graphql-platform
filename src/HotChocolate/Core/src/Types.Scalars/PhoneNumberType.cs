@@ -4,8 +4,8 @@ using HotChocolate.Language;
 namespace HotChocolate.Types.Scalars
 {
     /// <summary>
-    /// The `PhoneNumber` scalar type scalar type represents a value that conforms to the standard E.164 format
-    /// as specified in: https://en.wikipedia.org/wiki/E.164.
+    /// The `PhoneNumber` scalar type scalar type represents a value that conforms to the standard
+    /// E.164 format as specified in: https://en.wikipedia.org/wiki/E.164.
     /// </summary>
     public class PhoneNumberType : StringType
     {
