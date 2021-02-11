@@ -20,11 +20,11 @@ pr:
 - master
 
 stages:
-  - stage: ubuntu_latest
-    displayName: 'ubuntu-latest'
+  - stage: ubuntu_18.04
+    displayName: 'ubuntu-18.04'
     dependsOn: [  ]
     pool:
-      vmImage: 'ubuntu-latest'
+      vmImage: 'ubuntu-18.04'
     jobs:
       - job: Cover
         displayName: 'Cover'

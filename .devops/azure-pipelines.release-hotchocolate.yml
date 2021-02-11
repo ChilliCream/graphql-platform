@@ -16,18 +16,18 @@
 trigger: none
 
 stages:
-  - stage: ubuntu_latest
-    displayName: "ubuntu-latest"
+  - stage: ubuntu_18.04
+    displayName: "ubuntu-18.04"
     dependsOn: []
     pool:
-      vmImage: "ubuntu-latest"
+      vmImage: "ubuntu-18.04"
     jobs:
       - job: Test
         displayName: "Test"
         dependsOn: []
         strategy:
           parallel: 8
-        steps:          
+        steps:
           - task: CmdLine@2
             inputs:
               script: "./build.cmd test --skip --test-partition $(System.JobPositionInPhase)"
@@ -38,7 +38,7 @@ stages:
       - job: Pack
         displayName: "Pack"
         dependsOn: []
-        steps:          
+        steps:
           - task: CmdLine@2
             inputs:
               script: "./build.cmd pack --skip"
