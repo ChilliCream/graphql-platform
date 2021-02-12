@@ -103,6 +103,14 @@ partial class Build : NukeBuild
                     t.EvaluatedInclude == "StrawberryShake.CodeGeneration.CSharp.Analyzers");
             packageReference.SetMetadataValue("Version", GitVersion.SemVer);
             parsedProject.Save();
+
+            DotNetBuild(c => c
+                .SetProjectFile(analyzerTestProject)
+                .SetConfiguration(Configuration)
+                .SetAssemblyVersion(GitVersion.AssemblySemVer)
+                .SetFileVersion(GitVersion.AssemblySemFileVer)
+                .SetInformationalVersion(GitVersion.InformationalVersion)
+                .SetVersion(GitVersion.SemVer));
         });
 
     Target Publish => _ => _
