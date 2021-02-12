@@ -6,6 +6,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public class LambdaBuilder : ICode
     {
+        private bool _block;
         private readonly List<string> _arguments = new();
         private ICode? _code;
 
@@ -18,6 +19,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         public LambdaBuilder SetCode(ICode code)
         {
             _code = code;
+            return this;
+        }
+
+        public LambdaBuilder SetBlock(bool block)
+        {
+            _block = block;
             return this;
         }
 
@@ -49,7 +56,24 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             }
 
             writer.Write(" => ");
+
+            if (_block)
+            {
+                writer.WriteLine();
+                writer.WriteIndent();
+                writer.WriteLeftBrace();
+                writer.WriteLine();
+                writer.IncreaseIndent();
+            }
+
             _code.Build(writer);
+
+            if (_block)
+            {
+                writer.DecreaseIndent();
+                writer.WriteIndent();
+                writer.WriteRightBrace();
+            }
         }
 
         public static LambdaBuilder New() => new();

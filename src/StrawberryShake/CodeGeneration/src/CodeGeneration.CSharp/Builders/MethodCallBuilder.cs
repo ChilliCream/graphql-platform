@@ -7,6 +7,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
     {
         private string? _methodName;
         private bool _determineStatement = true;
+        private bool _wrapArguments;
         private string? _prefix;
         private readonly List<ICode> _arguments = new List<ICode>();
         private readonly List<ICode> _generics = new List<ICode>();
@@ -62,6 +63,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
+        public MethodCallBuilder SetWrapArguments(bool value = true)
+        {
+            _wrapArguments = value;
+            return this;
+        }
+
         public void Build(CodeWriter writer)
         {
             if (writer is null)
@@ -96,7 +103,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                         }
                     }
 
-                    writer.Write(">");
                 }
 
                 writer.Write("(");
@@ -107,8 +113,22 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 }
                 else if (_arguments.Count == 1)
                 {
+                    if (_wrapArguments)
+                    {
+                        writer.WriteLine();
+                        writer.IncreaseIndent();
+                    }
                     _arguments[0].Build(writer);
-                    writer.Write(")");
+                    if (_wrapArguments)
+                    {
+                        writer.DecreaseIndent();
+                        writer.WriteIndent();
+                        writer.Write(")");
+                    }
+                    else
+                    {
+                        writer.Write(")");
+                    }
                 }
                 else
                 {

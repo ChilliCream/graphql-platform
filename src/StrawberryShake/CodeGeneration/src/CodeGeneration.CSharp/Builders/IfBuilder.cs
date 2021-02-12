@@ -38,6 +38,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             {
                 _lines.Add(CodeLineBuilder.New().SetLine(code));
             }
+
             return this;
         }
 
@@ -116,6 +117,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                     writer.WriteIndent();
                     _elseCode.Build(writer);
                 }
+
                 writer.WriteLine();
                 writer.WriteIndent();
                 writer.WriteLine("}");
