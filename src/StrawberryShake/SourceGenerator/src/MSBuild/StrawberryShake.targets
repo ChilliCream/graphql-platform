@@ -17,11 +17,5 @@
     <AvailableItemName Include="GraphQLConfig" />
   </ItemGroup>
 
-  <Target Name="RemoveStrawberryShakeSourceGeneratedFiles" BeforeTargets="CoreCompile">
-    <ItemGroup>
-      <Compile Remove="**/*.StrawberryShake.cs" />
-    </ItemGroup>
-  </Target>
-
   <Target Name="GraphQLCompile" />
 </Project>
