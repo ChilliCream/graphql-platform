@@ -58,28 +58,31 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             try
             {
                 var documents = GetGraphQLFiles(context);
-                var documentNames = new HashSet<string>();
 
                 foreach (var config in GetGraphQLConfigs(context))
                 {
+                    var log = new StringBuilder();
+                    log.AppendLine("Client: " + config.Extensions.StrawberryShake.Name);
+
                     var fileNames = new HashSet<string>();
 
                     StrawberryShakeSettings settings = config.Extensions.StrawberryShake;
                     string filter = config.Documents ?? IOPath.Combine("**", "*.graphql");
-                    string clientName = settings.Name;
-                    string root = IOPath.GetDirectoryName(config.Location)!;
-                    string generated = GetGeneratedDirectory(context, settings, root);
+                    string rootDir = IOPath.GetDirectoryName(config.Location)!;
+                    string generatedDir = GetGeneratedDirectory(context, settings, rootDir);
 
-                    if (!Directory.Exists(generated))
-                    {
-                        Directory.CreateDirectory(generated);
-                    }
+                    log.AppendLine($"filter: {filter}");
+                    log.AppendLine($"rootDir: {rootDir}");
+                    log.AppendLine($"generatedDir: {generatedDir}");
+
+                    CreateDirectoryIfNotExists(generatedDir);
 
                     // get documents that are relevant to this config.
                     var glob = Glob.Parse(filter);
                     var configDocuments = documents
-                        .Where(t => t.StartsWith(root) && glob.IsMatch(t))
+                        .Where(t => t.StartsWith(rootDir) && glob.IsMatch(t))
                         .ToList();
+                    log.AppendLine($"configDocuments: {string.Join("\r\n", configDocuments)}");
 
                     // generate the client.
                     var result = GenerateClient(documents, config.Extensions.StrawberryShake);
@@ -88,48 +91,53 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     {
                         // if we have errors ... we will output them an not generate anything.
                         CreateDiagnosticErrors(context, result.Errors);
-                        return;
+                        log.AppendLine("We have errors!");
+                        WriteFile(IOPath.Combine(generatedDir, "gen.log"), log.ToString());
+                        continue;
                     }
 
                     // add updated documents.
                     foreach (CSharpDocument document in result.CSharpDocuments)
                     {
-                        string documentName = $"{document.Name}.{clientName}.StrawberryShake.cs";
-
-                        if (!documentNames.Add(documentName))
-                        {
-                            documentName = Guid.NewGuid().ToString("N") + documentName;
-                            documentNames.Add(documentName);
-                        }
-                        fileNames.Add(documentName);
-
-                        var fileName = IOPath.Combine(generated, documentName);
-                        var sourceText = SourceText.From(document.SourceText, Encoding.UTF8);
-
-                        context.AddSource(documentName, sourceText);
-
-                        if (File.Exists(fileName))
-                        {
-                            File.Delete(fileName);
-                        }
-
-                        File.WriteAllText(fileName, document.SourceText, Encoding.UTF8);
+                        WriteDocument(context, document, settings, fileNames, generatedDir);
                     }
 
                     // remove files that are now obsolete
-                    foreach (string fileName in Directory.GetFiles(generated, "*.cs"))
+                    log.AppendLine("clean");
+                    foreach (string fileName in Directory.GetFiles(generatedDir, "*.cs"))
                     {
                         if (!fileNames.Contains(IOPath.GetFileName(fileName)))
                         {
-                            File.Delete(fileName);
+                            log.AppendLine(fileName);
+                            // File.Delete(fileName);
                         }
                     }
+                    
+                    WriteFile(IOPath.Combine(generatedDir, "gen.log"), log.ToString());
                 }
             }
             catch (GraphQLException ex)
             {
                 CreateDiagnosticErrors(context, ex.Errors);
             }
+        }
+
+        private void WriteDocument(
+            GeneratorExecutionContext context,
+            CSharpDocument document,
+            StrawberryShakeSettings settings,
+            HashSet<string> fileNames,
+            string generatedDirectory)
+        {
+            string documentName = $"{document.Name}.{settings.Name}.StrawberryShake.cs";
+            fileNames.Add(documentName);
+
+            var fileName = IOPath.Combine(generatedDirectory, documentName);
+            var sourceText = SourceText.From(document.SourceText, Encoding.UTF8);
+
+            context.AddSource(documentName, sourceText);
+
+            WriteFile(fileName, document.SourceText);
         }
 
         private CSharpGeneratorResult GenerateClient(
@@ -329,13 +337,31 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
             if (context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(
                 "build_property.StrawberryShake_GeneratedFiles",
-                out string? value) && 
+                out string? value) &&
                 !string.IsNullOrEmpty(value))
             {
                 return IOPath.Combine(value, settings.Name);
             }
 
             return IOPath.Combine(clientFolder, "Generated");
+        }
+
+        private void CreateDirectoryIfNotExists(string directory)
+        {
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+        }
+
+        private void WriteFile(string fileName, string sourceText)
+        {
+            if (File.Exists(fileName))
+            {
+                File.Delete(fileName);
+            }
+
+            File.WriteAllText(fileName, sourceText, Encoding.UTF8);
         }
     }
 }
