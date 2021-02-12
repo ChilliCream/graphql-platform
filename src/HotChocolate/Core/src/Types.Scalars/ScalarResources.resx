@@ -159,10 +159,10 @@
   <data name="UnsignedFloatType_Description" xml:space="preserve">
     <value>The UnsignedFloatType scalar type represents a double‐precision fractional value greater than or equal to 0.</value>
   </data>
-  <data name="UnsignedFloatType_IsNotNonNegative_ParseLiteral" xml:space="preserve">
+  <data name="UnsignedFloatType_IsNotUnsigned_ParseLiteral" xml:space="preserve">
     <value>UnsignedFloatType cannot parse the provided literal. The provided value was not greater than or equal to 0.</value>
   </data>
-  <data name="UnsignedFloatType_IsNotNonNegative_ParseValue" xml:space="preserve">
+  <data name="UnsignedFloatType_IsNotUnsigned_ParseValue" xml:space="preserve">
     <value>UnsignedFloatType cannot parse the provided value. The provided value was not greater than or equal to 0.</value>
   </data>
 </root>

@@ -243,15 +243,15 @@ namespace HotChocolate.Types.Scalars {
             }
         }
         
-        internal static string UnsignedFloatType_IsNotNonNegative_ParseLiteral {
+        internal static string UnsignedFloatType_IsNotUnsigned_ParseLiteral {
             get {
-                return ResourceManager.GetString("UnsignedFloatType_IsNotNonNegative_ParseLiteral", resourceCulture);
+                return ResourceManager.GetString("UnsignedFloatType_IsNotUnsigned_ParseLiteral", resourceCulture);
             }
         }
         
-        internal static string UnsignedFloatType_IsNotNonNegative_ParseValue {
+        internal static string UnsignedFloatType_IsNotUnsigned_ParseValue {
             get {
-                return ResourceManager.GetString("UnsignedFloatType_IsNotNonNegative_ParseValue", resourceCulture);
+                return ResourceManager.GetString("UnsignedFloatType_IsNotUnsigned_ParseValue", resourceCulture);
             }
         }
     }
