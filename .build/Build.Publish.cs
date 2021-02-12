@@ -92,10 +92,10 @@ partial class Build : NukeBuild
                 
             var analyzerTestProject = ProjectModelTasks
                 .ParseSolution(SgSolutionFile)
-                .GetProjects("*.Analyzers.Tests")
+                .GetProjects("*.Tests")
                 .Single();
 
-            parsedProject = ProjectModelTasks.ParseProject(analyzerProject);
+            parsedProject = ProjectModelTasks.ParseProject(analyzerTestProject);
             packageReference = parsedProject.Items
                 .Single(t => 
                     t.ItemType == "PackageReference" &&
