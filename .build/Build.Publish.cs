@@ -61,26 +61,19 @@ partial class Build : NukeBuild
                     t => t.SetTargetPath(StarWarsTemplateNuSpec),
                     t => t.SetTargetPath(EmptyServerTemplateNuSpec)));
 
-            var projects = ProjectModelTasks.ParseSolution(SgSolutionFile)
-                    .AllProjects.Where(x => !x.Name.Contains("Tests"));
-
-            foreach (Nuke.Common.ProjectModel.Project project in projects)
-            {
-                Project parsedProject = ProjectModelTasks.ParseProject(project);
-                ProjectItem packageReference = parsedProject.Items
-                    .FirstOrDefault(x => x.ItemType == "PackageReference" &&
-                        !x.IsImported &&
-                        x.EvaluatedInclude == "StrawberryShake.CodeGeneration.CSharp");
-
-                packageReference?.SetMetadataValue("Version", GitVersion.SemVer);
-
-                parsedProject.Save();
-            }
-
             var analyzerProject = ProjectModelTasks
-                    .ParseSolution(SgSolutionFile)
-                    .GetProjects("*.Analyzers")
-                    .Single();
+                .ParseSolution(SgSolutionFile)
+                .GetProjects("*.Analyzers")
+                .Single();
+            
+            Project parsedProject = ProjectModelTasks.ParseProject(analyzerProject);
+            ProjectItem packageReference = parsedProject.Items
+                .Single(t => 
+                    t.ItemType == "PackageReference" &&
+                    t.IsImported == false &&
+                    t.EvaluatedInclude == "StrawberryShake.CodeGeneration.CSharp");
+            packageReference.SetMetadataValue("Version", GitVersion.SemVer);
+            parsedProject.Save();
 
             DotNetBuild(c => c
                 .SetProjectFile(analyzerProject)
@@ -96,33 +89,20 @@ partial class Build : NukeBuild
                 .SetConfiguration(Configuration)
                 .SetOutputDirectory(PackageDirectory)
                 .SetVersion(GitVersion.SemVer));
+                
+            var analyzerTestProject = ProjectModelTasks
+                .ParseSolution(SgSolutionFile)
+                .GetProjects("*.Analyzers.Tests")
+                .Single();
 
-            // update test projects that use the source generators
-            foreach (Nuke.Common.ProjectModel.Project project in projects)
-            {
-                Project parsedProject = ProjectModelTasks.ParseProject(project);
-                ProjectItem packageReference = parsedProject.Items
-                    .FirstOrDefault(x => x.ItemType == "PackageReference" &&
-                        !x.IsImported &&
-                        x.EvaluatedInclude == "StrawberryShake.CodeGeneration.CSharp.Analyzers");
-
-                packageReference?.SetMetadataValue("Version", GitVersion.SemVer);
-
-                parsedProject.Save();
-            }
-
-            /*
-            NuGetPack(c => c
-                .SetVersion(GitVersion.SemVer)
-                .SetOutputDirectory(PackageDirectory)
-                .SetConfiguration(Configuration)
-                .CombineWith(
-                    t => t.SetTargetPath(StrawberryShakeNuSpec),
-                    t => t.SetTargetPath(StarWarsTemplateNuSpec),
-                    t => t.SetTargetPath(EmptyServerTemplateNuSpec)));
-                    */
-
-            //.SetPackageReleaseNotes(GetNuGetReleaseNotes(ChangelogFile, GitRepository)));
+            parsedProject = ProjectModelTasks.ParseProject(analyzerProject);
+            packageReference = parsedProject.Items
+                .Single(t => 
+                    t.ItemType == "PackageReference" &&
+                    t.IsImported == false &&
+                    t.EvaluatedInclude == "StrawberryShake.CodeGeneration.CSharp.Analyzers");
+            packageReference.SetMetadataValue("Version", GitVersion.SemVer);
+            parsedProject.Save();
         });
 
     Target Publish => _ => _
