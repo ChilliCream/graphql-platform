@@ -61,7 +61,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
                 foreach (var config in GetGraphQLConfigs(context))
                 {
-
                     var log = new StringBuilder();
                     log.AppendLine("Client: " + config.Extensions.StrawberryShake.Name);
 
@@ -85,7 +84,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                         log.AppendLine($"configDocuments: {string.Join("\r\n", documents)}");
 
                         // generate the client.
-                        var result = GenerateClient(allDocuments, config.Extensions.StrawberryShake);
+                        var result = GenerateClient(documents, config.Extensions.StrawberryShake);
 
                         if (result.HasErrors())
                         {
@@ -109,7 +108,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                             if (!fileNames.Contains(IOPath.GetFileName(fileName)))
                             {
                                 log.AppendLine(fileName);
-                                // File.Delete(fileName);
+                                File.Delete(fileName);
                             }
                         }
                     }
