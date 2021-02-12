@@ -1,0 +1,8 @@
+﻿namespace Def
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public enum Abc
+    {
+        Ghi = 123
+    }
+}

@@ -1,0 +1,18 @@
+﻿namespace StarWarsClient
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetHeroResult
+    {
+        public GetHeroResult(
+            IHero hero,
+            global::System..string version)
+        {
+            Hero = hero;
+            Version = version;
+        }
+
+        public IHero Hero { get; }
+
+        public global::System..string Version { get; }
+    }
+}
