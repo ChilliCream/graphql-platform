@@ -450,3 +450,11 @@ The NonNegativeFloat scalar type represents a double‐precision fractional valu
 """
 scalar NonNegativeFloat
 ```
+
+## UnsignedFloat
+```sdl
+"""
+The UnsignedFloat scalar type represents a double‐precision fractional value greater than or equal to 0.
+"""
+scalar UnsignedFloat
+```
