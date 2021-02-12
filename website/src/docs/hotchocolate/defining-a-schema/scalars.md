@@ -435,20 +435,20 @@ The NonPositiveInt scalar type represents a signed 32-bit numeric non-fractional
 scalar NonPositiveInt
 ```
 
-## PositiveInt
-```sdl
-"""
-The PositiveInt scalar type represents a signed 32‐bit numeric non‐fractional value of at least the value 1.
-"""
-scalar PositiveInt
-```
-
 ## PhoneNumber
 ```sdl
 """
 The PhoneNumber scalar type represents a value that conforms to the standard E.164 format as specified in: https://en.wikipedia.org/wiki/E.164.
 """
 scalar PhoneNumber
+```
+
+## PositiveInt
+```sdl
+"""
+The PositiveInt scalar type represents a signed 32‐bit numeric non‐fractional value of at least the value 1.
+"""
+scalar PositiveInt
 ```
 
 ## UnsignedFloat
