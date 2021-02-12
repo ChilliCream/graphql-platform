@@ -24,4 +24,5 @@
   </Target>
 
   <Target Name="GraphQLCompile" />
+  
 </Project>
