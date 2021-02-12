@@ -1,27 +1,9 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <ItemDefinitionGroup>
-    <GraphQL>
-      <Generator>MSBuild:GraphQLCompile</Generator>
-    </GraphQL>
-    <GraphQLConfig>
-      <Generator>MSBuild:GraphQLCompile</Generator>
-    </GraphQLConfig>
-  </ItemDefinitionGroup>
-
-  <ItemGroup>
-    <PropertyPageSchema Include="$(GraphQLPropertyPageSchema)">
-      <Context>File;BrowseObject</Context>
-    </PropertyPageSchema>
-    <AvailableItemName Include="GraphQL" />
-    <AvailableItemName Include="GraphQLConfig" />
-  </ItemGroup>
-
   <Target Name="RemoveStrawberryShakeSourceGeneratedFiles" BeforeTargets="CoreCompile">
     <ItemGroup>
       <Compile Remove="**/*.StrawberryShake.cs" />
     </ItemGroup>
   </Target>
 
-  <Target Name="GraphQLCompile" />
 </Project>

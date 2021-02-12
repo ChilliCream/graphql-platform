@@ -4,6 +4,23 @@
     <GraphQLPropertyPageSchema>$(MSBuildThisFileDirectory)GraphQL.xaml</GraphQLPropertyPageSchema>
   </PropertyGroup>
 
+  <ItemDefinitionGroup>
+    <GraphQL>
+      <Generator>MSBuild:Compile</Generator>
+    </GraphQL>
+    <GraphQLConfig>
+      <Generator>MSBuild:Compile</Generator>
+    </GraphQLConfig>
+  </ItemDefinitionGroup>
+
+  <ItemGroup>
+    <PropertyPageSchema Include="$(GraphQLPropertyPageSchema)">
+      <Context>File;BrowseObject</Context>
+    </PropertyPageSchema>
+    <AvailableItemName Include="GraphQL" />
+    <AvailableItemName Include="GraphQLConfig" />
+  </ItemGroup>
+
   <ItemGroup>
     <!-- GraphQL Files -->
     <None Remove="**/*.graphql" />
@@ -18,8 +35,6 @@
     <Watch Include="**/.graphqlrc.json" />
     <AdditionalFiles Include="@(GraphQLConfig)" GraphQLConfig="true" />
     <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="GraphQLConfig" />
-
-    <Watch Include="**/StrawberryShake.client" />
   </ItemGroup>
 
 </Project>

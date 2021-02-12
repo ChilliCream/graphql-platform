@@ -49,7 +49,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
         public void Execute(GeneratorExecutionContext context)
         {
-            EnsurePreconditionsAreMet(context);
+            // if preconditions are not met we just stop and do not process any further.
+            if (!EnsurePreconditionsAreMet(context))
+            {
+                return;
+            }
 
             try
             {
@@ -59,64 +63,72 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
                 foreach (var config in GetGraphQLConfigs(context))
                 {
-                    config.Documents ??= IOPath.Combine("**", "*.graphql");
+                    var fileNames = new HashSet<string>();
+
+                    string filter = config.Documents ?? IOPath.Combine("**", "*.graphql");
+                    string clientName = config.Extensions.StrawberryShake.Name;
                     string root = IOPath.GetDirectoryName(config.Location)!;
                     string generated = IOPath.Combine(root, "Generated");
-                    string changeFile = IOPath.Combine(generated, "StrawberryShake.client");
 
-                    if (Directory.Exists(generated))
-                    {
-                        foreach (string file in Directory.GetFiles(generated))
-                        {
-                            try
-                            {
-                                File.Delete(file);
-                            }
-                            catch { }
-                        }
-                    }
-                    else
+                    if (!Directory.Exists(generated))
                     {
                         Directory.CreateDirectory(generated);
                     }
 
-                    if (!File.Exists(changeFile))
-                    {
-                        File.WriteAllText(changeFile, Guid.NewGuid().ToString("N"));
-                    }
-
-                    var glob = Glob.Parse(config.Documents);
+                    // get documents that are relevant to this config.
+                    var glob = Glob.Parse(filter);
                     var configDocuments = documents
                         .Where(t => t.StartsWith(root) && glob.IsMatch(t))
                         .ToList();
 
+                    // generate the client.
                     var result = GenerateClient(documents, config.Extensions.StrawberryShake);
 
                     if (result.HasErrors())
                     {
+                        // if we have errors ... we will output them an not generate anything.
                         CreateDiagnosticErrors(context, result.Errors);
+                        return;
                     }
 
+                    // add updated documents.
                     foreach (CSharpDocument document in result.CSharpDocuments)
                     {
-                        string documentName =
-                            $"{config.Extensions.StrawberryShake.Name}.{document.Name}.{i}.cs";
+                        string documentName = $"{clientName}.{document.Name}.{i}.cs";
                         string fileName = $"{document.Name}.StrawberryShake.cs";
 
                         if (!documentNames.Add(documentName))
                         {
-                            string id = Guid.NewGuid().ToString("N");
-                            documentName = id + documentName;
-                            fileName = id + fileName;
+                            documentName = Guid.NewGuid().ToString("N") + documentName;
+                            documentNames.Add(documentName);
                         }
 
-                        context.AddSource(
-                            documentName,
-                            SourceText.From(document.SourceText, Encoding.UTF8));
+                        if (!fileNames.Add(fileName))
+                        {
+                            fileName = Guid.NewGuid().ToString("N") + fileName;
+                            fileNames.Add(fileName);
+                        }
 
-                        File.WriteAllText(
-                            IOPath.Combine(generated, fileName),
-                            document.SourceText);
+                        fileName = IOPath.Combine(generated, fileName);
+                        var sourceText = SourceText.From(document.SourceText, Encoding.UTF8);
+
+                        context.AddSource(documentName, sourceText);
+
+                        if (File.Exists(fileName))
+                        {
+                            File.Delete(fileName);
+                        }
+
+                        File.WriteAllText(fileName, document.SourceText, Encoding.UTF8);
+                    }
+
+                    // remove files that are now obsolete
+                    foreach (string fileName in Directory.GetFiles(generated, "*.cs"))
+                    {
+                        if (!fileNames.Contains(IOPath.GetFileName(fileName)))
+                        {
+                            File.Delete(fileName);
+                        }
                     }
                 }
             }
@@ -149,26 +161,37 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             }
         }
 
-        private static void EnsurePreconditionsAreMet(
+        private static bool EnsurePreconditionsAreMet(
             GeneratorExecutionContext context)
         {
-            EnsureDependencyExists(
+            if (!EnsureDependencyExists(
                 context,
                 "StrawberryShake.Core",
-                "StrawberryShake.Core");
+                "StrawberryShake.Core"))
+            {
+                return false;
+            }
 
-            EnsureDependencyExists(
+            if (!EnsureDependencyExists(
                 context,
                 "StrawberryShake.Transport.Http",
-                "StrawberryShake.Transport.Http");
+                "StrawberryShake.Transport.Http"))
+            {
+                return false;
+            }
 
-            EnsureDependencyExists(
+            if (!EnsureDependencyExists(
                 context,
                 "Microsoft.Extensions.Http",
-                "Microsoft.Extensions.Http");
+                "Microsoft.Extensions.Http"))
+            {
+                return false;
+            }
+
+            return true;
         }
 
-        private static void EnsureDependencyExists(
+        private static bool EnsureDependencyExists(
             GeneratorExecutionContext context,
             string assemblyName,
             string packageName)
@@ -186,7 +209,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                                 DiagnosticSeverity.Error,
                                 isEnabledByDefault: true),
                             Microsoft.CodeAnalysis.Location.None));
+                return false;
             }
+            return true;
         }
 
         private void CreateDiagnosticErrors(
