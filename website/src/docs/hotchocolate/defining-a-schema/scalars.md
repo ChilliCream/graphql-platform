@@ -371,20 +371,28 @@ services
   .AddType<NonEmptyStringType>()
 ```
 
+## EmailAddress
+```sdl
+"""
+The EmailAddress scalar type represents a email address, represented as UTF-8 character sequences that follows the specification defined in RFC 5322
+"""
+scalar EmailAddress
+```
+
+## NegativeFloat
+```sdl
+"""
+The NegativeFloat scalar type represents a double‐precision fractional value less than 0
+"""
+scalar NegativeFloat
+```
+
 ## NegativeInt
 ```sdl
 """
 The NegativeIntType scalar type represents a signed 32-bit numeric non-fractional with a maximum of -1.
 """
 scalar NegativeInt
-```
-
-## PositiveInt
-```sdl
-"""
-The PositiveInt scalar type represents a signed 32‐bit numeric non‐fractional value of at least the value 1.
-"""
-scalar PositiveInt
 ```
 
 ## NonEmptyString
@@ -395,28 +403,12 @@ The NonNullString scalar type represents non empty textual data, represented as 
 scalar NonEmptyString
 ```
 
-## EmailAddress
+## NonNegativeFloat
 ```sdl
 """
-The EmailAddress scalar type represents a email address, represented as UTF-8 character sequences that follows the specification defined in RFC 5322
+The NonNegativeFloat scalar type represents a double‐precision fractional value greater than or equal to 0.
 """
-scalar EmailAddress
-```
-
-## PhoneNumber
-```sdl
-"""
-The PhoneNumber scalar type represents a value that conforms to the standard E.164 format as specified in: https://en.wikipedia.org/wiki/E.164.
-"""
-scalar PhoneNumber
-```
-
-## NegativeFloat
-```sdl
-"""
-The NegativeFloat scalar type represents a double‐precision fractional value less than 0
-"""
-scalar NegativeFloat
+scalar NonNegativeFloat
 ```
 
 ## NonNegativeInt
@@ -443,12 +435,20 @@ The NonPositiveInt scalar type represents a signed 32-bit numeric non-fractional
 scalar NonPositiveInt
 ```
 
-## NonNegativeFloat
+## PositiveInt
 ```sdl
 """
-The NonNegativeFloat scalar type represents a double‐precision fractional value greater than or equal to 0.
+The PositiveInt scalar type represents a signed 32‐bit numeric non‐fractional value of at least the value 1.
 """
-scalar NonNegativeFloat
+scalar PositiveInt
+```
+
+## PhoneNumber
+```sdl
+"""
+The PhoneNumber scalar type represents a value that conforms to the standard E.164 format as specified in: https://en.wikipedia.org/wiki/E.164.
+"""
+scalar PhoneNumber
 ```
 
 ## UnsignedFloat
