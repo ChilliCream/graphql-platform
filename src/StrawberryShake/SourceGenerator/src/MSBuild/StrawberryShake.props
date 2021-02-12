@@ -35,6 +35,13 @@
     <Watch Include="**/.graphqlrc.json" />
     <AdditionalFiles Include="@(GraphQLConfig)" GraphQLConfig="true" />
     <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="GraphQLConfig" />
+
+    <!-- Build Options -->
+    <CompilerVisibleProperty Include="StrawberryShake_GeneratedFiles" />
   </ItemGroup>
+
+  <PropertyGroup>
+    <StrawberryShake_GeneratedFiles>$(BaseIntermediateOutputPath)\StrawberryShake</StrawberryShake_GeneratedFiles>
+  </PropertyGroup>
 
 </Project>

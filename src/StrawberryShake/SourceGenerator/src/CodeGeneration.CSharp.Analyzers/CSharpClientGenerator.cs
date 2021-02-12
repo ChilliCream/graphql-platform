@@ -57,7 +57,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
             try
             {
-                int i = 1;
                 var documents = GetGraphQLFiles(context);
                 var documentNames = new HashSet<string>();
 
@@ -65,10 +64,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 {
                     var fileNames = new HashSet<string>();
 
+                    StrawberryShakeSettings settings = config.Extensions.StrawberryShake;
                     string filter = config.Documents ?? IOPath.Combine("**", "*.graphql");
-                    string clientName = config.Extensions.StrawberryShake.Name;
+                    string clientName = settings.Name;
                     string root = IOPath.GetDirectoryName(config.Location)!;
-                    string generated = IOPath.Combine(root, "Generated");
+                    string generated = GetGeneratedDirectory(context, settings, root);
 
                     if (!Directory.Exists(generated))
                     {
@@ -94,8 +94,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     // add updated documents.
                     foreach (CSharpDocument document in result.CSharpDocuments)
                     {
-                        string documentName = $"{clientName}.{document.Name}.{i}.cs";
-                        string fileName = $"{document.Name}.StrawberryShake.cs";
+                        string documentName = $"{document.Name}.{clientName}.StrawberryShake.cs";
 
                         if (!documentNames.Add(documentName))
                         {
@@ -103,13 +102,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                             documentNames.Add(documentName);
                         }
 
-                        if (!fileNames.Add(fileName))
-                        {
-                            fileName = Guid.NewGuid().ToString("N") + fileName;
-                            fileNames.Add(fileName);
-                        }
-
-                        fileName = IOPath.Combine(generated, fileName);
+                        var fileName = IOPath.Combine(generated, documentName);
                         var sourceText = SourceText.From(document.SourceText, Encoding.UTF8);
 
                         context.AddSource(documentName, sourceText);
@@ -200,15 +193,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 ai => ai.Name.Equals(assemblyName, StringComparison.OrdinalIgnoreCase)))
             {
                 context.ReportDiagnostic(
-                        Diagnostic.Create(
-                            new DiagnosticDescriptor(
-                                id: CodeGenerationErrorCodes.NoTypeDocumentsFound,
-                                title: "Dependency Missing",
-                                messageFormat: $"The package reference `{packageName}` is missing.\r\n`dotnet add package {packageName}`",
-                                category: _category,
-                                DiagnosticSeverity.Error,
-                                isEnabledByDefault: true),
-                            Microsoft.CodeAnalysis.Location.None));
+                    Diagnostic.Create(
+                        new DiagnosticDescriptor(
+                            id: CodeGenerationErrorCodes.NoTypeDocumentsFound,
+                            title: "Dependency Missing",
+                            messageFormat: $"The package reference `{packageName}` is missing.\r\n`dotnet add package {packageName}`",
+                            category: _category,
+                            DiagnosticSeverity.Error,
+                            isEnabledByDefault: true),
+                        Microsoft.CodeAnalysis.Location.None));
                 return false;
             }
             return true;
@@ -322,5 +315,26 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 .Select(t => t.Path)
                 .Where(t => IOPath.GetFileName(t).EqualsOrdinal(".graphqlrc.json"))
                 .ToList();
+
+        private string GetGeneratedDirectory(
+            GeneratorExecutionContext context,
+            StrawberryShakeSettings settings,
+            string clientFolder)
+        {
+            if (settings.OutputToClientDirectory)
+            {
+                return IOPath.Combine(clientFolder, "Generated");
+            }
+
+            if (context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(
+                "build_property.StrawberryShake_GeneratedFiles",
+                out string? value) && 
+                !string.IsNullOrEmpty(value))
+            {
+                return IOPath.Combine(value, settings.Name);
+            }
+
+            return IOPath.Combine(clientFolder, "Generated");
+        }
     }
 }
