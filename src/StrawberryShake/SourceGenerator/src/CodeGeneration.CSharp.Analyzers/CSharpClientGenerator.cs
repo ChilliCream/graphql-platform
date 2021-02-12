@@ -101,6 +101,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                             documentName = Guid.NewGuid().ToString("N") + documentName;
                             documentNames.Add(documentName);
                         }
+                        fileNames.Add(documentName);
 
                         var fileName = IOPath.Combine(generated, documentName);
                         var sourceText = SourceText.From(document.SourceText, Encoding.UTF8);
