@@ -70,7 +70,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                         {
                             try
                             {
-                                File.Delete(file);
+                                //File.Delete(file);
                             }
                             catch { }
                         }
@@ -114,9 +114,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                             documentName,
                             SourceText.From(document.SourceText, Encoding.UTF8));
 
-                        File.WriteAllText(
-                            IOPath.Combine(generated, fileName),
-                            document.SourceText);
+                        if(!File.Exists(IOPath.Combine(generated, fileName))) 
+                        {
+                            File.WriteAllText(
+                                IOPath.Combine(generated, fileName),
+                                document.SourceText);
+                        }
                     }
                 }
             }
