@@ -3,14 +3,12 @@
   <PropertyGroup>
     <AssemblyName>StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests</AssemblyName>
     <RootNamespace>StrawberryShake.CodeGeneration.CSharp.Analyzers</RootNamespace>
-    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
-    <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)\GeneratedFiles</CompilerGeneratedFilesOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.8.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2" PrivateAssets="all" />
-    <PackageReference Include="StrawberryShake.CodeGeneration.CSharp.Analyzers" Version="11.1.0-two-stage-serializer.1" PrivateAssets="all" />
+    <PackageReference Include="StrawberryShake.CodeGeneration.CSharp.Analyzers" Version="11.1.0-local.2" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="3.1.4" />
   </ItemGroup>
 

@@ -57,10 +57,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
             try
             {
-                var documents = GetGraphQLFiles(context);
+                var allDocuments = GetGraphQLFiles(context);
 
                 foreach (var config in GetGraphQLConfigs(context))
                 {
+
                     var log = new StringBuilder();
                     log.AppendLine("Client: " + config.Extensions.StrawberryShake.Name);
 
@@ -71,49 +72,51 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     string rootDir = IOPath.GetDirectoryName(config.Location)!;
                     string generatedDir = GetGeneratedDirectory(context, settings, rootDir);
 
-                    log.AppendLine($"filter: {filter}");
-                    log.AppendLine($"rootDir: {rootDir}");
-                    log.AppendLine($"generatedDir: {generatedDir}");
-
-                    CreateDirectoryIfNotExists(generatedDir);
-
-                    // get documents that are relevant to this config.
-                    var glob = Glob.Parse(filter);
-                    var configDocuments = documents
-                        .Where(t => t.StartsWith(rootDir) && glob.IsMatch(t))
-                        .ToList();
-                    log.AppendLine($"configDocuments: {string.Join("\r\n", configDocuments)}");
-
-                    // generate the client.
-                    var result = GenerateClient(documents, config.Extensions.StrawberryShake);
-
-                    if (result.HasErrors())
+                    try
                     {
-                        // if we have errors ... we will output them an not generate anything.
-                        CreateDiagnosticErrors(context, result.Errors);
-                        log.AppendLine("We have errors!");
-                        WriteFile(IOPath.Combine(generatedDir, "gen.log"), log.ToString());
-                        continue;
-                    }
+                        log.AppendLine($"filter: {filter}");
+                        log.AppendLine($"rootDir: {rootDir}");
+                        log.AppendLine($"generatedDir: {generatedDir}");
 
-                    // add updated documents.
-                    foreach (CSharpDocument document in result.CSharpDocuments)
-                    {
-                        WriteDocument(context, document, settings, fileNames, generatedDir);
-                    }
+                        CreateDirectoryIfNotExists(generatedDir);
 
-                    // remove files that are now obsolete
-                    log.AppendLine("clean");
-                    foreach (string fileName in Directory.GetFiles(generatedDir, "*.cs"))
-                    {
-                        if (!fileNames.Contains(IOPath.GetFileName(fileName)))
+                        // get documents that are relevant to this config.
+                        var documents = GetClientGraphQLFiles(allDocuments, rootDir, filter);
+                        log.AppendLine($"configDocuments: {string.Join("\r\n", documents)}");
+
+                        // generate the client.
+                        var result = GenerateClient(allDocuments, config.Extensions.StrawberryShake);
+
+                        if (result.HasErrors())
                         {
-                            log.AppendLine(fileName);
-                            // File.Delete(fileName);
+                            // if we have errors ... we will output them an not generate anything.
+                            CreateDiagnosticErrors(context, result.Errors);
+                            log.AppendLine("We have errors!");
+                            WriteFile(IOPath.Combine(generatedDir, "gen.log"), log.ToString());
+                            continue;
+                        }
+
+                        // add updated documents.
+                        foreach (CSharpDocument document in result.CSharpDocuments)
+                        {
+                            WriteDocument(context, document, settings, fileNames, generatedDir);
+                        }
+
+                        // remove files that are now obsolete
+                        log.AppendLine("clean");
+                        foreach (string fileName in Directory.GetFiles(generatedDir, "*.cs"))
+                        {
+                            if (!fileNames.Contains(IOPath.GetFileName(fileName)))
+                            {
+                                log.AppendLine(fileName);
+                                // File.Delete(fileName);
+                            }
                         }
                     }
-                    
-                    WriteFile(IOPath.Combine(generatedDir, "gen.log"), log.ToString());
+                    finally
+                    {
+                        WriteFile(IOPath.Combine(generatedDir, "gen.log"), log.ToString());
+                    }
                 }
             }
             catch (GraphQLException ex)
@@ -324,6 +327,20 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 .Select(t => t.Path)
                 .Where(t => IOPath.GetFileName(t).EqualsOrdinal(".graphqlrc.json"))
                 .ToList();
+
+        private static IReadOnlyList<string> GetClientGraphQLFiles(
+            IReadOnlyList<string> allDocuments,
+            string rootDirectory,
+            string filter)
+        {
+            rootDirectory += IOPath.DirectorySeparatorChar;
+            
+            var glob = Glob.Parse(filter);
+
+            return allDocuments
+                .Where(t => t.StartsWith(rootDirectory) && glob.IsMatch(t))
+                .ToList();
+        }
 
         private string GetGeneratedDirectory(
             GeneratorExecutionContext context,
