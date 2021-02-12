@@ -6,4 +6,6 @@
     </ItemGroup>
   </Target>
 
+  <Target Name="GraphQLCompile" />
+
 </Project>
