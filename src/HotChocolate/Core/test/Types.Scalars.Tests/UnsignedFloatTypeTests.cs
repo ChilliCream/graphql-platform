@@ -5,13 +5,13 @@ using Xunit;
 
 namespace HotChocolate.Types.Scalars
 {
-    public class NonNegativeFloatTypeTests : ScalarTypeTestBase
+    public class UnsignedFloatTypeTests : ScalarTypeTestBase
     {
         [Fact]
         public void Schema_WithScalar_IsMatch()
         {
             // arrange
-            ISchema schema = BuildSchema<NonNegativeFloatType>();
+            ISchema schema = BuildSchema<UnsignedFloatType>();
 
             // act
             // assert
@@ -43,7 +43,7 @@ namespace HotChocolate.Types.Scalars
 
             // act
             // assert
-            ExpectIsInstanceOfTypeToMatch<NonNegativeFloatType>(valueNode, expected);
+            ExpectIsInstanceOfTypeToMatch<UnsignedFloatType>(valueNode, expected);
         }
 
         [Theory]
@@ -64,7 +64,7 @@ namespace HotChocolate.Types.Scalars
             // arrange
             // act
             // assert
-            ExpectIsInstanceOfTypeToMatch<NonNegativeFloatType>(value, expected);
+            ExpectIsInstanceOfTypeToMatch<UnsignedFloatType>(value, expected);
         }
 
         [Theory]
@@ -83,7 +83,7 @@ namespace HotChocolate.Types.Scalars
 
             // act
             // assert
-            ExpectParseLiteralToMatch<NonNegativeFloatType>(valueNode, expected);
+            ExpectParseLiteralToMatch<UnsignedFloatType>(valueNode, expected);
         }
 
         [Theory]
@@ -101,7 +101,7 @@ namespace HotChocolate.Types.Scalars
 
             // act
             // assert
-            ExpectParseLiteralToThrowSerializationException<NonNegativeFloatType>(valueNode);
+            ExpectParseLiteralToThrowSerializationException<UnsignedFloatType>(valueNode);
         }
 
         [Theory]
@@ -113,7 +113,7 @@ namespace HotChocolate.Types.Scalars
             // arrange
             // act
             // assert
-            ExpectParseValueToMatchType<NonNegativeFloatType>(value, type);
+            ExpectParseValueToMatchType<UnsignedFloatType>(value, type);
         }
 
         [Theory]
@@ -130,7 +130,7 @@ namespace HotChocolate.Types.Scalars
             // arrange
             // act
             // assert
-            ExpectParseValueToThrowSerializationException<NonNegativeFloatType>(value);
+            ExpectParseValueToThrowSerializationException<UnsignedFloatType>(value);
         }
 
         [Theory]
@@ -144,7 +144,7 @@ namespace HotChocolate.Types.Scalars
             // arrange
             // act
             // assert
-            ExpectDeserializeToMatch<NonNegativeFloatType>(resultValue, runtimeValue);
+            ExpectDeserializeToMatch<UnsignedFloatType>(resultValue, runtimeValue);
         }
 
         [Theory]
@@ -159,7 +159,7 @@ namespace HotChocolate.Types.Scalars
             // arrange
             // act
             // assert
-            ExpectDeserializeToThrowSerializationException<NonNegativeFloatType>(value);
+            ExpectDeserializeToThrowSerializationException<UnsignedFloatType>(value);
         }
 
         [Theory]
@@ -173,7 +173,7 @@ namespace HotChocolate.Types.Scalars
             // arrange
             // act
             // assert
-            ExpectSerializeToMatch<NonNegativeFloatType>(runtimeValue, resultValue);
+            ExpectSerializeToMatch<UnsignedFloatType>(runtimeValue, resultValue);
         }
 
         [Theory]
@@ -190,7 +190,7 @@ namespace HotChocolate.Types.Scalars
             // arrange
             // act
             // assert
-            ExpectSerializeToThrowSerializationException<NonNegativeFloatType>(value);
+            ExpectSerializeToThrowSerializationException<UnsignedFloatType>(value);
         }
     }
 }

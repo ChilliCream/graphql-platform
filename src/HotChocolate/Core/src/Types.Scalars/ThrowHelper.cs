@@ -230,5 +230,29 @@ namespace HotChocolate.Types.Scalars
                     .Build(),
                 type);
         }
+
+        public static SerializationException UnsignedFloatType_ParseLiteral_IsNotNonNegative(
+            IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.UnsignedFloatType_IsNotNonNegative_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.UnsignedFloat)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException UnsignedFloatType_ParseValue_IsNotNonNegative(
+            IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.UnsignedFloatType_IsNotNonNegative_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.UnsignedFloat)
+                    .Build(),
+                type);
+        }
     }
 }
