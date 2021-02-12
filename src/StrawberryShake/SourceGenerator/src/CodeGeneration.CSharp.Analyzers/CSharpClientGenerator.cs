@@ -109,16 +109,17 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                             fileNames.Add(fileName);
                         }
 
-                        context.AddSource(
-                            documentName,
-                            SourceText.From(document.SourceText, Encoding.UTF8));
+                        fileName = IOPath.Combine(generated, fileName);
+                        var sourceText = SourceText.From(document.SourceText, Encoding.UTF8);
 
-                        if (!File.Exists(IOPath.Combine(generated, fileName)))
+                        context.AddSource(documentName, sourceText);
+
+                        if (File.Exists(fileName))
                         {
-                            File.WriteAllText(
-                                IOPath.Combine(generated, fileName),
-                                document.SourceText);
+                            File.Delete(fileName);
                         }
+
+                        File.WriteAllText(fileName, document.SourceText, Encoding.UTF8);
                     }
 
                     // remove files that are now obsolete
