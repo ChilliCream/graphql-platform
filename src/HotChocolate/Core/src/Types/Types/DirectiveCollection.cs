@@ -9,11 +9,10 @@ using static HotChocolate.Utilities.ErrorHelper;
 
 namespace HotChocolate.Types
 {
-    public sealed class DirectiveCollection
-        : IDirectiveCollection
+    public sealed class DirectiveCollection : IDirectiveCollection
     {
         private readonly object _source;
-        private readonly List<IDirective> _directives = new List<IDirective>();
+        private readonly List<IDirective> _directives = new();
         private readonly DirectiveLocation _location;
         private List<DirectiveDefinition> _definitions;
         private ILookup<NameString, IDirective> _lookup;
@@ -83,26 +82,24 @@ namespace HotChocolate.Types
                 directive = null;
                 return false;
             }
-            else if (directiveType.Locations.Contains(_location))
+
+            if (directiveType.Locations.Contains(_location))
             {
                 directive = Directive.FromDescription(directiveType, definition, _source);
                 return true;
             }
-            else
-            {
-                context.ReportError(
-                    DirectiveCollection_LocationNotAllowed(
-                        directiveType, _location, context.Type,
-                        definition.ParsedDirective, _source));
-                directive = null;
-                return false;
-            }
+
+            context.ReportError(
+                DirectiveCollection_LocationNotAllowed(
+                    directiveType, _location, context.Type,
+                    definition.ParsedDirective, _source));
+            directive = null;
+            return false;
         }
 
         private void ValidateArguments(ITypeCompletionContext context, Directive directive)
         {
-            Dictionary<string, ArgumentNode> arguments =
-                directive.ToNode().Arguments.ToDictionary(t => t.Name.Value);
+            var arguments = directive.ToNode().Arguments.ToDictionary(t => t.Name.Value);
 
             foreach (ArgumentNode argument in arguments.Values)
             {
@@ -139,15 +136,11 @@ namespace HotChocolate.Types
                 }
             }
         }
-        public IEnumerator<IDirective> GetEnumerator()
-        {
-            return _directives.GetEnumerator();
-        }
+        public IEnumerator<IDirective> GetEnumerator() =>
+            _directives.GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator() =>
+            GetEnumerator();
 
         public static DirectiveCollection CreateAndComplete(
             ITypeCompletionContext context,
@@ -169,8 +162,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(directiveDefinitions));
             }
 
-            var directives = new DirectiveCollection(
-                source, directiveDefinitions);
+            var directives = new DirectiveCollection(source, directiveDefinitions);
             directives.CompleteCollection(context);
             return directives;
         }

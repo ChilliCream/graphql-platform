@@ -56,9 +56,31 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     Completed?.Invoke(this, EventArgs.Empty);
                 }
             }
-            catch (TaskCanceledException)
+            catch (OperationCanceledException) { }
+            catch (ObjectDisposedException) { }
+            catch (Exception ex)
             {
-                // the subscription was canceled.
+                if (!_cts.IsCancellationRequested)
+                {
+                    IError error =
+                        ErrorBuilder
+                            .New()
+                            .SetException(ex)
+                            .SetCode(ErrorCodes.Execution.TaskProcessingError)
+                            .SetMessage("Unexpected Execution Error")
+                            .Build();
+
+                    IQueryResult result = QueryResultBuilder.CreateError(error);
+                    try
+                    {
+                        await _connection.SendAsync(new DataResultMessage(Id, result), _cts.Token);
+                    }
+                    finally
+                    {
+                        await _connection.SendAsync(new DataCompleteMessage(Id), _cts.Token);
+                        Completed?.Invoke(this, EventArgs.Empty);
+                    }
+                }
             }
             finally
             {
@@ -74,6 +96,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 {
                     _cts.Cancel();
                 }
+
                 _cts.Dispose();
                 _disposed = true;
             }

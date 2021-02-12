@@ -46,6 +46,7 @@ namespace HotChocolate.Data.Filters
 
         internal new FilterConventionDefinition? Definition => base.Definition;
 
+        /// <inheritdoc />
         protected override FilterConventionDefinition CreateDefinition(
             IConventionContext context)
         {
@@ -65,10 +66,20 @@ namespace HotChocolate.Data.Filters
             return descriptor.CreateDefinition();
         }
 
+        /// <summary>
+        /// This method is called on initialization of the convention but before the convention is
+        /// completed. The default implementation of this method does nothing. It can be overriden
+        /// by a derived class such that the convention can be further configured before it is
+        /// completed
+        /// </summary>
+        /// <param name="descriptor">
+        /// The descriptor that can be used to configure the convention
+        /// </param>
         protected virtual void Configure(IFilterConventionDescriptor descriptor)
         {
         }
 
+        /// <inheritdoc />
         protected override void Complete(IConventionContext context)
         {
             if (Definition?.Provider is null)
