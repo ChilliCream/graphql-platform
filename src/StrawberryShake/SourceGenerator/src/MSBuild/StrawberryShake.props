@@ -2,15 +2,12 @@
 
   <PropertyGroup>
     <GraphQLPropertyPageSchema>$(MSBuildThisFileDirectory)GraphQL.xaml</GraphQLPropertyPageSchema>
+    <StrawberryShake_GeneratedFiles>$(BaseIntermediateOutputPath)\StrawberryShake</StrawberryShake_GeneratedFiles>
   </PropertyGroup>
 
   <ItemDefinitionGroup>
-    <GraphQL>
-      <Generator>MSBuild:GraphQLCompile</Generator>
-    </GraphQL>
-    <GraphQLConfig>
-      <Generator>MSBuild:GraphQLCompile</Generator>
-    </GraphQLConfig>
+    <GraphQL />
+    <GraphQLConfig />
   </ItemDefinitionGroup>
 
   <ItemGroup>
@@ -19,6 +16,13 @@
     </PropertyPageSchema>
     <AvailableItemName Include="GraphQL" />
     <AvailableItemName Include="GraphQLConfig" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile 
+        Include="$(StrawberryShake_GeneratedFiles)\**\*.*"
+        Condition="'$(DesignTimeBuild)' == 'true'"
+        Visible="false"/>
   </ItemGroup>
 
   <ItemGroup>
@@ -39,9 +43,5 @@
     <!-- Build Options -->
     <CompilerVisibleProperty Include="StrawberryShake_GeneratedFiles" />
   </ItemGroup>
-
-  <PropertyGroup>
-    <StrawberryShake_GeneratedFiles>$(BaseIntermediateOutputPath)\StrawberryShake</StrawberryShake_GeneratedFiles>
-  </PropertyGroup>
 
 </Project>

@@ -1,4 +1,5 @@
-// using StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars;
+using System;
+using StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 {
@@ -6,7 +7,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
     {
         public void Test()
         {
-            
+            Type t = typeof(GetPeople_People_Nodes_PersonFromPersonEntityMapper);
 
         }
     }

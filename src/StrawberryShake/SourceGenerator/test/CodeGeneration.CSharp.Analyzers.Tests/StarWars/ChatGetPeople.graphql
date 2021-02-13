@@ -4,6 +4,7 @@ query GetPeople {
       name
       email
       isOnline
+      lastSeen
     }
   }
 }

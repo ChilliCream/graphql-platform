@@ -84,7 +84,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                         log.AppendLine($"configDocuments: {string.Join("\r\n", documents)}");
 
                         // generate the client.
-                        var result = GenerateClient(documents, config.Extensions.StrawberryShake);
+                        var result = GenerateClient(documents, config.Extensions.StrawberryShake, log);
 
                         if (result.HasErrors())
                         {
@@ -111,6 +111,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                                 File.Delete(fileName);
                             }
                         }
+                    }
+                    catch(Exception ex) 
+                    {
+                        log.AppendLine(ex.Message);
+                        log.AppendLine(ex.StackTrace);
+                        log.AppendLine(ex.GetType().FullName);
+                        throw;
                     }
                     finally
                     {
@@ -144,7 +151,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
         private CSharpGeneratorResult GenerateClient(
             IEnumerable<string> documents,
-            StrawberryShakeSettings settings)
+            StrawberryShakeSettings settings,
+            StringBuilder log)
         {
             try
             {
@@ -157,6 +165,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             }
             catch (Exception ex)
             {
+                log.AppendLine(ex.Message);
+                log.AppendLine(ex.StackTrace);
+                log.AppendLine(ex.GetType().FullName);
+
                 throw new GraphQLException(
                     ErrorBuilder.New()
                         .SetMessage(ex.Message)
