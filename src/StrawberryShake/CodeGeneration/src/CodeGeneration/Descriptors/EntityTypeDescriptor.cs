@@ -37,7 +37,7 @@ namespace StrawberryShake.CodeGeneration
             }
 
             Properties = allProperties;
-            Name = graphQLTypeName + "Entity";
+            Name = NamingConventions.EntityTypeNameFromGraphQLTypeName(graphQLTypeName);
             GraphQLTypeName = graphQLTypeName;
             Namespace = @namespace;
         }

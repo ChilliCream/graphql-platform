@@ -36,6 +36,15 @@
     <None Update="__resources__\Query_SchemaValidationError.graphql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="__resources__\BookUnionQuery.graphql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="__resources__\BookUnionQueryWithEntity.graphql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="__resources__\BookInterfaceQuery.graphql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <!--For Visual Studio for Mac Test Explorer we need this reference here-->

@@ -29,7 +29,7 @@
             );
         }
 
-        private FriendsConnection MapNonNullableFriendsConnection(FriendsConnectionData data)
+        private FriendsConnection MapNonNullableFriendsConnection(global::StarWarsClient.State.FriendsConnectionData data)
         {
             FriendsConnection returnValue = default!;
 

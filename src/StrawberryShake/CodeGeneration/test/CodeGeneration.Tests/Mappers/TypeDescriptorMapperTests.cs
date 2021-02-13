@@ -87,6 +87,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 {
                     Assert.Equal("IGetHero_Hero", type.Name);
                     Assert.Equal("Foo.Bar", type.Namespace);
+                    Assert.True(type.IsEntityType());
 
                     Assert.Collection(
                         type.Properties,
@@ -101,13 +102,13 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 {
                     Assert.Equal("IGetHero_Hero_Droid", type.Name);
                     Assert.Equal("Foo.Bar", type.Namespace);
-                    Assert.True(type.IsDataType());
+                    Assert.True(type.IsEntityType());
                 },
                 type =>
                 {
                     Assert.Equal("IGetHero_Hero_Human", type.Name);
                     Assert.Equal("Foo.Bar", type.Namespace);
-                    Assert.True(type.IsDataType());
+                    Assert.True(type.IsEntityType());
                 },
                 type =>
                 {

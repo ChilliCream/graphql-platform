@@ -29,6 +29,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
         /// The mapping of hoisted selection sets to original selection sets.
         /// </param>
         public ClientModel(
+            ISchema schema,
             IReadOnlyList<OperationModel> operations,
             IReadOnlyList<LeafTypeModel> leafTypes,
             IReadOnlyList<InputObjectTypeModel> inputObjectTypes)
@@ -39,6 +40,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
                 throw new ArgumentNullException(nameof(leafTypes));
             InputObjectTypes = inputObjectTypes ??
                 throw new ArgumentNullException(nameof(inputObjectTypes));
+
+            Schema = schema;
 
             var outputTypes = new Dictionary<NameString, OutputTypeModel>();
             var entities = new Dictionary<NameString, EntityModel>();
@@ -65,6 +68,11 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
             OutputTypes = outputTypes.Values.ToList();
             Entities = entities.Values.ToList();
         }
+
+        /// <summary>
+        /// The analyzed schema
+        /// </summary>
+        public ISchema Schema { get; }
 
         /// <summary>
         /// Gets the operations

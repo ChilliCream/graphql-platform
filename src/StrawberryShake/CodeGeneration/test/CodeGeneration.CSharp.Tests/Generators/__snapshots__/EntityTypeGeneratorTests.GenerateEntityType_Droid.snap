@@ -5,6 +5,6 @@
     {
         public global::System..string Name { get; set; }
 
-        public FriendsConnectionData Friends { get; set; }
+        public global::StarWarsClient.State.FriendsConnectionData Friends { get; set; }
     }
 }

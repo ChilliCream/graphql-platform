@@ -1,14 +1,14 @@
 ﻿namespace StarWarsClient
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class FriendsConnectionFromDataMapper
+    public partial class FriendsConnectionFromFriendsConnectionDataMapper
         : global::StrawberryShake.IEntityMapper<FriendsConnection, FriendsConnection>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::StrawberryShake.IEntityMapper<DroidEntity, Droid> _droidFromDroidEntityMapper;
         private readonly global::StrawberryShake.IEntityMapper<HumanEntity, Human> _humanFromHumanEntityMapper;
 
-        public FriendsConnectionFromDataMapper(
+        public FriendsConnectionFromFriendsConnectionDataMapper(
             global::StrawberryShake.IEntityStore entityStore,
             global::StrawberryShake.IEntityMapper<DroidEntity, Droid> droidFromDroidEntityMapper,
             global::StrawberryShake.IEntityMapper<HumanEntity, Human> humanFromHumanEntityMapper)

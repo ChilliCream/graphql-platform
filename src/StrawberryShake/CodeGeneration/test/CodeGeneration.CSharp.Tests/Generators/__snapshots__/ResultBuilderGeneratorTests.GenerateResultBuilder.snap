@@ -116,7 +116,7 @@
             return _stringParser.Parse(obj.Value.GetString()!);
         }
 
-        private FriendsConnectionData DeserializeNonNullableFriendsConnection(
+        private global::StarWarsClient.State.FriendsConnectionData DeserializeNonNullableFriendsConnection(
             global::System.Text.Json.JsonElement? obj,
             global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {

@@ -48,6 +48,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             ClientDescriptorMapper.Map(clientModel, context);
             ResultBuilderDescriptorMapper.Map(clientModel, context);
             DependencyInjectionMapper.Map(clientModel, context);
+            DataTypeDescriptorMapper.Map(clientModel, context);
 
             var code = new StringBuilder();
 

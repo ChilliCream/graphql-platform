@@ -61,7 +61,7 @@
             return (_resultDataFactory.Create(resultInfo), resultInfo);
         }
 
-        private BarData DeserializeNonNullableBar(global::System.Text.Json.JsonElement? obj)
+        private global::BarNamespace.State.BarTypeData DeserializeNonNullableBar(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {

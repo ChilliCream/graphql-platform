@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
+using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
@@ -25,16 +26,20 @@ namespace StrawberryShake.CodeGeneration.CSharp
                             $"typename.Equals(\"{concreteType.GraphQLTypeName}\", " +
                             $"{TypeNames.OrdinalStringComparisson})");
 
-                    var dataTypeName = DataTypeNameFromTypeName(concreteType.Name);
+                    var dataTypeName = $"global::{concreteType.Namespace}.State."
+                    + DataTypeNameFromTypeName(concreteType.GraphQLTypeName);
 
                     var returnStatement = MethodCallBuilder.New()
                         .SetPrefix("return new ")
                         .SetMethodName(dataTypeName);
 
                     returnStatement.AddArgument("typename");
-                    foreach (PropertyDescriptor property in namedTypeDescriptor.Properties)
+                    foreach (PropertyDescriptor property in concreteType.Properties)
                     {
-                        returnStatement.AddArgument(BuildUpdateMethodCall(property));
+                        returnStatement.AddArgument(
+                            CodeBlockBuilder.New()
+                                .AddCode($"{property.Name.WithLowerFirstChar()}: ")
+                                .AddCode(BuildUpdateMethodCall(property)));
                     }
 
                     ifStatement.AddCode(returnStatement);

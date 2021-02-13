@@ -8,9 +8,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public partial class TypeMapperGenerator
     {
-        private const string DataParamName = "data";
-
-        private void AddDataHandler(
+        private void AddComplexDataHandler(
             ClassBuilder classBuilder,
             ConstructorBuilder constructorBuilder,
             MethodBuilder method,
@@ -21,9 +19,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
             method.AddParameter(
                 ParameterBuilder.New()
                     .SetType(
-                        $"global::{namedTypeDescriptor.Namespace}.State."
-                        + NamingConventions.DataTypeNameFromTypeName(namedTypeDescriptor.GraphQLTypeName))
+                        $"global::{namedTypeDescriptor.Namespace}.State.I"
+                        + NamingConventions.DataTypeNameFromTypeName(
+                            namedTypeDescriptor.ComplexDataTypeParent))
                     .SetName(DataParamName));
+
 
             if (!isNonNullable)
             {
@@ -58,19 +58,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
             IfBuilder InterfaceImplementeeIf(NamedTypeDescriptor interfaceImplementee)
             {
                 var ifCorrectType = IfBuilder.New();
+                var matchedTypeName = interfaceImplementee.GraphQLTypeName.WithLowerFirstChar();
 
-                if (isNonNullable)
-                {
-                    ifCorrectType.SetCondition(
-                        $"{DataParamName}.__typename.Equals(\"" +
-                        $"{interfaceImplementee.GraphQLTypeName}\", {TypeNames.OrdinalStringComparisson})");
-                }
-                else
-                {
-                    ifCorrectType.SetCondition(
-                        $"{DataParamName}?.__typename.Equals(\"" +
-                        $"{interfaceImplementee.GraphQLTypeName}\", {TypeNames.OrdinalStringComparisson}) ?? false");
-                }
+                ifCorrectType.SetCondition(
+                    $"{DataParamName} is {interfaceImplementee.Namespace}.State." +
+                    $"{NamingConventions.DataTypeNameFromTypeName(interfaceImplementee.GraphQLTypeName)} " +
+                    $"{matchedTypeName}");
 
 
                 var constructorCall = MethodCallBuilder.New()
@@ -79,19 +72,17 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
                 foreach (PropertyDescriptor prop in interfaceImplementee.Properties)
                 {
-                    var propAccess = $"{DataParamName}.{prop.Name}";
+                    var propAccess = $"{matchedTypeName}.{prop.Name}";
                     if (prop.Type.IsEntityType())
                     {
                         constructorCall.AddArgument(
                             BuildMapMethodCall(
-                                DataParamName,
-                                prop,
-                                true));
+                                matchedTypeName,
+                                prop));
                     }
                     else
                     {
-                        constructorCall.AddArgument(
-                            $"{propAccess} ?? throw new {TypeNames.ArgumentNullException}()");
+                        constructorCall.AddArgument(propAccess);
                     }
                 }
 
@@ -100,6 +91,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
 
             method.AddCode($"return {variableName};");
+
 
             AddRequiredMapMethods(
                 DataParamName,

@@ -23,7 +23,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public TypeReferenceBuilder SkipTraliingSpace()
+        public TypeReferenceBuilder SkipTrailingSpace()
         {
             _skipTrailingSpace = true;
             return this;
