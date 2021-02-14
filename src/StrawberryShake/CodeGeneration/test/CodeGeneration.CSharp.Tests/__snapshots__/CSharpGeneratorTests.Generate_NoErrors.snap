@@ -1,12 +1,14 @@
 ﻿// Code:
 // DroidEntity
 
+#nullable enable
+
 namespace StrawberryShake.GraphQL
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class DroidEntity
     {
-        public global::System.String Name { get; set; }
+        public global::System.String Name { get; set; } = default!;
 
         public global::System.Collections.Generic.IReadOnlyList<Episode?>? AppearsIn { get; set; }
     }
@@ -15,12 +17,14 @@ namespace StrawberryShake.GraphQL
 
 // HumanEntity
 
+#nullable enable
+
 namespace StrawberryShake.GraphQL
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class HumanEntity
     {
-        public global::System.String Name { get; set; }
+        public global::System.String Name { get; set; } = default!;
 
         public global::System.Collections.Generic.IReadOnlyList<Episode?>? AppearsIn { get; set; }
     }
@@ -28,6 +32,8 @@ namespace StrawberryShake.GraphQL
 
 
 // Episode
+
+#nullable enable
 
 namespace StrawberryShake.GraphQL
 {
@@ -42,6 +48,8 @@ namespace StrawberryShake.GraphQL
 
 
 // EpisodeSerializer
+
+#nullable enable
 
 namespace StrawberryShake.GraphQL
 {
@@ -63,7 +71,7 @@ namespace StrawberryShake.GraphQL
             };
         }
 
-        public object Format(object runtimeValue)
+        public object Format(global::System.Object? runtimeValue)
         {
             return runtimeValue switch
             {
@@ -78,6 +86,8 @@ namespace StrawberryShake.GraphQL
 
 
 // GetHeroFactory
+
+#nullable enable
 
 namespace StrawberryShake.GraphQL
 {
@@ -120,24 +130,28 @@ namespace StrawberryShake.GraphQL
             }
 
 
-
             if (entityId?.Name.Equals("Droid", global::System.StringComparison.Ordinal) ?? false)
             {
-                return _getHero_Hero_DroidFromDroidEntityMapper.Map(_entityStore.GetEntity<DroidEntity>(entityId.Value));
-            }
-            else if (entityId?.Name.Equals("Human", global::System.StringComparison.Ordinal) ?? false)
-            {
-                return _getHero_Hero_HumanFromHumanEntityMapper.Map(_entityStore.GetEntity<HumanEntity>(entityId.Value));
-            }
-            else {
-                throw new global::System.NotSupportedException();
+                return _getHero_Hero_DroidFromDroidEntityMapper.Map(
+                    _entityStore.GetEntity<DroidEntity>(entityId.Value)
+                        ?? throw new global::StrawberryShake.GraphQLClientException());
+                }
+
+                if (entityId?.Name.Equals("Human", global::System.StringComparison.Ordinal) ?? false)
+                {
+                    return _getHero_Hero_HumanFromHumanEntityMapper.Map(
+                        _entityStore.GetEntity<HumanEntity>(entityId.Value)
+                            ?? throw new global::StrawberryShake.GraphQLClientException());
+                    }
+                    throw new global::System.NotSupportedException();
+                }
             }
         }
-    }
-}
 
 
 // GetHeroInfo
+
+#nullable enable
 
 namespace StrawberryShake.GraphQL
 {
@@ -170,14 +184,15 @@ namespace StrawberryShake.GraphQL
             return new GetHeroInfo(
                 Hero,
                 _entityIds,
-                _version
-            );
+                _version);
         }
     }
 }
 
 
 // GetHero
+
+#nullable enable
 
 namespace StrawberryShake.GraphQL
 {
@@ -197,6 +212,8 @@ namespace StrawberryShake.GraphQL
 
 // GetHero_Hero_DroidFromDroidEntityMapper
 
+#nullable enable
+
 namespace StrawberryShake.GraphQL
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
@@ -207,14 +224,15 @@ namespace StrawberryShake.GraphQL
         {
             return new GetHero_Hero_Droid(
                 entity.Name,
-                entity.AppearsIn
-            );
+                entity.AppearsIn);
         }
     }
 }
 
 
 // GetHero_Hero_Droid
+
+#nullable enable
 
 namespace StrawberryShake.GraphQL
 {
@@ -239,6 +257,8 @@ namespace StrawberryShake.GraphQL
 
 // GetHero_Hero_HumanFromHumanEntityMapper
 
+#nullable enable
+
 namespace StrawberryShake.GraphQL
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
@@ -249,14 +269,15 @@ namespace StrawberryShake.GraphQL
         {
             return new GetHero_Hero_Human(
                 entity.Name,
-                entity.AppearsIn
-            );
+                entity.AppearsIn);
         }
     }
 }
 
 
 // GetHero_Hero_Human
+
+#nullable enable
 
 namespace StrawberryShake.GraphQL
 {
@@ -281,6 +302,8 @@ namespace StrawberryShake.GraphQL
 
 // IGetHero
 
+#nullable enable
+
 namespace StrawberryShake.GraphQL
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
@@ -292,6 +315,8 @@ namespace StrawberryShake.GraphQL
 
 
 // IGetHero_Hero
+
+#nullable enable
 
 namespace StrawberryShake.GraphQL
 {
@@ -307,6 +332,8 @@ namespace StrawberryShake.GraphQL
 
 // IGetHero_Hero_Droid
 
+#nullable enable
+
 namespace StrawberryShake.GraphQL
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
@@ -319,6 +346,8 @@ namespace StrawberryShake.GraphQL
 
 // IGetHero_Hero_Human
 
+#nullable enable
+
 namespace StrawberryShake.GraphQL
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
@@ -330,6 +359,8 @@ namespace StrawberryShake.GraphQL
 
 
 // GetHeroQueryDocument
+
+#nullable enable
 
 namespace StrawberryShake.GraphQL
 {
@@ -373,6 +404,8 @@ namespace StrawberryShake.GraphQL
 
 // GetHeroQuery
 
+#nullable enable
+
 namespace StrawberryShake.GraphQL
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
@@ -393,8 +426,7 @@ namespace StrawberryShake.GraphQL
             return await _operationExecutor
                 .ExecuteAsync(
                     request,
-                    cancellationToken
-                )
+                    cancellationToken)
                 .ConfigureAwait(false);
         }
 
@@ -409,14 +441,15 @@ namespace StrawberryShake.GraphQL
 
             return new global::StrawberryShake.OperationRequest(
                 "GetHero",
-                GetHeroQueryDocument.Instance
-            );
+                GetHeroQueryDocument.Instance);
         }
     }
 }
 
 
 // GetHeroBuilder
+
+#nullable enable
 
 namespace StrawberryShake.GraphQL
 {
@@ -462,8 +495,7 @@ namespace StrawberryShake.GraphQL
                 data?.Result,
                 data?.Info,
                 _resultDataFactory,
-                null
-            );
+                null);
         }
 
         private (IGetHero, GetHeroInfo) BuildData(global::System.Text.Json.JsonElement obj)
@@ -473,14 +505,12 @@ namespace StrawberryShake.GraphQL
 
             global::StrawberryShake.EntityId? heroId = UpdateIGetHero_HeroEntity(
                 global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj, "hero"),
-                entityIds
-            );
+                entityIds);
 
             var resultInfo = new GetHeroInfo(
                 heroId,
                 entityIds,
-                session.Version
-            );
+                session.Version);
 
             return (_resultDataFactory.Create(resultInfo), resultInfo);
         }
@@ -561,6 +591,8 @@ namespace StrawberryShake.GraphQL
 
 // GraphQL
 
+#nullable enable
+
 namespace StrawberryShake.GraphQL
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
@@ -580,6 +612,8 @@ namespace StrawberryShake.GraphQL
 
 
 // EntityIdFactory
+
+#nullable enable
 
 namespace StrawberryShake.GraphQL
 {
@@ -621,6 +655,8 @@ namespace StrawberryShake.GraphQL
 
 // GraphQLServiceCollectionExtensions
 
+#nullable enable
+
 namespace StrawberryShake.GraphQL
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
@@ -634,126 +670,120 @@ namespace StrawberryShake.GraphQL
 
             ConfigureClient(
                 serviceCollection,
-                strategy
-            );
+                strategy);
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
-                sp => new ClientServiceProvider(sp)
-            );
+                sp => new ClientServiceProvider(sp));
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
                 sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<GetHeroQuery>(
-                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)
-                )
-            );
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
 
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
-                services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<GraphQL>(
-                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)
-                )
-            );
-
-            return services;
-        }
-
-        private static global::Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureClient(
-            global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
-            global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
-        {
-            
-            if (services is null)
-            {
-                throw new global::System.ArgumentNullException(nameof(services));
-            }
-            
-            // register entity id factory
-            
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId>>(services, EntityIdFactory.CreateEntityId);
-            
-            // register stores
-            
-            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<
-                global::StrawberryShake.IEntityStore,
-                global::StrawberryShake.EntityStore>(
-                    services);
-            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<
-                global::StrawberryShake.IOperationStore>(
+                global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                     services,
-                    sp => new global::StrawberryShake.OperationStore(
-                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<
-                            global::StrawberryShake.IEntityStore
-                            >(sp)
-                        .Watch()
-                        ));
-            
-            // register connections
-            
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
-                services,
-                sp =>
+                    sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<GraphQL>(
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+
+                    return services;
+                }
+
+                private static global::Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureClient(
+                    global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
+                    global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
                 {
-                    var clientFactory =
-                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<
-                            global::System.Net.Http.IHttpClientFactory
-                            >(sp);
-            
-                    return new global::StrawberryShake.Transport.Http.HttpConnection(
-                        () => clientFactory.CreateClient("GraphQL"));
-                });
-            
-            // register mappers
-            
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<DroidEntity, GetHero_Hero_Droid>, GetHero_Hero_DroidFromDroidEntityMapper>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<HumanEntity, GetHero_Hero_Human>, GetHero_Hero_HumanFromHumanEntityMapper>(services);
-            
-            // register serializers
-            
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, EpisodeSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.StringSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.BooleanSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ShortSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IntSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LongSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.FloatSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DecimalSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UrlSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UuidSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IdSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateTimeSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializerResolver, global::StrawberryShake.Serialization.SerializerResolver>(services);
-            
-            // register operations
-            
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
-                global::StrawberryShake.IOperationResultDataFactory<IGetHero>,
-                GetHeroFactory>(
-                    services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
-                global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, IGetHero>,
-                GetHeroBuilder>(
-                    services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
-                global::StrawberryShake.IOperationExecutor<IGetHero>>(
-                    services,
-                    sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, IGetHero>(
-                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.Http.HttpConnection>(sp),
-                        () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, IGetHero>>(sp),
-                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
-                        strategy));
-            
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<GetHeroQuery>(services);
-            
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<GraphQL>(services);
-            
-            return services;
-        }
+                    
+                    if (services is null)
+                    {
+                        throw new global::System.ArgumentNullException(nameof(services));
+                    }
+                    
+                    // register entity id factory
+                    
+                    global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId>>(services, EntityIdFactory.CreateEntityId);
+                    
+                    // register stores
+                    
+                    global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<
+                        global::StrawberryShake.IEntityStore,
+                        global::StrawberryShake.EntityStore>(
+                            services);
+                    global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<
+                        global::StrawberryShake.IOperationStore>(
+                            services,
+                            sp => new global::StrawberryShake.OperationStore(
+                                global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<
+                                    global::StrawberryShake.IEntityStore
+                                    >(sp)
+                                .Watch()
+                                ));
+                    
+                    // register connections
+                    
+                    global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
+                        services,
+                        sp =>
+                        {
+                            var clientFactory =
+                                global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<
+                                    global::System.Net.Http.IHttpClientFactory
+                                    >(sp);
+                    
+                            return new global::StrawberryShake.Transport.Http.HttpConnection(
+                                () => clientFactory.CreateClient("GraphQL"));
+                        });
+                    
+                    // register mappers
+                    
+                    global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<DroidEntity, GetHero_Hero_Droid>, GetHero_Hero_DroidFromDroidEntityMapper>(services);
+                    global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<HumanEntity, GetHero_Hero_Human>, GetHero_Hero_HumanFromHumanEntityMapper>(services);
+                    
+                    // register serializers
+                    
+                    global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, EpisodeSerializer>(services);
+                    global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.StringSerializer>(services);
+                    global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.BooleanSerializer>(services);
+                    global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteSerializer>(services);
+                    global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ShortSerializer>(services);
+                    global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IntSerializer>(services);
+                    global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LongSerializer>(services);
+                    global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.FloatSerializer>(services);
+                    global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DecimalSerializer>(services);
+                    global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UrlSerializer>(services);
+                    global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UuidSerializer>(services);
+                    global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IdSerializer>(services);
+                    global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateTimeSerializer>(services);
+                    global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateSerializer>(services);
+                    global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
+                    global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
+                    global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializerResolver, global::StrawberryShake.Serialization.SerializerResolver>(services);
+                    
+                    // register operations
+                    
+                    global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
+                        global::StrawberryShake.IOperationResultDataFactory<IGetHero>,
+                        GetHeroFactory>(
+                            services);
+                    global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
+                        global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, IGetHero>,
+                        GetHeroBuilder>(
+                            services);
+                    global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
+                        global::StrawberryShake.IOperationExecutor<IGetHero>>(
+                            services,
+                            sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, IGetHero>(
+                                global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.Http.HttpConnection>(sp),
+                                () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, IGetHero>>(sp),
+                                global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
+                                strategy));
+                    
+                    global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<GetHeroQuery>(services);
+                    
+                    global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<GraphQL>(services);
+                    
+                    return services;
+                }
 
         private class ClientServiceProvider
             : System.IServiceProvider
@@ -779,7 +809,7 @@ namespace StrawberryShake.GraphQL
                 }
             }
         }
-    }
-}
+            }
+        }
 
 

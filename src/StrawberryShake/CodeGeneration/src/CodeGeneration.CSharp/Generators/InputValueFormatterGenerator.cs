@@ -162,7 +162,19 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         ? CodeLineBuilder.From("return " + methodCall + ";")
                         : CodeLineBuilder.From($"{assignment}.Add({methodCall});");
                 case NonNullTypeDescriptor descriptor:
-                    return GenerateSerializer(descriptor.InnerType(), variableName, assignment);
+                    return CodeBlockBuilder.New()
+                        .AddIf(x =>
+                            x.SetCondition($"{variableName} is null")
+                                .AddCode(
+                                    assignment == "return"
+                                        ? CodeLineBuilder.From("return null;")
+                                        : CodeBlockBuilder.New()
+                                            .AddLine($"{assignment}.Add(null);")
+                                            .AddLine("continue;")))
+                        .AddEmptyLine()
+                        .AddCode(GenerateSerializer(descriptor.InnerType(),
+                            variableName,
+                            assignment));
                 case ListTypeDescriptor descriptor:
                     return CodeBlockBuilder.New()
                         .AddCode(

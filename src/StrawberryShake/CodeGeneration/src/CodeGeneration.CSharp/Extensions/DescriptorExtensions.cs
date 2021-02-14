@@ -71,7 +71,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
             TypeReferenceBuilder? builder = null,
             bool isNonNull = false)
         {
-            var actualBuilder = builder ?? TypeReferenceBuilder.New();
+            TypeReferenceBuilder actualBuilder = builder ?? TypeReferenceBuilder.New();
             switch (typeDescriptor)
             {
                 case ListTypeDescriptor listTypeDescriptor:

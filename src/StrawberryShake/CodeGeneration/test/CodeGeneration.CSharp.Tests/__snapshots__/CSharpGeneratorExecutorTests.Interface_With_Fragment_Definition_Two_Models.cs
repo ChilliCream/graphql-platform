@@ -1,5 +1,15 @@
 ﻿// DroidEntity
 
+// ReSharper disable BuiltInTypeReferenceStyle
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable UnusedType.Global
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable ConvertToAutoProperty
+// ReSharper disable UnusedMember.Global
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable InconsistentNaming
 #nullable enable
 
 namespace Foo
@@ -73,7 +83,7 @@ namespace Foo
 
         private IGetHero_Hero? MapIGetHero_Hero(global::StrawberryShake.EntityId? entityId)
         {
-            if (!entityId.HasValue)
+            if (entityId is null || entityId == default)
             {
                 return null;
             }
@@ -196,7 +206,7 @@ namespace Foo
 
         private IGetHero_Hero_Friends? MapIGetHero_Hero_Friends(IGetHero_Hero_FriendsData data)
         {
-            if (!data.HasValue)
+            if (data is null || data == default)
             {
                 return null;
             }
@@ -215,7 +225,7 @@ namespace Foo
 
         private global::System.Collections.Generic.IReadOnlyList<IGetHero_Hero_Friends_Nodes?>? MapIGetHero_Hero_Friends_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
         {
-            if (!list.HasValue)
+            if (list is null || list == default)
             {
                 return null;
             }
@@ -232,7 +242,7 @@ namespace Foo
 
         private IGetHero_Hero_Friends_Nodes? MapIGetHero_Hero_Friends_Nodes(global::StrawberryShake.EntityId? entityId)
         {
-            if (!entityId.HasValue)
+            if (entityId is null || entityId == default)
             {
                 return null;
             }
@@ -323,7 +333,7 @@ namespace Foo
 
         private IGetHero_Hero_Friends? MapIGetHero_Hero_Friends(IGetHero_Hero_FriendsData data)
         {
-            if (!data.HasValue)
+            if (data is null || data == default)
             {
                 return null;
             }
@@ -342,7 +352,7 @@ namespace Foo
 
         private global::System.Collections.Generic.IReadOnlyList<IGetHero_Hero_Friends_Nodes?>? MapIGetHero_Hero_Friends_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
         {
-            if (!list.HasValue)
+            if (list is null || list == default)
             {
                 return null;
             }
@@ -359,7 +369,7 @@ namespace Foo
 
         private IGetHero_Hero_Friends_Nodes? MapIGetHero_Hero_Friends_Nodes(global::StrawberryShake.EntityId? entityId)
         {
-            if (!entityId.HasValue)
+            if (entityId is null || entityId == default)
             {
                 return null;
             }
@@ -782,7 +792,7 @@ namespace Foo
     public partial class GetHeroQueryDocument
         : global::StrawberryShake.IDocument
     {
-        private const global::System.String _bodyString = 
+        private const global::System.String _bodyString =
             @"query GetHero {
   hero(episode: NEW_HOPE) {
     __typename
@@ -862,7 +872,7 @@ namespace Foo
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetHero>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest();
-            
+
             return await _operationExecutor
                 .ExecuteAsync(
                     request,
@@ -956,7 +966,7 @@ namespace Foo
             global::System.Text.Json.JsonElement? obj,
             global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
-            if (!obj.HasValue)
+            if (obj is null || !obj.HasValue)
             {
                 return null;
             }
@@ -994,7 +1004,7 @@ namespace Foo
 
         private global::System.String DeserializeNonNullableString(global::System.Text.Json.JsonElement? obj)
         {
-            if (!obj.HasValue)
+            if (obj is null || !obj.HasValue)
             {
                 throw new global::System.ArgumentNullException();
             }
@@ -1004,7 +1014,7 @@ namespace Foo
 
         private global::System.String? DeserializeString(global::System.Text.Json.JsonElement? obj)
         {
-            if (!obj.HasValue)
+            if (obj is null || !obj.HasValue)
             {
                 return null;
             }
@@ -1023,7 +1033,7 @@ namespace Foo
 
             var typename = obj.Value.GetProperty("__typename").GetString();
 
-            if (typename?.Equals("CharacterConnection", global::System.StringComparison.Ordinal) ?? false)
+            if (typename.Equals("CharacterConnection", global::System.StringComparison.Ordinal))
             {
                 return new GetHero_Hero_Friends_CharacterConnectionData(
                     typename,
@@ -1039,7 +1049,7 @@ namespace Foo
             global::System.Text.Json.JsonElement? obj,
             global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
-            if (!obj.HasValue)
+            if (obj is null || !obj.HasValue)
             {
                 return null;
             }
@@ -1060,7 +1070,7 @@ namespace Foo
             global::System.Text.Json.JsonElement? obj,
             global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
-            if (!obj.HasValue)
+            if (obj is null || !obj.HasValue)
             {
                 return null;
             }
@@ -1125,7 +1135,7 @@ namespace Foo
         public static global::StrawberryShake.EntityId CreateEntityId(global::System.Text.Json.JsonElement obj)
         {
             global::System.String typeName = obj.GetProperty("__typename").GetString()!;
-            
+
             return typeName switch
             {
                 "Droid" => CreateDroidEntityId(obj, typeName),
@@ -1195,18 +1205,18 @@ namespace Foo
             global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
             global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
-            
+
             if (services is null)
             {
                 throw new global::System.ArgumentNullException(nameof(services));
             }
-            
+
             // register entity id factory
-            
+
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId>>(services, EntityIdFactory.CreateEntityId);
-            
+
             // register stores
-            
+
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<
                 global::StrawberryShake.IEntityStore,
                 global::StrawberryShake.EntityStore>(
@@ -1220,9 +1230,9 @@ namespace Foo
                             >(sp)
                         .Watch()
                         ));
-            
+
             // register connections
-            
+
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
                 sp =>
@@ -1231,20 +1241,20 @@ namespace Foo
                         global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<
                             global::System.Net.Http.IHttpClientFactory
                             >(sp);
-            
+
                     return new global::StrawberryShake.Transport.Http.HttpConnection(
                         () => clientFactory.CreateClient("FooClient"));
                 });
-            
+
             // register mappers
-            
+
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<DroidEntity, GetHero_Hero_Droid>, GetHero_Hero_DroidFromDroidEntityMapper>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<HumanEntity, GetHero_Hero_Human>, GetHero_Hero_HumanFromHumanEntityMapper>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<DroidEntity, GetHero_Hero_Friends_Nodes_Droid>, GetHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<HumanEntity, GetHero_Hero_Friends_Nodes_Human>, GetHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper>(services);
-            
+
             // register serializers
-            
+
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.StringSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.BooleanSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteSerializer>(services);
@@ -1261,9 +1271,9 @@ namespace Foo
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializerResolver, global::StrawberryShake.Serialization.SerializerResolver>(services);
-            
+
             // register operations
-            
+
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
                 global::StrawberryShake.IOperationResultDataFactory<IGetHero>,
                 GetHeroFactory>(
@@ -1280,11 +1290,11 @@ namespace Foo
                         () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, IGetHero>>(sp),
                         global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
                         strategy));
-            
+
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<GetHeroQuery>(services);
-            
+
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<FooClient>(services);
-            
+
             return services;
         }
 

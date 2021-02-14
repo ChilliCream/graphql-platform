@@ -12,7 +12,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDescriptor>
     {
-        private static string[] _serializers = new[]
+        private static readonly string[] _serializers = new[]
         {
             TypeNames.StringSerializer,
             TypeNames.BooleanSerializer,
@@ -31,7 +31,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             TypeNames.TimeSpanSerializer
         };
 
-        private static string[] _websocketProtocols = new[]
+        private static readonly string[] _websocketProtocols = new[]
         {
             TypeNames.GraphQLWebSocketProtocolFactory
         };
@@ -124,12 +124,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         .SetMethodName(TypeNames.GetRequiredService)
                         .SetDetermineStatement(false)
                         .SetWrapArguments()
-                        .AddArgument(CodeLineBuilder.New()
-                            .SetLine(MethodCallBuilder.New()
+                        .AddArgument(MethodCallBuilder.New()
                                 .SetMethodName(TypeNames.GetRequiredService)
                                 .SetDetermineStatement(false)
                                 .AddGeneric("ClientServiceProvider")
-                                .AddArgument("sp")))
+                                .AddArgument("sp"))
                         .AddGeneric(generic)));
         }
 

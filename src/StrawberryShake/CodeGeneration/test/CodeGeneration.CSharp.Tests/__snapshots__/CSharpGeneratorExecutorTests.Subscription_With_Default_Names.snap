@@ -1,5 +1,7 @@
 ﻿// OnReviewSubFactory
 
+#nullable enable
+
 namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
@@ -32,8 +34,7 @@ namespace Foo
             {
                 returnValue = new OnReviewSub_OnReview_Review(
                     data.Stars,
-                    data.Commentary
-                );
+                    data.Commentary);
             }
             else {
                 throw new global::System.NotSupportedException();
@@ -45,6 +46,8 @@ namespace Foo
 
 
 // OnReviewSubInfo
+
+#nullable enable
 
 namespace Foo
 {
@@ -77,14 +80,15 @@ namespace Foo
             return new OnReviewSubInfo(
                 OnReview,
                 _entityIds,
-                _version
-            );
+                _version);
         }
     }
 }
 
 
 // OnReviewSub
+
+#nullable enable
 
 namespace Foo
 {
@@ -104,6 +108,8 @@ namespace Foo
 
 // OnReviewSub_OnReview_Review
 
+#nullable enable
+
 namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
@@ -120,12 +126,14 @@ namespace Foo
 
         public global::System.Int32 Stars { get; }
 
-        public global::System.String? Commentary { get; }
+        public global::System.String? Commentary { get; } = default!;
     }
 }
 
 
 // OnReviewSub_OnReview_ReviewData
+
+#nullable enable
 
 namespace Foo
 {
@@ -155,6 +163,8 @@ namespace Foo
 
 // IOnReviewSub
 
+#nullable enable
+
 namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
@@ -166,6 +176,8 @@ namespace Foo
 
 
 // IOnReviewSub_OnReview
+
+#nullable enable
 
 namespace Foo
 {
@@ -180,6 +192,8 @@ namespace Foo
 
 
 // IOnReviewSub_OnReviewData
+
+#nullable enable
 
 namespace Foo
 {
@@ -197,6 +211,8 @@ namespace Foo
 
 // IOnReviewSub_OnReview_Review
 
+#nullable enable
+
 namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
@@ -208,6 +224,8 @@ namespace Foo
 
 
 // IOnReviewSub_OnReview_ReviewData
+
+#nullable enable
 
 namespace Foo
 {
@@ -221,6 +239,8 @@ namespace Foo
 
 
 // OnReviewSubSubscriptionDocument
+
+#nullable enable
 
 namespace Foo
 {
@@ -258,6 +278,8 @@ namespace Foo
 
 // OnReviewSubSubscription
 
+#nullable enable
+
 namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
@@ -282,14 +304,15 @@ namespace Foo
 
             return new global::StrawberryShake.OperationRequest(
                 "OnReviewSub",
-                OnReviewSubSubscriptionDocument.Instance
-            );
+                OnReviewSubSubscriptionDocument.Instance);
         }
     }
 }
 
 
 // OnReviewSubBuilder
+
+#nullable enable
 
 namespace Foo
 {
@@ -335,8 +358,7 @@ namespace Foo
                 data?.Result,
                 data?.Info,
                 _resultDataFactory,
-                null
-            );
+                null);
         }
 
         private (IOnReviewSub, OnReviewSubInfo) BuildData(global::System.Text.Json.JsonElement obj)
@@ -348,8 +370,7 @@ namespace Foo
             var resultInfo = new OnReviewSubInfo(
                 DeserializeNonNullableIOnReviewSub_OnReview(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj, "onReview")),
                 entityIds,
-                session.Version
-            );
+                session.Version);
 
             return (_resultDataFactory.Create(resultInfo), resultInfo);
         }
@@ -363,13 +384,12 @@ namespace Foo
 
             var typename = obj.Value.GetProperty("__typename").GetString();
 
-            if (typename.Equals("Review", global::System.StringComparison.Ordinal))
+            if (typename?.Equals("Review", global::System.StringComparison.Ordinal) ?? false)
             {
                 return new OnReviewSub_OnReview_ReviewData(
                     typename,
                     DeserializeNonNullableInt32(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "stars")),
-                    DeserializeString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "commentary"))
-                );
+                    DeserializeString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "commentary")));
             }
 
             throw new global::System.NotSupportedException();
@@ -400,6 +420,8 @@ namespace Foo
 
 // FooClient
 
+#nullable enable
+
 namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
@@ -419,6 +441,8 @@ namespace Foo
 
 
 // EntityIdFactory
+
+#nullable enable
 
 namespace Foo
 {
@@ -440,6 +464,8 @@ namespace Foo
 
 // FooClientServiceCollectionExtensions
 
+#nullable enable
+
 namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
@@ -453,27 +479,21 @@ namespace Foo
 
             ConfigureClient(
                 serviceCollection,
-                strategy
-            );
+                strategy);
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
-                sp => new ClientServiceProvider(sp)
-            );
+                sp => new ClientServiceProvider(sp));
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
                 sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<OnReviewSubSubscription>(
-                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)
-                )
-            );
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
                 sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<FooClient>(
-                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)
-                )
-            );
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
 
             return services;
         }

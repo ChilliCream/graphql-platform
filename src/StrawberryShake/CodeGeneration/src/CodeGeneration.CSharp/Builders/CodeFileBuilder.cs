@@ -99,6 +99,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 writer.WriteLine();
             }
 
+            writer.WriteIndentedLine("#nullable enable");
+            writer.WriteLine();
+
             writer.WriteIndentedLine($"namespace {_namespace}");
             writer.WriteIndentedLine("{");
 

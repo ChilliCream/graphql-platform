@@ -43,6 +43,18 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return builder.AddCode(ifBuilder);
         }
 
+        public static CodeBlockBuilder If(
+            this CodeBlockBuilder builder,
+            bool condition,
+            Action<CodeBlockBuilder> configure)
+        {
+            if (condition)
+            {
+                configure(builder);
+            }
+            return builder;
+        }
+
         public static CodeBlockBuilder ArgumentException(
             this CodeBlockBuilder builder,
             string argumentName,

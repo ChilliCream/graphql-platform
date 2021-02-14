@@ -36,6 +36,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetName(prop.Name)
                     .SetType(propTypeBuilder)
                     .SetAccessModifier(AccessModifier.Public);
+
+                if (prop.Type.IsNullableType())
+                {
+                    propBuilder.SetValue("default!");
+                }
+
                 classBuilder.AddProperty(propBuilder);
 
                 // Add initialization of property to the constructor
