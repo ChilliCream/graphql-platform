@@ -29,7 +29,7 @@ namespace StrawberryShake.GraphQL
 
         private ISearchSomething_Search? MapSearchResult(global::StrawberryShake.GraphQL.State.ISearchResultData data)
         {
-            if (!data.HasValue)
+            if (data == default)
             {
                 return null;
             }

@@ -158,7 +158,7 @@ namespace StrawberryShake.GraphQL
 
         private IGetPeople_Me_Friends? MapIGetPeople_Me_Friends(global::StrawberryShake.GraphQL.State.PersonConnectionData data)
         {
-            if (!data.HasValue)
+            if (data == default)
             {
                 return null;
             }
@@ -177,7 +177,7 @@ namespace StrawberryShake.GraphQL
 
         private global::System.Collections.Generic.IReadOnlyList<IGetPeople_Me_Friends_Nodes?>? MapIGetPeople_Me_Friends_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
         {
-            if (!list.HasValue)
+            if (list == default)
             {
                 return null;
             }
@@ -194,7 +194,7 @@ namespace StrawberryShake.GraphQL
 
         private IGetPeople_Me_Friends_Nodes? MapIGetPeople_Me_Friends_Nodes(global::StrawberryShake.EntityId? entityId)
         {
-            if (!entityId.HasValue)
+            if (entityId == default)
             {
                 return null;
             }

@@ -370,7 +370,7 @@ namespace Foo
 
         private global::System.Object? FormatStrNonNullable(global::System.String value)
         {
-            if (value is null)
+            if (value == default)
             {
                 return null;
             }
@@ -385,7 +385,7 @@ namespace Foo
 
         private global::System.Object? FormatNestedList(global::System.Collections.Generic.IReadOnlyList<Bar> value)
         {
-            if (value is null)
+            if (value == default)
             {
                 return null;
             }
@@ -394,7 +394,7 @@ namespace Foo
 
             foreach (var value_elm in value)
             {
-                if (value_elm is null)
+                if (value_elm == default)
                 {
                     value_list.Add(null);
                     continue;
@@ -551,7 +551,7 @@ namespace Foo
 
         private global::System.Object? FormatSingle(Bar value)
         {
-            if (value is null)
+            if (value == default)
             {
                 return null;
             }
@@ -561,7 +561,7 @@ namespace Foo
 
         private global::System.Object? FormatList(global::System.Collections.Generic.IReadOnlyList<Bar> value)
         {
-            if (value is null)
+            if (value == default)
             {
                 return null;
             }
@@ -570,7 +570,7 @@ namespace Foo
 
             foreach (var value_elm in value)
             {
-                if (value_elm is null)
+                if (value_elm == default)
                 {
                     value_list.Add(null);
                     continue;
@@ -591,7 +591,7 @@ namespace Foo
 
                 foreach (var value_elm_elm in value_elm)
                 {
-                    if (value_elm_elm is null)
+                    if (value_elm_elm == default)
                     {
                         value_elm_list.Add(null);
                         continue;
@@ -711,7 +711,7 @@ namespace Foo
 
         private global::System.Object? FormatSingle(Bar value)
         {
-            if (value is null)
+            if (value == default)
             {
                 return null;
             }
@@ -721,7 +721,7 @@ namespace Foo
 
         private global::System.Object? FormatList(global::System.Collections.Generic.IReadOnlyList<Bar> value)
         {
-            if (value is null)
+            if (value == default)
             {
                 return null;
             }
@@ -730,7 +730,7 @@ namespace Foo
 
             foreach (var value_elm in value)
             {
-                if (value_elm is null)
+                if (value_elm == default)
                 {
                     value_list.Add(null);
                     continue;
@@ -751,7 +751,7 @@ namespace Foo
 
                 foreach (var value_elm_elm in value_elm)
                 {
-                    if (value_elm_elm is null)
+                    if (value_elm_elm == default)
                     {
                         value_elm_list.Add(null);
                         continue;
@@ -871,7 +871,7 @@ namespace Foo
 
         private global::System.Object? FormatSingle(Bar value)
         {
-            if (value is null)
+            if (value == default)
             {
                 return null;
             }
@@ -881,7 +881,7 @@ namespace Foo
 
         private global::System.Object? FormatList(global::System.Collections.Generic.IReadOnlyList<Bar> value)
         {
-            if (value is null)
+            if (value == default)
             {
                 return null;
             }
@@ -890,7 +890,7 @@ namespace Foo
 
             foreach (var value_elm in value)
             {
-                if (value_elm is null)
+                if (value_elm == default)
                 {
                     value_list.Add(null);
                     continue;
@@ -911,7 +911,7 @@ namespace Foo
 
                 foreach (var value_elm_elm in value_elm)
                 {
-                    if (value_elm_elm is null)
+                    if (value_elm_elm == default)
                     {
                         value_elm_list.Add(null);
                         continue;

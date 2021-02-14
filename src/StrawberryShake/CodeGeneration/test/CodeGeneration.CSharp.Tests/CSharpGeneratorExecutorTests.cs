@@ -268,7 +268,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             documents.ToString().MatchSnapshot();
 
             IReadOnlyList<Diagnostic> diagnostics =
-                CSharpCompiler.GetDiagnostics(documents.ToString());
+                CSharpCompiler.GetDiagnosticErrors(documents.ToString());
 
             if (diagnostics.Any())
             {

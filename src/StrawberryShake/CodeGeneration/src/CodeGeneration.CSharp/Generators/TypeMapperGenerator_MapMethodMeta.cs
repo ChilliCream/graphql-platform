@@ -135,7 +135,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .New()
                 .SetCondition(
                     ConditionBuilder.New()
-                        .Set($"!{propertyName}.HasValue"));
+                        .Set($"{propertyName} == default"));
             ifBuilder.AddCode(
                 isNonNullType
                     ? $"throw new {TypeNames.ArgumentNullException}();"

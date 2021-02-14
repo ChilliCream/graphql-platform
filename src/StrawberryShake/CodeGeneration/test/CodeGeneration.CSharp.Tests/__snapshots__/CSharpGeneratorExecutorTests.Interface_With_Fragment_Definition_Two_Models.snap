@@ -73,7 +73,7 @@ namespace Foo
 
         private IGetHero_Hero? MapIGetHero_Hero(global::StrawberryShake.EntityId? entityId)
         {
-            if (!entityId.HasValue)
+            if (entityId == default)
             {
                 return null;
             }
@@ -196,7 +196,7 @@ namespace Foo
 
         private IGetHero_Hero_Friends? MapIGetHero_Hero_Friends(global::Foo.State.CharacterConnectionData data)
         {
-            if (!data.HasValue)
+            if (data == default)
             {
                 return null;
             }
@@ -215,7 +215,7 @@ namespace Foo
 
         private global::System.Collections.Generic.IReadOnlyList<IGetHero_Hero_Friends_Nodes?>? MapIGetHero_Hero_Friends_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
         {
-            if (!list.HasValue)
+            if (list == default)
             {
                 return null;
             }
@@ -232,7 +232,7 @@ namespace Foo
 
         private IGetHero_Hero_Friends_Nodes? MapIGetHero_Hero_Friends_Nodes(global::StrawberryShake.EntityId? entityId)
         {
-            if (!entityId.HasValue)
+            if (entityId == default)
             {
                 return null;
             }
@@ -323,7 +323,7 @@ namespace Foo
 
         private IGetHero_Hero_Friends? MapIGetHero_Hero_Friends(global::Foo.State.CharacterConnectionData data)
         {
-            if (!data.HasValue)
+            if (data == default)
             {
                 return null;
             }
@@ -342,7 +342,7 @@ namespace Foo
 
         private global::System.Collections.Generic.IReadOnlyList<IGetHero_Hero_Friends_Nodes?>? MapIGetHero_Hero_Friends_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
         {
-            if (!list.HasValue)
+            if (list == default)
             {
                 return null;
             }
@@ -359,7 +359,7 @@ namespace Foo
 
         private IGetHero_Hero_Friends_Nodes? MapIGetHero_Hero_Friends_Nodes(global::StrawberryShake.EntityId? entityId)
         {
-            if (!entityId.HasValue)
+            if (entityId == default)
             {
                 return null;
             }

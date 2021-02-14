@@ -269,7 +269,7 @@ namespace Foo
 
         private global::System.Object? FormatStars(global::System.Int32 value)
         {
-            if (value is null)
+            if (value == default)
             {
                 return null;
             }
@@ -405,7 +405,7 @@ namespace Foo
 
         private global::System.Object? FormatEpisode(Episode value)
         {
-            if (value is null)
+            if (value == default)
             {
                 return null;
             }
@@ -415,7 +415,7 @@ namespace Foo
 
         private global::System.Object? FormatReview(ReviewInput value)
         {
-            if (value is null)
+            if (value == default)
             {
                 return null;
             }

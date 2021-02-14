@@ -29,7 +29,7 @@ namespace StrawberryShake.GraphQL
 
         private global::System.Collections.Generic.IReadOnlyList<ISearchSomething_Prints?>? MapPrintArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.GraphQL.State.IPrintData?>? list)
         {
-            if (!list.HasValue)
+            if (list == default)
             {
                 return null;
             }
@@ -46,7 +46,7 @@ namespace StrawberryShake.GraphQL
 
         private ISearchSomething_Prints? MapPrint(global::StrawberryShake.GraphQL.State.IPrintData data)
         {
-            if (!data.HasValue)
+            if (data == default)
             {
                 return null;
             }

@@ -29,11 +29,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private static readonly HashSet<string> _excludedCodes = new()
         {
             // warning CS1702: Assuming assembly reference is of different version
-            "CS1702",
-            "CS1701"
+            "CS1702", "CS1701"
         };
 
-        public static IReadOnlyList<Diagnostic> GetDiagnostics(params string[] sourceText)
+        public static IReadOnlyList<Diagnostic> GetDiagnosticErrors(params string[] sourceText)
         {
             if (sourceText == null)
             {
@@ -62,7 +61,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .WithReferences(ResolveReferences());
 
             return compilation.GetDiagnostics()
-                .Where(x => !_excludedCodes.Contains(x.Id))
+                .Where(x =>
+                    x.Severity == DiagnosticSeverity.Error && !_excludedCodes.Contains(x.Id))
                 .ToList();
         }
 

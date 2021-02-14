@@ -146,7 +146,7 @@ namespace StrawberryShake.GraphQL
 
         private global::System.Collections.Generic.IReadOnlyList<IGetStore2_SearchableStore_Books?>? MapIGetStore2_SearchableStore_BooksArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.GraphQL.State.BookData?>? list)
         {
-            if (!list.HasValue)
+            if (list == default)
             {
                 return null;
             }
@@ -163,7 +163,7 @@ namespace StrawberryShake.GraphQL
 
         private IGetStore2_SearchableStore_Books? MapIGetStore2_SearchableStore_Books(global::StrawberryShake.GraphQL.State.BookData data)
         {
-            if (!data.HasValue)
+            if (data == default)
             {
                 return null;
             }
@@ -184,7 +184,7 @@ namespace StrawberryShake.GraphQL
 
         private IGetStore2_SearchableStore_Search? MapSearchResult(global::StrawberryShake.GraphQL.State.ISearchResultData data)
         {
-            if (!data.HasValue)
+            if (data == default)
             {
                 return null;
             }

@@ -124,7 +124,7 @@ namespace StrawberryShake.GraphQL
 
         private IGetHero_Hero? MapIGetHero_Hero(global::StrawberryShake.EntityId? entityId)
         {
-            if (!entityId.HasValue)
+            if (entityId == default)
             {
                 return null;
             }

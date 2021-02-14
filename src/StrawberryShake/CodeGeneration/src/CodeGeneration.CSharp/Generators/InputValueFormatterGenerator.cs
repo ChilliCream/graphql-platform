@@ -1,10 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Text;
 using HotChocolate;
-using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Extensions;
@@ -164,7 +160,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 case NonNullTypeDescriptor descriptor:
                     return CodeBlockBuilder.New()
                         .AddIf(x =>
-                            x.SetCondition($"{variableName} is null")
+                            x.SetCondition($"{variableName} == default")
                                 .AddCode(
                                     assignment == "return"
                                         ? CodeLineBuilder.From("return null;")
