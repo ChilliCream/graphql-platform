@@ -439,3 +439,11 @@ The NonNegativeFloat scalar type represents a double‐precision fractional valu
 """
 scalar NonNegativeFloat
 ```
+
+## NonNegativeInt
+```sdl
+"""
+The NonNegativeIntType scalar type represents a unsigned 32-bit numeric non-fractional value greater than or equal to 0.
+"""
+scalar NonNegativeInt
+```

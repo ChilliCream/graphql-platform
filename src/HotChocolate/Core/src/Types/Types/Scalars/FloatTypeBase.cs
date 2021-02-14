@@ -115,22 +115,6 @@ namespace HotChocolate.Types
                 this);
         }
 
-        /// <inheritdoc />
-        public sealed override bool IsInstanceOfType(object? runtimeValue)
-        {
-            if (runtimeValue is null)
-            {
-                return true;
-            }
-
-            if (runtimeValue is TRuntimeType t)
-            {
-                return IsInstanceOfType(t);
-            }
-
-            return false;
-        }
-
         protected abstract TRuntimeType ParseLiteral(IFloatValueLiteral valueSyntax);
 
         public override IValueNode ParseValue(object? runtimeValue)
