@@ -15,7 +15,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             if (namedTypeDescriptor.IsInterface)
             {
-                methodBuilder.AddCode("var typename = obj.Value.GetProperty(\"__typename\").GetString();");
+                methodBuilder.AddCode(
+                    "var typename = obj.Value.GetProperty(\"__typename\").GetString();");
 
                 // If the type is an interface
                 foreach (NamedTypeDescriptor concreteType in namedTypeDescriptor.ImplementedBy)

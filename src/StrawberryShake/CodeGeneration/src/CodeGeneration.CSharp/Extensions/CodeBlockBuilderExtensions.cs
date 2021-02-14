@@ -7,7 +7,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     internal static class CodeBlockBuilderExtensions
     {
-        public static CodeBlockBuilder AddLine(this CodeBlockBuilder builder, string code)
+        public static CodeBlockBuilder AddLine(
+            this CodeBlockBuilder builder,
+            string code)
         {
             return builder.AddCode(CodeLineBuilder.From(code));
         }

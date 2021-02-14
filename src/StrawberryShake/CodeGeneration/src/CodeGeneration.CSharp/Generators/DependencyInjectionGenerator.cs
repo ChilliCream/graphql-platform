@@ -1,8 +1,6 @@
-using System;
 using System.Linq;
 using System.Text;
 using HotChocolate;
-using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Extensions;
@@ -12,7 +10,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDescriptor>
     {
-        private static readonly string[] _serializers = new[]
+        private static readonly string[] _serializers =
         {
             TypeNames.StringSerializer,
             TypeNames.BooleanSerializer,
@@ -31,7 +29,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             TypeNames.TimeSpanSerializer
         };
 
-        private static readonly string[] _websocketProtocols = new[]
+        private static readonly string[] _websocketProtocols =
         {
             TypeNames.GraphQLWebSocketProtocolFactory
         };
@@ -113,9 +111,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .AddEmptyLine()
                 .AddLine("return services;");
 
-        private static ICode ForwardSingletonToClientServiceProvider(string generic)
-        {
-            return MethodCallBuilder.New()
+        private static ICode ForwardSingletonToClientServiceProvider(string generic) =>
+            MethodCallBuilder.New()
                 .SetMethodName(TypeNames.AddSingleton)
                 .AddArgument("services")
                 .AddArgument(LambdaBuilder.New()
@@ -130,7 +127,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                 .AddGeneric("ClientServiceProvider")
                                 .AddArgument("sp"))
                         .AddGeneric(generic)));
-        }
 
         private ICode GenerateInternalMethodBody(DependencyInjectionDescriptor descriptor)
         {
@@ -147,6 +143,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             stringBuilder.AppendLine(_staticCode);
 
             codeWriter.WriteComment("register connections");
+
             if (hasSubscriptions)
             {
                 stringBuilder.AppendLine(RegisterWebSocketConnection(descriptor.Name));
@@ -269,6 +266,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             writer.WriteLine(TypeNames.AddProtocol.WithGeneric(protocol) + "(services);");
         }
 
+        // TODO : Lets clean this up.
         private static string RegisterOperation(
             string connectionKind,
             string clientName,

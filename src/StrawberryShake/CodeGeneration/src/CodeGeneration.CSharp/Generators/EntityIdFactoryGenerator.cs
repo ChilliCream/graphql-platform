@@ -1,6 +1,5 @@
 using System.Linq;
 using System.Text;
-using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 
 namespace StrawberryShake.CodeGeneration.CSharp

@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
 using HotChocolate.Language;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
-    public class TypeReferenceBuilder: ICodeBuilder
+    public class TypeReferenceBuilder : ICodeBuilder
     {
         private readonly List<TypeKindToken> _buildOrder = new();
         private string? _name;

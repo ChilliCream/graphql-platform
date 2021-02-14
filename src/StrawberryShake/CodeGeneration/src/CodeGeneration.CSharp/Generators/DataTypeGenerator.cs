@@ -63,7 +63,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 typeBuilder = classBuilder;
             }
 
-
             // Add Properties to class
             foreach (PropertyDescriptor item in descriptor.Properties)
             {
@@ -102,7 +101,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         typeBuilder.AddProperty(item.Name)
                             .SetType(item.Type.ToBuilder().SetName(TypeNames.EntityId))
                             .SetAccessModifier(AccessModifier.Public);
-                        ;
                         break;
 
                     default:

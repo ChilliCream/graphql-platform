@@ -81,7 +81,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         TypeKind.LeafType => typeDescriptor.Name.WithCapitalFirstChar(),
                         TypeKind.DataType => typeDescriptor.Name,
                         TypeKind.ComplexDataType => namedTypeDescriptor.ImplementedBy.Count > 1
-                            ? namedTypeDescriptor.ComplexDataTypeParent
+                            ? namedTypeDescriptor.ComplexDataTypeParent!
                             : typeDescriptor.Name,
                         TypeKind.EntityType => typeDescriptor.Name,
                         _ => throw new ArgumentOutOfRangeException()

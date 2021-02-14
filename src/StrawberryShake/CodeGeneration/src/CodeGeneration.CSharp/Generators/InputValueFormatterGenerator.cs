@@ -175,7 +175,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     return CodeBlockBuilder.New()
                         .AddCode(
                             CodeLineBuilder.From(
-                                $"var {variableName}_list = new {TypeNames.List.WithGeneric(TypeNames.Object.MakeNullable())}();"))
+                                $"var {variableName}_list = new " +
+                                $"{TypeNames.List.WithGeneric(TypeNames.Object.MakeNullable())}" + 
+                                "();"))
                         .AddEmptyLine()
                         .AddCode(
                             ForEachBuilder.New()

@@ -1,8 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Extensions;
+using static StrawberryShake.CodeGeneration.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -19,9 +19,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
             method.AddParameter(
                 ParameterBuilder.New()
                     .SetType(
-                        $"global::{namedTypeDescriptor.Namespace}.State.I"
-                        + NamingConventions.DataTypeNameFromTypeName(
-                            namedTypeDescriptor.ComplexDataTypeParent))
+                        $"global::{namedTypeDescriptor.Namespace}.State.I" + 
+                        DataTypeNameFromTypeName(namedTypeDescriptor.ComplexDataTypeParent!))
                     .SetName(DataParamName));
 
             if (!isNonNullable)
@@ -61,7 +60,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
                 ifCorrectType.SetCondition(
                     $"{DataParamName} is {interfaceImplementee.Namespace}.State." +
-                    $"{NamingConventions.DataTypeNameFromTypeName(interfaceImplementee.GraphQLTypeName)} " +
+                    $"{DataTypeNameFromTypeName(interfaceImplementee.GraphQLTypeName)} " +
                     $"{matchedTypeName}");
 
 

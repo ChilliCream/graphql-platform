@@ -79,17 +79,4 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return new(fileName, code.ToString());
         }
     }
-
-    public class CSharpDocument
-    {
-        public CSharpDocument(string name, string source)
-        {
-            Name = name;
-            SourceText = source;
-        }
-
-        public string Name { get; }
-
-        public string SourceText { get; }
-    }
 }

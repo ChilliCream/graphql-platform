@@ -55,7 +55,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
                     {
                         actualBuilder.SetName(nameOverride ?? namedTypeDescriptor.Name);
                     }
-
                     break;
                 case NonNullTypeDescriptor nonNullTypeDescriptor:
                     ToBuilder(
@@ -98,9 +97,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
                         actualBuilder.SetName(
                             namedTypeDescriptor.Kind == TypeKind.ComplexDataType
                                 ? $"global::{namedTypeDescriptor.Namespace}.State.I" +
-                                  DataTypeNameFromTypeName(
-                                      namedTypeDescriptor.ComplexDataTypeParent)
-                                : $"global::{namedTypeDescriptor.Namespace}.State.{DataTypeNameFromTypeName(namedTypeDescriptor.GraphQLTypeName)}");
+                                    DataTypeNameFromTypeName(
+                                        namedTypeDescriptor.ComplexDataTypeParent!)
+                                : $"global::{namedTypeDescriptor.Namespace}.State." + 
+                                    DataTypeNameFromTypeName(
+                                        namedTypeDescriptor.GraphQLTypeName!));
                     }
                     else if (namedTypeDescriptor.IsEntityType())
                     {
@@ -110,7 +111,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
                     {
                         actualBuilder.SetName(typeDescriptor.Name);
                     }
-
                     break;
                 case NonNullTypeDescriptor nonNullTypeDescriptor:
                     ToEntityIdBuilder(

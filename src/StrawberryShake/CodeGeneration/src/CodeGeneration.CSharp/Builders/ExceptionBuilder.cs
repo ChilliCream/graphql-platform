@@ -1,11 +1,11 @@
-using System;
-using System.Collections.Generic;
-
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public class ExceptionBuilder : ICode
     {
-        private readonly MethodCallBuilder _method = new MethodCallBuilder().SetPrefix("throw new ");
+        private readonly MethodCallBuilder _method = 
+            MethodCallBuilder
+                .New()
+                .SetPrefix("throw new ");
 
         public ExceptionBuilder SetException(string exception)
         {

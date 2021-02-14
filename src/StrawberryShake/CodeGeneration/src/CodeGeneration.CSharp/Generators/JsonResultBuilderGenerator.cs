@@ -276,8 +276,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetCondition(
                         ConditionBuilder.New()
                             .Set("response.Body is not null")
-                            .And(
-                                "response.Body.RootElement.TryGetProperty(\"data\"," +
+                            .And("response.Body.RootElement.TryGetProperty(\"data\"," +
                                 $" out {TypeNames.JsonElement} obj)"))
                     .AddCode("data = BuildData(obj);"));
 
@@ -378,7 +377,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         TypeKind.LeafType => typeDescriptor.Name.WithCapitalFirstChar(),
                         TypeKind.DataType => typeDescriptor.Name,
                         TypeKind.ComplexDataType => namedTypeDescriptor.ImplementedBy.Count > 1
-                            ? namedTypeDescriptor.ComplexDataTypeParent
+                            ? namedTypeDescriptor.ComplexDataTypeParent!
                             : typeDescriptor.Name,
                         TypeKind.EntityType => EntityTypeNameFromGraphQLTypeName(
                             typeDescriptor.Name),
