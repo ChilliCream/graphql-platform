@@ -59,6 +59,7 @@ namespace HotChocolate.Types.Scalars
         private static readonly Func<string, bool> _validPostalCode = input =>
             _validationPatterns.Select(pattern => Regex.Match(
                 input, pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase)).Any(match => match.Success);
+
         public PostalCodeType()
             : this(
                 WellKnownScalarTypes.PostalCode,
