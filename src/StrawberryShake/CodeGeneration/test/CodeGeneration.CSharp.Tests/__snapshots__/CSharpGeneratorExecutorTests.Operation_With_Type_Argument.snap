@@ -80,15 +80,15 @@ namespace Foo
             throw new global::System.ArgumentException("CreateReviewMutInfo expected.");
         }
 
-        private ICreateReviewMut_CreateReview MapNonNullableICreateReviewMut_CreateReview(ICreateReviewMut_CreateReviewData data)
+        private ICreateReviewMut_CreateReview MapNonNullableICreateReviewMut_CreateReview(global::Foo.State.ReviewData data)
         {
             ICreateReviewMut_CreateReview returnValue = default!;
 
             if (data.__typename.Equals("Review", global::System.StringComparison.Ordinal))
             {
                 returnValue = new CreateReviewMut_CreateReview_Review(
-                    data.Stars,
-                    data.Commentary);
+                    data.Stars ?? throw new global::System.ArgumentNullException(),
+                    data.Commentary ?? throw new global::System.ArgumentNullException());
             }
             else {
                 throw new global::System.NotSupportedException();
@@ -113,7 +113,7 @@ namespace Foo
         private readonly ulong _version;
 
         public CreateReviewMutInfo(
-            ICreateReviewMut_CreateReviewData createReview,
+            global::Foo.State.ReviewData createReview,
             global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds,
             ulong version)
         {
@@ -123,7 +123,7 @@ namespace Foo
             _version = version;
         }
 
-        public ICreateReviewMut_CreateReviewData CreateReview { get; }
+        public global::Foo.State.ReviewData CreateReview { get; }
 
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
 
@@ -185,36 +185,6 @@ namespace Foo
 }
 
 
-// CreateReviewMut_CreateReview_ReviewData
-
-#nullable enable
-
-namespace Foo
-{
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class CreateReviewMut_CreateReview_ReviewData
-        : ICreateReviewMut_CreateReview_ReviewData
-    {
-        public CreateReviewMut_CreateReview_ReviewData(
-            global::System.String typename,
-            global::System.Int32 stars,
-            global::System.String? commentary)
-        {
-            __typename = typename
-                 ?? throw new global::System.ArgumentNullException(nameof(typename));
-            Stars = stars;
-            Commentary = commentary;
-        }
-
-        public global::System.String __typename { get; }
-
-        public global::System.Int32 Stars { get; }
-
-        public global::System.String? Commentary { get; }
-    }
-}
-
-
 // ICreateReviewMut
 
 #nullable enable
@@ -245,24 +215,6 @@ namespace Foo
 }
 
 
-// ICreateReviewMut_CreateReviewData
-
-#nullable enable
-
-namespace Foo
-{
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ICreateReviewMut_CreateReviewData
-    {
-        public global::System.String __typename { get; }
-
-        public global::System.Int32 Stars { get; }
-
-        public global::System.String? Commentary { get; }
-    }
-}
-
-
 // ICreateReviewMut_CreateReview_Review
 
 #nullable enable
@@ -273,21 +225,6 @@ namespace Foo
     public interface ICreateReviewMut_CreateReview_Review
         : ICreateReviewMut_CreateReview
     {
-    }
-}
-
-
-// ICreateReviewMut_CreateReview_ReviewData
-
-#nullable enable
-
-namespace Foo
-{
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ICreateReviewMut_CreateReview_ReviewData
-        : ICreateReviewMut_CreateReviewData
-    {
-        public global::System.String __typename { get; }
     }
 }
 
@@ -557,7 +494,7 @@ namespace Foo
             return (_resultDataFactory.Create(resultInfo), resultInfo);
         }
 
-        private ICreateReviewMut_CreateReviewData DeserializeNonNullableICreateReviewMut_CreateReview(global::System.Text.Json.JsonElement? obj)
+        private global::Foo.State.ReviewData DeserializeNonNullableICreateReviewMut_CreateReview(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {
@@ -568,10 +505,10 @@ namespace Foo
 
             if (typename?.Equals("Review", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new CreateReviewMut_CreateReview_ReviewData(
+                return new global::Foo.State.ReviewData(
                     typename,
-                    DeserializeNonNullableInt32(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "stars")),
-                    DeserializeString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "commentary")));
+                    stars: DeserializeNonNullableInt32(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "stars")),
+                    commentary: DeserializeString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "commentary")));
             }
 
             throw new global::System.NotSupportedException();
@@ -596,6 +533,35 @@ namespace Foo
 
             return _stringParser.Parse(obj.Value.GetString()!);
         }
+    }
+}
+
+
+// ReviewData
+
+#nullable enable
+
+namespace Foo.State
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class ReviewData
+    {
+        public ReviewData(
+            global::System.String typename,
+            global::System.Int32? stars = null,
+            global::System.String? commentary = null)
+        {
+            __typename = typename
+                 ?? throw new global::System.ArgumentNullException(nameof(typename));
+            Stars = stars;
+            Commentary = commentary;
+        }
+
+        public global::System.String __typename { get; }
+
+        public global::System.Int32? Stars { get; }
+
+        public global::System.String? Commentary { get; }
     }
 }
 

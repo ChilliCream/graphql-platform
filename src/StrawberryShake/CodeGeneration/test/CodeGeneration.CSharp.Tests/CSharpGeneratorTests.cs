@@ -103,6 +103,64 @@ namespace StrawberryShake.CodeGeneration.CSharp
             AssertResult(result);
         }
 
+
+        [Fact]
+        public void Generate_BookClient_DataOnly_UnionDataTypes()
+        {
+            // arrange
+            string[] fileNames =
+            {
+                Path.Combine("__resources__", "BookUnionQuery.graphql"),
+                Path.Combine("__resources__", "Schema.extensions.graphql"),
+                Path.Combine("__resources__", "BookSchema.graphql")
+            };
+
+            // act
+            var generator = new CSharpGenerator();
+            var result = generator.Generate(fileNames);
+
+            // assert
+            AssertResult(result);
+        }
+
+        [Fact]
+        public void Generate_BookClient_DataOnly_InterfaceDataTypes()
+        {
+            // arrange
+            string[] fileNames =
+            {
+                Path.Combine("__resources__", "BookInterfaceQuery.graphql"),
+                Path.Combine("__resources__", "Schema.extensions.graphql"),
+                Path.Combine("__resources__", "BookSchema.graphql")
+            };
+
+            // act
+            var generator = new CSharpGenerator();
+            var result = generator.Generate(fileNames);
+
+            // assert
+            AssertResult(result);
+        }
+
+        [Fact]
+        public void Generate_BookClient_DataInEntity_UnionDataTypes()
+        {
+            // arrange
+            string[] fileNames =
+            {
+                Path.Combine("__resources__", "BookUnionQueryWithEntity.graphql"),
+                Path.Combine("__resources__", "Schema.extensions.graphql"),
+                Path.Combine("__resources__", "BookSchema.graphql")
+            };
+
+            // act
+            var generator = new CSharpGenerator();
+            var result = generator.Generate(fileNames);
+
+            // assert
+            AssertResult(result);
+        }
+
         [Fact]
         public void Generate_ChatClient_InvalidNullCheck()
         {

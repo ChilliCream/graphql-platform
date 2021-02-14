@@ -11,7 +11,7 @@ namespace Foo
 
         public global::System.String? PrimaryFunction { get; set; }
 
-        public IGetHero_Hero_FriendsData? Friends { get; set; }
+        public global::Foo.State.CharacterConnectionData? Friends { get; set; }
     }
 }
 
@@ -29,7 +29,7 @@ namespace Foo
 
         public global::System.String? HomePlanet { get; set; }
 
-        public IGetHero_Hero_FriendsData? Friends { get; set; }
+        public global::Foo.State.CharacterConnectionData? Friends { get; set; }
     }
 }
 
@@ -194,7 +194,7 @@ namespace Foo
                 MapIGetHero_Hero_Friends(entity.Friends));
         }
 
-        private IGetHero_Hero_Friends? MapIGetHero_Hero_Friends(IGetHero_Hero_FriendsData data)
+        private IGetHero_Hero_Friends? MapIGetHero_Hero_Friends(global::Foo.State.CharacterConnectionData data)
         {
             if (!data.HasValue)
             {
@@ -321,7 +321,7 @@ namespace Foo
                 MapIGetHero_Hero_Friends(entity.Friends));
         }
 
-        private IGetHero_Hero_Friends? MapIGetHero_Hero_Friends(IGetHero_Hero_FriendsData data)
+        private IGetHero_Hero_Friends? MapIGetHero_Hero_Friends(global::Foo.State.CharacterConnectionData data)
         {
             if (!data.HasValue)
             {
@@ -429,32 +429,6 @@ namespace Foo
         }
 
         public global::System.Collections.Generic.IReadOnlyList<IGetHero_Hero_Friends_Nodes?>? Nodes { get; } = default!;
-    }
-}
-
-
-// GetHero_Hero_Friends_CharacterConnectionData
-
-#nullable enable
-
-namespace Foo
-{
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetHero_Hero_Friends_CharacterConnectionData
-        : IGetHero_Hero_Friends_CharacterConnectionData
-    {
-        public GetHero_Hero_Friends_CharacterConnectionData(
-            global::System.String typename,
-            global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? nodes)
-        {
-            __typename = typename
-                 ?? throw new global::System.ArgumentNullException(nameof(typename));
-            Nodes = nodes;
-        }
-
-        public global::System.String __typename { get; }
-
-        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Nodes { get; }
     }
 }
 
@@ -685,22 +659,6 @@ namespace Foo
 }
 
 
-// IGetHero_Hero_FriendsData
-
-#nullable enable
-
-namespace Foo
-{
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetHero_Hero_FriendsData
-    {
-        public global::System.String __typename { get; }
-
-        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Nodes { get; }
-    }
-}
-
-
 // IGetHero_Hero_Friends_CharacterConnection
 
 #nullable enable
@@ -711,21 +669,6 @@ namespace Foo
     public interface IGetHero_Hero_Friends_CharacterConnection
         : IGetHero_Hero_Friends
     {
-    }
-}
-
-
-// IGetHero_Hero_Friends_CharacterConnectionData
-
-#nullable enable
-
-namespace Foo
-{
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetHero_Hero_Friends_CharacterConnectionData
-        : IGetHero_Hero_FriendsData
-    {
-        public global::System.String __typename { get; }
     }
 }
 
@@ -1012,7 +955,7 @@ namespace Foo
             return _stringParser.Parse(obj.Value.GetString()!);
         }
 
-        private IGetHero_Hero_FriendsData? DeserializeIGetHero_Hero_Friends(
+        private global::Foo.State.CharacterConnectionData? DeserializeIGetHero_Hero_Friends(
             global::System.Text.Json.JsonElement? obj,
             global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
@@ -1025,9 +968,9 @@ namespace Foo
 
             if (typename?.Equals("CharacterConnection", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new GetHero_Hero_Friends_CharacterConnectionData(
+                return new global::Foo.State.CharacterConnectionData(
                     typename,
-                    UpdateIGetHero_Hero_Friends_NodesEntityArray(
+                    nodes: UpdateIGetHero_Hero_Friends_NodesEntityArray(
                         global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "nodes"),
                         entityIds));
             }
@@ -1087,6 +1030,31 @@ namespace Foo
 
             throw new global::System.NotSupportedException();
         }
+    }
+}
+
+
+// CharacterConnectionData
+
+#nullable enable
+
+namespace Foo.State
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class CharacterConnectionData
+    {
+        public CharacterConnectionData(
+            global::System.String typename,
+            global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? nodes = null)
+        {
+            __typename = typename
+                 ?? throw new global::System.ArgumentNullException(nameof(typename));
+            Nodes = nodes;
+        }
+
+        public global::System.String __typename { get; }
+
+        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Nodes { get; }
     }
 }
 

@@ -8,6 +8,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
         string ClientName { get; }
 
         string Namespace { get; }
+        string StateNamespace { get; }
 
         IReadOnlyCollection<NamedTypeDescriptor> Types { get; }
 
@@ -22,6 +23,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
         void Register(NameString codeTypeName, NamedTypeDescriptor typeDescriptor);
 
         void Register(NameString codeTypeName, EntityTypeDescriptor entityTypeDescriptor);
+        void Register(NameString codeTypeName, DataTypeDescriptor entityTypeDescriptor);
 
         void Register(NameString codeTypeName, EnumDescriptor enumTypeDescriptor);
 

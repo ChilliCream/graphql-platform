@@ -11,6 +11,16 @@ namespace StrawberryShake.CodeGeneration.Extensions
         public static string WithLowerFirstChar(this NameString nameString) =>
             char.ToLower(nameString.Value[0]) + nameString.Value.Substring(1);
 
+        public static string WithLowerFirstChar(this NameString? nameString)
+        {
+            if (nameString is null)
+            {
+                throw new ArgumentNullException(nameof(nameString));
+            }
+
+            return WithLowerFirstChar(nameString.Value);
+        }
+
         public static string WithLowerFirstChar(this string nameString) =>
             char.ToLower(nameString[0]) + nameString.Substring(1);
 
@@ -24,7 +34,7 @@ namespace StrawberryShake.CodeGeneration.Extensions
                 throw new ArgumentNullException(nameof(nameString));
             }
 
-            return WithCapitalFirstChar(nameString);
+            return WithCapitalFirstChar(nameString.Value);
         }
     }
 }

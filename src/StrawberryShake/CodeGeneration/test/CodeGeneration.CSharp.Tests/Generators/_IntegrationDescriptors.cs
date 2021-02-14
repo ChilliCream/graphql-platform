@@ -53,7 +53,8 @@ namespace StrawberryShake.Integration
                                     new NonNullTypeDescriptor(CreateCharacterDescriptor())))),
                         TestHelper.GetNamedNonNullIntTypeReference("TotalCount")
                     },
-                    kind: TypeKind.DataType));
+                    kind: TypeKind.DataType,
+                    graphQLTypeName: "FriendsConnection"));
 
         private static PropertyDescriptor CreateFriendsMemberDescriptor() => new(
             "Friends",

@@ -20,7 +20,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             method.AddParameter(
                 ParameterBuilder.New()
-                    .SetType(NamingConventions.DataTypeNameFromTypeName(namedTypeDescriptor.Name))
+                    .SetType(
+                        $"global::{namedTypeDescriptor.Namespace}.State."
+                        + NamingConventions.DataTypeNameFromTypeName(namedTypeDescriptor.GraphQLTypeName))
                     .SetName(DataParamName));
 
             if (!isNonNullable)
@@ -83,11 +85,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         constructorCall.AddArgument(
                             BuildMapMethodCall(
                                 DataParamName,
-                                prop));
+                                prop,
+                                true));
                     }
                     else
                     {
-                        constructorCall.AddArgument(propAccess);
+                        constructorCall.AddArgument(
+                            $"{propAccess} ?? throw new {TypeNames.ArgumentNullException}()");
                     }
                 }
 
