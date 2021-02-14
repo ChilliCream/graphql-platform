@@ -154,10 +154,10 @@ namespace HotChocolate.Types.Scalars
         [InlineData(typeof(IntValueNode), 12345)]
         [InlineData(typeof(BooleanValueNode), true)]
         [InlineData(typeof(StringValueNode), "")]
-        [InlineData(typeof(StringValueNode), "ZZZ")]
-        [InlineData(typeof(StringValueNode), "ZZZ ZZ")]
-        [InlineData(typeof(StringValueNode), "ZZZ 12")]
-        [InlineData(typeof(StringValueNode), "ZZZ 123")]
+        [InlineData(typeof(StringValueNode), "XYZ")]
+        [InlineData(typeof(StringValueNode), "XYZ ZZ")]
+        [InlineData(typeof(StringValueNode), "XYZ 12")]
+        [InlineData(typeof(StringValueNode), "XYZ 123")]
         public void ParseLiteral_GivenValueNode_ThrowSerializationException(Type type, object value)
         {
             // arrange
@@ -212,10 +212,10 @@ namespace HotChocolate.Types.Scalars
         [InlineData(1)]
         [InlineData(true)]
         [InlineData("")]
-        [InlineData("ZZZ")]
-        [InlineData("ZZZ ZZ")]
-        [InlineData("ZZZ 12")]
-        [InlineData("ZZZ 123")]
+        [InlineData("XYZ")]
+        [InlineData("XYZ ZZ")]
+        [InlineData("XYZ 12")]
+        [InlineData("XYZ 123")]
         public void Deserialize_GivenValue_ThrowSerializationException(object value)
         {
             // arrange
@@ -267,10 +267,10 @@ namespace HotChocolate.Types.Scalars
         [InlineData(1d)]
         [InlineData(1)]
         [InlineData(true)]
-        [InlineData("ZZZ")]
-        [InlineData("ZZZ ZZ")]
-        [InlineData("ZZZ 12")]
-        [InlineData("ZZZ 123")]
+        [InlineData("XYZ")]
+        [InlineData("XYZ ZZ")]
+        [InlineData("XYZ 12")]
+        [InlineData("XYZ 123")]
         public void Serialize_GivenObject_ThrowSerializationException(object value)
         {
             // arrange
