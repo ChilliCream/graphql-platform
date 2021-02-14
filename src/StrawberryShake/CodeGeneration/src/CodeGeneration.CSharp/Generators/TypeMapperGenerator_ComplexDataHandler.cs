@@ -24,7 +24,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
                             namedTypeDescriptor.ComplexDataTypeParent))
                     .SetName(DataParamName));
 
-
             if (!isNonNullable)
             {
                 method.AddCode(
@@ -91,7 +90,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
 
             method.AddCode($"return {variableName};");
-
 
             AddRequiredMapMethods(
                 DataParamName,
