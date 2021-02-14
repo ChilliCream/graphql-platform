@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
@@ -6,8 +7,9 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Configuration
 {
     public class TypeInterceptor
-        : ITypeInitializationInterceptor
+        : ITypeInterceptor
         , ITypeInitializationFlowInterceptor
+        , ITypeRegistryInterceptor
     {
         public virtual bool TriggerAggregations => false;
 
@@ -30,6 +32,11 @@ namespace HotChocolate.Configuration
             ITypeDiscoveryContext discoveryContext,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData)
+        {
+        }
+
+        public virtual void OnTypeRegistered(
+            ITypeDiscoveryContext discoveryContext)
         {
         }
 
@@ -112,6 +119,14 @@ namespace HotChocolate.Configuration
         public virtual void OnTypesCompleted(
             IReadOnlyCollection<ITypeCompletionContext> completionContexts)
         {
+        }
+
+        public virtual bool TryCreateScope(
+            ITypeDiscoveryContext discoveryContext,
+            [NotNullWhen(true)] out IReadOnlyList<TypeDependency>? typeDependencies)
+        {
+            typeDependencies = null;
+            return false;
         }
     }
 }
