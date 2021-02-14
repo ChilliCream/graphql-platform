@@ -31,6 +31,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                                             enumType.Name,
                                             enumType.Namespace,
                                             false,
+                                            graphQLTypeName: enumType.Name,
                                             isEnum: true)));
                             }
 

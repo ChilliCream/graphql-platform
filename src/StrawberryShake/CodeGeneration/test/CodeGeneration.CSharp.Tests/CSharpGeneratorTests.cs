@@ -1,6 +1,8 @@
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -43,7 +45,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             var result = generator.Generate(fileNames);
 
             // assert
-            AssertResult(result);
+            AssertResult(result, false);
         }
 
         [Fact]
@@ -62,7 +64,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             var result = generator.Generate(fileNames);
 
             // assert
-            AssertResult(result);
+            AssertResult(result, false);
         }
 
         [Fact]
@@ -181,7 +183,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
         }
 
         private static void AssertResult(
-            CSharpGeneratorResult result)
+            CSharpGeneratorResult result,
+            bool evaluateDiagnostics = true)
         {
             var content = new StringBuilder();
 
@@ -207,6 +210,24 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
 
             content.ToString().MatchSnapshot();
+
+            if (!evaluateDiagnostics)
+            {
+                return;
+            }
+
+            IReadOnlyList<Diagnostic> diagnostics =
+                CSharpCompiler.GetDiagnosticErrors(content.ToString());
+
+            if (diagnostics.Any())
+            {
+                Assert.True(false,
+                    "Diagnostic Errors: \n" +
+                    diagnostics
+                        .Select(x =>
+                            $"{x.GetMessage()} (Line: {x.Location.GetLineSpan().StartLinePosition.Line})")
+                        .Aggregate((acc, val) => acc + "\n" + val));
+            }
         }
     }
 }

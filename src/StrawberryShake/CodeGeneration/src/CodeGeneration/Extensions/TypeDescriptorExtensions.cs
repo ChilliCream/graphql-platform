@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using HotChocolate;
 
 namespace StrawberryShake.CodeGeneration.Extensions
 {
@@ -66,6 +67,16 @@ namespace StrawberryShake.CodeGeneration.Extensions
                 .InnerType()
                 .InnerType()
                 .InnerType();
+        }
+
+        public static NameString? GetGraphQlTypeName(this ITypeDescriptor typeDescriptor)
+        {
+            if (typeDescriptor.NamedType() is NamedTypeDescriptor namedType)
+            {
+                return namedType.GraphQLTypeName;
+            }
+
+            return default;
         }
     }
 }

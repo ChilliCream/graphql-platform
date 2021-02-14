@@ -23,8 +23,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     methodBuilder.AddEmptyLine();
                     var ifStatement = IfBuilder.New()
                         .SetCondition(
-                            $"typename.Equals(\"{concreteType.GraphQLTypeName}\", " +
-                            $"{TypeNames.OrdinalStringComparisson})");
+                            $"typename?.Equals(\"{concreteType.GraphQLTypeName}\", " +
+                            $"{TypeNames.OrdinalStringComparisson}) ?? false");
 
                     var dataTypeName = $"global::{concreteType.Namespace}.State."
                     + DataTypeNameFromTypeName(concreteType.GraphQLTypeName);

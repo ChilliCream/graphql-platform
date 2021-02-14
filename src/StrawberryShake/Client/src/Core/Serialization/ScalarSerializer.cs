@@ -4,7 +4,7 @@ namespace StrawberryShake.Serialization
 {
     public abstract class ScalarSerializer<T> : ScalarSerializer<T, T>
     {
-        public ScalarSerializer(string typeName) : base(typeName)
+        protected ScalarSerializer(string typeName) : base(typeName)
         {
         }
 
@@ -39,7 +39,7 @@ namespace StrawberryShake.Serialization
             }
 
             throw ThrowHelper.InputFormatter_InvalidType(
-                typeof(TRuntime).FullName ?? typeof(TRuntime).Name, 
+                typeof(TRuntime).FullName ?? typeof(TRuntime).Name,
                 TypeName);
         }
 

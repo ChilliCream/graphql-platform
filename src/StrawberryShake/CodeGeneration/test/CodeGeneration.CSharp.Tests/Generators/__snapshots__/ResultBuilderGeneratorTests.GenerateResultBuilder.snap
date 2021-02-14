@@ -1,4 +1,6 @@
-﻿namespace StarWarsClient
+﻿#nullable enable
+
+namespace StarWarsClient
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroBuilder
@@ -42,8 +44,7 @@
                 data?.Result,
                 data?.Info,
                 _resultDataFactory,
-                null
-            );
+                null);
         }
 
         private (IGetHeroResult, GetHeroResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
@@ -53,15 +54,13 @@
 
             global::StrawberryShake.EntityId heroId = UpdateNonNullableIHeroEntity(
                 global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj, "hero"),
-                entityIds
-            );
+                entityIds);
 
             var resultInfo = new GetHeroResultInfo(
                 heroId,
                 DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj, "version")),
                 entityIds,
-                session.Version
-            );
+                session.Version);
 
             return (_resultDataFactory.Create(resultInfo), resultInfo);
         }
@@ -85,8 +84,7 @@
                 entity.Name = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "name"));
                 entity.Friends = DeserializeNonNullableFriendsConnection(
                     global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "friends"),
-                    entityIds
-                );
+                    entityIds);
 
                 return entityId;
             }
@@ -97,8 +95,7 @@
                 entity.Name = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "name"));
                 entity.Friends = DeserializeNonNullableFriendsConnection(
                     global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "friends"),
-                    entityIds
-                );
+                    entityIds);
 
                 return entityId;
             }
@@ -128,10 +125,8 @@
             return new FriendsConnection(
                 UpdateNonNullableICharacterEntityNonNullableArray(
                     global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "nodes"),
-                    entityIds
-                ),
-                DeserializeNonNullableInt(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "totalCount"))
-            );
+                    entityIds),
+                DeserializeNonNullableInt(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "totalCount")));
         }
 
         private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId> UpdateNonNullableICharacterEntityNonNullableArray(
@@ -149,8 +144,7 @@
             {
                 iCharacters.Add(UpdateNonNullableICharacterEntity(
                     child,
-                    entityIds
-                ));
+                    entityIds));
             }
 
             return iCharacters;

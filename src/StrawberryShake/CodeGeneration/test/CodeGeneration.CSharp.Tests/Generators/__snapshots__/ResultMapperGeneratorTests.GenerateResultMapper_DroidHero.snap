@@ -1,4 +1,6 @@
-﻿namespace StarWarsClient
+﻿#nullable enable
+
+namespace StarWarsClient
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class DroidHeroFromDroidEntityMapper
@@ -25,8 +27,7 @@
         {
             return new DroidHero(
                 entity.Name,
-                MapNonNullableFriendsConnection(entity.Friends)
-            );
+                MapNonNullableFriendsConnection(entity.Friends));
         }
 
         private FriendsConnection MapNonNullableFriendsConnection(global::StarWarsClient.State.FriendsConnectionData data)
@@ -51,18 +52,20 @@
         private ICharacter MapNonNullableICharacter(global::StrawberryShake.EntityId entityId)
         {
 
-
             if (entityId.Name.Equals("Droid", global::System.StringComparison.Ordinal))
             {
-                return _droidFromDroidEntityMapper.Map(_entityStore.GetEntity<DroidEntity>(entityId));
+                return _droidFromDroidEntityMapper.Map(
+                    _entityStore.GetEntity<DroidEntity>(entityId)
+                        ?? throw new global::StrawberryShake.GraphQLClientException());
             }
-            else if (entityId.Name.Equals("Human", global::System.StringComparison.Ordinal))
+
+            if (entityId.Name.Equals("Human", global::System.StringComparison.Ordinal))
             {
-                return _humanFromHumanEntityMapper.Map(_entityStore.GetEntity<HumanEntity>(entityId));
+                return _humanFromHumanEntityMapper.Map(
+                    _entityStore.GetEntity<HumanEntity>(entityId)
+                        ?? throw new global::StrawberryShake.GraphQLClientException());
             }
-            else {
-                throw new global::System.NotSupportedException();
-            }
+            throw new global::System.NotSupportedException();
         }
     }
 }

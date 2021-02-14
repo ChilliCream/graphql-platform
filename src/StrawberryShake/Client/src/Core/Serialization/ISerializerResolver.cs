@@ -18,6 +18,11 @@ namespace StrawberryShake.Serialization
         ILeafValueParser<TSerialized, TRuntime> GetLeafValueParser<TSerialized, TRuntime>(
             string typeName);
 
+        /// <summary>
+        /// Gets a <see cref="IInputValueFormatter"/> from the registry
+        /// </summary>
+        /// <param name="typeName">The type name of the input value formatter</param>
+        /// <returns>The input value formatter for <paramref name="typeName"/></returns>
         IInputValueFormatter GetInputValueFormatter(string typeName);
     }
 }
