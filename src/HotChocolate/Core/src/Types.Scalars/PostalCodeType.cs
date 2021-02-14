@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
@@ -55,11 +56,9 @@ namespace HotChocolate.Types.Scalars
         /// and here:
         /// https://stackoverflow.com/questions/578406/what-is-the-ultimate-postal-code-and-zip-regex
         /// </summary>
-        private static bool ValidPostalCode(string input)
-        {
-            return _validationPatterns.Select(pattern => Regex.Match(
+        private static readonly Func<string, bool> _validPostalCode = input =>
+            _validationPatterns.Select(pattern => Regex.Match(
                 input, pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase)).Any(match => match.Success);
-        }
         public PostalCodeType()
             : this(
                 WellKnownScalarTypes.PostalCode,
@@ -82,19 +81,19 @@ namespace HotChocolate.Types.Scalars
         /// <inheritdoc />
         protected override bool IsInstanceOfType(string runtimeValue)
         {
-            return ValidPostalCode(runtimeValue);
+            return _validPostalCode(runtimeValue);
         }
 
         /// <inheritdoc />
         protected override bool IsInstanceOfType(StringValueNode valueSyntax)
         {
-            return ValidPostalCode(valueSyntax.Value);
+            return _validPostalCode(valueSyntax.Value);
         }
 
         /// <inheritdoc />
         protected override string ParseLiteral(StringValueNode valueSyntax)
         {
-            if(!ValidPostalCode(valueSyntax.Value))
+            if(!_validPostalCode(valueSyntax.Value))
             {
                 throw ThrowHelper.PostalCodeType_ParseLiteral_IsInvalid(this);
             }
@@ -105,7 +104,7 @@ namespace HotChocolate.Types.Scalars
         /// <inheritdoc />
         protected override StringValueNode ParseValue(string runtimeValue)
         {
-            if(!ValidPostalCode(runtimeValue))
+            if(!_validPostalCode(runtimeValue))
             {
                 throw ThrowHelper.PostalCodeType_ParseValue_IsInvalid(this);
             }
@@ -123,7 +122,7 @@ namespace HotChocolate.Types.Scalars
             }
 
             if(runtimeValue is string s &&
-               ValidPostalCode(s))
+               _validPostalCode(s))
             {
                 resultValue = s;
                 return true;
@@ -143,7 +142,7 @@ namespace HotChocolate.Types.Scalars
             }
 
             if(resultValue is string s &&
-               ValidPostalCode(s))
+               _validPostalCode(s))
             {
                 runtimeValue = s;
                 return true;
