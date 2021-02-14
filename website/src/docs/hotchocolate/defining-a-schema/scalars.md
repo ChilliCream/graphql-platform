@@ -450,3 +450,11 @@ The NonNegativeFloat scalar type represents a double‐precision fractional valu
 """
 scalar NonNegativeFloat
 ```
+
+## PostalCode
+```sdl
+"""
+The PostalCode scalar type represents a valid postal code.
+"""
+scalar PostalCode
+```
