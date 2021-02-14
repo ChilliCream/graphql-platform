@@ -1,10 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Text;
 using HotChocolate;
-using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Extensions;
@@ -162,12 +158,26 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         ? CodeLineBuilder.From("return " + methodCall + ";")
                         : CodeLineBuilder.From($"{assignment}.Add({methodCall});");
                 case NonNullTypeDescriptor descriptor:
-                    return GenerateSerializer(descriptor.InnerType(), variableName, assignment);
+                    return CodeBlockBuilder.New()
+                        .AddIf(x =>
+                            x.SetCondition($"{variableName} == default")
+                                .AddCode(
+                                    assignment == "return"
+                                        ? CodeLineBuilder.From("return null;")
+                                        : CodeBlockBuilder.New()
+                                            .AddLine($"{assignment}.Add(null);")
+                                            .AddLine("continue;")))
+                        .AddEmptyLine()
+                        .AddCode(GenerateSerializer(descriptor.InnerType(),
+                            variableName,
+                            assignment));
                 case ListTypeDescriptor descriptor:
                     return CodeBlockBuilder.New()
                         .AddCode(
                             CodeLineBuilder.From(
-                                $"var {variableName}_list = new {TypeNames.List.WithGeneric(TypeNames.Object.MakeNullable())}();"))
+                                $"var {variableName}_list = new " +
+                                $"{TypeNames.List.WithGeneric(TypeNames.Object.MakeNullable())}" + 
+                                "();"))
                         .AddEmptyLine()
                         .AddCode(
                             ForEachBuilder.New()

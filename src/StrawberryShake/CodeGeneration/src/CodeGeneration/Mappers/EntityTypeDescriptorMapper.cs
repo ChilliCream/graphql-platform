@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate;
@@ -31,7 +32,6 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     foreach (var outputType in operation.OutputTypes.Where(t => !t.IsInterface))
                     {
                         INamedType namedType = outputType.Type.NamedType();
-
                         if (outputType.Type.NamedType().IsEntity())
                         {
                             if (!entityTypes.TryGetValue(

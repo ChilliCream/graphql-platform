@@ -22,7 +22,7 @@ namespace StrawberryShake.CodeGeneration
         public const string IConnection = StrawberryshakeNamespace + "IConnection";
         public const string IEntityMapper = StrawberryshakeNamespace + "IEntityMapper";
         public const string IDocument = StrawberryshakeNamespace + "IDocument";
-        public const string IGraphQLClientException = StrawberryshakeNamespace + "GraphQLClientException";
+        public const string GraphQLClientException = StrawberryshakeNamespace + "GraphQLClientException";
 
         public const string OperationKind = StrawberryshakeNamespace + "OperationKind";
         public const string EntityId = StrawberryshakeNamespace + "EntityId";

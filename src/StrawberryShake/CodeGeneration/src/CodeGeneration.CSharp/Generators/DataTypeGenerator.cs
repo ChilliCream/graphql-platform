@@ -7,20 +7,15 @@ using static StrawberryShake.CodeGeneration.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public class DataTypeGenerator : ClassBaseGenerator<NamedTypeDescriptor>
+    public class DataTypeGenerator : ClassBaseGenerator<DataTypeDescriptor>
     {
-        protected override bool CanHandle(NamedTypeDescriptor descriptor)
-        {
-            return descriptor.IsDataType();
-        }
-
         protected override void Generate(
             CodeWriter writer,
-            NamedTypeDescriptor descriptor,
+            DataTypeDescriptor descriptor,
             out string fileName)
         {
             // Setup class
-            fileName = DataTypeNameFromTypeName(descriptor.Name);
+            fileName = descriptor.Name;
             AbstractTypeBuilder typeBuilder;
             ConstructorBuilder? constructorBuilder = null;
 
@@ -68,7 +63,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 typeBuilder = classBuilder;
             }
 
-
             // Add Properties to class
             foreach (PropertyDescriptor item in descriptor.Properties)
             {
@@ -85,7 +79,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         ParameterBuilder
                             .New()
                             .SetType(paramType)
-                            .SetName(itemParamName))
+                            .SetName(itemParamName)
+                            .SetDefault("null"))
                     .AddCode(assignment);
 
                 switch (item.Type.Kind)
@@ -106,7 +101,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         typeBuilder.AddProperty(item.Name)
                             .SetType(item.Type.ToBuilder().SetName(TypeNames.EntityId))
                             .SetAccessModifier(AccessModifier.Public);
-                        ;
                         break;
 
                     default:

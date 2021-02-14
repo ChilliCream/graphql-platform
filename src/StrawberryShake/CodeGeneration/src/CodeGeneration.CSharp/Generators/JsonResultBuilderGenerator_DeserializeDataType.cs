@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
+using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
@@ -14,7 +15,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             if (namedTypeDescriptor.IsInterface)
             {
-                methodBuilder.AddCode("var typename = obj.Value.GetProperty(\"__typename\").GetString();");
+                methodBuilder.AddCode(
+                    "var typename = obj.Value.GetProperty(\"__typename\").GetString();");
 
                 // If the type is an interface
                 foreach (NamedTypeDescriptor concreteType in namedTypeDescriptor.ImplementedBy)
@@ -22,19 +24,23 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     methodBuilder.AddEmptyLine();
                     var ifStatement = IfBuilder.New()
                         .SetCondition(
-                            $"typename.Equals(\"{concreteType.GraphQLTypeName}\", " +
-                            $"{TypeNames.OrdinalStringComparisson})");
+                            $"typename?.Equals(\"{concreteType.GraphQLTypeName}\", " +
+                            $"{TypeNames.OrdinalStringComparisson}) ?? false");
 
-                    var dataTypeName = DataTypeNameFromTypeName(concreteType.Name);
+                    var dataTypeName = $"global::{concreteType.Namespace}.State."
+                    + DataTypeNameFromTypeName(concreteType.GraphQLTypeName);
 
                     var returnStatement = MethodCallBuilder.New()
                         .SetPrefix("return new ")
                         .SetMethodName(dataTypeName);
 
                     returnStatement.AddArgument("typename");
-                    foreach (PropertyDescriptor property in namedTypeDescriptor.Properties)
+                    foreach (PropertyDescriptor property in concreteType.Properties)
                     {
-                        returnStatement.AddArgument(BuildUpdateMethodCall(property));
+                        returnStatement.AddArgument(
+                            CodeBlockBuilder.New()
+                                .AddCode($"{property.Name.WithLowerFirstChar()}: ")
+                                .AddCode(BuildUpdateMethodCall(property)));
                     }
 
                     ifStatement.AddCode(returnStatement);

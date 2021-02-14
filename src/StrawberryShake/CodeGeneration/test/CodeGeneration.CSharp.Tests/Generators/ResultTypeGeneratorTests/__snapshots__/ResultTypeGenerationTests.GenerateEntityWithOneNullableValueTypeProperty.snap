@@ -1,4 +1,6 @@
-﻿namespace FooBarNamespace
+﻿#nullable enable
+
+namespace FooBarNamespace
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class Foo
@@ -8,6 +10,6 @@
             SomeText = someText;
         }
 
-        public System.string? SomeText { get; }
+        public System.string? SomeText { get; } = default!;
     }
 }

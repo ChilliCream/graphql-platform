@@ -11,9 +11,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
         public static NameString ExtractMapperName(this NamedTypeDescriptor descriptor)
         {
             return descriptor.Kind == TypeKind.EntityType
-                ? EntityMapperNameFromGraphQLTypeName(descriptor.Name, descriptor.GraphQLTypeName!)
-                : DataMapperNameFromGraphQLTypeName(descriptor.Name, descriptor.GraphQLTypeName!);
+                ? EntityMapperNameFromGraphQLTypeName(
+                    descriptor.Name,
+                    descriptor.GraphQLTypeName!)
+                : DataMapperNameFromGraphQLTypeName(
+                    descriptor.Name,
+                    descriptor.GraphQLTypeName!);
         }
+
         public static NameString ExtractTypeName(this NamedTypeDescriptor descriptor)
         {
             return descriptor.IsEntityType()
@@ -50,7 +55,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
                     {
                         actualBuilder.SetName(nameOverride ?? namedTypeDescriptor.Name);
                     }
-
                     break;
                 case NonNullTypeDescriptor nonNullTypeDescriptor:
                     ToBuilder(
@@ -71,7 +75,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
             TypeReferenceBuilder? builder = null,
             bool isNonNull = false)
         {
-            var actualBuilder = builder ?? TypeReferenceBuilder.New();
+            TypeReferenceBuilder actualBuilder = builder ?? TypeReferenceBuilder.New();
             switch (typeDescriptor)
             {
                 case ListTypeDescriptor listTypeDescriptor:
@@ -87,10 +91,19 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
                     {
                         actualBuilder.SetName(
                             $"{namedTypeDescriptor.Namespace}.{namedTypeDescriptor.Name}");
-                    } else if (namedTypeDescriptor.IsDataType())
+                    }
+                    else if (namedTypeDescriptor.IsDataType())
                     {
-                        actualBuilder.SetName(DataTypeNameFromTypeName(typeDescriptor.Name));
-                    } else if (namedTypeDescriptor.IsEntityType())
+                        actualBuilder.SetName(
+                            namedTypeDescriptor.Kind == TypeKind.ComplexDataType
+                                ? $"global::{namedTypeDescriptor.Namespace}.State.I" +
+                                    DataTypeNameFromTypeName(
+                                        namedTypeDescriptor.ComplexDataTypeParent!)
+                                : $"global::{namedTypeDescriptor.Namespace}.State." + 
+                                    DataTypeNameFromTypeName(
+                                        namedTypeDescriptor.GraphQLTypeName!));
+                    }
+                    else if (namedTypeDescriptor.IsEntityType())
                     {
                         actualBuilder.SetName(TypeNames.EntityId);
                     }
@@ -98,7 +111,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
                     {
                         actualBuilder.SetName(typeDescriptor.Name);
                     }
-
                     break;
                 case NonNullTypeDescriptor nonNullTypeDescriptor:
                     ToEntityIdBuilder(

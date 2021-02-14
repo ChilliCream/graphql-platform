@@ -1,10 +1,12 @@
-﻿namespace StarWarsClient
+﻿#nullable enable
+
+namespace StarWarsClient
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class HumanEntity
     {
-        public global::System..string Name { get; set; }
+        public global::System..string Name { get; set; } = default!;
 
-        public FriendsConnectionData Friends { get; set; }
+        public global::StarWarsClient.State.FriendsConnectionData Friends { get; set; } = default!;
     }
 }

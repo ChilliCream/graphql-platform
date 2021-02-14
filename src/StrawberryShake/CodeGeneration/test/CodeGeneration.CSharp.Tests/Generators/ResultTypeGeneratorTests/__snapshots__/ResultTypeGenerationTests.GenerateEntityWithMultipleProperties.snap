@@ -1,4 +1,6 @@
-﻿namespace FooBarNamespace
+﻿#nullable enable
+
+namespace FooBarNamespace
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class Foo
@@ -17,6 +19,6 @@
 
         public global::System.Collections.Generic.IReadOnlyList<Bar> Bars { get; }
 
-        public Baz? Baz { get; }
+        public Baz? Baz { get; } = default!;
     }
 }
