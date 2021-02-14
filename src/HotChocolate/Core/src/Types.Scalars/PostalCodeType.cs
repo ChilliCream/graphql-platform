@@ -4,6 +4,9 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types.Scalars
 {
+    /// <summary>
+    /// The PostalCode scalar type represents a valid postal code.
+    /// </summary>
     public class PostalCodeType : StringType
     {
         /// <summary>
