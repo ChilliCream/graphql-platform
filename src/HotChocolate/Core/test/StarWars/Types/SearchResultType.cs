@@ -9,7 +9,7 @@ namespace HotChocolate.StarWars.Types
         protected override void Configure(IUnionTypeDescriptor descriptor)
         {
             descriptor.Name("SearchResult");
-            descriptor.Type<ObjectType<Starship>>();
+            descriptor.Type<StarshipType>();
             descriptor.Type<HumanType>();
             descriptor.Type<DroidType>();
         }

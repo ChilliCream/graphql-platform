@@ -33,7 +33,7 @@ namespace HotChocolate.Configuration
         private readonly TypeRegistry _typeRegistry;
         private readonly TypeLookup _typeLookup;
         private readonly TypeReferenceResolver _typeReferenceResolver;
-        private ITypeInitializationFlowInterceptor? _flowInterceptor;
+        private readonly ITypeInitializationFlowInterceptor? _flowInterceptor;
 
         public TypeInitializer(
             IDescriptorContext descriptorContext,

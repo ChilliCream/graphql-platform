@@ -102,7 +102,7 @@ We are planning around four to six weeks for version 9 with the first previews c
 
 We will really start hammering out the details on version 9 in the next three weeks.
 
-If you have ideas or suggestions pleas head over to our [slack channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q) and join the discussion.
+If you have ideas or suggestions pleas head over to our slack channel and join the discussion.
 
 [hot chocolate]: https://hotchocolate.io
 [hot chocolate source code]: https://github.com/ChilliCream/hotchocolate

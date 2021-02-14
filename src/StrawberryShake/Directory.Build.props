@@ -1,9 +1,9 @@
 <Project>
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Nullable.props', '$(MSBuildThisFileDirectory)..\'))" />
 
   <PropertyGroup>
-    <LangVersion>8.0</LangVersion>
-    <Version Condition="$(Version) == ''">0.0.0</Version>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -20,15 +20,8 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <RepositoryUrl>https://github.com/ChilliCream/hotchocolate.git</RepositoryUrl>
-    <RepositoryType>GitHub</RepositoryType>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <TestTargetFrameworks>net5.0; netcoreapp3.1</TestTargetFrameworks>
+    <LibraryTargetFrameworks>net5.0; netcoreapp3.1; netstandard2.1; netstandard2.0</LibraryTargetFrameworks>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All"/>
-  </ItemGroup>
 </Project>

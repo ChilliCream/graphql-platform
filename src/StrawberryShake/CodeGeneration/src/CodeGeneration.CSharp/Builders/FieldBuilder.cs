@@ -1,5 +1,5 @@
 using System;
-using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
@@ -9,10 +9,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private bool _isConst;
         private bool _isStatic;
         private bool _isReadOnly;
-        private string? _type;
+        private TypeReferenceBuilder? _type;
         private string? _name;
         private string? _value;
         private bool _useDefaultInitializer;
+        private bool _beginValueWithNewline;
 
         public static FieldBuilder New() => new FieldBuilder();
 
@@ -26,8 +27,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         {
             if (condition)
             {
-                _type = value;
+                _type = TypeReferenceBuilder.New().SetName(value);
             }
+
+            return this;
+        }
+
+        public FieldBuilder SetType(TypeReferenceBuilder typeReference)
+        {
+            _type = typeReference;
             return this;
         }
 
@@ -59,9 +67,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public FieldBuilder SetValue(string? value)
+        public FieldBuilder SetValue(string? value, bool beginValueWithNewline = false)
         {
             _value = value;
+            _beginValueWithNewline = beginValueWithNewline;
             _useDefaultInitializer = false;
             return this;
         }
@@ -73,46 +82,61 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public async Task BuildAsync(CodeWriter writer)
+        public void Build(CodeWriter writer)
         {
             if (writer is null)
             {
                 throw new ArgumentNullException(nameof(writer));
             }
 
+            if (_type is null)
+            {
+                throw new ArgumentNullException(nameof(_type));
+            }
+
             string modifier = _accessModifier.ToString().ToLowerInvariant();
 
-            await writer.WriteIndentAsync().ConfigureAwait(false);
-            await writer.WriteAsync($"{modifier} ")
-                .ConfigureAwait(false);
+            writer.WriteIndent();
+            writer.Write($"{modifier} ");
 
             if (_isConst)
             {
-                await writer.WriteAsync("const ").ConfigureAwait(false);
+                writer.Write("const ");
             }
 
             if (_isStatic)
             {
-                await writer.WriteAsync("static ").ConfigureAwait(false);
+                writer.Write("static ");
             }
 
             if (_isReadOnly)
             {
-                await writer.WriteAsync("readonly ").ConfigureAwait(false);
+                writer.Write("readonly ");
             }
 
-            await writer.WriteAsync($"{_type} {_name}").ConfigureAwait(false);
+            _type.Build(writer);
+            writer.Write(_name);
 
             if (_value is { })
             {
-                await writer.WriteAsync($" = {_value}").ConfigureAwait(false);
+                writer.Write(" = ");
+                if (_beginValueWithNewline)
+                {
+                    writer.WriteLine();
+                    using (writer.IncreaseIndent())
+                    {
+                        writer.WriteIndent();
+                    }
+                }
+
+                writer.Write($"{_value}");
             }
             else if (_useDefaultInitializer)
             {
-                await writer.WriteAsync($" = new {_type}()").ConfigureAwait(false);
+                writer.Write($" = new {_type}()");
             }
 
-            await writer.WriteLineAsync(";").ConfigureAwait(false);
+            writer.WriteLine(";");
         }
     }
 }

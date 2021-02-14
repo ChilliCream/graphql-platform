@@ -1,0 +1,20 @@
+﻿{
+  "data": {
+    "users": {
+      "items": [
+        {
+          "parents": {
+            "items": [
+              {
+                "firstName": "Mother"
+              },
+              {
+                "firstName": "Father"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

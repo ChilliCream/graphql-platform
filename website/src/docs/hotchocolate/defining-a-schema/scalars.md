@@ -2,15 +2,15 @@
 title: "Scalars"
 ---
 
-A GraphQL schema should be built as expressive as possible. 
-Just from looking at the schema, a developer should know how to use the API. 
+A GraphQL schema should be built as expressive as possible.
+Just from looking at the schema, a developer should know how to use the API.
 In GraphQL you are not limited to only describing the structure of a type, you can even describe value types.
 Scalar types represent types that can hold data of a specific kind.
 Scalars are leaf types, meaning you cannot use e.g. `{ fieldname }` to further drill down into the type.
 
-A scalar must only know how to serialize and deserialize the value of the field. 
-GraphQL gives you the freedom to define custom scalar types. 
-This makes them the perfect tool for expressive value types. 
+A scalar must only know how to serialize and deserialize the value of the field.
+GraphQL gives you the freedom to define custom scalar types.
+This makes them the perfect tool for expressive value types.
 You could create a scalar for `CreditCardNumber` or `NonEmptyString`.
 
 The GraphQL specification defines the following scalars
@@ -159,8 +159,8 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
-
 # Custom Scalars
+
 All scalars in HotChocolate are defined though a `ScalarType`
 The easiest way to create a custom scalar is to extend `ScalarType<TRuntimeType, TLiteral>`.
 This base class already includes basic serialization and parsing logic.
@@ -222,7 +222,7 @@ public sealed class CreditCardNumberType
 }
 ```
 
-By extending `ScalarType` you have full control over serialization and parsing. 
+By extending `ScalarType` you have full control over serialization and parsing.
 
 ```csharp
     public sealed class CreditCardNumberType
