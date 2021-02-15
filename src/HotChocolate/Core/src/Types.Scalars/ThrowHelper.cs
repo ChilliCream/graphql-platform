@@ -6,7 +6,7 @@ namespace HotChocolate.Types.Scalars
         {
             return new SerializationException(
                 ErrorBuilder.New()
-                    .SetMessage(ScalarResources.EmailAddressType_IsInvalid_ParseLiteral)
+                    .SetMessage(ScalarResources.EmailAddress_IsInvalid_ParseLiteral)
                     .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
                     .SetExtension("actualType", WellKnownScalarTypes.EmailAddress)
                     .Build(),
@@ -17,7 +17,7 @@ namespace HotChocolate.Types.Scalars
         {
             return new SerializationException(
                 ErrorBuilder.New()
-                    .SetMessage(ScalarResources.EmailAddressType_IsInvalid_ParseValue)
+                    .SetMessage(ScalarResources.EmailAddress_IsInvalid_ParseValue)
                     .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
                     .SetExtension("actualType", WellKnownScalarTypes.EmailAddress)
                     .Build(),
