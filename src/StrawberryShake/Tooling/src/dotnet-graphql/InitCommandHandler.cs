@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
@@ -40,7 +41,7 @@ namespace StrawberryShake.Tools
                     .ConfigureAwait(false);
 
             var context = new InitCommandContext(
-                arguments.Schema.Value()?.Trim() ?? "schema",
+                arguments.Name.Value()?.Trim() ?? Path.GetFileName(Environment.CurrentDirectory),
                 FileSystem.ResolvePath(arguments.Path.Value()?.Trim()),
                 new Uri(arguments.Uri.Value!),
                 accessToken?.Token,
@@ -132,7 +133,12 @@ namespace StrawberryShake.Tools
                 configFilePath,
                 JsonSerializer.Serialize(
                     configuration,
-                    new() { WriteIndented = true, IgnoreNullValues = true}))
+                    new()
+                    {
+                        WriteIndented = true,
+                        IgnoreNullValues = true,
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                    }))
                 .ConfigureAwait(false);
         }
     }

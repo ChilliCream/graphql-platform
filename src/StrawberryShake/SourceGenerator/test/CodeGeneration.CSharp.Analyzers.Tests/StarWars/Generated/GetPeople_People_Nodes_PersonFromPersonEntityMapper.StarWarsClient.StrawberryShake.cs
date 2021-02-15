@@ -1,4 +1,6 @@
-﻿namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
+﻿#nullable enable
+
+namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeople_People_Nodes_PersonFromPersonEntityMapper
@@ -10,8 +12,7 @@
                 entity.Name,
                 entity.Email,
                 entity.IsOnline,
-                entity.LastSeen
-            );
+                entity.LastSeen);
         }
     }
 }

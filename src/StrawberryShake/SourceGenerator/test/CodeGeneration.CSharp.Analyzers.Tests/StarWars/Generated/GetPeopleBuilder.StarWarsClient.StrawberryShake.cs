@@ -1,4 +1,6 @@
-﻿namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
+﻿#nullable enable
+
+namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleBuilder
@@ -45,8 +47,7 @@
                 data?.Result,
                 data?.Info,
                 _resultDataFactory,
-                null
-            );
+                null);
         }
 
         private (IGetPeople, GetPeopleInfo) BuildData(global::System.Text.Json.JsonElement obj)
@@ -58,16 +59,14 @@
             var resultInfo = new GetPeopleInfo(
                 DeserializeIGetPeople_People(
                     global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj, "people"),
-                    entityIds
-                ),
+                    entityIds),
                 entityIds,
-                session.Version
-            );
+                session.Version);
 
             return (_resultDataFactory.Create(resultInfo), resultInfo);
         }
 
-        private IGetPeople_PeopleData? DeserializeIGetPeople_People(
+        private global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.PersonConnectionData? DeserializeIGetPeople_People(
             global::System.Text.Json.JsonElement? obj,
             global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
@@ -78,15 +77,13 @@
 
             var typename = obj.Value.GetProperty("__typename").GetString();
 
-            if (typename.Equals("PersonConnection", global::System.StringComparison.Ordinal))
+            if (typename?.Equals("PersonConnection", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new GetPeople_People_PersonConnectionData(
+                return new global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.PersonConnectionData(
                     typename,
-                    UpdateIGetPeople_People_NodesEntityArray(
+                    nodes: UpdateIGetPeople_People_NodesEntityArray(
                         global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "nodes"),
-                        entityIds
-                    )
-                );
+                        entityIds));
             }
 
             throw new global::System.NotSupportedException();
@@ -107,8 +104,7 @@
             {
                 iGetPeople_People_Nodess.Add(UpdateIGetPeople_People_NodesEntity(
                     child,
-                    entityIds
-                ));
+                    entityIds));
             }
 
             return iGetPeople_People_Nodess;
