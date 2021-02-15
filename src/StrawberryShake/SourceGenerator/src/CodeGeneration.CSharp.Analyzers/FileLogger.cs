@@ -2,11 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Text.Json;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 {
     public class FileLogger : ILogger
     {
+        private readonly JsonSerializerOptions _settings = new() { WriteIndented = true };
         private readonly StringBuilder _log = new();
         private readonly string _logFile;
         private ClientGeneratorContext? _context;
@@ -30,6 +32,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             _allStart = DateTime.UtcNow;
             _context = context;
             _log.AppendLine($"Begin {context.Settings.Name}.");
+            _log.AppendLine(JsonSerializer.Serialize(config, _settings));
         }
 
         public void ClientDocuments(IReadOnlyList<string> documents)
