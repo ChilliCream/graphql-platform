@@ -56,10 +56,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 return;
             }
 
+            using ILogger log = CreateLogger(context);
+
+            log.SetLocation(_location);
+
             var allDocuments = GetGraphQLFiles(context);
             var allConfigurations = GetGraphQLConfigs(context);
-
-            using ILogger log = CreateLogger(context);
 
             foreach (var config in GetGraphQLConfigs(context))
             {

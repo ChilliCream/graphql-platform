@@ -5,6 +5,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 {
     public interface ILogger : IDisposable
     {
+        void SetLocation(string location);
+
         void Begin(GraphQLConfig config, ClientGeneratorContext context);
 
         void ClientDocuments(IReadOnlyList<string> documents);

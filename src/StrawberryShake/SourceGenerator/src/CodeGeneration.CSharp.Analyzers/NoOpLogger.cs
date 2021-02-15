@@ -5,6 +5,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 {
     public class NoOpLogger : ILogger
     {
+        public void SetLocation(string location)
+        {
+        }
+
         public void Begin(GraphQLConfig config, ClientGeneratorContext context)
         {
         }
