@@ -4,9 +4,9 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Configuration
 {
-    internal sealed class AggregateSchemaInterceptor : ISchemaInterceptor
+    internal sealed class AggregateSchemaInterceptor : SchemaInterceptor
     {
-        private IReadOnlyList<ISchemaInterceptor> _interceptors;
+        private readonly IReadOnlyList<ISchemaInterceptor> _interceptors;
 
         public AggregateSchemaInterceptor()
         {
@@ -18,7 +18,7 @@ namespace HotChocolate.Configuration
             _interceptors = interceptors;
         }
 
-        public void OnBeforeCreate(
+        public override void OnBeforeCreate(
             IDescriptorContext context,
             ISchemaBuilder schemaBuilder)
         {
@@ -33,7 +33,7 @@ namespace HotChocolate.Configuration
             }
         }
 
-        public void OnAfterCreate(IDescriptorContext context, ISchema schema)
+        public override void OnAfterCreate(IDescriptorContext context, ISchema schema)
         {
             if (_interceptors.Count == 0)
             {
@@ -46,7 +46,7 @@ namespace HotChocolate.Configuration
             }
         }
 
-        public void OnError(IDescriptorContext context, Exception exception)
+        public override void OnError(IDescriptorContext context, Exception exception)
         {
             if (_interceptors.Count == 0)
             {

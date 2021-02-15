@@ -3,6 +3,10 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Data.Sorting
 {
+    /// <summary>
+    /// Represents a handler that can be bound to a <see cref="SortField"/>. The handler is
+    /// executed during the visitation of a input object.
+    /// </summary>
     public interface ISortOperationHandler
     {
         /// <summary>

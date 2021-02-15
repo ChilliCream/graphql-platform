@@ -298,25 +298,53 @@ namespace HotChocolate.Data
         }
 
         [Fact]
+<<<<<<< HEAD
         public async Task ExecuteAsync_Should_ArgumentAndFirstOrDefault_When_Executed()
+=======
+        public async Task ExecuteAsync_Should_ProjectAndPage_When_EdgesFragment()
+>>>>>>> main
         {
             // arrange
             IRequestExecutor executor = await new ServiceCollection()
                 .AddGraphQL()
                 .AddFiltering()
+<<<<<<< HEAD
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<FirstOrDefaulQuery>()
+=======
+                .EnableRelaySupport()
+                .AddSorting()
+                .AddProjections()
+                .AddQueryType<PagingAndProjection>()
+                .AddObjectType<Book>(x =>
+                    x.ImplementsNode().IdField(x => x.Id).ResolveNode(x => default!))
+>>>>>>> main
                 .BuildRequestExecutorAsync();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
                 @"
                 {
+<<<<<<< HEAD
                     books(book: {id: 1}) {
                         title
                     }
                 }
+=======
+                    books {
+                        edges {
+                            node {
+                                ... Test
+                            }
+                        }
+                    }
+                }
+                fragment Test on Book {
+                    title
+                    id
+                }
+>>>>>>> main
                 ");
 
             // assert
@@ -324,13 +352,18 @@ namespace HotChocolate.Data
         }
 
         [Fact]
+<<<<<<< HEAD
         public async Task
             Schema_Should_Generate_WhenMutationInputHasManyToManyRelationshipWithOutputType()
+=======
+        public async Task ExecuteAsync_Should_ProjectAndPage_When_NodesFragment()
+>>>>>>> main
         {
             // arrange
             IRequestExecutor executor = await new ServiceCollection()
                 .AddGraphQL()
                 .AddFiltering()
+<<<<<<< HEAD
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<FirstOrDefaulQuery>()
@@ -347,11 +380,44 @@ namespace HotChocolate.Data
         [Fact]
         public async Task
             Schema_Should_Generate_WhenMutationInputHasManyToOneRelationshipWithOutputType()
+=======
+                .EnableRelaySupport()
+                .AddSorting()
+                .AddProjections()
+                .AddQueryType<PagingAndProjection>()
+                .AddObjectType<Book>(x =>
+                    x.ImplementsNode().IdField(x => x.Id).ResolveNode(x => default!))
+                .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                {
+                    books {
+                        nodes {
+                            ... Test
+                        }
+                    }
+                }
+                fragment Test on Book {
+                    title
+                    id
+                }
+                ");
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task ExecuteAsync_Should_ProjectAndPage_When_EdgesFragmentNested()
+>>>>>>> main
         {
             // arrange
             IRequestExecutor executor = await new ServiceCollection()
                 .AddGraphQL()
                 .AddFiltering()
+<<<<<<< HEAD
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<FirstOrDefaulQuery>()
@@ -400,6 +466,110 @@ namespace HotChocolate.Data
             }.AsQueryable();
         }
 
+=======
+                .EnableRelaySupport()
+                .AddSorting()
+                .AddProjections()
+                .AddQueryType<PagingAndProjection>()
+                .AddObjectType<Book>(x =>
+                    x.ImplementsNode().IdField(x => x.Id).ResolveNode(x => default!))
+                .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                {
+                    books {
+                        edges {
+                            node {
+                                author {
+                                   ... Test
+                                }
+                            }
+                        }
+                    }
+                }
+                fragment Test on Author {
+                    name
+                }
+                ");
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentNested()
+        {
+            // arrange
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddFiltering()
+                .EnableRelaySupport()
+                .AddSorting()
+                .AddProjections()
+                .AddQueryType<PagingAndProjection>()
+                .AddObjectType<Book>(x =>
+                    x.ImplementsNode().IdField(x => x.Id).ResolveNode(x => default!))
+                .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                {
+                    books {
+                        nodes {
+                            author {
+                               ... Test
+                            }
+                        }
+                    }
+                }
+                fragment Test on Author {
+                    name
+                }
+                ");
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+        [Fact]
+        public async Task ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentContainsProjectedField()
+        {
+            // arrange
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddFiltering()
+                .EnableRelaySupport()
+                .AddSorting()
+                .AddProjections()
+                .AddQueryType<PagingAndProjection>()
+                .AddObjectType<Book>(x =>
+                    x.ImplementsNode().IdField(x => x.Id).ResolveNode(x => default!))
+                .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                {
+                    books {
+                        nodes {
+                            ... Test
+                        }
+                    }
+                }
+                fragment Test on Book {
+                    title
+                    author {
+                       name
+                    }
+                }
+                ");
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+>>>>>>> main
         public class PagingAndProjection
         {
             [UsePaging]

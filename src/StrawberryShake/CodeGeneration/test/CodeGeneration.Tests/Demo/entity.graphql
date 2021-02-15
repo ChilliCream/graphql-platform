@@ -1,0 +1,6 @@
+extend schema 
+  @key(fields: "id name")
+  @key(fields: "id foo")
+  @key(fields: "id bar")
+
+extend type Droid @key(fields: "id name bar { baz }")

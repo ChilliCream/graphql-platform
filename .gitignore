@@ -308,3 +308,6 @@ coverage.opencover.xml
 output
 src/All.sln
 *.DotSettings
+
+# asp .net core
+appsettings.user.json

@@ -2,6 +2,9 @@ using HotChocolate.Configuration;
 
 namespace HotChocolate.Data.Filters
 {
+    /// <summary>
+    /// Represents a handler that can be bound to a <see cref="FilterField"/>
+    /// </summary>
     public interface IFilterFieldHandler
     {
         /// <summary>

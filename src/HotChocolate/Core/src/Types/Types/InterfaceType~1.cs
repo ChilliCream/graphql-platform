@@ -3,12 +3,14 @@ using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     public class InterfaceType<T>
         : InterfaceType
     {
-        private readonly Action<IInterfaceTypeDescriptor<T>> _configure;
+        private Action<IInterfaceTypeDescriptor<T>>? _configure;
 
         public InterfaceType()
         {
@@ -27,6 +29,7 @@ namespace HotChocolate.Types
             var descriptor = InterfaceTypeDescriptor.New<T>(
                 context.DescriptorContext);
             _configure(descriptor);
+            _configure = null;
             return descriptor.CreateDefinition();
         }
 

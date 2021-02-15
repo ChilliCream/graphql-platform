@@ -1,0 +1,71 @@
+﻿#nullable enable
+
+namespace StarWarsClient
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class DroidHeroFromDroidEntityMapper
+        : global::StrawberryShake.IEntityMapper<DroidEntity, DroidHero>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityMapper<DroidEntity, Droid> _droidFromDroidEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<HumanEntity, Human> _humanFromHumanEntityMapper;
+
+        public DroidHeroFromDroidEntityMapper(
+            global::StrawberryShake.IEntityStore entityStore,
+            global::StrawberryShake.IEntityMapper<DroidEntity, Droid> droidFromDroidEntityMapper,
+            global::StrawberryShake.IEntityMapper<HumanEntity, Human> humanFromHumanEntityMapper)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _droidFromDroidEntityMapper = droidFromDroidEntityMapper
+                 ?? throw new global::System.ArgumentNullException(nameof(droidFromDroidEntityMapper));
+            _humanFromHumanEntityMapper = humanFromHumanEntityMapper
+                 ?? throw new global::System.ArgumentNullException(nameof(humanFromHumanEntityMapper));
+        }
+
+        public DroidHero Map(DroidEntity entity)
+        {
+            return new DroidHero(
+                entity.Name,
+                MapNonNullableFriendsConnection(entity.Friends));
+        }
+
+        private FriendsConnection MapNonNullableFriendsConnection(global::StarWarsClient.State.FriendsConnectionData data)
+        {
+            FriendsConnection returnValue = default!;
+
+            return returnValue;
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<ICharacter> MapNonNullableICharacterNonNullableArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId>? list)
+        {
+            var iCharacters = new global::System.Collections.Generic.List<ICharacter>();
+
+            foreach (global::StrawberryShake.EntityId child in list)
+            {
+                iCharacters.Add(MapNonNullableICharacter(child));
+            }
+
+            return iCharacters;
+        }
+
+        private ICharacter MapNonNullableICharacter(global::StrawberryShake.EntityId entityId)
+        {
+
+            if (entityId.Name.Equals("Droid", global::System.StringComparison.Ordinal))
+            {
+                return _droidFromDroidEntityMapper.Map(
+                    _entityStore.GetEntity<DroidEntity>(entityId)
+                        ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+
+            if (entityId.Name.Equals("Human", global::System.StringComparison.Ordinal))
+            {
+                return _humanFromHumanEntityMapper.Map(
+                    _entityStore.GetEntity<HumanEntity>(entityId)
+                        ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+            throw new global::System.NotSupportedException();
+        }
+    }
+}

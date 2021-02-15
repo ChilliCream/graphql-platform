@@ -409,22 +409,21 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            Action a = () => SchemaBuilder.New()
-                .AddType(new InputObjectType(t => t
-                    .Name("Foo")
-                    .Field("bar")
-                    .Type(new NonNullType(new ObjectType<SimpleInput>()))))
-                .Create();
+            void Action() =>
+                SchemaBuilder.New()
+                    .AddType(new InputObjectType(t => t.Name("Foo")
+                        .Field("bar")
+                        .Type(new NonNullType(new ObjectType<SimpleInput>()))))
+                    .Create();
 
             // assert
-            #if NETCOREAPP2_1
-            Assert.Throws<SchemaException>(a)
-                .Errors.First().Message.MatchSnapshot(
-                    new SnapshotNameExtension("NETCOREAPP2_1"));
-            #else
-            Assert.Throws<SchemaException>(a)
-                .Errors.First().Message.MatchSnapshot();
-            #endif
+            Exception ex =
+                Assert.Throws<SchemaException>(Action)
+                   .Errors.First().Exception;
+
+            Assert.Equal(
+                "inputType",
+                Assert.IsType<ArgumentException>(ex).ParamName);
         }
 
         [Fact]

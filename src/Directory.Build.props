@@ -30,7 +30,7 @@
 
   <PropertyGroup>
     <LibraryTargetFrameworks>net5.0; netcoreapp3.1; netstandard2.0</LibraryTargetFrameworks>
-    <TestTargetFrameworks>net5.0; netcoreapp3.1; netcoreapp2.1</TestTargetFrameworks>
+    <TestTargetFrameworks>net5.0; netcoreapp3.1</TestTargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup>

@@ -240,7 +240,7 @@ So, when can you expect 10.3.0. We will deliver nullable ref types with 10.3.0-p
 
 I hope you are as exited as I am about this. Happy Thanksgiving :) and get a super awesome Hot Chocolate with marshmallows to get into your GraphQL groove.
 
-If you want to get into contact with us head over to our [slack channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q) and join our community.
+If you want to get into contact with us head over to our slack channel and join our community.
 
 [hot chocolate]: https://hotchocolate.io
 [hot chocolate source code]: https://github.com/ChilliCream/hotchocolate
