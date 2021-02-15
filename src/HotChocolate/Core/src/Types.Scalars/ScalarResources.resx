@@ -60,13 +60,13 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="EmailAddressType_Description" xml:space="preserve">
+  <data name="EmailAddress_Description" xml:space="preserve">
     <value>The EmailAddress scalar type represents a email address, represented as UTF-8 character sequences. The scalar follows the specification defined in RFC 5322</value>
   </data>
-  <data name="EmailAddressType_IsInvalid_ParseLiteral" xml:space="preserve">
+  <data name="EmailAddress_IsInvalid_ParseLiteral" xml:space="preserve">
     <value>EmailAddress cannot parse the provided literal. The provided value does not meet the RFC 5322 specification.</value>
   </data>
-  <data name="EmailAddressType_IsInvalid_ParseValue" xml:space="preserve">
+  <data name="EmailAddress_IsInvalid_ParseValue" xml:space="preserve">
     <value>EmailAddress cannot parse the provided value. The provided value does not meet the RFC 5322 specification.</value>
   </data>
   <data name="EmailAddressType_ValidationPattern" xml:space="preserve">
@@ -215,14 +215,5 @@
   </data>
   <data name="PostalCode_ValidationPattern_LU" xml:space="preserve">
     <value>(^\d{4}$)</value>
-  </data>
-  <data name="UnsignedFloatType_Description" xml:space="preserve">
-    <value>The UnsignedFloat scalar type represents a double‐precision fractional value greater than or equal to 0.</value>
-  </data>
-  <data name="UnsignedFloatType_IsNotUnsigned_ParseLiteral" xml:space="preserve">
-    <value>UnsignedFloatType cannot parse the provided literal. The provided value was not greater than or equal to 0.</value>
-  </data>
-  <data name="UnsignedFloatType_IsNotUnsigned_ParseValue" xml:space="preserve">
-    <value>UnsignedFloatType cannot parse the provided value. The provided value was not greater than or equal to 0.</value>
   </data>
 </root>
