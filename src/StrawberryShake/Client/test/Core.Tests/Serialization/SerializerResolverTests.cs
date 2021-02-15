@@ -97,8 +97,8 @@ namespace StrawberryShake.Serialization
             // arrange
             ISerializer[] serializers =
             {
-                new IntSerializer(),
-                new CustomIntSerializer()
+                new CustomIntSerializer(),
+                new IntSerializer()
             };
             var resolver =new SerializerResolver(serializers);
 
