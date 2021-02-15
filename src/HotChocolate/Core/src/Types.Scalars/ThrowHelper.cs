@@ -231,8 +231,7 @@ namespace HotChocolate.Types.Scalars
                 type);
         }
 
-        public static SerializationException UnsignedIntType_ParseLiteral_IsNotUnsigned(
-            IType type)
+        public static SerializationException UnsignedIntType_ParseLiteral_IsNotUnsigned(IType type)
         {
             return new SerializationException(
                 ErrorBuilder.New()
@@ -243,14 +242,35 @@ namespace HotChocolate.Types.Scalars
                 type);
         }
 
-        public static SerializationException UnsignedIntType_ParseValue_IsNotUnsigned(
-            IType type)
+        public static SerializationException UnsignedIntType_ParseValue_IsNotUnsigned(IType type)
         {
             return new SerializationException(
                 ErrorBuilder.New()
                     .SetMessage(ScalarResources.UnsignedIntType_IsNotUnsigned_ParseValue)
                     .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
                     .SetExtension("actualType", WellKnownScalarTypes.UnsignedInt)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException PostalCodeType_ParseLiteral_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.PostalCodeType_IsInvalid_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.PostalCode)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException PostalCodeType_ParseValue_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.PostalCodeType_IsInvalid_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.PostalCode)
                     .Build(),
                 type);
         }
