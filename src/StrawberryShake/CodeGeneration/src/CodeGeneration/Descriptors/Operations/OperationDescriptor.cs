@@ -8,7 +8,6 @@ namespace StrawberryShake.CodeGeneration
     /// </summary>
     public abstract class OperationDescriptor : ICodeDescriptor
     {
-
         public OperationDescriptor(
             NameString operationName,
             ITypeDescriptor resultTypeReference,

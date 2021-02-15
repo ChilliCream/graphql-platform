@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using static StrawberryShake.CodeGeneration.NamingConventions;
 

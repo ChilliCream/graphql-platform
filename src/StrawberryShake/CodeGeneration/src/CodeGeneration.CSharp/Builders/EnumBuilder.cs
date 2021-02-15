@@ -46,6 +46,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             {
                 writer.WriteIndentedLine($"public enum {_name} : {_underlyingType}");
             }
+
             writer.WriteIndentedLine("{");
 
             using (writer.IncreaseIndent())

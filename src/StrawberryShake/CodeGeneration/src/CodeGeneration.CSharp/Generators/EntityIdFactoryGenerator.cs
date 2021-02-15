@@ -1,6 +1,5 @@
 using System.Linq;
 using System.Text;
-using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 
 namespace StrawberryShake.CodeGeneration.CSharp
@@ -39,7 +38,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .AddParameter(obj)
                 .AddCode(CreateEntityIdBody(descriptor));
             factory.AddMethod(createEntityId);
-
 
             foreach (var entity in descriptor.Entities)
             {

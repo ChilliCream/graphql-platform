@@ -1,8 +1,10 @@
-﻿namespace FooBarNamespace
+﻿#nullable enable
+
+namespace FooBarNamespace
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class MetasyntacticVariableSerializer
-        : global::StrawberryShake.Serialization.IInputValueFormatter 
+        : global::StrawberryShake.Serialization.IInputValueFormatter
         , global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, MetasyntacticVariable>
     {
         public global::System.String TypeName => "MetasyntacticVariable";
@@ -18,7 +20,7 @@
             };
         }
 
-        public object Format(object runtimeValue)
+        public object Format(global::System.Object? runtimeValue)
         {
             return runtimeValue switch
             {

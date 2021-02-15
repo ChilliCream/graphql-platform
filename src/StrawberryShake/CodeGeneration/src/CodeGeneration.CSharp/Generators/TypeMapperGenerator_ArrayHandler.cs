@@ -38,7 +38,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                             .AddCode("<")
                             .AddCode(
                                 listTypeDescriptor.InnerType.ToBuilder()
-                                    .SkipTraliingSpace())
+                                    .SkipTrailingSpace())
                             .AddCode(">")
                             .AddCode("()")));
             methodBuilder.AddEmptyLine();

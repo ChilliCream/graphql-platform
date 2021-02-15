@@ -4,6 +4,23 @@
     <GraphQLPropertyPageSchema>$(MSBuildThisFileDirectory)GraphQL.xaml</GraphQLPropertyPageSchema>
   </PropertyGroup>
 
+  <ItemDefinitionGroup>
+    <GraphQL>
+      <Generator>MSBuild:Compile</Generator>
+    </GraphQL>
+    <GraphQLConfig>
+      <Generator>MSBuild:Compile</Generator>
+    </GraphQLConfig>
+  </ItemDefinitionGroup>
+
+  <ItemGroup>
+    <PropertyPageSchema Include="$(GraphQLPropertyPageSchema)">
+      <Context>File;BrowseObject</Context>
+    </PropertyPageSchema>
+    <AvailableItemName Include="GraphQL" />
+    <AvailableItemName Include="GraphQLConfig" />
+  </ItemGroup>
+
   <ItemGroup>
     <!-- GraphQL Files -->
     <None Remove="**/*.graphql" />

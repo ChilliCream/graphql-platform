@@ -175,7 +175,7 @@ namespace HotChocolate
                 IReadOnlyList<ITypeReference> types,
                 LazySchema lazySchema)
             {
-                var typeRegistry = new TypeRegistry();
+                var typeRegistry = new TypeRegistry(context.TypeInterceptor);
                 TypeInitializer initializer =
                     CreateTypeInitializer(builder, context, bindingLookup, types, typeRegistry);
                 initializer.Initialize(() => lazySchema.Schema, builder._options);

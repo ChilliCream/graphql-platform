@@ -8,6 +8,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
     {
         private readonly Dictionary<NameString, NamedTypeDescriptor> _types = new();
         private readonly Dictionary<NameString, EntityTypeDescriptor> _entityTypes = new();
+        private readonly Dictionary<NameString, DataTypeDescriptor> _dataTypes = new();
         private readonly Dictionary<NameString, EnumDescriptor> _enums = new();
         private readonly Dictionary<NameString, OperationDescriptor> _operations = new();
         private readonly Dictionary<NameString, ResultBuilderDescriptor> _resultBuilder = new();
@@ -24,10 +25,12 @@ namespace StrawberryShake.CodeGeneration.Mappers
         public string ClientName { get; }
 
         public string Namespace { get; }
+        public string StateNamespace => Namespace + ".State";
 
         public IReadOnlyCollection<NamedTypeDescriptor> Types => _types.Values;
 
         public IReadOnlyCollection<EntityTypeDescriptor> EntityTypes => _entityTypes.Values;
+        public IReadOnlyCollection<DataTypeDescriptor> DataTypes => _dataTypes.Values;
 
         public IReadOnlyCollection<EnumDescriptor> EnumTypes => _enums.Values;
 
@@ -71,6 +74,11 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 yield return resultBuilder;
             }
 
+            foreach (var dataType in DataTypes)
+            {
+                yield return dataType;
+            }
+
             yield return Client;
 
             yield return EntityIdFactory;
@@ -88,6 +96,13 @@ namespace StrawberryShake.CodeGeneration.Mappers
         public void Register(NameString codeTypeName, EntityTypeDescriptor entityTypeDescriptor)
         {
             _entityTypes.Add(
+                codeTypeName,
+                entityTypeDescriptor);
+        }
+
+        public void Register(NameString codeTypeName, DataTypeDescriptor entityTypeDescriptor)
+        {
+            _dataTypes.Add(
                 codeTypeName,
                 entityTypeDescriptor);
         }
