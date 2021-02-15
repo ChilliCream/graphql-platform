@@ -9,7 +9,5 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
         public string? Url { get; set; }
 
         public bool DependencyInjection { get; set; } = true;
-
-        public bool OutputToClientDirectory { get; set; } = true;
     }
 }

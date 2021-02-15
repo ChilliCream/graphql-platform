@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <GraphQLPropertyPageSchema>$(MSBuildThisFileDirectory)GraphQL.xaml</GraphQLPropertyPageSchema>
-    <StrawberryShake_GeneratedFiles>$(BaseIntermediateOutputPath)\StrawberryShake</StrawberryShake_GeneratedFiles>
   </PropertyGroup>
 
   <ItemDefinitionGroup>
@@ -34,7 +33,7 @@
     <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="GraphQLConfig" />
 
     <!-- Build Options -->
-    <CompilerVisibleProperty Include="StrawberryShake_GeneratedFiles" />
+    <CompilerVisibleProperty Include="StrawberryShake_LogFile" />
   </ItemGroup>
 
 </Project>
