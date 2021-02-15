@@ -52,32 +52,32 @@ namespace Foo
 }
 
 
-// CreateReviewMutFactory
+// CreateReviewMutResultFactory
 
 #nullable enable
 
 namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class CreateReviewMutFactory
-        : global::StrawberryShake.IOperationResultDataFactory<CreateReviewMut>
+    public partial class CreateReviewMutResultFactory
+        : global::StrawberryShake.IOperationResultDataFactory<CreateReviewMutResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
 
-        public CreateReviewMutFactory(global::StrawberryShake.IEntityStore entityStore)
+        public CreateReviewMutResultFactory(global::StrawberryShake.IEntityStore entityStore)
         {
             _entityStore = entityStore
                  ?? throw new global::System.ArgumentNullException(nameof(entityStore));
         }
 
-        public CreateReviewMut Create(global::StrawberryShake.IOperationResultDataInfo dataInfo)
+        public CreateReviewMutResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo)
         {
-            if (dataInfo is CreateReviewMutInfo info)
+            if (dataInfo is CreateReviewMutResultInfo info)
             {
-                return new CreateReviewMut(MapNonNullableICreateReviewMut_CreateReview(info.CreateReview));
+                return new CreateReviewMutResult(MapNonNullableICreateReviewMut_CreateReview(info.CreateReview));
             }
 
-            throw new global::System.ArgumentException("CreateReviewMutInfo expected.");
+            throw new global::System.ArgumentException("CreateReviewMutResultInfo expected.");
         }
 
         private ICreateReviewMut_CreateReview MapNonNullableICreateReviewMut_CreateReview(global::Foo.State.ReviewData data)
@@ -99,20 +99,20 @@ namespace Foo
 }
 
 
-// CreateReviewMutInfo
+// CreateReviewMutResultInfo
 
 #nullable enable
 
 namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class CreateReviewMutInfo
+    public partial class CreateReviewMutResultInfo
         : global::StrawberryShake.IOperationResultDataInfo
     {
         private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
         private readonly ulong _version;
 
-        public CreateReviewMutInfo(
+        public CreateReviewMutResultInfo(
             global::Foo.State.ReviewData createReview,
             global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds,
             ulong version)
@@ -131,7 +131,7 @@ namespace Foo
 
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(ulong version)
         {
-            return new CreateReviewMutInfo(
+            return new CreateReviewMutResultInfo(
                 CreateReview,
                 _entityIds,
                 _version);
@@ -140,17 +140,17 @@ namespace Foo
 }
 
 
-// CreateReviewMut
+// CreateReviewMutResult
 
 #nullable enable
 
 namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class CreateReviewMut
-        : ICreateReviewMut
+    public partial class CreateReviewMutResult
+        : ICreateReviewMutResult
     {
-        public CreateReviewMut(ICreateReviewMut_CreateReview createReview)
+        public CreateReviewMutResult(ICreateReviewMut_CreateReview createReview)
         {
             CreateReview = createReview;
         }
@@ -185,14 +185,14 @@ namespace Foo
 }
 
 
-// ICreateReviewMut
+// ICreateReviewMutResult
 
 #nullable enable
 
 namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ICreateReviewMut
+    public interface ICreateReviewMutResult
     {
         public ICreateReviewMut_CreateReview CreateReview { get; }
     }
@@ -348,12 +348,12 @@ namespace Foo
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class CreateReviewMutMutation
     {
-        private readonly global::StrawberryShake.IOperationExecutor<ICreateReviewMut> _operationExecutor;
+        private readonly global::StrawberryShake.IOperationExecutor<ICreateReviewMutResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _episodeFormatter;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _reviewInputFormatter;
 
         public CreateReviewMutMutation(
-            global::StrawberryShake.IOperationExecutor<ICreateReviewMut> operationExecutor,
+            global::StrawberryShake.IOperationExecutor<ICreateReviewMutResult> operationExecutor,
             global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor
@@ -362,7 +362,7 @@ namespace Foo
             _reviewInputFormatter = serializerResolver.GetInputValueFormatter("ReviewInput");
         }
 
-        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ICreateReviewMut>> ExecuteAsync(
+        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ICreateReviewMutResult>> ExecuteAsync(
             Episode episode,
             ReviewInput review,
             global::System.Threading.CancellationToken cancellationToken = default)
@@ -378,7 +378,7 @@ namespace Foo
                 .ConfigureAwait(false);
         }
 
-        public global::System.IObservable<global::StrawberryShake.IOperationResult<ICreateReviewMut>> Watch(
+        public global::System.IObservable<global::StrawberryShake.IOperationResult<ICreateReviewMutResult>> Watch(
             Episode episode,
             ReviewInput review,
             global::StrawberryShake.ExecutionStrategy? strategy = null)
@@ -434,11 +434,11 @@ namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class CreateReviewMutBuilder
-        : global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, ICreateReviewMut>
+        : global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, ICreateReviewMutResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
-        private readonly global::StrawberryShake.IOperationResultDataFactory<ICreateReviewMut> _resultDataFactory;
+        private readonly global::StrawberryShake.IOperationResultDataFactory<ICreateReviewMutResult> _resultDataFactory;
         private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, Episode> _episodeParser;
         private global::StrawberryShake.Serialization.ILeafValueParser<global::System.Int32, global::System.Int32> _int32Parser;
         private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
@@ -446,7 +446,7 @@ namespace Foo
         public CreateReviewMutBuilder(
             global::StrawberryShake.IEntityStore entityStore,
             global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> extractId,
-            global::StrawberryShake.IOperationResultDataFactory<ICreateReviewMut> resultDataFactory,
+            global::StrawberryShake.IOperationResultDataFactory<ICreateReviewMutResult> resultDataFactory,
             global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _entityStore = entityStore
@@ -463,9 +463,9 @@ namespace Foo
                  ?? throw new global::System.ArgumentNullException(nameof(_stringParser));
         }
 
-        public global::StrawberryShake.IOperationResult<ICreateReviewMut> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
+        public global::StrawberryShake.IOperationResult<ICreateReviewMutResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
         {
-            (ICreateReviewMut Result, CreateReviewMutInfo Info)? data = null;
+            (ICreateReviewMutResult Result, CreateReviewMutResultInfo Info)? data = null;
 
             if (response.Body is not null
                 && response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement obj))
@@ -473,20 +473,20 @@ namespace Foo
                 data = BuildData(obj);
             }
 
-            return new global::StrawberryShake.OperationResult<ICreateReviewMut>(
+            return new global::StrawberryShake.OperationResult<ICreateReviewMutResult>(
                 data?.Result,
                 data?.Info,
                 _resultDataFactory,
                 null);
         }
 
-        private (ICreateReviewMut, CreateReviewMutInfo) BuildData(global::System.Text.Json.JsonElement obj)
+        private (ICreateReviewMutResult, CreateReviewMutResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
         {
             using global::StrawberryShake.IEntityUpdateSession session = _entityStore.BeginUpdate();
             var entityIds = new global::System.Collections.Generic.HashSet<global::StrawberryShake.EntityId>();
 
 
-            var resultInfo = new CreateReviewMutInfo(
+            var resultInfo = new CreateReviewMutResultInfo(
                 DeserializeNonNullableICreateReviewMut_CreateReview(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj, "createReview")),
                 entityIds,
                 session.Version);
@@ -731,19 +731,19 @@ namespace Foo
             // register operations
             
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
-                global::StrawberryShake.IOperationResultDataFactory<ICreateReviewMut>,
-                CreateReviewMutFactory>(
+                global::StrawberryShake.IOperationResultDataFactory<ICreateReviewMutResult>,
+                CreateReviewMutResultFactory>(
                     services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
-                global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, ICreateReviewMut>,
+                global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, ICreateReviewMutResult>,
                 CreateReviewMutBuilder>(
                     services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
-                global::StrawberryShake.IOperationExecutor<ICreateReviewMut>>(
+                global::StrawberryShake.IOperationExecutor<ICreateReviewMutResult>>(
                     services,
-                    sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, ICreateReviewMut>(
+                    sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, ICreateReviewMutResult>(
                         global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.Http.HttpConnection>(sp),
-                        () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, ICreateReviewMut>>(sp),
+                        () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, ICreateReviewMutResult>>(sp),
                         global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
                         strategy));
             
