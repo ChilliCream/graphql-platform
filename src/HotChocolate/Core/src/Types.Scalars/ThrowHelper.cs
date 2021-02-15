@@ -230,5 +230,27 @@ namespace HotChocolate.Types.Scalars
                     .Build(),
                 type);
         }
+
+        public static SerializationException PostalCodeType_ParseLiteral_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.PostalCodeType_IsInvalid_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.PostalCode)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException PostalCodeType_ParseValue_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.PostalCodeType_IsInvalid_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.PostalCode)
+                    .Build(),
+                type);
+        }
     }
 }
