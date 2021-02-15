@@ -82,7 +82,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 }
                 else
                 {
-                    ReportGeneralError(Execution, error, title, code);
+                    ReportGeneralError(Execution, error, title, code, ClientDirectory);
                 }
             }
         }

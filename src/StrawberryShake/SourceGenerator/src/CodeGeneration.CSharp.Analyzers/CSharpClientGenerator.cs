@@ -167,7 +167,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             try
             {
                 var name = context.Settings.Name;
-                var @namespace = context.Settings.Namespace;
+                var @namespace = context.GetNamespace();
                 var documents = context.GetDocuments();
 
                 result = new CSharpGenerator().Generate(documents, name, @namespace);
