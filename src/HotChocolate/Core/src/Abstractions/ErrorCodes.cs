@@ -117,10 +117,6 @@ namespace HotChocolate
 
         public static class Data
         {
-            /// <summary>
-            /// Type does not contain a valid node field. Only `items` and `nodes` are supported
-            /// </summary>
-            public const string NodeFieldWasNotFound = "HC0028";
             public const string NonNullError = "HC0026";
             public const string ListNotSupported = "HC0021";
             public const string MoreThanOneElement = "HC0022";
