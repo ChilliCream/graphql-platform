@@ -41,7 +41,7 @@ namespace StrawberryShake.Tools
                     .ConfigureAwait(false);
 
             var context = new InitCommandContext(
-                arguments.Name.Value()?.Trim() ?? Path.GetDirectoryName(Environment.CurrentDirectory),
+                arguments.Name.Value()?.Trim() ?? Path.GetFileName(Environment.CurrentDirectory),
                 FileSystem.ResolvePath(arguments.Path.Value()?.Trim()),
                 new Uri(arguments.Uri.Value!),
                 accessToken?.Token,
