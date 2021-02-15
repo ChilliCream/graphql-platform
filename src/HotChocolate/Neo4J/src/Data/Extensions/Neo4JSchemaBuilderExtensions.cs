@@ -1,4 +1,6 @@
 using HotChocolate.Data.Neo4J.Filtering;
+using HotChocolate.Data.Neo4J.Projections;
+using HotChocolate.Data.Neo4J.Sorting;
 
 namespace HotChocolate.Data.Neo4J
 {
@@ -24,7 +26,6 @@ namespace HotChocolate.Data.Neo4J
             string? name = null) =>
             builder.AddFiltering(x => x.AddNeo4JDefaults(), name);
 
-        // TODO: Implement Sorting Schema Builder Extension
         /// <summary>
         /// Adds sorting support.
         /// </summary>
@@ -37,12 +38,11 @@ namespace HotChocolate.Data.Neo4J
         /// <returns>
         /// Returns the <see cref="ISchemaBuilder"/>.
         /// </returns>
-        // public static ISchemaBuilder AddNeo4JSorting(
-        //     this ISchemaBuilder builder,
-        //     string? name = null) =>
-        //     builder.AddSorting(x => x.AddNeo4JDefaults(), name);
+        public static ISchemaBuilder AddNeo4JSorting(
+            this ISchemaBuilder builder,
+            string? name = null) =>
+            builder.AddSorting(x => x.AddNeo4JDefaults(), name);
 
-        // TODO: Implement Projection Schema Builder Extension
         /// <summary>
         /// Adds projections support.
         /// </summary>
@@ -55,9 +55,9 @@ namespace HotChocolate.Data.Neo4J
         /// <returns>
         /// Returns the <see cref="ISchemaBuilder"/>.
         /// </returns>
-        // public static ISchemaBuilder AddNeo4JProjections(
-        //     this ISchemaBuilder builder,
-        //     string? name = null) =>
-        //     builder.AddProjections(x => x.AddNeo4JDefaults(), name);
+        public static ISchemaBuilder AddNeo4JProjections(
+            this ISchemaBuilder builder,
+            string? name = null) =>
+            builder.AddProjections(x => x.AddNeo4JDefaults(), name);
     }
 }

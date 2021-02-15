@@ -18,17 +18,17 @@ namespace HotChocolate.Data.Neo4J.Execution
         /// <summary>
         /// The filter definition that was set by <see cref="WithFiltering"/>
         /// </summary>
-        protected Neo4JFilterDefinition? Filters { get; private set; }
+        protected Neo4JFilterDefinition Filters { get; private set; }
 
         /// <summary>
         /// The sort definition that was set by <see cref="WithSorting"/>
         /// </summary>
-        protected Neo4JSortDefinition? Sorting { get; private set; }
+        protected Neo4JSortDefinition Sorting { get; private set; }
 
         /// <summary>
         /// The projection definition that was set by <see cref="WithProjection"/>
         /// </summary>
-        protected Neo4JProjectionDefinition? Projection { get; private set; }
+        protected Neo4JProjectionDefinition Projection { get; private set; }
 
         /// <inheritdoc />
         public Neo4JExecutable(IAsyncSession session)

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace HotChocolate.Data.Neo4J.Projections
 {
@@ -18,7 +19,7 @@ namespace HotChocolate.Data.Neo4J.Projections
         public Neo4JCombinedProjectionDefinition(
             IEnumerable<Neo4JProjectionDefinition> projections)
         {
-            ///_projections = Ensure.IsNotNull(projections, nameof(projections)).ToArray();
+            _projections = Ensure.IsNotNull(projections, nameof(projections)).ToArray();
         }
 
     }

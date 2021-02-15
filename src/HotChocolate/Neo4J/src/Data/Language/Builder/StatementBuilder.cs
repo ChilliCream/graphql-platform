@@ -3,10 +3,9 @@ using System.Linq;
 
 namespace HotChocolate.Data.Neo4J.Language
 {
-    public class StatementBuilder : IStatementBuilder
+    public class StatementBuilder
     {
         private readonly int STATEMENT_CACHE_SIZE = 128;
-
         private bool IsWrite = false;
         private Match? _match;
         private Where? _where;

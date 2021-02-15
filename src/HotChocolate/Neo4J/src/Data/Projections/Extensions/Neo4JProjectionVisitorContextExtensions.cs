@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
-namespace HotChocolate.Data.Neo4J.Projections.Extensions
+namespace HotChocolate.Data.Neo4J.Projections
 {
     internal static class Neo4JProjectionVisitorContextExtensions
     {

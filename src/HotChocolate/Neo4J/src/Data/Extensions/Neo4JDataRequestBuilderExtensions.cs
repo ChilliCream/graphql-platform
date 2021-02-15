@@ -38,12 +38,11 @@ namespace HotChocolate.Data.Neo4J.Extensions
         /// <returns>
         /// Returns the <see cref="IRequestExecutorBuilder"/>.
         /// </returns>
-        // public static IRequestExecutorBuilder AddNeo4JSorting(
-        //     this IRequestExecutorBuilder builder,
-        //     string? name = null) =>
-        //     builder.ConfigureSchema(s => s.AddNeo4JSorting(name));
+        public static IRequestExecutorBuilder AddNeo4JSorting(
+             this IRequestExecutorBuilder builder,
+             string? name = null) =>
+             builder.ConfigureSchema(s => s.AddNeo4JSorting(name));
 
-        // TODO: Implement projection RequestExecutorBuilder Extension
         /// <summary>
         /// Adds projections support for Neo4j.
         /// </summary>
@@ -56,9 +55,9 @@ namespace HotChocolate.Data.Neo4J.Extensions
         /// <returns>
         /// Returns the <see cref="IRequestExecutorBuilder"/>.
         /// </returns>
-        // public static IRequestExecutorBuilder AddNeo4JProjections(
-        //     this IRequestExecutorBuilder builder,
-        //     string? name = null) =>
-        //     builder.ConfigureSchema(s => s.AddNeo4JProjections(name));
+        public static IRequestExecutorBuilder AddNeo4JProjections(
+            this IRequestExecutorBuilder builder,
+            string? name = null) =>
+            builder.ConfigureSchema(s => s.AddNeo4JProjections(name));
     }
 }

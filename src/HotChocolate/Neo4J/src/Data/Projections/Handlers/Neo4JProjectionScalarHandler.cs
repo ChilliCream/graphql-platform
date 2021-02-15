@@ -1,4 +1,3 @@
-using HotChocolate.Data.Neo4J.Projections.Extensions;
 using HotChocolate.Data.Projections;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types;

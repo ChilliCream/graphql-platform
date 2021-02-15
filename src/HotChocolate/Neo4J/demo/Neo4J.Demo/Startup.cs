@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Data;
 using HotChocolate.Data.Neo4J;
@@ -20,7 +18,7 @@ namespace Neo4jDemo
 
     public class Startup
     {
-        [Neo4JNode("Film", "Blockbuster")]
+        //[Neo4JNode("Film", "Blockbuster")]
         public class Movie
         {
             public string Title { get; set; }
@@ -28,23 +26,18 @@ namespace Neo4jDemo
             public string Tagline { get; set; }
             public double? ImdbRating { get; set; }
             //[UseCypher("MATCH (this)-[:IN_GENRE]->(:Genre)<-[:IN_GENRE]-(o:Movie) RETURN o")]
-            public List<Movie> SimilarMovies { get; set; }
+            //public List<Movie> SimilarMovies { get; set; }
 
             [Neo4JRelationship("ACTED", RelationshipDirection.Incoming)]
             public List<Actor> Actors { get; set; }
-        }
-
-        public class Car
-        {
-            public string Name { get; set; }
         }
 
         public class Actor
         {
             public string Name { get; set; }
 
-            [Neo4JRelationship("ACTED_IN", RelationshipDirection.Outgoing)]
-            public List<Movie> ActedIn { get; set; }
+            //[Neo4JRelationship("ACTED_IN", RelationshipDirection.Outgoing)]
+            //public List<Movie> ActedIn { get; set; }
         }
 
 
@@ -66,7 +59,9 @@ namespace Neo4jDemo
             // }
 
             [UseNeo4JDatabase("movies")]
+            [UseProjection]
             [UseFiltering]
+            [UseSorting]
             public Neo4JExecutable<Movie> GetMovies(
                 [ScopedService] IAsyncSession session,
                 [Service]IResolverContext ctx,
@@ -85,7 +80,9 @@ namespace Neo4jDemo
                 .AddGraphQLServer()
                 .AddQueryType(d => d.Name("Query"))
                     .AddType<Query>()
-                .AddNeo4JFiltering();
+                .AddNeo4JProjections()
+                .AddNeo4JFiltering()
+                .AddNeo4JSorting();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

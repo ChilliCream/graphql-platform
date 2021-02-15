@@ -1,13 +1,12 @@
 using System;
 using System.Threading.Tasks;
 using HotChocolate.Data.Neo4J.Execution;
-using HotChocolate.Data.Neo4J.Projections.Extensions;
 using HotChocolate.Data.Projections;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Data.Neo4J.Projections
 {
-/// <inheritdoc/>
+    /// <inheritdoc/>
     public class Neo4JProjectionProvider
         : ProjectionProvider
     {
@@ -55,10 +54,10 @@ namespace HotChocolate.Data.Neo4J.Projections
                     }
                     else
                     {
-                        // context.LocalContextData =
-                        //     context.LocalContextData.SetItem(
-                        //         nameof(ProjectionDefinition<TEntityType>),
-                        //         projections);
+                        context.LocalContextData =
+                            context.LocalContextData.SetItem(
+                                nameof(TEntityType),
+                                projections);
 
                         await next(context).ConfigureAwait(false);
 
