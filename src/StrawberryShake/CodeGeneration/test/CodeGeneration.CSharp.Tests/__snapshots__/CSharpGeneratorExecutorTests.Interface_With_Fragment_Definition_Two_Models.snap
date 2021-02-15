@@ -1204,7 +1204,7 @@ namespace Foo
                     var clientFactory =
                         global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<
                             global::System.Net.Http.IHttpClientFactory
-                            >(sp);
+                            >(parentServices);
             
                     return new global::StrawberryShake.Transport.Http.HttpConnection(
                         () => clientFactory.CreateClient("FooClient"));

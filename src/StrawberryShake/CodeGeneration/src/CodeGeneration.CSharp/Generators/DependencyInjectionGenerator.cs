@@ -348,7 +348,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         var clientFactory =
             {TypeNames.GetRequiredService}<
                 {TypeNames.IHttpClientFactory}
-                >(sp);
+                >(parentServices);
 
         return new {TypeNames.HttpConnection}(
             () => clientFactory.CreateClient(""{clientName}""));
