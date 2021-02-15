@@ -30,11 +30,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
             TypeNames.TimeSpanSerializer
         };
 
-        private static readonly string[] _websocketProtocols =
-        {
-            TypeNames.GraphQLWebSocketProtocolFactory
-        };
-
         protected override void Generate(
             CodeWriter writer,
             DependencyInjectionDescriptor descriptor,
@@ -278,17 +273,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             stringBuilder.AppendLine(
                 $"{TypeNames.AddSingleton.WithGeneric(descriptor.Name)}(services);");
-
-            if (hasSubscriptions)
-            {
-                codeWriter.WriteLine();
-                codeWriter.WriteComment("register websocket protocols");
-
-                foreach (var protocol in _websocketProtocols)
-                {
-                    AddProtocol(codeWriter, protocol);
-                }
-            }
 
             stringBuilder.AppendLine();
             stringBuilder.AppendLine("return services;");
