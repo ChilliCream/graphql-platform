@@ -111,27 +111,27 @@ namespace StrawberryShake
 
                 if (_strategy != ExecutionStrategy.CacheFirst || !hasResultInStore)
                 {
-                    var cts = new CancellationTokenSource();
-                    BeginExecute(cts);
-                    return new ObserverSession(session, cts.Cancel);
+                    var requestSession = new RequestSession();
+                    BeginExecute(requestSession);
+                    return new ObserverSession(session, requestSession);
                 }
 
                 return session;
             }
 
-            private void BeginExecute(CancellationTokenSource cts) =>
-                Task.Run(() => ExecuteAsync(cts));
+            private void BeginExecute(RequestSession session) =>
+                Task.Run(() => ExecuteAsync(session));
 
-            private async Task ExecuteAsync(CancellationTokenSource cts)
+            private async Task ExecuteAsync(RequestSession session)
             {
                 try
                 {
                     IOperationResultBuilder<TData, TResult> resultBuilder = _resultBuilder();
 
                     await foreach (var response in
-                        _connection.ExecuteAsync(_request, cts.Token).ConfigureAwait(false))
+                        _connection.ExecuteAsync(_request, session.Token).ConfigureAwait(false))
                     {
-                        if (cts.Token.IsCancellationRequested)
+                        if (session.Token.IsCancellationRequested)
                         {
                             return;
                         }
@@ -141,28 +141,66 @@ namespace StrawberryShake
                 }
                 finally
                 {
-                    cts.Dispose();
+                    session.Dispose();
                 }
             }
 
             private class ObserverSession : IDisposable
             {
                 private readonly IDisposable _storeSession;
-                private readonly Action _cancel;
+                private readonly RequestSession _requestSession;
                 private bool _disposed;
 
-                public ObserverSession(IDisposable storeSession, Action cancel)
+                public ObserverSession(IDisposable storeSession, RequestSession requestSession)
                 {
                     _storeSession = storeSession;
-                    _cancel = cancel;
+                    _requestSession = requestSession;
                 }
 
                 public void Dispose()
                 {
                     if (!_disposed)
                     {
-                        _cancel();
+                        _requestSession.Dispose();
                         _storeSession.Dispose();
+                        _disposed = true;
+                    }
+                }
+            }
+
+            private class RequestSession : IDisposable
+            {
+                private readonly CancellationTokenSource _cts;
+                private bool _disposed;
+
+                public RequestSession()
+                {
+                    _cts = new CancellationTokenSource();
+                }
+
+                public CancellationToken Token => _cts.Token;
+
+                public void Cancel()
+                {
+                    try
+                    {
+                        if (!_disposed)
+                        {
+                            _cts.Cancel();
+                        }
+                    }
+                    catch(ObjectDisposedException)
+                    {
+                        // we do not care if this happens.
+                    }
+                }
+
+                public void Dispose()
+                {
+                    if (!_disposed)
+                    {
+                        Cancel();
+                        _cts.Dispose();
                         _disposed = true;
                     }
                 }
