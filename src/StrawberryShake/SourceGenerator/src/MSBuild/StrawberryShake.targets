@@ -6,7 +6,7 @@
       Remove="**/*.StrawberryShake.cs" />
     <Compile 
         Include="**/*.StrawberryShake.cs"
-        Exclude="$(CompilerGeneratedFilesOutputPath)/**/*.StrawberryShake.cs"
+        Exclude="$(BaseIntermediateOutputPath)/**/*.StrawberryShake.cs"
         Condition="'$(DesignTimeBuild)' == 'true'" 
         Visible="false" />
   </ItemGroup>
@@ -21,7 +21,7 @@
         Remove="**/*.StrawberryShake.cs" />
       <Compile 
         Include="**/*.StrawberryShake.cs"
-        Exclude="$(CompilerGeneratedFilesOutputPath)/**/*.StrawberryShake.cs"
+        Exclude="$(BaseIntermediateOutputPath)/**/*.StrawberryShake.cs"
         Condition="'$(DesignTimeBuild)' == 'true'"
         Visible="false" />
     </ItemGroup>
