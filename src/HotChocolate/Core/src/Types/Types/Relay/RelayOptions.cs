@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Relay
         /// If set to <c>true</c> the mutation payloads are rewritten to provide access to
         /// the query root type to allow better capabilities refetch data.
         /// </summary>
-        public bool AddQueryFieldsToMutations { get; set; }
+        public bool AddQueryFieldToMutationPayloads { get; set; }
 
         /// <summary>
         /// The name of the query field on a mutation payload (default: query).

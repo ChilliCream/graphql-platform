@@ -103,6 +103,24 @@
             ]
           },
           {
+            "path": "performance",
+            "title": "Performance",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "persisted-queries",
+                "title": "Persisted queries"
+              },
+              {
+                "path": "automatic-persisted-queries",
+                "title": "Automatic persisted queries"
+              }
+            ]
+          },
+          {
             "path": "api-reference",
             "title": "API Reference",
             "items": [

@@ -288,7 +288,10 @@ namespace HotChocolate.Execution.Processing
                 {
                     CollectFields(
                         context,
-                        fragmentInfo.SelectionSet,
+                        context.IsInternalSelection
+                            ? CloneSelectionSetVisitor.Default.CloneSelectionNode(
+                                fragmentInfo.SelectionSet)
+                            : fragmentInfo.SelectionSet,
                         includeCondition);
                 }
             }
@@ -745,5 +748,24 @@ namespace HotChocolate.Execution.Processing
 
         private static bool HasErrors(object? result) =>
             result is IError || result is IEnumerable<IError>;
+
+        private class CloneSelectionSetVisitor : QuerySyntaxRewriter<object>
+        {
+            private static readonly object _context = new();
+
+            protected override SelectionSetNode RewriteSelectionSet(
+                SelectionSetNode node,
+                object context)
+            {
+                return new(base.RewriteSelectionSet(node, context).Selections);
+            }
+
+            public SelectionSetNode CloneSelectionNode(SelectionSetNode selection)
+            {
+                return RewriteSelectionSet(selection, _context);
+            }
+
+            public static readonly CloneSelectionSetVisitor Default = new();
+        }
     }
 }

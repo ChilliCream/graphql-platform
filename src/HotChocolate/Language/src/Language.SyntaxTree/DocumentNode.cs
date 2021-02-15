@@ -5,9 +5,9 @@ using HotChocolate.Language.Utilities;
 namespace HotChocolate.Language
 {
     /// <summary>
-    /// The <see cref="DocumentNode"/> represents a parsed GraphQL document 
+    /// The <see cref="DocumentNode"/> represents a parsed GraphQL document
     /// which also is the root node of a parsed GraphQL document.
-    /// 
+    ///
     /// The document can contain schema definition nodes or query nodes.
     /// </summary>
     public sealed class DocumentNode
@@ -39,7 +39,7 @@ namespace HotChocolate.Language
             IReadOnlyList<IDefinitionNode> definitions)
         {
             Location = location;
-            Definitions = definitions ?? 
+            Definitions = definitions ??
                 throw new ArgumentNullException(nameof(definitions));
         }
 
@@ -76,38 +76,38 @@ namespace HotChocolate.Language
         public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
         /// <summary>
-        /// Creates a new instance that has all the characteristics of this 
+        /// Creates a new instance that has all the characteristics of this
         /// documents but with a different location.
         /// </summary>
         /// <param name="location">
         /// The location that shall be applied to the new document.
         /// </param>
         /// <returns>
-        /// Returns a new instance that has all the characteristics of this 
+        /// Returns a new instance that has all the characteristics of this
         /// documents but with a different location.
         /// </returns>
         public DocumentNode WithLocation(Location? location) =>
-            new DocumentNode(location, Definitions);
-    
+            new(location, Definitions);
+
         /// <summary>
-        /// Creates a new instance that has all the characteristics of this 
+        /// Creates a new instance that has all the characteristics of this
         /// documents but with different definitions.
         /// </summary>
         /// <param name="definitions">
         /// The definitions that shall be applied to the new document.
         /// </param>
         /// <returns>
-        /// Returns a new instance that has all the characteristics of this 
+        /// Returns a new instance that has all the characteristics of this
         /// documents but with a different definitions.
         /// </returns>
         public DocumentNode WithDefinitions(
             IReadOnlyList<IDefinitionNode> definitions) =>
-            new DocumentNode(Location, definitions);
+            new(Location, definitions);
 
         /// <summary>
         /// Gets an empty GraphQL document.
         /// </summary>
         public static DocumentNode Empty { get; } =
-            new DocumentNode(null, Array.Empty<IDefinitionNode>());
+            new(null, Array.Empty<IDefinitionNode>());
     }
 }

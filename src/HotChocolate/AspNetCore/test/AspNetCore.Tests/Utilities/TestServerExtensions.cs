@@ -145,11 +145,12 @@ namespace HotChocolate.AspNetCore.Utilities
                 return new ClientRawResult { StatusCode = HttpStatusCode.NotFound };
             }
 
-            var result = new ClientRawResult();
-            result.StatusCode = response.StatusCode;
-            result.ContentType = response.Content.Headers.ContentType.ToString();
-            result.Content = await response.Content.ReadAsStringAsync();
-            return result;
+            return new ClientRawResult
+            {
+                StatusCode = response.StatusCode,
+                ContentType = response.Content.Headers.ContentType!.ToString(),
+                Content = await response.Content.ReadAsStringAsync()
+            };
         }
 
         public static async Task<ClientQueryResult> GetAsync(
@@ -206,7 +207,7 @@ namespace HotChocolate.AspNetCore.Utilities
             HttpResponseMessage response =
                 await SendGetRequestAsync(
                     testServer,
-                    $"query={query}&" + 
+                    $"query={query}&" +
                     "extensions={\"persistedQuery\":{\"version\":1," +
                     $"\"{hashName}\":\"{hash}\"}}}}",
                     path);
@@ -254,7 +255,7 @@ namespace HotChocolate.AspNetCore.Utilities
             this TestServer testServer, string query, string path = null)
         {
             return testServer.CreateClient()
-                .GetAsync($"{CreateUrl(path)}?{query}");
+                .GetAsync($"{CreateUrl(path)}/?{query}");
         }
 
         public static string CreateUrl(string path)

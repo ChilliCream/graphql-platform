@@ -16,13 +16,13 @@ namespace HotChocolate.Types
         : FieldBase<IInputType, InputFieldDefinition>
         , IInputField
     {
-        public InputField(InputFieldDefinition definition)
-            : base(definition)
+        public InputField(InputFieldDefinition definition, FieldCoordinate fieldCoordinate)
+            : base(definition, fieldCoordinate)
         {
             SyntaxNode = definition.SyntaxNode;
             DefaultValue = definition.DefaultValue;
             Property = definition.Property;
-            
+
             if (definition.Formatters.Count == 0)
             {
                 Formatter = null;
@@ -38,9 +38,8 @@ namespace HotChocolate.Types
 
             Type? propertyType = definition.Property?.PropertyType;
 
-            if (propertyType is { }
-                && propertyType.IsGenericType
-                && propertyType.GetGenericTypeDefinition() == typeof(Optional<>))
+            if (propertyType is { IsGenericType: true } &&
+                propertyType.GetGenericTypeDefinition() == typeof(Optional<>))
             {
                 IsOptional = true;
             }
@@ -175,7 +174,8 @@ namespace HotChocolate.Types
             InputFieldDefinition definition)
         {
             base.OnCompleteField(context, definition);
-            DefaultValue = FieldInitHelper.CreateDefaultValue(context, definition, Type);
+            DefaultValue = FieldInitHelper.CreateDefaultValue(
+                context, definition, Type, Coordinate);
         }
     }
 }

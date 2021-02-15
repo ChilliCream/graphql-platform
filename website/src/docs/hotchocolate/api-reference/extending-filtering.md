@@ -19,34 +19,22 @@ Usually, it makes sense to divide the structure into two parts. The _field_ and 
 The query below returns all movies where the franchise is equal to "Star Wars". The _field_ `franchise` where the filter
 is applied to and the _operation_ equals (`eq`) that should operate on this field.
 
-```
+```graphql
 {
-    movies(
-        where: {
-            franchise: {
-                eq: "Star Wars"
-            }
-        }) {
-        name
-    }
+  movies(where: { franchise: { eq: "Star Wars" } }) {
+    name
+  }
 }
 ```
 
 Fields can also form paths. In the query below there are two _fields_ `genre` and `totalMovieCount` and one operation equals
 `eq`
 
-```
+```graphql
 {
-    movies(
-        where: {
-            genre: {
-                totalMovieCount: {
-                    eq: 100
-                }
-            }
-        }) {
-        name
-    }
+  movies(where: { genre: { totalMovieCount: { eq: 100 } } }) {
+    name
+  }
 }
 ```
 
@@ -296,8 +284,7 @@ A little simplified this is what happens during visitation:
 ```graphql
 {
   users(
-    where: # Create SCOPE 1 with parameter x of type User
-    # instance[0] = x
+    where: # instance[0] = x # Create SCOPE 1 with parameter x of type User
     # level[0] = []
     {
       # Push property User.Company onto the scope

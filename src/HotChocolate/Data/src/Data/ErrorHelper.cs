@@ -6,6 +6,7 @@ using HotChocolate.Data.Sorting;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Types.Pagination;
 
 namespace HotChocolate.Data
 {
@@ -98,6 +99,13 @@ namespace HotChocolate.Data
                 .SetMessage(DataResources.ProjectionProvider_CouldNotProjectSorting)
                 .SetCode(ErrorCodes.Data.SortingProjectionFailed)
                 .AddLocation(node)
+                .Build();
+
+        public static IError ProjectionVisitor_NodeFieldWasNotFound(IPageType pageType) =>
+            ErrorBuilder.New()
+                .SetMessage(DataResources.ProjectionVisitor_NodeFieldWasNotFound,
+                    pageType.Name)
+                .SetCode(ErrorCodes.Data.NodeFieldWasNotFound)
                 .Build();
     }
 }
