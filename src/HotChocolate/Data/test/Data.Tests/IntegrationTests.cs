@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
@@ -480,107 +481,6 @@ namespace HotChocolate.Data
         }
 
         [Fact]
-        public async Task ExecuteAsync_Should_ArgumentAndFirstOrDefault_When_Executed()
-        {
-            // arrange
-            IRequestExecutor executor = await new ServiceCollection()
-                .AddGraphQL()
-                .AddFiltering()
-                .AddSorting()
-                .AddProjections()
-                .AddQueryType<FirstOrDefaulQuery>()
-                .BuildRequestExecutorAsync();
-
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"
-                {
-                    books(book: {id: 1}) {
-                        title
-                    }
-                }
-                ");
-
-            // assert
-            result.ToJson().MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task
-            Schema_Should_Generate_WhenMutationInputHasManyToManyRelationshipWithOutputType()
-        {
-            // arrange
-            IRequestExecutor executor = await new ServiceCollection()
-                .AddGraphQL()
-                .AddFiltering()
-                .AddSorting()
-                .AddProjections()
-                .AddQueryType<FirstOrDefaulQuery>()
-                .AddMutationType<FirstOrDefaultMutation_ManyToMany>()
-                .BuildRequestExecutorAsync();
-
-            // act
-            var result = executor.Schema.Print();
-
-            // assert
-            result.MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task
-            Schema_Should_Generate_WhenMutationInputHasManyToOneRelationshipWithOutputType()
-        {
-            // arrange
-            IRequestExecutor executor = await new ServiceCollection()
-                .AddGraphQL()
-                .AddFiltering()
-                .AddSorting()
-                .AddProjections()
-                .AddQueryType<FirstOrDefaulQuery>()
-                .AddMutationType<FirstOrDefaultMutation_ManyToOne>()
-                .BuildRequestExecutorAsync();
-
-            // act
-            var result = executor.Schema.Print();
-
-            // assert
-            result.MatchSnapshot();
-        }
-
-        public class FirstOrDefaulQuery
-        {
-            [UseFirstOrDefault, UseProjection]
-            public IQueryable<Book> GetBooks(Book book) => new[]
-                {
-                    new Book
-                    {
-                        Id = 1, Title = "BookTitle", Author = new Author { Name = "Author" }
-                    },
-                    new Book
-                    {
-                        Id = 2, Title = "BookTitle2", Author = new Author { Name = "Author2" }
-                    }
-                }.AsQueryable()
-                .Where(x => x.Id == book.Id);
-        }
-
-        public class FirstOrDefaultMutation_ManyToMany
-        {
-            [UseFirstOrDefault, UseProjection]
-            public IQueryable<Author> AddPublisher(Publisher publisher) => new[]
-            {
-                new Author { Name = "Author", Publishers = new List<Publisher> { publisher } }
-            }.AsQueryable();
-        }
-
-        public class FirstOrDefaultMutation_ManyToOne
-        {
-            [UseFirstOrDefault, UseProjection]
-            public IQueryable<Author> AddBook(Book book) => new[]
-            {
-                new Author { Name = "Author", Books = new List<Book> { book } }
-            }.AsQueryable();
-        }[Fact]
         public async Task ExecuteAsync_Should_ArgumentAndFirstOrDefault_When_Executed()
         {
             // arrange
