@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Text;
 using HotChocolate;
@@ -218,16 +219,23 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 NameString operationName = operation.OperationName;
                 NameString fullName = operation.Name;
                 NameString operationInterface = operation.ResultTypeReference.Name;
-                var factory = ResultFactoryNameFromTypeName(operationName);
-                var resultBuilder = ResultBuilderNameFromTypeName(operationName);
+
+                // The resulttype of the operation is a NamedTypeDescriptor, that is an Interface
+                var resultType = operation.ResultTypeReference as NamedTypeDescriptor
+                                         ?? throw new ArgumentException("ResultTypeReference");
+                // The factories are generated based on the concrete result type, which is the
+                // only implementee of the result type interface.
+                var factoryName = ResultFactoryNameFromTypeName(resultType.ImplementedBy[0].Name);
+
+                var builderName = ResultBuilderNameFromTypeName(operationName);
                 stringBuilder.AppendLine(
                     RegisterOperation(
                         connectionKind,
                         descriptor.Name,
                         fullName,
                         operationInterface,
-                        factory,
-                        resultBuilder));
+                        factoryName,
+                        builderName));
             }
 
             stringBuilder.AppendLine(

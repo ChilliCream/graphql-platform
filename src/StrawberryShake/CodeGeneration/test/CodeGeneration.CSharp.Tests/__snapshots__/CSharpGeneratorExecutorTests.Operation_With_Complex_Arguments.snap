@@ -1,48 +1,48 @@
-﻿// TestFactory
+﻿// TestResultFactory
 
 #nullable enable
 
 namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class TestFactory
-        : global::StrawberryShake.IOperationResultDataFactory<Test>
+    public partial class TestResultFactory
+        : global::StrawberryShake.IOperationResultDataFactory<TestResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
 
-        public TestFactory(global::StrawberryShake.IEntityStore entityStore)
+        public TestResultFactory(global::StrawberryShake.IEntityStore entityStore)
         {
             _entityStore = entityStore
                  ?? throw new global::System.ArgumentNullException(nameof(entityStore));
         }
 
-        public Test Create(global::StrawberryShake.IOperationResultDataInfo dataInfo)
+        public TestResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo)
         {
-            if (dataInfo is TestInfo info)
+            if (dataInfo is TestResultInfo info)
             {
-                return new Test(info.Foo);
+                return new TestResult(info.Foo);
             }
 
-            throw new global::System.ArgumentException("TestInfo expected.");
+            throw new global::System.ArgumentException("TestResultInfo expected.");
         }
     }
 }
 
 
-// TestInfo
+// TestResultInfo
 
 #nullable enable
 
 namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class TestInfo
+    public partial class TestResultInfo
         : global::StrawberryShake.IOperationResultDataInfo
     {
         private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
         private readonly ulong _version;
 
-        public TestInfo(
+        public TestResultInfo(
             global::System.String? foo,
             global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds,
             ulong version)
@@ -61,7 +61,7 @@ namespace Foo
 
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(ulong version)
         {
-            return new TestInfo(
+            return new TestResultInfo(
                 Foo,
                 _entityIds,
                 _version);
@@ -70,17 +70,17 @@ namespace Foo
 }
 
 
-// Test
+// TestResult
 
 #nullable enable
 
 namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class Test
-        : ITest
+    public partial class TestResult
+        : ITestResult
     {
-        public Test(global::System.String? foo)
+        public TestResult(global::System.String? foo)
         {
             Foo = foo;
         }
@@ -90,14 +90,14 @@ namespace Foo
 }
 
 
-// ITest
+// ITestResult
 
 #nullable enable
 
 namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ITest
+    public interface ITestResult
     {
         public global::System.String? Foo { get; }
     }
@@ -278,11 +278,11 @@ namespace Foo
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestQuery
     {
-        private readonly global::StrawberryShake.IOperationExecutor<ITest> _operationExecutor;
+        private readonly global::StrawberryShake.IOperationExecutor<ITestResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _barFormatter;
 
         public TestQuery(
-            global::StrawberryShake.IOperationExecutor<ITest> operationExecutor,
+            global::StrawberryShake.IOperationExecutor<ITestResult> operationExecutor,
             global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor
@@ -290,7 +290,7 @@ namespace Foo
             _barFormatter = serializerResolver.GetInputValueFormatter("Bar");
         }
 
-        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ITest>> ExecuteAsync(
+        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ITestResult>> ExecuteAsync(
             Bar single,
             global::System.Collections.Generic.IReadOnlyList<Bar> list,
             global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<Bar>?>? nestedList,
@@ -308,7 +308,7 @@ namespace Foo
                 .ConfigureAwait(false);
         }
 
-        public global::System.IObservable<global::StrawberryShake.IOperationResult<ITest>> Watch(
+        public global::System.IObservable<global::StrawberryShake.IOperationResult<ITestResult>> Watch(
             Bar single,
             global::System.Collections.Generic.IReadOnlyList<Bar> list,
             global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<Bar>?>? nestedList,
@@ -403,17 +403,17 @@ namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestBuilder
-        : global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, ITest>
+        : global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, ITestResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
-        private readonly global::StrawberryShake.IOperationResultDataFactory<ITest> _resultDataFactory;
+        private readonly global::StrawberryShake.IOperationResultDataFactory<ITestResult> _resultDataFactory;
         private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
 
         public TestBuilder(
             global::StrawberryShake.IEntityStore entityStore,
             global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> extractId,
-            global::StrawberryShake.IOperationResultDataFactory<ITest> resultDataFactory,
+            global::StrawberryShake.IOperationResultDataFactory<ITestResult> resultDataFactory,
             global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _entityStore = entityStore
@@ -426,9 +426,9 @@ namespace Foo
                  ?? throw new global::System.ArgumentNullException(nameof(_stringParser));
         }
 
-        public global::StrawberryShake.IOperationResult<ITest> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
+        public global::StrawberryShake.IOperationResult<ITestResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
         {
-            (ITest Result, TestInfo Info)? data = null;
+            (ITestResult Result, TestResultInfo Info)? data = null;
 
             if (response.Body is not null
                 && response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement obj))
@@ -436,20 +436,20 @@ namespace Foo
                 data = BuildData(obj);
             }
 
-            return new global::StrawberryShake.OperationResult<ITest>(
+            return new global::StrawberryShake.OperationResult<ITestResult>(
                 data?.Result,
                 data?.Info,
                 _resultDataFactory,
                 null);
         }
 
-        private (ITest, TestInfo) BuildData(global::System.Text.Json.JsonElement obj)
+        private (ITestResult, TestResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
         {
             using global::StrawberryShake.IEntityUpdateSession session = _entityStore.BeginUpdate();
             var entityIds = new global::System.Collections.Generic.HashSet<global::StrawberryShake.EntityId>();
 
 
-            var resultInfo = new TestInfo(
+            var resultInfo = new TestResultInfo(
                 DeserializeString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj, "foo")),
                 entityIds,
                 session.Version);
@@ -621,19 +621,19 @@ namespace Foo
             // register operations
             
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
-                global::StrawberryShake.IOperationResultDataFactory<ITest>,
-                TestFactory>(
+                global::StrawberryShake.IOperationResultDataFactory<ITestResult>,
+                TestResultFactory>(
                     services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
-                global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, ITest>,
+                global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, ITestResult>,
                 TestBuilder>(
                     services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
-                global::StrawberryShake.IOperationExecutor<ITest>>(
+                global::StrawberryShake.IOperationExecutor<ITestResult>>(
                     services,
-                    sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, ITest>(
+                    sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, ITestResult>(
                         global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.Http.HttpConnection>(sp),
-                        () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, ITest>>(sp),
+                        () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, ITestResult>>(sp),
                         global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
                         strategy));
             
