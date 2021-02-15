@@ -127,10 +127,6 @@ namespace HotChocolate
             public const string FilteringProjectionFailed = "HC0023";
             public const string SortingProjectionFailed = "HC0024";
             public const string NoPagingationProviderFound = "HC0025";
-            /// <summary>
-            /// Type does not contain a valid node field. Only `items` and `nodes` are supported
-            /// </summary>
-            public const string NodeFieldWasNotFound = "HC0028";
         }
     }
 }
