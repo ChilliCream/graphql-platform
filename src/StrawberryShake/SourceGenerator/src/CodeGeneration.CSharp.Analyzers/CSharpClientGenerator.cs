@@ -138,7 +138,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             {
                 foreach (string fileName in Directory.GetFiles(context.OutputDirectory, "*.cs"))
                 {
-                    if (!context.FileNames.Contains(IOPath.GetFileName(fileName)))
+                    if (!context.FileNames.Contains(fileName))
                     {
                         context.Log.RemoveFile(fileName);
                         File.Delete(fileName);
