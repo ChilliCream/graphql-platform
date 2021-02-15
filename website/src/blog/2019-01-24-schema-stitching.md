@@ -352,7 +352,7 @@ The following query might be a good starting point since it will expose the ids 
 }
 ```
 
-If you have further questions or need help you join our [slack channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q).
+If you have further questions or need help you join our slack channel.
 
 [hot chocolate]: https://hotchocolate.io
 [hot chocolate source code]: https://github.com/ChilliCream/hotchocolate

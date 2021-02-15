@@ -134,6 +134,12 @@ namespace HotChocolate
             /// Type does not contain a valid node field. Only `items` and `nodes` are supported
             /// </summary>
             public const string NodeFieldWasNotFound = "HC0028";
+            public const string NonNullError = "HC0026";
+            public const string ListNotSupported = "HC0021";
+            public const string MoreThanOneElement = "HC0022";
+            public const string FilteringProjectionFailed = "HC0023";
+            public const string SortingProjectionFailed = "HC0024";
+            public const string NoPagingationProviderFound = "HC0025";
         }
     }
 }

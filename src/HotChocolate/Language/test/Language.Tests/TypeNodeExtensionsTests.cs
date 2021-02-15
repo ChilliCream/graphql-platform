@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using HotChocolate.Language.Utilities;
 using Xunit;
 
 namespace HotChocolate.Language
@@ -81,36 +83,55 @@ namespace HotChocolate.Language
             Assert.True(shouldBeTrue);
         }
 
-        [Fact]
-        public void NamedTypeFromNonNullList()
+        [Theory]
+        [InlineData("[[Foo!]!]!")]
+        [InlineData("[[Foo!]!]")]
+        [InlineData("[Foo!]!")]
+        [InlineData("[Foo!]")]
+        [InlineData("Foo!")]
+        [InlineData("Foo")]
+        [InlineData("[[Foo]!]!")]
+        [InlineData("[[Foo]!]")]
+        [InlineData("[Foo]!")]
+        [InlineData("[Foo]")]
+        [InlineData("[[Foo!]]!")]
+        [InlineData("[[Foo!]]")]
+        public void NamedType_ExtractType_ExtractSuccessfull(string fieldType)
         {
             // arrange
-            var namedType = new NamedTypeNode(null, new NameNode("Foo"));
-            var listType = new ListTypeNode(null,
-                new NonNullTypeNode(null, namedType));
-            var nonNullType = new NonNullTypeNode(null, listType);
+            ITypeNode type = GetType(fieldType);
 
             // act
-            NamedTypeNode retrievedNamedType = nonNullType.NamedType();
+            NamedTypeNode name = type.NamedType();
 
             // assert
-            Assert.Equal(namedType, retrievedNamedType);
+            Assert.Equal("Foo", name.Print());
         }
 
         [Fact]
         public void InvalidTypeStructure()
         {
             // arrange
-            var namedType = new NamedTypeNode(null, new NameNode("Foo"));
-            var listType = new ListTypeNode(null, new ListTypeNode(null,
-                new NonNullTypeNode(null, namedType)));
-            var nonNullType = new NonNullTypeNode(null, listType);
+            ITypeNode type = GetType("[[[Foo!]!]!]!");
 
             // act
-            Action a = () => nonNullType.NamedType();
+            Action a = () => type.NamedType();
 
             // assert
             Assert.Throws<NotSupportedException>(a);
+        }
+
+        public ITypeNode GetType(string type)
+        {
+            DocumentNode definition = Utf8GraphQLParser.Parse($"type Foo {{ field: {type}  }}");
+
+            if (definition.Definitions.FirstOrDefault() is ObjectTypeDefinitionNode typeNode &&
+                typeNode.Fields.FirstOrDefault() is { } field)
+            {
+                return field.Type;
+            }
+
+            throw new InvalidOperationException();
         }
     }
 }

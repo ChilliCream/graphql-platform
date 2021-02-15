@@ -940,7 +940,7 @@ We originally wanted to include subscription stitching with version 8, but are n
 
 Apart from that, Version 9 will mainly focus on schema improvements.
 
-If you have feedback or feature requests for our schema stitching we love to talk to you about it. Head over to our [slack channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q).
+If you have feedback or feature requests for our schema stitching we love to talk to you about it. Head over to our slack channel.
 
 [hot chocolate]: https://hotchocolate.io
 [hot chocolate source code]: https://github.com/ChilliCream/hotchocolate
