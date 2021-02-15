@@ -32,11 +32,11 @@ namespace StrawberryShake.CodeGeneration
             string graphqlTypename) =>
             typeName + "From" + EntityTypeNameFromGraphQLTypeName(graphqlTypename) + "Mapper";
 
-        public static string RequestNameFromOperationServiceName(string operationServiceName) =>
-            operationServiceName + "Request";
-
         public static string ResultFactoryNameFromTypeName(string typeName) =>
             typeName + "Factory";
+
+        public static string ResultRootTypeNameFromTypeName(string typeName) =>
+            typeName + "Result";
 
         public static string ResultBuilderNameFromTypeName(string typeName) =>
             typeName + "Builder";
