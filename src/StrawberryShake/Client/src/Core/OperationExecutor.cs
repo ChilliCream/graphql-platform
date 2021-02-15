@@ -113,7 +113,7 @@ namespace StrawberryShake
                 {
                     var cts = new CancellationTokenSource();
                     BeginExecute(cts);
-                    return new ObserverSession(session, cts);
+                    return new ObserverSession(session, cts.Cancel);
                 }
 
                 return session;
