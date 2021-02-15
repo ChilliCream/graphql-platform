@@ -1,11 +1,33 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <Target Name="RemoveStrawberryShakeSourceGeneratedFiles" BeforeTargets="CoreCompile">
+  <!--Target Name="RemoveStrawberryShakeSourceGeneratedFiles" BeforeTargets="CoreCompile">
     <ItemGroup>
       <Compile Remove="**/*.StrawberryShake.cs" />
     </ItemGroup>
-  </Target>
+  </Target-->
+
+  <ItemGroup>
+    <Compile
+      Remove="**/*.StrawberryShake.cs" />
+    <Compile 
+        Include="**/*.StrawberryShake.cs"
+        Exclude="$(CompilerGeneratedFilesOutputPath)/**/*.StrawberryShake.cs"
+        Condition="'$(DesignTimeBuild)' == 'true'" 
+        Visible="false" />
+  </ItemGroup>
 
   <Target Name="GraphQLCompile" />
+
+  <Target Name="StrawberryShake_DesignTime_Files" BeforeTargets="CoreCompile;ResolveProjectReferences;$(PrepareProjectReferencesDependsOn)">
+    <ItemGroup>
+      <Compile
+        Remove="**/*.StrawberryShake.cs" />
+      <Compile 
+        Include="**/*.StrawberryShake.cs"
+        Exclude="$(CompilerGeneratedFilesOutputPath)/**/*.StrawberryShake.cs"
+        Condition="'$(DesignTimeBuild)' == 'true'" 
+        Visible="false" />
+    </ItemGroup>
+  </Target>
 
 </Project>

@@ -19,13 +19,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile 
-        Include="$(StrawberryShake_GeneratedFiles)\**\*.*"
-        Condition="'$(DesignTimeBuild)' == 'true'"
-        Visible="false"/>
-  </ItemGroup>
-
-  <ItemGroup>
     <!-- GraphQL Files -->
     <None Remove="**/*.graphql" />
     <GraphQL Include="**/*.graphql" />

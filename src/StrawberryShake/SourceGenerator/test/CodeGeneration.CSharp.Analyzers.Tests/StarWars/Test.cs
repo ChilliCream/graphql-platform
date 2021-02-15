@@ -8,7 +8,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
         public void Test()
         {
             Type t = typeof(GetPeople_People_Nodes_PersonFromPersonEntityMapper);
-
         }
     }
 }

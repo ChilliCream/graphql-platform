@@ -10,6 +10,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
         public bool DependencyInjection { get; set; } = true;
 
-        public bool OutputToClientDirectory { get; set; } = false;
+        public bool OutputToClientDirectory { get; set; } = true;
     }
 }
