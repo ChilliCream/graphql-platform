@@ -224,7 +224,6 @@ namespace HotChocolate.Types
             switch (resultValue)
             {
                 case IDictionary<string, object> dictionary:
-                {
                     var result = new Dictionary<string, object?>();
                     foreach (KeyValuePair<string, object> element in dictionary)
                     {
@@ -240,9 +239,8 @@ namespace HotChocolate.Types
 
                     runtimeValue = result;
                     return true;
-                }
+
                 case IList list:
-                {
                     var result = new object?[list.Count];
                     for (var i = 0; i < list.Count; i++)
                     {
@@ -258,7 +256,6 @@ namespace HotChocolate.Types
                     }
                     runtimeValue = result;
                     return true;
-                }
 
                 case IValueNode literal:
                     runtimeValue = ParseLiteral(literal);
