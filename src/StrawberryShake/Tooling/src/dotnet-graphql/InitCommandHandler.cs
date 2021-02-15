@@ -123,7 +123,7 @@ namespace StrawberryShake.Tools
                         Name = context.ClientName,
                         Namespace = context.CustomNamespace,
                         Url = context.Uri!.ToString(),
-                        DependencyInjection = true
+                        DependencyInjection = context.UseDependencyInjection
                     }
                 }
             };

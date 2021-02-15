@@ -34,6 +34,7 @@
 
     <!-- Build Options -->
     <CompilerVisibleProperty Include="StrawberryShake_LogFile" />
+    <CompilerVisibleProperty Include="RootNamespace" />
   </ItemGroup>
 
 </Project>

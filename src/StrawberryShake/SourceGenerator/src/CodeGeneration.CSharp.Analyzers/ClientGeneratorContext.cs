@@ -73,7 +73,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
                 string code = error.Code ?? Unexpected;
 
-                if (error is { Locations: { Count: > 0 } locations } &&
+                if (error is { Locations: { Count: > 0 } locations } &&
                     error.Extensions is not null &&
                     error.Extensions.TryGetValue(FileExtensionKey, out value) &&
                     value is string filePath)
@@ -85,6 +85,25 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     ReportGeneralError(Execution, error, title, code);
                 }
             }
+        }
+
+        public string GetNamespace()
+        {
+            if (Settings.Namespace is { Length: > 0 })
+            {
+                return Settings.Namespace;
+            }
+
+            if (Execution.AnalyzerConfigOptions.GlobalOptions.TryGetValue(
+                "build_property.RootNamespace",
+                out string? value) &&
+                !string.IsNullOrEmpty(value))
+            {
+                return value + "." + Settings.Name;
+            }
+
+            throw new GraphQLException(
+                $"Specify a namespace for the client `{Settings.Name}`.")
         }
     }
 }
