@@ -103,7 +103,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             }
 
             throw new GraphQLException(
-                $"Specify a namespace for the client `{Settings.Name}`.")
+                $"Specify a namespace for the client `{Settings.Name}`.");
         }
     }
 }
