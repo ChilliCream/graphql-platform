@@ -363,7 +363,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         var sessionPool =
             {TypeNames.GetRequiredService}<
                 {TypeNames.ISessionPool}
-                >(sp);
+                >(parentServices);
 
         return new {TypeNames.WebSocketConnection}(
             () => sessionPool.CreateAsync(""{clientName}"", default));
