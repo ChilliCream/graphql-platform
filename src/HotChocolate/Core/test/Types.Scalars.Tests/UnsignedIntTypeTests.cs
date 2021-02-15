@@ -28,7 +28,8 @@ namespace HotChocolate.Types.Scalars
         [InlineData(typeof(IntValueNode), -1, false)]
         [InlineData(typeof(IntValueNode), 0, true)]
         [InlineData(typeof(IntValueNode), 1, true)]
-        [InlineData(typeof(IntValueNode), int.MaxValue, true)]
+        [InlineData(typeof(IntValueNode), uint.MaxValue, true)]
+        [InlineData(typeof(IntValueNode), uint.MinValue, true)]
         [InlineData(typeof(NullValueNode), null, true)]
         public void IsInstanceOfType_GivenValueNode_MatchExpected(
             Type type,
@@ -53,7 +54,8 @@ namespace HotChocolate.Types.Scalars
         [InlineData(0, true)]
         [InlineData(null, true)]
         [InlineData(1, true)]
-        [InlineData(int.MaxValue, true)]
+        [InlineData(uint.MaxValue, true)]
+        [InlineData(uint.MinValue, true)]
         public void IsInstanceOfType_GivenObject_MatchExpected(object value, bool expected)
         {
             // arrange
@@ -65,7 +67,8 @@ namespace HotChocolate.Types.Scalars
         [Theory]
         [InlineData(typeof(IntValueNode), 0, 0)]
         [InlineData(typeof(IntValueNode), 1, 1)]
-        [InlineData(typeof(IntValueNode), int.MaxValue, int.MaxValue)]
+        [InlineData(typeof(IntValueNode), uint.MaxValue, uint.MaxValue)]
+        [InlineData(typeof(IntValueNode), uint.MinValue, uint.MinValue)]
         [InlineData(typeof(NullValueNode), null, null)]
         public void ParseLiteral_GivenValueNode_MatchExpected(
             Type type,
@@ -100,7 +103,8 @@ namespace HotChocolate.Types.Scalars
         [Theory]
         [InlineData(typeof(IntValueNode), 0)]
         [InlineData(typeof(IntValueNode), 1)]
-        [InlineData(typeof(IntValueNode), int.MaxValue)]
+        [InlineData(typeof(IntValueNode), uint.MaxValue)]
+        [InlineData(typeof(IntValueNode), uint.MinValue)]
         [InlineData(typeof(NullValueNode), null)]
         public void ParseValue_GivenObject_MatchExpectedType(Type type, object value)
         {
@@ -128,7 +132,8 @@ namespace HotChocolate.Types.Scalars
         [Theory]
         [InlineData(0, 0)]
         [InlineData(1, 1)]
-        [InlineData(int.MaxValue, int.MaxValue)]
+        [InlineData(uint.MaxValue, uint.MaxValue)]
+        [InlineData(uint.MinValue, uint.MinValue)]
         [InlineData(null, null)]
         public void Deserialize_GivenValue_MatchExpected(
             object resultValue,
@@ -158,7 +163,8 @@ namespace HotChocolate.Types.Scalars
         [Theory]
         [InlineData(0, 0)]
         [InlineData(1, 1)]
-        [InlineData(int.MaxValue, int.MaxValue)]
+        [InlineData(uint.MaxValue, uint.MaxValue)]
+        [InlineData(uint.MinValue, uint.MinValue)]
         [InlineData(null, null)]
         public void Serialize_GivenObject_MatchExpectedType(
             object runtimeValue,

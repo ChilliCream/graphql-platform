@@ -6,7 +6,7 @@ namespace HotChocolate.Types.Scalars
     /// The UnsignedInt scalar type represents a unsigned 32‐bit numeric non‐fractional
     /// value greater than or equal to 0.
     /// </summary>
-    public class UnsignedIntType : IntType
+    public class UnsignedIntType : IntegerTypeBase<uint>
     {
         public UnsignedIntType()
             : this(
@@ -22,13 +22,13 @@ namespace HotChocolate.Types.Scalars
             NameString name,
             string? description = null,
             BindingBehavior bind = BindingBehavior.Explicit)
-            : base(name, description, min: 0, int.MaxValue, bind)
+            : base(name, uint.MinValue, uint.MaxValue, bind)
         {
             Description = description;
         }
 
         /// <inheritdoc />
-        protected override bool IsInstanceOfType(int runtimeValue)
+        protected override bool IsInstanceOfType(uint runtimeValue)
         {
             return runtimeValue >= MinValue;
         }
@@ -36,29 +36,29 @@ namespace HotChocolate.Types.Scalars
         /// <inheritdoc />
         protected override bool IsInstanceOfType(IntValueNode valueSyntax)
         {
-            return valueSyntax.ToInt32() >= MinValue;
+            return valueSyntax.ToUInt32() >= MinValue;
         }
 
         /// <inheritdoc />
-        protected override int ParseLiteral(IntValueNode valueSyntax)
+        protected override uint ParseLiteral(IntValueNode valueSyntax)
         {
-            if (valueSyntax.ToInt32() < MinValue)
+            if (valueSyntax.ToUInt32() < MinValue)
             {
                 throw ThrowHelper.UnsignedIntType_ParseLiteral_IsNotUnsigned(this);
             }
 
-            return base.ParseLiteral(valueSyntax);
+            return valueSyntax.ToUInt32();
         }
 
         /// <inheritdoc />
-        protected override IntValueNode ParseValue(int runtimeValue)
+        protected override IntValueNode ParseValue(uint runtimeValue)
         {
             if (runtimeValue < MinValue)
             {
                 throw ThrowHelper.UnsignedIntType_ParseValue_IsNotUnsigned(this);
             }
 
-            return base.ParseValue(runtimeValue);
+            return new IntValueNode(runtimeValue);
         }
     }
 }
