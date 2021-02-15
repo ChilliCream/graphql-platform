@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
@@ -11,55 +10,35 @@ namespace HotChocolate.Types.Scalars
     public class PostalCodeType : StringType
     {
         /// <summary>
-        /// US - United States
-        /// UK - United Kingdom
-        /// DE - Germany
-        /// CA - Canada
-        /// FR - France
-        /// IT - Italy
-        /// AU - Australia
-        /// NL - Netherlands
-        /// ES - Spain
-        /// DK - Denmark
-        /// SE - Sweden
-        /// BE - Belgium
-        /// IN - India
-        /// AT - Austria
-        /// PT - Portugal
-        /// CH - Switzerland
-        /// LU - Luxembourg
+        /// Different validation patterns for postal codes.
         /// </summary>
-        private static readonly string[] _validationPatterns =
-        {
-            ScalarResources.PostalCode_ValidationPattern_US,
-            ScalarResources.PostalCode_ValidationPattern_DE,
-            ScalarResources.PostalCode_ValidationPattern_UK,
-            ScalarResources.PostalCode_ValidationPattern_CA,
-            ScalarResources.PostalCode_ValidationPattern_FR,
-            ScalarResources.PostalCode_ValidationPattern_IT,
-            ScalarResources.PostalCode_ValidationPattern_AU,
-            ScalarResources.PostalCode_ValidationPattern_NL,
-            ScalarResources.PostalCode_ValidationPattern_ES,
-            ScalarResources.PostalCode_ValidationPattern_DK,
-            ScalarResources.PostalCode_ValidationPattern_SE,
-            ScalarResources.PostalCode_ValidationPattern_BE,
-            ScalarResources.PostalCode_ValidationPattern_IN,
-            ScalarResources.PostalCode_ValidationPattern_AT,
-            ScalarResources.PostalCode_ValidationPattern_PT,
-            ScalarResources.PostalCode_ValidationPattern_CH,
-            ScalarResources.PostalCode_ValidationPattern_LU
-        };
+        private static readonly Regex[] _validationPatterns =
+            new[]
+                {
+                    ScalarResources.PostalCode_ValidationPattern_US,
+                    ScalarResources.PostalCode_ValidationPattern_DE,
+                    ScalarResources.PostalCode_ValidationPattern_UK,
+                    ScalarResources.PostalCode_ValidationPattern_CA,
+                    ScalarResources.PostalCode_ValidationPattern_FR,
+                    ScalarResources.PostalCode_ValidationPattern_IT,
+                    ScalarResources.PostalCode_ValidationPattern_AU,
+                    ScalarResources.PostalCode_ValidationPattern_NL,
+                    ScalarResources.PostalCode_ValidationPattern_ES,
+                    ScalarResources.PostalCode_ValidationPattern_DK,
+                    ScalarResources.PostalCode_ValidationPattern_SE,
+                    ScalarResources.PostalCode_ValidationPattern_BE,
+                    ScalarResources.PostalCode_ValidationPattern_IN,
+                    ScalarResources.PostalCode_ValidationPattern_AT,
+                    ScalarResources.PostalCode_ValidationPattern_PT,
+                    ScalarResources.PostalCode_ValidationPattern_CH,
+                    ScalarResources.PostalCode_ValidationPattern_LU
+                }
+                .Select(x => new Regex(x, RegexOptions.Compiled | RegexOptions.IgnoreCase))
+                .ToArray();
 
         /// <summary>
-        /// Start with a limited set as suggested here:
-        /// http://www.pixelenvision.com/1708/zip-postal-code-validation-regex-php-code-for-12-countries/
-        /// and here:
-        /// https://stackoverflow.com/questions/578406/what-is-the-ultimate-postal-code-and-zip-regex
+        /// Initializes a new instance of the <see cref="PostalCodeType"/> class.
         /// </summary>
-        private static readonly Func<string, bool> _validPostalCode = input =>
-            _validationPatterns.Select(pattern => Regex.Match(
-                input, pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase)).Any(match => match.Success);
-
         public PostalCodeType()
             : this(
                 WellKnownScalarTypes.PostalCode,
@@ -82,19 +61,19 @@ namespace HotChocolate.Types.Scalars
         /// <inheritdoc />
         protected override bool IsInstanceOfType(string runtimeValue)
         {
-            return _validPostalCode(runtimeValue);
+            return ValidatePostCode(runtimeValue);
         }
 
         /// <inheritdoc />
         protected override bool IsInstanceOfType(StringValueNode valueSyntax)
         {
-            return _validPostalCode(valueSyntax.Value);
+            return ValidatePostCode(valueSyntax.Value);
         }
 
         /// <inheritdoc />
         protected override string ParseLiteral(StringValueNode valueSyntax)
         {
-            if(!_validPostalCode(valueSyntax.Value))
+            if (!ValidatePostCode(valueSyntax.Value))
             {
                 throw ThrowHelper.PostalCodeType_ParseLiteral_IsInvalid(this);
             }
@@ -105,7 +84,7 @@ namespace HotChocolate.Types.Scalars
         /// <inheritdoc />
         protected override StringValueNode ParseValue(string runtimeValue)
         {
-            if(!_validPostalCode(runtimeValue))
+            if (!ValidatePostCode(runtimeValue))
             {
                 throw ThrowHelper.PostalCodeType_ParseValue_IsInvalid(this);
             }
@@ -122,8 +101,8 @@ namespace HotChocolate.Types.Scalars
                 return true;
             }
 
-            if(runtimeValue is string s &&
-               _validPostalCode(s))
+            if (runtimeValue is string s &&
+                ValidatePostCode(s))
             {
                 resultValue = s;
                 return true;
@@ -142,14 +121,27 @@ namespace HotChocolate.Types.Scalars
                 return true;
             }
 
-            if(resultValue is string s &&
-               _validPostalCode(s))
+            if (resultValue is string s &&
+                ValidatePostCode(s))
             {
                 runtimeValue = s;
                 return true;
             }
 
             runtimeValue = null;
+            return false;
+        }
+
+        private static bool ValidatePostCode(string postCode)
+        {
+            for (var i = 0; i < _validationPatterns.Length; i++)
+            {
+                if (_validationPatterns[i].IsMatch(postCode))
+                {
+                    return true;
+                }
+            }
+
             return false;
         }
     }
