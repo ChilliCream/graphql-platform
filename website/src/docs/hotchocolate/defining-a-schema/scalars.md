@@ -458,3 +458,11 @@ The PostalCode scalar type represents a valid postal code.
 """
 scalar PostalCode
 ```
+
+## UnsignedInt
+```sdl
+"""
+The UnsignedInt scalar type represents a unsigned 32‐bit numeric non‐fractional value greater than or equal to 0.
+"""
+scalar UnsignedInt
+```

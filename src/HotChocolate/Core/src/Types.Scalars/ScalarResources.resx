@@ -156,6 +156,15 @@
   <data name="PositiveIntType_ZeroOrLess_ParseValue" xml:space="preserve">
     <value>PositiveInt cannot parse the provided value. The provided value is 0 or less.</value>
   </data>
+  <data name="UnsignedIntType_Description" xml:space="preserve">
+    <value>The UnsignedInt scalar type represents a unsigned 32-bit numeric non-fractional value greater than or equal to 0.</value>
+  </data>
+  <data name="UnsignedIntType_IsNotUnsigned_ParseLiteral" xml:space="preserve">
+    <value>PositiveInt cannot parse the provided literal. The provided value is not greater than or equal to 0.</value>
+  </data>
+  <data name="UnsignedIntType_IsNotUnsigned_ParseValue" xml:space="preserve">
+    <value>PositiveInt cannot parse the provided value. The provided value is not greater than or equal to 0.</value>
+  </data>
   <data name="PostalCodeType_Description" xml:space="preserve">
     <value>The PostalCode scalar type represents a valid postal code.</value>
   </data>

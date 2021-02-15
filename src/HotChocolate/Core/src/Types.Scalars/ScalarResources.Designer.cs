@@ -9,21 +9,21 @@
 
 namespace HotChocolate.Types.Scalars {
     using System;
-
-
+    
+    
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class ScalarResources {
-
+        
         private static System.Resources.ResourceManager resourceMan;
-
+        
         private static System.Globalization.CultureInfo resourceCulture;
-
+        
         [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal ScalarResources() {
         }
-
+        
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static System.Resources.ResourceManager ResourceManager {
             get {
@@ -34,7 +34,7 @@ namespace HotChocolate.Types.Scalars {
                 return resourceMan;
             }
         }
-
+        
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static System.Globalization.CultureInfo Culture {
             get {
@@ -44,334 +44,334 @@ namespace HotChocolate.Types.Scalars {
                 resourceCulture = value;
             }
         }
-
+        
         internal static string EmailAddress_Description {
             get {
                 return ResourceManager.GetString("EmailAddress_Description", resourceCulture);
             }
         }
-
+        
         internal static string EmailAddress_IsInvalid_ParseLiteral {
             get {
                 return ResourceManager.GetString("EmailAddress_IsInvalid_ParseLiteral", resourceCulture);
             }
         }
-
+        
         internal static string EmailAddress_IsInvalid_ParseValue {
             get {
                 return ResourceManager.GetString("EmailAddress_IsInvalid_ParseValue", resourceCulture);
             }
         }
-
+        
         internal static string EmailAddress_ValidationPattern {
             get {
                 return ResourceManager.GetString("EmailAddress_ValidationPattern", resourceCulture);
             }
         }
-
+        
         internal static string NegativeFloatType_Description {
             get {
                 return ResourceManager.GetString("NegativeFloatType_Description", resourceCulture);
             }
         }
-
+        
         internal static string NegativeFloatType_IsNotNegative_ParseLiteral {
             get {
                 return ResourceManager.GetString("NegativeFloatType_IsNotNegative_ParseLiteral", resourceCulture);
             }
         }
-
+        
         internal static string NegativeFloatType_IsNotNegative_ParseValue {
             get {
                 return ResourceManager.GetString("NegativeFloatType_IsNotNegative_ParseValue", resourceCulture);
             }
         }
-
+        
         internal static string NegativeIntType_Description {
             get {
                 return ResourceManager.GetString("NegativeIntType_Description", resourceCulture);
             }
         }
-
+        
         internal static string NegativeIntType_IsNotNegative_ParseLiteral {
             get {
                 return ResourceManager.GetString("NegativeIntType_IsNotNegative_ParseLiteral", resourceCulture);
             }
         }
-
+        
         internal static string NegativeIntType_IsNotNegative_ParseValue {
             get {
                 return ResourceManager.GetString("NegativeIntType_IsNotNegative_ParseValue", resourceCulture);
             }
         }
-
+        
         internal static string NonEmptyStringType_Description {
             get {
                 return ResourceManager.GetString("NonEmptyStringType_Description", resourceCulture);
             }
         }
-
+        
         internal static string NonEmptyStringType_IsEmpty_ParseLiteral {
             get {
                 return ResourceManager.GetString("NonEmptyStringType_IsEmpty_ParseLiteral", resourceCulture);
             }
         }
-
+        
         internal static string NonEmptyStringType_IsEmpty_ParseValue {
             get {
                 return ResourceManager.GetString("NonEmptyStringType_IsEmpty_ParseValue", resourceCulture);
             }
         }
-
+        
         internal static string NonNegativeIntType_Description {
             get {
                 return ResourceManager.GetString("NonNegativeIntType_Description", resourceCulture);
             }
         }
-
+        
         internal static string NonNegativeIntType_IsNotNonNegative_ParseLiteral {
             get {
                 return ResourceManager.GetString("NonNegativeIntType_IsNotNonNegative_ParseLiteral", resourceCulture);
             }
         }
-
+        
         internal static string NonNegativeIntType_IsNotNonNegative_ParseValue {
             get {
                 return ResourceManager.GetString("NonNegativeIntType_IsNotNonNegative_ParseValue", resourceCulture);
             }
         }
-
+        
         internal static string NonPositiveFloatType_Description {
             get {
                 return ResourceManager.GetString("NonPositiveFloatType_Description", resourceCulture);
             }
         }
-
+        
         internal static string NonPositiveFloatType_IsNotNonPositive_ParseLiteral {
             get {
                 return ResourceManager.GetString("NonPositiveFloatType_IsNotNonPositive_ParseLiteral", resourceCulture);
             }
         }
-
+        
         internal static string NonPositiveFloatType_IsNotNonPositive_ParseValue {
             get {
                 return ResourceManager.GetString("NonPositiveFloatType_IsNotNonPositive_ParseValue", resourceCulture);
             }
         }
-
+        
         internal static string NonPositiveIntType_Description {
             get {
                 return ResourceManager.GetString("NonPositiveIntType_Description", resourceCulture);
             }
         }
-
+        
         internal static string NonPositiveIntType_IsNotNonPositive_ParseLiteral {
             get {
                 return ResourceManager.GetString("NonPositiveIntType_IsNotNonPositive_ParseLiteral", resourceCulture);
             }
         }
-
+        
         internal static string NonPositiveIntType_IsNotNonPositive_ParseValue {
             get {
                 return ResourceManager.GetString("NonPositiveIntType_IsNotNonPositive_ParseValue", resourceCulture);
             }
         }
-
+        
         internal static string NonNegativeFloatType_Description {
             get {
                 return ResourceManager.GetString("NonNegativeFloatType_Description", resourceCulture);
             }
         }
-
+        
         internal static string NonNegativeFloatType_IsNotNonNegative_ParseLiteral {
             get {
                 return ResourceManager.GetString("NonNegativeFloatType_IsNotNonNegative_ParseLiteral", resourceCulture);
             }
         }
-
+        
         internal static string NonNegativeFloatType_IsNotNonNegative_ParseValue {
             get {
                 return ResourceManager.GetString("NonNegativeFloatType_IsNotNonNegative_ParseValue", resourceCulture);
             }
         }
-
+        
         internal static string PhoneNumber_Description {
             get {
                 return ResourceManager.GetString("PhoneNumber_Description", resourceCulture);
             }
         }
-
+        
         internal static string PhoneNumber_IsInvalid_ParseLiteral {
             get {
                 return ResourceManager.GetString("PhoneNumber_IsInvalid_ParseLiteral", resourceCulture);
             }
         }
-
+        
         internal static string PhoneNumber_IsInvalid_ParseValue {
             get {
                 return ResourceManager.GetString("PhoneNumber_IsInvalid_ParseValue", resourceCulture);
             }
         }
-
+        
         internal static string PhoneNumber_ValidationPattern {
             get {
                 return ResourceManager.GetString("PhoneNumber_ValidationPattern", resourceCulture);
             }
         }
-
+        
         internal static string PositiveIntType_Description {
             get {
                 return ResourceManager.GetString("PositiveIntType_Description", resourceCulture);
             }
         }
-
+        
         internal static string PositiveIntType_ZeroOrLess_ParseLiteral {
             get {
                 return ResourceManager.GetString("PositiveIntType_ZeroOrLess_ParseLiteral", resourceCulture);
             }
         }
-
+        
         internal static string PositiveIntType_ZeroOrLess_ParseValue {
             get {
                 return ResourceManager.GetString("PositiveIntType_ZeroOrLess_ParseValue", resourceCulture);
             }
         }
-
+        
+        internal static string UnsignedIntType_Description {
+            get {
+                return ResourceManager.GetString("UnsignedIntType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string UnsignedIntType_IsNotUnsigned_ParseLiteral {
+            get {
+                return ResourceManager.GetString("UnsignedIntType_IsNotUnsigned_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        internal static string UnsignedIntType_IsNotUnsigned_ParseValue {
+            get {
+                return ResourceManager.GetString("UnsignedIntType_IsNotUnsigned_ParseValue", resourceCulture);
+            }
+        }
+        
         internal static string PostalCodeType_Description {
             get {
                 return ResourceManager.GetString("PostalCodeType_Description", resourceCulture);
             }
         }
-
+        
         internal static string PostalCodeType_IsInvalid_ParseLiteral {
             get {
                 return ResourceManager.GetString("PostalCodeType_IsInvalid_ParseLiteral", resourceCulture);
             }
         }
-
+        
         internal static string PostalCodeType_IsInvalid_ParseValue {
             get {
                 return ResourceManager.GetString("PostalCodeType_IsInvalid_ParseValue", resourceCulture);
             }
         }
-
+        
         internal static string PostalCode_ValidationPattern_US {
             get {
                 return ResourceManager.GetString("PostalCode_ValidationPattern_US", resourceCulture);
             }
         }
-
+        
         internal static string PostalCode_ValidationPattern_UK {
             get {
                 return ResourceManager.GetString("PostalCode_ValidationPattern_UK", resourceCulture);
             }
         }
-
+        
         internal static string PostalCode_ValidationPattern_DE {
             get {
                 return ResourceManager.GetString("PostalCode_ValidationPattern_DE", resourceCulture);
             }
         }
-
+        
         internal static string PostalCode_ValidationPattern_CA {
             get {
                 return ResourceManager.GetString("PostalCode_ValidationPattern_CA", resourceCulture);
             }
         }
-
+        
         internal static string PostalCode_ValidationPattern_FR {
             get {
                 return ResourceManager.GetString("PostalCode_ValidationPattern_FR", resourceCulture);
             }
         }
-
+        
         internal static string PostalCode_ValidationPattern_IT {
             get {
                 return ResourceManager.GetString("PostalCode_ValidationPattern_IT", resourceCulture);
             }
         }
-
+        
         internal static string PostalCode_ValidationPattern_AU {
             get {
                 return ResourceManager.GetString("PostalCode_ValidationPattern_AU", resourceCulture);
             }
         }
-
+        
         internal static string PostalCode_ValidationPattern_NL {
             get {
                 return ResourceManager.GetString("PostalCode_ValidationPattern_NL", resourceCulture);
             }
         }
-
+        
         internal static string PostalCode_ValidationPattern_ES {
             get {
                 return ResourceManager.GetString("PostalCode_ValidationPattern_ES", resourceCulture);
             }
         }
-
+        
         internal static string PostalCode_ValidationPattern_DK {
             get {
                 return ResourceManager.GetString("PostalCode_ValidationPattern_DK", resourceCulture);
             }
         }
-
+        
         internal static string PostalCode_ValidationPattern_SE {
             get {
                 return ResourceManager.GetString("PostalCode_ValidationPattern_SE", resourceCulture);
             }
         }
-
+        
         internal static string PostalCode_ValidationPattern_BE {
             get {
                 return ResourceManager.GetString("PostalCode_ValidationPattern_BE", resourceCulture);
             }
         }
-
+        
         internal static string PostalCode_ValidationPattern_IN {
             get {
                 return ResourceManager.GetString("PostalCode_ValidationPattern_IN", resourceCulture);
             }
         }
-
+        
         internal static string PostalCode_ValidationPattern_AT {
             get {
                 return ResourceManager.GetString("PostalCode_ValidationPattern_AT", resourceCulture);
             }
         }
-
+        
         internal static string PostalCode_ValidationPattern_PT {
             get {
                 return ResourceManager.GetString("PostalCode_ValidationPattern_PT", resourceCulture);
             }
         }
-
+        
         internal static string PostalCode_ValidationPattern_CH {
             get {
                 return ResourceManager.GetString("PostalCode_ValidationPattern_CH", resourceCulture);
             }
         }
-
+        
         internal static string PostalCode_ValidationPattern_LU {
             get {
                 return ResourceManager.GetString("PostalCode_ValidationPattern_LU", resourceCulture);
-            }
-        }
-
-        internal static string UnsignedFloatType_Description {
-            get {
-                return ResourceManager.GetString("UnsignedFloatType_Description", resourceCulture);
-            }
-        }
-
-        internal static string UnsignedFloatType_IsNotUnsigned_ParseLiteral {
-            get {
-                return ResourceManager.GetString("UnsignedFloatType_IsNotUnsigned_ParseLiteral", resourceCulture);
-            }
-        }
-
-        internal static string UnsignedFloatType_IsNotUnsigned_ParseValue {
-            get {
-                return ResourceManager.GetString("UnsignedFloatType_IsNotUnsigned_ParseValue", resourceCulture);
             }
         }
     }
