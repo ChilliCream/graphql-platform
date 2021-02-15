@@ -197,14 +197,21 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     }
                 }
 
+                var finalKind = kind ?? fallbackKind;
                 descriptorModel = new TypeDescriptorModel(
                     outputType,
                     new NamedTypeDescriptor(
-                        outputType.Name,
+                        finalKind == TypeKind.ResultType
+                            ? NamingConventions.ResultRootTypeNameFromTypeName(outputType.Name)
+                            : outputType.Name,
                         context.Namespace,
                         outputType.IsInterface,
-                        outputType.Implements.Select(t => t.Name).ToList(),
-                        kind: kind ?? fallbackKind,
+                        outputType.Implements.Select(
+                            t => finalKind == TypeKind.ResultType
+                                ? (NameString)NamingConventions.ResultRootTypeNameFromTypeName(
+                                    t.Name)
+                                : t.Name).ToList(),
+                        kind: finalKind,
                         graphQLTypeName: outputType.Type.Name,
                         implementedBy: implementedBy,
                         complexDataTypeParent: complexDataTypeParent));

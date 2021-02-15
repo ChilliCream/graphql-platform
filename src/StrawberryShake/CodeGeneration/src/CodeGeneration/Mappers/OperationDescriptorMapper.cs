@@ -4,6 +4,7 @@ using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
+using static StrawberryShake.CodeGeneration.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.Mappers
 {
@@ -44,6 +45,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
                         })
                     .ToList();
 
+                var resultTypeName = ResultRootTypeNameFromTypeName(modelOperation.ResultType.Name);
+
                 switch (modelOperation.OperationType)
                 {
                     case OperationType.Query:
@@ -52,7 +55,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                             new QueryOperationDescriptor(
                                 modelOperation.Name,
                                 context.Types.Single(
-                                    t => t.Name.Equals(modelOperation.ResultType.Name)),
+                                    t => t.Name.Equals(resultTypeName)),
                                 context.Namespace,
                                 arguments,
                                 modelOperation.Document.ToString()));
@@ -63,7 +66,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                             new MutationOperationDescriptor(
                                 modelOperation.Name,
                                 context.Types.Single(
-                                    t => t.Name.Equals(modelOperation.ResultType.Name)),
+                                    t => t.Name.Equals(resultTypeName)),
                                 context.Namespace,
                                 arguments,
                                 modelOperation.Document.ToString()));
@@ -74,7 +77,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                             new SubscriptionOperationDescriptor(
                                 modelOperation.Name,
                                 context.Types.Single(
-                                    t => t.Name.Equals(modelOperation.ResultType.Name)),
+                                    t => t.Name.Equals(resultTypeName)),
                                 context.Namespace,
                                 arguments,
                                 modelOperation.Document.ToString()));
