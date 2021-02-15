@@ -13,7 +13,7 @@ namespace HotChocolate.Types.Scalars
         /// Regex that validates the standard E.164 format
         /// </summary>
         private static readonly string _validationPattern =
-            ScalarResources.PhoneNumber_ValidationPattern;
+            ScalarResources.PhoneNumberType_ValidationPattern;
 
         private static readonly Regex _validationRegex =
             new(_validationPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
@@ -24,7 +24,7 @@ namespace HotChocolate.Types.Scalars
         public PhoneNumberType()
             : this(
                 WellKnownScalarTypes.PhoneNumber,
-                ScalarResources.PhoneNumber_Description)
+                ScalarResources.PhoneNumberType_Description)
         {
         }
 

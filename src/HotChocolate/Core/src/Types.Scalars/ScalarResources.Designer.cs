@@ -45,27 +45,27 @@ namespace HotChocolate.Types.Scalars {
             }
         }
         
-        internal static string EmailAddress_Description {
+        internal static string EmailAddressType_Description {
             get {
-                return ResourceManager.GetString("EmailAddress_Description", resourceCulture);
+                return ResourceManager.GetString("EmailAddressType_Description", resourceCulture);
             }
         }
         
-        internal static string EmailAddress_IsInvalid_ParseLiteral {
+        internal static string EmailAddressType_IsInvalid_ParseLiteral {
             get {
-                return ResourceManager.GetString("EmailAddress_IsInvalid_ParseLiteral", resourceCulture);
+                return ResourceManager.GetString("EmailAddressType_IsInvalid_ParseLiteral", resourceCulture);
             }
         }
         
-        internal static string EmailAddress_IsInvalid_ParseValue {
+        internal static string EmailAddressType_IsInvalid_ParseValue {
             get {
-                return ResourceManager.GetString("EmailAddress_IsInvalid_ParseValue", resourceCulture);
+                return ResourceManager.GetString("EmailAddressType_IsInvalid_ParseValue", resourceCulture);
             }
         }
         
-        internal static string EmailAddress_ValidationPattern {
+        internal static string EmailAddressType_ValidationPattern {
             get {
-                return ResourceManager.GetString("EmailAddress_ValidationPattern", resourceCulture);
+                return ResourceManager.GetString("EmailAddressType_ValidationPattern", resourceCulture);
             }
         }
         
@@ -195,27 +195,27 @@ namespace HotChocolate.Types.Scalars {
             }
         }
         
-        internal static string PhoneNumber_Description {
+        internal static string PhoneNumberType_Description {
             get {
-                return ResourceManager.GetString("PhoneNumber_Description", resourceCulture);
+                return ResourceManager.GetString("PhoneNumberType_Description", resourceCulture);
             }
         }
         
-        internal static string PhoneNumber_IsInvalid_ParseLiteral {
+        internal static string PhoneNumberType_IsInvalid_ParseLiteral {
             get {
-                return ResourceManager.GetString("PhoneNumber_IsInvalid_ParseLiteral", resourceCulture);
+                return ResourceManager.GetString("PhoneNumberType_IsInvalid_ParseLiteral", resourceCulture);
             }
         }
         
-        internal static string PhoneNumber_IsInvalid_ParseValue {
+        internal static string PhoneNumberType_IsInvalid_ParseValue {
             get {
-                return ResourceManager.GetString("PhoneNumber_IsInvalid_ParseValue", resourceCulture);
+                return ResourceManager.GetString("PhoneNumberType_IsInvalid_ParseValue", resourceCulture);
             }
         }
         
-        internal static string PhoneNumber_ValidationPattern {
+        internal static string PhoneNumberType_ValidationPattern {
             get {
-                return ResourceManager.GetString("PhoneNumber_ValidationPattern", resourceCulture);
+                return ResourceManager.GetString("PhoneNumberType_ValidationPattern", resourceCulture);
             }
         }
         
