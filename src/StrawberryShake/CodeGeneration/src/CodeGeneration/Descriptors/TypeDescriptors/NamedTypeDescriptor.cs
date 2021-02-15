@@ -19,7 +19,8 @@ namespace StrawberryShake.CodeGeneration
             TypeKind kind = TypeKind.LeafType,
             NameString? graphQLTypeName = null,
             string? serializationType = null,
-            bool isEnum = false)
+            bool isEnum = false,
+            string? complexDataTypeParent = null)
         {
             Name = name;
             Namespace = @namespace;
@@ -31,6 +32,7 @@ namespace StrawberryShake.CodeGeneration
             IsInterface = isInterface;
             SerializationType = serializationType;
             IsEnum = isEnum;
+            ComplexDataTypeParent = complexDataTypeParent;
         }
 
         /// <summary>
@@ -47,6 +49,8 @@ namespace StrawberryShake.CodeGeneration
         /// Gets the GraphQL type name.
         /// </summary>
         public NameString? GraphQLTypeName { get; }
+
+        public NameString? ComplexDataTypeParent { get; }
 
         /// <summary>
         /// The runtimetype including namespace of the GraphQL scalar type

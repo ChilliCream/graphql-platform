@@ -1,4 +1,6 @@
-﻿namespace FooNamespace
+﻿#nullable enable
+
+namespace FooNamespace
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooResultBuilder
@@ -42,8 +44,7 @@
                 data?.Result,
                 data?.Info,
                 _resultDataFactory,
-                null
-            );
+                null);
         }
 
         private (IFoo, FooInfo) BuildData(global::System.Text.Json.JsonElement obj)
@@ -53,14 +54,12 @@
 
             global::StrawberryShake.EntityId? theBarId = UpdateBarEntity(
                 global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj, "theBar"),
-                entityIds
-            );
+                entityIds);
 
             var resultInfo = new FooInfo(
                 theBarId,
                 entityIds,
-                session.Version
-            );
+                session.Version);
 
             return (_resultDataFactory.Create(resultInfo), resultInfo);
         }

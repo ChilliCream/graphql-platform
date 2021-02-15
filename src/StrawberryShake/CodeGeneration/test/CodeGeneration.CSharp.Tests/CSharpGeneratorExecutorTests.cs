@@ -1,10 +1,9 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using HotChocolate.Types;
-using HotChocolate.Execution;
 using HotChocolate.Language;
-using HotChocolate.Resolvers;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.CodeAnalysis;
 using Snapshooter.Xunit;
 using StrawberryShake.CodeGeneration.Analyzers;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
@@ -75,7 +74,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                       }
                     }
                     ",
-                    "extend schema @key(fields: \"id\")");
+                        "extend schema @key(fields: \"id\")");
 
             // act
             var documents = new StringBuilder();
@@ -252,8 +251,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
             CSharpGeneratorExecutor generator,
             StringBuilder documents)
         {
+            var documentName = new HashSet<string>();
             foreach (CSharpDocument document in generator.Generate(clientModel, "Foo", "FooClient"))
             {
+                if (!documentName.Add(document.Name))
+                {
+                    Assert.True(false, $"Document name duplicated {document.Name}");
+                }
+
                 documents.AppendLine("// " + document.Name);
                 documents.AppendLine();
                 documents.AppendLine(document.SourceText);
@@ -261,6 +266,19 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
 
             documents.ToString().MatchSnapshot();
+
+            IReadOnlyList<Diagnostic> diagnostics =
+                CSharpCompiler.GetDiagnosticErrors(documents.ToString());
+
+            if (diagnostics.Any())
+            {
+                Assert.True(false,
+                    "Diagnostic Errors: \n" +
+                    diagnostics
+                        .Select(x =>
+                            $"{x.GetMessage()} (Line: {x.Location.GetLineSpan().StartLinePosition.Line})")
+                        .Aggregate((acc, val) => acc + "\n" + val));
+            }
         }
     }
 }

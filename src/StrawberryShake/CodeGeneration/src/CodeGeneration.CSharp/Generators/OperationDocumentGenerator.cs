@@ -1,5 +1,4 @@
 using System;
-using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using static StrawberryShake.CodeGeneration.NamingConventions;
 
@@ -7,7 +6,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public class OperationDocumentGenerator: ClassBaseGenerator<OperationDescriptor>
     {
-        protected override void Generate(CodeWriter writer, OperationDescriptor descriptor, out string fileName)
+        protected override void Generate(
+            CodeWriter writer, 
+            OperationDescriptor descriptor, 
+            out string fileName)
         {
             var (classBuilder, constructorBuilder) = CreateClassBuilder();
 

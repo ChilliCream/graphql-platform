@@ -83,6 +83,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             }
 
             return new ClientModel(
+                _schema,
                 operations,
                 leafTypes.Values.ToList(),
                 inputObjectType.Values.ToList());

@@ -1,0 +1,33 @@
+type Query {
+  store: Store!
+  searchableStore: SearchableStore!
+  books: [Book!]
+  authors: [Author!]
+  search: [SearchResult]
+}
+
+type Book {
+  isbn: String!
+  title: String!
+  author: Author!
+}
+
+type Author {
+  name: String!
+  genres: [String]
+  books: [Book!]
+}
+
+type Store {
+  id: String!
+  books: [Book]
+  authors: [Author]
+}
+
+type SearchableStore {
+  id: String!
+  books: [Book]
+  search: SearchResult
+}
+
+union SearchResult = Author | Book

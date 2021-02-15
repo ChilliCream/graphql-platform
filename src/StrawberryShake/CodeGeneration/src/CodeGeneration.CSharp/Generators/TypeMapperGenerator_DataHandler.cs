@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Extensions;
+using static StrawberryShake.CodeGeneration.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -20,7 +21,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             method.AddParameter(
                 ParameterBuilder.New()
-                    .SetType(NamingConventions.DataTypeNameFromTypeName(namedTypeDescriptor.Name))
+                    .SetType(
+                        $"global::{namedTypeDescriptor.Namespace}.State." +
+                        DataTypeNameFromTypeName(namedTypeDescriptor.GraphQLTypeName))
                     .SetName(DataParamName));
 
             if (!isNonNullable)
@@ -61,13 +64,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 {
                     ifCorrectType.SetCondition(
                         $"{DataParamName}.__typename.Equals(\"" +
-                        $"{interfaceImplementee.GraphQLTypeName}\", {TypeNames.OrdinalStringComparisson})");
+                        $"{interfaceImplementee.GraphQLTypeName}\", " +
+                        $"{TypeNames.OrdinalStringComparisson})");
                 }
                 else
                 {
                     ifCorrectType.SetCondition(
                         $"{DataParamName}?.__typename.Equals(\"" +
-                        $"{interfaceImplementee.GraphQLTypeName}\", {TypeNames.OrdinalStringComparisson}) ?? false");
+                        $"{interfaceImplementee.GraphQLTypeName}\", " +
+                        $"{TypeNames.OrdinalStringComparisson}) ?? false");
                 }
 
 
@@ -83,11 +88,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         constructorCall.AddArgument(
                             BuildMapMethodCall(
                                 DataParamName,
-                                prop));
+                                prop,
+                                true));
                     }
                     else
                     {
-                        constructorCall.AddArgument(propAccess);
+                        constructorCall.AddArgument(
+                            $"{propAccess} ?? throw new {TypeNames.ArgumentNullException}()");
                     }
                 }
 

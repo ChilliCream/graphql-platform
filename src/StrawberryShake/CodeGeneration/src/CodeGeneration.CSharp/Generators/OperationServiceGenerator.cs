@@ -233,7 +233,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 {
                     var argumentsDictName = "arguments";
                     method.AddCode(
-                        $"var {argumentsDictName} = new {TypeNames.Dictionary.WithGeneric(TypeNames.String, TypeNames.Object.MakeNullable())}();");
+                        $"var {argumentsDictName} = new " +
+                        TypeNames.Dictionary.WithGeneric(
+                            TypeNames.String,
+                            TypeNames.Object.MakeNullable()) +
+                        "();");
                     requestConstructor.AddArgument(argumentsDictName);
                 }
 
@@ -249,7 +253,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 method.AddCode(
                     CodeLineBuilder.New()
                         .SetLine(
-                            $"arguments.Add(\"{arg.Name}\", Format{arg.Name.WithCapitalFirstChar()}({argName}));"));
+                            $"arguments.Add(\"{arg.Name}\", " +
+                            $"Format{arg.Name.WithCapitalFirstChar()}({argName}));"));
             }
 
             method.AddEmptyLine();

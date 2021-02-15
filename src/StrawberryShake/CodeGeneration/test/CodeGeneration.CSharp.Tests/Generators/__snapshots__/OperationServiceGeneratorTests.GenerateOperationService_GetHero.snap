@@ -1,4 +1,6 @@
-﻿namespace StarWarsClient
+﻿#nullable enable
+
+namespace StarWarsClient
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroQuery
@@ -18,8 +20,7 @@
             return await _operationExecutor
                 .ExecuteAsync(
                     request,
-                    cancellationToken
-                )
+                    cancellationToken)
                 .ConfigureAwait(false);
         }
 
@@ -34,8 +35,7 @@
 
             return new global::StrawberryShake.OperationRequest(
                 "GetHero",
-                GetHeroQueryDocument.Instance
-            );
+                GetHeroQueryDocument.Instance);
         }
     }
 }

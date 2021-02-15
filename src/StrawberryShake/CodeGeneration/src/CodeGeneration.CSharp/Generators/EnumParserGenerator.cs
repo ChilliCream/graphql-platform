@@ -34,7 +34,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetAccessModifier(AccessModifier.Public)
                 .SetReturnType("object")
                 .AddParameter(ParameterBuilder.New()
-                    .SetType("object")
+                    .SetType(TypeNames.Object.MakeNullable())
                     .SetName(runtimeValueParamName))
                 .AddCode(CreateEnumFormatingSwitch(runtimeValueParamName, descriptor));
 
@@ -61,7 +61,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .AppendLineForEach(
                     descriptor.Values,
                     x => $"    \"{x.GraphQLName}\" => {descriptor.Name}.{x.Name},")
-                .AppendLine($"    _ => throw new {TypeNames.IGraphQLClientException}()")
+                .AppendLine($"    _ => throw new {TypeNames.GraphQLClientException}()")
                 .AppendLine("};");
 
             return CodeBlockBuilder.From(sourceText);
@@ -82,7 +82,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     $"    {descriptor.Name}.{enumValue.Name} => \"{enumValue.GraphQLName}\",");
             }
 
-            sourceText.AppendLine($"    _ => throw new {TypeNames.IGraphQLClientException}()");
+            sourceText.AppendLine($"    _ => throw new {TypeNames.GraphQLClientException}()");
             sourceText.AppendLine("};");
 
             return CodeBlockBuilder.From(sourceText);

@@ -114,7 +114,5 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
             writer.WriteLine();
         }
-
-
     }
 }

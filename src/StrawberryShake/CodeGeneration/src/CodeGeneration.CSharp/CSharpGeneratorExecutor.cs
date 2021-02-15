@@ -48,6 +48,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             ClientDescriptorMapper.Map(clientModel, context);
             ResultBuilderDescriptorMapper.Map(clientModel, context);
             DependencyInjectionMapper.Map(clientModel, context);
+            DataTypeDescriptorMapper.Map(clientModel, context);
 
             var code = new StringBuilder();
 
@@ -77,18 +78,5 @@ namespace StrawberryShake.CodeGeneration.CSharp
             writer.Flush();
             return new(fileName, code.ToString());
         }
-    }
-
-    public class CSharpDocument
-    {
-        public CSharpDocument(string name, string source)
-        {
-            Name = name;
-            SourceText = source;
-        }
-
-        public string Name { get; }
-
-        public string SourceText { get; }
     }
 }

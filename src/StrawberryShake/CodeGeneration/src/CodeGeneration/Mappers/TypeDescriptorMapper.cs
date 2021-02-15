@@ -16,9 +16,13 @@ namespace StrawberryShake.CodeGeneration.Mappers
             IMapperContext context)
         {
             foreach (var (nameString, namedTypeDescriptor) in
-                CollectTypeDescriptors(model, context))
+                CollectTypeDescriptors(
+                    model,
+                    context))
             {
-                context.Register(nameString, namedTypeDescriptor);
+                context.Register(
+                    nameString,
+                    namedTypeDescriptor);
             }
         }
 
@@ -79,6 +83,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
             IMapperContext context,
             Dictionary<NameString, TypeDescriptorModel> typeDescriptors)
         {
+            var unionTypes = model.Schema.Types.OfType<UnionType>().ToList();
+
             foreach (OperationModel operation in model.Operations)
             {
                 foreach (OutputTypeModel outputType in operation.GetImplementations(
@@ -89,6 +95,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                         context,
                         typeDescriptors,
                         outputType,
+                        unionTypes,
                         TypeKind.ResultType);
                 }
 
@@ -98,7 +105,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
                         model,
                         context,
                         typeDescriptors,
-                        outputType);
+                        outputType,
+                        unionTypes);
                 }
 
                 RegisterType(
@@ -106,6 +114,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     context,
                     typeDescriptors,
                     operation.ResultType,
+                    unionTypes,
                     TypeKind.ResultType,
                     operation);
 
@@ -120,6 +129,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                             context,
                             typeDescriptors,
                             outputType,
+                            unionTypes,
                             operationModel: operation);
                     }
                 }
@@ -131,6 +141,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
             IMapperContext context,
             Dictionary<NameString, TypeDescriptorModel> typeDescriptors,
             OutputTypeModel outputType,
+            List<UnionType> unionTypes,
             TypeKind? kind = null,
             OperationModel? operationModel = null)
         {
@@ -152,6 +163,40 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     implementedBy = classes.ToList();
                 }
 
+                TypeKind fallbackKind;
+                string? complexDataTypeParent = null;
+                if (outputType.Type.IsEntity())
+                {
+                    fallbackKind = TypeKind.EntityType;
+                }
+                else
+                {
+                    if (outputType.Type.IsAbstractType())
+                    {
+                        fallbackKind = TypeKind.ComplexDataType;
+                        complexDataTypeParent = outputType.Type.Name;
+                    }
+                    else
+                    {
+                        OutputTypeModel? mostAbstractTypeModel = outputType;
+                        while (mostAbstractTypeModel.Implements.Count > 0)
+                        {
+                            mostAbstractTypeModel = mostAbstractTypeModel.Implements[0];
+                        }
+
+                        complexDataTypeParent = mostAbstractTypeModel.Type.Name;
+
+                        if (complexDataTypeParent == outputType.Type.Name)
+                        {
+                            fallbackKind = TypeKind.DataType;
+                        }
+                        else
+                        {
+                            fallbackKind = TypeKind.ComplexDataType;
+                        }
+                    }
+                }
+
                 descriptorModel = new TypeDescriptorModel(
                     outputType,
                     new NamedTypeDescriptor(
@@ -159,11 +204,10 @@ namespace StrawberryShake.CodeGeneration.Mappers
                         context.Namespace,
                         outputType.IsInterface,
                         outputType.Implements.Select(t => t.Name).ToList(),
-                        kind: kind ?? (outputType.Type.IsEntity()
-                            ? TypeKind.EntityType
-                            : TypeKind.DataType),
+                        kind: kind ?? fallbackKind,
                         graphQLTypeName: outputType.Type.Name,
-                        implementedBy: implementedBy));
+                        implementedBy: implementedBy,
+                        complexDataTypeParent: complexDataTypeParent));
 
                 typeDescriptors.Add(
                     outputType.Name,
@@ -181,7 +225,11 @@ namespace StrawberryShake.CodeGeneration.Mappers
             {
                 if (type.IsInterface)
                 {
-                    CollectClassesThatImplementInterface(operation, type, typeDescriptors, classes);
+                    CollectClassesThatImplementInterface(
+                        operation,
+                        type,
+                        typeDescriptors,
+                        classes);
                 }
                 else
                 {
