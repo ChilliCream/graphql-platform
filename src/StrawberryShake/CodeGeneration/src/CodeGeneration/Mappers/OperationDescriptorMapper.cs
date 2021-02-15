@@ -38,8 +38,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
                             return new PropertyDescriptor(
                                 arg.Name,
                                 Unwrap(arg.Type,
-                                    _ => context.Types.Single(
-                                        type => type.Name == arg.Type.TypeName()
+                                    _ => context.Types.First(
+                                        type => type.GraphQLTypeName == arg.Type.TypeName()
                                     )));
                         })
                     .ToList();
