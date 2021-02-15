@@ -14,7 +14,7 @@ namespace HotChocolate.Types.Scalars
         /// Source : https://emailregex.com/
         /// </summary>
         private static readonly string _validationPattern =
-            ScalarResources.EmailAddressType_ValidationPattern;
+            ScalarResources.EmailAddress_ValidationPattern;
 
         private static readonly Regex _validationRegex =
             new( _validationPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
@@ -22,7 +22,7 @@ namespace HotChocolate.Types.Scalars
         public EmailAddressType()
             : this(
                 WellKnownScalarTypes.EmailAddress,
-                ScalarResources.EmailAddressType_Description)
+                ScalarResources.EmailAddress_Description)
         {
         }
 
