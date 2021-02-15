@@ -1,11 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <!--Target Name="RemoveStrawberryShakeSourceGeneratedFiles" BeforeTargets="CoreCompile">
-    <ItemGroup>
-      <Compile Remove="**/*.StrawberryShake.cs" />
-    </ItemGroup>
-  </Target-->
-
+  <!--When the solution is initially.-->
   <ItemGroup>
     <Compile
       Remove="**/*.StrawberryShake.cs" />
@@ -18,6 +13,7 @@
 
   <Target Name="GraphQLCompile" />
 
+  <!--When something changes during code generation.-->
   <Target Name="StrawberryShake_DesignTime_Files" BeforeTargets="CoreCompile;ResolveProjectReferences;$(PrepareProjectReferencesDependsOn)">
     <ItemGroup>
       <Compile
