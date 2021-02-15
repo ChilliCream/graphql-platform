@@ -236,5 +236,143 @@ namespace HotChocolate.Types.Scalars {
                 return ResourceManager.GetString("PositiveIntType_ZeroOrLess_ParseValue", resourceCulture);
             }
         }
+
+        internal static string PostalCodeType_Description {
+            get {
+                return ResourceManager.GetString("PostalCodeType_Description", resourceCulture);
+            }
+        }
+
+        internal static string PostalCodeType_IsInvalid_ParseLiteral {
+            get {
+                return ResourceManager.GetString("PostalCodeType_IsInvalid_ParseLiteral", resourceCulture);
+            }
+        }
+
+        internal static string PostalCodeType_IsInvalid_ParseValue {
+            get {
+                return ResourceManager.GetString("PostalCodeType_IsInvalid_ParseValue", resourceCulture);
+            }
+        }
+
+        internal static string PostalCode_ValidationPattern_US {
+            get {
+                return ResourceManager.GetString("PostalCode_ValidationPattern_US", resourceCulture);
+            }
+        }
+
+        internal static string PostalCode_ValidationPattern_UK {
+            get {
+                return ResourceManager.GetString("PostalCode_ValidationPattern_UK", resourceCulture);
+            }
+        }
+
+        internal static string PostalCode_ValidationPattern_DE {
+            get {
+                return ResourceManager.GetString("PostalCode_ValidationPattern_DE", resourceCulture);
+            }
+        }
+
+        internal static string PostalCode_ValidationPattern_CA {
+            get {
+                return ResourceManager.GetString("PostalCode_ValidationPattern_CA", resourceCulture);
+            }
+        }
+
+        internal static string PostalCode_ValidationPattern_FR {
+            get {
+                return ResourceManager.GetString("PostalCode_ValidationPattern_FR", resourceCulture);
+            }
+        }
+
+        internal static string PostalCode_ValidationPattern_IT {
+            get {
+                return ResourceManager.GetString("PostalCode_ValidationPattern_IT", resourceCulture);
+            }
+        }
+
+        internal static string PostalCode_ValidationPattern_AU {
+            get {
+                return ResourceManager.GetString("PostalCode_ValidationPattern_AU", resourceCulture);
+            }
+        }
+
+        internal static string PostalCode_ValidationPattern_NL {
+            get {
+                return ResourceManager.GetString("PostalCode_ValidationPattern_NL", resourceCulture);
+            }
+        }
+
+        internal static string PostalCode_ValidationPattern_ES {
+            get {
+                return ResourceManager.GetString("PostalCode_ValidationPattern_ES", resourceCulture);
+            }
+        }
+
+        internal static string PostalCode_ValidationPattern_DK {
+            get {
+                return ResourceManager.GetString("PostalCode_ValidationPattern_DK", resourceCulture);
+            }
+        }
+
+        internal static string PostalCode_ValidationPattern_SE {
+            get {
+                return ResourceManager.GetString("PostalCode_ValidationPattern_SE", resourceCulture);
+            }
+        }
+
+        internal static string PostalCode_ValidationPattern_BE {
+            get {
+                return ResourceManager.GetString("PostalCode_ValidationPattern_BE", resourceCulture);
+            }
+        }
+
+        internal static string PostalCode_ValidationPattern_IN {
+            get {
+                return ResourceManager.GetString("PostalCode_ValidationPattern_IN", resourceCulture);
+            }
+        }
+
+        internal static string PostalCode_ValidationPattern_AT {
+            get {
+                return ResourceManager.GetString("PostalCode_ValidationPattern_AT", resourceCulture);
+            }
+        }
+
+        internal static string PostalCode_ValidationPattern_PT {
+            get {
+                return ResourceManager.GetString("PostalCode_ValidationPattern_PT", resourceCulture);
+            }
+        }
+
+        internal static string PostalCode_ValidationPattern_CH {
+            get {
+                return ResourceManager.GetString("PostalCode_ValidationPattern_CH", resourceCulture);
+            }
+        }
+
+        internal static string PostalCode_ValidationPattern_LU {
+            get {
+                return ResourceManager.GetString("PostalCode_ValidationPattern_LU", resourceCulture);
+            }
+        }
+
+        internal static string UnsignedFloatType_Description {
+            get {
+                return ResourceManager.GetString("UnsignedFloatType_Description", resourceCulture);
+            }
+        }
+
+        internal static string UnsignedFloatType_IsNotUnsigned_ParseLiteral {
+            get {
+                return ResourceManager.GetString("UnsignedFloatType_IsNotUnsigned_ParseLiteral", resourceCulture);
+            }
+        }
+
+        internal static string UnsignedFloatType_IsNotUnsigned_ParseValue {
+            get {
+                return ResourceManager.GetString("UnsignedFloatType_IsNotUnsigned_ParseValue", resourceCulture);
+            }
+        }
     }
 }
