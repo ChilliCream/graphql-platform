@@ -13,7 +13,7 @@ namespace StrawberryShake.Tools
             output.WriteLine("- Initialize project and download schema");
             output.WriteLine("  dotnet graphql init http://localhost");
             output.WriteLine(
-                "  dotnet graphql init {url} [-p|--Path] [-n|--SchemaName] " +
+                "  dotnet graphql init {url} [-p|--Path] [-n|--clientName] " +
                 "[--token] [--scheme] [--tokenEndpoint] [--clientId] " +
                 "[--clientSecret] [--scope]");
             output.WriteLine();
@@ -25,7 +25,7 @@ namespace StrawberryShake.Tools
                 "[--token] [--scheme] [--tokenEndpoint] [--clientId] " +
                 "[--clientSecret] [--scope]");
             output.WriteLine();
-            
+
             output.WriteLine("- Download the schema as GraphQL SDL");
             output.WriteLine("  dotnet graphql download http://localhost");
             output.WriteLine(
