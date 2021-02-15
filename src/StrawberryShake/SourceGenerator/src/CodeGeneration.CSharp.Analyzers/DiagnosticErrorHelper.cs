@@ -59,15 +59,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             GeneratorExecutionContext context,
             IError error,
             string title,
-            string code,
-            string location)
+            string code)
         { 
             context.ReportDiagnostic(
                 Diagnostic.Create(
                     new DiagnosticDescriptor(
                         id: code,
                         title: title,
-                        messageFormat: $"An error occurred during generation: {error.Message} {location}",
+                        messageFormat: $"An error occurred during generation: {error.Message}",
                         category: _category,
                         DiagnosticSeverity.Error,
                         isEnabledByDefault: true,

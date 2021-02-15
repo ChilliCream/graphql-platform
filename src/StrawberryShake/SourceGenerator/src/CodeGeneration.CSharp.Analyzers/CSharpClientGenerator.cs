@@ -63,7 +63,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             var allDocuments = GetGraphQLFiles(context);
             var allConfigurations = GetGraphQLConfigs(context);
 
-            foreach (var config in GetGraphQLConfigs(context))
+            foreach (var config in allConfigurations)
             {
                 var clientContext = new ClientGeneratorContext(
                     context,
@@ -73,11 +73,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     IOPath.GetDirectoryName(config.Location)!,
                     allDocuments);
 
-                log.Begin(config, clientContext);
-
-                Execute(clientContext);
-
-                log.End();
+                if (clientContext.GetDocuments().Count > 0)
+                {
+                    log.Begin(config, clientContext);
+                    Execute(clientContext);
+                    log.End();
+                }
             }
         }
 
