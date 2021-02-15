@@ -1,0 +1,15 @@
+﻿#nullable enable
+
+namespace FooBarNamespace
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class Foo
+    {
+        public Foo(System.string? someText)
+        {
+            SomeText = someText;
+        }
+
+        public System.string? SomeText { get; } = default!;
+    }
+}

@@ -1,0 +1,14 @@
+﻿#nullable enable
+
+namespace StarWarsClient
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class DroidFromDroidEntityMapper
+        : global::StrawberryShake.IEntityMapper<DroidEntity, Droid>
+    {
+        public Droid Map(DroidEntity entity)
+        {
+            return new Droid(entity.Name);
+        }
+    }
+}

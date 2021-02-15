@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Linq;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
@@ -8,8 +8,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
     {
         private AccessModifier _accessModifier = AccessModifier.Public;
         private string? _typeName;
-        private List<ParameterBuilder> _parameters = new List<ParameterBuilder>();
-        private List<ICode> _lines = new List<ICode>();
+        private readonly List<ParameterBuilder> _parameters = new();
+        private readonly List<ICode> _lines = new();
 
         public static ConstructorBuilder New() => new ConstructorBuilder();
 
@@ -31,6 +31,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
+        public bool HasParameters()
+        {
+            return _parameters.Any();
+        }
+
         public ConstructorBuilder AddCode(ICode value)
         {
             _lines.Add(value);
@@ -43,7 +48,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public async Task BuildAsync(CodeWriter writer)
+        public void Build(CodeWriter writer)
         {
             if (writer is null)
             {
@@ -52,56 +57,54 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
             string modifier = _accessModifier.ToString().ToLowerInvariant();
 
-            await writer.WriteIndentAsync().ConfigureAwait(false);
+            writer.WriteIndent();
 
-            await writer.WriteAsync(
-                $"{modifier} {_typeName}(")
-                .ConfigureAwait(false);
+            writer.Write($"{modifier} {_typeName}(");
 
             if (_parameters.Count == 0)
             {
-                await writer.WriteAsync(")").ConfigureAwait(false);
+                writer.Write(")");
             }
             else if (_parameters.Count == 1)
             {
-                await _parameters[0].BuildAsync(writer).ConfigureAwait(false);
-                await writer.WriteAsync(")").ConfigureAwait(false);
+                _parameters[0].Build(writer);
+                writer.Write(")");
             }
             else
             {
-                await writer.WriteLineAsync().ConfigureAwait(false);
+                writer.WriteLine();
 
                 using (writer.IncreaseIndent())
                 {
-                    for (int i = 0; i < _parameters.Count; i++)
+                    for (var i = 0; i < _parameters.Count; i++)
                     {
-                        await writer.WriteIndentAsync().ConfigureAwait(false);
-                        await _parameters[i].BuildAsync(writer).ConfigureAwait(false);
+                        writer.WriteIndent();
+                        _parameters[i].Build(writer);
                         if (i == _parameters.Count - 1)
                         {
-                            await writer.WriteAsync(")").ConfigureAwait(false);
+                            writer.Write(")");
                         }
                         else
                         {
-                            await writer.WriteAsync(",").ConfigureAwait(false);
-                            await writer.WriteLineAsync().ConfigureAwait(false);
+                            writer.Write(",");
+                            writer.WriteLine();
                         }
                     }
                 }
             }
 
-            await writer.WriteLineAsync().ConfigureAwait(false);
-            await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
+            writer.WriteLine();
+            writer.WriteIndentedLine("{");
 
             using (writer.IncreaseIndent())
             {
                 foreach (ICode code in _lines)
                 {
-                    await code.BuildAsync(writer).ConfigureAwait(false);
+                    code.Build(writer);
                 }
             }
 
-            await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
+            writer.WriteIndentedLine("}");
         }
     }
 }
