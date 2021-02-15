@@ -11,7 +11,8 @@
         Visible="false" />
   </ItemGroup>
 
-  <Target Name="GraphQLCompile" />
+  <!--Design Time Code Generation Hook.-->
+  <Target Name="GraphQLCompile" Condition="'$(DesignTimeBuild)' == 'true'" />
 
   <!--When something changes during code generation.-->
   <Target Name="StrawberryShake_DesignTime_Files" BeforeTargets="CoreCompile;ResolveProjectReferences;$(PrepareProjectReferencesDependsOn)">
@@ -21,7 +22,7 @@
       <Compile 
         Include="**/*.StrawberryShake.cs"
         Exclude="$(CompilerGeneratedFilesOutputPath)/**/*.StrawberryShake.cs"
-        Condition="'$(DesignTimeBuild)' == 'true'" 
+        Condition="'$(DesignTimeBuild)' == 'true'"
         Visible="false" />
     </ItemGroup>
   </Target>
