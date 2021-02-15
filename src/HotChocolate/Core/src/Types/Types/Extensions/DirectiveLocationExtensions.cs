@@ -7,9 +7,8 @@ namespace HotChocolate.Types
 {
     public static class DirectiveLocationExtensions
     {
-        private static readonly
-           Dictionary<DirectiveLocation, Language.DirectiveLocation> _locs =
-           new Dictionary<DirectiveLocation, Language.DirectiveLocation>
+        private static readonly Dictionary<DirectiveLocation, Language.DirectiveLocation> _locs =
+           new()
            {
                 {
                     DirectiveLocation.Query,

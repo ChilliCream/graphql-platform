@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>1.3</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Response_BodyAndExceptionAreNull" xml:space="preserve">
+    <value>Either body or exception have to be set.</value>
+  </data>
+  <data name="HttpOperationExecutor_ExecuteAsync_NoResult" xml:space="preserve">
+    <value>For any execution attempt there should be at least one result.</value>
+  </data>
+  <data name="ClassBuilder_SetName_ClassNameCannotBeNull" xml:space="preserve">
+    <value>The class name cannot be null or empty.</value>
+  </data>
+  <data name="ClassBuilder_AddImplements_TypeNameCannotBeNull" xml:space="preserve">
+    <value>The type name cannot be null or empty.</value>
+  </data>
+  <data name="AssignmentBuilder_Build_Incomplete" xml:space="preserve">
+    <value>The assignment builder is incomplete.</value>
+  </data>
+  <data name="CodeFileBuilder_NamespaceCannotBeNull" xml:space="preserve">
+    <value>The namespace cannot be null or empty.</value>
+  </data>
+  <data name="Serialization_MessageHadNoTypeSpecified" xml:space="preserve">
+    <value>The GraphQL socket message had no type property specified.</value>
+  </data>
+  <data name="Serialization_InvalidMessageType" xml:space="preserve">
+    <value>Message type {0} is not known</value>
+  </data>
+  <data name="Serialization_InvalidToken" xml:space="preserve">
+    <value>Could not parse the message. The token {0} was invalid</value>
+  </data>
+  <data name="Serialization_UnknownField" xml:space="preserve">
+    <value>Could not parse the message. The field {0} is unknown</value>
+  </data>
+  <data name="Protocol_CannotStartOperationOnClosedSocket" xml:space="preserve">
+    <value>Could not start the operation {0}. The socket was closed</value>
+  </data>
+  <data name="Protocol_CannotInitializeOnClosedSocket" xml:space="preserve">
+    <value>Could not initialize the protocol. The socket was closed</value>
+  </data>
+  <data name="Argument_IsNullOrEmpty" xml:space="preserve">
+    <value>The argument {0} must not be null or empty</value>
+  </data>
+  <data name="SocketClient_URIWasNotSpecified" xml:space="preserve">
+    <value>The configuration of socket client {0} is invalid. Uri was missing.</value>
+  </data>
+  <data name="SocketClient_ProtocolNotFound" xml:space="preserve">
+    <value>There was no protocol of type {0} registered.</value>
+  </data>
+  <data name="SocketClient_FailedToInitializeProtocol" xml:space="preserve">
+    <value>Failed to initialize protocol</value>
+  </data>
+  <data name="SocketClient_AllOperationsFinished" xml:space="preserve">
+    <value>All operations finished</value>
+  </data>
+  <data name="SessionManager_SessionIsNotOpen" xml:space="preserve">
+    <value>The session was not open. Operations can only be started or stopped on a open session</value>
+  </data>
+  <data name="SessionManager_SocketWasNotInitialized" xml:space="preserve">
+    <value>Could not get the protocol from socket {0}. The socket is in a invalid state</value>
+  </data>
+  <data name="SessionManager_OperationWasAlreadyRegistered" xml:space="preserve">
+    <value>Operation with id {0} was already registered on the operation manager</value>
+  </data>
+  <data name="SocketClientPool_ClientNotFromPool" xml:space="preserve">
+    <value>The specified client does not belong to this pool.</value>
+  </data>
+  <data name="ErrorOperationMessage_UnexpectedServerError" xml:space="preserve">
+    <value>There was a unexpected error on the server</value>
+  </data>
+  <data name="ErrorOperationMessage_ConnectionInitializationError" xml:space="preserve">
+    <value>Connection initialization failed. Could not connect to server</value>
+  </data>
+  <data name="ErrorOperationMessage_ResponseParsingError" xml:space="preserve">
+    <value>Could not parse the response of the server</value>
+  </data>
+  <data name="ThrowHelper_InputFormatter_InvalidType" xml:space="preserve">
+    <value>The runtime value is expected to be {0} for {1}.</value>
+  </data>
+</root>
