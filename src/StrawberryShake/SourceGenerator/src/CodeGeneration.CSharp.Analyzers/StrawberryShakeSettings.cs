@@ -4,7 +4,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
     {
         public string Name { get; set; } = default!;
 
-        public string Namespace { get; set; } = default!;
+        public string? Namespace { get; set; } = default!;
 
         public string? Url { get; set; }
 

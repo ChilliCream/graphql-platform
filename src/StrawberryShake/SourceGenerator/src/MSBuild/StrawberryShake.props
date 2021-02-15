@@ -5,12 +5,8 @@
   </PropertyGroup>
 
   <ItemDefinitionGroup>
-    <GraphQL>
-      <Generator>MSBuild:Compile</Generator>
-    </GraphQL>
-    <GraphQLConfig>
-      <Generator>MSBuild:Compile</Generator>
-    </GraphQLConfig>
+    <GraphQL />
+    <GraphQLConfig />
   </ItemDefinitionGroup>
 
   <ItemGroup>
@@ -35,6 +31,10 @@
     <Watch Include="**/.graphqlrc.json" />
     <AdditionalFiles Include="@(GraphQLConfig)" GraphQLConfig="true" />
     <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="GraphQLConfig" />
+
+    <!-- Build Options -->
+    <CompilerVisibleProperty Include="StrawberryShake_LogFile" />
+    <CompilerVisibleProperty Include="RootNamespace" />
   </ItemGroup>
 
 </Project>
