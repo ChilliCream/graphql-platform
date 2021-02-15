@@ -111,26 +111,60 @@ namespace StrawberryShake
 
                 if (_strategy != ExecutionStrategy.CacheFirst || !hasResultInStore)
                 {
-                    BeginExecute();
+                    var cts = new CancellationTokenSource();
+                    BeginExecute(cts);
+                    return new ObserverSession(session, cts);
                 }
 
                 return session;
             }
 
-            private void BeginExecute(CancellationToken cancellationToken = default) =>
-                Task.Run(() => ExecuteAsync(cancellationToken), cancellationToken);
+            private void BeginExecute(CancellationTokenSource cts) =>
+                Task.Run(() => ExecuteAsync(cts));
 
-            private async Task ExecuteAsync(
-                CancellationToken cancellationToken)
+            private async Task ExecuteAsync(CancellationTokenSource cts)
             {
-                IOperationResultBuilder<TData, TResult> resultBuilder = _resultBuilder();
-
-                await foreach (var response in
-                    _connection.ExecuteAsync(_request, cancellationToken).ConfigureAwait(false))
+                try
                 {
-                    _operationStore.Set(
-                        _request,
-                        resultBuilder.Build(response));;
+                    IOperationResultBuilder<TData, TResult> resultBuilder = _resultBuilder();
+
+                    await foreach (var response in
+                        _connection.ExecuteAsync(_request, cts.Token).ConfigureAwait(false))
+                    {
+                        if (cts.Token.IsCancellationRequested)
+                        {
+                            return;
+                        }
+
+                        _operationStore.Set(_request, resultBuilder.Build(response));
+                    }
+                }
+                finally
+                {
+                    cts.Dispose();
+                }
+            }
+
+            private class ObserverSession : IDisposable
+            {
+                private readonly IDisposable _storeSession;
+                private readonly Action _cancel;
+                private bool _disposed;
+
+                public ObserverSession(IDisposable storeSession, Action cancel)
+                {
+                    _storeSession = storeSession;
+                    _cancel = cancel;
+                }
+
+                public void Dispose()
+                {
+                    if (!_disposed)
+                    {
+                        _cancel();
+                        _storeSession.Dispose();
+                        _disposed = true;
+                    }
                 }
             }
         }
