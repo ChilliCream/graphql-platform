@@ -27,6 +27,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             _logFile = logFile;
         }
 
+        public void SetLocation(string location)
+        {
+            _log.AppendLine(location);
+        }
+
         public void Begin(GraphQLConfig config, ClientGeneratorContext context)
         {
             _allStart = DateTime.UtcNow;

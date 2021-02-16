@@ -5,17 +5,16 @@ namespace StrawberryShake.Tools
     public class InitCommandContext
     {
         public InitCommandContext(
-            string schemaName,
+            string name,
             string path,
             Uri uri,
             string? token,
             string? scheme)
         {
-            SchemaName = schemaName;
-            SchemaFileName = schemaName + ".graphql";
-            SchemaExtensionFileName = schemaName + "extensions.graphql";
-            ClientName = schemaName + "Client";
-            ClientName = schemaName + "Client";
+            SchemaName = "Schema";
+            SchemaFileName = "schema.graphql";
+            SchemaExtensionFileName = "schema.extensions.graphql";
+            ClientName = name;
             Path = path;
             Uri = uri;
             Token = token;

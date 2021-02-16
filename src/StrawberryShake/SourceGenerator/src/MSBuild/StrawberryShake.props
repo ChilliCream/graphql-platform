@@ -20,6 +20,7 @@
   <ItemGroup>
     <!-- GraphQL Files -->
     <None Remove="**/*.graphql" />
+    <Content Remove="**/*.graphql" />
     <GraphQL Include="**/*.graphql" />
     <Watch Include="**/*.graphql" />
     <AdditionalFiles Include="@(GraphQL)" GraphQL="true" />
@@ -27,6 +28,7 @@
 
     <!-- GraphQL Config Files -->
     <None Remove="**/.graphqlrc.json" />
+    <Content Remove="**/.graphqlrc.json" />
     <GraphQLConfig Include="**/.graphqlrc.json" />
     <Watch Include="**/.graphqlrc.json" />
     <AdditionalFiles Include="@(GraphQLConfig)" GraphQLConfig="true" />

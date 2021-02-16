@@ -1,4 +1,6 @@
-﻿namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
+﻿#nullable enable
+
+namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleFactory
@@ -27,7 +29,7 @@
             throw new global::System.ArgumentException("GetPeopleInfo expected.");
         }
 
-        private IGetPeople_People? MapIGetPeople_People(IGetPeople_PeopleData data)
+        private IGetPeople_People? MapIGetPeople_People(global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.PersonConnectionData data)
         {
             if (data == default)
             {
@@ -71,13 +73,13 @@
             }
 
 
-            if (entityId?.Name.Equals("Person", global::System.StringComparison.Ordinal) ?? false)
+            if (entityId.Value.Name.Equals("Person", global::System.StringComparison.Ordinal))
             {
-                return _getPeople_People_Nodes_PersonFromPersonEntityMapper.Map(_entityStore.GetEntity<PersonEntity>(entityId.Value));
+                return _getPeople_People_Nodes_PersonFromPersonEntityMapper.Map(
+                    _entityStore.GetEntity<PersonEntity>(entityId.Value)
+                        ?? throw new global::StrawberryShake.GraphQLClientException());
             }
-            else {
-                throw new global::System.NotSupportedException();
-            }
+            throw new global::System.NotSupportedException();
         }
     }
 }
