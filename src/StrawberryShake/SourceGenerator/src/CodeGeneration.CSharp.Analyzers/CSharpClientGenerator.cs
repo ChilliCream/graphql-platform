@@ -56,12 +56,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 return;
             }
 
+            using ILogger log = CreateLogger(context);
+
+            log.SetLocation(_location);
+
             var allDocuments = GetGraphQLFiles(context);
             var allConfigurations = GetGraphQLConfigs(context);
 
-            using ILogger log = CreateLogger(context);
-
-            foreach (var config in GetGraphQLConfigs(context))
+            foreach (var config in allConfigurations)
             {
                 var clientContext = new ClientGeneratorContext(
                     context,
@@ -71,11 +73,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     IOPath.GetDirectoryName(config.Location)!,
                     allDocuments);
 
-                log.Begin(config, clientContext);
-
-                Execute(clientContext);
-
-                log.End();
+                if (clientContext.GetDocuments().Count > 0)
+                {
+                    log.Begin(config, clientContext);
+                    Execute(clientContext);
+                    log.End();
+                }
             }
         }
 
@@ -165,7 +168,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             try
             {
                 var name = context.Settings.Name;
-                var @namespace = context.Settings.Namespace;
+                var @namespace = context.GetNamespace();
                 var documents = context.GetDocuments();
 
                 result = new CSharpGenerator().Generate(documents, name, @namespace);

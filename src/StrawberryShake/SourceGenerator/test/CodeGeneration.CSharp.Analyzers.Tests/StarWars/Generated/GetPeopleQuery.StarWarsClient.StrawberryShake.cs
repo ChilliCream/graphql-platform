@@ -1,4 +1,6 @@
-﻿namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
+﻿#nullable enable
+
+namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleQuery
@@ -18,8 +20,7 @@
             return await _operationExecutor
                 .ExecuteAsync(
                     request,
-                    cancellationToken
-                )
+                    cancellationToken)
                 .ConfigureAwait(false);
         }
 
@@ -34,8 +35,7 @@
 
             return new global::StrawberryShake.OperationRequest(
                 "GetPeople",
-                GetPeopleQueryDocument.Instance
-            );
+                GetPeopleQueryDocument.Instance);
         }
     }
 }

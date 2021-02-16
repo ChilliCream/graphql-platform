@@ -14,6 +14,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
     public class ClientGeneratorContext
     {
         private readonly IReadOnlyList<string> _allDocuments;
+        private IReadOnlyList<string>? _documents;
 
         public ClientGeneratorContext(
             GeneratorExecutionContext execution,
@@ -42,15 +43,19 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
         public IReadOnlyList<string> GetDocuments()
         {
-            string rootDirectory = ClientDirectory + IOPath.DirectorySeparatorChar;
+            if (_documents is null)
+            {
+                string rootDirectory = ClientDirectory + IOPath.DirectorySeparatorChar;
 
-            var glob = Glob.Parse(Filter);
+                var glob = Glob.Parse(Filter);
 
-            var documents = _allDocuments
-                .Where(t => t.StartsWith(rootDirectory) && glob.IsMatch(t))
-                .ToList();
-            Log.ClientDocuments(documents);
-            return documents;
+                _documents = _allDocuments
+                    .Where(t => t.StartsWith(rootDirectory) && glob.IsMatch(t))
+                    .ToList();
+                Log.ClientDocuments(_documents);
+            }
+
+            return _documents;
         }
 
         public void ReportError(Exception exception) =>

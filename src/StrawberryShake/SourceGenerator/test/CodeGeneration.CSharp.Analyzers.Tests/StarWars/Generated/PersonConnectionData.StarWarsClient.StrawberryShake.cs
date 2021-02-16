@@ -1,12 +1,13 @@
-﻿namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
+﻿#nullable enable
+
+namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetPeople_People_PersonConnectionData
-        : IGetPeople_People_PersonConnectionData
+    public partial class PersonConnectionData
     {
-        public GetPeople_People_PersonConnectionData(
+        public PersonConnectionData(
             global::System.String typename,
-            global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? nodes)
+            global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? nodes = null)
         {
             __typename = typename
                  ?? throw new global::System.ArgumentNullException(nameof(typename));
