@@ -23,11 +23,11 @@ namespace HotChocolate.Types
             SyntaxNode = definition.SyntaxNode;
             DefaultValue = definition.DefaultValue;
 
-            if (definition.Formatters.Count == 0)
+            if (definition.GetFormatters().Count == 0)
             {
                 Formatter = null;
             }
-            else if (definition.Formatters.Count == 1)
+            else if (definition.GetFormatters().Count == 1)
             {
                 Formatter = definition.Formatters[0];
             }

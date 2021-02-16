@@ -14,6 +14,7 @@ namespace HotChocolate.Types
     {
         private readonly Dictionary<NameString, (int Index, T Field)> _fieldsLookup =
             new Dictionary<NameString, (int Index, T Field)>();
+
         private readonly List<T> _fields;
 
         public FieldCollection(IEnumerable<T> fields, bool sortByName = false)
@@ -72,6 +73,16 @@ namespace HotChocolate.Types
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
+        }
+
+        public static FieldCollection<T> From(IEnumerable<T> fields, bool sortByName = false)
+        {
+            if (fields.Any())
+            {
+                return new FieldCollection<T>(fields, sortByName);
+            }
+
+            return Empty;
         }
 
         public static FieldCollection<T> Empty { get; } =

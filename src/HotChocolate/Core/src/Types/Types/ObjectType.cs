@@ -19,7 +19,7 @@ namespace HotChocolate.Types
         : NamedTypeBase<ObjectTypeDefinition>
         , IObjectType
     {
-        private readonly List<InterfaceType> _implements = new();
+        private IReadOnlyList<InterfaceType> _implements = Array.Empty<InterfaceType>();
         private Action<IObjectTypeDescriptor>? _configure;
         private IsOfType? _isOfType;
 
@@ -58,10 +58,10 @@ namespace HotChocolate.Types
             _implements.Any(t => t.Name.Equals(interfaceTypeName));
 
         public bool IsImplementing(InterfaceType interfaceType) =>
-            _implements.IndexOf(interfaceType) != -1;
+            _implements.Contains(interfaceType);
 
         public bool IsImplementing(IInterfaceType interfaceType) =>
-            interfaceType is InterfaceType i && _implements.IndexOf(i) != -1;
+            interfaceType is InterfaceType i && _implements.Contains(i);
 
         protected override ObjectTypeDefinition CreateDefinition(
             ITypeDiscoveryContext context)
@@ -103,10 +103,22 @@ namespace HotChocolate.Types
                         t,
                         new FieldCoordinate(Name, t.Name),
                         sortByName)).ToList();
-                Fields = new FieldCollection<ObjectField>(fields, sortByName);
+                Fields = FieldCollection<ObjectField>.From(fields, sortByName);
 
                 // resolve interface references
-                CompleteInterfaces(context, definition, RuntimeType, _implements, this, SyntaxNode);
+                if (definition.GetInterfaces().Any())
+                {
+                    var implements = new List<InterfaceType>();
+
+                    CompleteInterfaces(
+                        context,
+                        definition,
+                        RuntimeType,
+                        implements,
+                        this, SyntaxNode);
+
+                    _implements = implements.ToArray();
+                }
 
                 // complete the type resolver and fields
                 CompleteTypeResolver(context);

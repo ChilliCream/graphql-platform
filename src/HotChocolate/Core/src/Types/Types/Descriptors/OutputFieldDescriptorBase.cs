@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Language;
@@ -14,16 +15,18 @@ namespace HotChocolate.Types.Descriptors
     {
         private bool _deprecatedDependencySet;
         private DirectiveDefinition _deprecatedDirective;
+        private ICollection<ArgumentDescriptor>? _arguments;
 
         protected OutputFieldDescriptorBase(IDescriptorContext context)
             : base(context)
         {
         }
 
-        protected ICollection<ArgumentDescriptor> Arguments { get; } =
-            new List<ArgumentDescriptor>();
+        protected ICollection<ArgumentDescriptor> Arguments =>
+            _arguments ??= new List<ArgumentDescriptor>();
 
-        protected IReadOnlyDictionary<NameString, ParameterInfo> Parameters { get; set; }
+        protected IReadOnlyDictionary<NameString, ParameterInfo> Parameters { get; set; } =
+            ImmutableDictionary<NameString, ParameterInfo>.Empty;
 
         protected override void OnCreateDefinition(TDefinition definition)
         {

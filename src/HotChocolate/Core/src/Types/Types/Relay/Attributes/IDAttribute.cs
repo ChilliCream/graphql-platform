@@ -24,26 +24,26 @@ namespace HotChocolate.Types.Relay
             IDescriptor descriptor,
             ICustomAttributeProvider element)
         {
-            if (descriptor is IInputFieldDescriptor ifd
-                && element is PropertyInfo)
+            if (descriptor is IInputFieldDescriptor ifd &&
+                element is PropertyInfo)
             {
                 ifd.ID(TypeName);
             }
 
-            if (descriptor is IArgumentDescriptor ad
-                && element is ParameterInfo)
+            if (descriptor is IArgumentDescriptor ad &&
+                element is ParameterInfo)
             {
                 ad.ID(TypeName);
             }
 
-            if (descriptor is IObjectFieldDescriptor ofd
-                && element is MemberInfo)
+            if (descriptor is IObjectFieldDescriptor ofd &&
+                element is MemberInfo)
             {
                 ofd.ID(TypeName);
             }
 
-            if (descriptor is IInterfaceFieldDescriptor infd
-                && element is MemberInfo)
+            if (descriptor is IInterfaceFieldDescriptor infd &&
+                element is MemberInfo)
             {
                 infd.ID();
             }

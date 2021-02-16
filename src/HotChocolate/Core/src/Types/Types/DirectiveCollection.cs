@@ -1,21 +1,26 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Utilities.ErrorHelper;
 
+#nullable  enable
 namespace HotChocolate.Types
 {
     public sealed class DirectiveCollection : IDirectiveCollection
     {
+        private static ILookup<NameString, IDirective> _defaultLookup =
+            Enumerable.Empty<IDirective>().ToLookup(x => x.Name);
+
         private readonly object _source;
-        private readonly List<IDirective> _directives = new();
         private readonly DirectiveLocation _location;
-        private List<DirectiveDefinition> _definitions;
-        private ILookup<NameString, IDirective> _lookup;
+        private IReadOnlyList<IDirective> _directives = Array.Empty<IDirective>();
+        private IReadOnlyList<DirectiveDefinition>? _definitions;
+        private ILookup<NameString, IDirective> _lookup = default!;
 
         public DirectiveCollection(
             object source,
@@ -27,7 +32,9 @@ namespace HotChocolate.Types
             }
 
             _source = source ?? throw new ArgumentNullException(nameof(source));
-            _definitions = directiveDefinitions.ToList();
+            _definitions = directiveDefinitions.Any()
+                ? directiveDefinitions.ToList()
+                : Array.Empty<DirectiveDefinition>();
             _location = DirectiveHelper.InferDirectiveLocation(source);
         }
 
@@ -45,6 +52,7 @@ namespace HotChocolate.Types
             }
 
             var processed = new HashSet<string>();
+            List<IDirective>? directives = null;
 
             foreach (DirectiveDefinition description in _definitions)
             {
@@ -52,12 +60,22 @@ namespace HotChocolate.Types
                     context, description, processed,
                     out Directive directive))
                 {
-                    _directives.Add(directive);
+                    directives ??= new List<IDirective>();
+                    directives.Add(directive);
                     ValidateArguments(context, directive);
                 }
             }
 
-            _lookup = _directives.ToLookup(t => t.Name);
+            if (directives is null)
+            {
+                _lookup = _defaultLookup;
+            }
+            else
+            {
+                _directives = directives.ToArray();
+                _lookup = _directives.ToLookup(t => t.Name);
+            }
+
             _definitions = null;
         }
 
@@ -65,7 +83,7 @@ namespace HotChocolate.Types
             ITypeCompletionContext context,
             DirectiveDefinition definition,
             ISet<string> processed,
-            out Directive directive)
+            [NotNullWhen(true)] out Directive? directive)
         {
             if (!context.TryGetDirectiveType(definition.Reference, out DirectiveType directiveType))
             {

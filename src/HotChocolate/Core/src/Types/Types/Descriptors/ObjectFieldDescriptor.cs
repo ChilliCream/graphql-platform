@@ -147,7 +147,7 @@ namespace HotChocolate.Types.Descriptors
 
         private void CompleteArguments(ObjectFieldDefinition definition)
         {
-            if (!_argumentsInitialized)
+            if (!_argumentsInitialized && Parameters.Any())
             {
                 FieldDescriptorUtilities.DiscoverArguments(
                     Context,

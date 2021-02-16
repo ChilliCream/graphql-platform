@@ -14,3 +14,4 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("HotChocolate.Data.Filters.Tests")]
 [assembly: InternalsVisibleTo("HotChocolate.Data.Sorting.Tests")]
 [assembly: InternalsVisibleTo("HotChocolate.Data.Projections.Tests")]
+[assembly: InternalsVisibleTo("HotChocolate.Stitching")]

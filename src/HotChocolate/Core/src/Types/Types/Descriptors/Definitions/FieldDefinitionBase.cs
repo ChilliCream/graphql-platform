@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
-using HotChocolate.Internal;
+
+#nullable enable
 
 namespace HotChocolate.Types.Descriptors.Definitions
 {
@@ -7,6 +9,8 @@ namespace HotChocolate.Types.Descriptors.Definitions
         : DefinitionBase
         , IHasDirectiveDefinition
     {
+        private List<DirectiveDefinition>? _directives;
+
         /// <summary>
         /// Gets the field type.
         /// </summary>
@@ -21,7 +25,20 @@ namespace HotChocolate.Types.Descriptors.Definitions
         /// <summary>
         /// Gets the list of directives that are annotated to this field.
         /// </summary>
-        public IList<DirectiveDefinition> Directives { get; } =
-            new List<DirectiveDefinition>();
+        public IList<DirectiveDefinition> Directives =>
+            _directives ??= new List<DirectiveDefinition>();
+
+        /// <summary>
+        /// Gets the list of directives that are annotated to this field.
+        /// </summary>
+        public IReadOnlyList<DirectiveDefinition> GetDirectives()
+        {
+            if (_directives is null)
+            {
+                return Array.Empty<DirectiveDefinition>();
+            }
+
+            return _directives;
+        }
     }
 }

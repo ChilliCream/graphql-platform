@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
@@ -478,6 +479,47 @@ namespace HotChocolate.Data
             // assert
             result.ToJson().MatchSnapshot();
         }
+
+        [Fact]
+        public async Task Profiler()
+        {
+
+                var schema = SchemaBuilder.New()
+                    .AddQueryType(new ObjectType(x =>
+                    {
+                        x.Name("Query");
+                        for (var i = 0; i < 20; i++)
+                        {
+                            x.Field("QueryField" + Guid.NewGuid().ToString("N"))
+                                .Resolve("")
+                                .Type(new ObjectType(y =>
+                                {
+                                    y.Name("Foo" + Guid.NewGuid().ToString("N"));
+                                    for (var j = 0; j < 20; j++)
+                                    {
+                                        y.Field("FooField" + j)
+                                            .Type<StringType>()
+                                            .Resolve("")
+                                            .Argument("in",
+                                                z =>
+                                                {
+                                                    z.Type(new InputObjectType(e =>
+                                                    {
+                                                        e.Name($"Bar_{Guid.NewGuid():N}");
+                                                        for (var m = 0; m < 10; m++)
+                                                        {
+                                                            e.Field("BarField" + m)
+                                                                .Type<StringType>();
+                                                        }
+                                                    }));
+                                                });
+                                    }
+                                }));
+                        }
+                    }))
+                    .Create();
+        }
+
         public class PagingAndProjection
         {
             [UsePaging]

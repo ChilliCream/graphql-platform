@@ -4,9 +4,7 @@
     {
         public static bool IsIntrospectionType(this IType type)
         {
-            return type.GetType().IsDefined(
-                typeof(IntrospectionAttribute),
-                false);
+            return type.GetType().IsDefined(typeof(IntrospectionAttribute), false);
         }
     }
 }

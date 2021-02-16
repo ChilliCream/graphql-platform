@@ -13,6 +13,12 @@ using HotChocolate.Types;
 //| GitHub_SchemaFirst | 187.41 ms | 3.746 ms | 9.737 ms | 188.91 ms |    3 | 11000.0000 | 4000.0000 | 2000.0000 |  46.19 MB |
 //|          CodeFirst |  69.26 ms | 1.319 ms | 1.296 ms |  69.23 ms |    2 |  3000.0000 | 1000.0000 |         - |  15.97 MB |
 
+//|             Method |      Mean |    Error |   StdDev |    Median | Rank |     Gen 0 |     Gen 1 |     Gen 2 | Allocated |
+//|------------------- |----------:|---------:|---------:|----------:|-----:|----------:|----------:|----------:|----------:|
+//|           StarWars |  38.09 ms | 0.756 ms | 1.675 ms |  37.47 ms |    1 |         - |         - |         - |      4 MB |
+//| GitHub_SchemaFirst | 166.42 ms | 2.932 ms | 3.011 ms | 166.99 ms |    3 | 8000.0000 | 2000.0000 | 1000.0000 |  40.06 MB |
+//|          CodeFirst |  64.00 ms | 1.208 ms | 1.343 ms |  63.99 ms |    2 | 2000.0000 |         - |         - |   13.6 MB |
+
 namespace HotChocolate.Execution.Benchmarks
 {
     [RPlotExporter, CategoriesColumn, RankColumn, MeanColumn, MedianColumn, MemoryDiagnoser]

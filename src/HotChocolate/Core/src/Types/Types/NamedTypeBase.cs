@@ -3,7 +3,6 @@ using System;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
-using HotChocolate.Types.Introspection;
 
 #nullable enable
 
@@ -65,7 +64,7 @@ namespace HotChocolate.Types
                 : typeof(object);
 
             context.RegisterDependencyRange(
-                definition.Directives.Select(t => t.Reference));
+                definition.GetDirectives().Select(t => t.Reference));
         }
 
         protected override void OnCompleteType(
@@ -76,7 +75,7 @@ namespace HotChocolate.Types
 
             _syntaxNode = definition.SyntaxNode;
 
-            var directives = new DirectiveCollection(this, definition.Directives);
+            var directives = new DirectiveCollection(this, definition.GetDirectives());
             directives.CompleteCollection(context);
             _directives = directives;
         }

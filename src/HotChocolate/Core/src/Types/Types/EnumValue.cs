@@ -40,12 +40,11 @@ namespace HotChocolate.Types
                 : (NameString)enumValueDefinition.Value.ToString();
             Description = enumValueDefinition.Description;
             DeprecationReason = enumValueDefinition.DeprecationReason;
-            IsDeprecated = !string.IsNullOrEmpty(
-                enumValueDefinition.DeprecationReason);
+            IsDeprecated = !string.IsNullOrEmpty(enumValueDefinition.DeprecationReason);
             Value = enumValueDefinition.Value;
-            ContextData = enumValueDefinition.ContextData;
+            ContextData = enumValueDefinition.GetContextData();
 
-            _directives = new DirectiveCollection(this, enumValueDefinition!.Directives);
+            _directives = new DirectiveCollection(this, enumValueDefinition!.GetDirectives());
             _directives.CompleteCollection(completionContext);
         }
 

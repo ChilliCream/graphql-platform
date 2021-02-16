@@ -25,7 +25,7 @@ namespace HotChocolate.Internal
                         typeField.Resolver = extensionField.Resolver;
                     }
 
-                    if (extensionField.MiddlewareComponents.Count > 0)
+                    if (extensionField.GetMiddlewareComponents().Count > 0)
                     {
                         foreach (FieldMiddleware component in
                             extensionField.MiddlewareComponents)
@@ -178,12 +178,9 @@ namespace HotChocolate.Internal
             DefinitionBase extension,
             DefinitionBase type)
         {
-            if (extension.ContextData.Count > 0)
+            if (extension.GetContextData().Count > 0)
             {
-                foreach (KeyValuePair<string, object> entry in extension.ContextData)
-                {
-                    type.ContextData[entry.Key] = entry.Value;
-                }
+                type.ContextData.AddRange(extension.GetContextData());
             }
         }
 
@@ -191,9 +188,9 @@ namespace HotChocolate.Internal
             ObjectTypeDefinition extension,
             ObjectTypeDefinition type)
         {
-            if (extension.Interfaces.Count > 0)
+            if (extension.GetInterfaces().Count > 0)
             {
-                foreach (var interfaceReference in extension.Interfaces)
+                foreach (ITypeReference interfaceReference in extension.GetInterfaces())
                 {
                     type.Interfaces.Add(interfaceReference);
                 }
