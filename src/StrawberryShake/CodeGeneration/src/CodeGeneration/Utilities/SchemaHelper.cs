@@ -11,6 +11,24 @@ namespace StrawberryShake.CodeGeneration.Utilities
 {
     public static class SchemaHelper
     {
+        private static readonly HashSet<string> _knownScalars = new()
+        {
+            ScalarNames.String,
+            ScalarNames.ID,
+            ScalarNames.Boolean,
+            ScalarNames.Byte,
+            ScalarNames.Short,
+            ScalarNames.Int,
+            ScalarNames.Long,
+            ScalarNames.Float,
+            ScalarNames.Decimal,
+            ScalarNames.Url,
+            ScalarNames.Uuid,
+            ScalarNames.DateTime,
+            ScalarNames.Date,
+            ScalarNames.ByteArray
+        };
+
         public static ISchema Load(params (string, DocumentNode)[] documents)
         {
             return Load((IEnumerable<(string, DocumentNode)>)documents);
@@ -24,6 +42,7 @@ namespace StrawberryShake.CodeGeneration.Utilities
             }
 
             ISchemaBuilder builder = SchemaBuilder.New();
+
             var leafTypes = new Dictionary<NameString, LeafTypeInfo>();
             var globalEntityPatterns = new List<SelectionSetNode>();
             var typeEntityPatterns = new Dictionary<NameString, SelectionSetNode>();
@@ -52,6 +71,16 @@ namespace StrawberryShake.CodeGeneration.Utilities
                 }
                 else
                 {
+                    foreach (var scalar in document.Definitions.OfType<ScalarTypeDefinitionNode>())
+                    {
+                        if (!_knownScalars.Contains(scalar.Name.Value))
+                        {
+                            builder.AddType(new AnyType(
+                                scalar.Name.Value,
+                                scalar.Description.Value));
+                        }
+                    }
+
                     builder.AddDocument(document);
                 }
             }
