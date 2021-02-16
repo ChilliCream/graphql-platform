@@ -1,0 +1,3814 @@
+﻿// Code:
+// PersonEntity
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class PersonEntity
+    {
+        public global::System.String Name { get; set; } = default!;
+
+        public global::System.String Email { get; set; } = default!;
+
+        public global::System.Boolean IsOnline { get; set; } = default!;
+
+        public global::System.Uri? ImageUri { get; set; }
+
+        public global::System.DateTimeOffset LastSeen { get; set; } = default!;
+
+        public global::StrawberryShake.GraphQL.State.MessageConnectionData? Messages { get; set; }
+    }
+}
+
+
+// MessageEntity
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class MessageEntity
+    {
+        public global::System.String Id { get; set; } = default!;
+
+        public global::System.String Text { get; set; } = default!;
+
+        public Direction Direction { get; set; } = default!;
+
+        public global::StrawberryShake.EntityId Recipient { get; set; } = default!;
+
+        public global::StrawberryShake.EntityId Sender { get; set; } = default!;
+
+        public global::System.DateTimeOffset Sent { get; set; } = default!;
+    }
+}
+
+
+// Direction
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public enum Direction
+    {
+        Incoming,
+        Outgoing
+    }
+}
+
+
+// DirectionSerializer
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class DirectionSerializer
+        : global::StrawberryShake.Serialization.IInputValueFormatter
+        , global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, Direction>
+    {
+        public global::System.String TypeName => "Direction";
+
+        public Direction Parse(global::System.String serializedValue)
+        {
+            return serializedValue switch
+            {
+                "INCOMING" => Direction.Incoming,
+                "OUTGOING" => Direction.Outgoing,
+                _ => throw new global::StrawberryShake.GraphQLClientException()
+            };
+        }
+
+        public object Format(global::System.Object? runtimeValue)
+        {
+            return runtimeValue switch
+            {
+                Direction.Incoming => "INCOMING",
+                Direction.Outgoing => "OUTGOING",
+                _ => throw new global::StrawberryShake.GraphQLClientException()
+            };
+        }
+    }
+}
+
+
+// GetPeopleFactory
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetPeopleFactory
+        : global::StrawberryShake.IOperationResultDataFactory<GetPeople>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityMapper<PersonEntity, GetPeople_People_Nodes_Person> _getPeople_People_Nodes_PersonFromPersonEntityMapper;
+
+        public GetPeopleFactory(
+            global::StrawberryShake.IEntityStore entityStore,
+            global::StrawberryShake.IEntityMapper<PersonEntity, GetPeople_People_Nodes_Person> getPeople_People_Nodes_PersonFromPersonEntityMapper)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _getPeople_People_Nodes_PersonFromPersonEntityMapper = getPeople_People_Nodes_PersonFromPersonEntityMapper
+                 ?? throw new global::System.ArgumentNullException(nameof(getPeople_People_Nodes_PersonFromPersonEntityMapper));
+        }
+
+        public GetPeople Create(global::StrawberryShake.IOperationResultDataInfo dataInfo)
+        {
+            if (dataInfo is GetPeopleInfo info)
+            {
+                return new GetPeople(MapIGetPeople_People(info.People));
+            }
+
+            throw new global::System.ArgumentException("GetPeopleInfo expected.");
+        }
+
+        private IGetPeople_People? MapIGetPeople_People(global::StrawberryShake.GraphQL.State.PersonConnectionData data)
+        {
+            if (data == default)
+            {
+                return null;
+            }
+
+            IGetPeople_People returnValue = default!;
+
+            if (data?.__typename.Equals("PersonConnection", global::System.StringComparison.Ordinal) ?? false)
+            {
+                returnValue = new GetPeople_People_PersonConnection(MapIGetPeople_People_NodesArray(data.Nodes));
+            }
+            else {
+                throw new global::System.NotSupportedException();
+            }
+            return returnValue;
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<IGetPeople_People_Nodes?>? MapIGetPeople_People_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
+        {
+            if (list == default)
+            {
+                return null;
+            }
+
+            var iGetPeople_People_Nodess = new global::System.Collections.Generic.List<IGetPeople_People_Nodes?>();
+
+            foreach (global::StrawberryShake.EntityId? child in list)
+            {
+                iGetPeople_People_Nodess.Add(MapIGetPeople_People_Nodes(child));
+            }
+
+            return iGetPeople_People_Nodess;
+        }
+
+        private IGetPeople_People_Nodes? MapIGetPeople_People_Nodes(global::StrawberryShake.EntityId? entityId)
+        {
+            if (entityId == default)
+            {
+                return null;
+            }
+
+
+            if (entityId.Value.Name.Equals("Person", global::System.StringComparison.Ordinal))
+            {
+                return _getPeople_People_Nodes_PersonFromPersonEntityMapper.Map(
+                    _entityStore.GetEntity<PersonEntity>(entityId.Value)
+                        ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+            throw new global::System.NotSupportedException();
+        }
+    }
+}
+
+
+// GetPeopleInfo
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetPeopleInfo
+        : global::StrawberryShake.IOperationResultDataInfo
+    {
+        private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
+        private readonly ulong _version;
+
+        public GetPeopleInfo(
+            global::StrawberryShake.GraphQL.State.PersonConnectionData? people,
+            global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds,
+            ulong version)
+        {
+            People = people;
+            _entityIds = entityIds
+                 ?? throw new global::System.ArgumentNullException(nameof(entityIds));
+            _version = version;
+        }
+
+        public global::StrawberryShake.GraphQL.State.PersonConnectionData? People { get; }
+
+        public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
+
+        public ulong Version => _version;
+
+        public global::StrawberryShake.IOperationResultDataInfo WithVersion(ulong version)
+        {
+            return new GetPeopleInfo(
+                People,
+                _entityIds,
+                _version);
+        }
+    }
+}
+
+
+// GetPeople
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetPeople
+        : IGetPeople
+    {
+        public GetPeople(IGetPeople_People? people)
+        {
+            People = people;
+        }
+
+        public IGetPeople_People? People { get; } = default!;
+    }
+}
+
+
+// GetPeople_People_PersonConnection
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetPeople_People_PersonConnection
+        : IGetPeople_People_PersonConnection
+    {
+        public GetPeople_People_PersonConnection(global::System.Collections.Generic.IReadOnlyList<IGetPeople_People_Nodes?>? nodes)
+        {
+            Nodes = nodes;
+        }
+
+        public global::System.Collections.Generic.IReadOnlyList<IGetPeople_People_Nodes?>? Nodes { get; } = default!;
+    }
+}
+
+
+// GetPeople_People_Nodes_PersonFromPersonEntityMapper
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetPeople_People_Nodes_PersonFromPersonEntityMapper
+        : global::StrawberryShake.IEntityMapper<PersonEntity, GetPeople_People_Nodes_Person>
+    {
+        public GetPeople_People_Nodes_Person Map(PersonEntity entity)
+        {
+            return new GetPeople_People_Nodes_Person(
+                entity.Name,
+                entity.Email,
+                entity.IsOnline,
+                entity.ImageUri,
+                entity.LastSeen);
+        }
+    }
+}
+
+
+// GetPeople_People_Nodes_Person
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetPeople_People_Nodes_Person
+        : IGetPeople_People_Nodes_Person
+    {
+        public GetPeople_People_Nodes_Person(
+            global::System.String name,
+            global::System.String email,
+            global::System.Boolean isOnline,
+            global::System.Uri? imageUri,
+            global::System.DateTimeOffset lastSeen)
+        {
+            Name = name;
+            Email = email;
+            IsOnline = isOnline;
+            ImageUri = imageUri;
+            LastSeen = lastSeen;
+        }
+
+        public global::System.String Name { get; }
+
+        public global::System.String Email { get; }
+
+        public global::System.Boolean IsOnline { get; }
+
+        public global::System.Uri? ImageUri { get; } = default!;
+
+        public global::System.DateTimeOffset LastSeen { get; }
+    }
+}
+
+
+// IGetPeople
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IGetPeople
+    {
+        public IGetPeople_People? People { get; }
+    }
+}
+
+
+// IGetPeople_People
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IGetPeople_People
+    {
+        public global::System.Collections.Generic.IReadOnlyList<IGetPeople_People_Nodes?>? Nodes { get; }
+    }
+}
+
+
+// IGetPeople_People_PersonConnection
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IGetPeople_People_PersonConnection
+        : IGetPeople_People
+    {
+    }
+}
+
+
+// IParticipant
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IParticipant
+    {
+        public global::System.String Name { get; }
+
+        public global::System.String Email { get; }
+
+        public global::System.Boolean IsOnline { get; }
+    }
+}
+
+
+// IPerson
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IPerson
+        : IParticipant
+    {
+        public global::System.Uri? ImageUri { get; }
+
+        public global::System.DateTimeOffset LastSeen { get; }
+    }
+}
+
+
+// IGetPeople_People_Nodes
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IGetPeople_People_Nodes
+        : IPerson
+    {
+    }
+}
+
+
+// IGetPeople_People_Nodes_Person
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IGetPeople_People_Nodes_Person
+        : IGetPeople_People_Nodes
+    {
+    }
+}
+
+
+// GetMessagesFactory
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetMessagesFactory
+        : global::StrawberryShake.IOperationResultDataFactory<GetMessages>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Person> _getMessages_PersonByEmail_PersonFromPersonEntityMapper;
+
+        public GetMessagesFactory(
+            global::StrawberryShake.IEntityStore entityStore,
+            global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Person> getMessages_PersonByEmail_PersonFromPersonEntityMapper)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _getMessages_PersonByEmail_PersonFromPersonEntityMapper = getMessages_PersonByEmail_PersonFromPersonEntityMapper
+                 ?? throw new global::System.ArgumentNullException(nameof(getMessages_PersonByEmail_PersonFromPersonEntityMapper));
+        }
+
+        public GetMessages Create(global::StrawberryShake.IOperationResultDataInfo dataInfo)
+        {
+            if (dataInfo is GetMessagesInfo info)
+            {
+                return new GetMessages(MapNonNullableIGetMessages_PersonByEmail(info.PersonByEmail));
+            }
+
+            throw new global::System.ArgumentException("GetMessagesInfo expected.");
+        }
+
+        private IGetMessages_PersonByEmail MapNonNullableIGetMessages_PersonByEmail(global::StrawberryShake.EntityId entityId)
+        {
+
+            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
+            {
+                return _getMessages_PersonByEmail_PersonFromPersonEntityMapper.Map(
+                    _entityStore.GetEntity<PersonEntity>(entityId)
+                        ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+            throw new global::System.NotSupportedException();
+        }
+    }
+}
+
+
+// GetMessagesInfo
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetMessagesInfo
+        : global::StrawberryShake.IOperationResultDataInfo
+    {
+        private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
+        private readonly ulong _version;
+
+        public GetMessagesInfo(
+            global::StrawberryShake.EntityId personByEmail,
+            global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds,
+            ulong version)
+        {
+            PersonByEmail = personByEmail;
+            _entityIds = entityIds
+                 ?? throw new global::System.ArgumentNullException(nameof(entityIds));
+            _version = version;
+        }
+
+        public global::StrawberryShake.EntityId PersonByEmail { get; }
+
+        public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
+
+        public ulong Version => _version;
+
+        public global::StrawberryShake.IOperationResultDataInfo WithVersion(ulong version)
+        {
+            return new GetMessagesInfo(
+                PersonByEmail,
+                _entityIds,
+                _version);
+        }
+    }
+}
+
+
+// GetMessages
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetMessages
+        : IGetMessages
+    {
+        public GetMessages(IGetMessages_PersonByEmail personByEmail)
+        {
+            PersonByEmail = personByEmail;
+        }
+
+        public IGetMessages_PersonByEmail PersonByEmail { get; }
+    }
+}
+
+
+// GetMessages_PersonByEmail_PersonFromPersonEntityMapper
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetMessages_PersonByEmail_PersonFromPersonEntityMapper
+        : global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Person>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityMapper<MessageEntity, GetMessages_PersonByEmail_Messages_Nodes_Message> _getMessages_PersonByEmail_Messages_Nodes_MessageFromMessageEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper;
+
+        public GetMessages_PersonByEmail_PersonFromPersonEntityMapper(
+            global::StrawberryShake.IEntityStore entityStore,
+            global::StrawberryShake.IEntityMapper<MessageEntity, GetMessages_PersonByEmail_Messages_Nodes_Message> getMessages_PersonByEmail_Messages_Nodes_MessageFromMessageEntityMapper,
+            global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper,
+            global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _getMessages_PersonByEmail_Messages_Nodes_MessageFromMessageEntityMapper = getMessages_PersonByEmail_Messages_Nodes_MessageFromMessageEntityMapper
+                 ?? throw new global::System.ArgumentNullException(nameof(getMessages_PersonByEmail_Messages_Nodes_MessageFromMessageEntityMapper));
+            _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper = getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper
+                 ?? throw new global::System.ArgumentNullException(nameof(getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper));
+            _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper = getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper
+                 ?? throw new global::System.ArgumentNullException(nameof(getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper));
+        }
+
+        public GetMessages_PersonByEmail_Person Map(PersonEntity entity)
+        {
+            return new GetMessages_PersonByEmail_Person(MapIGetMessages_PersonByEmail_Messages(entity.Messages));
+        }
+
+        private IGetMessages_PersonByEmail_Messages? MapIGetMessages_PersonByEmail_Messages(global::StrawberryShake.GraphQL.State.MessageConnectionData data)
+        {
+            if (data == default)
+            {
+                return null;
+            }
+
+            IGetMessages_PersonByEmail_Messages returnValue = default!;
+
+            if (data?.__typename.Equals("MessageConnection", global::System.StringComparison.Ordinal) ?? false)
+            {
+                returnValue = new GetMessages_PersonByEmail_Messages_MessageConnection(MapIGetMessages_PersonByEmail_Messages_NodesArray(data.Nodes));
+            }
+            else {
+                throw new global::System.NotSupportedException();
+            }
+            return returnValue;
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<IGetMessages_PersonByEmail_Messages_Nodes?>? MapIGetMessages_PersonByEmail_Messages_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
+        {
+            if (list == default)
+            {
+                return null;
+            }
+
+            var iGetMessages_PersonByEmail_Messages_Nodess = new global::System.Collections.Generic.List<IGetMessages_PersonByEmail_Messages_Nodes?>();
+
+            foreach (global::StrawberryShake.EntityId? child in list)
+            {
+                iGetMessages_PersonByEmail_Messages_Nodess.Add(MapIGetMessages_PersonByEmail_Messages_Nodes(child));
+            }
+
+            return iGetMessages_PersonByEmail_Messages_Nodess;
+        }
+
+        private IGetMessages_PersonByEmail_Messages_Nodes? MapIGetMessages_PersonByEmail_Messages_Nodes(global::StrawberryShake.EntityId? entityId)
+        {
+            if (entityId == default)
+            {
+                return null;
+            }
+
+
+            if (entityId.Value.Name.Equals("Message", global::System.StringComparison.Ordinal))
+            {
+                return _getMessages_PersonByEmail_Messages_Nodes_MessageFromMessageEntityMapper.Map(
+                    _entityStore.GetEntity<MessageEntity>(entityId.Value)
+                        ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+            throw new global::System.NotSupportedException();
+        }
+
+        private IGetMessages_PersonByEmail_Messages_Nodes_Recipient MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Recipient(global::StrawberryShake.EntityId entityId)
+        {
+
+            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
+            {
+                return _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper.Map(
+                    _entityStore.GetEntity<PersonEntity>(entityId)
+                        ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+            throw new global::System.NotSupportedException();
+        }
+
+        private IGetMessages_PersonByEmail_Messages_Nodes_Sender MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Sender(global::StrawberryShake.EntityId entityId)
+        {
+
+            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
+            {
+                return _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper.Map(
+                    _entityStore.GetEntity<PersonEntity>(entityId)
+                        ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+            throw new global::System.NotSupportedException();
+        }
+    }
+}
+
+
+// GetMessages_PersonByEmail_Person
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetMessages_PersonByEmail_Person
+        : IGetMessages_PersonByEmail_Person
+    {
+        public GetMessages_PersonByEmail_Person(IGetMessages_PersonByEmail_Messages? messages)
+        {
+            Messages = messages;
+        }
+
+        public IGetMessages_PersonByEmail_Messages? Messages { get; } = default!;
+    }
+}
+
+
+// GetMessages_PersonByEmail_Messages_MessageConnection
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetMessages_PersonByEmail_Messages_MessageConnection
+        : IGetMessages_PersonByEmail_Messages_MessageConnection
+    {
+        public GetMessages_PersonByEmail_Messages_MessageConnection(global::System.Collections.Generic.IReadOnlyList<IGetMessages_PersonByEmail_Messages_Nodes?>? nodes)
+        {
+            Nodes = nodes;
+        }
+
+        public global::System.Collections.Generic.IReadOnlyList<IGetMessages_PersonByEmail_Messages_Nodes?>? Nodes { get; } = default!;
+    }
+}
+
+
+// GetMessages_PersonByEmail_Messages_Nodes_MessageFromMessageEntityMapper
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetMessages_PersonByEmail_Messages_Nodes_MessageFromMessageEntityMapper
+        : global::StrawberryShake.IEntityMapper<MessageEntity, GetMessages_PersonByEmail_Messages_Nodes_Message>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper;
+
+        public GetMessages_PersonByEmail_Messages_Nodes_MessageFromMessageEntityMapper(
+            global::StrawberryShake.IEntityStore entityStore,
+            global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper,
+            global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper = getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper
+                 ?? throw new global::System.ArgumentNullException(nameof(getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper));
+            _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper = getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper
+                 ?? throw new global::System.ArgumentNullException(nameof(getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper));
+        }
+
+        public GetMessages_PersonByEmail_Messages_Nodes_Message Map(MessageEntity entity)
+        {
+            return new GetMessages_PersonByEmail_Messages_Nodes_Message(
+                entity.Id,
+                entity.Text,
+                entity.Direction,
+                MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Recipient(entity.Recipient),
+                MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Sender(entity.Sender),
+                entity.Sent);
+        }
+
+        private IGetMessages_PersonByEmail_Messages_Nodes_Recipient MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Recipient(global::StrawberryShake.EntityId entityId)
+        {
+
+            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
+            {
+                return _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper.Map(
+                    _entityStore.GetEntity<PersonEntity>(entityId)
+                        ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+            throw new global::System.NotSupportedException();
+        }
+
+        private IGetMessages_PersonByEmail_Messages_Nodes_Sender MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Sender(global::StrawberryShake.EntityId entityId)
+        {
+
+            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
+            {
+                return _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper.Map(
+                    _entityStore.GetEntity<PersonEntity>(entityId)
+                        ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+            throw new global::System.NotSupportedException();
+        }
+    }
+}
+
+
+// GetMessages_PersonByEmail_Messages_Nodes_Message
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetMessages_PersonByEmail_Messages_Nodes_Message
+        : IGetMessages_PersonByEmail_Messages_Nodes_Message
+    {
+        public GetMessages_PersonByEmail_Messages_Nodes_Message(
+            global::System.String id,
+            global::System.String text,
+            Direction direction,
+            IGetMessages_PersonByEmail_Messages_Nodes_Recipient recipient,
+            IGetMessages_PersonByEmail_Messages_Nodes_Sender sender,
+            global::System.DateTimeOffset sent)
+        {
+            Id = id;
+            Text = text;
+            Direction = direction;
+            Recipient = recipient;
+            Sender = sender;
+            Sent = sent;
+        }
+
+        public global::System.String Id { get; }
+
+        public global::System.String Text { get; }
+
+        public Direction Direction { get; }
+
+        public IGetMessages_PersonByEmail_Messages_Nodes_Recipient Recipient { get; }
+
+        public IGetMessages_PersonByEmail_Messages_Nodes_Sender Sender { get; }
+
+        public global::System.DateTimeOffset Sent { get; }
+    }
+}
+
+
+// GetMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper
+        : global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person>
+    {
+        public GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person Map(PersonEntity entity)
+        {
+            return new GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person(
+                entity.Name,
+                entity.Email,
+                entity.IsOnline);
+        }
+    }
+}
+
+
+// GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person
+        : IGetMessages_PersonByEmail_Messages_Nodes_Recipient_Person
+    {
+        public GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person(
+            global::System.String name,
+            global::System.String email,
+            global::System.Boolean isOnline)
+        {
+            Name = name;
+            Email = email;
+            IsOnline = isOnline;
+        }
+
+        public global::System.String Name { get; }
+
+        public global::System.String Email { get; }
+
+        public global::System.Boolean IsOnline { get; }
+    }
+}
+
+
+// GetMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper
+        : global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person>
+    {
+        public GetMessages_PersonByEmail_Messages_Nodes_Sender_Person Map(PersonEntity entity)
+        {
+            return new GetMessages_PersonByEmail_Messages_Nodes_Sender_Person(
+                entity.Name,
+                entity.Email,
+                entity.IsOnline);
+        }
+    }
+}
+
+
+// GetMessages_PersonByEmail_Messages_Nodes_Sender_Person
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetMessages_PersonByEmail_Messages_Nodes_Sender_Person
+        : IGetMessages_PersonByEmail_Messages_Nodes_Sender_Person
+    {
+        public GetMessages_PersonByEmail_Messages_Nodes_Sender_Person(
+            global::System.String name,
+            global::System.String email,
+            global::System.Boolean isOnline)
+        {
+            Name = name;
+            Email = email;
+            IsOnline = isOnline;
+        }
+
+        public global::System.String Name { get; }
+
+        public global::System.String Email { get; }
+
+        public global::System.Boolean IsOnline { get; }
+    }
+}
+
+
+// IGetMessages
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IGetMessages
+    {
+        public IGetMessages_PersonByEmail PersonByEmail { get; }
+    }
+}
+
+
+// IGetMessages_PersonByEmail
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IGetMessages_PersonByEmail
+    {
+        public IGetMessages_PersonByEmail_Messages? Messages { get; }
+    }
+}
+
+
+// IGetMessages_PersonByEmail_Person
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IGetMessages_PersonByEmail_Person
+        : IGetMessages_PersonByEmail
+    {
+    }
+}
+
+
+// IGetMessages_PersonByEmail_Messages
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IGetMessages_PersonByEmail_Messages
+    {
+        public global::System.Collections.Generic.IReadOnlyList<IGetMessages_PersonByEmail_Messages_Nodes?>? Nodes { get; }
+    }
+}
+
+
+// IGetMessages_PersonByEmail_Messages_MessageConnection
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IGetMessages_PersonByEmail_Messages_MessageConnection
+        : IGetMessages_PersonByEmail_Messages
+    {
+    }
+}
+
+
+// IMessage
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IMessage
+    {
+        public global::System.String Id { get; }
+
+        public global::System.String Text { get; }
+
+        public Direction Direction { get; }
+
+        public IGetMessages_PersonByEmail_Messages_Nodes_Recipient Recipient { get; }
+
+        public IGetMessages_PersonByEmail_Messages_Nodes_Sender Sender { get; }
+
+        public global::System.DateTimeOffset Sent { get; }
+    }
+}
+
+
+// IGetMessages_PersonByEmail_Messages_Nodes
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IGetMessages_PersonByEmail_Messages_Nodes
+        : IMessage
+    {
+    }
+}
+
+
+// IGetMessages_PersonByEmail_Messages_Nodes_Message
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IGetMessages_PersonByEmail_Messages_Nodes_Message
+        : IGetMessages_PersonByEmail_Messages_Nodes
+    {
+    }
+}
+
+
+// IGetMessages_PersonByEmail_Messages_Nodes_Recipient
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IGetMessages_PersonByEmail_Messages_Nodes_Recipient
+        : IParticipant
+    {
+    }
+}
+
+
+// IGetMessages_PersonByEmail_Messages_Nodes_Recipient_Person
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IGetMessages_PersonByEmail_Messages_Nodes_Recipient_Person
+        : IGetMessages_PersonByEmail_Messages_Nodes_Recipient
+    {
+    }
+}
+
+
+// IGetMessages_PersonByEmail_Messages_Nodes_Sender
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IGetMessages_PersonByEmail_Messages_Nodes_Sender
+        : IParticipant
+    {
+    }
+}
+
+
+// IGetMessages_PersonByEmail_Messages_Nodes_Sender_Person
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IGetMessages_PersonByEmail_Messages_Nodes_Sender_Person
+        : IGetMessages_PersonByEmail_Messages_Nodes_Sender
+    {
+    }
+}
+
+
+// SendMessageMutFactory
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class SendMessageMutFactory
+        : global::StrawberryShake.IOperationResultDataFactory<SendMessageMut>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityMapper<MessageEntity, SendMessageMut_SendMessage_Message_Message> _sendMessageMut_SendMessage_Message_MessageFromMessageEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper;
+
+        public SendMessageMutFactory(
+            global::StrawberryShake.IEntityStore entityStore,
+            global::StrawberryShake.IEntityMapper<MessageEntity, SendMessageMut_SendMessage_Message_Message> sendMessageMut_SendMessage_Message_MessageFromMessageEntityMapper,
+            global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper,
+            global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _sendMessageMut_SendMessage_Message_MessageFromMessageEntityMapper = sendMessageMut_SendMessage_Message_MessageFromMessageEntityMapper
+                 ?? throw new global::System.ArgumentNullException(nameof(sendMessageMut_SendMessage_Message_MessageFromMessageEntityMapper));
+            _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper = getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper
+                 ?? throw new global::System.ArgumentNullException(nameof(getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper));
+            _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper = getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper
+                 ?? throw new global::System.ArgumentNullException(nameof(getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper));
+        }
+
+        public SendMessageMut Create(global::StrawberryShake.IOperationResultDataInfo dataInfo)
+        {
+            if (dataInfo is SendMessageMutInfo info)
+            {
+                return new SendMessageMut(MapNonNullableISendMessageMut_SendMessage(info.SendMessage));
+            }
+
+            throw new global::System.ArgumentException("SendMessageMutInfo expected.");
+        }
+
+        private ISendMessageMut_SendMessage MapNonNullableISendMessageMut_SendMessage(global::StrawberryShake.GraphQL.State.SendMessagePayloadData data)
+        {
+            ISendMessageMut_SendMessage returnValue = default!;
+
+            if (data.__typename.Equals("SendMessagePayload", global::System.StringComparison.Ordinal))
+            {
+                returnValue = new SendMessageMut_SendMessage_SendMessagePayload(MapNonNullableISendMessageMut_SendMessage_Message(data.Message ?? throw new global::System.ArgumentNullException()));
+            }
+            else {
+                throw new global::System.NotSupportedException();
+            }
+            return returnValue;
+        }
+
+        private ISendMessageMut_SendMessage_Message MapNonNullableISendMessageMut_SendMessage_Message(global::StrawberryShake.EntityId entityId)
+        {
+
+            if (entityId.Name.Equals("Message", global::System.StringComparison.Ordinal))
+            {
+                return _sendMessageMut_SendMessage_Message_MessageFromMessageEntityMapper.Map(
+                    _entityStore.GetEntity<MessageEntity>(entityId)
+                        ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+            throw new global::System.NotSupportedException();
+        }
+
+        private IGetMessages_PersonByEmail_Messages_Nodes_Recipient MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Recipient(global::StrawberryShake.EntityId entityId)
+        {
+
+            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
+            {
+                return _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper.Map(
+                    _entityStore.GetEntity<PersonEntity>(entityId)
+                        ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+            throw new global::System.NotSupportedException();
+        }
+
+        private IGetMessages_PersonByEmail_Messages_Nodes_Sender MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Sender(global::StrawberryShake.EntityId entityId)
+        {
+
+            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
+            {
+                return _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper.Map(
+                    _entityStore.GetEntity<PersonEntity>(entityId)
+                        ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+            throw new global::System.NotSupportedException();
+        }
+    }
+}
+
+
+// SendMessageMutInfo
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class SendMessageMutInfo
+        : global::StrawberryShake.IOperationResultDataInfo
+    {
+        private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
+        private readonly ulong _version;
+
+        public SendMessageMutInfo(
+            global::StrawberryShake.GraphQL.State.SendMessagePayloadData sendMessage,
+            global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds,
+            ulong version)
+        {
+            SendMessage = sendMessage;
+            _entityIds = entityIds
+                 ?? throw new global::System.ArgumentNullException(nameof(entityIds));
+            _version = version;
+        }
+
+        public global::StrawberryShake.GraphQL.State.SendMessagePayloadData SendMessage { get; }
+
+        public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
+
+        public ulong Version => _version;
+
+        public global::StrawberryShake.IOperationResultDataInfo WithVersion(ulong version)
+        {
+            return new SendMessageMutInfo(
+                SendMessage,
+                _entityIds,
+                _version);
+        }
+    }
+}
+
+
+// SendMessageMut
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class SendMessageMut
+        : ISendMessageMut
+    {
+        public SendMessageMut(ISendMessageMut_SendMessage sendMessage)
+        {
+            SendMessage = sendMessage;
+        }
+
+        public ISendMessageMut_SendMessage SendMessage { get; }
+    }
+}
+
+
+// SendMessageMut_SendMessage_SendMessagePayload
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class SendMessageMut_SendMessage_SendMessagePayload
+        : ISendMessageMut_SendMessage_SendMessagePayload
+    {
+        public SendMessageMut_SendMessage_SendMessagePayload(ISendMessageMut_SendMessage_Message message)
+        {
+            Message = message;
+        }
+
+        public ISendMessageMut_SendMessage_Message Message { get; }
+    }
+}
+
+
+// SendMessageMut_SendMessage_Message_MessageFromMessageEntityMapper
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class SendMessageMut_SendMessage_Message_MessageFromMessageEntityMapper
+        : global::StrawberryShake.IEntityMapper<MessageEntity, SendMessageMut_SendMessage_Message_Message>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper;
+
+        public SendMessageMut_SendMessage_Message_MessageFromMessageEntityMapper(
+            global::StrawberryShake.IEntityStore entityStore,
+            global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper,
+            global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper = getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper
+                 ?? throw new global::System.ArgumentNullException(nameof(getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper));
+            _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper = getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper
+                 ?? throw new global::System.ArgumentNullException(nameof(getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper));
+        }
+
+        public SendMessageMut_SendMessage_Message_Message Map(MessageEntity entity)
+        {
+            return new SendMessageMut_SendMessage_Message_Message(
+                entity.Id,
+                entity.Text,
+                entity.Direction,
+                MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Recipient(entity.Recipient),
+                MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Sender(entity.Sender),
+                entity.Sent);
+        }
+
+        private IGetMessages_PersonByEmail_Messages_Nodes_Recipient MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Recipient(global::StrawberryShake.EntityId entityId)
+        {
+
+            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
+            {
+                return _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper.Map(
+                    _entityStore.GetEntity<PersonEntity>(entityId)
+                        ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+            throw new global::System.NotSupportedException();
+        }
+
+        private IGetMessages_PersonByEmail_Messages_Nodes_Sender MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Sender(global::StrawberryShake.EntityId entityId)
+        {
+
+            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
+            {
+                return _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper.Map(
+                    _entityStore.GetEntity<PersonEntity>(entityId)
+                        ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+            throw new global::System.NotSupportedException();
+        }
+    }
+}
+
+
+// SendMessageMut_SendMessage_Message_Message
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class SendMessageMut_SendMessage_Message_Message
+        : ISendMessageMut_SendMessage_Message_Message
+    {
+        public SendMessageMut_SendMessage_Message_Message(
+            global::System.String id,
+            global::System.String text,
+            Direction direction,
+            IGetMessages_PersonByEmail_Messages_Nodes_Recipient recipient,
+            IGetMessages_PersonByEmail_Messages_Nodes_Sender sender,
+            global::System.DateTimeOffset sent)
+        {
+            Id = id;
+            Text = text;
+            Direction = direction;
+            Recipient = recipient;
+            Sender = sender;
+            Sent = sent;
+        }
+
+        public global::System.String Id { get; }
+
+        public global::System.String Text { get; }
+
+        public Direction Direction { get; }
+
+        public IGetMessages_PersonByEmail_Messages_Nodes_Recipient Recipient { get; }
+
+        public IGetMessages_PersonByEmail_Messages_Nodes_Sender Sender { get; }
+
+        public global::System.DateTimeOffset Sent { get; }
+    }
+}
+
+
+// SendMessageMut_SendMessage_Message_Recipient_PersonFromPersonEntityMapper
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class SendMessageMut_SendMessage_Message_Recipient_PersonFromPersonEntityMapper
+        : global::StrawberryShake.IEntityMapper<PersonEntity, SendMessageMut_SendMessage_Message_Recipient_Person>
+    {
+        public SendMessageMut_SendMessage_Message_Recipient_Person Map(PersonEntity entity)
+        {
+            return new SendMessageMut_SendMessage_Message_Recipient_Person(
+                entity.Name,
+                entity.Email,
+                entity.IsOnline);
+        }
+    }
+}
+
+
+// SendMessageMut_SendMessage_Message_Recipient_Person
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class SendMessageMut_SendMessage_Message_Recipient_Person
+        : ISendMessageMut_SendMessage_Message_Recipient_Person
+    {
+        public SendMessageMut_SendMessage_Message_Recipient_Person(
+            global::System.String name,
+            global::System.String email,
+            global::System.Boolean isOnline)
+        {
+            Name = name;
+            Email = email;
+            IsOnline = isOnline;
+        }
+
+        public global::System.String Name { get; }
+
+        public global::System.String Email { get; }
+
+        public global::System.Boolean IsOnline { get; }
+    }
+}
+
+
+// SendMessageMut_SendMessage_Message_Sender_PersonFromPersonEntityMapper
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class SendMessageMut_SendMessage_Message_Sender_PersonFromPersonEntityMapper
+        : global::StrawberryShake.IEntityMapper<PersonEntity, SendMessageMut_SendMessage_Message_Sender_Person>
+    {
+        public SendMessageMut_SendMessage_Message_Sender_Person Map(PersonEntity entity)
+        {
+            return new SendMessageMut_SendMessage_Message_Sender_Person(
+                entity.Name,
+                entity.Email,
+                entity.IsOnline);
+        }
+    }
+}
+
+
+// SendMessageMut_SendMessage_Message_Sender_Person
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class SendMessageMut_SendMessage_Message_Sender_Person
+        : ISendMessageMut_SendMessage_Message_Sender_Person
+    {
+        public SendMessageMut_SendMessage_Message_Sender_Person(
+            global::System.String name,
+            global::System.String email,
+            global::System.Boolean isOnline)
+        {
+            Name = name;
+            Email = email;
+            IsOnline = isOnline;
+        }
+
+        public global::System.String Name { get; }
+
+        public global::System.String Email { get; }
+
+        public global::System.Boolean IsOnline { get; }
+    }
+}
+
+
+// ISendMessageMut
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface ISendMessageMut
+    {
+        public ISendMessageMut_SendMessage SendMessage { get; }
+    }
+}
+
+
+// ISendMessageMut_SendMessage
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface ISendMessageMut_SendMessage
+    {
+        public ISendMessageMut_SendMessage_Message Message { get; }
+    }
+}
+
+
+// ISendMessageMut_SendMessage_SendMessagePayload
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface ISendMessageMut_SendMessage_SendMessagePayload
+        : ISendMessageMut_SendMessage
+    {
+    }
+}
+
+
+// ISendMessageMut_SendMessage_Message
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface ISendMessageMut_SendMessage_Message
+        : IMessage
+    {
+    }
+}
+
+
+// ISendMessageMut_SendMessage_Message_Message
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface ISendMessageMut_SendMessage_Message_Message
+        : ISendMessageMut_SendMessage_Message
+    {
+    }
+}
+
+
+// ISendMessageMut_SendMessage_Message_Recipient
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface ISendMessageMut_SendMessage_Message_Recipient
+        : IParticipant
+    {
+    }
+}
+
+
+// ISendMessageMut_SendMessage_Message_Recipient_Person
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface ISendMessageMut_SendMessage_Message_Recipient_Person
+        : ISendMessageMut_SendMessage_Message_Recipient
+    {
+    }
+}
+
+
+// ISendMessageMut_SendMessage_Message_Sender
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface ISendMessageMut_SendMessage_Message_Sender
+        : IParticipant
+    {
+    }
+}
+
+
+// ISendMessageMut_SendMessage_Message_Sender_Person
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface ISendMessageMut_SendMessage_Message_Sender_Person
+        : ISendMessageMut_SendMessage_Message_Sender
+    {
+    }
+}
+
+
+// ReadMessagesFactory
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class ReadMessagesFactory
+        : global::StrawberryShake.IOperationResultDataFactory<ReadMessages>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityMapper<MessageEntity, ReadMessages_Message_Message> _readMessages_Message_MessageFromMessageEntityMapper;
+
+        public ReadMessagesFactory(
+            global::StrawberryShake.IEntityStore entityStore,
+            global::StrawberryShake.IEntityMapper<MessageEntity, ReadMessages_Message_Message> readMessages_Message_MessageFromMessageEntityMapper)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _readMessages_Message_MessageFromMessageEntityMapper = readMessages_Message_MessageFromMessageEntityMapper
+                 ?? throw new global::System.ArgumentNullException(nameof(readMessages_Message_MessageFromMessageEntityMapper));
+        }
+
+        public ReadMessages Create(global::StrawberryShake.IOperationResultDataInfo dataInfo)
+        {
+            if (dataInfo is ReadMessagesInfo info)
+            {
+                return new ReadMessages(MapNonNullableIReadMessages_Message(info.Message));
+            }
+
+            throw new global::System.ArgumentException("ReadMessagesInfo expected.");
+        }
+
+        private IReadMessages_Message MapNonNullableIReadMessages_Message(global::StrawberryShake.EntityId entityId)
+        {
+
+            if (entityId.Name.Equals("Message", global::System.StringComparison.Ordinal))
+            {
+                return _readMessages_Message_MessageFromMessageEntityMapper.Map(
+                    _entityStore.GetEntity<MessageEntity>(entityId)
+                        ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+            throw new global::System.NotSupportedException();
+        }
+    }
+}
+
+
+// ReadMessagesInfo
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class ReadMessagesInfo
+        : global::StrawberryShake.IOperationResultDataInfo
+    {
+        private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
+        private readonly ulong _version;
+
+        public ReadMessagesInfo(
+            global::StrawberryShake.EntityId message,
+            global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds,
+            ulong version)
+        {
+            Message = message;
+            _entityIds = entityIds
+                 ?? throw new global::System.ArgumentNullException(nameof(entityIds));
+            _version = version;
+        }
+
+        public global::StrawberryShake.EntityId Message { get; }
+
+        public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
+
+        public ulong Version => _version;
+
+        public global::StrawberryShake.IOperationResultDataInfo WithVersion(ulong version)
+        {
+            return new ReadMessagesInfo(
+                Message,
+                _entityIds,
+                _version);
+        }
+    }
+}
+
+
+// ReadMessages
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class ReadMessages
+        : IReadMessages
+    {
+        public ReadMessages(IReadMessages_Message message)
+        {
+            Message = message;
+        }
+
+        public IReadMessages_Message Message { get; }
+    }
+}
+
+
+// ReadMessages_Message_MessageFromMessageEntityMapper
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class ReadMessages_Message_MessageFromMessageEntityMapper
+        : global::StrawberryShake.IEntityMapper<MessageEntity, ReadMessages_Message_Message>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper;
+
+        public ReadMessages_Message_MessageFromMessageEntityMapper(
+            global::StrawberryShake.IEntityStore entityStore,
+            global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper,
+            global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper = getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper
+                 ?? throw new global::System.ArgumentNullException(nameof(getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper));
+            _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper = getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper
+                 ?? throw new global::System.ArgumentNullException(nameof(getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper));
+        }
+
+        public ReadMessages_Message_Message Map(MessageEntity entity)
+        {
+            return new ReadMessages_Message_Message(
+                entity.Id,
+                entity.Text,
+                entity.Direction,
+                MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Recipient(entity.Recipient),
+                MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Sender(entity.Sender),
+                entity.Sent);
+        }
+
+        private IGetMessages_PersonByEmail_Messages_Nodes_Recipient MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Recipient(global::StrawberryShake.EntityId entityId)
+        {
+
+            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
+            {
+                return _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper.Map(
+                    _entityStore.GetEntity<PersonEntity>(entityId)
+                        ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+            throw new global::System.NotSupportedException();
+        }
+
+        private IGetMessages_PersonByEmail_Messages_Nodes_Sender MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Sender(global::StrawberryShake.EntityId entityId)
+        {
+
+            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
+            {
+                return _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper.Map(
+                    _entityStore.GetEntity<PersonEntity>(entityId)
+                        ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+            throw new global::System.NotSupportedException();
+        }
+    }
+}
+
+
+// ReadMessages_Message_Message
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class ReadMessages_Message_Message
+        : IReadMessages_Message_Message
+    {
+        public ReadMessages_Message_Message(
+            global::System.String id,
+            global::System.String text,
+            Direction direction,
+            IGetMessages_PersonByEmail_Messages_Nodes_Recipient recipient,
+            IGetMessages_PersonByEmail_Messages_Nodes_Sender sender,
+            global::System.DateTimeOffset sent)
+        {
+            Id = id;
+            Text = text;
+            Direction = direction;
+            Recipient = recipient;
+            Sender = sender;
+            Sent = sent;
+        }
+
+        public global::System.String Id { get; }
+
+        public global::System.String Text { get; }
+
+        public Direction Direction { get; }
+
+        public IGetMessages_PersonByEmail_Messages_Nodes_Recipient Recipient { get; }
+
+        public IGetMessages_PersonByEmail_Messages_Nodes_Sender Sender { get; }
+
+        public global::System.DateTimeOffset Sent { get; }
+    }
+}
+
+
+// ReadMessages_Message_Recipient_PersonFromPersonEntityMapper
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class ReadMessages_Message_Recipient_PersonFromPersonEntityMapper
+        : global::StrawberryShake.IEntityMapper<PersonEntity, ReadMessages_Message_Recipient_Person>
+    {
+        public ReadMessages_Message_Recipient_Person Map(PersonEntity entity)
+        {
+            return new ReadMessages_Message_Recipient_Person(
+                entity.Name,
+                entity.Email,
+                entity.IsOnline);
+        }
+    }
+}
+
+
+// ReadMessages_Message_Recipient_Person
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class ReadMessages_Message_Recipient_Person
+        : IReadMessages_Message_Recipient_Person
+    {
+        public ReadMessages_Message_Recipient_Person(
+            global::System.String name,
+            global::System.String email,
+            global::System.Boolean isOnline)
+        {
+            Name = name;
+            Email = email;
+            IsOnline = isOnline;
+        }
+
+        public global::System.String Name { get; }
+
+        public global::System.String Email { get; }
+
+        public global::System.Boolean IsOnline { get; }
+    }
+}
+
+
+// ReadMessages_Message_Sender_PersonFromPersonEntityMapper
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class ReadMessages_Message_Sender_PersonFromPersonEntityMapper
+        : global::StrawberryShake.IEntityMapper<PersonEntity, ReadMessages_Message_Sender_Person>
+    {
+        public ReadMessages_Message_Sender_Person Map(PersonEntity entity)
+        {
+            return new ReadMessages_Message_Sender_Person(
+                entity.Name,
+                entity.Email,
+                entity.IsOnline);
+        }
+    }
+}
+
+
+// ReadMessages_Message_Sender_Person
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class ReadMessages_Message_Sender_Person
+        : IReadMessages_Message_Sender_Person
+    {
+        public ReadMessages_Message_Sender_Person(
+            global::System.String name,
+            global::System.String email,
+            global::System.Boolean isOnline)
+        {
+            Name = name;
+            Email = email;
+            IsOnline = isOnline;
+        }
+
+        public global::System.String Name { get; }
+
+        public global::System.String Email { get; }
+
+        public global::System.Boolean IsOnline { get; }
+    }
+}
+
+
+// IReadMessages
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IReadMessages
+    {
+        public IReadMessages_Message Message { get; }
+    }
+}
+
+
+// IReadMessages_Message
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IReadMessages_Message
+        : IMessage
+    {
+    }
+}
+
+
+// IReadMessages_Message_Message
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IReadMessages_Message_Message
+        : IReadMessages_Message
+    {
+    }
+}
+
+
+// IReadMessages_Message_Recipient
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IReadMessages_Message_Recipient
+        : IParticipant
+    {
+    }
+}
+
+
+// IReadMessages_Message_Recipient_Person
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IReadMessages_Message_Recipient_Person
+        : IReadMessages_Message_Recipient
+    {
+    }
+}
+
+
+// IReadMessages_Message_Sender
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IReadMessages_Message_Sender
+        : IParticipant
+    {
+    }
+}
+
+
+// IReadMessages_Message_Sender_Person
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IReadMessages_Message_Sender_Person
+        : IReadMessages_Message_Sender
+    {
+    }
+}
+
+
+// GetPeopleQueryDocument
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetPeopleQueryDocument
+        : global::StrawberryShake.IDocument
+    {
+        private const global::System.String _bodyString = 
+            @"query GetPeople {
+  people(order_by: { name: ASC }) {
+    __typename
+    nodes {
+      __typename
+      ... Person
+      ... on Person {
+        id
+      }
+    }
+  }
+}
+
+fragment Person on Person {
+  ... Participant
+  imageUri
+  lastSeen
+}
+
+fragment Participant on Person {
+  name
+  email
+  isOnline
+}";
+        private static readonly byte[] _body = global::System.Text.Encoding.UTF8.GetBytes(_bodyString);
+
+        private GetPeopleQueryDocument()
+        {
+        }
+
+        public static GetPeopleQueryDocument Instance { get; } = new GetPeopleQueryDocument();
+
+        public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
+
+        public global::System.ReadOnlySpan<byte> Body => _body;
+
+        public override string ToString()
+        {
+            return _bodyString;
+        }
+    }
+}
+
+
+// GetPeopleQuery
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetPeopleQuery
+    {
+        private readonly global::StrawberryShake.IOperationExecutor<IGetPeople> _operationExecutor;
+
+        public GetPeopleQuery(global::StrawberryShake.IOperationExecutor<IGetPeople> operationExecutor)
+        {
+            _operationExecutor = operationExecutor
+                 ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
+        }
+
+        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetPeople>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default)
+        {
+            var request = CreateRequest();
+            
+            return await _operationExecutor
+                .ExecuteAsync(
+                    request,
+                    cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        public global::System.IObservable<global::StrawberryShake.IOperationResult<IGetPeople>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null)
+        {
+            var request = CreateRequest();
+            return _operationExecutor.Watch(request, strategy);
+        }
+
+        private global::StrawberryShake.OperationRequest CreateRequest()
+        {
+
+            return new global::StrawberryShake.OperationRequest(
+                "GetPeople",
+                GetPeopleQueryDocument.Instance);
+        }
+    }
+}
+
+
+// GetMessagesQueryDocument
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetMessagesQueryDocument
+        : global::StrawberryShake.IDocument
+    {
+        private const global::System.String _bodyString = 
+            @"query GetMessages($email: String!) {
+  personByEmail(email: $email) {
+    __typename
+    messages(order_by: { sent: ASC }) {
+      __typename
+      nodes {
+        __typename
+        ... Message
+        ... on Message {
+          id
+        }
+      }
+    }
+    ... on Person {
+      id
+    }
+  }
+}
+
+fragment Message on Message {
+  id
+  text
+  direction
+  recipient {
+    __typename
+    ... Participant
+    ... on Person {
+      id
+    }
+  }
+  sender {
+    __typename
+    ... Participant
+    ... on Person {
+      id
+    }
+  }
+  sent
+}
+
+fragment Participant on Person {
+  name
+  email
+  isOnline
+}";
+        private static readonly byte[] _body = global::System.Text.Encoding.UTF8.GetBytes(_bodyString);
+
+        private GetMessagesQueryDocument()
+        {
+        }
+
+        public static GetMessagesQueryDocument Instance { get; } = new GetMessagesQueryDocument();
+
+        public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
+
+        public global::System.ReadOnlySpan<byte> Body => _body;
+
+        public override string ToString()
+        {
+            return _bodyString;
+        }
+    }
+}
+
+
+// GetMessagesQuery
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetMessagesQuery
+    {
+        private readonly global::StrawberryShake.IOperationExecutor<IGetMessages> _operationExecutor;
+        private readonly global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter;
+
+        public GetMessagesQuery(
+            global::StrawberryShake.IOperationExecutor<IGetMessages> operationExecutor,
+            global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
+        {
+            _operationExecutor = operationExecutor
+                 ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
+            _stringFormatter = serializerResolver.GetInputValueFormatter("String");
+        }
+
+        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetMessages>> ExecuteAsync(
+            global::System.String email,
+            global::System.Threading.CancellationToken cancellationToken = default)
+        {
+            var request = CreateRequest(email);
+            
+            return await _operationExecutor
+                .ExecuteAsync(
+                    request,
+                    cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        public global::System.IObservable<global::StrawberryShake.IOperationResult<IGetMessages>> Watch(
+            global::System.String email,
+            global::StrawberryShake.ExecutionStrategy? strategy = null)
+        {
+            var request = CreateRequest(email);
+            return _operationExecutor.Watch(request, strategy);
+        }
+
+        private global::StrawberryShake.OperationRequest CreateRequest(global::System.String email)
+        {
+            var arguments = new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>();
+            arguments.Add("email", FormatEmail(email));
+
+            return new global::StrawberryShake.OperationRequest(
+                "GetMessages",
+                GetMessagesQueryDocument.Instance,
+                arguments);
+        }
+
+        private global::System.Object? FormatEmail(global::System.String value)
+        {
+            if (value == default)
+            {
+                return null;
+            }
+
+            return _stringFormatter.Format(value);
+        }
+    }
+}
+
+
+// SendMessageMutMutationDocument
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class SendMessageMutMutationDocument
+        : global::StrawberryShake.IDocument
+    {
+        private const global::System.String _bodyString = 
+            @"mutation SendMessageMut($email: String!, $text: String!) {
+  sendMessage(input: { recipientEmail: $email, text: $text }) {
+    __typename
+    message {
+      __typename
+      ... Message
+      ... on Message {
+        id
+      }
+    }
+  }
+}
+
+fragment Message on Message {
+  id
+  text
+  direction
+  recipient {
+    __typename
+    ... Participant
+    ... on Person {
+      id
+    }
+  }
+  sender {
+    __typename
+    ... Participant
+    ... on Person {
+      id
+    }
+  }
+  sent
+}
+
+fragment Participant on Person {
+  name
+  email
+  isOnline
+}";
+        private static readonly byte[] _body = global::System.Text.Encoding.UTF8.GetBytes(_bodyString);
+
+        private SendMessageMutMutationDocument()
+        {
+        }
+
+        public static SendMessageMutMutationDocument Instance { get; } = new SendMessageMutMutationDocument();
+
+        public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Mutation;
+
+        public global::System.ReadOnlySpan<byte> Body => _body;
+
+        public override string ToString()
+        {
+            return _bodyString;
+        }
+    }
+}
+
+
+// SendMessageMutMutation
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class SendMessageMutMutation
+    {
+        private readonly global::StrawberryShake.IOperationExecutor<ISendMessageMut> _operationExecutor;
+        private readonly global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter;
+
+        public SendMessageMutMutation(
+            global::StrawberryShake.IOperationExecutor<ISendMessageMut> operationExecutor,
+            global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
+        {
+            _operationExecutor = operationExecutor
+                 ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
+            _stringFormatter = serializerResolver.GetInputValueFormatter("String");
+        }
+
+        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ISendMessageMut>> ExecuteAsync(
+            global::System.String email,
+            global::System.String text,
+            global::System.Threading.CancellationToken cancellationToken = default)
+        {
+            var request = CreateRequest(
+                email,
+                text);
+            
+            return await _operationExecutor
+                .ExecuteAsync(
+                    request,
+                    cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        public global::System.IObservable<global::StrawberryShake.IOperationResult<ISendMessageMut>> Watch(
+            global::System.String email,
+            global::System.String text,
+            global::StrawberryShake.ExecutionStrategy? strategy = null)
+        {
+            var request = CreateRequest(
+                email,
+                text);
+            return _operationExecutor.Watch(request, strategy);
+        }
+
+        private global::StrawberryShake.OperationRequest CreateRequest(
+            global::System.String email,
+            global::System.String text)
+        {
+            var arguments = new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>();
+            arguments.Add("email", FormatEmail(email));
+            arguments.Add("text", FormatText(text));
+
+            return new global::StrawberryShake.OperationRequest(
+                "SendMessageMut",
+                SendMessageMutMutationDocument.Instance,
+                arguments);
+        }
+
+        private global::System.Object? FormatEmail(global::System.String value)
+        {
+            if (value == default)
+            {
+                return null;
+            }
+
+            return _stringFormatter.Format(value);
+        }
+
+        private global::System.Object? FormatText(global::System.String value)
+        {
+            if (value == default)
+            {
+                return null;
+            }
+
+            return _stringFormatter.Format(value);
+        }
+    }
+}
+
+
+// ReadMessagesSubscriptionDocument
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class ReadMessagesSubscriptionDocument
+        : global::StrawberryShake.IDocument
+    {
+        private const global::System.String _bodyString = 
+            @"subscription ReadMessages {
+  message: onMessageReceived {
+    __typename
+    ... Message
+    ... on Message {
+      id
+    }
+  }
+}
+
+fragment Message on Message {
+  id
+  text
+  direction
+  recipient {
+    __typename
+    ... Participant
+    ... on Person {
+      id
+    }
+  }
+  sender {
+    __typename
+    ... Participant
+    ... on Person {
+      id
+    }
+  }
+  sent
+}
+
+fragment Participant on Person {
+  name
+  email
+  isOnline
+}";
+        private static readonly byte[] _body = global::System.Text.Encoding.UTF8.GetBytes(_bodyString);
+
+        private ReadMessagesSubscriptionDocument()
+        {
+        }
+
+        public static ReadMessagesSubscriptionDocument Instance { get; } = new ReadMessagesSubscriptionDocument();
+
+        public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Subscription;
+
+        public global::System.ReadOnlySpan<byte> Body => _body;
+
+        public override string ToString()
+        {
+            return _bodyString;
+        }
+    }
+}
+
+
+// ReadMessagesSubscription
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class ReadMessagesSubscription
+    {
+        private readonly global::StrawberryShake.IOperationExecutor<IReadMessages> _operationExecutor;
+
+        public ReadMessagesSubscription(global::StrawberryShake.IOperationExecutor<IReadMessages> operationExecutor)
+        {
+            _operationExecutor = operationExecutor
+                 ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
+        }
+
+        public global::System.IObservable<global::StrawberryShake.IOperationResult<IReadMessages>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null)
+        {
+            var request = CreateRequest();
+            return _operationExecutor.Watch(request, strategy);
+        }
+
+        private global::StrawberryShake.OperationRequest CreateRequest()
+        {
+
+            return new global::StrawberryShake.OperationRequest(
+                "ReadMessages",
+                ReadMessagesSubscriptionDocument.Instance);
+        }
+    }
+}
+
+
+// GetPeopleBuilder
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetPeopleBuilder
+        : global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, IGetPeople>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
+        private readonly global::StrawberryShake.IOperationResultDataFactory<IGetPeople> _resultDataFactory;
+        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
+        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
+        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.Uri> _uriParser;
+        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.DateTimeOffset> _dateTimeOffsetParser;
+
+        public GetPeopleBuilder(
+            global::StrawberryShake.IEntityStore entityStore,
+            global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> extractId,
+            global::StrawberryShake.IOperationResultDataFactory<IGetPeople> resultDataFactory,
+            global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _extractId = extractId
+                 ?? throw new global::System.ArgumentNullException(nameof(extractId));
+            _resultDataFactory = resultDataFactory
+                 ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
+            _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String")
+                 ?? throw new global::System.ArgumentNullException(nameof(_stringParser));
+            _booleanParser = serializerResolver.GetLeafValueParser<global::System.Boolean, global::System.Boolean>("Boolean")
+                 ?? throw new global::System.ArgumentNullException(nameof(_booleanParser));
+            _uriParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.Uri>("Url")
+                 ?? throw new global::System.ArgumentNullException(nameof(_uriParser));
+            _dateTimeOffsetParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.DateTimeOffset>("DateTime")
+                 ?? throw new global::System.ArgumentNullException(nameof(_dateTimeOffsetParser));
+        }
+
+        public global::StrawberryShake.IOperationResult<IGetPeople> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
+        {
+            (IGetPeople Result, GetPeopleInfo Info)? data = null;
+
+            if (response.Body is not null
+                && response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement obj))
+            {
+                data = BuildData(obj);
+            }
+
+            return new global::StrawberryShake.OperationResult<IGetPeople>(
+                data?.Result,
+                data?.Info,
+                _resultDataFactory,
+                null);
+        }
+
+        private (IGetPeople, GetPeopleInfo) BuildData(global::System.Text.Json.JsonElement obj)
+        {
+            using global::StrawberryShake.IEntityUpdateSession session = _entityStore.BeginUpdate();
+            var entityIds = new global::System.Collections.Generic.HashSet<global::StrawberryShake.EntityId>();
+
+
+            var resultInfo = new GetPeopleInfo(
+                DeserializeIGetPeople_People(
+                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj, "people"),
+                    entityIds),
+                entityIds,
+                session.Version);
+
+            return (_resultDataFactory.Create(resultInfo), resultInfo);
+        }
+
+        private global::StrawberryShake.GraphQL.State.PersonConnectionData? DeserializeIGetPeople_People(
+            global::System.Text.Json.JsonElement? obj,
+            global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        {
+            if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            var typename = obj.Value.GetProperty("__typename").GetString();
+
+            if (typename?.Equals("PersonConnection", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::StrawberryShake.GraphQL.State.PersonConnectionData(
+                    typename,
+                    nodes: UpdateIGetPeople_People_NodesEntityArray(
+                        global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "nodes"),
+                        entityIds));
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? UpdateIGetPeople_People_NodesEntityArray(
+            global::System.Text.Json.JsonElement? obj,
+            global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        {
+            if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            var iGetPeople_People_Nodess = new global::System.Collections.Generic.List<global::StrawberryShake.EntityId?>();
+
+            foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
+            {
+                iGetPeople_People_Nodess.Add(UpdateIGetPeople_People_NodesEntity(
+                    child,
+                    entityIds));
+            }
+
+            return iGetPeople_People_Nodess;
+        }
+
+        private global::StrawberryShake.EntityId? UpdateIGetPeople_People_NodesEntity(
+            global::System.Text.Json.JsonElement? obj,
+            global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        {
+            if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            global::StrawberryShake.EntityId entityId = _extractId(obj.Value);
+            entityIds.Add(entityId);
+
+
+            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
+            {
+                PersonEntity entity = _entityStore.GetOrCreate<PersonEntity>(entityId);
+                entity.Name = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "name"));
+                entity.Email = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "email"));
+                entity.IsOnline = DeserializeNonNullableBoolean(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "isOnline"));
+                entity.ImageUri = DeserializeUri(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "imageUri"));
+                entity.LastSeen = DeserializeNonNullableDateTimeOffset(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "lastSeen"));
+
+                return entityId;
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::System.String DeserializeNonNullableString(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            return _stringParser.Parse(obj.Value.GetString()!);
+        }
+
+        private global::System.Boolean DeserializeNonNullableBoolean(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            return _booleanParser.Parse(obj.Value.GetBoolean()!);
+        }
+
+        private global::System.Uri? DeserializeUri(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            return _uriParser.Parse(obj.Value.GetString()!);
+        }
+
+        private global::System.DateTimeOffset DeserializeNonNullableDateTimeOffset(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            return _dateTimeOffsetParser.Parse(obj.Value.GetString()!);
+        }
+    }
+}
+
+
+// GetMessagesBuilder
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetMessagesBuilder
+        : global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, IGetMessages>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
+        private readonly global::StrawberryShake.IOperationResultDataFactory<IGetMessages> _resultDataFactory;
+        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, Direction> _directionParser;
+        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
+        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.DateTimeOffset> _dateTimeOffsetParser;
+        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
+
+        public GetMessagesBuilder(
+            global::StrawberryShake.IEntityStore entityStore,
+            global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> extractId,
+            global::StrawberryShake.IOperationResultDataFactory<IGetMessages> resultDataFactory,
+            global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _extractId = extractId
+                 ?? throw new global::System.ArgumentNullException(nameof(extractId));
+            _resultDataFactory = resultDataFactory
+                 ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
+            _directionParser = serializerResolver.GetLeafValueParser<global::System.String, Direction>("Direction")
+                 ?? throw new global::System.ArgumentNullException(nameof(_directionParser));
+            _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("ID")
+                 ?? throw new global::System.ArgumentNullException(nameof(_stringParser));
+            _dateTimeOffsetParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.DateTimeOffset>("DateTime")
+                 ?? throw new global::System.ArgumentNullException(nameof(_dateTimeOffsetParser));
+            _booleanParser = serializerResolver.GetLeafValueParser<global::System.Boolean, global::System.Boolean>("Boolean")
+                 ?? throw new global::System.ArgumentNullException(nameof(_booleanParser));
+        }
+
+        public global::StrawberryShake.IOperationResult<IGetMessages> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
+        {
+            (IGetMessages Result, GetMessagesInfo Info)? data = null;
+
+            if (response.Body is not null
+                && response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement obj))
+            {
+                data = BuildData(obj);
+            }
+
+            return new global::StrawberryShake.OperationResult<IGetMessages>(
+                data?.Result,
+                data?.Info,
+                _resultDataFactory,
+                null);
+        }
+
+        private (IGetMessages, GetMessagesInfo) BuildData(global::System.Text.Json.JsonElement obj)
+        {
+            using global::StrawberryShake.IEntityUpdateSession session = _entityStore.BeginUpdate();
+            var entityIds = new global::System.Collections.Generic.HashSet<global::StrawberryShake.EntityId>();
+
+            global::StrawberryShake.EntityId personByEmailId = UpdateNonNullableIGetMessages_PersonByEmailEntity(
+                global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj, "personByEmail"),
+                entityIds);
+
+            var resultInfo = new GetMessagesInfo(
+                personByEmailId,
+                entityIds,
+                session.Version);
+
+            return (_resultDataFactory.Create(resultInfo), resultInfo);
+        }
+
+        private global::StrawberryShake.EntityId UpdateNonNullableIGetMessages_PersonByEmailEntity(
+            global::System.Text.Json.JsonElement? obj,
+            global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            global::StrawberryShake.EntityId entityId = _extractId(obj.Value);
+            entityIds.Add(entityId);
+
+
+            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
+            {
+                PersonEntity entity = _entityStore.GetOrCreate<PersonEntity>(entityId);
+                entity.Messages = DeserializeIGetMessages_PersonByEmail_Messages(
+                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "messages"),
+                    entityIds);
+
+                return entityId;
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::StrawberryShake.GraphQL.State.MessageConnectionData? DeserializeIGetMessages_PersonByEmail_Messages(
+            global::System.Text.Json.JsonElement? obj,
+            global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        {
+            if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            var typename = obj.Value.GetProperty("__typename").GetString();
+
+            if (typename?.Equals("MessageConnection", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::StrawberryShake.GraphQL.State.MessageConnectionData(
+                    typename,
+                    nodes: UpdateIGetMessages_PersonByEmail_Messages_NodesEntityArray(
+                        global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "nodes"),
+                        entityIds));
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? UpdateIGetMessages_PersonByEmail_Messages_NodesEntityArray(
+            global::System.Text.Json.JsonElement? obj,
+            global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        {
+            if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            var iGetMessages_PersonByEmail_Messages_Nodess = new global::System.Collections.Generic.List<global::StrawberryShake.EntityId?>();
+
+            foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
+            {
+                iGetMessages_PersonByEmail_Messages_Nodess.Add(UpdateIGetMessages_PersonByEmail_Messages_NodesEntity(
+                    child,
+                    entityIds));
+            }
+
+            return iGetMessages_PersonByEmail_Messages_Nodess;
+        }
+
+        private global::StrawberryShake.EntityId? UpdateIGetMessages_PersonByEmail_Messages_NodesEntity(
+            global::System.Text.Json.JsonElement? obj,
+            global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        {
+            if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            global::StrawberryShake.EntityId entityId = _extractId(obj.Value);
+            entityIds.Add(entityId);
+
+
+            if (entityId.Name.Equals("Message", global::System.StringComparison.Ordinal))
+            {
+                MessageEntity entity = _entityStore.GetOrCreate<MessageEntity>(entityId);
+                entity.Id = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "id"));
+                entity.Text = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "text"));
+                entity.Direction = DeserializeNonNullableDirection(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "direction"));
+                entity.Recipient = UpdateNonNullableIGetMessages_PersonByEmail_Messages_Nodes_RecipientEntity(
+                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "recipient"),
+                    entityIds);
+                entity.Sender = UpdateNonNullableIGetMessages_PersonByEmail_Messages_Nodes_SenderEntity(
+                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "sender"),
+                    entityIds);
+                entity.Sent = DeserializeNonNullableDateTimeOffset(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "sent"));
+
+                return entityId;
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::System.String DeserializeNonNullableString(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            return _stringParser.Parse(obj.Value.GetString()!);
+        }
+
+        private Direction DeserializeNonNullableDirection(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            return _directionParser.Parse(obj.Value.GetString()!);
+        }
+
+        private global::StrawberryShake.EntityId UpdateNonNullableIGetMessages_PersonByEmail_Messages_Nodes_RecipientEntity(
+            global::System.Text.Json.JsonElement? obj,
+            global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            global::StrawberryShake.EntityId entityId = _extractId(obj.Value);
+            entityIds.Add(entityId);
+
+
+            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
+            {
+                PersonEntity entity = _entityStore.GetOrCreate<PersonEntity>(entityId);
+                entity.Name = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "name"));
+                entity.Email = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "email"));
+                entity.IsOnline = DeserializeNonNullableBoolean(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "isOnline"));
+
+                return entityId;
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::System.Boolean DeserializeNonNullableBoolean(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            return _booleanParser.Parse(obj.Value.GetBoolean()!);
+        }
+
+        private global::StrawberryShake.EntityId UpdateNonNullableIGetMessages_PersonByEmail_Messages_Nodes_SenderEntity(
+            global::System.Text.Json.JsonElement? obj,
+            global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            global::StrawberryShake.EntityId entityId = _extractId(obj.Value);
+            entityIds.Add(entityId);
+
+
+            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
+            {
+                PersonEntity entity = _entityStore.GetOrCreate<PersonEntity>(entityId);
+                entity.Name = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "name"));
+                entity.Email = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "email"));
+                entity.IsOnline = DeserializeNonNullableBoolean(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "isOnline"));
+
+                return entityId;
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::System.DateTimeOffset DeserializeNonNullableDateTimeOffset(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            return _dateTimeOffsetParser.Parse(obj.Value.GetString()!);
+        }
+    }
+}
+
+
+// SendMessageMutBuilder
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class SendMessageMutBuilder
+        : global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, ISendMessageMut>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
+        private readonly global::StrawberryShake.IOperationResultDataFactory<ISendMessageMut> _resultDataFactory;
+        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, Direction> _directionParser;
+        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
+        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.DateTimeOffset> _dateTimeOffsetParser;
+        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
+
+        public SendMessageMutBuilder(
+            global::StrawberryShake.IEntityStore entityStore,
+            global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> extractId,
+            global::StrawberryShake.IOperationResultDataFactory<ISendMessageMut> resultDataFactory,
+            global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _extractId = extractId
+                 ?? throw new global::System.ArgumentNullException(nameof(extractId));
+            _resultDataFactory = resultDataFactory
+                 ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
+            _directionParser = serializerResolver.GetLeafValueParser<global::System.String, Direction>("Direction")
+                 ?? throw new global::System.ArgumentNullException(nameof(_directionParser));
+            _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("ID")
+                 ?? throw new global::System.ArgumentNullException(nameof(_stringParser));
+            _dateTimeOffsetParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.DateTimeOffset>("DateTime")
+                 ?? throw new global::System.ArgumentNullException(nameof(_dateTimeOffsetParser));
+            _booleanParser = serializerResolver.GetLeafValueParser<global::System.Boolean, global::System.Boolean>("Boolean")
+                 ?? throw new global::System.ArgumentNullException(nameof(_booleanParser));
+        }
+
+        public global::StrawberryShake.IOperationResult<ISendMessageMut> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
+        {
+            (ISendMessageMut Result, SendMessageMutInfo Info)? data = null;
+
+            if (response.Body is not null
+                && response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement obj))
+            {
+                data = BuildData(obj);
+            }
+
+            return new global::StrawberryShake.OperationResult<ISendMessageMut>(
+                data?.Result,
+                data?.Info,
+                _resultDataFactory,
+                null);
+        }
+
+        private (ISendMessageMut, SendMessageMutInfo) BuildData(global::System.Text.Json.JsonElement obj)
+        {
+            using global::StrawberryShake.IEntityUpdateSession session = _entityStore.BeginUpdate();
+            var entityIds = new global::System.Collections.Generic.HashSet<global::StrawberryShake.EntityId>();
+
+
+            var resultInfo = new SendMessageMutInfo(
+                DeserializeNonNullableISendMessageMut_SendMessage(
+                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj, "sendMessage"),
+                    entityIds),
+                entityIds,
+                session.Version);
+
+            return (_resultDataFactory.Create(resultInfo), resultInfo);
+        }
+
+        private global::StrawberryShake.GraphQL.State.SendMessagePayloadData DeserializeNonNullableISendMessageMut_SendMessage(
+            global::System.Text.Json.JsonElement? obj,
+            global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            var typename = obj.Value.GetProperty("__typename").GetString();
+
+            if (typename?.Equals("SendMessagePayload", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::StrawberryShake.GraphQL.State.SendMessagePayloadData(
+                    typename,
+                    message: UpdateNonNullableISendMessageMut_SendMessage_MessageEntity(
+                        global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "message"),
+                        entityIds));
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::StrawberryShake.EntityId UpdateNonNullableISendMessageMut_SendMessage_MessageEntity(
+            global::System.Text.Json.JsonElement? obj,
+            global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            global::StrawberryShake.EntityId entityId = _extractId(obj.Value);
+            entityIds.Add(entityId);
+
+
+            if (entityId.Name.Equals("Message", global::System.StringComparison.Ordinal))
+            {
+                MessageEntity entity = _entityStore.GetOrCreate<MessageEntity>(entityId);
+                entity.Id = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "id"));
+                entity.Text = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "text"));
+                entity.Direction = DeserializeNonNullableDirection(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "direction"));
+                entity.Recipient = UpdateNonNullableIGetMessages_PersonByEmail_Messages_Nodes_RecipientEntity(
+                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "recipient"),
+                    entityIds);
+                entity.Sender = UpdateNonNullableIGetMessages_PersonByEmail_Messages_Nodes_SenderEntity(
+                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "sender"),
+                    entityIds);
+                entity.Sent = DeserializeNonNullableDateTimeOffset(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "sent"));
+
+                return entityId;
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::System.String DeserializeNonNullableString(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            return _stringParser.Parse(obj.Value.GetString()!);
+        }
+
+        private Direction DeserializeNonNullableDirection(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            return _directionParser.Parse(obj.Value.GetString()!);
+        }
+
+        private global::StrawberryShake.EntityId UpdateNonNullableIGetMessages_PersonByEmail_Messages_Nodes_RecipientEntity(
+            global::System.Text.Json.JsonElement? obj,
+            global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            global::StrawberryShake.EntityId entityId = _extractId(obj.Value);
+            entityIds.Add(entityId);
+
+
+            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
+            {
+                PersonEntity entity = _entityStore.GetOrCreate<PersonEntity>(entityId);
+                entity.Name = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "name"));
+                entity.Email = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "email"));
+                entity.IsOnline = DeserializeNonNullableBoolean(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "isOnline"));
+
+                return entityId;
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::System.Boolean DeserializeNonNullableBoolean(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            return _booleanParser.Parse(obj.Value.GetBoolean()!);
+        }
+
+        private global::StrawberryShake.EntityId UpdateNonNullableIGetMessages_PersonByEmail_Messages_Nodes_SenderEntity(
+            global::System.Text.Json.JsonElement? obj,
+            global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            global::StrawberryShake.EntityId entityId = _extractId(obj.Value);
+            entityIds.Add(entityId);
+
+
+            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
+            {
+                PersonEntity entity = _entityStore.GetOrCreate<PersonEntity>(entityId);
+                entity.Name = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "name"));
+                entity.Email = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "email"));
+                entity.IsOnline = DeserializeNonNullableBoolean(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "isOnline"));
+
+                return entityId;
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::System.DateTimeOffset DeserializeNonNullableDateTimeOffset(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            return _dateTimeOffsetParser.Parse(obj.Value.GetString()!);
+        }
+    }
+}
+
+
+// ReadMessagesBuilder
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class ReadMessagesBuilder
+        : global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, IReadMessages>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
+        private readonly global::StrawberryShake.IOperationResultDataFactory<IReadMessages> _resultDataFactory;
+        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, Direction> _directionParser;
+        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
+        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.DateTimeOffset> _dateTimeOffsetParser;
+        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
+
+        public ReadMessagesBuilder(
+            global::StrawberryShake.IEntityStore entityStore,
+            global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> extractId,
+            global::StrawberryShake.IOperationResultDataFactory<IReadMessages> resultDataFactory,
+            global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _extractId = extractId
+                 ?? throw new global::System.ArgumentNullException(nameof(extractId));
+            _resultDataFactory = resultDataFactory
+                 ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
+            _directionParser = serializerResolver.GetLeafValueParser<global::System.String, Direction>("Direction")
+                 ?? throw new global::System.ArgumentNullException(nameof(_directionParser));
+            _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("ID")
+                 ?? throw new global::System.ArgumentNullException(nameof(_stringParser));
+            _dateTimeOffsetParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.DateTimeOffset>("DateTime")
+                 ?? throw new global::System.ArgumentNullException(nameof(_dateTimeOffsetParser));
+            _booleanParser = serializerResolver.GetLeafValueParser<global::System.Boolean, global::System.Boolean>("Boolean")
+                 ?? throw new global::System.ArgumentNullException(nameof(_booleanParser));
+        }
+
+        public global::StrawberryShake.IOperationResult<IReadMessages> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
+        {
+            (IReadMessages Result, ReadMessagesInfo Info)? data = null;
+
+            if (response.Body is not null
+                && response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement obj))
+            {
+                data = BuildData(obj);
+            }
+
+            return new global::StrawberryShake.OperationResult<IReadMessages>(
+                data?.Result,
+                data?.Info,
+                _resultDataFactory,
+                null);
+        }
+
+        private (IReadMessages, ReadMessagesInfo) BuildData(global::System.Text.Json.JsonElement obj)
+        {
+            using global::StrawberryShake.IEntityUpdateSession session = _entityStore.BeginUpdate();
+            var entityIds = new global::System.Collections.Generic.HashSet<global::StrawberryShake.EntityId>();
+
+            global::StrawberryShake.EntityId messageId = UpdateNonNullableIReadMessages_MessageEntity(
+                global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj, "message"),
+                entityIds);
+
+            var resultInfo = new ReadMessagesInfo(
+                messageId,
+                entityIds,
+                session.Version);
+
+            return (_resultDataFactory.Create(resultInfo), resultInfo);
+        }
+
+        private global::StrawberryShake.EntityId UpdateNonNullableIReadMessages_MessageEntity(
+            global::System.Text.Json.JsonElement? obj,
+            global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            global::StrawberryShake.EntityId entityId = _extractId(obj.Value);
+            entityIds.Add(entityId);
+
+
+            if (entityId.Name.Equals("Message", global::System.StringComparison.Ordinal))
+            {
+                MessageEntity entity = _entityStore.GetOrCreate<MessageEntity>(entityId);
+                entity.Id = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "id"));
+                entity.Text = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "text"));
+                entity.Direction = DeserializeNonNullableDirection(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "direction"));
+                entity.Recipient = UpdateNonNullableIGetMessages_PersonByEmail_Messages_Nodes_RecipientEntity(
+                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "recipient"),
+                    entityIds);
+                entity.Sender = UpdateNonNullableIGetMessages_PersonByEmail_Messages_Nodes_SenderEntity(
+                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "sender"),
+                    entityIds);
+                entity.Sent = DeserializeNonNullableDateTimeOffset(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "sent"));
+
+                return entityId;
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::System.String DeserializeNonNullableString(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            return _stringParser.Parse(obj.Value.GetString()!);
+        }
+
+        private Direction DeserializeNonNullableDirection(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            return _directionParser.Parse(obj.Value.GetString()!);
+        }
+
+        private global::StrawberryShake.EntityId UpdateNonNullableIGetMessages_PersonByEmail_Messages_Nodes_RecipientEntity(
+            global::System.Text.Json.JsonElement? obj,
+            global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            global::StrawberryShake.EntityId entityId = _extractId(obj.Value);
+            entityIds.Add(entityId);
+
+
+            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
+            {
+                PersonEntity entity = _entityStore.GetOrCreate<PersonEntity>(entityId);
+                entity.Name = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "name"));
+                entity.Email = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "email"));
+                entity.IsOnline = DeserializeNonNullableBoolean(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "isOnline"));
+
+                return entityId;
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::System.Boolean DeserializeNonNullableBoolean(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            return _booleanParser.Parse(obj.Value.GetBoolean()!);
+        }
+
+        private global::StrawberryShake.EntityId UpdateNonNullableIGetMessages_PersonByEmail_Messages_Nodes_SenderEntity(
+            global::System.Text.Json.JsonElement? obj,
+            global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            global::StrawberryShake.EntityId entityId = _extractId(obj.Value);
+            entityIds.Add(entityId);
+
+
+            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
+            {
+                PersonEntity entity = _entityStore.GetOrCreate<PersonEntity>(entityId);
+                entity.Name = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "name"));
+                entity.Email = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "email"));
+                entity.IsOnline = DeserializeNonNullableBoolean(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "isOnline"));
+
+                return entityId;
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::System.DateTimeOffset DeserializeNonNullableDateTimeOffset(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            return _dateTimeOffsetParser.Parse(obj.Value.GetString()!);
+        }
+    }
+}
+
+
+// PersonConnectionData
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL.State
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class PersonConnectionData
+    {
+        public PersonConnectionData(
+            global::System.String typename,
+            global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? nodes = null)
+        {
+            __typename = typename
+                 ?? throw new global::System.ArgumentNullException(nameof(typename));
+            Nodes = nodes;
+        }
+
+        public global::System.String __typename { get; }
+
+        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Nodes { get; }
+    }
+}
+
+
+// MessageConnectionData
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL.State
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class MessageConnectionData
+    {
+        public MessageConnectionData(
+            global::System.String typename,
+            global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? nodes = null)
+        {
+            __typename = typename
+                 ?? throw new global::System.ArgumentNullException(nameof(typename));
+            Nodes = nodes;
+        }
+
+        public global::System.String __typename { get; }
+
+        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Nodes { get; }
+    }
+}
+
+
+// SendMessagePayloadData
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL.State
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class SendMessagePayloadData
+    {
+        public SendMessagePayloadData(
+            global::System.String typename,
+            global::StrawberryShake.EntityId? message = null)
+        {
+            __typename = typename
+                 ?? throw new global::System.ArgumentNullException(nameof(typename));
+            Message = message;
+        }
+
+        public global::System.String __typename { get; }
+
+        public global::StrawberryShake.EntityId? Message { get; }
+    }
+}
+
+
+// GraphQL
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GraphQL
+    {
+        private readonly GetPeopleQuery _getPeopleQuery;
+        private readonly GetMessagesQuery _getMessagesQuery;
+        private readonly SendMessageMutMutation _sendMessageMutMutation;
+        private readonly ReadMessagesSubscription _readMessagesSubscription;
+
+        public GraphQL(
+            GetPeopleQuery getPeopleQuery,
+            GetMessagesQuery getMessagesQuery,
+            SendMessageMutMutation sendMessageMutMutation,
+            ReadMessagesSubscription readMessagesSubscription)
+        {
+            _getPeopleQuery = getPeopleQuery
+                 ?? throw new global::System.ArgumentNullException(nameof(getPeopleQuery));
+            _getMessagesQuery = getMessagesQuery
+                 ?? throw new global::System.ArgumentNullException(nameof(getMessagesQuery));
+            _sendMessageMutMutation = sendMessageMutMutation
+                 ?? throw new global::System.ArgumentNullException(nameof(sendMessageMutMutation));
+            _readMessagesSubscription = readMessagesSubscription
+                 ?? throw new global::System.ArgumentNullException(nameof(readMessagesSubscription));
+        }
+
+        public GetPeopleQuery GetPeopleQuery => _getPeopleQuery;
+
+        public GetMessagesQuery GetMessagesQuery => _getMessagesQuery;
+
+        public SendMessageMutMutation SendMessageMutMutation => _sendMessageMutMutation;
+
+        public ReadMessagesSubscription ReadMessagesSubscription => _readMessagesSubscription;
+    }
+}
+
+
+// EntityIdFactory
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public static partial class EntityIdFactory
+    {
+        public static global::StrawberryShake.EntityId CreateEntityId(global::System.Text.Json.JsonElement obj)
+        {
+            global::System.String typeName = obj.GetProperty("__typename").GetString()!;
+            
+            return typeName switch
+            {
+                "Person" => CreatePersonEntityId(obj, typeName),
+                "Message" => CreateMessageEntityId(obj, typeName),
+                _ => throw new global::System.NotSupportedException()
+            };
+        }
+
+        private static global::StrawberryShake.EntityId CreatePersonEntityId(
+            global::System.Text.Json.JsonElement obj,
+            global::System.String type)
+        {
+            return new global::StrawberryShake.EntityId(
+                type,
+                obj.GetProperty("id").GetString()!);
+        }
+
+        private static global::StrawberryShake.EntityId CreateMessageEntityId(
+            global::System.Text.Json.JsonElement obj,
+            global::System.String type)
+        {
+            return new global::StrawberryShake.EntityId(
+                type,
+                obj.GetProperty("id").GetString()!);
+        }
+    }
+}
+
+
+// GraphQLServiceCollectionExtensions
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public static partial class GraphQLServiceCollectionExtensions
+    {
+        public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddGraphQL(
+            this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
+            global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
+        {
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
+                services,
+                sp => 
+                {
+                    var serviceCollection = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
+
+                    ConfigureClient(
+                        serviceCollection,
+                        sp,
+                        strategy);
+
+                    return new ClientServiceProvider(
+                        global::Microsoft.Extensions.DependencyInjection.ServiceCollectionContainerBuilderExtensions.BuildServiceProvider(serviceCollection));
+                });
+
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<GetPeopleQuery>(
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<GetMessagesQuery>(
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<SendMessageMutMutation>(
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ReadMessagesSubscription>(
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<GraphQL>(
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+
+            return services;
+        }
+
+        private static global::Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureClient(
+            global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
+            global::System.IServiceProvider parentServices,
+            global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
+        {
+            
+            if (services is null)
+            {
+                throw new global::System.ArgumentNullException(nameof(services));
+            }
+            
+            // register entity id factory
+            
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId>>(services, EntityIdFactory.CreateEntityId);
+            
+            // register stores
+            
+            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<
+                global::StrawberryShake.IEntityStore,
+                global::StrawberryShake.EntityStore>(
+                    services);
+            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<
+                global::StrawberryShake.IOperationStore>(
+                    services,
+                    sp => new global::StrawberryShake.OperationStore(
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<
+                            global::StrawberryShake.IEntityStore
+                            >(sp)
+                        .Watch()
+                        ));
+            
+            // register connections
+            
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
+                services,
+                sp =>
+                {
+                    var sessionPool =
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<
+                            global::StrawberryShake.Transport.WebSockets.ISessionPool
+                            >(parentServices);
+            
+                    return new global::StrawberryShake.Transport.WebSockets.WebSocketConnection(
+                        () => sessionPool.CreateAsync("GraphQL", default));
+                });
+            
+            
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
+                services,
+                sp =>
+                {
+                    var clientFactory =
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<
+                            global::System.Net.Http.IHttpClientFactory
+                            >(parentServices);
+            
+                    return new global::StrawberryShake.Transport.Http.HttpConnection(
+                        () => clientFactory.CreateClient("GraphQL"));
+                });
+            
+            // register mappers
+            
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<PersonEntity, GetPeople_People_Nodes_Person>, GetPeople_People_Nodes_PersonFromPersonEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Person>, GetMessages_PersonByEmail_PersonFromPersonEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<MessageEntity, GetMessages_PersonByEmail_Messages_Nodes_Message>, GetMessages_PersonByEmail_Messages_Nodes_MessageFromMessageEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person>, GetMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person>, GetMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<MessageEntity, SendMessageMut_SendMessage_Message_Message>, SendMessageMut_SendMessage_Message_MessageFromMessageEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<PersonEntity, SendMessageMut_SendMessage_Message_Recipient_Person>, SendMessageMut_SendMessage_Message_Recipient_PersonFromPersonEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<PersonEntity, SendMessageMut_SendMessage_Message_Sender_Person>, SendMessageMut_SendMessage_Message_Sender_PersonFromPersonEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<MessageEntity, ReadMessages_Message_Message>, ReadMessages_Message_MessageFromMessageEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<PersonEntity, ReadMessages_Message_Recipient_Person>, ReadMessages_Message_Recipient_PersonFromPersonEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<PersonEntity, ReadMessages_Message_Sender_Person>, ReadMessages_Message_Sender_PersonFromPersonEntityMapper>(services);
+            
+            // register serializers
+            
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, DirectionSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.StringSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.BooleanSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ShortSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IntSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LongSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.FloatSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DecimalSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UrlSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UuidSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IdSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateTimeSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializerResolver>(
+                services,
+                sp => new global::StrawberryShake.Serialization.SerializerResolver(
+                    global::System.Linq.Enumerable.Concat(
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(
+                            parentServices),
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(
+                            sp))));
+            
+            // register operations
+            
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
+                global::StrawberryShake.IOperationResultDataFactory<IGetPeople>,
+                GetPeopleFactory>(
+                    services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
+                global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, IGetPeople>,
+                GetPeopleBuilder>(
+                    services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
+                global::StrawberryShake.IOperationExecutor<IGetPeople>>(
+                    services,
+                    sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, IGetPeople>(
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.Http.HttpConnection>(sp),
+                        () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, IGetPeople>>(sp),
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
+                        strategy));
+            
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<GetPeopleQuery>(services);
+            
+            
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
+                global::StrawberryShake.IOperationResultDataFactory<IGetMessages>,
+                GetMessagesFactory>(
+                    services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
+                global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, IGetMessages>,
+                GetMessagesBuilder>(
+                    services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
+                global::StrawberryShake.IOperationExecutor<IGetMessages>>(
+                    services,
+                    sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, IGetMessages>(
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.Http.HttpConnection>(sp),
+                        () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, IGetMessages>>(sp),
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
+                        strategy));
+            
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<GetMessagesQuery>(services);
+            
+            
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
+                global::StrawberryShake.IOperationResultDataFactory<ISendMessageMut>,
+                SendMessageMutFactory>(
+                    services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
+                global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, ISendMessageMut>,
+                SendMessageMutBuilder>(
+                    services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
+                global::StrawberryShake.IOperationExecutor<ISendMessageMut>>(
+                    services,
+                    sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, ISendMessageMut>(
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.Http.HttpConnection>(sp),
+                        () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, ISendMessageMut>>(sp),
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
+                        strategy));
+            
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<SendMessageMutMutation>(services);
+            
+            
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
+                global::StrawberryShake.IOperationResultDataFactory<IReadMessages>,
+                ReadMessagesFactory>(
+                    services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
+                global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, IReadMessages>,
+                ReadMessagesBuilder>(
+                    services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
+                global::StrawberryShake.IOperationExecutor<IReadMessages>>(
+                    services,
+                    sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, IReadMessages>(
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.WebSockets.WebSocketConnection>(sp),
+                        () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, IReadMessages>>(sp),
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
+                        strategy));
+            
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<ReadMessagesSubscription>(services);
+            
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<GraphQL>(services);
+            
+            return services;
+        }
+
+        private class ClientServiceProvider
+            : System.IServiceProvider
+            , System.IDisposable
+        {
+            private readonly System.IServiceProvider _provider;
+
+            public ClientServiceProvider(System.IServiceProvider provider)
+            {
+                _provider = provider;
+            }
+
+            public object? GetService(System.Type serviceType)
+            {
+                return _provider.GetService(serviceType);
+            }
+
+            public void Dispose()
+            {
+                if (_provider is System.IDisposable d)
+                {
+                    d.Dispose();
+                }
+            }
+        }
+    }
+}
+
+

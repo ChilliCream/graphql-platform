@@ -84,21 +84,21 @@ namespace Foo
 }
 
 
-// GetHeroFactory
+// GetHeroResultFactory
 
 #nullable enable
 
 namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetHeroFactory
-        : global::StrawberryShake.IOperationResultDataFactory<GetHero>
+    public partial class GetHeroResultFactory
+        : global::StrawberryShake.IOperationResultDataFactory<GetHeroResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::StrawberryShake.IEntityMapper<DroidEntity, GetHero_Hero_Droid> _getHero_Hero_DroidFromDroidEntityMapper;
         private readonly global::StrawberryShake.IEntityMapper<HumanEntity, GetHero_Hero_Human> _getHero_Hero_HumanFromHumanEntityMapper;
 
-        public GetHeroFactory(
+        public GetHeroResultFactory(
             global::StrawberryShake.IEntityStore entityStore,
             global::StrawberryShake.IEntityMapper<DroidEntity, GetHero_Hero_Droid> getHero_Hero_DroidFromDroidEntityMapper,
             global::StrawberryShake.IEntityMapper<HumanEntity, GetHero_Hero_Human> getHero_Hero_HumanFromHumanEntityMapper)
@@ -111,14 +111,14 @@ namespace Foo
                  ?? throw new global::System.ArgumentNullException(nameof(getHero_Hero_HumanFromHumanEntityMapper));
         }
 
-        public GetHero Create(global::StrawberryShake.IOperationResultDataInfo dataInfo)
+        public GetHeroResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo)
         {
-            if (dataInfo is GetHeroInfo info)
+            if (dataInfo is GetHeroResultInfo info)
             {
-                return new GetHero(MapIGetHero_Hero(info.Hero));
+                return new GetHeroResult(MapIGetHero_Hero(info.Hero));
             }
 
-            throw new global::System.ArgumentException("GetHeroInfo expected.");
+            throw new global::System.ArgumentException("GetHeroResultInfo expected.");
         }
 
         private IGetHero_Hero? MapIGetHero_Hero(global::StrawberryShake.EntityId? entityId)
@@ -148,20 +148,20 @@ namespace Foo
 }
 
 
-// GetHeroInfo
+// GetHeroResultInfo
 
 #nullable enable
 
 namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetHeroInfo
+    public partial class GetHeroResultInfo
         : global::StrawberryShake.IOperationResultDataInfo
     {
         private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
         private readonly ulong _version;
 
-        public GetHeroInfo(
+        public GetHeroResultInfo(
             global::StrawberryShake.EntityId? hero,
             global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds,
             ulong version)
@@ -180,7 +180,7 @@ namespace Foo
 
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(ulong version)
         {
-            return new GetHeroInfo(
+            return new GetHeroResultInfo(
                 Hero,
                 _entityIds,
                 _version);
@@ -189,17 +189,17 @@ namespace Foo
 }
 
 
-// GetHero
+// GetHeroResult
 
 #nullable enable
 
 namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetHero
-        : IGetHero
+    public partial class GetHeroResult
+        : IGetHeroResult
     {
-        public GetHero(IGetHero_Hero? hero)
+        public GetHeroResult(IGetHero_Hero? hero)
         {
             Hero = hero;
         }
@@ -299,14 +299,14 @@ namespace Foo
 }
 
 
-// IGetHero
+// IGetHeroResult
 
 #nullable enable
 
 namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetHero
+    public interface IGetHeroResult
     {
         public IGetHero_Hero? Hero { get; }
     }
@@ -410,11 +410,11 @@ namespace Foo
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroQuery
     {
-        private readonly global::StrawberryShake.IOperationExecutor<IGetHero> _operationExecutor;
+        private readonly global::StrawberryShake.IOperationExecutor<IGetHeroResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _episodeFormatter;
 
         public GetHeroQuery(
-            global::StrawberryShake.IOperationExecutor<IGetHero> operationExecutor,
+            global::StrawberryShake.IOperationExecutor<IGetHeroResult> operationExecutor,
             global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor
@@ -422,7 +422,7 @@ namespace Foo
             _episodeFormatter = serializerResolver.GetInputValueFormatter("Episode");
         }
 
-        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetHero>> ExecuteAsync(
+        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetHeroResult>> ExecuteAsync(
             Episode? episode,
             global::System.Threading.CancellationToken cancellationToken = default)
         {
@@ -435,7 +435,7 @@ namespace Foo
                 .ConfigureAwait(false);
         }
 
-        public global::System.IObservable<global::StrawberryShake.IOperationResult<IGetHero>> Watch(
+        public global::System.IObservable<global::StrawberryShake.IOperationResult<IGetHeroResult>> Watch(
             Episode? episode,
             global::StrawberryShake.ExecutionStrategy? strategy = null)
         {
@@ -470,18 +470,18 @@ namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroBuilder
-        : global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, IGetHero>
+        : global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, IGetHeroResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
-        private readonly global::StrawberryShake.IOperationResultDataFactory<IGetHero> _resultDataFactory;
+        private readonly global::StrawberryShake.IOperationResultDataFactory<IGetHeroResult> _resultDataFactory;
         private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, Episode> _episodeParser;
         private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
 
         public GetHeroBuilder(
             global::StrawberryShake.IEntityStore entityStore,
             global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> extractId,
-            global::StrawberryShake.IOperationResultDataFactory<IGetHero> resultDataFactory,
+            global::StrawberryShake.IOperationResultDataFactory<IGetHeroResult> resultDataFactory,
             global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _entityStore = entityStore
@@ -496,9 +496,9 @@ namespace Foo
                  ?? throw new global::System.ArgumentNullException(nameof(_stringParser));
         }
 
-        public global::StrawberryShake.IOperationResult<IGetHero> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
+        public global::StrawberryShake.IOperationResult<IGetHeroResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
         {
-            (IGetHero Result, GetHeroInfo Info)? data = null;
+            (IGetHeroResult Result, GetHeroResultInfo Info)? data = null;
 
             if (response.Body is not null
                 && response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement obj))
@@ -506,14 +506,14 @@ namespace Foo
                 data = BuildData(obj);
             }
 
-            return new global::StrawberryShake.OperationResult<IGetHero>(
+            return new global::StrawberryShake.OperationResult<IGetHeroResult>(
                 data?.Result,
                 data?.Info,
                 _resultDataFactory,
                 null);
         }
 
-        private (IGetHero, GetHeroInfo) BuildData(global::System.Text.Json.JsonElement obj)
+        private (IGetHeroResult, GetHeroResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
         {
             using global::StrawberryShake.IEntityUpdateSession session = _entityStore.BeginUpdate();
             var entityIds = new global::System.Collections.Generic.HashSet<global::StrawberryShake.EntityId>();
@@ -522,7 +522,7 @@ namespace Foo
                 global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj, "hero"),
                 entityIds);
 
-            var resultInfo = new GetHeroInfo(
+            var resultInfo = new GetHeroResultInfo(
                 heroId,
                 entityIds,
                 session.Version);
@@ -681,15 +681,20 @@ namespace Foo
             this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
             global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
-            var serviceCollection = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
-
-            ConfigureClient(
-                serviceCollection,
-                strategy);
-
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
-                sp => new ClientServiceProvider(sp));
+                sp => 
+                {
+                    var serviceCollection = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
+
+                    ConfigureClient(
+                        serviceCollection,
+                        sp,
+                        strategy);
+
+                    return new ClientServiceProvider(
+                        global::Microsoft.Extensions.DependencyInjection.ServiceCollectionContainerBuilderExtensions.BuildServiceProvider(serviceCollection));
+                });
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
@@ -706,6 +711,7 @@ namespace Foo
 
         private static global::Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureClient(
             global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
+            global::System.IServiceProvider parentServices,
             global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
             
@@ -743,7 +749,7 @@ namespace Foo
                     var clientFactory =
                         global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<
                             global::System.Net.Http.IHttpClientFactory
-                            >(sp);
+                            >(parentServices);
             
                     return new global::StrawberryShake.Transport.Http.HttpConnection(
                         () => clientFactory.CreateClient("FooClient"));
@@ -772,24 +778,31 @@ namespace Foo
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializerResolver, global::StrawberryShake.Serialization.SerializerResolver>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializerResolver>(
+                services,
+                sp => new global::StrawberryShake.Serialization.SerializerResolver(
+                    global::System.Linq.Enumerable.Concat(
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(
+                            parentServices),
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(
+                            sp))));
             
             // register operations
             
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
-                global::StrawberryShake.IOperationResultDataFactory<IGetHero>,
-                GetHeroFactory>(
+                global::StrawberryShake.IOperationResultDataFactory<IGetHeroResult>,
+                GetHeroResultFactory>(
                     services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
-                global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, IGetHero>,
+                global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, IGetHeroResult>,
                 GetHeroBuilder>(
                     services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
-                global::StrawberryShake.IOperationExecutor<IGetHero>>(
+                global::StrawberryShake.IOperationExecutor<IGetHeroResult>>(
                     services,
-                    sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, IGetHero>(
+                    sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, IGetHeroResult>(
                         global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.Http.HttpConnection>(sp),
-                        () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, IGetHero>>(sp),
+                        () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, IGetHeroResult>>(sp),
                         global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
                         strategy));
             

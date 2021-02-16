@@ -63,7 +63,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetName(_serializerResolverParamName)
                     .SetType(TypeNames.ISerializerResolver));
 
-            foreach (var valueParser in resultBuilderDescriptor.ValueParsers)
+            IEnumerable<ValueParserDescriptor> neededSerializers = resultBuilderDescriptor
+                .ValueParsers
+                .ToLookup(x => x.RuntimeType)
+                .Select(x => x.First());
+
+            foreach (ValueParserDescriptor valueParser in neededSerializers)
             {
                 var parserFieldName =
                     $"_{valueParser.RuntimeType.Split('.').Last().WithLowerFirstChar()}Parser";

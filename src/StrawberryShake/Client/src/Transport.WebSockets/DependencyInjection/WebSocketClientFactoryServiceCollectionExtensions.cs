@@ -1,7 +1,10 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using StrawberryShake.Transport.WebSockets;
+using StrawberryShake.Transport.WebSockets.Protocol;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -198,6 +201,11 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddOptions();
 
+            services.TryAddSingleton<IEnumerable<ISocketProtocolFactory>>(
+                new ISocketProtocolFactory[]
+                {
+                    new GraphQLWebSocketProtocolFactory()
+                });
             services.TryAddSingleton<DefaultSocketClientFactory>();
             services.TryAddSingleton<ISocketClientFactory>(sp =>
                 sp.GetRequiredService<DefaultSocketClientFactory>());
