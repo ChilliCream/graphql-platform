@@ -26,7 +26,11 @@ namespace StrawberryShake.CodeGeneration.Utilities
             ScalarNames.Uuid,
             ScalarNames.DateTime,
             ScalarNames.Date,
-            ScalarNames.ByteArray
+            ScalarNames.MultiplierPath,
+            ScalarNames.Name,
+            ScalarNames.ByteArray,
+            ScalarNames.Any,
+            ScalarNames.TimeSpan
         };
 
         public static ISchema Load(params (string, DocumentNode)[] documents)
@@ -202,6 +206,7 @@ namespace StrawberryShake.CodeGeneration.Utilities
             TryAddLeafType(leafTypes, "Guid", TypeNames.Guid, TypeNames.Guid);
             TryAddLeafType(leafTypes, ScalarNames.DateTime, TypeNames.DateTimeOffset);
             TryAddLeafType(leafTypes, ScalarNames.Date, TypeNames.DateTime);
+            TryAddLeafType(leafTypes, ScalarNames.TimeSpan, TypeNames.TimeSpan);
             TryAddLeafType(leafTypes, ScalarNames.ByteArray, TypeNames.ByteArray);
         }
 
