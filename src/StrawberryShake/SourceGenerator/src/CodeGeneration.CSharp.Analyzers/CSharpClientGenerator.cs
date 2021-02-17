@@ -319,7 +319,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
         private string GetPackageLocation(GeneratorExecutionContext context)
         {
             if (context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(
-                "build_property.PkgStrawberryShake_CodeGeneration_CSharp_Analyzers",
+                "build_property.StrawberryShake_BuildDirectory",
                 out string? value) &&
                 !string.IsNullOrEmpty(value))
             {

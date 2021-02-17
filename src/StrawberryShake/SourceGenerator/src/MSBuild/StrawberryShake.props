@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <GraphQLPropertyPageSchema>$(MSBuildThisFileDirectory)GraphQL.xaml</GraphQLPropertyPageSchema>
+    <StrawberryShake_BuildDirectory>$(MSBuildThisFileDirectory)</StrawberryShake_BuildDirectory>
   </PropertyGroup>
 
   <ItemDefinitionGroup>
@@ -37,7 +38,7 @@
     <!-- Build Options -->
     <CompilerVisibleProperty Include="StrawberryShake_LogFile" />
     <CompilerVisibleProperty Include="RootNamespace" />
-    <CompilerVisibleProperty Include="PkgStrawberryShake_CodeGeneration_CSharp_Analyzers" />
+    <CompilerVisibleProperty Include="StrawberryShake_BuildDirectory" />
   </ItemGroup>
 
 </Project>
