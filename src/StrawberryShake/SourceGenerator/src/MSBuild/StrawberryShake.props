@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <GraphQLPropertyPageSchema>$(MSBuildThisFileDirectory)GraphQL.xaml</GraphQLPropertyPageSchema>
-    <StrawberryShake_BuildDirectory>$(MSBuildThisFileDirectory)</StrawberryShake_BuildDirectory>
+    <StrawberryShake_BuildDirectory>$(MSBuildThisFileDirectory)..\analyzers\dotnet\cs</StrawberryShake_BuildDirectory>
   </PropertyGroup>
 
   <ItemDefinitionGroup>
