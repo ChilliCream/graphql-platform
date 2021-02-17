@@ -58,7 +58,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
             using ILogger log = CreateLogger(context);
 
+            // TODO : Remove
             log.SetLocation(GetPackageLocation(context));
+            log.SetLocation(_location);
 
             var allDocuments = GetGraphQLFiles(context);
             var allConfigurations = GetGraphQLConfigs(context);
@@ -72,6 +74,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     config.Documents ?? IOPath.Combine("**", "*.graphql"),
                     IOPath.GetDirectoryName(config.Location)!,
                     allDocuments);
+
+                // TODO : Remove
+                log.SetLocation(clientContext.GetNamespace());
 
                 if (clientContext.GetDocuments().Count > 0)
                 {
