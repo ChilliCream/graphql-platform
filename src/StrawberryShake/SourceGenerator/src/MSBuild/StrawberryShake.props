@@ -37,6 +37,7 @@
     <!-- Build Options -->
     <CompilerVisibleProperty Include="StrawberryShake_LogFile" />
     <CompilerVisibleProperty Include="RootNamespace" />
+    <CompilerVisibleProperty Include="PkgStrawberryShake_CodeGeneration_CSharp_Analyzers" />
   </ItemGroup>
 
 </Project>

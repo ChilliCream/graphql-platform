@@ -58,7 +58,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
             using ILogger log = CreateLogger(context);
 
-            log.SetLocation(_location);
+            log.SetLocation(GetPackageLocation(context));
 
             var allDocuments = GetGraphQLFiles(context);
             var allConfigurations = GetGraphQLConfigs(context);
@@ -309,6 +309,19 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             }
 
             return new NoOpLogger();
+        }
+
+        private string GetPackageLocation(GeneratorExecutionContext context)
+        {
+            if (context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(
+                "build_property.PkgStrawberryShake_CodeGeneration_CSharp_Analyzers",
+                out string? value) &&
+                !string.IsNullOrEmpty(value))
+            {
+                return value;
+            }
+
+            return _location;
         }
     }
 }
