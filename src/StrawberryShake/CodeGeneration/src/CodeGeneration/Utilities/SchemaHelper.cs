@@ -81,7 +81,7 @@ namespace StrawberryShake.CodeGeneration.Utilities
                         {
                             builder.AddType(new AnyType(
                                 scalar.Name.Value,
-                                scalar.Description.Value));
+                                scalar.Description?.Value));
                         }
                     }
 

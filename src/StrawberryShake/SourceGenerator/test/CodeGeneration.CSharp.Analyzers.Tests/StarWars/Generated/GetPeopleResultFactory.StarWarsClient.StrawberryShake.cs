@@ -3,13 +3,13 @@
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetPeopleFactory
-        : global::StrawberryShake.IOperationResultDataFactory<GetPeople>
+    public partial class GetPeopleResultFactory
+        : global::StrawberryShake.IOperationResultDataFactory<GetPeopleResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::StrawberryShake.IEntityMapper<PersonEntity, GetPeople_People_Nodes_Person> _getPeople_People_Nodes_PersonFromPersonEntityMapper;
 
-        public GetPeopleFactory(
+        public GetPeopleResultFactory(
             global::StrawberryShake.IEntityStore entityStore,
             global::StrawberryShake.IEntityMapper<PersonEntity, GetPeople_People_Nodes_Person> getPeople_People_Nodes_PersonFromPersonEntityMapper)
         {
@@ -19,14 +19,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
                  ?? throw new global::System.ArgumentNullException(nameof(getPeople_People_Nodes_PersonFromPersonEntityMapper));
         }
 
-        public GetPeople Create(global::StrawberryShake.IOperationResultDataInfo dataInfo)
+        public GetPeopleResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo)
         {
-            if (dataInfo is GetPeopleInfo info)
+            if (dataInfo is GetPeopleResultInfo info)
             {
-                return new GetPeople(MapIGetPeople_People(info.People));
+                return new GetPeopleResult(MapIGetPeople_People(info.People));
             }
 
-            throw new global::System.ArgumentException("GetPeopleInfo expected.");
+            throw new global::System.ArgumentException("GetPeopleResultInfo expected.");
         }
 
         private IGetPeople_People? MapIGetPeople_People(global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.PersonConnectionData data)
