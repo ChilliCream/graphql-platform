@@ -589,18 +589,18 @@ namespace StrawberryShake.GraphQL
 }
 
 
-// GraphQL
+// GraphQLClient
 
 #nullable enable
 
 namespace StrawberryShake.GraphQL
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GraphQL
+    public partial class GraphQLClient
     {
         private readonly GetHeroQuery _getHeroQuery;
 
-        public GraphQL(GetHeroQuery getHeroQuery)
+        public GraphQLClient(GetHeroQuery getHeroQuery)
         {
             _getHeroQuery = getHeroQuery
                  ?? throw new global::System.ArgumentNullException(nameof(getHeroQuery));
@@ -653,16 +653,16 @@ namespace StrawberryShake.GraphQL
 }
 
 
-// GraphQLServiceCollectionExtensions
+// GraphQLClientServiceCollectionExtensions
 
 #nullable enable
 
 namespace StrawberryShake.GraphQL
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public static partial class GraphQLServiceCollectionExtensions
+    public static partial class GraphQLClientServiceCollectionExtensions
     {
-        public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddGraphQL(
+        public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddGraphQLClient(
             this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
             global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
@@ -688,7 +688,7 @@ namespace StrawberryShake.GraphQL
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<GraphQL>(
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<GraphQLClient>(
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
 
             return services;
@@ -737,7 +737,7 @@ namespace StrawberryShake.GraphQL
                             >(parentServices);
             
                     return new global::StrawberryShake.Transport.Http.HttpConnection(
-                        () => clientFactory.CreateClient("GraphQL"));
+                        () => clientFactory.CreateClient("GraphQLClient"));
                 });
             
             // register mappers
@@ -793,7 +793,7 @@ namespace StrawberryShake.GraphQL
             
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<GetHeroQuery>(services);
             
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<GraphQL>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<GraphQLClient>(services);
             
             return services;
         }
