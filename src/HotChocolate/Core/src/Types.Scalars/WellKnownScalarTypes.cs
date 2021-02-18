@@ -3,6 +3,7 @@ namespace HotChocolate.Types
     internal static class WellKnownScalarTypes
     {
         public const string EmailAddress = nameof(EmailAddress);
+        public const string HexColorCode = nameof(HexColorCode);
         public const string NegativeFloat = nameof(NegativeFloat);
         public const string NegativeInt = nameof(NegativeInt);
         public const string NonEmptyString = nameof(NonEmptyString);
@@ -12,7 +13,7 @@ namespace HotChocolate.Types
         public const string NonNegativeFloat = nameof(NonNegativeFloat);
         public const string PhoneNumber = nameof(PhoneNumber);
         public const string PositiveInt = nameof(PositiveInt);
-        public const string UnsignedInt = nameof(UnsignedInt);
         public const string PostalCode = nameof(PostalCode);
+        public const string UnsignedInt = nameof(UnsignedInt);
     }
 }

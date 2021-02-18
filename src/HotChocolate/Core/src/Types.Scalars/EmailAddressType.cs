@@ -14,15 +14,15 @@ namespace HotChocolate.Types.Scalars
         /// Source : https://emailregex.com/
         /// </summary>
         private static readonly string _validationPattern =
-            ScalarResources.EmailAddress_ValidationPattern;
+            ScalarResources.EmailAddressType_ValidationPattern;
 
         private static readonly Regex _validationRegex =
-            new( _validationPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            new(_validationPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         public EmailAddressType()
             : this(
                 WellKnownScalarTypes.EmailAddress,
-                ScalarResources.EmailAddress_Description)
+                ScalarResources.EmailAddressType_Description)
         {
         }
 
