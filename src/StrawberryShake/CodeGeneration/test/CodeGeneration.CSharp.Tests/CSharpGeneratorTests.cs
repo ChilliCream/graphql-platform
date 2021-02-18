@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -27,6 +28,60 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             // assert
             AssertResult(result);
+        }
+
+        [Fact]
+        public void Generate_StarWarsIntegrationTest()
+        {
+            // arrange
+            string[] fileNames =
+            {
+                Path.Combine("__resources__", "QueryWithSubscription.graphql"),
+                Path.Combine("__resources__", "Schema.extensions.graphql"),
+                Path.Combine("__resources__", "Schema.graphql")
+            };
+
+            // act
+            var generator = new CSharpGenerator();
+            var result = generator.Generate(
+                fileNames,
+                clientName: "StarWarsIntegrationClient",
+                @namespace: "StrawberryShake.CodeGeneration.CSharp.Integration.StarWars");
+
+            // assert
+            var content = new StringBuilder();
+
+            if (result.Errors.Any())
+            {
+                content.AppendLine("// Errors:");
+
+                foreach (var error in result.Errors)
+                {
+                    content.AppendLine(error.Message);
+                    content.AppendLine();
+                }
+            }
+
+            content.AppendLine("// Code:");
+
+            var documentName = new HashSet<string>();
+            foreach (var document in result.CSharpDocuments)
+            {
+                if (!documentName.Add(document.Name))
+                {
+                    Assert.True(false, $"Document name duplicated {document.Name}");
+                }
+
+                content.AppendLine("// " + document.Name);
+                content.AppendLine();
+                content.AppendLine(document.SourceText);
+                content.AppendLine();
+            }
+
+            content.ToString().MatchSnapshot(
+                new SnapshotFullName(
+                    "StarWarsIntegrationTest.cs",
+                    Snapshot.FullName().FolderPath));
         }
 
         [Fact]
