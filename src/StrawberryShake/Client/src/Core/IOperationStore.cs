@@ -1,6 +1,5 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading;
 
 namespace StrawberryShake
 {
@@ -19,9 +18,6 @@ namespace StrawberryShake
         /// <param name="operationResult">
         /// The operation result that shall be stored.
         /// </param>
-        /// <param name="cancellationToken">
-        /// The <see cref="CancellationToken"/>.
-        /// </param>
         /// <typeparam name="TResultData">
         /// The type of result data.
         /// </typeparam>
@@ -31,12 +27,16 @@ namespace StrawberryShake
             where TResultData : class;
 
         /// <summary>
-        /// Tries to remove the specified request result.
+        /// Clears the cached result of a stored request.
         /// </summary>
         /// <param name="operationRequest">
-        /// The request that shall be removed.
+        /// The operation request for which a result shall be stored.
         /// </param>
-        void TryRemove(OperationRequest operationRequest);
+        /// <typeparam name="TResultData">
+        /// The type of result data.
+        /// </typeparam>
+        void ClearResult<TResultData>(OperationRequest operationRequest)
+            where TResultData : class;
 
         /// <summary>
         /// Tries to retrieve for a <paramref name="operationRequest"/>.

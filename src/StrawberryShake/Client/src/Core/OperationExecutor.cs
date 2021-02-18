@@ -139,12 +139,12 @@ namespace StrawberryShake
                             return;
                         }
 
+                        _operationStore.Set(_request, resultBuilder.Build(response));
+
                         if (_request.Document.Kind == OperationKind.Subscription)
                         {
-                            _operationStore.TryRemove(_request);
+                            _operationStore.ClearResult<TResult>(_request);
                         }
-
-                        _operationStore.Set(_request, resultBuilder.Build(response));
                     }
                 }
                 finally
