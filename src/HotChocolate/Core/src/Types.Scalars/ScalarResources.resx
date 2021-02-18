@@ -84,6 +84,18 @@
   <data name="HexColorCodeType_ValidationPattern" xml:space="preserve">
     <value>(^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3}|[A-Fa-f0-9]{8})$)</value>
   </data>
+  <data name="HslColorCodeType_Description" xml:space="preserve">
+    <value>The HslColorCode scalar type represents a a valid a CSS HSL color defined here https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors.</value>
+  </data>
+  <data name="HslColorCodeType_IsInvalid_ParseLiteral" xml:space="preserve">
+    <value>HslColorCodeType cannot parse the provided literal. The provided value is not a valid CSS HSL color code.</value>
+  </data>
+  <data name="HslColorCodeType_IsInvalid_ParseValue" xml:space="preserve">
+    <value>HslColorCodeType cannot parse the provided value. The provided value is not a valid CSS HSL color code.</value>
+  </data>
+  <data name="HslColorCodeType_ValidationPattern" xml:space="preserve">
+    <value>(^(?:hsla?)\((?:\d+%?(?:deg|rad|grad|turn)?(?:,|\s)+){2,3}[\s\/]*[\d\.]+%?\))</value>
+  </data>
   <data name="NegativeFloatType_Description" xml:space="preserve">
     <value>The NegativeFloat scalar type represents a double‐precision fractional value less than 0.</value>
   </data>
