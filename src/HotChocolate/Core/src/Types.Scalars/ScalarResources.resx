@@ -73,13 +73,13 @@
     <value>(?:[a-z0-9!#$%&amp;'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&amp;'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])</value>
   </data>
   <data name="HexColorCodeType_Description" xml:space="preserve">
-    <value>The HexColorCode scalar type represents a email address, represented as UTF-8 character sequences. The scalar follows the specification defined in RFC 5322</value>
+    <value>The HexColorCode scalar type represents a a valid hex color code.</value>
   </data>
   <data name="HexColorCodeType_IsInvalid_ParseLiteral" xml:space="preserve">
-    <value>HexColorCodeType cannot parse the provided literal. The provided value does not meet the RFC 5322 specification.</value>
+    <value>HexColorCodeType cannot parse the provided literal. The provided value is not a valid Hex color code.</value>
   </data>
   <data name="HexColorCodeType_IsInvalid_ParseValue" xml:space="preserve">
-    <value>HexColorCodeType cannot parse the provided value. The provided value does not meet the RFC 5322 specification.</value>
+    <value>HexColorCodeType cannot parse the provided value. The provided value is not a valid hex color code.</value>
   </data>
   <data name="HexColorCodeType_ValidationPattern" xml:space="preserve">
     <value>(^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3}|[A-Fa-f0-9]{8})$)</value>
