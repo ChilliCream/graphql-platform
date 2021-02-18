@@ -79,7 +79,7 @@
     <value>HexColorCodeType cannot parse the provided literal. The provided value is not a valid Hex color code.</value>
   </data>
   <data name="HexColorCodeType_IsInvalid_ParseValue" xml:space="preserve">
-    <value>HexColorCodeType cannot parse the provided value. The provided value is not a valid hex color code.</value>
+    <value>HexColorCodeType cannot parse the provided value. The provided value is not a valid Hex color code.</value>
   </data>
   <data name="HexColorCodeType_ValidationPattern" xml:space="preserve">
     <value>(^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3}|[A-Fa-f0-9]{8})$)</value>
