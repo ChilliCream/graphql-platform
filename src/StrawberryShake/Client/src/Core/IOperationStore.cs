@@ -31,6 +31,14 @@ namespace StrawberryShake
             where TResultData : class;
 
         /// <summary>
+        /// Tries to remove the specified request result.
+        /// </summary>
+        /// <param name="operationRequest">
+        /// The request that shall be removed.
+        /// </param>
+        void TryRemove(OperationRequest operationRequest);
+
+        /// <summary>
         /// Tries to retrieve for a <paramref name="operationRequest"/>.
         /// </summary>
         /// <param name="operationRequest">

@@ -41,6 +41,21 @@ namespace StrawberryShake
             storedOperation.SetResult(operationResult);
         }
 
+        public void TryRemove(OperationRequest operationRequest)
+        {
+            if (operationRequest is null)
+            {
+                throw new ArgumentNullException(nameof(operationRequest));
+            }
+
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(nameof(OperationStore));
+            }
+
+            _results.TryRemove(operationRequest, out _);
+        }
+
         public bool TryGet<T>(
             OperationRequest operationRequest,
             [NotNullWhen(true)] out IOperationResult<T>? result)

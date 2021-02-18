@@ -62,20 +62,24 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration
                 .CreateReviewMutation
                 .ExecuteAsync(5, ct);
 
-            await Task.Delay(150);
-
             await services
                 .GetRequiredService<StarWarsIntegrationClient>()
                 .CreateReviewMutation
                 .ExecuteAsync(3, ct);
 
-            await Task.Delay(150);
+            await services
+                .GetRequiredService<StarWarsIntegrationClient>()
+                .CreateReviewMutation
+                .ExecuteAsync(8, ct);
+
+            await Task.Delay(500);
 
             // assert
             Assert.Collection(
                 list,
                 r => Assert.Equal(5, r),
-                r => Assert.Equal(3, r));
+                r => Assert.Equal(3, r),
+                r => Assert.Equal(8, r));
         }
     }
 }
