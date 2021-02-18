@@ -39,17 +39,16 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 {
                     _keepAlive.Begin(cts.Token);
                     _messageProcessor.Begin(cts.Token);
-                    await _messageReceiver.ReceiveAsync(cts.Token)
-                        ;
+                    await _messageReceiver.ReceiveAsync(cts.Token);
                 }
+                catch(OperationCanceledException) { }
                 finally
                 {
                     cts.Cancel();
                     await _connection.CloseAsync(
                             "Session ended.",
                             SocketCloseStatus.NormalClosure,
-                            CancellationToken.None)
-                        ;
+                            CancellationToken.None);
                 }
             }
         }
