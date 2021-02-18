@@ -4,7 +4,7 @@ using HotChocolate.Language;
 namespace HotChocolate.Types.Scalars
 {
     /// <summary>
-    /// The `HexColorCode` scalar type represents a valid hex color code.
+    /// The HexColorCode scalar type represents a valid hex color code.
     /// </summary>
     public class HexColorCodeType : StringType
     {
