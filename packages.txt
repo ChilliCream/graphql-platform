@@ -54,3 +54,17 @@ HotChocolate.Utilities
 HotChocolate.Utilities.Introspection
 HotChocolate.Validation
 HotChocolate.Validation.Benchmarks
+StrawberryShake
+StrawberryShake.Http
+StrawberryShake.Configuration
+StrawberryShake.Transport.Abstractions
+StrawberryShake.Transport.Http
+StrawberryShake.Transport.WebSockets
+StrawberryShake.Tools
+StrawberryShake.Generators
+StrawberryShake.CodeGeneration
+StrawberryShake.CodeGeneration.CSharp
+StrawberryShake.Core
+StrawberryShake.Resources
+StrawberryShake.CodeGeneration.CSharp.Analyzers
+StrawberryShake.Transport.InMemory
