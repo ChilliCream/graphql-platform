@@ -24,7 +24,7 @@ namespace HotChocolate.Types.Scalars
         [InlineData(typeof(BooleanValueNode), true, false)]
         [InlineData(typeof(StringValueNode), "", false)]
         [InlineData(typeof(StringValueNode), "foo", false)]
-        [InlineData(typeof(IntValueNode), uint.MinValue, false)]
+        [InlineData(typeof(IntValueNode), int.MinValue, false)]
         [InlineData(typeof(IntValueNode), -1, false)]
         [InlineData(typeof(IntValueNode), 0, true)]
         [InlineData(typeof(IntValueNode), 1, true)]
