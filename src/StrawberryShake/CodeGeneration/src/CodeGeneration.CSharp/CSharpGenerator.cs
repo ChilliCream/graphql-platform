@@ -17,7 +17,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
     {
         public CSharpGeneratorResult Generate(
             IEnumerable<string> graphQLFiles,
-            string clientName = "GraphQL",
+            string clientName = "GraphQLClient",
             string @namespace = "StrawberryShake.GraphQL")
         {
             if (graphQLFiles is null)
@@ -43,15 +43,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 }
             }
 
-            if (errors.Any())
+            if (errors.Count > 0)
             {
                 return new CSharpGeneratorResult(
                     new List<CSharpDocument>(),
                     errors);
             }
 
-            var typeSystemDocs = documents.GetTypeSystemDocuments().ToList();
-            var executableDocs = documents.GetExecutableDocuments().ToList();
+            var typeSystemDocs = documents.GetTypeSystemDocuments();
+            var executableDocs = documents.GetExecutableDocuments();
 
             if (typeSystemDocs.Count == 0)
             {

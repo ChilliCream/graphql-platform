@@ -56,8 +56,11 @@ namespace StrawberryShake.CodeGeneration
         public const string Object = "global::System.Object";
         public const string Guid = "global::System.Guid";
         public const string DateTime = "global::System.DateTime";
+        public const string TimeSpan = "global::System.TimeSpan";
         public const string EncodingUtf8 = "global::System.Text.Encoding.UTF8";
         public const string List = GenericCollectionsNamespace + "List";
+        public const string IEnumerable = GenericCollectionsNamespace + "IEnumerable";
+        public const string Concat = "global::System.Linq.Enumerable.Concat";
         public const string IList = GenericCollectionsNamespace + "IList";
         public const string IReadOnlyCollection = GenericCollectionsNamespace + "IReadOnlyCollection";
         public const string IReadOnlyList = GenericCollectionsNamespace + "IReadOnlyList";
@@ -75,11 +78,15 @@ namespace StrawberryShake.CodeGeneration
         public const string ArgumentException = "global::System.ArgumentException";
 
         public const string IServiceCollection = DependencyInjectionNamepsace + "IServiceCollection";
+        public const string IServiceProvider = "global::System.IServiceProvider";
         public const string ServiceCollection = DependencyInjectionNamepsace + "ServiceCollection";
         public const string GetRequiredService = DependencyInjectionNamepsace +
             "ServiceProviderServiceExtensions.GetRequiredService";
         public const string AddSingleton = DependencyInjectionNamepsace +
             "ServiceCollectionServiceExtensions.AddSingleton";
+        public const string BuildServiceProvider = DependencyInjectionNamepsace +
+            "ServiceCollectionContainerBuilderExtensions.BuildServiceProvider";
+
         public const string IHttpClientFactory = "global::System.Net.Http.IHttpClientFactory";
         public const string TryAddSingleton= DependencyInjectionExtensions + "TryAddSingleton";
         public const string GenericCollectionsNamespace = "global::System.Collections.Generic.";

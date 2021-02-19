@@ -23,7 +23,8 @@ class Helpers
         Path.Combine("HotChocolate", "Stitching"),
         Path.Combine("HotChocolate", "Spatial"),
         Path.Combine("StrawberryShake", "Client"),
-        Path.Combine("StrawberryShake", "CodeGeneration")
+        Path.Combine("StrawberryShake", "CodeGeneration"),
+        Path.Combine("StrawberryShake", "Tooling")
     };
 
     public static IEnumerable<string> GetAllProjects(

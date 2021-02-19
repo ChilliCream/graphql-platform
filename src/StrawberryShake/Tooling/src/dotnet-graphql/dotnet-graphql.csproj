@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>true</IsPackable>
+    <PackAsTool>true</PackAsTool>
+    <NoWarn>$(NoWarn);CA1062</NoWarn>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>StrawberryShake.Tools</PackageId>
+    <AssemblyName>dotnet-graphql</AssemblyName>
+    <RootNamespace>StrawberryShake.Tools</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="2.5.1" />
+    <PackageReference Include="IdentityModel" Version="4.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\HotChocolate\Core\src\Core\HotChocolate.Core.csproj" />
+    <ProjectReference Include="..\..\..\..\HotChocolate\Utilities\src\Utilities.Introspection\HotChocolate.Utilities.Introspection.csproj" />
+  </ItemGroup>
+
+</Project>
