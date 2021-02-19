@@ -1,0 +1,36 @@
+query getStore {
+  searchableStore {
+    id
+    search {
+      ...on Author {
+        name
+      }
+    }
+  }
+}
+
+query getStore2 {
+  searchableStore {
+    id
+    books {
+      title
+      isbn
+    }
+    search {
+      ...on Book {
+        title
+      }
+    }
+  }
+}
+
+query getStore3 {
+  searchableStore {
+    id
+    search {
+      ...on Author {
+        genres
+      }
+    }
+  }
+}

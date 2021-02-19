@@ -1,0 +1,1 @@
+﻿find({ }, { "List.BarBaz" : 1, "Bar" : 1 })

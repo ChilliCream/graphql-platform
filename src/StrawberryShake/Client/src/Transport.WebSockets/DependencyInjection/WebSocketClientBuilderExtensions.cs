@@ -1,8 +1,8 @@
 using System;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using StrawberryShake.Transport.WebSockets;
 
-namespace StrawberryShake.Transport.WebSockets
+namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
     /// Extension methods for configuring an <see cref="IWebSocketClientBuilder"/>
@@ -23,7 +23,7 @@ namespace StrawberryShake.Transport.WebSockets
         /// </returns>
         public static IWebSocketClientBuilder ConfigureWebSocketClient(
             this IWebSocketClientBuilder builder,
-            Action<WebSocketClient> configureClient)
+            Action<ISocketClient> configureClient)
         {
             if (builder == null)
             {
@@ -35,9 +35,9 @@ namespace StrawberryShake.Transport.WebSockets
                 throw new ArgumentNullException(nameof(configureClient));
             }
 
-            builder.Services.Configure<WebSocketClientFactoryOptions>(
+            builder.Services.Configure<SocketClientFactoryOptions>(
                 builder.Name,
-                options => options.WebSocketClientActions.Add(configureClient));
+                options => options.SocketClientActions.Add(configureClient));
 
             return builder;
         }
@@ -60,7 +60,7 @@ namespace StrawberryShake.Transport.WebSockets
         /// </remarks>
         public static IWebSocketClientBuilder ConfigureWebSocketClient(
             this IWebSocketClientBuilder builder,
-            Action<IServiceProvider, WebSocketClient> configureClient)
+            Action<IServiceProvider, ISocketClient> configureClient)
         {
             if (builder == null)
             {
@@ -72,10 +72,10 @@ namespace StrawberryShake.Transport.WebSockets
                 throw new ArgumentNullException(nameof(configureClient));
             }
 
-            builder.Services.AddTransient<IConfigureOptions<WebSocketClientFactoryOptions>>(sp =>
-                new ConfigureNamedOptions<WebSocketClientFactoryOptions>(
+            builder.Services.AddTransient<IConfigureOptions<SocketClientFactoryOptions>>(sp =>
+                new ConfigureNamedOptions<SocketClientFactoryOptions>(
                     builder.Name,
-                    options => options.WebSocketClientActions.Add(
+                    options => options.SocketClientActions.Add(
                         client => configureClient(sp, client))));
 
             return builder;
