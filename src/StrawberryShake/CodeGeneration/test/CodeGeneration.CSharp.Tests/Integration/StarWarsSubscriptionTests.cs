@@ -1,21 +1,12 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Utilities;
-using HotChocolate.StarWars;
-using HotChocolate.Types;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 using StrawberryShake.CodeGeneration.CSharp.Integration.StarWars;
 using StrawberryShake.Transport.WebSockets;
-using StrawberryShake.Transport.WebSockets.Protocol;
 using Xunit;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration
@@ -27,7 +18,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration
         {
         }
 
-        [Fact]
+        [Fact(Skip = "This test is flaky.")]
         public async Task Simple_Request()
         {
             // arrange
