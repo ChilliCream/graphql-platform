@@ -1,64 +1,194 @@
+using System;
 using HotChocolate.Language;
+using Snapshooter.Xunit;
+using Xunit;
 
 namespace HotChocolate.Types.Scalars
 {
-    /// <summary>
-    /// The UnsignedInt scalar type represents a unsigned 32‐bit numeric non‐fractional
-    /// value greater than or equal to 0.
-    /// </summary>
-    public class UnsignedIntType : IntegerTypeBase<uint>
+    public class UnsignedIntTypeTests : ScalarTypeTestBase
     {
-        public UnsignedIntType()
-            : this(
-                WellKnownScalarTypes.UnsignedInt,
-                ScalarResources.UnsignedIntType_Description)
+        [Fact]
+        public void Schema_WithScalar_IsMatch()
         {
+            // arrange
+            ISchema schema = BuildSchema<UnsignedIntType>();
+
+            // act
+            // assert
+            schema.ToString().MatchSnapshot();
         }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="UnsignedIntType"/> class.
-        /// </summary>
-        public UnsignedIntType(
-            NameString name,
-            string? description = null,
-            BindingBehavior bind = BindingBehavior.Explicit)
-            : base(name, uint.MinValue, uint.MaxValue, bind)
+        [Theory]
+        [InlineData(typeof(EnumValueNode), TestEnum.Foo, false)]
+        [InlineData(typeof(FloatValueNode), 1d, false)]
+        [InlineData(typeof(BooleanValueNode), true, false)]
+        [InlineData(typeof(StringValueNode), "", false)]
+        [InlineData(typeof(StringValueNode), "foo", false)]
+        [InlineData(typeof(IntValueNode), int.MinValue, false)]
+        [InlineData(typeof(IntValueNode), -1, false)]
+        [InlineData(typeof(IntValueNode), 0, true)]
+        [InlineData(typeof(IntValueNode), 1, true)]
+        [InlineData(typeof(IntValueNode), uint.MaxValue, true)]
+        [InlineData(typeof(IntValueNode), uint.MinValue, true)]
+        [InlineData(typeof(NullValueNode), null, true)]
+        public void IsInstanceOfType_GivenValueNode_MatchExpected(
+            Type type,
+            object value,
+            bool expected)
         {
-            Description = description;
+            // arrange
+            IValueNode valueNode = CreateValueNode(type, value);
+
+            // act
+            // assert
+            ExpectIsInstanceOfTypeToMatch<UnsignedIntType>(valueNode, expected);
         }
 
-        /// <inheritdoc />
-        protected override bool IsInstanceOfType(uint runtimeValue)
+        [Theory]
+        [InlineData(TestEnum.Foo, false)]
+        [InlineData(1d, false)]
+        [InlineData(true, false)]
+        [InlineData("foo", false)]
+        [InlineData(int.MinValue, false)]
+        [InlineData(-1, false)]
+        [InlineData(0, true)]
+        [InlineData(null, true)]
+        [InlineData(1, true)]
+        [InlineData(uint.MaxValue, true)]
+        [InlineData(uint.MinValue, true)]
+        public void IsInstanceOfType_GivenObject_MatchExpected(object value, bool expected)
         {
-            return runtimeValue >= MinValue;
+            // arrange
+            // act
+            // assert
+            ExpectIsInstanceOfTypeToMatch<UnsignedIntType>(value, expected);
         }
 
-        /// <inheritdoc />
-        protected override bool IsInstanceOfType(IntValueNode valueSyntax)
+        [Theory]
+        [InlineData(typeof(IntValueNode), 0, 0)]
+        [InlineData(typeof(IntValueNode), 1, 1)]
+        [InlineData(typeof(IntValueNode), uint.MaxValue, uint.MaxValue)]
+        [InlineData(typeof(IntValueNode), uint.MinValue, uint.MinValue)]
+        [InlineData(typeof(NullValueNode), null, null)]
+        public void ParseLiteral_GivenValueNode_MatchExpected(
+            Type type,
+            object value,
+            object expected)
         {
-            return valueSyntax.ToUInt32() >= MinValue;
+            // arrange
+            IValueNode valueNode = CreateValueNode(type, value);
+
+            // act
+            // assert
+            ExpectParseLiteralToMatch<UnsignedIntType>(valueNode, expected);
         }
 
-        /// <inheritdoc />
-        protected override uint ParseLiteral(IntValueNode valueSyntax)
+        [Theory]
+        [InlineData(typeof(EnumValueNode), TestEnum.Foo)]
+        [InlineData(typeof(FloatValueNode), 1d)]
+        [InlineData(typeof(BooleanValueNode), true)]
+        [InlineData(typeof(StringValueNode), "")]
+        [InlineData(typeof(IntValueNode), int.MinValue)]
+        [InlineData(typeof(IntValueNode), -1)]
+        public void ParseLiteral_GivenValueNode_ThrowSerializationException(Type type, object value)
         {
-            if (valueSyntax.ToUInt32() < MinValue)
-            {
-                throw ThrowHelper.UnsignedIntType_ParseLiteral_IsNotUnsigned(this);
-            }
+            // arrange
+            IValueNode valueNode = CreateValueNode(type, value);
 
-            return valueSyntax.ToUInt32();
+            // act
+            // assert
+            ExpectParseLiteralToThrowSerializationException<UnsignedIntType>(valueNode);
         }
 
-        /// <inheritdoc />
-        protected override IntValueNode ParseValue(uint runtimeValue)
+        [Theory]
+        [InlineData(typeof(IntValueNode), 0)]
+        [InlineData(typeof(IntValueNode), 1)]
+        [InlineData(typeof(IntValueNode), uint.MaxValue)]
+        [InlineData(typeof(IntValueNode), uint.MinValue)]
+        [InlineData(typeof(NullValueNode), null)]
+        public void ParseValue_GivenObject_MatchExpectedType(Type type, object value)
         {
-            if (runtimeValue < MinValue)
-            {
-                throw ThrowHelper.UnsignedIntType_ParseValue_IsNotUnsigned(this);
-            }
+            // arrange
+            // act
+            // assert
+            ExpectParseValueToMatchType<UnsignedIntType>(value, type);
+        }
 
-            return new IntValueNode(runtimeValue);
+        [Theory]
+        [InlineData(TestEnum.Foo)]
+        [InlineData(1d)]
+        [InlineData(true)]
+        [InlineData("foo")]
+        [InlineData(int.MinValue)]
+        [InlineData(-1)]
+        public void ParseLiteral_GivenObject_ThrowSerializationException(object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseValueToThrowSerializationException<UnsignedIntType>(value);
+        }
+
+        [Theory]
+        [InlineData(0, 0)]
+        [InlineData(1, 1)]
+        [InlineData(uint.MaxValue, uint.MaxValue)]
+        [InlineData(uint.MinValue, uint.MinValue)]
+        [InlineData(null, null)]
+        public void Deserialize_GivenValue_MatchExpected(
+            object resultValue,
+            object runtimeValue)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectDeserializeToMatch<UnsignedIntType>(resultValue, runtimeValue);
+        }
+
+        [Theory]
+        [InlineData(TestEnum.Foo)]
+        [InlineData(1d)]
+        [InlineData(true)]
+        [InlineData("foo")]
+        [InlineData(int.MinValue)]
+        [InlineData(-1)]
+        public void Deserialize_GivenValue_ThrowSerializationException(object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectDeserializeToThrowSerializationException<UnsignedIntType>(value);
+        }
+
+        [Theory]
+        [InlineData(0, 0)]
+        [InlineData(1, 1)]
+        [InlineData(uint.MaxValue, uint.MaxValue)]
+        [InlineData(uint.MinValue, uint.MinValue)]
+        [InlineData(null, null)]
+        public void Serialize_GivenObject_MatchExpectedType(
+            object runtimeValue,
+            object resultValue)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectSerializeToMatch<UnsignedIntType>(runtimeValue, resultValue);
+        }
+
+        [Theory]
+        [InlineData(TestEnum.Foo)]
+        [InlineData(1d)]
+        [InlineData(true)]
+        [InlineData("foo")]
+        [InlineData(int.MinValue)]
+        [InlineData(-1)]
+        public void Serialize_GivenObject_ThrowSerializationException(object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectSerializeToThrowSerializationException<UnsignedIntType>(value);
         }
     }
 }
