@@ -17,7 +17,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
     {
         public CSharpGeneratorResult Generate(
             IEnumerable<string> graphQLFiles,
-            string clientName = "GraphQL",
+            string clientName = "GraphQLClient",
             string @namespace = "StrawberryShake.GraphQL")
         {
             if (graphQLFiles is null)

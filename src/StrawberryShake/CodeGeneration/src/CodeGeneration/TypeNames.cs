@@ -56,6 +56,7 @@ namespace StrawberryShake.CodeGeneration
         public const string Object = "global::System.Object";
         public const string Guid = "global::System.Guid";
         public const string DateTime = "global::System.DateTime";
+        public const string TimeSpan = "global::System.TimeSpan";
         public const string EncodingUtf8 = "global::System.Text.Encoding.UTF8";
         public const string List = GenericCollectionsNamespace + "List";
         public const string IEnumerable = GenericCollectionsNamespace + "IEnumerable";

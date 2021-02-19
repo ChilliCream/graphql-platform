@@ -3,10 +3,10 @@
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetPeople
-        : IGetPeople
+    public partial class GetPeopleResult
+        : IGetPeopleResult
     {
-        public GetPeople(IGetPeople_People? people)
+        public GetPeopleResult(IGetPeople_People? people)
         {
             People = people;
         }
