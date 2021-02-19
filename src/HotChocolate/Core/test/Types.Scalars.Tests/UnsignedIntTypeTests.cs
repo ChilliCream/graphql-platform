@@ -51,9 +51,9 @@ namespace HotChocolate.Types.Scalars
         [InlineData("foo", false)]
         [InlineData(int.MinValue, false)]
         [InlineData(-1, false)]
-        [InlineData(1, true)]
-        [InlineData(0, false)]
+        [InlineData(0, true)]
         [InlineData(null, true)]
+        [InlineData(1, true)]
         [InlineData(uint.MaxValue, true)]
         [InlineData(uint.MinValue, true)]
         public void IsInstanceOfType_GivenObject_MatchExpected(object value, bool expected)
