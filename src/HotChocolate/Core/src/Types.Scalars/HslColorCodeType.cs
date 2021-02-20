@@ -15,6 +15,9 @@ namespace HotChocolate.Types.Scalars
         private static readonly Regex _validationRegex =
             new(_validationPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="HslColorCodeType"/> class.
+        /// </summary>
         public HslColorCodeType()
             : this(
                 WellKnownScalarTypes.HslColorCode,
@@ -34,7 +37,7 @@ namespace HotChocolate.Types.Scalars
             Description = description;
         }
 
-                /// <inheritdoc />
+        /// <inheritdoc />
         protected override bool IsInstanceOfType(string runtimeValue)
         {
             return _validationRegex.IsMatch(runtimeValue);
@@ -49,7 +52,7 @@ namespace HotChocolate.Types.Scalars
         /// <inheritdoc />
         protected override string ParseLiteral(StringValueNode valueSyntax)
         {
-            if(!_validationRegex.IsMatch(valueSyntax.Value))
+            if (!_validationRegex.IsMatch(valueSyntax.Value))
             {
                 throw ThrowHelper.HexColorCodeType_ParseLiteral_IsInvalid(this);
             }
@@ -60,7 +63,7 @@ namespace HotChocolate.Types.Scalars
         /// <inheritdoc />
         protected override StringValueNode ParseValue(string runtimeValue)
         {
-            if(!_validationRegex.IsMatch(runtimeValue))
+            if (!_validationRegex.IsMatch(runtimeValue))
             {
                 throw ThrowHelper.HslColorCodeType_ParseValue_IsInvalid(this);
             }
@@ -77,8 +80,8 @@ namespace HotChocolate.Types.Scalars
                 return true;
             }
 
-            if(runtimeValue is string s &&
-               _validationRegex.IsMatch(s))
+            if (runtimeValue is string s &&
+                _validationRegex.IsMatch(s))
             {
                 resultValue = s;
                 return true;
@@ -97,8 +100,8 @@ namespace HotChocolate.Types.Scalars
                 return true;
             }
 
-            if(resultValue is string s &&
-               _validationRegex.IsMatch(s))
+            if (resultValue is string s &&
+                _validationRegex.IsMatch(s))
             {
                 runtimeValue = s;
                 return true;
