@@ -21,7 +21,8 @@ namespace HotChocolate
                 SortFieldsByName = true,
                 UseXmlDocumentation = false,
                 DefaultBindingBehavior = BindingBehavior.Explicit,
-                FieldMiddleware = FieldMiddlewareApplication.AllFields
+                FieldMiddleware = FieldMiddlewareApplication.AllFields,
+                KeepSyntaxNodes = true
             };
 
             // act
