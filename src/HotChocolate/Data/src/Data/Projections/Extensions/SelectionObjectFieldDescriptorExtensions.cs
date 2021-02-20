@@ -117,7 +117,7 @@ namespace HotChocolate.Types
         /// </exception>
         public static IObjectFieldDescriptor UseProjection(
             this IObjectFieldDescriptor descriptor,
-            Type type,
+            Type? type,
             string? scope = null)
         {
             if (descriptor is null)
@@ -133,7 +133,7 @@ namespace HotChocolate.Types
                 .OnBeforeCreate(
                     (context, definition) =>
                     {
-                        Type? selectionType = objectType;
+                        Type? selectionType = type;
 
                         if (selectionType is null)
                         {
