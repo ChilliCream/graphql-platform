@@ -114,35 +114,38 @@ namespace HotChocolate
                     DocumentNode schemaDocument = fetchSchema(context.Services);
                     schemaDocument = schemaDocument.RemoveBuiltInTypes();
 
-                    var visitor = new SchemaSyntaxVisitor(bindingLookup);
-                    visitor.Visit(schemaDocument, null);
-                    types.AddRange(visitor.Types);
+                    var visitorContext =
+                        new SchemaSyntaxVisitorContext(bindingLookup, context.Options);
+
+                    SchemaSyntaxVisitor.Instance.Visit(schemaDocument, visitorContext);
+
+                    types.AddRange(visitorContext.Types);
 
                     RegisterOperationName(
                         builder,
                         OperationType.Query,
-                        visitor.QueryTypeName);
+                        visitorContext.QueryTypeName);
 
                     RegisterOperationName(
                         builder,
                         OperationType.Mutation,
-                        visitor.MutationTypeName);
+                        visitorContext.MutationTypeName);
 
                     RegisterOperationName(
                         builder,
                         OperationType.Subscription,
-                        visitor.SubscriptionTypeName);
+                        visitorContext.SubscriptionTypeName);
 
                     IReadOnlyCollection<DirectiveNode> directives =
-                        visitor.Directives ?? Array.Empty<DirectiveNode>();
+                        visitorContext.Directives ?? Array.Empty<DirectiveNode>();
 
                     if (builder._schema is null
                         && (directives.Count > 0
-                        || visitor.Description != null))
+                        || visitorContext.Description != null))
                     {
                         builder.SetSchema(new Schema(d =>
                         {
-                            d.Description(visitor.Description);
+                            d.Description(visitorContext.Description);
                             foreach (DirectiveNode directive in directives)
                             {
                                 d.Directive(directive);

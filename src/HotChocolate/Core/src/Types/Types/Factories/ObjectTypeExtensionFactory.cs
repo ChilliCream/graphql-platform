@@ -11,6 +11,7 @@ namespace HotChocolate.Types.Factories
     {
         public ObjectTypeExtension Create(
             IBindingLookup bindingLookup,
+            IReadOnlySchemaOptions schemaOptions,
             ObjectTypeExtensionNode node)
         {
             if (bindingLookup is null)
@@ -43,7 +44,7 @@ namespace HotChocolate.Types.Factories
 
                 DeclareInterfaces(d, node.Interfaces);
 
-                DeclareFields(bindingInfo, d, node.Fields);
+                DeclareFields(bindingInfo, schemaOptions, d, node.Fields);
             });
         }
 
@@ -59,6 +60,7 @@ namespace HotChocolate.Types.Factories
 
         private static void DeclareFields(
             ITypeBindingInfo bindingInfo,
+            IReadOnlySchemaOptions schemaOptions,
             IObjectTypeDescriptor typeDescriptor,
             IReadOnlyCollection<FieldDefinitionNode> fieldDefinitions)
         {
@@ -70,7 +72,7 @@ namespace HotChocolate.Types.Factories
                     .Field(fieldDefinition.Name.Value)
                     .Description(fieldDefinition.Description?.Value)
                     .Type(fieldDefinition.Type)
-                    .SyntaxNode(fieldDefinition);
+                    .SyntaxNode(schemaOptions.KeepSyntaxNodes ? fieldDefinition : null);
 
                 if (bindingInfo.TryGetFieldMember(
                     fieldDefinition.Name.Value,
@@ -95,11 +97,12 @@ namespace HotChocolate.Types.Factories
                     fieldDescriptor.Deprecated(deprecactionReason);
                 }
 
-                DeclareFieldArguments(fieldDescriptor, fieldDefinition);
+                DeclareFieldArguments(schemaOptions, fieldDescriptor, fieldDefinition);
             }
         }
 
         private static void DeclareFieldArguments(
+            IReadOnlySchemaOptions schemaOptions,
             IObjectFieldDescriptor fieldDescriptor,
             FieldDefinitionNode fieldDefinition)
         {
@@ -114,7 +117,9 @@ namespace HotChocolate.Types.Factories
                                 inputFieldDefinition.Description?.Value)
                             .Type(inputFieldDefinition.Type)
                             .DefaultValue(inputFieldDefinition.DefaultValue)
-                            .SyntaxNode(inputFieldDefinition);
+                            .SyntaxNode(schemaOptions.KeepSyntaxNodes
+                                ? inputFieldDefinition
+                                : null);
 
                         foreach (DirectiveNode directive in
                             inputFieldDefinition.Directives)

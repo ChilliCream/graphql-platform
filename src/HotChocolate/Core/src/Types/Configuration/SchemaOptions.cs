@@ -39,6 +39,11 @@ namespace HotChocolate.Configuration
         public bool SortFieldsByName { get; set; }
 
         /// <summary>
+        /// Defines if syntax nodes shall be kept on the type system objects
+        /// </summary>
+        public bool KeepSyntaxNodes { get; set; }
+
+        /// <summary>
         /// Defines if types shall be removed from the schema that are
         /// unreachable from the root types.
         /// </summary>
@@ -66,7 +71,8 @@ namespace HotChocolate.Configuration
                 StrictValidation = options.StrictValidation,
                 UseXmlDocumentation = options.UseXmlDocumentation,
                 FieldMiddleware = options.FieldMiddleware,
-                DefaultBindingBehavior = options.DefaultBindingBehavior
+                DefaultBindingBehavior = options.DefaultBindingBehavior,
+                KeepSyntaxNodes = options.KeepSyntaxNodes
             };
         }
     }

@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Factories
         : ITypeFactory<DirectiveDefinitionNode, DirectiveType>
     {
         private static readonly Dictionary<Language.DirectiveLocation, DirectiveLocation> _locs =
-            new Dictionary<Language.DirectiveLocation, DirectiveLocation>
+            new()
             {
                     {
                         Language.DirectiveLocation.Query,
@@ -89,6 +89,7 @@ namespace HotChocolate.Types.Factories
 
         public DirectiveType Create(
             IBindingLookup bindingLookup,
+            IReadOnlySchemaOptions schemaOptions,
             DirectiveDefinitionNode node)
         {
             if (bindingLookup is null)
@@ -108,7 +109,7 @@ namespace HotChocolate.Types.Factories
             {
                 c.Name(node.Name.Value);
                 c.Description(node.Description?.Value);
-                c.SyntaxNode(node);
+                c.SyntaxNode(schemaOptions.KeepSyntaxNodes ? node : null);
 
                 if (bindingInfo.SourceType != null)
                 {
@@ -121,12 +122,13 @@ namespace HotChocolate.Types.Factories
                     c.Repeatable();
                 }
 
-                DeclareArguments(c, node);
+                DeclareArguments(schemaOptions, c, node);
                 DeclareLocations(c, node);
             });
         }
 
         private static void DeclareArguments(
+            IReadOnlySchemaOptions schemaOptions,
             IDirectiveTypeDescriptor typeDescriptor,
             DirectiveDefinitionNode node)
         {
@@ -136,7 +138,7 @@ namespace HotChocolate.Types.Factories
                     .Argument(inputField.Name.Value)
                     .Description(inputField.Description?.Value)
                     .Type(inputField.Type)
-                    .SyntaxNode(inputField);
+                    .SyntaxNode(schemaOptions.KeepSyntaxNodes ? inputField : null);
 
                 if (inputField.DefaultValue is { })
                 {

@@ -13,6 +13,7 @@ namespace HotChocolate.Types.Factories
     {
         public ObjectType Create(
             IBindingLookup bindingLookup,
+            IReadOnlySchemaOptions schemaOptions,
             ObjectTypeDefinitionNode node)
         {
             if (bindingLookup is null)
@@ -30,7 +31,7 @@ namespace HotChocolate.Types.Factories
 
             return new ObjectType(d =>
             {
-                d.SyntaxNode(node)
+                d.SyntaxNode(schemaOptions.KeepSyntaxNodes ? node : null)
                     .Name(node.Name.Value)
                     .Description(node.Description?.Value);
 
@@ -44,14 +45,15 @@ namespace HotChocolate.Types.Factories
                     d.Directive(directive);
                 }
 
-                DeclareInterfaces(d, node.Interfaces);
+                DeclareInterfaces(d,schemaOptions, node.Interfaces);
 
-                DeclareFields(bindingInfo, d, node.Fields);
+                DeclareFields(bindingInfo,schemaOptions, d, node.Fields);
             });
         }
 
         private static void DeclareInterfaces(
             IObjectTypeDescriptor typeDescriptor,
+            IReadOnlySchemaOptions schemaOptions,
             IReadOnlyCollection<NamedTypeNode> interfaceReferences)
         {
             foreach (NamedTypeNode typeNode in interfaceReferences)
@@ -62,6 +64,7 @@ namespace HotChocolate.Types.Factories
 
         private static void DeclareFields(
             ITypeBindingInfo bindingInfo,
+            IReadOnlySchemaOptions schemaOptions,
             IObjectTypeDescriptor typeDescriptor,
             IReadOnlyCollection<FieldDefinitionNode> fieldDefinitions)
         {
@@ -73,7 +76,7 @@ namespace HotChocolate.Types.Factories
                     .Field(fieldDefinition.Name.Value)
                     .Description(fieldDefinition.Description?.Value)
                     .Type(fieldDefinition.Type)
-                    .SyntaxNode(fieldDefinition);
+                    .SyntaxNode(schemaOptions.KeepSyntaxNodes ? fieldDefinition : null);
 
                 if (bindingInfo.TryGetFieldMember(
                     fieldDefinition.Name.Value,
@@ -98,11 +101,12 @@ namespace HotChocolate.Types.Factories
                     fieldDescriptor.Deprecated(deprecationReason);
                 }
 
-                DeclareFieldArguments(fieldDescriptor, fieldDefinition);
+                DeclareFieldArguments(schemaOptions, fieldDescriptor, fieldDefinition);
             }
         }
 
         private static void DeclareFieldArguments(
+            IReadOnlySchemaOptions schemaOptions,
             IObjectFieldDescriptor fieldDescriptor,
             FieldDefinitionNode fieldDefinition)
         {
@@ -116,7 +120,9 @@ namespace HotChocolate.Types.Factories
                             .Description(inputFieldDefinition.Description?.Value)
                             .Type(inputFieldDefinition.Type)
                             .DefaultValue(inputFieldDefinition.DefaultValue)
-                            .SyntaxNode(inputFieldDefinition);
+                            .SyntaxNode(schemaOptions.KeepSyntaxNodes
+                                ? inputFieldDefinition
+                                : null);
 
                         foreach (DirectiveNode directive in
                             inputFieldDefinition.Directives)

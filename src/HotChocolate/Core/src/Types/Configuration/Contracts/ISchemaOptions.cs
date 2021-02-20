@@ -39,6 +39,11 @@ namespace HotChocolate.Configuration
         new bool SortFieldsByName { get; set; }
 
         /// <summary>
+        /// Defines if syntax nodes shall be kept on the type system objects
+        /// </summary>
+        new bool KeepSyntaxNodes { get; set; }
+
+        /// <summary>
         /// Defines if types shall be removed from the schema that are
         /// unreachable from the root types.
         /// </summary>

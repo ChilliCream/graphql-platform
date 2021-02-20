@@ -10,6 +10,7 @@ namespace HotChocolate.Types.Factories
     {
         public EnumType Create(
             IBindingLookup bindingLookup,
+            IReadOnlySchemaOptions schemaOptions,
             EnumTypeDefinitionNode node)
         {
             if (bindingLookup is null)
@@ -27,7 +28,7 @@ namespace HotChocolate.Types.Factories
 
             return new EnumType(d =>
             {
-                d.SyntaxNode(node)
+                d.SyntaxNode(schemaOptions.KeepSyntaxNodes ? node : null)
                     .Name(node.Name.Value)
                     .Description(node.Description?.Value);
 
