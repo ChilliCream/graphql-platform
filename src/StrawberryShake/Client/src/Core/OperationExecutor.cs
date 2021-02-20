@@ -100,16 +100,19 @@ namespace StrawberryShake
                 var hasResultInStore = false;
 
                 if ((_strategy == ExecutionStrategy.CacheFirst ||
-                    _strategy == ExecutionStrategy.CacheAndNetwork) &&
+                     _strategy == ExecutionStrategy.CacheAndNetwork) &&
                     _operationStore.TryGet(_request, out IOperationResult<TResult>? result))
                 {
                     hasResultInStore = true;
                     observer.OnNext(result);
                 }
 
-                IDisposable session = _operationStore.Watch<TResult>(_request).Subscribe(observer);
+                IDisposable session =
+                    _operationStore.Watch<TResult>(_request).Subscribe(observer);
 
-                if (_strategy != ExecutionStrategy.CacheFirst || !hasResultInStore)
+                if (_request.Document.Kind == OperationKind.Subscription ||
+                    _strategy != ExecutionStrategy.CacheFirst ||
+                    !hasResultInStore)
                 {
                     var requestSession = new RequestSession();
                     BeginExecute(requestSession);
@@ -137,6 +140,11 @@ namespace StrawberryShake
                         }
 
                         _operationStore.Set(_request, resultBuilder.Build(response));
+
+                        if (_request.Document.Kind == OperationKind.Subscription)
+                        {
+                            _operationStore.ClearResult<TResult>(_request);
+                        }
                     }
                 }
                 finally

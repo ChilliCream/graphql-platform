@@ -56,6 +56,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 return;
             }
 
+            _location = GetPackageLocation(context);
+
             using ILogger log = CreateLogger(context);
 
             log.SetLocation(_location);
@@ -309,6 +311,19 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             }
 
             return new NoOpLogger();
+        }
+
+        private string GetPackageLocation(GeneratorExecutionContext context)
+        {
+            if (context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(
+                "build_property.StrawberryShake_BuildDirectory",
+                out string? value) &&
+                !string.IsNullOrEmpty(value))
+            {
+                return value;
+            }
+
+            return _location;
         }
     }
 }
