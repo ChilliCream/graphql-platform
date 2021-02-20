@@ -70,10 +70,9 @@ namespace HotChocolate.Types
                 ? hasClrType.RuntimeType
                 : typeof(object);
 
-            var directives = new DirectiveCollection(this, definition.GetDirectives());
-            directives.CompleteCollection(context);
+            Directives =
+                DirectiveCollection.CreateAndComplete(context, this, definition.GetDirectives());
 
-            Directives = directives;
 
             if (!DeclaringType.Name.Equals(Coordinate.TypeName))
             {

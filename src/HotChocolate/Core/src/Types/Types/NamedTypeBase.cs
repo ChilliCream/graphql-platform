@@ -75,9 +75,8 @@ namespace HotChocolate.Types
 
             _syntaxNode = definition.SyntaxNode;
 
-            var directives = new DirectiveCollection(this, definition.GetDirectives());
-            directives.CompleteCollection(context);
-            _directives = directives;
+            _directives =
+                DirectiveCollection.CreateAndComplete(context,this, definition.GetDirectives());
         }
 
         protected void SetTypeIdentity(Type typeDefinitionOrIdentity)

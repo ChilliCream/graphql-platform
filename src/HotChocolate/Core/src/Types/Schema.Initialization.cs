@@ -59,9 +59,8 @@ namespace HotChocolate
         {
             base.OnCompleteType(context, definition);
 
-            var directives = new DirectiveCollection(this, definition.GetDirectives());
-            directives.CompleteCollection(context);
-            Directives = directives;
+            Directives =
+                DirectiveCollection.CreateAndComplete(context, this, definition.GetDirectives());
             Services = context.Services;
         }
 

@@ -12,10 +12,9 @@ namespace HotChocolate.Types
         : IFieldCollection<T>
         where T : class, IField
     {
-        private readonly Dictionary<NameString, (int Index, T Field)> _fieldsLookup =
-            new Dictionary<NameString, (int Index, T Field)>();
+        private readonly Dictionary<NameString, (int Index, T Field)> _fieldsLookup;
 
-        private readonly List<T> _fields;
+        private readonly T[] _fields;
 
         public FieldCollection(IEnumerable<T> fields, bool sortByName = false)
         {
@@ -25,10 +24,12 @@ namespace HotChocolate.Types
             }
 
             _fields = sortByName
-                ? fields.OrderBy(t => t.Name).ToList()
-                : fields is List<T> list ? list : fields.ToList();
+                ? fields.OrderBy(t => t.Name).ToArray()
+                : fields is T[] list ? list : fields.ToArray();
 
-            for (var i = 0; i < _fields.Count; i++)
+            _fieldsLookup = new Dictionary<NameString, (int Index, T Field)>(_fields.Length);
+
+            for (var i = 0; i < _fields.Length; i++)
             {
                 T field = _fields[i];
                 _fieldsLookup.Add(field.Name, (i, field));
@@ -39,7 +40,7 @@ namespace HotChocolate.Types
 
         public T this[int index] => _fields[index];
 
-        public int Count => _fields.Count;
+        public int Count => _fields.Length;
 
         public int IndexOfField(NameString fieldName)
         {
@@ -67,7 +68,10 @@ namespace HotChocolate.Types
 
         public IEnumerator<T> GetEnumerator()
         {
-            return _fields.GetEnumerator();
+            foreach (var field in _fields)
+            {
+                yield return field;
+            }
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -85,7 +89,6 @@ namespace HotChocolate.Types
             return Empty;
         }
 
-        public static FieldCollection<T> Empty { get; } =
-            new FieldCollection<T>(Enumerable.Empty<T>(), false);
+        public static FieldCollection<T> Empty { get; } = new(Array.Empty<T>());
     }
 }

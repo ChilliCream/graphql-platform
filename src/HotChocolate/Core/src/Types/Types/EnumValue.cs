@@ -11,7 +11,7 @@ namespace HotChocolate.Types
 {
     public sealed class EnumValue : IEnumValue
     {
-        private readonly DirectiveCollection _directives;
+        private readonly IDirectiveCollection _directives;
 
         public EnumValue(
             ITypeCompletionContext completionContext,
@@ -44,8 +44,8 @@ namespace HotChocolate.Types
             Value = enumValueDefinition.Value;
             ContextData = enumValueDefinition.GetContextData();
 
-            _directives = new DirectiveCollection(this, enumValueDefinition!.GetDirectives());
-            _directives.CompleteCollection(completionContext);
+            _directives = DirectiveCollection
+                .CreateAndComplete(completionContext, this, enumValueDefinition!.GetDirectives());
         }
 
         public EnumValueDefinitionNode? SyntaxNode { get; }
