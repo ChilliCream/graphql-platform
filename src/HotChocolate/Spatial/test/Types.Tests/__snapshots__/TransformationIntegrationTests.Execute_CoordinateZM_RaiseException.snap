@@ -1,0 +1,13 @@
+﻿{
+  "errors": [
+    {
+      "message": "Coordinates with M values cannot be transformed",
+      "extensions": {
+        "code": "HC0030"
+      }
+    }
+  ],
+  "data": {
+    "test": null
+  }
+}

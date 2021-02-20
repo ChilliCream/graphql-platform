@@ -29,20 +29,6 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 context.Types.OrderBy(t => t.Name),
                 type =>
                 {
-                    Assert.Equal("GetHero", type.Name);
-                    Assert.Equal("Foo.Bar", type.Namespace);
-
-                    Assert.Collection(
-                        type.Properties,
-                        property =>
-                        {
-                            Assert.Equal("Hero", property.Name);
-                            Assert.Equal("IGetHero_Hero", property.Type.Name);
-                            Assert.True(property.Type.IsNullableType());
-                        });
-                },
-                type =>
-                {
                     Assert.Equal("GetHero_Hero_Droid", type.Name);
                     Assert.Equal("Foo.Bar", type.Namespace);
 
@@ -71,7 +57,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 },
                 type =>
                 {
-                    Assert.Equal("IGetHero", type.Name);
+                    Assert.Equal("GetHeroResult", type.Name);
                     Assert.Equal("Foo.Bar", type.Namespace);
 
                     Assert.Collection(
@@ -109,6 +95,20 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     Assert.Equal("IGetHero_Hero_Human", type.Name);
                     Assert.Equal("Foo.Bar", type.Namespace);
                     Assert.True(type.IsEntityType());
+                },
+                type =>
+                {
+                    Assert.Equal("IGetHeroResult", type.Name);
+                    Assert.Equal("Foo.Bar", type.Namespace);
+
+                    Assert.Collection(
+                        type.Properties,
+                        property =>
+                        {
+                            Assert.Equal("Hero", property.Name);
+                            Assert.Equal("IGetHero_Hero", property.Type.Name);
+                            Assert.True(property.Type.IsNullableType());
+                        });
                 },
                 type =>
                 {

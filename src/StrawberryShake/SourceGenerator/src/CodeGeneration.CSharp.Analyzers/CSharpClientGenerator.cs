@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
-using DotNet.Globbing;
 using HotChocolate;
 using HotChocolate.Utilities;
 using Newtonsoft.Json;
 using IOPath = System.IO.Path;
+using static StrawberryShake.CodeGeneration.CSharp.Analyzers.DiagnosticErrorHelper;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 {
@@ -55,109 +56,142 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 return;
             }
 
-            try
-            {
-                int i = 1;
-                var documents = GetGraphQLFiles(context);
-                var documentNames = new HashSet<string>();
+            _location = GetPackageLocation(context);
 
-                foreach (var config in GetGraphQLConfigs(context))
+            using ILogger log = CreateLogger(context);
+
+            log.SetLocation(_location);
+
+            var allDocuments = GetGraphQLFiles(context);
+            var allConfigurations = GetGraphQLConfigs(context);
+
+            foreach (var config in allConfigurations)
+            {
+                var clientContext = new ClientGeneratorContext(
+                    context,
+                    log,
+                    config.Extensions.StrawberryShake,
+                    config.Documents ?? IOPath.Combine("**", "*.graphql"),
+                    IOPath.GetDirectoryName(config.Location)!,
+                    allDocuments);
+
+                if (clientContext.GetDocuments().Count > 0)
                 {
-                    var fileNames = new HashSet<string>();
-
-                    string filter = config.Documents ?? IOPath.Combine("**", "*.graphql");
-                    string clientName = config.Extensions.StrawberryShake.Name;
-                    string root = IOPath.GetDirectoryName(config.Location)!;
-                    string generated = IOPath.Combine(root, "Generated");
-
-                    if (!Directory.Exists(generated))
-                    {
-                        Directory.CreateDirectory(generated);
-                    }
-
-                    // get documents that are relevant to this config.
-                    var glob = Glob.Parse(filter);
-                    var configDocuments = documents
-                        .Where(t => t.StartsWith(root) && glob.IsMatch(t))
-                        .ToList();
-
-                    // generate the client.
-                    var result = GenerateClient(documents, config.Extensions.StrawberryShake);
-
-                    if (result.HasErrors())
-                    {
-                        // if we have errors ... we will output them an not generate anything.
-                        CreateDiagnosticErrors(context, result.Errors);
-                        return;
-                    }
-
-                    // add updated documents.
-                    foreach (CSharpDocument document in result.CSharpDocuments)
-                    {
-                        string documentName = $"{clientName}.{document.Name}.{i}.cs";
-                        string fileName = $"{document.Name}.StrawberryShake.cs";
-
-                        if (!documentNames.Add(documentName))
-                        {
-                            documentName = Guid.NewGuid().ToString("N") + documentName;
-                            documentNames.Add(documentName);
-                        }
-
-                        if (!fileNames.Add(fileName))
-                        {
-                            fileName = Guid.NewGuid().ToString("N") + fileName;
-                            fileNames.Add(fileName);
-                        }
-
-                        fileName = IOPath.Combine(generated, fileName);
-                        var sourceText = SourceText.From(document.SourceText, Encoding.UTF8);
-
-                        context.AddSource(documentName, sourceText);
-
-                        if (File.Exists(fileName))
-                        {
-                            File.Delete(fileName);
-                        }
-
-                        File.WriteAllText(fileName, document.SourceText, Encoding.UTF8);
-                    }
-
-                    // remove files that are now obsolete
-                    foreach (string fileName in Directory.GetFiles(generated, "*.cs"))
-                    {
-                        if (!fileNames.Contains(IOPath.GetFileName(fileName)))
-                        {
-                            File.Delete(fileName);
-                        }
-                    }
+                    log.Begin(config, clientContext);
+                    Execute(clientContext);
+                    log.End();
                 }
-            }
-            catch (GraphQLException ex)
-            {
-                CreateDiagnosticErrors(context, ex.Errors);
             }
         }
 
-        private CSharpGeneratorResult GenerateClient(
-            IEnumerable<string> documents,
-            StrawberryShakeSettings settings)
+        private void Execute(ClientGeneratorContext context)
         {
             try
             {
-                var generator = new CSharpGenerator();
-                return generator.Generate(documents, settings.Name, settings.Namespace);
-            }
-            catch (GraphQLException)
-            {
-                throw;
+                CreateDirectoryIfNotExists(context.OutputDirectory);
+
+                if (!TryGenerateClient(context, out CSharpGeneratorResult? result))
+                {
+                    // there were unexpected errors and we will stop generating this client.
+                    return;
+                }
+
+                if (result.HasErrors())
+                {
+                    // if we have generator errors like invalid GraphQL syntax we will also stop.
+                    context.ReportError(result.Errors);
+                    return;
+                }
+
+                // If the generator has no errors we will write the documents.
+                foreach (CSharpDocument document in result.CSharpDocuments)
+                {
+                    WriteDocument(context, document);
+                }
+
+                // remove files that are now obsolete
+                Clean(context);
             }
             catch (Exception ex)
             {
-                throw new GraphQLException(
-                    ErrorBuilder.New()
-                        .SetMessage(ex.Message)
-                        .SetException(ex)
-                        .Build());
+                context.Log.Error(ex);
+                context.ReportError(ex);
+            }
+        }
+
+        private void WriteDocument(
+            ClientGeneratorContext context,
+            CSharpDocument document)
+        {
+            string documentName = $"{document.Name}.{context.Settings.Name}.StrawberryShake.cs";
+            context.Log.WriteDocument(documentName);
+
+            var fileName = IOPath.Combine(context.OutputDirectory, documentName);
+            var sourceText = SourceText.From(document.SourceText, Encoding.UTF8);
+            context.FileNames.Add(fileName);
+
+            context.Execution.AddSource(documentName, sourceText);
+
+            WriteFile(fileName, document.SourceText);
+        }
+
+        private void Clean(ClientGeneratorContext context)
+        {
+            context.Log.BeginClean();
+
+            try
+            {
+                foreach (string fileName in Directory.GetFiles(context.OutputDirectory, "*.cs"))
+                {
+                    if (!context.FileNames.Contains(fileName))
+                    {
+                        context.Log.RemoveFile(fileName);
+                        File.Delete(fileName);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                context.Log.Error(ex);
+                context.ReportError(ex);
+            }
+            finally
+            {
+                context.Log.EndClean();
+            }
+        }
+
+        private bool TryGenerateClient(
+            ClientGeneratorContext context,
+            [NotNullWhen(true)] out CSharpGeneratorResult? result)
+        {
+            context.Log.BeginGenerateCode();
+
+            try
+            {
+                var name = context.Settings.Name;
+                var @namespace = context.GetNamespace();
+                var documents = context.GetDocuments();
+
+                result = new CSharpGenerator().Generate(documents, name, @namespace);
+                return true;
+            }
+            catch (GraphQLException ex)
+            {
+                context.ReportError(ex.Errors);
+                result = null;
+                return false;
+            }
+            catch (Exception ex)
+            {
+                context.Log.Error(ex);
+                context.ReportError(ex);
+                result = null;
+                return false;
+            }
+            finally
+            {
+                context.Log.EndGenerateCode();
             }
         }
 
@@ -199,85 +233,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             if (!context.Compilation.ReferencedAssemblyNames.Any(
                 ai => ai.Name.Equals(assemblyName, StringComparison.OrdinalIgnoreCase)))
             {
-                context.ReportDiagnostic(
-                        Diagnostic.Create(
-                            new DiagnosticDescriptor(
-                                id: CodeGenerationErrorCodes.NoTypeDocumentsFound,
-                                title: "Dependency Missing",
-                                messageFormat: $"The package reference `{packageName}` is missing.\r\n`dotnet add package {packageName}`",
-                                category: _category,
-                                DiagnosticSeverity.Error,
-                                isEnabledByDefault: true),
-                            Microsoft.CodeAnalysis.Location.None));
+                ReportMissingDependency(context, packageName);
                 return false;
             }
             return true;
-        }
-
-        private void CreateDiagnosticErrors(
-            GeneratorExecutionContext context,
-            IReadOnlyList<IError> errors)
-        {
-            foreach (IError error in errors)
-            {
-                string title =
-                    error.Extensions is not null &&
-                    error.Extensions.TryGetValue(
-                        CodeGenerationThrowHelper.TitleExtensionKey,
-                        out var value) &&
-                    value is string s
-                        ? s
-                        : "Unexpected";
-
-                string code = error.Code ?? SourceGeneratorErrorCodes.Unexpected;
-
-                if (error.Extensions is not null &&
-                    error.Extensions.TryGetValue(
-                        CodeGenerationThrowHelper.FileExtensionKey,
-                        out value) &&
-                    value is string filePath)
-                {
-                    HotChocolate.Location location =
-                        error.Locations?.First() ??
-                        throw new ArgumentNullException();
-
-                    context.ReportDiagnostic(
-                        Diagnostic.Create(
-                            new DiagnosticDescriptor(
-                                id: code,
-                                title: title,
-                                messageFormat: error.Message,
-                                category: _category,
-                                DiagnosticSeverity.Error,
-                                isEnabledByDefault: true),
-                            Microsoft.CodeAnalysis.Location.Create(
-                                filePath,
-                                TextSpan.FromBounds(
-                                    1,
-                                    2),
-                                new LinePositionSpan(
-                                    new LinePosition(
-                                        location.Line,
-                                        location.Column),
-                                    new LinePosition(
-                                        location.Line,
-                                        location.Column + 1)))));
-                }
-                else
-                {
-                    context.ReportDiagnostic(
-                        Diagnostic.Create(
-                            new DiagnosticDescriptor(
-                                id: code,
-                                title: title,
-                                messageFormat: $"An error occured during generation: {error.Message}",
-                                category: _category,
-                                DiagnosticSeverity.Error,
-                                isEnabledByDefault: true,
-                                description: error.Message),
-                            Microsoft.CodeAnalysis.Location.None));
-                }
-            }
         }
 
         private IReadOnlyList<string> GetGraphQLFiles(
@@ -322,5 +281,49 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 .Select(t => t.Path)
                 .Where(t => IOPath.GetFileName(t).EqualsOrdinal(".graphqlrc.json"))
                 .ToList();
+
+        private void CreateDirectoryIfNotExists(string directory)
+        {
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+        }
+
+        private void WriteFile(string fileName, string sourceText)
+        {
+            if (File.Exists(fileName))
+            {
+                File.Delete(fileName);
+            }
+
+            File.WriteAllText(fileName, sourceText, Encoding.UTF8);
+        }
+
+        private ILogger CreateLogger(GeneratorExecutionContext context)
+        {
+            if (context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(
+                "build_property.StrawberryShake_LogFile",
+                out string? value) &&
+                !string.IsNullOrEmpty(value))
+            {
+                return new FileLogger(value);
+            }
+
+            return new NoOpLogger();
+        }
+
+        private string GetPackageLocation(GeneratorExecutionContext context)
+        {
+            if (context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(
+                "build_property.StrawberryShake_BuildDirectory",
+                out string? value) &&
+                !string.IsNullOrEmpty(value))
+            {
+                return value;
+            }
+
+            return _location;
+        }
     }
 }
