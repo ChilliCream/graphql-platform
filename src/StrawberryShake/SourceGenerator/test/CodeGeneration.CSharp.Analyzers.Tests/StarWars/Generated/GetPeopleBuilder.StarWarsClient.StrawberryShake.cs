@@ -4,11 +4,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleBuilder
-        : global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, IGetPeople>
+        : global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, IGetPeopleResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
-        private readonly global::StrawberryShake.IOperationResultDataFactory<IGetPeople> _resultDataFactory;
+        private readonly global::StrawberryShake.IOperationResultDataFactory<IGetPeopleResult> _resultDataFactory;
         private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
         private global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
         private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.DateTimeOffset> _dateTimeOffsetParser;
@@ -16,7 +16,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
         public GetPeopleBuilder(
             global::StrawberryShake.IEntityStore entityStore,
             global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> extractId,
-            global::StrawberryShake.IOperationResultDataFactory<IGetPeople> resultDataFactory,
+            global::StrawberryShake.IOperationResultDataFactory<IGetPeopleResult> resultDataFactory,
             global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _entityStore = entityStore
@@ -33,9 +33,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
                  ?? throw new global::System.ArgumentNullException(nameof(_dateTimeOffsetParser));
         }
 
-        public global::StrawberryShake.IOperationResult<IGetPeople> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
+        public global::StrawberryShake.IOperationResult<IGetPeopleResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
         {
-            (IGetPeople Result, GetPeopleInfo Info)? data = null;
+            (IGetPeopleResult Result, GetPeopleResultInfo Info)? data = null;
 
             if (response.Body is not null
                 && response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement obj))
@@ -43,20 +43,20 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
                 data = BuildData(obj);
             }
 
-            return new global::StrawberryShake.OperationResult<IGetPeople>(
+            return new global::StrawberryShake.OperationResult<IGetPeopleResult>(
                 data?.Result,
                 data?.Info,
                 _resultDataFactory,
                 null);
         }
 
-        private (IGetPeople, GetPeopleInfo) BuildData(global::System.Text.Json.JsonElement obj)
+        private (IGetPeopleResult, GetPeopleResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
         {
             using global::StrawberryShake.IEntityUpdateSession session = _entityStore.BeginUpdate();
             var entityIds = new global::System.Collections.Generic.HashSet<global::StrawberryShake.EntityId>();
 
 
-            var resultInfo = new GetPeopleInfo(
+            var resultInfo = new GetPeopleResultInfo(
                 DeserializeIGetPeople_People(
                     global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj, "people"),
                     entityIds),
