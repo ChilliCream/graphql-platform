@@ -24,8 +24,6 @@ namespace HotChocolate.Types.Scalars
         [InlineData(typeof(BooleanValueNode), true, false)]
         [InlineData(typeof(StringValueNode), "", false)]
         [InlineData(typeof(StringValueNode), "foo", false)]
-        [InlineData(typeof(IntValueNode), int.MinValue, false)]
-        [InlineData(typeof(IntValueNode), -1, false)]
         [InlineData(typeof(IntValueNode), 0, true)]
         [InlineData(typeof(IntValueNode), 1, true)]
         [InlineData(typeof(IntValueNode), uint.MaxValue, true)]
@@ -51,9 +49,9 @@ namespace HotChocolate.Types.Scalars
         [InlineData("foo", false)]
         [InlineData(int.MinValue, false)]
         [InlineData(-1, false)]
-        [InlineData(0, true)]
+        [InlineData(0, false)]
         [InlineData(null, true)]
-        [InlineData(1, true)]
+        [InlineData((uint)1, true)]
         [InlineData(uint.MaxValue, true)]
         [InlineData(uint.MinValue, true)]
         public void IsInstanceOfType_GivenObject_MatchExpected(object value, bool expected)
@@ -65,8 +63,8 @@ namespace HotChocolate.Types.Scalars
         }
 
         [Theory]
-        [InlineData(typeof(IntValueNode), 0, 0)]
-        [InlineData(typeof(IntValueNode), 1, 1)]
+        [InlineData(typeof(IntValueNode), 0, (uint)0)]
+        [InlineData(typeof(IntValueNode), 1, (uint)1)]
         [InlineData(typeof(IntValueNode), uint.MaxValue, uint.MaxValue)]
         [InlineData(typeof(IntValueNode), uint.MinValue, uint.MinValue)]
         [InlineData(typeof(NullValueNode), null, null)]
@@ -88,8 +86,6 @@ namespace HotChocolate.Types.Scalars
         [InlineData(typeof(FloatValueNode), 1d)]
         [InlineData(typeof(BooleanValueNode), true)]
         [InlineData(typeof(StringValueNode), "")]
-        [InlineData(typeof(IntValueNode), int.MinValue)]
-        [InlineData(typeof(IntValueNode), -1)]
         public void ParseLiteral_GivenValueNode_ThrowSerializationException(Type type, object value)
         {
             // arrange
@@ -101,8 +97,7 @@ namespace HotChocolate.Types.Scalars
         }
 
         [Theory]
-        [InlineData(typeof(IntValueNode), 0)]
-        [InlineData(typeof(IntValueNode), 1)]
+        [InlineData(typeof(IntValueNode), (uint)1)]
         [InlineData(typeof(IntValueNode), uint.MaxValue)]
         [InlineData(typeof(IntValueNode), uint.MinValue)]
         [InlineData(typeof(NullValueNode), null)]
@@ -119,8 +114,6 @@ namespace HotChocolate.Types.Scalars
         [InlineData(1d)]
         [InlineData(true)]
         [InlineData("foo")]
-        [InlineData(int.MinValue)]
-        [InlineData(-1)]
         public void ParseLiteral_GivenObject_ThrowSerializationException(object value)
         {
             // arrange
@@ -161,10 +154,9 @@ namespace HotChocolate.Types.Scalars
         }
 
         [Theory]
-        [InlineData(0, 0)]
-        [InlineData(1, 1)]
+        [InlineData((uint)0, (uint)0)]
+        [InlineData((uint)1, (uint)1)]
         [InlineData(uint.MaxValue, uint.MaxValue)]
-        [InlineData(uint.MinValue, uint.MinValue)]
         [InlineData(null, null)]
         public void Serialize_GivenObject_MatchExpectedType(
             object runtimeValue,
@@ -181,8 +173,6 @@ namespace HotChocolate.Types.Scalars
         [InlineData(1d)]
         [InlineData(true)]
         [InlineData("foo")]
-        [InlineData(int.MinValue)]
-        [InlineData(-1)]
         public void Serialize_GivenObject_ThrowSerializationException(object value)
         {
             // arrange

@@ -4,34 +4,30 @@ using HotChocolate.Language;
 namespace HotChocolate.Types.Scalars
 {
     /// <summary>
-    /// The `PhoneNumber` scalar type scalar type represents a value that conforms to the standard
-    /// E.164 format as specified in: https://en.wikipedia.org/wiki/E.164.
+    /// The HexColorCode scalar type represents a valid hex color code.
     /// </summary>
-    public class PhoneNumberType : StringType
+    public class HexColorCodeType : StringType
     {
-        /// <summary>
-        /// Regex that validates the standard E.164 format
-        /// </summary>
         private static readonly string _validationPattern =
-            ScalarResources.PhoneNumber_ValidationPattern;
+            ScalarResources.HexColorCodeType_ValidationPattern;
 
         private static readonly Regex _validationRegex =
             new(_validationPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PhoneNumberType"/>
+        /// Initializes a new instance of the <see cref="HexColorCodeType"/> class.
         /// </summary>
-        public PhoneNumberType()
+        public HexColorCodeType()
             : this(
-                WellKnownScalarTypes.PhoneNumber,
-                ScalarResources.PhoneNumberType_Description)
+                WellKnownScalarTypes.HexColorCode,
+                ScalarResources.HexColorCodeType_Description)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PhoneNumberType"/>
+        /// Initializes a new instance of the <see cref="HexColorCodeType"/> class.
         /// </summary>
-        public PhoneNumberType(
+        public HexColorCodeType(
             NameString name,
             string? description = null,
             BindingBehavior bind = BindingBehavior.Explicit)
@@ -57,7 +53,7 @@ namespace HotChocolate.Types.Scalars
         {
             if(!_validationRegex.IsMatch(valueSyntax.Value))
             {
-                throw ThrowHelper.PhoneNumber_ParseLiteral_IsInvalid(this);
+                throw ThrowHelper.HexColorCodeType_ParseLiteral_IsInvalid(this);
             }
 
             return base.ParseLiteral(valueSyntax);
@@ -68,7 +64,7 @@ namespace HotChocolate.Types.Scalars
         {
             if(!_validationRegex.IsMatch(runtimeValue))
             {
-                throw ThrowHelper.PhoneNumber_ParseValue_IsInvalid(this);
+                throw ThrowHelper.HexColorCodeType_ParseValue_IsInvalid(this);
             }
 
             return base.ParseValue(runtimeValue);

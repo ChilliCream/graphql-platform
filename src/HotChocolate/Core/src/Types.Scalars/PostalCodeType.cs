@@ -15,23 +15,23 @@ namespace HotChocolate.Types.Scalars
         private static readonly Regex[] _validationPatterns =
             new[]
                 {
-                    ScalarResources.PostalCode_ValidationPattern_US,
-                    ScalarResources.PostalCode_ValidationPattern_DE,
-                    ScalarResources.PostalCode_ValidationPattern_UK,
-                    ScalarResources.PostalCode_ValidationPattern_CA,
-                    ScalarResources.PostalCode_ValidationPattern_FR,
-                    ScalarResources.PostalCode_ValidationPattern_IT,
-                    ScalarResources.PostalCode_ValidationPattern_AU,
-                    ScalarResources.PostalCode_ValidationPattern_NL,
-                    ScalarResources.PostalCode_ValidationPattern_ES,
-                    ScalarResources.PostalCode_ValidationPattern_DK,
-                    ScalarResources.PostalCode_ValidationPattern_SE,
-                    ScalarResources.PostalCode_ValidationPattern_BE,
-                    ScalarResources.PostalCode_ValidationPattern_IN,
-                    ScalarResources.PostalCode_ValidationPattern_AT,
-                    ScalarResources.PostalCode_ValidationPattern_PT,
-                    ScalarResources.PostalCode_ValidationPattern_CH,
-                    ScalarResources.PostalCode_ValidationPattern_LU
+                    ScalarResources.PostalCodeType_ValidationPattern_US,
+                    ScalarResources.PostalCodeType_ValidationPattern_DE,
+                    ScalarResources.PostalCodeType_ValidationPattern_UK,
+                    ScalarResources.PostalCodeType_ValidationPattern_CA,
+                    ScalarResources.PostalCodeType_ValidationPattern_FR,
+                    ScalarResources.PostalCodeType_ValidationPattern_IT,
+                    ScalarResources.PostalCodeType_ValidationPattern_AU,
+                    ScalarResources.PostalCodeType_ValidationPattern_NL,
+                    ScalarResources.PostalCodeType_ValidationPattern_ES,
+                    ScalarResources.PostalCodeType_ValidationPattern_DK,
+                    ScalarResources.PostalCodeType_ValidationPattern_SE,
+                    ScalarResources.PostalCodeType_ValidationPattern_BE,
+                    ScalarResources.PostalCodeType_ValidationPattern_IN,
+                    ScalarResources.PostalCodeType_ValidationPattern_AT,
+                    ScalarResources.PostalCodeType_ValidationPattern_PT,
+                    ScalarResources.PostalCodeType_ValidationPattern_CH,
+                    ScalarResources.PostalCodeType_ValidationPattern_LU
                 }
                 .Select(x => new Regex(x, RegexOptions.Compiled | RegexOptions.IgnoreCase))
                 .ToArray();
