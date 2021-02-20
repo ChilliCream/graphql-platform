@@ -56,11 +56,16 @@ namespace HotChocolate.Types
             return UseProjection(descriptor, typeof(T), scope);
         }
 
-        private static IObjectFieldDescriptor UseProjection(
-            IObjectFieldDescriptor descriptor,
-            Type? objectType,
+        public static IObjectFieldDescriptor UseProjection(
+            this IObjectFieldDescriptor descriptor,
+            Type type,
             string? scope = null)
         {
+            if (descriptor is null)
+            {
+                throw new ArgumentNullException(nameof(descriptor));
+            }
+
             FieldMiddleware placeholder = next => context => default;
 
             descriptor
