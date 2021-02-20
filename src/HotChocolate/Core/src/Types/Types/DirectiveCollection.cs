@@ -224,8 +224,8 @@ namespace HotChocolate.Types
 
             public int Count => 0;
 
-            public IEnumerable<IDirective> this[NameString key] =>
-                throw new ArgumentOutOfRangeException();
+            public IEnumerable<IDirective> this[NameString key] => Array.Empty<IDirective>();
+
 
             public bool Contains(NameString key) => false;
 
