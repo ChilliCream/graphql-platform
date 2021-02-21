@@ -12,21 +12,29 @@ namespace HotChocolate.Types.Relay
 {
     internal class GlobalIdInputValueFormatter : IInputValueFormatter
     {
+        private readonly NameString _schemaName;
         private readonly NameString _typeName;
         private readonly IIdSerializer _idSerializer;
         private readonly bool _validateType;
         private readonly Func<IList> _createList;
+        private readonly Type _valueType;
+        private readonly DeserializeId _deserializeIdFunction;
 
         public GlobalIdInputValueFormatter(
+            NameString schemaName,
             NameString typeName,
             IIdSerializer idSerializer,
             IExtendedType resultType,
-            bool validateType)
+            bool validateType,
+            DeserializeId deserializeIdFunction)
         {
+            _schemaName = schemaName;
             _typeName = typeName;
             _idSerializer = idSerializer;
             _validateType = validateType;
             _createList = CreateListFactory(resultType);
+            _valueType = resultType.Source;
+            _deserializeIdFunction = deserializeIdFunction;
         }
 
         public object? OnAfterDeserialize(object? runtimeValue)
@@ -40,7 +48,7 @@ namespace HotChocolate.Types.Relay
             {
                 try
                 {
-                    IdValue id = _idSerializer.Deserialize(s);
+                    IdValue id = DeserializeId(s);
 
                     if (!_validateType || _typeName.Equals(id.TypeName))
                     {
@@ -69,7 +77,7 @@ namespace HotChocolate.Types.Relay
 
                     foreach (string sv in stringEnumerable)
                     {
-                        IdValue id = _idSerializer.Deserialize(sv);
+                        IdValue id = DeserializeId(sv);
 
                         if (!_validateType || _typeName.Equals(id.TypeName))
                         {
@@ -95,6 +103,9 @@ namespace HotChocolate.Types.Relay
                     .SetMessage("The specified value is not a valid ID value.")
                     .Build());
         }
+
+        private IdValue DeserializeId(string serializedId) =>
+            _deserializeIdFunction(_idSerializer, _schemaName, _typeName, _valueType, serializedId);
 
         private static Func<IList> CreateListFactory(IExtendedType resultType)
         {

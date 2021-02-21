@@ -24,5 +24,23 @@ namespace HotChocolate.Types.Relay
         /// </summary>
         public Func<INamedType, bool> MutationPayloadPredicate { get; set; } =
             type => type.Name.Value.EndsWith("Payload", StringComparison.Ordinal);
+
+        /// <summary>
+        /// A function that is used to deserialize global ids when passed
+        /// as arguments or on input types (expect the special <c>node</c>
+        /// field. The default implementation passes the serialized id directly
+        /// to the <see cref="IIdSerializer"/>, but this can be overridden if
+        /// you want to act before/after and call the serializer yourself.
+        /// </summary>
+        public DeserializeId DeserializeIdFunction { get; set; } =
+            (idSerializer, schemaName, typeName, valueType, serializedId) =>
+                idSerializer.Deserialize(serializedId);
     }
+
+    public delegate IdValue DeserializeId(
+        IIdSerializer idSerializer,
+        NameString schemaName,
+        NameString typeName,
+        Type valueType,
+        string serializedId);
 }

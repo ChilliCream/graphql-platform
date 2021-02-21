@@ -183,7 +183,11 @@ namespace HotChocolate.Types
                     .Build());
             }
 
-            definition.Formatters.Add(CreateSerializer(completionContext, resultType, typeName));
+            NameString schemaName = default;
+            completionContext.DescriptorContext.SchemaCompleted += (sender, args) =>
+                schemaName = args.Schema.Name;
+
+            definition.Formatters.Add(CreateSerializer(completionContext, resultType, schemaName, typeName));
         }
 
         private static void AddSerializerToObjectField(
@@ -253,17 +257,23 @@ namespace HotChocolate.Types
         private static IInputValueFormatter CreateSerializer(
             ITypeCompletionContext completionContext,
             IExtendedType resultType,
+            NameString schemaName,
             NameString typeName)
         {
             IIdSerializer serializer =
                 completionContext.Services.GetService<IIdSerializer>() ??
                 new IdSerializer();
 
+            // TODO: How would I get a hold of relay options in this context, Michael?
+            completionContext.GetRelayOptions();
+
             return new GlobalIdInputValueFormatter(
+                schemaName,
                 typeName.HasValue ? typeName : completionContext.Type.Name,
                 serializer,
                 resultType,
-                typeName.HasValue);
+                typeName.HasValue,
+                relayOptions.DeserializeIdFunction);
         }
     }
 }
