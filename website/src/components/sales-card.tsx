@@ -24,7 +24,7 @@ export const SalesCard: FunctionComponent<SalesCardProps> = ({
         <PriceRow>
           <Price>${USFormat.format(price)}</Price> <PerMonth>/{cycle}</PerMonth>
         </PriceRow>
-        <Buy href={`mailto:sales@chillicream.com?subject=${name}`}>
+        <Buy href={`mailto:sales@chillicream.com?subject=${name} Support`}>
           Buy {name}
         </Buy>
       </TopHalf>
@@ -42,7 +42,7 @@ export const SalesCard: FunctionComponent<SalesCardProps> = ({
                 <path
                   fillRule="evenodd"
                   d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                  clip-rule="evenodd"
+                  clipRule="evenodd"
                 />
               </PerkIcon>
               <PerkText dangerouslySetInnerHTML={{ __html: p }} />
@@ -57,7 +57,8 @@ export const SalesCard: FunctionComponent<SalesCardProps> = ({
 const USFormat = new Intl.NumberFormat();
 
 const Container = styled.div`
-  box-shadow: 0 0 #0000, 0 0 #0000, 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  margin: 10px;
+  box-shadow: rgba(0, 0, 0, 0.25) 0px 3px 6px 0px;
   border: 1px solid rgb(229, 231, 235);
   border-radius: var(--border-radius);
 `;
@@ -70,7 +71,7 @@ const Name = styled.h2`
   margin: 0;
   line-height: 1.5rem;
   font-size: 1.125rem;
-  font-weight: 500;
+  font-weight: 600;
   color: rgb(17, 24, 39);
 `;
 

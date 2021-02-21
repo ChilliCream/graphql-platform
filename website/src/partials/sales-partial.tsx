@@ -1,9 +1,9 @@
-import { FunctionComponent, useState } from "react";
+import React, { FunctionComponent, useState } from "react";
 import styled from "styled-components";
 import { SalesCard } from "../components/sales-card";
 
 type Cycle = "monthly" | "biannualy" | "annualy";
-type Plan = "Basic" | "Enterprize";
+type Plan = "Basic" | "Enterprise";
 
 export const SalesPartial: FunctionComponent = () => {
   const [cycle, setCycle] = useState<Cycle>("annualy");
@@ -14,7 +14,7 @@ export const SalesPartial: FunctionComponent = () => {
       biannualy: 300,
       annualy: 275,
     },
-    Enterprize: {
+    Enterprise: {
       monthly: 2250,
       biannualy: 2000,
       annualy: 1750,
@@ -22,8 +22,8 @@ export const SalesPartial: FunctionComponent = () => {
   };
 
   return (
-    <>
-      <Container>
+    <Container>
+      <SwiterContainer>
         <Title>Support Plans</Title>
         <LeadingText>
           Do you use HotChocolate or any other ChilliCream product? Do you need
@@ -51,7 +51,7 @@ export const SalesPartial: FunctionComponent = () => {
             Annualy
           </CyclePlan>
         </CycleContainer>
-      </Container>
+      </SwiterContainer>
       <CardContainer>
         <SalesCard
           name="Basic"
@@ -60,29 +60,35 @@ export const SalesPartial: FunctionComponent = () => {
           price={planPrices.Basic[cycle]}
           cycle="mo"
           perks={[
-            "Your own company slack channel, where a maintainer answers your questsions",
+            "Your own company slack channel, where a maintainer answers your questions",
             "24 hours response time based on european working days",
-            "Two prioritized incidents per month",
+            "One prioritized incident per month",
           ]}
         />
         <SalesCard
           name="Enterprise"
           description="The support plan for companies that need a GraphQL sparring partner and want a dedicated time pensum for their project per month."
-          price={planPrices.Enterprize[cycle]}
+          price={planPrices.Enterprise[cycle]}
           cycle="mo"
           perks={[
-            "Your own company slack channel, where a maintainer answers your questsions",
+            "Your own company slack channel, where a maintainer answers your questions",
             "24 hours response time based on european working days",
             "Two prioritized incidents per month",
-            "12 hours per month at your free disposal<br>&nbsp;&nbsp;- Workshop<br>&nbsp;&nbsp;- Consulting<br>&nbsp;&nbsp;- Code Reviews<br>&nbsp;&nbsp;- Invest the time into a feature of your choice",
+            "12 hours per month at your free disposal<div style=\"margin-top:7px;\">The time can be spend on:</div>&nbsp;&nbsp;- Educating your team with workshops<br>&nbsp;&nbsp;- Consulting on GraphQL, testing and architecture<br>&nbsp;&nbsp;- Regular code reviews<br>&nbsp;&nbsp;- Pushing a feature of your choice",
           ]}
         />
       </CardContainer>
-    </>
+    </Container>
   );
 };
 
 const Container = styled.div`
+  @media (max-width: 640px) {
+    padding: 10px
+  }
+`;
+
+const SwiterContainer = styled.div`
   @media (min-width: 640px) {
     display: flex;
     flex-direction: column;
@@ -133,7 +139,7 @@ const CyclePlan = styled.button<CyclePlanpRrops>`
   background-color: ${(p) => (p.isActive ? "rgb(255, 255, 255)" : "inherit")};
   box-shadow: ${(p) =>
     p.isActive
-      ? "0 0 #0000, 0 0 #0000, 0 1px 2px 0 rgba(0, 0, 0, 0.05)"
+      ? "rgba(0, 0, 0, 0.25) 0px 1px 2px 0px"
       : "none"};
 
   @media (min-width: 640px) {
@@ -148,7 +154,7 @@ const CycleContainer = styled.div`
   border-radius: 0.5rem;
 
   padding: 0.125rem;
-  margin-top: 1.5rem;
+  margin-top: 2rem;
 
   background-color: rgb(243, 244, 246);
 
@@ -171,7 +177,7 @@ const CardContainer = styled.div`
   }
 
   @media (min-width: 640px) {
-    margin-top: 4rem;
+    margin-top: 1rem;
 
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
