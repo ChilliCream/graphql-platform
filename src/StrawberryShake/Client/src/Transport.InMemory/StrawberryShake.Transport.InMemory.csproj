@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>StrawberryShake.Transport.InMemory</PackageId>
+    <AssemblyName>StrawberryShake.Transport.InMemory</AssemblyName>
+    <RootNamespace>StrawberryShake.Transport.InMemory</RootNamespace>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\HotChocolate\Core\src\Core\HotChocolate.Core.csproj" />
+    <ProjectReference Include="..\Core\StrawberryShake.Core.csproj" />
+  </ItemGroup>
+
+</Project>

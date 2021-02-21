@@ -25,6 +25,7 @@ namespace HotChocolate.Data
                     context.Operations.Peek().Name,
                     filterType.Visualize())
                 .AddLocation(value)
+                .SetCode(ErrorCodes.Data.NonNullError)
                 .SetExtension("expectedType", new NonNullType(field.Type).Visualize())
                 .SetExtension("filterType", filterType.Visualize())
                 .Build();
@@ -37,6 +38,7 @@ namespace HotChocolate.Data
                     field.DeclaringType.Name,
                     field.Name)
                 .AddLocation(node)
+                .SetCode(ErrorCodes.Data.ListNotSupported)
                 .SetExtension(nameof(field), field)
                 .Build();
 
@@ -53,6 +55,7 @@ namespace HotChocolate.Data
                     context.Fields.Peek().Name,
                     sortType.Visualize())
                 .AddLocation(value)
+                .SetCode(ErrorCodes.Data.NonNullError)
                 .SetExtension("expectedType", new NonNullType(field.Type).Visualize())
                 .SetExtension("sortType", sortType.Visualize())
                 .Build();
@@ -73,7 +76,7 @@ namespace HotChocolate.Data
         public static IError ProjectionProvider_CreateMoreThanOneError(IResolverContext context) =>
             ErrorBuilder.New()
                 .SetMessage(DataResources.ProjectionProvider_CreateMoreThanOneError)
-                .SetCode("SELECTIONS_SINGLE_MORE_THAN_ONE")
+                .SetCode(ErrorCodes.Data.MoreThanOneElement)
                 .SetPath(context.Path)
                 .AddLocation(context.Selection.SyntaxNode)
                 .Build();
@@ -81,18 +84,20 @@ namespace HotChocolate.Data
         public static IError ProjectionProvider_CreateMoreThanOneError() =>
             ErrorBuilder.New()
                 .SetMessage(DataResources.ProjectionProvider_CreateMoreThanOneError)
-                .SetCode("SELECTIONS_SINGLE_MORE_THAN_ONE")
+                .SetCode(ErrorCodes.Data.MoreThanOneElement)
                 .Build();
 
         public static IError ProjectionProvider_CouldNotProjectFiltering(IValueNode node) =>
             ErrorBuilder.New()
                 .SetMessage(DataResources.ProjectionProvider_CouldNotProjectFiltering)
                 .AddLocation(node)
+                .SetCode(ErrorCodes.Data.FilteringProjectionFailed)
                 .Build();
 
         public static IError ProjectionProvider_CouldNotProjectSorting(IValueNode node) =>
             ErrorBuilder.New()
                 .SetMessage(DataResources.ProjectionProvider_CouldNotProjectSorting)
+                .SetCode(ErrorCodes.Data.SortingProjectionFailed)
                 .AddLocation(node)
                 .Build();
 

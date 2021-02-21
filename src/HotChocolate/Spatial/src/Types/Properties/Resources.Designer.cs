@@ -123,6 +123,12 @@ namespace HotChocolate.Types.Spatial.Properties {
             }
         }
         
+        internal static string Transformation_Argument_Crs_Description {
+            get {
+                return ResourceManager.GetString("Transformation_Argument_Crs_Description", resourceCulture);
+            }
+        }
+        
         internal static string PositionScalar_CoordinatesCannotBeNull {
             get {
                 return ResourceManager.GetString("PositionScalar_CoordinatesCannotBeNull", resourceCulture);
@@ -234,6 +240,24 @@ namespace HotChocolate.Types.Spatial.Properties {
         internal static string Geometry_Parse_InvalidType {
             get {
                 return ResourceManager.GetString("Geometry_Parse_InvalidType", resourceCulture);
+            }
+        }
+        
+        internal static string Transformation_UnknownCRS {
+            get {
+                return ResourceManager.GetString("Transformation_UnknownCRS", resourceCulture);
+            }
+        }
+        
+        internal static string Transformation_DefaultCRSNotFound {
+            get {
+                return ResourceManager.GetString("Transformation_DefaultCRSNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string Transformation_CoordinateMNotSupported {
+            get {
+                return ResourceManager.GetString("Transformation_CoordinateMNotSupported", resourceCulture);
             }
         }
     }

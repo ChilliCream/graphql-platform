@@ -1,0 +1,10 @@
+query searchSomething {
+  search {
+    ...on Author {
+      name
+    }
+    ...on Book {
+      title
+    }
+  }
+}

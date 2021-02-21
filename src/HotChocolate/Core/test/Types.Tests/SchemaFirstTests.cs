@@ -311,6 +311,35 @@ namespace HotChocolate
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void ListTypesAreRecognized()
+        {
+            // arrange
+            string sourceText = @"
+                type Query {
+                    foo: Foo
+                }
+
+                type Foo {
+                    single_int: Int
+                    list_int: [Int]
+                    matrix_int: [[Int]]
+                    nullable_single_int: Int!
+                    nullable_list_int: [Int!]!
+                    nullable_matrix_int: [[Int!]!]!
+                }
+            ";
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(sourceText)
+                .Use(next => context => default(ValueTask))
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         public class Query
         {
             public string Hello() => "World";

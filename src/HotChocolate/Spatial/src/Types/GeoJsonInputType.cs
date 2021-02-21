@@ -3,7 +3,9 @@ using HotChocolate.Types.Spatial.Serialization;
 
 namespace HotChocolate.Types.Spatial
 {
-    public abstract class GeoJsonInputType<T> : InputObjectType<T>
+    public abstract class GeoJsonInputType<T>
+        : InputObjectType<T>
+        , IGeoJsonInputType
     {
         private readonly IGeoJsonSerializer _serializer;
 
