@@ -395,6 +395,14 @@ The `HslColorCode` scalar type represents a valid a CSS HSL color as defined her
 scalar HslColorCode
 ```
 
+## HslaColorCode
+```sdl
+"""
+The `HslaColorCode` scalar type represents a valid a CSS HSLA color as defined here https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors.
+"""
+scalar HslaColorCode
+```
+
 ## NegativeFloat
 ```sdl
 """
