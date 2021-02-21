@@ -340,7 +340,5 @@ namespace HotChocolate.Types.Scalars
                     .Build(),
                 type);
         }
-
-
     }
 }
