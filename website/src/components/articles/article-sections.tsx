@@ -37,7 +37,7 @@ export const ArticleSections: FunctionComponent<ArticleSectionsProperties> = ({
       .map((item) => ({
         id: item.url,
         position:
-          document.getElementById(item.url.substring(1))!.offsetTop - 80,
+          (document.getElementById(item.url.substring(1))?.offsetTop ?? 80) - 80,
       }))
       .reverse();
 
