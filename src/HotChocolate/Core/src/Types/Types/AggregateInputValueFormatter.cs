@@ -8,7 +8,7 @@ namespace HotChocolate.Types
 {
     internal sealed class AggregateInputValueFormatter : IInputValueFormatter
     {
-        private readonly IReadOnlyList<IInputValueFormatter> _formatters;
+        private readonly IInputValueFormatter[] _formatters;
 
         public AggregateInputValueFormatter(IList<IInputValueFormatter> formatters)
         {
@@ -20,7 +20,7 @@ namespace HotChocolate.Types
         {
             object? current = runtimeValue;
 
-            for (int i = 0; i < _formatters.Count; i++)
+            for (int i = 0; i < _formatters.Length; i++)
             {
                 current = _formatters[i].OnAfterDeserialize(current);
             }

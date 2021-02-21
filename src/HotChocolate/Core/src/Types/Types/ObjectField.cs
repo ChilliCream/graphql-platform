@@ -19,7 +19,7 @@ namespace HotChocolate.Types
         , IObjectField
     {
         private static readonly FieldDelegate _empty = _ => throw new InvalidOperationException();
-        private IReadOnlyList<IDirective> _executableDirectives = Array.Empty<IDirective>();
+        private IDirective[] _executableDirectives = Array.Empty<IDirective>();
 
         internal ObjectField(
             ObjectFieldDefinition definition,
@@ -155,7 +155,7 @@ namespace HotChocolate.Types
 
             if (Resolver is null! && Middleware is null)
             {
-                if (_executableDirectives.Count > 0)
+                if (_executableDirectives.Length > 0)
                 {
                     Middleware = _ => default;
                 }

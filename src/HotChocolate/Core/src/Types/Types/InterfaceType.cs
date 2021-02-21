@@ -17,7 +17,7 @@ namespace HotChocolate.Types
         : NamedTypeBase<InterfaceTypeDefinition>
         , IInterfaceType
     {
-        private IReadOnlyList<InterfaceType> _implements = Array.Empty<InterfaceType>();
+        private InterfaceType[] _implements = Array.Empty<InterfaceType>();
         private Action<IInterfaceTypeDescriptor>? _configure;
         private ResolveAbstractType? _resolveAbstractType;
 

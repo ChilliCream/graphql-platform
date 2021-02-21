@@ -107,6 +107,5 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
             return _arguments;
         }
-
     }
 }

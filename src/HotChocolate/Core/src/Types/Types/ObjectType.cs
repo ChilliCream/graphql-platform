@@ -19,7 +19,7 @@ namespace HotChocolate.Types
         : NamedTypeBase<ObjectTypeDefinition>
         , IObjectType
     {
-        private IReadOnlyList<InterfaceType> _implements = Array.Empty<InterfaceType>();
+        private InterfaceType[] _implements = Array.Empty<InterfaceType>();
         private Action<IObjectTypeDescriptor>? _configure;
         private IsOfType? _isOfType;
 

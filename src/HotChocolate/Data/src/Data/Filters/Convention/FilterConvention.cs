@@ -79,7 +79,7 @@ namespace HotChocolate.Data.Filters
         }
 
         /// <inheritdoc />
-        protected  override void Complete(IConventionContext context)
+        protected override void Complete(IConventionContext context)
         {
             if (Definition?.Provider is null)
             {

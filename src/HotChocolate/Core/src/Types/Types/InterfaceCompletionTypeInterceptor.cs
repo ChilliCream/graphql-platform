@@ -11,12 +11,12 @@ namespace HotChocolate.Types
 {
     internal class InterfaceCompletionTypeInterceptor : TypeInterceptor
     {
-        private Dictionary<ITypeSystemObject, TypeInfo> _typeInfos = new();
-        private HashSet<Type> _allInterfaceRuntimeTypes = new();
-        private HashSet<Type> _interfaceRuntimeTypes = new();
-        private HashSet<NameString> _completed = new();
-        private HashSet<NameString> _completedFields = new();
-        private Queue<InterfaceType> _backlog = new();
+        private readonly Dictionary<ITypeSystemObject, TypeInfo> _typeInfos = new();
+        private readonly HashSet<Type> _allInterfaceRuntimeTypes = new();
+        private readonly HashSet<Type> _interfaceRuntimeTypes = new();
+        private readonly HashSet<NameString> _completed = new();
+        private readonly HashSet<NameString> _completedFields = new();
+        private readonly Queue<InterfaceType> _backlog = new();
 
         public override bool TriggerAggregations => true;
 
@@ -77,19 +77,19 @@ namespace HotChocolate.Types
         // defines if this type has a concrete runtime type.
         private bool IsRelevant(TypeInfo typeInfo)
         {
-            if (typeInfo.Definition is ObjectTypeDefinition { IsExtension: true } objectDef &&
+            if (typeInfo.Definition is ObjectTypeDefinition {IsExtension: true} objectDef &&
                 objectDef.FieldBindingType != typeof(object))
             {
                 return true;
             }
 
             Type? runtimeType = typeInfo.Definition.RuntimeType;
-            return runtimeType is not null! && runtimeType != typeof(object);
+            return runtimeType is not null!  && runtimeType != typeof(object);
         }
 
         private Type GetRuntimeType(TypeInfo typeInfo)
         {
-            if (typeInfo.Definition is ObjectTypeDefinition { IsExtension: true } objectDef)
+            if (typeInfo.Definition is ObjectTypeDefinition {IsExtension: true} objectDef)
             {
                 return objectDef.FieldBindingType;
             }
@@ -125,7 +125,7 @@ namespace HotChocolate.Types
                 CompleteInterfacesAndFields(typeDef);
             }
 
-            if (definition is ObjectTypeDefinition { Interfaces: { Count: > 0 } } objectTypeDef)
+            if (definition is ObjectTypeDefinition { Interfaces: { Count: > 0 } }  objectTypeDef)
             {
                 _completed.Clear();
                 _completedFields.Clear();
@@ -149,20 +149,9 @@ namespace HotChocolate.Types
             }
         }
 
-        public override void OnTypesCompleted(
-            IReadOnlyCollection<ITypeCompletionContext> completionContexts)
-        {
-            _typeInfos = null!;
-            _allInterfaceRuntimeTypes = null!;
-            _interfaceRuntimeTypes = null!;
-            _completed = null!;
-            _completedFields = null!;
-            _backlog = null!;
-        }
-
         private void CompleteInterfacesAndFields(IComplexOutputTypeDefinition definition)
         {
-            while (_backlog.Count > 0)
+            while(_backlog.Count > 0)
             {
                 InterfaceType current = _backlog.Dequeue();
                 TypeInfo typeInfo = _typeInfos[current];
@@ -215,7 +204,7 @@ namespace HotChocolate.Types
 
             public ITypeDiscoveryContext Context { get; }
 
-            public IComplexOutputTypeDefinition Definition { get; }
+            public IComplexOutputTypeDefinition  Definition { get; }
 
             public override string? ToString() => Definition.Name;
         }

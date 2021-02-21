@@ -18,8 +18,8 @@ namespace HotChocolate.Types
 
         private readonly object _source;
         private readonly DirectiveLocation _location;
-        private IReadOnlyList<IDirective> _directives = Array.Empty<IDirective>();
-        private IReadOnlyList<DirectiveDefinition>? _definitions;
+        private IDirective[] _directives = Array.Empty<IDirective>();
+        private DirectiveDefinition[]? _definitions;
         private ILookup<NameString, IDirective> _lookup = default!;
 
         public DirectiveCollection(
@@ -33,12 +33,12 @@ namespace HotChocolate.Types
 
             _source = source ?? throw new ArgumentNullException(nameof(source));
             _definitions = directiveDefinitions.Any()
-                ? directiveDefinitions.ToList()
+                ? directiveDefinitions.ToArray()
                 : Array.Empty<DirectiveDefinition>();
             _location = DirectiveHelper.InferDirectiveLocation(source);
         }
 
-        public int Count => _directives.Count;
+        public int Count => _directives.Length;
 
         public IEnumerable<IDirective> this[NameString key] => _lookup[key];
 
@@ -172,8 +172,13 @@ namespace HotChocolate.Types
             }
         }
 
-        public IEnumerator<IDirective> GetEnumerator() =>
-            _directives.GetEnumerator();
+        public IEnumerator<IDirective> GetEnumerator()
+        {
+            for (var i = 0; i < _directives.Length; i++)
+            {
+                yield return _directives[i];
+            }
+        }
 
         IEnumerator IEnumerable.GetEnumerator() =>
             GetEnumerator();

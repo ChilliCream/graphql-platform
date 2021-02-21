@@ -8,6 +8,6 @@ namespace HotChocolate.Execution.Benchmarks
     class Program
     {
         static void Main(string[] args) =>
-            BenchmarkRunner.Run(typeof(SchemaBuildingBenchmark));
+            BenchmarkRunner.Run(typeof(Program).Assembly);
     }
 }
