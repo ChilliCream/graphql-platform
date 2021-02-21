@@ -1,6 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
+#nullable enable
+
 namespace HotChocolate.Data.Neo4J.Projections
 {
     internal static class Neo4JProjectionVisitorContextExtensions

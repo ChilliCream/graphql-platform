@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using HotChocolate.Data.Neo4J;
 
 namespace HotChocolate.Data.Neo4J.Language
 {
@@ -14,12 +13,12 @@ namespace HotChocolate.Data.Neo4J.Language
         IExposesProperties<Node>
     {
         public override ClauseKind Kind => ClauseKind.Node;
-        private readonly SymbolicName? _symbolicName;
-        private readonly List<NodeLabel>? _labels;
-        private readonly Properties? _properties;
-        public SymbolicName? GetSymbolicName() => _symbolicName;
+        private readonly SymbolicName _symbolicName;
+        private readonly List<NodeLabel> _labels;
+        private readonly Properties _properties;
+        public SymbolicName GetSymbolicName() => _symbolicName;
 
-        private Node(string primaryLabel, Properties? properties, IReadOnlyCollection<string>? additionalLabels)
+        private Node(string primaryLabel, Properties properties, IReadOnlyCollection<string> additionalLabels)
         {
             _symbolicName = null;
             _labels = new List<NodeLabel>();
@@ -40,7 +39,7 @@ namespace HotChocolate.Data.Neo4J.Language
             _properties = properties;
         }
 
-        private Node(SymbolicName? symbolicName, Properties? properties, List<NodeLabel>? labels)
+        private Node(SymbolicName symbolicName, Properties properties, List<NodeLabel> labels)
         {
             _symbolicName = symbolicName;
             _properties = properties;

@@ -8,7 +8,7 @@
     {
         public override ClauseKind Kind => ClauseKind.Where;
         private readonly Condition _condition;
-        private readonly Exists? _exists;
+        private readonly Exists _exists;
 
         public Where(Condition condition)
         {

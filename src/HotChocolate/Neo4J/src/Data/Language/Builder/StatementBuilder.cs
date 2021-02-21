@@ -60,22 +60,4 @@ namespace HotChocolate.Data.Neo4J.Language
             throw new System.NotImplementedException();
         }
     }
-
-    public class MatchBuilder
-    {
-        private readonly List<PatternElement> _patternList = new();
-
-    }
-
-    public class ConditionBuilder
-    {
-        private readonly List<PatternElement> _patternList = new();
-
-    }
-
-    public class OrderBuilder
-    {
-        private readonly List<PatternElement> _patternList = new();
-
-    }
 }

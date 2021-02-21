@@ -21,6 +21,7 @@ namespace HotChocolate.Data.Neo4J.Language
         KeyValueSeparator,
         Property,
         PropertyLookup,
+        PatternComprehension,
 
         SortItem,
 

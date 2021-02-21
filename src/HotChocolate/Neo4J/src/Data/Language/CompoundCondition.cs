@@ -14,7 +14,7 @@ namespace HotChocolate.Data.Neo4J.Language
         private static readonly HashSet<Operator> _validOperations =
             new() { Operator.And, Operator.Or, Operator.XOr };
 
-        private readonly Operator? _operator;
+        private readonly Operator _operator;
         private readonly List<Condition> _conditions;
 
         public new Condition And(Condition condition) {
@@ -25,7 +25,7 @@ namespace HotChocolate.Data.Neo4J.Language
             return _emptyCondition;
         }
 
-        public CompoundCondition(Operator? op)
+        public CompoundCondition(Operator op)
         {
             _operator = op;
             _conditions = new List<Condition>();

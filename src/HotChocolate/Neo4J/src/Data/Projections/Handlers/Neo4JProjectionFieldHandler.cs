@@ -3,6 +3,8 @@ using HotChocolate.Data.Projections;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
 
+#nullable enable
+
 namespace HotChocolate.Data.Neo4J.Projections
 {
     /// <inheritdoc/>

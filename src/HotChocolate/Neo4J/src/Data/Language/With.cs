@@ -9,12 +9,12 @@ namespace HotChocolate.Data.Neo4J.Language
     {
         public override ClauseKind Kind => ClauseKind.With;
 
-        private readonly Distinct? _distinct;
-        private readonly Where? _where;
+        private readonly Distinct _distinct;
+        private readonly Where _where;
         private readonly List<Expression> _expressions;
-        private readonly OrderBy? _orderBy;
-        private readonly Skip? _skip;
-        private readonly Limit? _limit;
+        private readonly OrderBy _orderBy;
+        private readonly Skip _skip;
+        private readonly Limit _limit;
 
         public With(bool distinct, List<Expression> expressions, OrderBy orderBy, Skip skip, Limit limit, Where where)
         {

@@ -73,6 +73,9 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.Exists:
                     EnterVisitable((Exists)visitable);
                     break;
+                case ClauseKind.PatternComprehension:
+                    EnterVisitable((PatternComprehension)visitable);
+                    break;
                 case ClauseKind.Expression:
                     break;
                 case ClauseKind.AliasedExpression:

@@ -1,7 +1,7 @@
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.Data.Neo4J.Extensions
+namespace HotChocolate.Data.Neo4J
 {
     /// <summary>
     /// Provides data extensions for the <see cref="IRequestExecutorBuilder"/>.

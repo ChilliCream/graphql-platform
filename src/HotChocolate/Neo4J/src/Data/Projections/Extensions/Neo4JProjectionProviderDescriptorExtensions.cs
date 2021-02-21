@@ -33,8 +33,7 @@ namespace HotChocolate.Data.Neo4J.Projections
 
             descriptor.RegisterFieldHandler<Neo4JProjectionScalarHandler>();
             descriptor.RegisterFieldHandler<Neo4JProjectionFieldHandler>();
-            //descriptor.RegisterOptimizer<QueryablePagingProjectionOptimizer>();
-            //descriptor.RegisterOptimizer<IsProjectedProjectionOptimizer>();
+            descriptor.RegisterOptimizer<IsProjectedProjectionOptimizer>();
             return descriptor;
         }
     }

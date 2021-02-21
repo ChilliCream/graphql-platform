@@ -9,9 +9,9 @@
         public override ClauseKind Kind => ClauseKind.Match;
         private readonly bool _optional;
         private readonly Pattern _pattern;
-        private readonly Where? _optionalWhere;
+        private readonly Where _optionalWhere;
 
-        public Match(bool optional, Pattern pattern, Where? optionalWhere)
+        public Match(bool optional, Pattern pattern, Where optionalWhere)
         {
             _optional = optional;
             _pattern = pattern;

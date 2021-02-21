@@ -27,7 +27,7 @@ namespace HotChocolate.Data.Neo4J
             builder.AddFiltering(x => x.AddNeo4JDefaults(), name);
 
         /// <summary>
-        /// Adds sorting support.
+        /// Adds sorting support for Neo4j.
         /// </summary>
         /// <param name="builder">
         /// The <see cref="ISchemaBuilder"/>.
@@ -44,7 +44,7 @@ namespace HotChocolate.Data.Neo4J
             builder.AddSorting(x => x.AddNeo4JDefaults(), name);
 
         /// <summary>
-        /// Adds projections support.
+        /// Adds projections support for Neo4j.
         /// </summary>
         /// <param name="builder">
         /// The <see cref="ISchemaBuilder"/>.

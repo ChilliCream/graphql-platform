@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using Neo4j.Driver;
 
 namespace HotChocolate.Data.Neo4J

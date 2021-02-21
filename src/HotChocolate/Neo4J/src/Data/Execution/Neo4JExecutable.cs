@@ -3,7 +3,6 @@ using System.Collections;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Data.Neo4J.Filtering;
-using HotChocolate.Data.Neo4J.Language;
 using HotChocolate.Data.Neo4J.Projections;
 using HotChocolate.Data.Neo4J.Sorting;
 using Neo4j.Driver;

@@ -13,7 +13,7 @@ namespace HotChocolate.Data.Neo4J.Language
             _writer.Write("MATCH ");
         }
 
-        public void LeaveVistable(Match match)
+        public void LeaveVisitable(Match match)
         {
             _writer.Write(" ");
         }
@@ -33,7 +33,7 @@ namespace HotChocolate.Data.Neo4J.Language
             _writer.Write("CREATE ");
         }
 
-        public void LeaveVistable(Create create)
+        public void LeaveVisitable(Create create)
         {
             _writer.Write(" ");
         }
@@ -43,7 +43,7 @@ namespace HotChocolate.Data.Neo4J.Language
             _writer.Write("(");
         }
 
-        public void LeaveVistable(Node node)
+        public void LeaveVisitable(Node node)
         {
             _writer.Write(")");
         }
@@ -101,10 +101,21 @@ namespace HotChocolate.Data.Neo4J.Language
             _writer.Write(", ");
         }
 
-        private void LeaveVistable(MapExpression map)
+        private void LeaveVisitable(MapExpression map)
         {
             _writer.Write("}");
         }
+
+        private void EnterVisitable(PatternComprehension patternComprehension)
+        {
+            _writer.Write("[");
+        }
+
+        private void LeaveVisitable(PatternComprehension patternComprehension)
+        {
+            _writer.Write("]");
+        }
+
 
         public void EnterVisitable(ILiteral literal)
         {

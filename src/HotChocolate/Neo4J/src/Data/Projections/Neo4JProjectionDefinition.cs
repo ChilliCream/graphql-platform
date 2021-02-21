@@ -6,11 +6,11 @@ namespace HotChocolate.Data.Neo4J.Projections
 
         private class ProjectionDefinitionWrapper
         {
-            private readonly Neo4JProjectionDefinition _filter;
+            private readonly Neo4JProjectionDefinition _projection;
 
-            public ProjectionDefinitionWrapper(Neo4JProjectionDefinition filter)
+            public ProjectionDefinitionWrapper(Neo4JProjectionDefinition projection)
             {
-                _filter = filter;
+                _projection = projection;
             }
         }
     }

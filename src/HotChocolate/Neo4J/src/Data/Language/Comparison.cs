@@ -6,11 +6,11 @@
     public class Comparison : Condition
     {
         public override ClauseKind Kind => ClauseKind.Comparison;
-        private readonly Expression? _left;
+        private readonly Expression _left;
         private readonly Operator _operator;
-        private readonly Expression? _right;
+        private readonly Expression _right;
 
-        public Comparison(Expression? left, Operator op, Expression? right)
+        public Comparison(Expression left, Operator op, Expression right)
         {
             _left = NestedIfCondition(left);
             _operator = op;

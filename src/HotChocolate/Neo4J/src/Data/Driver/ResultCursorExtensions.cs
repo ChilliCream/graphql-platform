@@ -31,13 +31,5 @@ public static class ResultCursorExtensions
         {
             return (await resultCursor.SingleAsync().ConfigureAwait(false)).Map<TReturn>();
         }
-
-        public static async IAsyncEnumerable<IRecord> AsyncResults(this IResultCursor resultCursor)
-        {
-            while (await resultCursor.FetchAsync().ConfigureAwait(false))
-            {
-                yield return resultCursor.Current;
-            }
-        }
     }
 }
