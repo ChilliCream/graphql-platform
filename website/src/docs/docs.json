@@ -406,6 +406,27 @@
     ]
   },
   {
+    "path": "strawberryshake",
+    "title": "Strawberry Shake",
+    "description": "The only GraphQL client you will every need in the .net ecosystem.",
+    "versions": [
+      {
+        "path": "",
+        "title": "v1 (preview)",
+        "items": [
+          {
+            "path": "index",
+            "title": "Introduction"
+          },
+          {
+            "path": "get-started",
+            "title": "Get Started"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "path": "greendonut",
     "title": "Green Donut",
     "description": "Configure data loaders and caching for GraphQL endpoints.",
