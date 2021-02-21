@@ -29,7 +29,7 @@ namespace HotChocolate.Types.Relay
                 case IInputFieldDescriptor d when element is PropertyInfo:
                     d.ID(TypeName);
                     break;
-                casfe IArgumentDescriptor d when element is ParameterInfo:
+                case IArgumentDescriptor d when element is ParameterInfo:
                     d.ID(TypeName);
                     break;
                 case IObjectFieldDescriptor d when element is MemberInfo:
