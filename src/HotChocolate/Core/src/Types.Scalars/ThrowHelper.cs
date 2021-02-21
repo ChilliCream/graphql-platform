@@ -57,6 +57,28 @@ namespace HotChocolate.Types.Scalars
                 type);
         }
 
+        public static SerializationException HslaColorCodeType_ParseValue_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.HslaColorCodeType_IsInvalid_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.HslaColorCode)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException HslaColorCodeType_ParseLiteral_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.HslaColorCodeType_IsInvalid_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.HslaColorCode)
+                    .Build(),
+                type);
+        }
+
         public static SerializationException EmailAddressType_ParseValue_IsInvalid(IType type)
         {
             return new SerializationException(

@@ -117,6 +117,24 @@ namespace HotChocolate.Types.Scalars {
             }
         }
         
+        internal static string HslaColorCodeType_Description {
+            get {
+                return ResourceManager.GetString("HslaColorCodeType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string HslaColorCodeType_IsInvalid_ParseLiteral {
+            get {
+                return ResourceManager.GetString("HslaColorCodeType_IsInvalid_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        internal static string HslaColorCodeType_IsInvalid_ParseValue {
+            get {
+                return ResourceManager.GetString("HslaColorCodeType_IsInvalid_ParseValue", resourceCulture);
+            }
+        }
+        
         internal static string NegativeFloatType_Description {
             get {
                 return ResourceManager.GetString("NegativeFloatType_Description", resourceCulture);

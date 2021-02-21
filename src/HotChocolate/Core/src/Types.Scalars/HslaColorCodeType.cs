@@ -4,10 +4,10 @@ using HotChocolate.Language;
 namespace HotChocolate.Types.Scalars
 {
     /// <summary>
-    /// The `HslColorCode` scalar type represents a valid a CSS HSL color as defined
+    /// The `HslaColorCode` scalar type represents a valid a CSS HSL color as defined
     /// here https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors.
     /// </summary>
-    public class HslColorCodeType : StringType
+    public class HslaColorCodeType : StringType
     {
         private static readonly string _validationPattern =
             ScalarResources.HslColorCodeType_ValidationPattern;
@@ -16,19 +16,19 @@ namespace HotChocolate.Types.Scalars
             new(_validationPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="HslColorCodeType"/> class.
+        /// Initializes a new instance of the <see cref="HslaColorCodeType"/> class.
         /// </summary>
-        public HslColorCodeType()
+        public HslaColorCodeType()
             : this(
-                WellKnownScalarTypes.HslColorCode,
-                ScalarResources.HslColorCodeType_Description)
+                WellKnownScalarTypes.HslaColorCode,
+                ScalarResources.HslaColorCodeType_Description)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="HslColorCodeType"/> class.
+        /// Initializes a new instance of the <see cref="HslaColorCodeType"/> class.
         /// </summary>
-        public HslColorCodeType(
+        public HslaColorCodeType(
             NameString name,
             string? description = null,
             BindingBehavior bind = BindingBehavior.Explicit)
@@ -54,7 +54,7 @@ namespace HotChocolate.Types.Scalars
         {
             if (!_validationRegex.IsMatch(valueSyntax.Value))
             {
-                throw ThrowHelper.HslColorCodeType_ParseLiteral_IsInvalid(this);
+                throw ThrowHelper.HslaColorCodeType_ParseLiteral_IsInvalid(this);
             }
 
             return base.ParseLiteral(valueSyntax);
@@ -65,7 +65,7 @@ namespace HotChocolate.Types.Scalars
         {
             if (!_validationRegex.IsMatch(runtimeValue))
             {
-                throw ThrowHelper.HslColorCodeType_ParseValue_IsInvalid(this);
+                throw ThrowHelper.HslaColorCodeType_ParseValue_IsInvalid(this);
             }
 
             return base.ParseValue(runtimeValue);

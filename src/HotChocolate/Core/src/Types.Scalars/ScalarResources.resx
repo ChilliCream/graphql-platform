@@ -96,6 +96,15 @@
   <data name="HslColorCodeType_ValidationPattern" xml:space="preserve">
     <value>(^(?:hsla?)\((?:\d+%?(?:deg|rad|grad|turn)?(?:,|\s)+){2,3}[\s\/]*[\d\.]+%?\))</value>
   </data>
+  <data name="HslaColorCodeType_Description" xml:space="preserve">
+    <value>The HslaColorCode scalar type represents a a valid a CSS HSLA color as defined here https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors.</value>
+  </data>
+  <data name="HslaColorCodeType_IsInvalid_ParseLiteral" xml:space="preserve">
+    <value>HslaColorCodeType cannot parse the provided literal. The provided value is not a valid CSS HSLA color code.</value>
+  </data>
+  <data name="HslaColorCodeType_IsInvalid_ParseValue" xml:space="preserve">
+    <value>HslaColorCodeType cannot parse the provided value. The provided value is not a valid CSS HSLA color code.</value>
+  </data>
   <data name="NegativeFloatType_Description" xml:space="preserve">
     <value>The NegativeFloat scalar type represents a double‐precision fractional value less than 0.</value>
   </data>
