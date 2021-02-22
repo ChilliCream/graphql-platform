@@ -2,11 +2,11 @@ using StrawberryShake.CodeGeneration.CSharp.Builders;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public class EnumGenerator : CodeGenerator<EnumDescriptor>
+    public class EnumGenerator : CodeGenerator<EnumTypeDescriptor>
     {
         protected override void Generate(
             CodeWriter writer,
-            EnumDescriptor descriptor,
+            EnumTypeDescriptor descriptor,
             out string fileName)
         {
             fileName = descriptor.Name;

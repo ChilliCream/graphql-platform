@@ -9,7 +9,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
         private readonly Dictionary<NameString, NamedTypeDescriptor> _types = new();
         private readonly Dictionary<NameString, EntityTypeDescriptor> _entityTypes = new();
         private readonly Dictionary<NameString, DataTypeDescriptor> _dataTypes = new();
-        private readonly Dictionary<NameString, EnumDescriptor> _enums = new();
+        private readonly Dictionary<NameString, EnumTypeDescriptor> _enums = new();
         private readonly Dictionary<NameString, OperationDescriptor> _operations = new();
         private readonly Dictionary<NameString, ResultBuilderDescriptor> _resultBuilder = new();
         private ClientDescriptor? _client;
@@ -32,7 +32,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
         public IReadOnlyCollection<EntityTypeDescriptor> EntityTypes => _entityTypes.Values;
         public IReadOnlyCollection<DataTypeDescriptor> DataTypes => _dataTypes.Values;
 
-        public IReadOnlyCollection<EnumDescriptor> EnumTypes => _enums.Values;
+        public IReadOnlyCollection<EnumTypeDescriptor> EnumTypes => _enums.Values;
 
         public IReadOnlyCollection<OperationDescriptor> Operations => _operations.Values;
 
@@ -107,7 +107,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 entityTypeDescriptor);
         }
 
-        public void Register(NameString codeTypeName, EnumDescriptor enumTypeDescriptor)
+        public void Register(NameString codeTypeName, EnumTypeDescriptor enumTypeDescriptor)
         {
             _enums.Add(
                 codeTypeName.EnsureNotEmpty(nameof(codeTypeName)),

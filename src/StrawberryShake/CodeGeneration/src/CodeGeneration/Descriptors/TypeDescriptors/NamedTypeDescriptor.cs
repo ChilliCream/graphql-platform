@@ -1,9 +1,10 @@
 using System.Collections.Generic;
 using HotChocolate;
-using HotChocolate.Types;
 
 namespace StrawberryShake.CodeGeneration
 {
+
+
     /// <summary>
     /// Describes a type, which may be a concrete class or an interface.
     /// </summary>
@@ -13,14 +14,14 @@ namespace StrawberryShake.CodeGeneration
             NameString name,
             string @namespace,
             bool isInterface,
-            IReadOnlyList<NameString>? implements = null,
-            IReadOnlyList<PropertyDescriptor>? properties = null,
-            IReadOnlyList<NamedTypeDescriptor>? implementedBy = null,
-            TypeKind kind = TypeKind.LeafType,
-            NameString? graphQLTypeName = null,
-            string? serializationType = null,
-            bool isEnum = false,
-            string? complexDataTypeParent = null)
+            IReadOnlyList<NameString>? implements,
+            IReadOnlyList<PropertyDescriptor>? properties,
+            IReadOnlyList<NamedTypeDescriptor>? implementedBy,
+            TypeKind kind,
+            NameString? graphQLTypeName,
+            string? serializationType,
+            bool isEnum,
+            string? complexDataTypeParent)
         {
             Name = name;
             Namespace = @namespace;
@@ -53,7 +54,7 @@ namespace StrawberryShake.CodeGeneration
         public NameString? ComplexDataTypeParent { get; }
 
         /// <summary>
-        /// The runtimetype including namespace of the GraphQL scalar type
+        /// The runtime type including namespace of the GraphQL scalar type
         /// </summary>
         public string? SerializationType { get; }
 

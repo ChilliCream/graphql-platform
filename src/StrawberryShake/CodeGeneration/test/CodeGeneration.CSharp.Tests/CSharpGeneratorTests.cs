@@ -12,6 +12,25 @@ namespace StrawberryShake.CodeGeneration.CSharp
     public class CSharpGeneratorTests
     {
         [Fact]
+        public void Generate_Custom_Scalars()
+        {
+            // arrange
+            string[] fileNames =
+            {
+                Path.Combine("__resources__", "AllExpenses.graphql"),
+                Path.Combine("__resources__", "Expenses.extensions.graphql"),
+                Path.Combine("__resources__", "Expenses.graphql")
+            };
+
+            // act
+            var generator = new CSharpGenerator();
+            var result = generator.Generate(fileNames);
+
+            // assert
+            AssertResult(result);
+        }
+
+        [Fact]
         public void Generate_NoErrors()
         {
             // arrange

@@ -14,7 +14,7 @@ namespace StrawberryShake.CodeGeneration
             IReadOnlyList<EntityTypeDescriptor> entities,
             List<OperationDescriptor> operations,
             IReadOnlyList<ITypeDescriptor> typeDescriptors,
-            IReadOnlyList<EnumDescriptor> enumTypeDescriptor)
+            IReadOnlyList<EnumTypeDescriptor> enumTypeDescriptor)
         {
             Name = name;
             Namespace = @namespace;
@@ -35,7 +35,7 @@ namespace StrawberryShake.CodeGeneration
 
         public IReadOnlyList<ITypeDescriptor> TypeDescriptors { get; }
 
-        public IReadOnlyList<EnumDescriptor> EnumTypeDescriptor { get; }
+        public IReadOnlyList<EnumTypeDescriptor> EnumTypeDescriptor { get; }
 
         /// <summary>
         /// The operations that are contained in this client class

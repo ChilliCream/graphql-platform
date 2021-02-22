@@ -3,11 +3,11 @@ using StrawberryShake.CodeGeneration.CSharp.Builders;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public class EnumParserGenerator : CodeGenerator<EnumDescriptor>
+    public class EnumParserGenerator : CodeGenerator<EnumTypeDescriptor>
     {
         protected override void Generate(
             CodeWriter writer,
-            EnumDescriptor descriptor,
+            EnumTypeDescriptor descriptor,
             out string fileName)
         {
             fileName = NamingConventions.EnumParserNameFromEnumName(descriptor.Name);
@@ -53,7 +53,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         private CodeBlockBuilder CreateEnumParsingSwitch(
             string paramName,
-            EnumDescriptor descriptor)
+            EnumTypeDescriptor descriptor)
         {
             StringBuilder sourceText = new StringBuilder()
                 .AppendLine($"return {paramName} switch")
@@ -69,7 +69,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         private CodeBlockBuilder CreateEnumFormatingSwitch(
             string paramName,
-            EnumDescriptor descriptor)
+            EnumTypeDescriptor descriptor)
         {
             var sourceText = new StringBuilder();
 

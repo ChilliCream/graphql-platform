@@ -24,7 +24,7 @@ namespace StrawberryShake.Integration
         public void Generate_Enum_One_Element()
         {
             // arrange
-            var descriptor = new EnumDescriptor(
+            var descriptor = new EnumTypeDescriptor(
                 "Abc",
                 "Def",
                 new List<EnumValueDescriptor>
@@ -43,7 +43,7 @@ namespace StrawberryShake.Integration
         public void Generate_Enum_Two_Elements()
         {
             // arrange
-            var descriptor = new EnumDescriptor(
+            var descriptor = new EnumTypeDescriptor(
                 "Abc",
                 "Def",
                 new List<EnumValueDescriptor>
@@ -63,7 +63,7 @@ namespace StrawberryShake.Integration
         public void Generate_Enum_One_Element_Underlying_Type()
         {
             // arrange
-            var descriptor = new EnumDescriptor(
+            var descriptor = new EnumTypeDescriptor(
                 "Abc",
                 "Def",
                 new List<EnumValueDescriptor>
@@ -83,7 +83,7 @@ namespace StrawberryShake.Integration
         public void Generate_Enum_One_Element_With_Value()
         {
             // arrange
-            var descriptor = new EnumDescriptor(
+            var descriptor = new EnumTypeDescriptor(
                 "Abc",
                 "Def",
                 new List<EnumValueDescriptor>

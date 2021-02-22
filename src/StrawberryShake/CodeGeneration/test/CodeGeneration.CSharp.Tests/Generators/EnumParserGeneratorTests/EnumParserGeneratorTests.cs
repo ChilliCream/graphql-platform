@@ -22,7 +22,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Other
         {
             _generator.Generate(
                 _codeWriter,
-                new EnumDescriptor(
+                new EnumTypeDescriptor(
                     "MetasyntacticVariable",
                     "FooBarNamespace",
                     new []

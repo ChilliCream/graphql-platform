@@ -2672,7 +2672,7 @@ namespace StrawberryShake.GraphQL
                 return null;
             }
 
-            return _uriParser.Parse(obj.Value.GetString()!);
+            return _uriParser.Parse(obj.Value.GetUri()!);
         }
 
         private global::System.DateTimeOffset DeserializeNonNullableDateTimeOffset(global::System.Text.Json.JsonElement? obj)
@@ -2682,7 +2682,7 @@ namespace StrawberryShake.GraphQL
                 throw new global::System.ArgumentNullException();
             }
 
-            return _dateTimeOffsetParser.Parse(obj.Value.GetString()!);
+            return _dateTimeOffsetParser.Parse(obj.Value.GetDateTimeOffset()!);
         }
     }
 }
@@ -2954,7 +2954,7 @@ namespace StrawberryShake.GraphQL
                 throw new global::System.ArgumentNullException();
             }
 
-            return _dateTimeOffsetParser.Parse(obj.Value.GetString()!);
+            return _dateTimeOffsetParser.Parse(obj.Value.GetDateTimeOffset()!);
         }
     }
 }
@@ -3178,7 +3178,7 @@ namespace StrawberryShake.GraphQL
                 throw new global::System.ArgumentNullException();
             }
 
-            return _dateTimeOffsetParser.Parse(obj.Value.GetString()!);
+            return _dateTimeOffsetParser.Parse(obj.Value.GetDateTimeOffset()!);
         }
     }
 }
@@ -3380,7 +3380,7 @@ namespace StrawberryShake.GraphQL
                 throw new global::System.ArgumentNullException();
             }
 
-            return _dateTimeOffsetParser.Parse(obj.Value.GetString()!);
+            return _dateTimeOffsetParser.Parse(obj.Value.GetDateTimeOffset()!);
         }
     }
 }
