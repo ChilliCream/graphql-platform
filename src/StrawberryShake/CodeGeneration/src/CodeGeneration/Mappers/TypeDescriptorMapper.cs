@@ -108,6 +108,50 @@ namespace StrawberryShake.CodeGeneration.Mappers
             }
         }
 
+        private static void RegisterType(
+            ClientModel model,
+            IMapperContext context,
+            Dictionary<NameString, TypeDescriptorModel> typeDescriptors,
+            OutputTypeModel outputType,
+            List<UnionType> unionTypes,
+            TypeKind? kind = null,
+            OperationModel? operationModel = null)
+        {
+            if (typeDescriptors.TryGetValue(
+                outputType.Name,
+                out TypeDescriptorModel descriptorModel))
+            {
+                return;
+            }
+
+            if (operationModel is not null && outputType.IsInterface)
+            {
+                descriptorModel = CreateInterfaceTypeModel(
+                    model,
+                    context,
+                    typeDescriptors,
+                    outputType,
+                    unionTypes,
+                    descriptorModel,
+                    operationModel,
+                    kind);
+            }
+            else
+            {
+                descriptorModel = CreateObjectTypeModel(
+                    model,
+                    context,
+                    typeDescriptors,
+                    outputType,
+                    unionTypes,
+                    descriptorModel,
+                    kind);
+
+            }
+
+            typeDescriptors.Add(outputType.Name, descriptorModel);
+        }
+
         private static void ExtractTypeKindAndParentRuntimeType(
             IMapperContext context,
             OutputTypeModel outputType,
@@ -187,7 +231,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
         }
 
 
-        private static void RegisterInterfaceType(
+        private static TypeDescriptorModel CreateInterfaceTypeModel(
             ClientModel model,
             IMapperContext context,
             Dictionary<NameString, TypeDescriptorModel> typeDescriptors,
@@ -195,16 +239,11 @@ namespace StrawberryShake.CodeGeneration.Mappers
             List<UnionType> unionTypes,
             TypeDescriptorModel descriptorModel,
             OperationModel operationModel,
-            TypeKind? kind = null
-        )
+            TypeKind? kind = null)
         {
-            var classes = new HashSet<ComplexTypeDescriptor>();
-            CollectClassesThatImplementInterface(
-                operationModel,
-                outputType,
-                typeDescriptors,
-                classes);
-            var implementedBy = classes.ToList();
+            var implementedBy =
+                CollectClassesThatImplementInterface(operationModel, outputType, typeDescriptors)
+                    .ToList();
 
             ExtractTypeKindAndParentRuntimeType(
                 context,
@@ -214,32 +253,10 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
             var typeKind = kind ?? extractedKind;
 
-            IReadOnlyList<NameString> implements;
-            RuntimeTypeInfo runtimeTypeInfo;
-            if (typeKind == TypeKind.ResultType)
-            {
-                runtimeTypeInfo = new RuntimeTypeInfo(
-                    NamingConventions.ResultRootTypeNameFromTypeName(outputType.Name),
-                    context.Namespace);
+            IReadOnlyList<NameString> implements = ExtractImplementsBy(outputType, typeKind);
+            RuntimeTypeInfo runtimeTypeInfo = ExtractRuntimeType(context, outputType, typeKind);
 
-                implements = outputType.Implements
-                    .Select(t => (NameString)NamingConventions.ResultRootTypeNameFromTypeName(
-                        t.Name))
-                    .ToList();
-            }
-            else
-            {
-                runtimeTypeInfo = new RuntimeTypeInfo(
-                    outputType.Name,
-                    context.Namespace);
-
-                implements = outputType.Implements
-                    .Select(t => t.Name)
-                    .ToList();
-            }
-
-
-            descriptorModel = new TypeDescriptorModel(
+            return new TypeDescriptorModel(
                 outputType,
                 new InterfaceTypeDescriptor(
                     outputType.Type.Name,
@@ -248,40 +265,17 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     implementedBy,
                     implements,
                     parentRuntimeType));
-
-            typeDescriptors.Add(outputType.Name, descriptorModel);
         }
 
-        private static void RegisterType(
+        private static TypeDescriptorModel CreateObjectTypeModel(
             ClientModel model,
             IMapperContext context,
             Dictionary<NameString, TypeDescriptorModel> typeDescriptors,
             OutputTypeModel outputType,
             List<UnionType> unionTypes,
-            TypeKind? kind = null,
-            OperationModel? operationModel = null)
+            TypeDescriptorModel descriptorModel,
+            TypeKind? kind = null)
         {
-            if (typeDescriptors.TryGetValue(
-                outputType.Name,
-                out TypeDescriptorModel descriptorModel))
-            {
-                return;
-            }
-
-            IReadOnlyList<ComplexTypeDescriptor> implementedBy =
-                Array.Empty<ComplexTypeDescriptor>();
-
-            if (operationModel is not null && outputType.IsInterface)
-            {
-                var classes = new HashSet<ComplexTypeDescriptor>();
-                CollectClassesThatImplementInterface(
-                    operationModel,
-                    outputType,
-                    typeDescriptors,
-                    classes);
-                implementedBy = classes.ToList();
-            }
-
             ExtractTypeKindAndParentRuntimeType(
                 context,
                 outputType,
@@ -290,64 +284,29 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
             var typeKind = kind ?? extractedKind;
 
-            IReadOnlyList<NameString> implements;
-            RuntimeTypeInfo runtimeTypeInfo;
-            if (typeKind == TypeKind.ResultType)
-            {
-                runtimeTypeInfo = new RuntimeTypeInfo(
-                    NamingConventions.ResultRootTypeNameFromTypeName(outputType.Name),
-                    context.Namespace);
+            IReadOnlyList<NameString> implements = ExtractImplementsBy(outputType, typeKind);
+            RuntimeTypeInfo runtimeTypeInfo = ExtractRuntimeType(context, outputType, typeKind);
 
-                implements = outputType.Implements
-                    .Select(t => (NameString)NamingConventions.ResultRootTypeNameFromTypeName(
-                        t.Name))
-                    .ToList();
-            }
-            else
-            {
-                runtimeTypeInfo = new RuntimeTypeInfo(
-                    outputType.Name,
-                    context.Namespace);
-
-                implements = outputType.Implements
-                    .Select(t => t.Name)
-                    .ToList();
-            }
-
-
-            ComplexTypeDescriptor complexTypeDescriptor;
-            if (outputType.IsInterface)
-            {
-                complexTypeDescriptor = new InterfaceTypeDescriptor(
+            return new TypeDescriptorModel(
+                outputType,
+                new ObjectTypeDescriptor(
                     outputType.Type.Name,
                     typeKind,
                     runtimeTypeInfo,
-                    implementedBy,
+                    Array.Empty<ComplexTypeDescriptor>(),
                     implements,
-                    parentRuntimeType);
-            }
-            else
-            {
-                complexTypeDescriptor = new ObjectTypeDescriptor(
-                    outputType.Type.Name,
-                    typeKind,
-                    runtimeTypeInfo,
-                    implementedBy,
-                    implements,
-                    parentRuntimeType);
-            }
-
-            descriptorModel = new TypeDescriptorModel(outputType, complexTypeDescriptor);
-
-            typeDescriptors.Add(outputType.Name, descriptorModel);
+                    parentRuntimeType));
         }
 
-        private static void CollectClassesThatImplementInterface(
+
+        private static IEnumerable<ComplexTypeDescriptor> CollectClassesThatImplementInterface(
             OperationModel operation,
             OutputTypeModel outputType,
             Dictionary<NameString, TypeDescriptorModel> typeDescriptors,
-            HashSet<ComplexTypeDescriptor> classes)
+            HashSet<ComplexTypeDescriptor>? alreadyCollectedTypes = null)
         {
+            alreadyCollectedTypes ??= new HashSet<ComplexTypeDescriptor>();
+
             foreach (var type in operation.GetImplementations(outputType))
             {
                 if (type.IsInterface)
@@ -356,13 +315,15 @@ namespace StrawberryShake.CodeGeneration.Mappers
                         operation,
                         type,
                         typeDescriptors,
-                        classes);
+                        alreadyCollectedTypes);
                 }
                 else
                 {
-                    classes.Add(typeDescriptors[type.Name].Descriptor);
+                    alreadyCollectedTypes.Add(typeDescriptors[type.Name].Descriptor);
                 }
             }
+
+            return alreadyCollectedTypes;
         }
 
         private static void AddProperties(
