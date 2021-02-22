@@ -117,6 +117,9 @@ namespace HotChocolate.Data.Filters.Expressions
                     //ScalarArray = null,
                     ObjectArray = null
                 }
+            },
+            new BarNullable {
+                Foo = null
             }};
 
         private readonly SchemaCache _cache;
@@ -208,7 +211,7 @@ namespace HotChocolate.Data.Filters.Expressions
             IExecutionResult? res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery(
-                    "{ root(where: { foo: { barShort: { eq: 12}}}) " +
+                    "{ root(where: { foo: { barShort: { eq: 12}, barString: { neq: \"test\"}}}) " +
                     "{ foo{ barShort}}}")
                 .Create());
 
