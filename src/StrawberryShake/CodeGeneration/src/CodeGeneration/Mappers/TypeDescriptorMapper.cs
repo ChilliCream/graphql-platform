@@ -13,11 +13,9 @@ namespace StrawberryShake.CodeGeneration.Mappers
     {
         public static void Map(ClientModel model, IMapperContext context)
         {
-            foreach (var typeDescriptor in CollectTypeDescriptors(model, context))
-            {
-                context.Register(typeDescriptor);
-            }
+            context.Register(CollectTypeDescriptors(model, context));
         }
+
         public static IEnumerable<INamedTypeDescriptor> CollectTypeDescriptors(
             ClientModel model,
             IMapperContext context)
@@ -110,13 +108,14 @@ namespace StrawberryShake.CodeGeneration.Mappers
             }
         }
 
-        private static void ExtractTypeInfo(
+        private static void ExtractTypeKindAndParentRuntimeType(
+            IMapperContext context,
             OutputTypeModel outputType,
             out TypeKind fallbackKind,
             out RuntimeTypeInfo? parentRuntimeType)
         {
-            RuntimeTypeInfo? parentRuntimeType = null;
-            string? complexDataTypeParent = null;
+            parentRuntimeType = null;
+            string? parentRuntimeTypeName = null;
 
             if (outputType.Type.IsEntity())
             {
@@ -127,7 +126,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 if (outputType.Type.IsAbstractType())
                 {
                     fallbackKind = TypeKind.ComplexDataType;
-                    complexDataTypeParent = outputType.Type.Name;
+                    parentRuntimeTypeName = outputType.Type.Name;
                 }
                 else
                 {
@@ -137,9 +136,9 @@ namespace StrawberryShake.CodeGeneration.Mappers
                         mostAbstractTypeModel = mostAbstractTypeModel.Implements[0];
                     }
 
-                    complexDataTypeParent = mostAbstractTypeModel.Type.Name;
+                    parentRuntimeTypeName = mostAbstractTypeModel.Type.Name;
 
-                    if (complexDataTypeParent == outputType.Type.Name)
+                    if (parentRuntimeTypeName == outputType.Type.Name)
                     {
                         fallbackKind = TypeKind.DataType;
                     }
@@ -152,10 +151,105 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
             if (parentRuntimeTypeName is { })
             {
-                parentRuntimeType = new RuntimeTypeInfo(
-                    parentRuntimeTypeName,
-                    context.StateNamespace);
+                parentRuntimeType =
+                    new RuntimeTypeInfo(parentRuntimeTypeName, context.StateNamespace);
             }
+        }
+
+        private static IReadOnlyList<NameString> ExtractImplementsBy(
+            OutputTypeModel outputType,
+            TypeKind kind)
+        {
+            if (kind != TypeKind.ResultType)
+            {
+                return outputType.Implements
+                    .Select(t => t.Name)
+                    .ToList();
+            }
+            return outputType.Implements
+                .Select(t => (NameString)NamingConventions.ResultRootTypeNameFromTypeName(t.Name))
+                .ToList();
+        }
+
+        private static RuntimeTypeInfo ExtractRuntimeType(
+            IMapperContext context,
+            OutputTypeModel outputType,
+            TypeKind kind)
+        {
+            if (kind != TypeKind.ResultType)
+            {
+                return new RuntimeTypeInfo(
+                    NamingConventions.ResultRootTypeNameFromTypeName(outputType.Name),
+                    context.Namespace);
+            }
+
+            return new RuntimeTypeInfo(outputType.Name, context.Namespace);
+        }
+
+
+        private static void RegisterInterfaceType(
+            ClientModel model,
+            IMapperContext context,
+            Dictionary<NameString, TypeDescriptorModel> typeDescriptors,
+            OutputTypeModel outputType,
+            List<UnionType> unionTypes,
+            TypeDescriptorModel descriptorModel,
+            OperationModel operationModel,
+            TypeKind? kind = null
+        )
+        {
+            var classes = new HashSet<ComplexTypeDescriptor>();
+            CollectClassesThatImplementInterface(
+                operationModel,
+                outputType,
+                typeDescriptors,
+                classes);
+            var implementedBy = classes.ToList();
+
+            ExtractTypeKindAndParentRuntimeType(
+                context,
+                outputType,
+                out var extractedKind,
+                out var parentRuntimeType);
+
+            var typeKind = kind ?? extractedKind;
+
+            IReadOnlyList<NameString> implements;
+            RuntimeTypeInfo runtimeTypeInfo;
+            if (typeKind == TypeKind.ResultType)
+            {
+                runtimeTypeInfo = new RuntimeTypeInfo(
+                    NamingConventions.ResultRootTypeNameFromTypeName(outputType.Name),
+                    context.Namespace);
+
+                implements = outputType.Implements
+                    .Select(t => (NameString)NamingConventions.ResultRootTypeNameFromTypeName(
+                        t.Name))
+                    .ToList();
+            }
+            else
+            {
+                runtimeTypeInfo = new RuntimeTypeInfo(
+                    outputType.Name,
+                    context.Namespace);
+
+                implements = outputType.Implements
+                    .Select(t => t.Name)
+                    .ToList();
+            }
+
+
+            descriptorModel = new TypeDescriptorModel(
+                outputType,
+                new InterfaceTypeDescriptor(
+                    outputType.Type.Name,
+                    typeKind,
+                    runtimeTypeInfo,
+                    implementedBy,
+                    implements,
+                    parentRuntimeType));
+
+            typeDescriptors.Add(outputType.Name, descriptorModel);
         }
 
         private static void RegisterType(
@@ -188,7 +282,12 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 implementedBy = classes.ToList();
             }
 
-            ExtractTypeInfo(outputType, out var extractedKind, out var parentRuntimeTypeName);
+            ExtractTypeKindAndParentRuntimeType(
+                context,
+                outputType,
+                out var extractedKind,
+                out var parentRuntimeType);
+
             var typeKind = kind ?? extractedKind;
 
             IReadOnlyList<NameString> implements;

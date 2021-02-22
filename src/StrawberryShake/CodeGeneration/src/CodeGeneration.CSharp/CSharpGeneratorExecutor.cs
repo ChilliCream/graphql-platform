@@ -40,9 +40,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
 
             var context = new MapperContext(ns, clientName);
-            EnumDescriptorMapper.Map(clientModel, context);
-            EntityIdFactoryDescriptorMapper.Map(clientModel, context);
+            
+            // firs we start with the type descriptor mapper which creates 
+            // the type structure for the generators.
+            // The following mappers can depend on this foundational data.
             TypeDescriptorMapper.Map(clientModel, context);
+
+            // The EntityId mapper has no dependencies on other mappers.
+            EntityIdFactoryDescriptorMapper.Map(clientModel, context);
+
+            
             EntityTypeDescriptorMapper.Map(clientModel, context);
             OperationDescriptorMapper.Map(clientModel, context);
             ClientDescriptorMapper.Map(clientModel, context);

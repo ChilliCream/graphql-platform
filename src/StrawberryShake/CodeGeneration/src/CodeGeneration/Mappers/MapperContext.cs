@@ -6,7 +6,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
 {
     public class MapperContext : IMapperContext
     {
-        private readonly Dictionary<NameString, NamedTypeDescriptor> _types = new();
+        private readonly List<INamedTypeDescriptor> _types = new();
         private readonly Dictionary<NameString, EntityTypeDescriptor> _entityTypes = new();
         private readonly Dictionary<NameString, DataTypeDescriptor> _dataTypes = new();
         private readonly Dictionary<NameString, EnumTypeDescriptor> _enums = new();
@@ -27,7 +27,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
         public string Namespace { get; }
         public string StateNamespace => Namespace + ".State";
 
-        public IReadOnlyCollection<NamedTypeDescriptor> Types => _types.Values;
+        public IReadOnlyCollection<NamedTypeDescriptor> Types => _types;
 
         public IReadOnlyCollection<EntityTypeDescriptor> EntityTypes => _entityTypes.Values;
         public IReadOnlyCollection<DataTypeDescriptor> DataTypes => _dataTypes.Values;
@@ -46,6 +46,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
         public DependencyInjectionDescriptor DependencyInjection =>
             _dependencyInjectionDescriptor ?? throw new NotImplementedException();
+
+        IReadOnlyCollection<INamedTypeDescriptor> IMapperContext.Types => throw new NotImplementedException();
 
         public IEnumerable<ICodeDescriptor> GetAllDescriptors()
         {
@@ -86,11 +88,14 @@ namespace StrawberryShake.CodeGeneration.Mappers
             yield return DependencyInjection;
         }
 
-        public void Register(NameString codeTypeName, NamedTypeDescriptor typeDescriptor)
+        public void Register(IEnumerable<INamedTypeDescriptor> typeDescriptors)
         {
-            _types.Add(
-                codeTypeName.EnsureNotEmpty(nameof(codeTypeName)),
-                typeDescriptor ?? throw new ArgumentNullException(nameof(typeDescriptor)));
+            if (_types.Count > 0)
+            {
+                throw new InvalidOperationException("The types have already been registered.");
+            }
+
+            _types.AddRange(typeDescriptors);
         }
 
         public void Register(NameString codeTypeName, EntityTypeDescriptor entityTypeDescriptor)
@@ -144,5 +149,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
         {
             _dependencyInjectionDescriptor = dependencyInjectionDescriptor;
         }
+
+
     }
 }

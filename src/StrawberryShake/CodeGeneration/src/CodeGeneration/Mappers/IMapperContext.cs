@@ -7,8 +7,17 @@ namespace StrawberryShake.CodeGeneration.Mappers
     {
         string ClientName { get; }
 
+        /// <summary>
+        /// Gets the client root namespace.
+        /// This namespace is where we have all the public client APIs.
+        /// </summary>
         string Namespace { get; }
 
+        /// <summary>
+        /// Gets the client state namespace.
+        /// This namespace is where we have all the store related APIs.
+        /// </summary>
+        /// <value></value>
         string StateNamespace { get; }
 
         IReadOnlyCollection<INamedTypeDescriptor> Types { get; }
@@ -21,7 +30,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
         ClientDescriptor Client { get; }
 
-        void Register(INamedTypeDescriptor typeDescriptor);
+        void Register(IEnumerable<INamedTypeDescriptor> typeDescriptor);
 
         void Register(NameString codeTypeName, EntityTypeDescriptor entityTypeDescriptor);
 

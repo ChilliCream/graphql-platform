@@ -10,9 +10,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
 {
     public static class EntityTypeDescriptorMapper
     {
-        public static void Map(
-            ClientModel model,
-            IMapperContext context)
+        public static void Map(ClientModel model, IMapperContext context)
         {
             foreach (var entityTypeDescriptor in CollectEntityTypes(model, context))
             {
