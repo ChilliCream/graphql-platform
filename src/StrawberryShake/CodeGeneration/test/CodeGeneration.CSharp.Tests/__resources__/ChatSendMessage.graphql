@@ -1,0 +1,28 @@
+query GetPeople {
+  people(order_by: { name: ASC }) {
+    nodes {
+      ... Person
+      messages {
+        nodes {
+          ... Message
+        }
+      }
+    }
+  }
+}
+mutation WriteMessage($text: String! $address: String!) {
+  sendMessage(input: { text: $text recipientEmail: $address }) {
+    message {
+      ... Message
+    }
+  }
+}
+fragment Person on Person {
+  name
+}
+fragment Message on Message {
+  sender {
+    ... Person
+  }
+  text
+}

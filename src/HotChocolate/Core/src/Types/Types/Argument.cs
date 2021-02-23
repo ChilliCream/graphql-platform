@@ -16,8 +16,9 @@ namespace HotChocolate.Types
         , IInputField
     {
         public Argument(
-            ArgumentDefinition definition)
-            : base(definition)
+            ArgumentDefinition definition,
+            FieldCoordinate fieldCoordinate)
+            : base(definition, fieldCoordinate)
         {
             SyntaxNode = definition.SyntaxNode;
             DefaultValue = definition.DefaultValue;
@@ -64,7 +65,8 @@ namespace HotChocolate.Types
             else
             {
                 base.OnCompleteField(context, definition);
-                DefaultValue = FieldInitHelper.CreateDefaultValue(context, definition, Type);
+                DefaultValue = FieldInitHelper.CreateDefaultValue(
+                    context, definition, Type, Coordinate);
             }
         }
     }

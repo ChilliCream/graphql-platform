@@ -23,7 +23,7 @@ export const BlogArticleMetadata: FunctionComponent<BlogArticleMetadataPropertie
 };
 
 export const BlogArticleMetadataGraphQLFragment = graphql`
-  fragment BlogArticleMetadata on MarkdownRemark {
+  fragment BlogArticleMetadata on Mdx {
     fields {
       readingTime {
         text

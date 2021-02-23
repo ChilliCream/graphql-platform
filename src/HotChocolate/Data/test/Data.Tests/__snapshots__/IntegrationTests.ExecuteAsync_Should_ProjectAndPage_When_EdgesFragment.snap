@@ -1,0 +1,14 @@
+﻿{
+  "data": {
+    "books": {
+      "edges": [
+        {
+          "node": {
+            "title": "BookTitle",
+            "id": "Qm9vawppMQ=="
+          }
+        }
+      ]
+    }
+  }
+}

@@ -342,12 +342,9 @@ namespace HotChocolate.Language.Visitors
                 return Break;
             }
 
-            if (node.TypeCondition is { })
+            if (Visit(node.TypeCondition, node, context).IsBreak())
             {
-                if (Visit(node.TypeCondition, node, context).IsBreak())
-                {
-                    return Break;
-                }
+                return Break;
             }
 
             if (_options.VisitDirectives)

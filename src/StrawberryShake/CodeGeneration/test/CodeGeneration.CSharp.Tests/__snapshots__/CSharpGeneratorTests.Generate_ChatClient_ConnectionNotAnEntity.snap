@@ -1,0 +1,813 @@
+﻿// Code:
+// PersonEntity
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class PersonEntity
+    {
+        public global::System.String Name { get; set; } = default!;
+
+        public global::System.String Email { get; set; } = default!;
+
+        public global::System.Boolean IsOnline { get; set; } = default!;
+    }
+}
+
+
+// GetPeopleResultFactory
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetPeopleResultFactory
+        : global::StrawberryShake.IOperationResultDataFactory<GetPeopleResult>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityMapper<PersonEntity, GetPeople_People_Nodes_Person> _getPeople_People_Nodes_PersonFromPersonEntityMapper;
+
+        public GetPeopleResultFactory(
+            global::StrawberryShake.IEntityStore entityStore,
+            global::StrawberryShake.IEntityMapper<PersonEntity, GetPeople_People_Nodes_Person> getPeople_People_Nodes_PersonFromPersonEntityMapper)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _getPeople_People_Nodes_PersonFromPersonEntityMapper = getPeople_People_Nodes_PersonFromPersonEntityMapper
+                 ?? throw new global::System.ArgumentNullException(nameof(getPeople_People_Nodes_PersonFromPersonEntityMapper));
+        }
+
+        public GetPeopleResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo)
+        {
+            if (dataInfo is GetPeopleResultInfo info)
+            {
+                return new GetPeopleResult(MapIGetPeople_People(info.People));
+            }
+
+            throw new global::System.ArgumentException("GetPeopleResultInfo expected.");
+        }
+
+        private IGetPeople_People? MapIGetPeople_People(global::StrawberryShake.GraphQL.State.PersonConnectionData data)
+        {
+            if (data == default)
+            {
+                return null;
+            }
+
+            IGetPeople_People returnValue = default!;
+
+            if (data?.__typename.Equals("PersonConnection", global::System.StringComparison.Ordinal) ?? false)
+            {
+                returnValue = new GetPeople_People_PersonConnection(MapIGetPeople_People_NodesArray(data.Nodes));
+            }
+            else {
+                throw new global::System.NotSupportedException();
+            }
+            return returnValue;
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<IGetPeople_People_Nodes?>? MapIGetPeople_People_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
+        {
+            if (list == default)
+            {
+                return null;
+            }
+
+            var iGetPeople_People_Nodess = new global::System.Collections.Generic.List<IGetPeople_People_Nodes?>();
+
+            foreach (global::StrawberryShake.EntityId? child in list)
+            {
+                iGetPeople_People_Nodess.Add(MapIGetPeople_People_Nodes(child));
+            }
+
+            return iGetPeople_People_Nodess;
+        }
+
+        private IGetPeople_People_Nodes? MapIGetPeople_People_Nodes(global::StrawberryShake.EntityId? entityId)
+        {
+            if (entityId == default)
+            {
+                return null;
+            }
+
+
+            if (entityId.Value.Name.Equals("Person", global::System.StringComparison.Ordinal))
+            {
+                return _getPeople_People_Nodes_PersonFromPersonEntityMapper.Map(
+                    _entityStore.GetEntity<PersonEntity>(entityId.Value)
+                        ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+            throw new global::System.NotSupportedException();
+        }
+    }
+}
+
+
+// GetPeopleResultInfo
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetPeopleResultInfo
+        : global::StrawberryShake.IOperationResultDataInfo
+    {
+        private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
+        private readonly ulong _version;
+
+        public GetPeopleResultInfo(
+            global::StrawberryShake.GraphQL.State.PersonConnectionData? people,
+            global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds,
+            ulong version)
+        {
+            People = people;
+            _entityIds = entityIds
+                 ?? throw new global::System.ArgumentNullException(nameof(entityIds));
+            _version = version;
+        }
+
+        public global::StrawberryShake.GraphQL.State.PersonConnectionData? People { get; }
+
+        public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
+
+        public ulong Version => _version;
+
+        public global::StrawberryShake.IOperationResultDataInfo WithVersion(ulong version)
+        {
+            return new GetPeopleResultInfo(
+                People,
+                _entityIds,
+                _version);
+        }
+    }
+}
+
+
+// GetPeopleResult
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetPeopleResult
+        : IGetPeopleResult
+    {
+        public GetPeopleResult(IGetPeople_People? people)
+        {
+            People = people;
+        }
+
+        public IGetPeople_People? People { get; } = default!;
+    }
+}
+
+
+// GetPeople_People_PersonConnection
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetPeople_People_PersonConnection
+        : IGetPeople_People_PersonConnection
+    {
+        public GetPeople_People_PersonConnection(global::System.Collections.Generic.IReadOnlyList<IGetPeople_People_Nodes?>? nodes)
+        {
+            Nodes = nodes;
+        }
+
+        public global::System.Collections.Generic.IReadOnlyList<IGetPeople_People_Nodes?>? Nodes { get; } = default!;
+    }
+}
+
+
+// GetPeople_People_Nodes_PersonFromPersonEntityMapper
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetPeople_People_Nodes_PersonFromPersonEntityMapper
+        : global::StrawberryShake.IEntityMapper<PersonEntity, GetPeople_People_Nodes_Person>
+    {
+        public GetPeople_People_Nodes_Person Map(PersonEntity entity)
+        {
+            return new GetPeople_People_Nodes_Person(
+                entity.Name,
+                entity.Email,
+                entity.IsOnline);
+        }
+    }
+}
+
+
+// GetPeople_People_Nodes_Person
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetPeople_People_Nodes_Person
+        : IGetPeople_People_Nodes_Person
+    {
+        public GetPeople_People_Nodes_Person(
+            global::System.String name,
+            global::System.String email,
+            global::System.Boolean isOnline)
+        {
+            Name = name;
+            Email = email;
+            IsOnline = isOnline;
+        }
+
+        public global::System.String Name { get; }
+
+        public global::System.String Email { get; }
+
+        public global::System.Boolean IsOnline { get; }
+    }
+}
+
+
+// IGetPeopleResult
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IGetPeopleResult
+    {
+        public IGetPeople_People? People { get; }
+    }
+}
+
+
+// IGetPeople_People
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IGetPeople_People
+    {
+        public global::System.Collections.Generic.IReadOnlyList<IGetPeople_People_Nodes?>? Nodes { get; }
+    }
+}
+
+
+// IGetPeople_People_PersonConnection
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IGetPeople_People_PersonConnection
+        : IGetPeople_People
+    {
+    }
+}
+
+
+// IGetPeople_People_Nodes
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IGetPeople_People_Nodes
+    {
+        public global::System.String Name { get; }
+
+        public global::System.String Email { get; }
+
+        public global::System.Boolean IsOnline { get; }
+    }
+}
+
+
+// IGetPeople_People_Nodes_Person
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IGetPeople_People_Nodes_Person
+        : IGetPeople_People_Nodes
+    {
+    }
+}
+
+
+// GetPeopleQueryDocument
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetPeopleQueryDocument
+        : global::StrawberryShake.IDocument
+    {
+        private const global::System.String _bodyString = 
+            @"query GetPeople {
+  people(order_by: { name: ASC }) {
+    __typename
+    nodes {
+      __typename
+      name
+      email
+      isOnline
+      ... on Person {
+        id
+      }
+    }
+  }
+}";
+        private static readonly byte[] _body = global::System.Text.Encoding.UTF8.GetBytes(_bodyString);
+
+        private GetPeopleQueryDocument()
+        {
+        }
+
+        public static GetPeopleQueryDocument Instance { get; } = new GetPeopleQueryDocument();
+
+        public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
+
+        public global::System.ReadOnlySpan<byte> Body => _body;
+
+        public override string ToString()
+        {
+            return _bodyString;
+        }
+    }
+}
+
+
+// GetPeopleQuery
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetPeopleQuery
+    {
+        private readonly global::StrawberryShake.IOperationExecutor<IGetPeopleResult> _operationExecutor;
+
+        public GetPeopleQuery(global::StrawberryShake.IOperationExecutor<IGetPeopleResult> operationExecutor)
+        {
+            _operationExecutor = operationExecutor
+                 ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
+        }
+
+        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetPeopleResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default)
+        {
+            var request = CreateRequest();
+            
+            return await _operationExecutor
+                .ExecuteAsync(
+                    request,
+                    cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        public global::System.IObservable<global::StrawberryShake.IOperationResult<IGetPeopleResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null)
+        {
+            var request = CreateRequest();
+            return _operationExecutor.Watch(request, strategy);
+        }
+
+        private global::StrawberryShake.OperationRequest CreateRequest()
+        {
+
+            return new global::StrawberryShake.OperationRequest(
+                "GetPeople",
+                GetPeopleQueryDocument.Instance);
+        }
+    }
+}
+
+
+// GetPeopleBuilder
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetPeopleBuilder
+        : global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, IGetPeopleResult>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
+        private readonly global::StrawberryShake.IOperationResultDataFactory<IGetPeopleResult> _resultDataFactory;
+        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
+        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
+
+        public GetPeopleBuilder(
+            global::StrawberryShake.IEntityStore entityStore,
+            global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> extractId,
+            global::StrawberryShake.IOperationResultDataFactory<IGetPeopleResult> resultDataFactory,
+            global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _extractId = extractId
+                 ?? throw new global::System.ArgumentNullException(nameof(extractId));
+            _resultDataFactory = resultDataFactory
+                 ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
+            _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String")
+                 ?? throw new global::System.ArgumentNullException(nameof(_stringParser));
+            _booleanParser = serializerResolver.GetLeafValueParser<global::System.Boolean, global::System.Boolean>("Boolean")
+                 ?? throw new global::System.ArgumentNullException(nameof(_booleanParser));
+        }
+
+        public global::StrawberryShake.IOperationResult<IGetPeopleResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
+        {
+            (IGetPeopleResult Result, GetPeopleResultInfo Info)? data = null;
+
+            if (response.Body is not null
+                && response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement obj))
+            {
+                data = BuildData(obj);
+            }
+
+            return new global::StrawberryShake.OperationResult<IGetPeopleResult>(
+                data?.Result,
+                data?.Info,
+                _resultDataFactory,
+                null);
+        }
+
+        private (IGetPeopleResult, GetPeopleResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
+        {
+            using global::StrawberryShake.IEntityUpdateSession session = _entityStore.BeginUpdate();
+            var entityIds = new global::System.Collections.Generic.HashSet<global::StrawberryShake.EntityId>();
+
+
+            var resultInfo = new GetPeopleResultInfo(
+                DeserializeIGetPeople_People(
+                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj, "people"),
+                    entityIds),
+                entityIds,
+                session.Version);
+
+            return (_resultDataFactory.Create(resultInfo), resultInfo);
+        }
+
+        private global::StrawberryShake.GraphQL.State.PersonConnectionData? DeserializeIGetPeople_People(
+            global::System.Text.Json.JsonElement? obj,
+            global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        {
+            if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            var typename = obj.Value.GetProperty("__typename").GetString();
+
+            if (typename?.Equals("PersonConnection", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::StrawberryShake.GraphQL.State.PersonConnectionData(
+                    typename,
+                    nodes: UpdateIGetPeople_People_NodesEntityArray(
+                        global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "nodes"),
+                        entityIds));
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? UpdateIGetPeople_People_NodesEntityArray(
+            global::System.Text.Json.JsonElement? obj,
+            global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        {
+            if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            var iGetPeople_People_Nodess = new global::System.Collections.Generic.List<global::StrawberryShake.EntityId?>();
+
+            foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
+            {
+                iGetPeople_People_Nodess.Add(UpdateIGetPeople_People_NodesEntity(
+                    child,
+                    entityIds));
+            }
+
+            return iGetPeople_People_Nodess;
+        }
+
+        private global::StrawberryShake.EntityId? UpdateIGetPeople_People_NodesEntity(
+            global::System.Text.Json.JsonElement? obj,
+            global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        {
+            if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            global::StrawberryShake.EntityId entityId = _extractId(obj.Value);
+            entityIds.Add(entityId);
+
+
+            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
+            {
+                PersonEntity entity = _entityStore.GetOrCreate<PersonEntity>(entityId);
+                entity.Name = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "name"));
+                entity.Email = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "email"));
+                entity.IsOnline = DeserializeNonNullableBoolean(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "isOnline"));
+
+                return entityId;
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::System.String DeserializeNonNullableString(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            return _stringParser.Parse(obj.Value.GetString()!);
+        }
+
+        private global::System.Boolean DeserializeNonNullableBoolean(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            return _booleanParser.Parse(obj.Value.GetBoolean()!);
+        }
+    }
+}
+
+
+// PersonConnectionData
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL.State
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class PersonConnectionData
+    {
+        public PersonConnectionData(
+            global::System.String typename,
+            global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? nodes = null)
+        {
+            __typename = typename
+                 ?? throw new global::System.ArgumentNullException(nameof(typename));
+            Nodes = nodes;
+        }
+
+        public global::System.String __typename { get; }
+
+        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Nodes { get; }
+    }
+}
+
+
+// GraphQLClient
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GraphQLClient
+    {
+        private readonly GetPeopleQuery _getPeopleQuery;
+
+        public GraphQLClient(GetPeopleQuery getPeopleQuery)
+        {
+            _getPeopleQuery = getPeopleQuery
+                 ?? throw new global::System.ArgumentNullException(nameof(getPeopleQuery));
+        }
+
+        public GetPeopleQuery GetPeopleQuery => _getPeopleQuery;
+    }
+}
+
+
+// EntityIdFactory
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public static partial class EntityIdFactory
+    {
+        public static global::StrawberryShake.EntityId CreateEntityId(global::System.Text.Json.JsonElement obj)
+        {
+            global::System.String typeName = obj.GetProperty("__typename").GetString()!;
+            
+            return typeName switch
+            {
+                "Person" => CreatePersonEntityId(obj, typeName),
+                _ => throw new global::System.NotSupportedException()
+            };
+        }
+
+        private static global::StrawberryShake.EntityId CreatePersonEntityId(
+            global::System.Text.Json.JsonElement obj,
+            global::System.String type)
+        {
+            return new global::StrawberryShake.EntityId(
+                type,
+                obj.GetProperty("id").GetString()!);
+        }
+    }
+}
+
+
+// GraphQLClientServiceCollectionExtensions
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public static partial class GraphQLClientServiceCollectionExtensions
+    {
+        public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddGraphQLClient(
+            this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
+            global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
+        {
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
+                services,
+                sp => 
+                {
+                    var serviceCollection = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
+
+                    ConfigureClient(
+                        serviceCollection,
+                        sp,
+                        strategy);
+
+                    return new ClientServiceProvider(
+                        global::Microsoft.Extensions.DependencyInjection.ServiceCollectionContainerBuilderExtensions.BuildServiceProvider(serviceCollection));
+                });
+
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<GetPeopleQuery>(
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<GraphQLClient>(
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+
+            return services;
+        }
+
+        private static global::Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureClient(
+            global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
+            global::System.IServiceProvider parentServices,
+            global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
+        {
+            
+            if (services is null)
+            {
+                throw new global::System.ArgumentNullException(nameof(services));
+            }
+            
+            // register entity id factory
+            
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId>>(services, EntityIdFactory.CreateEntityId);
+            
+            // register stores
+            
+            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<
+                global::StrawberryShake.IEntityStore,
+                global::StrawberryShake.EntityStore>(
+                    services);
+            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<
+                global::StrawberryShake.IOperationStore>(
+                    services,
+                    sp => new global::StrawberryShake.OperationStore(
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<
+                            global::StrawberryShake.IEntityStore
+                            >(sp)
+                        .Watch()
+                        ));
+            
+            // register connections
+            
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
+                services,
+                sp =>
+                {
+                    var clientFactory =
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<
+                            global::System.Net.Http.IHttpClientFactory
+                            >(parentServices);
+            
+                    return new global::StrawberryShake.Transport.Http.HttpConnection(
+                        () => clientFactory.CreateClient("GraphQLClient"));
+                });
+            
+            // register mappers
+            
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<PersonEntity, GetPeople_People_Nodes_Person>, GetPeople_People_Nodes_PersonFromPersonEntityMapper>(services);
+            
+            // register serializers
+            
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.StringSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.BooleanSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ShortSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IntSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LongSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.FloatSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DecimalSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UrlSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UuidSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IdSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateTimeSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializerResolver>(
+                services,
+                sp => new global::StrawberryShake.Serialization.SerializerResolver(
+                    global::System.Linq.Enumerable.Concat(
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(
+                            parentServices),
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(
+                            sp))));
+            
+            // register operations
+            
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
+                global::StrawberryShake.IOperationResultDataFactory<IGetPeopleResult>,
+                GetPeopleResultFactory>(
+                    services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
+                global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, IGetPeopleResult>,
+                GetPeopleBuilder>(
+                    services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
+                global::StrawberryShake.IOperationExecutor<IGetPeopleResult>>(
+                    services,
+                    sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, IGetPeopleResult>(
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.Http.HttpConnection>(sp),
+                        () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, IGetPeopleResult>>(sp),
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
+                        strategy));
+            
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<GetPeopleQuery>(services);
+            
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<GraphQLClient>(services);
+            
+            return services;
+        }
+
+        private class ClientServiceProvider
+            : System.IServiceProvider
+            , System.IDisposable
+        {
+            private readonly System.IServiceProvider _provider;
+
+            public ClientServiceProvider(System.IServiceProvider provider)
+            {
+                _provider = provider;
+            }
+
+            public object? GetService(System.Type serviceType)
+            {
+                return _provider.GetService(serviceType);
+            }
+
+            public void Dispose()
+            {
+                if (_provider is System.IDisposable d)
+                {
+                    d.Dispose();
+                }
+            }
+        }
+    }
+}
+
+

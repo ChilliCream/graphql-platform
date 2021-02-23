@@ -1,0 +1,8 @@
+﻿{
+  "data": {
+    "__typename": "Query"
+  },
+  "extensions": {
+    "persistedDocument": true
+  }
+}

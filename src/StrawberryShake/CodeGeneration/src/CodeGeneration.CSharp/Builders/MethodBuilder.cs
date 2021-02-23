@@ -1,21 +1,20 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
-    public class MethodBuilder : ICodeBuilder
+    public class MethodBuilder : ICodeContainer<MethodBuilder>
     {
         private AccessModifier _accessModifier = AccessModifier.Private;
         private Inheritance _inheritance = Inheritance.None;
-        private bool _isStatic = false;
-        private bool _isAsync = false;
-        private string _returnType = "void";
+        private bool _isStatic;
+        private bool _is;
+        private TypeReferenceBuilder _returnType = TypeReferenceBuilder.New().SetName("void");
         private string? _name;
-        private readonly List<ParameterBuilder> _parameters = new List<ParameterBuilder>();
-        private readonly List<ICode> _lines = new List<ICode>();
+        private readonly List<ParameterBuilder> _parameters = new();
+        private readonly List<ICode> _lines = new();
 
-        public static MethodBuilder New() => new MethodBuilder();
+        public static MethodBuilder New() => new();
 
         public MethodBuilder SetAccessModifier(AccessModifier value)
         {
@@ -29,9 +28,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public MethodBuilder SetAsync()
+        public MethodBuilder Set()
         {
-            _isAsync = true;
+            _is = true;
             return this;
         }
 
@@ -42,6 +41,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         }
 
         public MethodBuilder SetReturnType(string value, bool condition = true)
+        {
+            if (condition)
+            {
+                _returnType = TypeReferenceBuilder.New().SetName(value);
+            }
+            return this;
+        }
+
+        public MethodBuilder SetReturnType(TypeReferenceBuilder value, bool condition = true)
         {
             if (condition)
             {
@@ -62,19 +70,37 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public MethodBuilder AddCode(ICode value)
+        public MethodBuilder AddCode(string code, bool addIf = true)
         {
-            _lines.Add(value);
+            if (addIf)
+            {
+                _lines.Add(CodeLineBuilder.New().SetLine(code));
+            }
             return this;
         }
 
-        public MethodBuilder AddCode(string value)
+        public MethodBuilder AddCode(ICode code, bool addIf = true)
         {
-            _lines.Add(CodeLineBuilder.New().SetLine(value));
+            if (addIf)
+            {
+                _lines.Add(code);
+            }
             return this;
         }
 
-        public async Task BuildAsync(CodeWriter writer)
+        public MethodBuilder AddEmptyLine()
+        {
+            _lines.Add(CodeLineBuilder.New());
+            return this;
+        }
+
+        public MethodBuilder AddInlineCode(string code)
+        {
+            _lines.Add(CodeInlineBuilder.New().SetText(code));
+            return this;
+        }
+
+        public void Build(CodeWriter writer)
         {
             if (writer is null)
             {
@@ -83,68 +109,68 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
             string modifier = _accessModifier.ToString().ToLowerInvariant();
 
-            await writer.WriteIndentAsync().ConfigureAwait(false);
+            writer.WriteIndent();
 
-            await writer.WriteAsync($"{modifier} ").ConfigureAwait(false);
+            writer.Write($"{modifier} ");
 
             if (_isStatic)
             {
-                await writer.WriteAsync("static ").ConfigureAwait(false);
+                writer.Write("static ");
             }
 
-            if (_isAsync)
+            if (_is)
             {
-                await writer.WriteAsync("async ").ConfigureAwait(false);
+                writer.Write(" ");
             }
 
-            await writer.WriteAsync(
-                $"{CreateInheritance()}{_returnType} {_name}(")
-                .ConfigureAwait(false);
+            writer.Write($"{CreateInheritance()}");
+            _returnType.Build(writer);
+            writer.Write($"{_name}(");
 
             if (_parameters.Count == 0)
             {
-                await writer.WriteAsync(")").ConfigureAwait(false);
+                writer.Write(")");
             }
             else if (_parameters.Count == 1)
             {
-                await _parameters[0].BuildAsync(writer).ConfigureAwait(false);
-                await writer.WriteAsync(")").ConfigureAwait(false);
+                _parameters[0].Build(writer);
+                writer.Write(")");
             }
             else
             {
-                await writer.WriteLineAsync().ConfigureAwait(false);
+                writer.WriteLine();
 
                 using (writer.IncreaseIndent())
                 {
-                    for (int i = 0; i < _parameters.Count; i++)
+                    for (var i = 0; i < _parameters.Count; i++)
                     {
-                        await writer.WriteIndentAsync().ConfigureAwait(false);
-                        await _parameters[i].BuildAsync(writer).ConfigureAwait(false);
+                        writer.WriteIndent();
+                        _parameters[i].Build(writer);
                         if (i == _parameters.Count - 1)
                         {
-                            await writer.WriteAsync(")").ConfigureAwait(false);
+                            writer.Write(")");
                         }
                         else
                         {
-                            await writer.WriteAsync(",").ConfigureAwait(false);
-                            await writer.WriteLineAsync().ConfigureAwait(false);
+                            writer.Write(",");
+                            writer.WriteLine();
                         }
                     }
                 }
             }
 
-            await writer.WriteLineAsync().ConfigureAwait(false);
-            await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
+            writer.WriteLine();
+            writer.WriteIndentedLine("{");
 
             using (writer.IncreaseIndent())
             {
                 foreach (ICode code in _lines)
                 {
-                    await code.BuildAsync(writer).ConfigureAwait(false);
+                    code.Build(writer);
                 }
             }
 
-            await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
+            writer.WriteIndentedLine("}");
         }
 
         private string CreateInheritance()

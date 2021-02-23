@@ -115,8 +115,25 @@ namespace HotChocolate
             public const string ArgumentNotFound = "STITCHING_DEL_ARGUMENT_NOT_FOUND";
         }
 
+        public static class Spatial
+        {
+            /// <summary>
+            /// The coordinate reference system is not supported by this server
+            /// </summary>
+            public const string UnknowCrs = "HC0029";
+
+            /// <summary>
+            /// Coordinates with M values cannot be reprojected
+            /// </summary>
+            public const string CoordinateMNotSupported = "HC0030";
+        }
+
         public static class Data
         {
+            /// <summary>
+            /// Type does not contain a valid node field. Only `items` and `nodes` are supported
+            /// </summary>
+            public const string NodeFieldWasNotFound = "HC0028";
             public const string NonNullError = "HC0026";
             public const string ListNotSupported = "HC0021";
             public const string MoreThanOneElement = "HC0022";
