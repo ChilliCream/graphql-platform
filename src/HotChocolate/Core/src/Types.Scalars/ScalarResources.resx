@@ -90,7 +90,7 @@
   <data name="HslType_IsInvalid_ParseLiteral" xml:space="preserve">
     <value>HslType cannot parse the provided literal. The provided value is not a valid Css Hsl color code.</value>
   </data>
-  <data name="HslColorCodeType_IsInvalid_ParseValue" xml:space="preserve">
+  <data name="HslType_IsInvalid_ParseValue" xml:space="preserve">
     <value>HslType cannot parse the provided value. The provided value is not a valid Css Hsl color code.</value>
   </data>
   <data name="HslType_ValidationPattern" xml:space="preserve">

@@ -105,9 +105,9 @@ namespace HotChocolate.Types.Scalars {
             }
         }
         
-        internal static string HslColorCodeType_IsInvalid_ParseValue {
+        internal static string HslType_IsInvalid_ParseValue {
             get {
-                return ResourceManager.GetString("HslColorCodeType_IsInvalid_ParseValue", resourceCulture);
+                return ResourceManager.GetString("HslType_IsInvalid_ParseValue", resourceCulture);
             }
         }
         
