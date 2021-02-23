@@ -12,7 +12,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             var (classBuilder, constructorBuilder) = CreateClassBuilder();
 
-            fileName = descriptor.Name;
+            fileName = descriptor.RuntimeType.Name;
             classBuilder.SetName(fileName);
             constructorBuilder.SetTypeName(fileName);
 
@@ -35,7 +35,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             CodeFileBuilder
                 .New()
-                .SetNamespace(descriptor.Namespace)
+                .SetNamespace(descriptor.RuntimeType.Namespace)
                 .AddType(classBuilder)
                 .Build(writer);
         }

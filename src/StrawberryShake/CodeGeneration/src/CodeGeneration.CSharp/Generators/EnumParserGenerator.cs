@@ -63,7 +63,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .AppendLine("{")
                 .AppendLineForEach(
                     descriptor.Values,
-                    x => $"    \"{x.GraphQLName}\" => {descriptor.Name}.{x.Name},")
+                    x => $"    \"{x.Name}\" => {descriptor.Name}.{x.RuntimeValue},")
                 .AppendLine($"    _ => throw new {TypeNames.GraphQLClientException}()")
                 .AppendLine("};");
 
@@ -82,7 +82,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             foreach (var enumValue in descriptor.Values)
             {
                 sourceText.AppendLine(
-                    $"    {descriptor.Name}.{enumValue.Name} => \"{enumValue.GraphQLName}\",");
+                    $"    {descriptor.Name}.{enumValue.RuntimeValue} => \"{enumValue.Name}\",");
             }
 
             sourceText.AppendLine($"    _ => throw new {TypeNames.GraphQLClientException}()");

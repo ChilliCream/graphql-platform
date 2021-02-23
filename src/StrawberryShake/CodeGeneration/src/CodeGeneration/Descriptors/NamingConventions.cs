@@ -16,7 +16,7 @@ namespace StrawberryShake.CodeGeneration
         public static string QueryServiceNameFromTypeName(string typeName) =>
             typeName + "Query";
 
-        public static string EntityTypeNameFromGraphQLTypeName(string typeName) =>
+        public static string CreateEntityTypeName(string typeName) =>
             typeName + "Entity";
 
         public static string DocumentTypeNameFromOperationName(string typeName) =>
@@ -30,7 +30,7 @@ namespace StrawberryShake.CodeGeneration
         public static NameString EntityMapperNameFromGraphQLTypeName(
             string typeName,
             string graphqlTypename) =>
-            typeName + "From" + EntityTypeNameFromGraphQLTypeName(graphqlTypename) + "Mapper";
+            typeName + "From" + CreateEntityTypeName(graphqlTypename) + "Mapper";
 
         public static string ResultFactoryNameFromTypeName(string typeName) =>
             typeName + "Factory";

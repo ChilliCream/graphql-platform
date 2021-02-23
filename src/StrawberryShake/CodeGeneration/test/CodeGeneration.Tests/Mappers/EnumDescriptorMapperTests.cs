@@ -32,20 +32,20 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     Assert.Equal("Episode", enumType.Name);
 
                     Assert.Collection(
-                        enumType.Values.OrderBy(t => t.Name),
+                        enumType.Values.OrderBy(t => t.RuntimeValue),
                         value =>
                         {
-                            Assert.Equal("Empire", value.Name);
+                            Assert.Equal("Empire", value.RuntimeValue);
                             Assert.Null(value.Value);
                         },
                         value =>
                         {
-                            Assert.Equal("Jedi", value.Name);
+                            Assert.Equal("Jedi", value.RuntimeValue);
                             Assert.Null(value.Value);
                         },
                         value =>
                         {
-                            Assert.Equal("NewHope", value.Name);
+                            Assert.Equal("NewHope", value.RuntimeValue);
                             Assert.Null(value.Value);
                         });
                 });

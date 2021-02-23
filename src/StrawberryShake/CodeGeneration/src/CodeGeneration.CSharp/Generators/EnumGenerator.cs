@@ -18,7 +18,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             foreach (EnumValueDescriptor element in descriptor.Values)
             {
-                enumBuilder.AddElement(element.Name, element.Value);
+                enumBuilder.AddElement(element.RuntimeValue, element.Value);
             }
 
             CodeFileBuilder

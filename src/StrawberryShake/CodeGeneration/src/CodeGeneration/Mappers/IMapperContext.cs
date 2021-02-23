@@ -30,11 +30,11 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
         ClientDescriptor Client { get; }
 
-        void Register(IEnumerable<INamedTypeDescriptor> typeDescriptor);
+        void Register(IEnumerable<INamedTypeDescriptor> typeDescriptors);
 
         void Register(NameString codeTypeName, EntityTypeDescriptor entityTypeDescriptor);
 
-        void Register(NameString codeTypeName, DataTypeDescriptor entityTypeDescriptor);
+        void Register(IEnumerable<DataTypeDescriptor> dataTypeDescriptors);
 
         void Register(NameString codeTypeName, EnumTypeDescriptor enumTypeDescriptor);
 

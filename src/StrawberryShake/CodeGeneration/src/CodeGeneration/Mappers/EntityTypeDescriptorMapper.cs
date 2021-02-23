@@ -14,11 +14,11 @@ namespace StrawberryShake.CodeGeneration.Mappers
         {
             foreach (var entityTypeDescriptor in CollectEntityTypes(model, context))
             {
-                context.Register(entityTypeDescriptor.GraphQLTypeName, entityTypeDescriptor);
+                context.Register(entityTypeDescriptor.Name, entityTypeDescriptor);
             }
         }
 
-        public static IEnumerable<EntityTypeDescriptor> CollectEntityTypes(
+        private static IEnumerable<EntityTypeDescriptor> CollectEntityTypes(
             ClientModel model,
             IMapperContext context)
         {
@@ -52,6 +52,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                         context.Namespace,
                         entityType.Value
                             .Select(name => context.Types.Single(t => t.Name.Equals(name)))
+                            .OfType<ComplexTypeDescriptor>()
                             .ToList());
                 }
             }

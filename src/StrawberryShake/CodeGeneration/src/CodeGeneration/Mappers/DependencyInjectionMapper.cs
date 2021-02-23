@@ -11,7 +11,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 new DependencyInjectionDescriptor(
                     context.ClientName,
                     context.Namespace,
-                    EntityTypeDescriptorMapper.CollectEntityTypes(model, context).ToList(),
+                    context.EntityTypes.ToList(),
                     context.Operations.ToList(),
                     context.Types));
         }

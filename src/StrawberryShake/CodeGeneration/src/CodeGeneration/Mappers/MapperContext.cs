@@ -8,7 +8,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
     {
         private readonly List<INamedTypeDescriptor> _types = new();
         private readonly Dictionary<NameString, EntityTypeDescriptor> _entityTypes = new();
-        private readonly Dictionary<NameString, DataTypeDescriptor> _dataTypes = new();
+        private readonly List<DataTypeDescriptor> _dataTypes = new();
         private readonly Dictionary<NameString, EnumTypeDescriptor> _enums = new();
         private readonly Dictionary<NameString, OperationDescriptor> _operations = new();
         private readonly Dictionary<NameString, ResultBuilderDescriptor> _resultBuilder = new();
@@ -103,11 +103,14 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 entityTypeDescriptor);
         }
 
-        public void Register(NameString codeTypeName, DataTypeDescriptor entityTypeDescriptor)
+        public void Register(IEnumerable<DataTypeDescriptor> dataTypeDescriptors)
         {
-            _dataTypes.Add(
-                codeTypeName,
-                entityTypeDescriptor);
+            if (_dataTypes.Count > 0)
+            {
+                throw new InvalidOperationException("The data types have already been registered.");
+            }
+
+            _dataTypes.AddRange(dataTypeDescriptors);
         }
 
         public void Register(NameString codeTypeName, EnumTypeDescriptor enumTypeDescriptor)

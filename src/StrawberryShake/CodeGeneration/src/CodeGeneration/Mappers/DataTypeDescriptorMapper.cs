@@ -11,18 +11,9 @@ namespace StrawberryShake.CodeGeneration.Mappers
 {
     public static class DataTypeDescriptorMapper
     {
-        public static void Map(
-            ClientModel model,
-            IMapperContext context)
+        public static void Map(ClientModel model, IMapperContext context)
         {
-            foreach (var dataTypeDescriptor in CollectDataTypes(
-                model,
-                context))
-            {
-                context.Register(
-                    dataTypeDescriptor.GraphQLTypeName,
-                    dataTypeDescriptor);
-            }
+            context.Register(CollectDataTypes(model, context));
         }
 
         private static IEnumerable<DataTypeDescriptor> CollectDataTypes(

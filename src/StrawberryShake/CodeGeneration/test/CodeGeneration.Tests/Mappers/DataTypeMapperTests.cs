@@ -51,12 +51,12 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
             // assert
             Assert.Collection(
-                context.DataTypes.OrderBy(t => t.Name),
+                context.DataTypes.OrderBy(t => t.RuntimeType),
                 type =>
                 {
                     Assert.Equal(
                         "CharacterConnectionData",
-                        type.Name);
+                        type.RuntimeType);
                     Assert.Equal(
                         "Foo.Bar.State",
                         type.Namespace);
@@ -86,7 +86,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 {
                     Assert.Equal(
                         "CharacterEdgeData",
-                        type.Name);
+                        type.RuntimeType);
                     Assert.Equal(
                         "Foo.Bar.State",
                         type.Namespace);
@@ -128,12 +128,12 @@ namespace StrawberryShake.CodeGeneration.Mappers
             // assert
 
             Assert.Collection(
-                context.DataTypes.OrderBy(t => t.Name),
+                context.DataTypes.OrderBy(t => t.RuntimeType),
                 type =>
                 {
                     Assert.Equal(
                         "AuthorData",
-                        type.Name);
+                        type.RuntimeType);
                     Assert.Equal(
                         "Foo.Bar.State",
                         type.Namespace);
@@ -157,7 +157,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 {
                     Assert.Equal(
                         "BookData",
-                        type.Name);
+                        type.RuntimeType);
                     Assert.Equal(
                         "Foo.Bar.State",
                         type.Namespace);
@@ -181,7 +181,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 {
                     Assert.Equal(
                         "ISearchResultData",
-                        type.Name);
+                        type.RuntimeType);
                     Assert.Equal(
                         "Foo.Bar.State",
                         type.Namespace);
@@ -213,12 +213,12 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
             // assert
             Assert.Collection(
-                context.DataTypes.OrderBy(t => t.Name),
+                context.DataTypes.OrderBy(t => t.RuntimeType),
                 type =>
                 {
                     Assert.Equal(
                         "BookData",
-                        type.Name);
+                        type.RuntimeType);
                     Assert.Equal(
                         "Foo.Bar.State",
                         type.Namespace);
@@ -242,7 +242,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 {
                     Assert.Equal(
                         "IPrintData",
-                        type.Name);
+                        type.RuntimeType);
                     Assert.Equal(
                         "Foo.Bar.State",
                         type.Namespace);
@@ -253,7 +253,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 {
                     Assert.Equal(
                         "ISearchResultData",
-                        type.Name);
+                        type.RuntimeType);
                     Assert.Equal(
                         "Foo.Bar.State",
                         type.Namespace);
@@ -264,7 +264,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 {
                     Assert.Equal(
                         "MagazineData",
-                        type.Name);
+                        type.RuntimeType);
                     Assert.Equal(
                         "Foo.Bar.State",
                         type.Namespace);

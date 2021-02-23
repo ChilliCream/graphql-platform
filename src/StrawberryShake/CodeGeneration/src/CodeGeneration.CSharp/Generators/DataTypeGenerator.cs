@@ -15,7 +15,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             out string fileName)
         {
             // Setup class
-            fileName = descriptor.Name;
+            fileName = descriptor.RuntimeType.Name;
             AbstractTypeBuilder typeBuilder;
             ConstructorBuilder? constructorBuilder = null;
 

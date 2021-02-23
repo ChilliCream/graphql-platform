@@ -384,7 +384,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         TypeKind.ComplexDataType => namedTypeDescriptor.ImplementedBy.Count > 1
                             ? namedTypeDescriptor.ComplexDataTypeParent!
                             : typeDescriptor.Name,
-                        TypeKind.EntityType => EntityTypeNameFromGraphQLTypeName(
+                        TypeKind.EntityType => CreateEntityTypeName(
                             typeDescriptor.Name),
                         _ => throw new ArgumentOutOfRangeException()
                     };
