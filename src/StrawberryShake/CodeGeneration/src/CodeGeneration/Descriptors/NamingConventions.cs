@@ -4,10 +4,10 @@ namespace StrawberryShake.CodeGeneration
 {
     public static class NamingConventions
     {
-        public static string ResultInfoNameFromTypeName(string typeName) =>
+        public static string CreateResultInfoName(string typeName) =>
             typeName + "Info";
 
-        public static string MutationServiceNameFromTypeName(string typeName) =>
+        public static string CreateMutationServiceName(string typeName) =>
             typeName + "Mutation";
 
         public static string SubscriptionServiceNameFromTypeName(string typeName) =>

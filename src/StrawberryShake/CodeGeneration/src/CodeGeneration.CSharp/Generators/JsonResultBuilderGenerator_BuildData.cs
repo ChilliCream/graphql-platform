@@ -9,7 +9,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
     public partial class JsonResultBuilderGenerator
     {
         private void AddBuildDataMethod(
-            ComplexTypeDescriptor resultNamedType,
+            InterfaceTypeDescriptor resultNamedType,
             ClassBuilder classBuilder)
         {
             var objParameter = "obj";
@@ -18,7 +18,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetName("BuildData")
                 .SetReturnType(
                     $"({resultNamedType.Name}, " +
-                    $"{ResultInfoNameFromTypeName(resultNamedType.ImplementedBy[0].Name)})")
+                    $"{CreateResultInfoName(resultNamedType.ImplementedBy.First().Name)})")
                 .AddParameter(
                     ParameterBuilder.New()
                         .SetType(TypeNames.JsonElement)
@@ -53,7 +53,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             var resultInfoConstructor = MethodCallBuilder.New()
                 .SetMethodName(
-                    $"new {ResultInfoNameFromTypeName(resultNamedType.ImplementedBy[0].Name)}")
+                    $"new {CreateResultInfoName(resultNamedType.ImplementedBy.First().Name)}")
                 .SetDetermineStatement(false);
 
             foreach (PropertyDescriptor property in resultNamedType.Properties)
