@@ -400,7 +400,7 @@ scalar Hsl
 """
 The `Hsla` scalar type represents a valid a Css Hsla color as defined here https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors.
 """
-scalar HslaColorCode
+scalar Hsla
 ```
 
 ## NegativeFloat
