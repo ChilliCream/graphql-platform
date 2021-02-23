@@ -227,7 +227,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 AddSingleton(
                     codeWriter,
                     TypeNames.ISerializer,
-                    EnumParserNameFromEnumName(enumType.Name));
+                    CreateEnumParserName(enumType.Name));
             }
 
             foreach (var serializer in _serializers)

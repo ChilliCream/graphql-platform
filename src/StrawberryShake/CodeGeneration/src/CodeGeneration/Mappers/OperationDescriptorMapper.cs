@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
@@ -16,7 +17,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 var arguments = modelOperation.Arguments.Select(
                     arg =>
                     {
-                        var typeName = arg.Type.TypeName();
+                        NameString typeName = arg.Type.TypeName();
 
                         INamedTypeDescriptor namedTypeDescriptor =
                             context.Types.Single(type => type.Name.Equals(typeName));
@@ -82,7 +83,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 case ListType lt:
                     return new ListTypeDescriptor(Rewrite(lt.InnerType(), namedTypeDescriptor));
 
-                case INamedType nt:
+                case INamedType:
                     return namedTypeDescriptor;
 
                 default:

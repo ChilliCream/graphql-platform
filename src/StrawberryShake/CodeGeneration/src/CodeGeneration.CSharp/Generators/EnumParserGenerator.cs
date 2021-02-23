@@ -1,5 +1,7 @@
 using System.Text;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
+using static StrawberryShake.CodeGeneration.NamingConventions;
+using static StrawberryShake.CodeGeneration.TypeNames;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -10,43 +12,44 @@ namespace StrawberryShake.CodeGeneration.CSharp
             EnumTypeDescriptor descriptor,
             out string fileName)
         {
-            fileName = NamingConventions.EnumParserNameFromEnumName(descriptor.Name);
+            fileName = CreateEnumParserName(descriptor.Name);
 
             ClassBuilder classBuilder = ClassBuilder
                 .New(fileName)
-                .AddImplements(TypeNames.IInputValueFormatter)
-                .AddImplements(
-                    TypeNames.ILeafValueParser.WithGeneric(TypeNames.String, descriptor.Name));
+                .AddImplements(IInputValueFormatter)
+                .AddImplements(ILeafValueParser.WithGeneric(String, descriptor.Name));
 
             const string serializedValueParamName = "serializedValue";
+
             classBuilder
                 .AddMethod("Parse")
                 .AddParameter(ParameterBuilder.New()
                     .SetName(serializedValueParamName)
-                    .SetType(TypeNames.String))
+                    .SetType(String))
                 .SetAccessModifier(AccessModifier.Public)
                 .SetReturnType(descriptor.Name)
                 .AddCode(CreateEnumParsingSwitch(serializedValueParamName, descriptor));
 
             const string runtimeValueParamName = "runtimeValue";
+            
             classBuilder
                 .AddMethod("Format")
                 .SetAccessModifier(AccessModifier.Public)
                 .SetReturnType("object")
                 .AddParameter(ParameterBuilder.New()
-                    .SetType(TypeNames.Object.MakeNullable())
+                    .SetType(Object.MakeNullable())
                     .SetName(runtimeValueParamName))
-                .AddCode(CreateEnumFormatingSwitch(runtimeValueParamName, descriptor));
+                .AddCode(CreateEnumFormattingSwitch(runtimeValueParamName, descriptor));
 
             classBuilder
                 .AddProperty("TypeName")
                 .AsLambda(descriptor.Name.AsStringToken())
                 .SetPublic()
-                .SetType(TypeNames.String);
+                .SetType(String);
 
             CodeFileBuilder
                 .New()
-                .SetNamespace(descriptor.Namespace)
+                .SetNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal)
                 .AddType(classBuilder)
                 .Build(writer);
         }
@@ -67,7 +70,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return CodeBlockBuilder.From(sourceText);
         }
 
-        private CodeBlockBuilder CreateEnumFormatingSwitch(
+        private CodeBlockBuilder CreateEnumFormattingSwitch(
             string paramName,
             EnumTypeDescriptor descriptor)
         {

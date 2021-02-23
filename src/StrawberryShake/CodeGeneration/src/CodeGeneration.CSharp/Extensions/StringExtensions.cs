@@ -19,6 +19,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return str + "<" + string.Join(", ", generics) + ">";
         }
 
+        public static string WithGeneric(this RuntimeTypeInfo typeInfo, params string[] generics)
+        {
+            return typeInfo + "<" + string.Join(", ", generics) + ">";
+        }
+
         public static string MakeNullable(this string str)
         {
             return str + "?";

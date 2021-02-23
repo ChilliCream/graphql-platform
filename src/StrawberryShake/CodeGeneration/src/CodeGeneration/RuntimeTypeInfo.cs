@@ -11,6 +11,11 @@ namespace StrawberryShake.CodeGeneration
             Name = parts.Last();
             Namespace = string.Join(".", parts.Take(parts.Length - 1));
             IsValueType = isValueType;
+
+            if (!Namespace.StartsWith("global::"))
+            {
+                Namespace = "global::" + Namespace;
+            }
         }
 
         public RuntimeTypeInfo(string name, string @namespace, bool isValueType = false)
@@ -18,11 +23,19 @@ namespace StrawberryShake.CodeGeneration
             Name = name;
             Namespace = @namespace;
             IsValueType = isValueType;
+
+            if (!Namespace.StartsWith("global::"))
+            {
+                Namespace = "global::" + Namespace;
+            }
         }
 
         public string Name { get; }
 
         public string Namespace { get; }
+
+        public string NamespaceWithoutGlobal =>
+            Namespace.Replace("global::", string.Empty);
 
         public bool IsValueType { get; }
 

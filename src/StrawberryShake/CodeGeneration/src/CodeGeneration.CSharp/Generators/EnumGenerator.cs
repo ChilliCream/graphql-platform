@@ -13,7 +13,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             EnumBuilder enumBuilder =
                 EnumBuilder
                     .New()
-                    .SetName(fileName)
+                    .SetName(descriptor.RuntimeType.Name)
                     .SetUnderlyingType(descriptor.UnderlyingType);
 
             foreach (EnumValueDescriptor element in descriptor.Values)
@@ -23,7 +23,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             CodeFileBuilder
                 .New()
-                .SetNamespace(descriptor.Namespace)
+                .SetNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal)
                 .AddType(enumBuilder)
                 .Build(writer);
         }

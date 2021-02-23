@@ -44,8 +44,8 @@ namespace StrawberryShake.CodeGeneration
         public static string DataTypeNameFromTypeName(string typeName) =>
             typeName + "Data";
 
-        public static string EnumParserNameFromEnumName(in NameString descriptorName) =>
-            descriptorName.Value + "Serializer";
+        public static string CreateEnumParserName(string enumTypeName) =>
+            enumTypeName + "Serializer";
 
         public static string ServiceCollectionExtensionsFromClientName(string clientName) =>
             clientName + "ServiceCollectionExtensions";

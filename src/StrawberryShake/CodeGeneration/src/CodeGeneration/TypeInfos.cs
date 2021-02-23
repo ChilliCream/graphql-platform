@@ -102,11 +102,13 @@ namespace StrawberryShake.CodeGeneration
             { TimeSpanSerializer, new RuntimeTypeInfo(TimeSpanSerializer) }
         };
 
-        public static RuntimeTypeInfo From(string fullTypeName) => _infos[fullTypeName];
+        public static RuntimeTypeInfo From(string fullTypeName) =>
+            _infos[fullTypeName];
+
         public static RuntimeTypeInfo New(
-            string name, 
-            string @namespace, 
-            bool isValueType = false) => 
-            new RuntimeTypeInfo(name, @namespace, isValueType);
+            string name,
+            string @namespace,
+            bool isValueType = false) =>
+            new(name, @namespace, isValueType);
     }
 }

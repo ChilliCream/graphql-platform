@@ -3,11 +3,9 @@ using StrawberryShake.CodeGeneration.Analyzers.Models;
 
 namespace StrawberryShake.CodeGeneration.Mappers
 {
-    public class DependencyInjectionMapper
+    public static class DependencyInjectionMapper
     {
-        public static void Map(
-            ClientModel model,
-            IMapperContext context)
+        public static void Map(ClientModel model, IMapperContext context)
         {
             context.Register(
                 new DependencyInjectionDescriptor(

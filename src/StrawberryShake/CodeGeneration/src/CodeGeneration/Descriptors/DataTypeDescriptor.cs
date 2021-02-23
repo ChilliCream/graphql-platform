@@ -5,7 +5,7 @@ using HotChocolate;
 
 namespace StrawberryShake.CodeGeneration
 {
-    public class DataTypeDescriptor: ICodeDescriptor
+    public class DataTypeDescriptor : ICodeDescriptor
     {
         /// <summary>
         /// Describes the DataType
@@ -19,10 +19,12 @@ namespace StrawberryShake.CodeGeneration
         /// <param name="operationTypes">
         /// The types that are subsets of the DataType represented by this descriptor.
         /// </param>
+        /// <param name="implements"></param>
+        /// <param name="isInterface"></param>
         public DataTypeDescriptor(
             NameString graphQLTypeName,
             string @namespace,
-            IReadOnlyList<NamedTypeDescriptor> operationTypes,
+            IReadOnlyList<ComplexTypeDescriptor> operationTypes,
             IReadOnlyList<string> implements,
             bool isInterface = false)
         {
@@ -39,8 +41,7 @@ namespace StrawberryShake.CodeGeneration
                             namedTypeReferenceDescriptor.Name,
                             new PropertyDescriptor(
                                 namedTypeReferenceDescriptor.Name,
-                                nonNull.InnerType)
-                            );
+                                nonNull.InnerType));
                     }
                     else
                     {
@@ -59,7 +60,7 @@ namespace StrawberryShake.CodeGeneration
             IsInterface = isInterface;
         }
 
-        public bool IsInterface { get; set; }
+        public bool IsInterface { get; }
 
         /// <summary>
         /// Gets the entity name.

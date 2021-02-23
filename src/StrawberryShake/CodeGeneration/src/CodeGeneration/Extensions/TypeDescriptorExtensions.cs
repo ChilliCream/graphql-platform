@@ -13,7 +13,8 @@ namespace StrawberryShake.CodeGeneration.Extensions
             typeDescriptor.Kind == TypeKind.EntityType;
 
         public static bool IsDataType(this ITypeDescriptor typeDescriptor) =>
-            typeDescriptor.Kind == TypeKind.DataType || typeDescriptor.Kind == TypeKind.ComplexDataType;
+            typeDescriptor.Kind == TypeKind.DataType ||
+            typeDescriptor.Kind == TypeKind.ComplexDataType;
 
         public static bool ContainsEntity(this ITypeDescriptor typeDescriptor)
         {
