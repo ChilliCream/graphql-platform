@@ -20,7 +20,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
         /// <value></value>
         string StateNamespace { get; }
 
-        IReadOnlyCollection<INamedTypeDescriptor> Types { get; }
+        IReadOnlyList<INamedTypeDescriptor> Types { get; }
 
         IReadOnlyCollection<EntityTypeDescriptor> EntityTypes { get; }
 

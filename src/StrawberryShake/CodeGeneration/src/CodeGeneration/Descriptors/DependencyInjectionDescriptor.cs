@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate;
 
 namespace StrawberryShake.CodeGeneration
@@ -13,15 +14,14 @@ namespace StrawberryShake.CodeGeneration
             string @namespace,
             IReadOnlyList<EntityTypeDescriptor> entities,
             List<OperationDescriptor> operations,
-            IReadOnlyList<ITypeDescriptor> typeDescriptors,
-            IReadOnlyList<EnumTypeDescriptor> enumTypeDescriptor)
+            IReadOnlyList<ITypeDescriptor> typeDescriptors)
         {
             Name = name;
             Namespace = @namespace;
             Entities = entities;
             Operations = operations;
             TypeDescriptors = typeDescriptors;
-            EnumTypeDescriptor = enumTypeDescriptor;
+            EnumTypeDescriptor = typeDescriptors.OfType<EnumTypeDescriptor>().ToList();;
         }
 
         /// <summary>

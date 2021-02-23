@@ -27,7 +27,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
         public string Namespace { get; }
         public string StateNamespace => Namespace + ".State";
 
-        public IReadOnlyCollection<NamedTypeDescriptor> Types => _types;
+        public IReadOnlyList<INamedTypeDescriptor> Types => _types;
 
         public IReadOnlyCollection<EntityTypeDescriptor> EntityTypes => _entityTypes.Values;
         public IReadOnlyCollection<DataTypeDescriptor> DataTypes => _dataTypes.Values;
@@ -46,8 +46,6 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
         public DependencyInjectionDescriptor DependencyInjection =>
             _dependencyInjectionDescriptor ?? throw new NotImplementedException();
-
-        IReadOnlyCollection<INamedTypeDescriptor> IMapperContext.Types => throw new NotImplementedException();
 
         public IEnumerable<ICodeDescriptor> GetAllDescriptors()
         {

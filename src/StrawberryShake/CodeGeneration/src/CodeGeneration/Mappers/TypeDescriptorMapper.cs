@@ -16,7 +16,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
             context.Register(CollectTypeDescriptors(model, context));
         }
 
-        public static IEnumerable<INamedTypeDescriptor> CollectTypeDescriptors(
+        private static IEnumerable<INamedTypeDescriptor> CollectTypeDescriptors(
             ClientModel model,
             IMapperContext context)
         {

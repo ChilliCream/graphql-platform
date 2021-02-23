@@ -9,9 +9,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
 {
     public static class OperationDescriptorMapper
     {
-        public static void Map(
-            ClientModel model,
-            IMapperContext context)
+        public static void Map(ClientModel model, IMapperContext context)
         {
             foreach (OperationModel modelOperation in model.Operations)
             {

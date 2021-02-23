@@ -15,11 +15,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     context.Namespace,
                     EntityTypeDescriptorMapper.CollectEntityTypes(model, context).ToList(),
                     context.Operations.ToList(),
-                    TypeDescriptorMapper
-                        .CollectTypeDescriptors(model, context)
-                        .Select(x => x.Item2)
-                        .ToList(),
-                    EnumDescriptorMapper.CollectEnumDescriptors(model, context).ToList()));
+                    context.Types));
         }
     }
 }

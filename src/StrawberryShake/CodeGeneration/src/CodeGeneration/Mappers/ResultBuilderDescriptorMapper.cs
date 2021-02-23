@@ -6,13 +6,13 @@ namespace StrawberryShake.CodeGeneration.Mappers
 {
     public class ResultBuilderDescriptorMapper
     {
-        public static void Map(
-            ClientModel model,
-            IMapperContext context)
+        public static void Map(ClientModel model, IMapperContext context)
         {
             foreach (OperationModel modelOperation in model.Operations)
             {
-                var resultTypeName = ResultRootTypeNameFromTypeName(modelOperation.ResultType.Name);
+                var resultTypeName = 
+                    ResultRootTypeNameFromTypeName(modelOperation.ResultType.Name);
+
                 context.Register(
                     modelOperation.Name,
                     new ResultBuilderDescriptor(
