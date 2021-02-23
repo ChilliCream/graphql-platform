@@ -3,9 +3,9 @@ namespace HotChocolate.Types
     internal static class WellKnownScalarTypes
     {
         public const string EmailAddress = nameof(EmailAddress);
-        public const string HexColorCode = nameof(HexColorCode);
-        public const string HslColorCode = nameof(HslColorCode);
-        public const string HslaColorCode = nameof(HslaColorCode);
+        public const string Hex = nameof(Hex);
+        public const string Hsl = nameof(Hsl);
+        public const string Hsla = nameof(Hsla);
         public const string NegativeFloat = nameof(NegativeFloat);
         public const string NegativeInt = nameof(NegativeInt);
         public const string NonEmptyString = nameof(NonEmptyString);

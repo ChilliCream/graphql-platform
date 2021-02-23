@@ -69,39 +69,39 @@ namespace HotChocolate.Types.Scalars {
             }
         }
         
-        internal static string HexColorCodeType_Description {
+        internal static string HexType_Description {
             get {
-                return ResourceManager.GetString("HexColorCodeType_Description", resourceCulture);
+                return ResourceManager.GetString("HexType_Description", resourceCulture);
             }
         }
         
-        internal static string HexColorCodeType_IsInvalid_ParseLiteral {
+        internal static string HexType_IsInvalid_ParseLiteral {
             get {
-                return ResourceManager.GetString("HexColorCodeType_IsInvalid_ParseLiteral", resourceCulture);
+                return ResourceManager.GetString("HexType_IsInvalid_ParseLiteral", resourceCulture);
             }
         }
         
-        internal static string HexColorCodeType_IsInvalid_ParseValue {
+        internal static string HexType_IsInvalid_ParseValue {
             get {
-                return ResourceManager.GetString("HexColorCodeType_IsInvalid_ParseValue", resourceCulture);
+                return ResourceManager.GetString("HexType_IsInvalid_ParseValue", resourceCulture);
             }
         }
         
-        internal static string HexColorCodeType_ValidationPattern {
+        internal static string HexType_ValidationPattern {
             get {
-                return ResourceManager.GetString("HexColorCodeType_ValidationPattern", resourceCulture);
+                return ResourceManager.GetString("HexType_ValidationPattern", resourceCulture);
             }
         }
         
-        internal static string HslColorCodeType_Description {
+        internal static string HslType_Description {
             get {
-                return ResourceManager.GetString("HslColorCodeType_Description", resourceCulture);
+                return ResourceManager.GetString("HslType_Description", resourceCulture);
             }
         }
         
-        internal static string HslColorCodeType_IsInvalid_ParseLiteral {
+        internal static string HslType_IsInvalid_ParseLiteral {
             get {
-                return ResourceManager.GetString("HslColorCodeType_IsInvalid_ParseLiteral", resourceCulture);
+                return ResourceManager.GetString("HslType_IsInvalid_ParseLiteral", resourceCulture);
             }
         }
         
@@ -111,27 +111,27 @@ namespace HotChocolate.Types.Scalars {
             }
         }
         
-        internal static string HslColorCodeType_ValidationPattern {
+        internal static string HslType_ValidationPattern {
             get {
-                return ResourceManager.GetString("HslColorCodeType_ValidationPattern", resourceCulture);
+                return ResourceManager.GetString("HslType_ValidationPattern", resourceCulture);
             }
         }
         
-        internal static string HslaColorCodeType_Description {
+        internal static string HslaType_Description {
             get {
-                return ResourceManager.GetString("HslaColorCodeType_Description", resourceCulture);
+                return ResourceManager.GetString("HslaType_Description", resourceCulture);
             }
         }
         
-        internal static string HslaColorCodeType_IsInvalid_ParseLiteral {
+        internal static string HslaType_IsInvalid_ParseLiteral {
             get {
-                return ResourceManager.GetString("HslaColorCodeType_IsInvalid_ParseLiteral", resourceCulture);
+                return ResourceManager.GetString("HslaType_IsInvalid_ParseLiteral", resourceCulture);
             }
         }
         
-        internal static string HslaColorCodeType_IsInvalid_ParseValue {
+        internal static string HslaType_IsInvalid_ParseValue {
             get {
-                return ResourceManager.GetString("HslaColorCodeType_IsInvalid_ParseValue", resourceCulture);
+                return ResourceManager.GetString("HslaType_IsInvalid_ParseValue", resourceCulture);
             }
         }
         

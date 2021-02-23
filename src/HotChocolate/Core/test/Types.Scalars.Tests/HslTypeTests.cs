@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Scalars
         public void Schema_WithScalar_IsMatch()
         {
             // arrange
-            ISchema schema = BuildSchema<HslColorCodeType>();
+            ISchema schema = BuildSchema<HslType>();
 
             // act
             // assert
@@ -44,7 +44,7 @@ namespace HotChocolate.Types.Scalars
 
             // act
             // assert
-            ExpectIsInstanceOfTypeToMatch<HslColorCodeType>(valueNode, expected);
+            ExpectIsInstanceOfTypeToMatch<HslType>(valueNode, expected);
         }
 
         [Theory]
@@ -68,7 +68,7 @@ namespace HotChocolate.Types.Scalars
             // arrange
             // act
             // assert
-            ExpectIsInstanceOfTypeToMatch<HslColorCodeType>(value, expected);
+            ExpectIsInstanceOfTypeToMatch<HslType>(value, expected);
         }
 
         [Theory]
@@ -92,7 +92,7 @@ namespace HotChocolate.Types.Scalars
 
             // act
             // assert
-            ExpectParseLiteralToMatch<HslColorCodeType>(valueNode, expected);
+            ExpectParseLiteralToMatch<HslType>(valueNode, expected);
         }
 
         [Theory]
@@ -113,7 +113,7 @@ namespace HotChocolate.Types.Scalars
 
             // act
             // assert
-            ExpectParseLiteralToThrowSerializationException<HslColorCodeType>(valueNode);
+            ExpectParseLiteralToThrowSerializationException<HslType>(valueNode);
         }
 
         [Theory]
@@ -134,7 +134,7 @@ namespace HotChocolate.Types.Scalars
             // arrange
             // act
             // assert
-            ExpectDeserializeToMatch<HslColorCodeType>(resultValue, runtimeValue);
+            ExpectDeserializeToMatch<HslType>(resultValue, runtimeValue);
         }
 
         [Theory]
@@ -152,7 +152,7 @@ namespace HotChocolate.Types.Scalars
             // arrange
             // act
             // assert
-            ExpectDeserializeToThrowSerializationException<HslColorCodeType>(value);
+            ExpectDeserializeToThrowSerializationException<HslType>(value);
         }
 
         [Theory]
@@ -173,7 +173,7 @@ namespace HotChocolate.Types.Scalars
             // arrange
             // act
             // assert
-            ExpectSerializeToMatch<HslColorCodeType>(runtimeValue, resultValue);
+            ExpectSerializeToMatch<HslType>(runtimeValue, resultValue);
         }
 
         [Theory]
@@ -191,7 +191,7 @@ namespace HotChocolate.Types.Scalars
             // arrange
             // act
             // assert
-            ExpectSerializeToThrowSerializationException<HslColorCodeType>(value);
+            ExpectSerializeToThrowSerializationException<HslType>(value);
         }
     }
 }

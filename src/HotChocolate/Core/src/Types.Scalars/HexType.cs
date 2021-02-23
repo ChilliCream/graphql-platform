@@ -4,30 +4,30 @@ using HotChocolate.Language;
 namespace HotChocolate.Types.Scalars
 {
     /// <summary>
-    /// The HexColorCode scalar type represents a valid hex color code.
+    /// The Hex scalar type represents a valid hex color code.
     /// </summary>
-    public class HexColorCodeType : StringType
+    public class HexType : StringType
     {
         private static readonly string _validationPattern =
-            ScalarResources.HexColorCodeType_ValidationPattern;
+            ScalarResources.HexType_ValidationPattern;
 
         private static readonly Regex _validationRegex =
             new(_validationPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="HexColorCodeType"/> class.
+        /// Initializes a new instance of the <see cref="HexType"/> class.
         /// </summary>
-        public HexColorCodeType()
+        public HexType()
             : this(
-                WellKnownScalarTypes.HexColorCode,
-                ScalarResources.HexColorCodeType_Description)
+                WellKnownScalarTypes.Hex,
+                ScalarResources.HexType_Description)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="HexColorCodeType"/> class.
+        /// Initializes a new instance of the <see cref="HexType"/> class.
         /// </summary>
-        public HexColorCodeType(
+        public HexType(
             NameString name,
             string? description = null,
             BindingBehavior bind = BindingBehavior.Explicit)
@@ -53,7 +53,7 @@ namespace HotChocolate.Types.Scalars
         {
             if(!_validationRegex.IsMatch(valueSyntax.Value))
             {
-                throw ThrowHelper.HexColorCodeType_ParseLiteral_IsInvalid(this);
+                throw ThrowHelper.HexType_ParseLiteral_IsInvalid(this);
             }
 
             return base.ParseLiteral(valueSyntax);
@@ -64,7 +64,7 @@ namespace HotChocolate.Types.Scalars
         {
             if(!_validationRegex.IsMatch(runtimeValue))
             {
-                throw ThrowHelper.HexColorCodeType_ParseValue_IsInvalid(this);
+                throw ThrowHelper.HexType_ParseValue_IsInvalid(this);
             }
 
             return base.ParseValue(runtimeValue);

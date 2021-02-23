@@ -4,31 +4,31 @@ using HotChocolate.Language;
 namespace HotChocolate.Types.Scalars
 {
     /// <summary>
-    /// The `HslaColorCode` scalar type represents a valid a CSS HSLA color as defined
+    /// The `Hsl` scalar type represents a valid a Css Hsl color as defined
     /// here https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors.
     /// </summary>
-    public class HslaColorCodeType : StringType
+    public class HslType : StringType
     {
         private static readonly string _validationPattern =
-            ScalarResources.HslColorCodeType_ValidationPattern;
+            ScalarResources.HslType_ValidationPattern;
 
-        private static readonly Regex _validationRegex =
+        protected static readonly Regex ValidationRegex =
             new(_validationPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="HslaColorCodeType"/> class.
+        /// Initializes a new instance of the <see cref="HslType"/> class.
         /// </summary>
-        public HslaColorCodeType()
+        public HslType()
             : this(
-                WellKnownScalarTypes.HslaColorCode,
-                ScalarResources.HslaColorCodeType_Description)
+                WellKnownScalarTypes.Hsl,
+                ScalarResources.HslType_Description)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="HslaColorCodeType"/> class.
+        /// Initializes a new instance of the <see cref="HslType"/> class.
         /// </summary>
-        public HslaColorCodeType(
+        public HslType(
             NameString name,
             string? description = null,
             BindingBehavior bind = BindingBehavior.Explicit)
@@ -40,21 +40,21 @@ namespace HotChocolate.Types.Scalars
         /// <inheritdoc />
         protected override bool IsInstanceOfType(string runtimeValue)
         {
-            return _validationRegex.IsMatch(runtimeValue);
+            return ValidationRegex.IsMatch(runtimeValue);
         }
 
         /// <inheritdoc />
         protected override bool IsInstanceOfType(StringValueNode valueSyntax)
         {
-            return _validationRegex.IsMatch(valueSyntax.Value);
+            return ValidationRegex.IsMatch(valueSyntax.Value);
         }
 
         /// <inheritdoc />
         protected override string ParseLiteral(StringValueNode valueSyntax)
         {
-            if (!_validationRegex.IsMatch(valueSyntax.Value))
+            if (!ValidationRegex.IsMatch(valueSyntax.Value))
             {
-                throw ThrowHelper.HslaColorCodeType_ParseLiteral_IsInvalid(this);
+                throw ThrowHelper.HslType_ParseLiteral_IsInvalid(this);
             }
 
             return base.ParseLiteral(valueSyntax);
@@ -63,9 +63,9 @@ namespace HotChocolate.Types.Scalars
         /// <inheritdoc />
         protected override StringValueNode ParseValue(string runtimeValue)
         {
-            if (!_validationRegex.IsMatch(runtimeValue))
+            if (!ValidationRegex.IsMatch(runtimeValue))
             {
-                throw ThrowHelper.HslaColorCodeType_ParseValue_IsInvalid(this);
+                throw ThrowHelper.HslType_ParseValue_IsInvalid(this);
             }
 
             return base.ParseValue(runtimeValue);
@@ -81,7 +81,7 @@ namespace HotChocolate.Types.Scalars
             }
 
             if (runtimeValue is string s &&
-                _validationRegex.IsMatch(s))
+                ValidationRegex.IsMatch(s))
             {
                 resultValue = s;
                 return true;
@@ -101,7 +101,7 @@ namespace HotChocolate.Types.Scalars
             }
 
             if (resultValue is string s &&
-                _validationRegex.IsMatch(s))
+                ValidationRegex.IsMatch(s))
             {
                 runtimeValue = s;
                 return true;

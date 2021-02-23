@@ -72,38 +72,38 @@
   <data name="EmailAddressType_ValidationPattern" xml:space="preserve">
     <value>(?:[a-z0-9!#$%&amp;'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&amp;'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])</value>
   </data>
-  <data name="HexColorCodeType_Description" xml:space="preserve">
-    <value>The HexColorCode scalar type represents a valid hex color code.</value>
+  <data name="HexType_Description" xml:space="preserve">
+    <value>The Hex scalar type represents a valid Hex color code.</value>
   </data>
-  <data name="HexColorCodeType_IsInvalid_ParseLiteral" xml:space="preserve">
-    <value>HexColorCodeType cannot parse the provided literal. The provided value is not a valid Hex color code.</value>
+  <data name="HexType_IsInvalid_ParseLiteral" xml:space="preserve">
+    <value>HexType cannot parse the provided literal. The provided value is not a valid Hex color code.</value>
   </data>
-  <data name="HexColorCodeType_IsInvalid_ParseValue" xml:space="preserve">
-    <value>HexColorCodeType cannot parse the provided value. The provided value is not a valid Hex color code.</value>
+  <data name="HexType_IsInvalid_ParseValue" xml:space="preserve">
+    <value>HexType cannot parse the provided value. The provided value is not a valid Hex color code.</value>
   </data>
-  <data name="HexColorCodeType_ValidationPattern" xml:space="preserve">
+  <data name="HexType_ValidationPattern" xml:space="preserve">
     <value>(^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3}|[A-Fa-f0-9]{8})$)</value>
   </data>
-  <data name="HslColorCodeType_Description" xml:space="preserve">
-    <value>The HslColorCode scalar type represents a a valid a CSS HSL color defined here https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors.</value>
+  <data name="HslType_Description" xml:space="preserve">
+    <value>The Hsl scalar type represents a a valid a CSS HSL color defined here https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors.</value>
   </data>
-  <data name="HslColorCodeType_IsInvalid_ParseLiteral" xml:space="preserve">
-    <value>HslColorCodeType cannot parse the provided literal. The provided value is not a valid CSS HSL color code.</value>
+  <data name="HslType_IsInvalid_ParseLiteral" xml:space="preserve">
+    <value>HslType cannot parse the provided literal. The provided value is not a valid Css Hsl color code.</value>
   </data>
   <data name="HslColorCodeType_IsInvalid_ParseValue" xml:space="preserve">
-    <value>HslColorCodeType cannot parse the provided value. The provided value is not a valid CSS HSL color code.</value>
+    <value>HslType cannot parse the provided value. The provided value is not a valid Css Hsl color code.</value>
   </data>
-  <data name="HslColorCodeType_ValidationPattern" xml:space="preserve">
+  <data name="HslType_ValidationPattern" xml:space="preserve">
     <value>(^(?:hsla?)\((?:\d+%?(?:deg|rad|grad|turn)?(?:,|\s)+){2,3}[\s\/]*[\d\.]+%?\))</value>
   </data>
-  <data name="HslaColorCodeType_Description" xml:space="preserve">
-    <value>The HslaColorCode scalar type represents a a valid a CSS HSLA color as defined here https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors.</value>
+  <data name="HslaType_Description" xml:space="preserve">
+    <value>The Hsla scalar type represents a a valid a CSS HSLA color as defined here https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors.</value>
   </data>
-  <data name="HslaColorCodeType_IsInvalid_ParseLiteral" xml:space="preserve">
-    <value>HslaColorCodeType cannot parse the provided literal. The provided value is not a valid CSS HSLA color code.</value>
+  <data name="HslaType_IsInvalid_ParseLiteral" xml:space="preserve">
+    <value>HslaType cannot parse the provided literal. The provided value is not a valid Css Hsla color code.</value>
   </data>
-  <data name="HslaColorCodeType_IsInvalid_ParseValue" xml:space="preserve">
-    <value>HslaColorCodeType cannot parse the provided value. The provided value is not a valid CSS HSLA color code.</value>
+  <data name="HslaType_IsInvalid_ParseValue" xml:space="preserve">
+    <value>HslaType cannot parse the provided value. The provided value is not a valid Css Hsla color code.</value>
   </data>
   <data name="NegativeFloatType_Description" xml:space="preserve">
     <value>The NegativeFloat scalar type represents a double‐precision fractional value less than 0.</value>

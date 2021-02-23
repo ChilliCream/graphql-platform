@@ -13,68 +13,68 @@ namespace HotChocolate.Types.Scalars
                 type);
         }
 
-        public static SerializationException HexColorCodeType_ParseValue_IsInvalid(IType type)
+        public static SerializationException HexType_ParseValue_IsInvalid(IType type)
         {
             return new SerializationException(
                 ErrorBuilder.New()
-                    .SetMessage(ScalarResources.HexColorCodeType_IsInvalid_ParseValue)
+                    .SetMessage(ScalarResources.HexType_IsInvalid_ParseValue)
                     .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                    .SetExtension("actualType", WellKnownScalarTypes.HexColorCode)
+                    .SetExtension("actualType", WellKnownScalarTypes.Hex)
                     .Build(),
                 type);
         }
 
-        public static SerializationException HexColorCodeType_ParseLiteral_IsInvalid(IType type)
+        public static SerializationException HexType_ParseLiteral_IsInvalid(IType type)
         {
             return new SerializationException(
                 ErrorBuilder.New()
-                    .SetMessage(ScalarResources.HexColorCodeType_IsInvalid_ParseLiteral)
+                    .SetMessage(ScalarResources.HexType_IsInvalid_ParseLiteral)
                     .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
-                    .SetExtension("actualType", WellKnownScalarTypes.HexColorCode)
+                    .SetExtension("actualType", WellKnownScalarTypes.Hex)
                     .Build(),
                 type);
         }
 
-        public static SerializationException HslColorCodeType_ParseValue_IsInvalid(IType type)
+        public static SerializationException HslType_ParseValue_IsInvalid(IType type)
         {
             return new SerializationException(
                 ErrorBuilder.New()
                     .SetMessage(ScalarResources.HslColorCodeType_IsInvalid_ParseValue)
                     .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                    .SetExtension("actualType", WellKnownScalarTypes.HslColorCode)
+                    .SetExtension("actualType", WellKnownScalarTypes.Hsl)
                     .Build(),
                 type);
         }
 
-        public static SerializationException HslColorCodeType_ParseLiteral_IsInvalid(IType type)
+        public static SerializationException HslType_ParseLiteral_IsInvalid(IType type)
         {
             return new SerializationException(
                 ErrorBuilder.New()
-                    .SetMessage(ScalarResources.HslColorCodeType_IsInvalid_ParseLiteral)
+                    .SetMessage(ScalarResources.HslType_IsInvalid_ParseLiteral)
                     .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
-                    .SetExtension("actualType", WellKnownScalarTypes.HslColorCode)
+                    .SetExtension("actualType", WellKnownScalarTypes.Hsl)
                     .Build(),
                 type);
         }
 
-        public static SerializationException HslaColorCodeType_ParseValue_IsInvalid(IType type)
+        public static SerializationException HslaType_ParseValue_IsInvalid(IType type)
         {
             return new SerializationException(
                 ErrorBuilder.New()
-                    .SetMessage(ScalarResources.HslaColorCodeType_IsInvalid_ParseValue)
+                    .SetMessage(ScalarResources.HslaType_IsInvalid_ParseValue)
                     .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                    .SetExtension("actualType", WellKnownScalarTypes.HslaColorCode)
+                    .SetExtension("actualType", WellKnownScalarTypes.Hsla)
                     .Build(),
                 type);
         }
 
-        public static SerializationException HslaColorCodeType_ParseLiteral_IsInvalid(IType type)
+        public static SerializationException HslaType_ParseLiteral_IsInvalid(IType type)
         {
             return new SerializationException(
                 ErrorBuilder.New()
-                    .SetMessage(ScalarResources.HslaColorCodeType_IsInvalid_ParseLiteral)
+                    .SetMessage(ScalarResources.HslaType_IsInvalid_ParseLiteral)
                     .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
-                    .SetExtension("actualType", WellKnownScalarTypes.HslaColorCode)
+                    .SetExtension("actualType", WellKnownScalarTypes.Hsla)
                     .Build(),
                 type);
         }
