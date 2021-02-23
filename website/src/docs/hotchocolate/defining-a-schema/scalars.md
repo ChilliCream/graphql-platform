@@ -490,3 +490,11 @@ The UnsignedInt scalar type represents a unsigned 32‐bit numeric non‐fractio
 """
 scalar UnsignedInt
 ```
+
+## IPv4
+```sdl
+"""
+The `IPv4` scalar type represents a valid a IPv4 address as defined here https://en.wikipedia.org/wiki/IPv4.
+"""
+scalar IPv4
+```
