@@ -7,7 +7,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
     public class MapperContext : IMapperContext
     {
         private readonly List<INamedTypeDescriptor> _types = new();
-        private readonly Dictionary<NameString, EntityTypeDescriptor> _entityTypes = new();
+        private readonly List<EntityTypeDescriptor> _entityTypes = new();
         private readonly List<DataTypeDescriptor> _dataTypes = new();
         private readonly Dictionary<NameString, EnumTypeDescriptor> _enums = new();
         private readonly Dictionary<NameString, OperationDescriptor> _operations = new();
@@ -16,9 +16,9 @@ namespace StrawberryShake.CodeGeneration.Mappers
         private EntityIdFactoryDescriptor? _entityIdFactory;
         private DependencyInjectionDescriptor? _dependencyInjectionDescriptor;
 
-        public MapperContext(string ns, string clientName)
+        public MapperContext(string @namespace, string clientName)
         {
-            Namespace = ns;
+            Namespace = @namespace;
             ClientName = clientName;
         }
 
@@ -29,10 +29,9 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
         public IReadOnlyList<INamedTypeDescriptor> Types => _types;
 
-        public IReadOnlyCollection<EntityTypeDescriptor> EntityTypes => _entityTypes.Values;
-        public IReadOnlyCollection<DataTypeDescriptor> DataTypes => _dataTypes.Values;
+        public IReadOnlyCollection<DataTypeDescriptor> DataTypes => _dataTypes;
 
-        public IReadOnlyCollection<EnumTypeDescriptor> EnumTypes => _enums.Values;
+        public IReadOnlyCollection<EntityTypeDescriptor> EntityTypes => _entityTypes;
 
         public IReadOnlyCollection<OperationDescriptor> Operations => _operations.Values;
 
@@ -52,11 +51,6 @@ namespace StrawberryShake.CodeGeneration.Mappers
             foreach (var entityTypeDescriptor in EntityTypes)
             {
                 yield return entityTypeDescriptor;
-            }
-
-            foreach (var enumTypeDescriptor in EnumTypes)
-            {
-                yield return enumTypeDescriptor;
             }
 
             foreach (var type in Types)
@@ -90,34 +84,33 @@ namespace StrawberryShake.CodeGeneration.Mappers
         {
             if (_types.Count > 0)
             {
-                throw new InvalidOperationException("The types have already been registered.");
+                throw new InvalidOperationException(
+                    "The types have already been registered.");
             }
 
             _types.AddRange(typeDescriptors);
-        }
-
-        public void Register(NameString codeTypeName, EntityTypeDescriptor entityTypeDescriptor)
-        {
-            _entityTypes.Add(
-                codeTypeName,
-                entityTypeDescriptor);
         }
 
         public void Register(IEnumerable<DataTypeDescriptor> dataTypeDescriptors)
         {
             if (_dataTypes.Count > 0)
             {
-                throw new InvalidOperationException("The data types have already been registered.");
+                throw new InvalidOperationException(
+                    "The data types have already been registered.");
             }
 
             _dataTypes.AddRange(dataTypeDescriptors);
         }
 
-        public void Register(NameString codeTypeName, EnumTypeDescriptor enumTypeDescriptor)
+        public void Register(IEnumerable<EntityTypeDescriptor> entityTypeDescriptor)
         {
-            _enums.Add(
-                codeTypeName.EnsureNotEmpty(nameof(codeTypeName)),
-                enumTypeDescriptor ?? throw new ArgumentNullException(nameof(enumTypeDescriptor)));
+            if (_entityTypes.Count > 0)
+            {
+                throw new InvalidOperationException(
+                    "The entity types have already been registered.");
+            }
+
+            _entityTypes.AddRange(entityTypeDescriptor);
         }
 
         public void Register(NameString operationName, OperationDescriptor operationDescriptor)
@@ -150,7 +143,5 @@ namespace StrawberryShake.CodeGeneration.Mappers
         {
             _dependencyInjectionDescriptor = dependencyInjectionDescriptor;
         }
-
-
     }
 }

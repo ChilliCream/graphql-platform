@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
@@ -84,21 +85,20 @@ namespace StrawberryShake.Other
                     {
                         new PropertyDescriptor(
                             "TheBar",
-                            new NamedTypeDescriptor(
-                                "Bar",
-                                "BarNamespace",
-                                false,
-                                kind: TypeKind.EntityType,
-                                graphQLTypeName: "BarType",
+                            new ObjectTypeDescriptor(
+                                "BarType",
+                                TypeKind.EntityType,
+                                new("Bar","BarNamespace"),
+                                Array.Empty<NameString>(),
                                 properties: new[]
                                 {
                                     new PropertyDescriptor(
                                         "Baz",
-                                        new NamedTypeDescriptor(
-                                            "Baz",
-                                            "BazNamespace",
-                                            false,
-                                            kind: TypeKind.EntityType,
+                                        new ObjectTypeDescriptor(
+                                            "BarType",
+                                            TypeKind.EntityType,
+                                            new("Bar","BarNamespace"),
+                                            Array.Empty<NameString>(),
                                             properties: new[]
                                             {
                                                 GetNamedNullableStringTypeReference("Name")

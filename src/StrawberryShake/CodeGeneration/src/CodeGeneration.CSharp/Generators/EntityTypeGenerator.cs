@@ -14,7 +14,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             out string fileName)
         {
             // Setup class
-            fileName = EntityTypeNameFromGraphQLTypeName(descriptor.GraphQLTypeName);
+            fileName = descriptor.RuntimeType.Name;
 
             ClassBuilder classBuilder = 
                 ClassBuilder.New()
@@ -38,7 +38,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             CodeFileBuilder
                 .New()
-                .SetNamespace(descriptor.Namespace)
+                .SetNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal)
                 .AddType(classBuilder)
                 .Build(writer);
         }

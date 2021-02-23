@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
@@ -12,90 +13,109 @@ namespace StrawberryShake.CodeGeneration.CSharp
             ClassBuilder classBuilder,
             ConstructorBuilder constructorBuilder,
             MethodBuilder method,
-            NamedTypeDescriptor namedTypeDescriptor,
+            ComplexTypeDescriptor complexTypeDescriptor,
             HashSet<string> processed,
             bool isNonNullable)
         {
+            if (complexTypeDescriptor.ParentRuntimeType is null)
+            {
+                throw new InvalidOperationException();
+            }
+
             method.AddParameter(
                 ParameterBuilder.New()
-                    .SetType(
-                        $"global::{namedTypeDescriptor.Namespace}.State.I" + 
-                        DataTypeNameFromTypeName(namedTypeDescriptor.ComplexDataTypeParent!))
-                    .SetName(DataParamName));
+                    .SetType(complexTypeDescriptor.ParentRuntimeType.ToString())
+                    .SetName(_dataParameterName));
 
             if (!isNonNullable)
             {
                 method.AddCode(
                     EnsureProperNullability(
-                        DataParamName,
+                        _dataParameterName,
                         isNonNullable));
             }
 
             var variableName = "returnValue";
-            method.AddCode($"{namedTypeDescriptor.Name} {variableName} = default!;");
+            method.AddCode($"{complexTypeDescriptor.Name} {variableName} = default!;");
             method.AddEmptyLine();
 
-            if (namedTypeDescriptor.ImplementedBy.Any())
-            {
-                var ifChain = InterfaceImplementeeIf(namedTypeDescriptor.ImplementedBy[0]);
-
-                foreach (NamedTypeDescriptor interfaceImplementee in
-                    namedTypeDescriptor.ImplementedBy.Skip(1))
-                {
-                    var singleIf = InterfaceImplementeeIf(interfaceImplementee).SkipIndents();
-                    ifChain.AddIfElse(singleIf);
-                }
-
-                ifChain.AddElse(
-                    CodeInlineBuilder.New()
-                        .SetText($"throw new {TypeNames.NotSupportedException}();"));
-
-                method.AddCode(ifChain);
-            }
-
-            IfBuilder InterfaceImplementeeIf(NamedTypeDescriptor interfaceImplementee)
-            {
-                var ifCorrectType = IfBuilder.New();
-                var matchedTypeName = interfaceImplementee.GraphQLTypeName.WithLowerFirstChar();
-
-                ifCorrectType.SetCondition(
-                    $"{DataParamName} is {interfaceImplementee.Namespace}.State." +
-                    $"{DataTypeNameFromTypeName(interfaceImplementee.GraphQLTypeName)} " +
-                    $"{matchedTypeName}");
-
-
-                var constructorCall = MethodCallBuilder.New()
-                    .SetPrefix($"{variableName} = new ")
-                    .SetMethodName(interfaceImplementee.Name);
-
-                foreach (PropertyDescriptor prop in interfaceImplementee.Properties)
-                {
-                    var propAccess = $"{matchedTypeName}.{prop.Name}";
-                    if (prop.Type.IsEntityType())
-                    {
-                        constructorCall.AddArgument(
-                            BuildMapMethodCall(
-                                matchedTypeName,
-                                prop));
-                    }
-                    else
-                    {
-                        constructorCall.AddArgument(propAccess);
-                    }
-                }
-
-                ifCorrectType.AddCode(constructorCall);
-                return ifCorrectType;
-            }
+            GenerateIfForEachImplementedBy(
+                method,
+                complexTypeDescriptor,
+                o => GenerateComplexDataInterfaceIfClause(o, variableName));
 
             method.AddCode($"return {variableName};");
 
             AddRequiredMapMethods(
-                DataParamName,
-                namedTypeDescriptor,
+                _dataParameterName,
+                complexTypeDescriptor,
                 classBuilder,
                 constructorBuilder,
                 processed);
+        }
+
+        private void GenerateIfForEachImplementedBy(
+            MethodBuilder method,
+            ComplexTypeDescriptor complexTypeDescriptor,
+            Func<ObjectTypeDescriptor, IfBuilder> generator)
+        {
+            if (!(complexTypeDescriptor is InterfaceTypeDescriptor interfaceTypeDescriptor) ||
+                interfaceTypeDescriptor.ImplementedBy.Any())
+            {
+                return;
+            }
+
+            var ifChain = generator(interfaceTypeDescriptor.ImplementedBy[0]);
+
+            foreach (ObjectTypeDescriptor objectTypeDescriptor in
+                interfaceTypeDescriptor.ImplementedBy.Skip(1))
+            {
+                ifChain.AddIfElse(
+                    generator(objectTypeDescriptor)
+                        .SkipIndents());
+            }
+
+            ifChain.AddElse(
+                CodeInlineBuilder.New()
+                    .SetText($"throw new {TypeNames.NotSupportedException}();"));
+
+            method.AddCode(ifChain);
+        }
+
+        private IfBuilder GenerateComplexDataInterfaceIfClause(
+            ObjectTypeDescriptor objectTypeDescriptor,
+            string variableName)
+        {
+            var ifCorrectType = IfBuilder.New();
+            var matchedTypeName = objectTypeDescriptor.Name.WithLowerFirstChar();
+
+            ifCorrectType.SetCondition(
+                $"{_dataParameterName} is {objectTypeDescriptor.RuntimeType.Namespace}.State." +
+                $"{DataTypeNameFromTypeName(objectTypeDescriptor.RuntimeType.Name)} " +
+                $"{matchedTypeName}");
+
+
+            var constructorCall = MethodCallBuilder.New()
+                .SetPrefix($"{variableName} = new ")
+                .SetMethodName(objectTypeDescriptor.Name);
+
+            foreach (PropertyDescriptor prop in objectTypeDescriptor.Properties)
+            {
+                var propAccess = $"{matchedTypeName}.{prop.Name}";
+                if (prop.Type.IsEntityType())
+                {
+                    constructorCall.AddArgument(
+                        BuildMapMethodCall(
+                            matchedTypeName,
+                            prop));
+                }
+                else
+                {
+                    constructorCall.AddArgument(propAccess);
+                }
+            }
+
+            return ifCorrectType.AddCode(constructorCall);
         }
     }
 }

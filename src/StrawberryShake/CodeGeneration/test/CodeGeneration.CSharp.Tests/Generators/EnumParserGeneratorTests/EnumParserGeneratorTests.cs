@@ -6,9 +6,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Other
 {
     public class EnumParserGeneratorTests
     {
-        readonly StringBuilder _stringBuilder;
-        readonly CodeWriter _codeWriter;
-        readonly EnumParserGenerator _generator;
+        private readonly StringBuilder _stringBuilder;
+        private readonly CodeWriter _codeWriter;
+        private readonly EnumParserGenerator _generator;
 
         public EnumParserGeneratorTests()
         {
@@ -24,8 +24,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Other
                 _codeWriter,
                 new EnumTypeDescriptor(
                     "MetasyntacticVariable",
-                    "FooBarNamespace",
-                    new []
+                    new ("MetasyntacticVariable", "FooBarNamespace"),
+                    null,
+                    new[]
                     {
                         new EnumValueDescriptor("Foo", "FOO"),
                         new EnumValueDescriptor("Bar", "BAR"),

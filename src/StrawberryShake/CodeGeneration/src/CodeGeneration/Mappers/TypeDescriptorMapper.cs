@@ -196,7 +196,9 @@ namespace StrawberryShake.CodeGeneration.Mappers
             if (parentRuntimeTypeName is { })
             {
                 parentRuntimeType =
-                    new RuntimeTypeInfo(parentRuntimeTypeName, context.StateNamespace);
+                    new RuntimeTypeInfo(
+                        NamingConventions.DataTypeNameFromTypeName(parentRuntimeTypeName), 
+                        context.StateNamespace);
             }
         }
 
@@ -229,7 +231,6 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
             return new RuntimeTypeInfo(outputType.Name, context.Namespace);
         }
-
 
         private static TypeDescriptorModel CreateInterfaceTypeModel(
             ClientModel model,

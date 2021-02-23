@@ -43,7 +43,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
             ClientDescriptorMapper.Map(clientModel, context);
 
             // assert
-            Assert.Equal(clientName, context.Client.RuntimeType);
+            Assert.Equal(clientName, context.Client.Name);
             Assert.Equal(3, context.Client.Operations.Count);
         }
     }

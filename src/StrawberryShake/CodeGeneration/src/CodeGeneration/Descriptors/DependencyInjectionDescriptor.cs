@@ -16,8 +16,7 @@ namespace StrawberryShake.CodeGeneration
             List<OperationDescriptor> operations,
             IReadOnlyList<ITypeDescriptor> typeDescriptors)
         {
-            Name = name;
-            Namespace = @namespace;
+            RuntimeType = new(name, @namespace);
             Entities = entities;
             Operations = operations;
             TypeDescriptors = typeDescriptors;
@@ -27,9 +26,9 @@ namespace StrawberryShake.CodeGeneration
         /// <summary>
         /// The name of the client
         /// </summary>
-        public NameString Name { get; }
+        public NameString Name => RuntimeType.Name;
 
-        public string Namespace { get; }
+        public RuntimeTypeInfo RuntimeType { get; }
 
         public IReadOnlyList<EntityTypeDescriptor> Entities { get; }
 

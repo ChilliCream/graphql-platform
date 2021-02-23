@@ -12,15 +12,18 @@ namespace StrawberryShake.CodeGeneration
 
         public ResultBuilderDescriptor(
             string name,
-            NamedTypeDescriptor resultNamedType,
+            INamedTypeDescriptor resultNamedType,
             IReadOnlyCollection<ValueParserDescriptor> valueParsers)
         {
             _name = name;
             ResultNamedType = resultNamedType;
+            RuntimeType = new(NamingConventions.ResultBuilderNameFromTypeName(_name));
             ValueParsers = valueParsers;
         }
 
-        public NameString Name => NamingConventions.ResultBuilderNameFromTypeName(_name);
+        public NameString Name => RuntimeType.Name;
+
+        public RuntimeTypeInfo RuntimeType { get; }
 
         /// <summary>
         /// The return type of the result builder.
@@ -29,7 +32,7 @@ namespace StrawberryShake.CodeGeneration
         ///  - ResultType
         ///  - ResultInfo
         /// </summary>
-        public NamedTypeDescriptor ResultNamedType { get; }
+        public INamedTypeDescriptor ResultNamedType { get; }
 
         /// <summary>
         /// A set of all type tuples, that represent the required

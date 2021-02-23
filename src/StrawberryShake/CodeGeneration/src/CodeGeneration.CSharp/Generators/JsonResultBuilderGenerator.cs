@@ -26,7 +26,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             var resultTypeDescriptor = resultBuilderDescriptor.ResultNamedType;
             var (classBuilder, constructorBuilder) = CreateClassBuilder();
 
-            fileName = resultBuilderDescriptor.Name;
+            fileName = resultBuilderDescriptor.RuntimeType;
             classBuilder.SetName(fileName);
 
             constructorBuilder.SetTypeName(fileName);

@@ -13,15 +13,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
         /// </summary>
         protected void AddRequiredMapMethods(
             string propAccess,
-            NamedTypeDescriptor namedTypeDescriptor,
+            ComplexTypeDescriptor typeDescriptor,
             ClassBuilder classBuilder,
             ConstructorBuilder constructorBuilder,
             HashSet<string> processed,
             bool stopAtEntityMappers = false)
         {
-            if (namedTypeDescriptor.IsInterface)
+            if (typeDescriptor is InterfaceTypeDescriptor)
             {
-                foreach (var @class in namedTypeDescriptor.ImplementedBy)
+                foreach (var @class in typeDescriptor.ImplementedBy)
                 {
                     AddRequiredMapMethods(
                         propAccess,
@@ -33,7 +33,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
             else
             {
-                foreach (var property in namedTypeDescriptor.Properties)
+                foreach (var property in typeDescriptor.Properties)
                 {
                     AddMapMethod(
                         propAccess,
@@ -210,7 +210,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         isNonNullable);
                     break;
 
-                case NamedTypeDescriptor namedTypeDescriptor:
+                case ComplexTypeDescriptor namedTypeDescriptor:
                     switch (typeDescriptor.Kind)
                     {
                         case TypeKind.LeafType:

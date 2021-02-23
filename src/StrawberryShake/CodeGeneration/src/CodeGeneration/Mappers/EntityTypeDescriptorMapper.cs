@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate;
@@ -12,49 +11,44 @@ namespace StrawberryShake.CodeGeneration.Mappers
     {
         public static void Map(ClientModel model, IMapperContext context)
         {
-            foreach (var entityTypeDescriptor in CollectEntityTypes(model, context))
-            {
-                context.Register(entityTypeDescriptor.Name, entityTypeDescriptor);
-            }
+            context.Register(CollectEntityTypes(model, context));
         }
 
         private static IEnumerable<EntityTypeDescriptor> CollectEntityTypes(
             ClientModel model,
             IMapperContext context)
         {
+            var entityTypes = new Dictionary<NameString, HashSet<NameString>>();
+
+            foreach (OperationModel operation in model.Operations)
             {
-                var entityTypes = new Dictionary<NameString, HashSet<NameString>>();
-
-                foreach (OperationModel operation in model.Operations)
+                foreach (var outputType in operation.OutputTypes.Where(t => !t.IsInterface))
                 {
-                    foreach (var outputType in operation.OutputTypes.Where(t => !t.IsInterface))
+                    INamedType namedType = outputType.Type.NamedType();
+                    if (outputType.Type.NamedType().IsEntity())
                     {
-                        INamedType namedType = outputType.Type.NamedType();
-                        if (outputType.Type.NamedType().IsEntity())
+                        if (!entityTypes.TryGetValue(
+                            namedType.Name,
+                            out HashSet<NameString>? components))
                         {
-                            if (!entityTypes.TryGetValue(
-                                namedType.Name,
-                                out HashSet<NameString>? components))
-                            {
-                                components = new HashSet<NameString>();
-                                entityTypes.Add(namedType.Name, components);
-                            }
-
-                            components.Add(outputType.Name);
+                            components = new HashSet<NameString>();
+                            entityTypes.Add(namedType.Name, components);
                         }
+
+                        components.Add(outputType.Name);
                     }
                 }
+            }
 
-                foreach (KeyValuePair<NameString, HashSet<NameString>> entityType in entityTypes)
-                {
-                    yield return new EntityTypeDescriptor(
-                        entityType.Key,
-                        context.Namespace,
-                        entityType.Value
-                            .Select(name => context.Types.Single(t => t.Name.Equals(name)))
-                            .OfType<ComplexTypeDescriptor>()
-                            .ToList());
-                }
+            foreach (KeyValuePair<NameString, HashSet<NameString>> entityType in entityTypes)
+            {
+                yield return new EntityTypeDescriptor(
+                    entityType.Key,
+                    context.Namespace,
+                    entityType.Value
+                        .Select(name => context.Types.Single(t => t.Name.Equals(name)))
+                        .OfType<ComplexTypeDescriptor>()
+                        .ToList());
             }
         }
     }

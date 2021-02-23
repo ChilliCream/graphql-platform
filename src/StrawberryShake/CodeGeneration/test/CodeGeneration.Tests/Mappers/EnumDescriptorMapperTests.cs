@@ -22,11 +22,11 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
             // act
             var context = new MapperContext("Foo.Bar", "FooClient");
-            EnumDescriptorMapper.Map(clientModel, context);
+            TypeDescriptorMapper.Map(clientModel, context);
 
             // assert
             Assert.Collection(
-                context.EnumTypes.OrderBy(t => t.Name),
+                context.Types.OfType<EnumTypeDescriptor>().OrderBy(t => t.Name),
                 enumType =>
                 {
                     Assert.Equal("Episode", enumType.Name);

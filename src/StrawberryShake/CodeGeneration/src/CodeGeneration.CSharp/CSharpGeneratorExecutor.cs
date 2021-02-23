@@ -50,14 +50,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
             // The following mappers can depend on this foundational data.
             TypeDescriptorMapper.Map(clientModel, context);
 
+            // now we execute all mappers that depend on the previous type mappers.
             OperationDescriptorMapper.Map(clientModel, context);
             DependencyInjectionMapper.Map(clientModel, context);
             DataTypeDescriptorMapper.Map(clientModel, context);
-
             EntityTypeDescriptorMapper.Map(clientModel, context);
             ResultBuilderDescriptorMapper.Map(clientModel, context);
 
-
+            // Last we execute all our generators with the descriptiptors.
             var code = new StringBuilder();
 
             foreach (var descriptor in context.GetAllDescriptors())

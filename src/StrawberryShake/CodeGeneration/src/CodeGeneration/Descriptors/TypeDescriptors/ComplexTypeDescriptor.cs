@@ -10,14 +10,12 @@ namespace StrawberryShake.CodeGeneration
             NameString name,
             TypeKind typeKind,
             RuntimeTypeInfo runtimeType,
-            IReadOnlyList<ComplexTypeDescriptor> implementedBy,
             IReadOnlyList<NameString> implements,
             RuntimeTypeInfo? parentRuntimeType = null)
         {
             Name = name;
             Kind = typeKind;
             RuntimeType = runtimeType;
-            ImplementedBy = implementedBy;
             Implements = implements;
             ParentRuntimeType = parentRuntimeType;
         }
@@ -43,13 +41,6 @@ namespace StrawberryShake.CodeGeneration
         /// </summary>
         public IReadOnlyList<PropertyDescriptor> Properties { get; private set; } =
             Array.Empty<PropertyDescriptor>();
-
-        /// <summary>
-        /// A list of types that implement this interface
-        /// This list must only contain the most specific, concrete classes (that implement this 
-        /// interface), but no other interfaces.
-        /// </summary>
-        public IReadOnlyList<ComplexTypeDescriptor> ImplementedBy { get; }
 
         /// <summary>
         /// A list of interface names the type implements

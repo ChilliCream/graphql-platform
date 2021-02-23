@@ -8,13 +8,12 @@ namespace StrawberryShake.CodeGeneration
         public EnumTypeDescriptor(
             NameString name,
             RuntimeTypeInfo runtimeType,
-            RuntimeTypeInfo serializationType,
             RuntimeTypeInfo? underlyingType,
             IReadOnlyList<EnumValueDescriptor> values)
         {
             Name = name;
             RuntimeType = runtimeType;
-            SerializationType = serializationType;
+            SerializationType = TypeInfos.From(TypeNames.String);
             UnderlyingType = underlyingType;
             Values = values;
         }

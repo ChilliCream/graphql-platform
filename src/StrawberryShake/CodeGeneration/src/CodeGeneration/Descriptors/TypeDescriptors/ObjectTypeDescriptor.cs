@@ -9,11 +9,15 @@ namespace StrawberryShake.CodeGeneration
             NameString name,
             TypeKind typeKind,
             RuntimeTypeInfo runtimeType,
-            IReadOnlyList<ComplexTypeDescriptor> implementedBy,
             IReadOnlyList<NameString> implements,
-            RuntimeTypeInfo? parentRuntimeType = null)
-            : base(name, typeKind, runtimeType, implementedBy, implements, parentRuntimeType)
+            RuntimeTypeInfo? parentRuntimeType = null,
+            IReadOnlyList<PropertyDescriptor>? properties = null)
+            : base(name, typeKind, runtimeType, implements, parentRuntimeType)
         {
+            if (properties is not null)
+            {
+                CompleteProperties(properties);
+            }
         }
     }
 }
