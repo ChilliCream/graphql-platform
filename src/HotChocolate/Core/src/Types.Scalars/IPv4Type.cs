@@ -4,31 +4,31 @@ using HotChocolate.Language;
 namespace HotChocolate.Types.Scalars
 {
     /// <summary>
-    /// The `HslColorCode` scalar type represents a valid a CSS HSL color as defined
-    /// here https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors.
+    /// The `IPv4` scalar type represents a valid a IPv4 address as defined
+    /// here https://en.wikipedia.org/wiki/IPv4.
     /// </summary>
-    public class HslColorCodeType : StringType
+    public class IPv4Type : StringType
     {
         private static readonly string _validationPattern =
-            ScalarResources.HslColorCodeType_ValidationPattern;
+            ScalarResources.IPv4Type_ValidationPattern;
 
         private static readonly Regex _validationRegex =
             new(_validationPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="HslColorCodeType"/> class.
+        /// Initializes a new instance of the <see cref="IPv4Type"/> class.
         /// </summary>
-        public HslColorCodeType()
+        public IPv4Type()
             : this(
-                WellKnownScalarTypes.HslColorCode,
-                ScalarResources.HslColorCodeType_Description)
+                WellKnownScalarTypes.IPv4,
+                ScalarResources.IPv4Type_Description)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="HslColorCodeType"/> class.
+        /// Initializes a new instance of the <see cref="IPv4Type"/> class.
         /// </summary>
-        public HslColorCodeType(
+        public IPv4Type(
             NameString name,
             string? description = null,
             BindingBehavior bind = BindingBehavior.Explicit)
@@ -54,7 +54,7 @@ namespace HotChocolate.Types.Scalars
         {
             if (!_validationRegex.IsMatch(valueSyntax.Value))
             {
-                throw ThrowHelper.HslColorCodeType_ParseLiteral_IsInvalid(this);
+                throw ThrowHelper.IPv4Type_ParseLiteral_IsInvalid(this);
             }
 
             return base.ParseLiteral(valueSyntax);
@@ -65,7 +65,7 @@ namespace HotChocolate.Types.Scalars
         {
             if (!_validationRegex.IsMatch(runtimeValue))
             {
-                throw ThrowHelper.HslColorCodeType_ParseValue_IsInvalid(this);
+                throw ThrowHelper.IPv4Type_ParseValue_IsInvalid(this);
             }
 
             return base.ParseValue(runtimeValue);
