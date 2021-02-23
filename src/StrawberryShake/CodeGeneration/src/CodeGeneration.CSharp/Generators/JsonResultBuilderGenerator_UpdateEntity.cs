@@ -29,16 +29,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
             if (namedTypeDescriptor.IsInterface)
             {
                 // If the type is an interface
-                foreach (NamedTypeDescriptor concreteType in namedTypeDescriptor.ImplementedBy)
+                foreach (ObjectTypeDescriptor concreteType in namedTypeDescriptor.ImplementedBy)
                 {
                     methodBuilder.AddEmptyLine();
                     var ifStatement = IfBuilder.New()
                         .SetCondition(
-                            $"entityId.Name.Equals(\"{concreteType.GraphQLTypeName}\", " +
+                            $"entityId.Name.Equals(\"{concreteType.Name}\", " +
                             $"{TypeNames.OrdinalStringComparisson})");
 
-                    var entityTypeName =
-                        EntityTypeNameFromGraphQLTypeName(concreteType.GraphQLTypeName);
+                    var entityTypeName = CreateEntityTypeName(concreteType.Name);
 
                     WriteEntityLoader(
                         ifStatement,

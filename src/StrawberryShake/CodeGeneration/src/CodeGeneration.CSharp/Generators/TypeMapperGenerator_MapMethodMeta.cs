@@ -12,20 +12,20 @@ namespace StrawberryShake.CodeGeneration.CSharp
         /// Adds all required deserializers of the given type descriptors properties
         /// </summary>
         protected void AddRequiredMapMethods(
-            string propAccess,
-            ComplexTypeDescriptor typeDescriptor,
-            ClassBuilder classBuilder,
-            ConstructorBuilder constructorBuilder,
-            HashSet<string> processed,
-            bool stopAtEntityMappers = false)
+                string propAccess,
+                ComplexTypeDescriptor typeDescriptor,
+                ClassBuilder classBuilder,
+                ConstructorBuilder constructorBuilder,
+                HashSet<string> processed,
+                bool stopAtEntityMappers = false)
         {
-            if (typeDescriptor is InterfaceTypeDescriptor)
+            if (typeDescriptor is InterfaceTypeDescriptor interfaceType)
             {
-                foreach (var @class in typeDescriptor.ImplementedBy)
+                foreach (var objectTypeDescriptor in interfaceType.ImplementedBy)
                 {
                     AddRequiredMapMethods(
                         propAccess,
-                        @class,
+                        objectTypeDescriptor,
                         classBuilder,
                         constructorBuilder,
                         processed);
@@ -42,12 +42,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         constructorBuilder,
                         processed);
 
-                    if (property.Type.NamedType() is NamedTypeDescriptor nt &&
-                        !nt.IsLeafType() && !stopAtEntityMappers)
+                    if (property.Type.NamedType() is ComplexTypeDescriptor ct &&
+                        !ct.IsLeafType() && !stopAtEntityMappers)
                     {
                         AddRequiredMapMethods(
                             propAccess,
-                            nt,
+                            ct,
                             classBuilder,
                             constructorBuilder,
                             processed);
@@ -210,7 +210,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         isNonNullable);
                     break;
 
-                case ComplexTypeDescriptor namedTypeDescriptor:
+                case ComplexTypeDescriptor complexTypeDescriptor:
                     switch (typeDescriptor.Kind)
                     {
                         case TypeKind.LeafType:
@@ -221,7 +221,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                 classBuilder,
                                 constructorBuilder,
                                 methodBuilder,
-                                namedTypeDescriptor,
+                                complexTypeDescriptor,
                                 processed,
                                 isNonNullable);
                             break;
@@ -231,7 +231,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                 classBuilder,
                                 constructorBuilder,
                                 methodBuilder,
-                                namedTypeDescriptor,
+                                complexTypeDescriptor,
                                 processed,
                                 isNonNullable);
                             break;
@@ -241,7 +241,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                 classBuilder,
                                 constructorBuilder,
                                 methodBuilder,
-                                namedTypeDescriptor,
+                                complexTypeDescriptor,
                                 processed,
                                 isNonNullable);
                             break;

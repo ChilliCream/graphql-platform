@@ -9,7 +9,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
     public partial class JsonResultBuilderGenerator
     {
         private void AddBuildDataMethod(
-            NamedTypeDescriptor resultNamedType,
+            ComplexTypeDescriptor resultNamedType,
             ClassBuilder classBuilder)
         {
             var objParameter = "obj";

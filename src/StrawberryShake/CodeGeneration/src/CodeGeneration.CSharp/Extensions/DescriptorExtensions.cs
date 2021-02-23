@@ -22,7 +22,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
         public static NameString ExtractTypeName(this NamedTypeDescriptor descriptor)
         {
             return descriptor.IsEntityType()
-                ? EntityTypeNameFromGraphQLTypeName(descriptor.GraphQLTypeName!)
+                ? CreateEntityTypeName(descriptor.GraphQLTypeName!)
                 : descriptor.Name;
         }
 

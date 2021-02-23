@@ -13,7 +13,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             ClassBuilder classBuilder,
             ConstructorBuilder constructorBuilder,
             MethodBuilder method,
-            ComplexTypeDescriptor namedTypeDescriptor,
+            ComplexTypeDescriptor complexTypeDescriptor,
             HashSet<string> processed,
             bool isNonNullable)
         {
@@ -37,44 +37,45 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         isNonNullable));
             }
 
-
-
-            foreach (ObjectTypeDescriptor implementee in namedTypeDescriptor.ImplementedBy)
+            if (complexTypeDescriptor is InterfaceTypeDescriptor interfaceTypeDescriptor)
             {
-                var dataMapperName =
-                    EntityMapperNameFromGraphQLTypeName(
-                        implementee.RuntimeType.Name,
-                        implementee.Name);
-
-                if (processed.Add(dataMapperName))
+                foreach (ObjectTypeDescriptor implementee in interfaceTypeDescriptor.ImplementedBy)
                 {
-                    var dataMapperType =
-                        $"{TypeNames.IEntityMapper}<" +
-                        $"{CreateEntityTypeName(implementee.Name)}, " +
-                        $"{implementee.Name}>";
+                    var dataMapperName =
+                        EntityMapperNameFromGraphQLTypeName(
+                            implementee.RuntimeType.Name,
+                            implementee.Name);
 
-                    AddConstructorAssignedField(
-                        dataMapperType,
-                        dataMapperName.ToFieldName(),
-                        classBuilder,
-                        constructorBuilder);
+                    if (processed.Add(dataMapperName))
+                    {
+                        var dataMapperType =
+                            $"{TypeNames.IEntityMapper}<" +
+                            $"{CreateEntityTypeName(implementee.Name)}, " +
+                            $"{implementee.Name}>";
+
+                        AddConstructorAssignedField(
+                            dataMapperType,
+                            dataMapperName.ToFieldName(),
+                            classBuilder,
+                            constructorBuilder);
+                    }
+
+                    method.AddCode(GenerateEntityHandlerIfClause(implementee, isNonNullable));
                 }
-
-                method.AddCode(InterfaceImplementeeIf(implementee, isNonNullable));
             }
 
             method.AddCode(ExceptionBuilder.New(TypeNames.NotSupportedException));
 
         }
 
-        private static ICode InterfaceImplementeeIf(
-            ComplexTypeDescriptor interfaceImplementee,
+        private static ICode GenerateEntityHandlerIfClause(
+            ObjectTypeDescriptor objectTypeDescriptor,
             bool isNonNullable)
         {
             var dataMapperName =
                 EntityMapperNameFromGraphQLTypeName(
-                    interfaceImplementee.RuntimeType.Name,
-                    interfaceImplementee.Name)
+                    objectTypeDescriptor.RuntimeType.Name,
+                    objectTypeDescriptor.Name)
                     .ToFieldName();
 
             var ifCorrectType = IfBuilder.New();
@@ -83,14 +84,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 ifCorrectType.SetCondition(
                     $"{EntityIdParamName}.Name.Equals(\"" +
-                    $"{interfaceImplementee.Name}\", " +
+                    $"{objectTypeDescriptor.Name}\", " +
                     $"{TypeNames.OrdinalStringComparisson})");
             }
             else
             {
                 ifCorrectType.SetCondition(
                     $"{EntityIdParamName}.Value.Name.Equals(\"" +
-                    $"{interfaceImplementee.Name}\", " +
+                    $"{objectTypeDescriptor.Name}\", " +
                     $"{TypeNames.OrdinalStringComparisson})");
             }
 
@@ -102,7 +103,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             MethodCallBuilder argument = MethodCallBuilder.New()
                 .SetMethodName($"{StoreFieldName}.{nameof(IEntityStore.GetEntity)}")
                 .SetDetermineStatement(false)
-                .AddGeneric(CreateEntityTypeName(interfaceImplementee.Name))
+                .AddGeneric(CreateEntityTypeName(objectTypeDescriptor.Name))
                 .AddArgument(isNonNullable ? EntityIdParamName : $"{EntityIdParamName}.Value");
 
             constructorCall.AddArgument(

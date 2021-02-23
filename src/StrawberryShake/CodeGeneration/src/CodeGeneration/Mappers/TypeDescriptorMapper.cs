@@ -242,9 +242,12 @@ namespace StrawberryShake.CodeGeneration.Mappers
             OperationModel operationModel,
             TypeKind? kind = null)
         {
-            var implementedBy =
-                CollectClassesThatImplementInterface(operationModel, outputType, typeDescriptors)
-                    .ToList();
+            var implementedBy = new HashSet<ObjectTypeDescriptor>();
+            CollectClassesThatImplementInterface(
+                operationModel, 
+                outputType, 
+                typeDescriptors, 
+                implementedBy);
 
             ExtractTypeKindAndParentRuntimeType(
                 context,
@@ -294,20 +297,17 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     outputType.Type.Name,
                     typeKind,
                     runtimeTypeInfo,
-                    Array.Empty<ComplexTypeDescriptor>(),
                     implements,
                     parentRuntimeType));
         }
 
 
-        private static IEnumerable<ComplexTypeDescriptor> CollectClassesThatImplementInterface(
+        private static void CollectClassesThatImplementInterface(
             OperationModel operation,
             OutputTypeModel outputType,
             Dictionary<NameString, TypeDescriptorModel> typeDescriptors,
-            HashSet<ComplexTypeDescriptor>? alreadyCollectedTypes = null)
+            HashSet<ObjectTypeDescriptor> implementations)
         {
-            alreadyCollectedTypes ??= new HashSet<ComplexTypeDescriptor>();
-
             foreach (var type in operation.GetImplementations(outputType))
             {
                 if (type.IsInterface)
@@ -316,15 +316,14 @@ namespace StrawberryShake.CodeGeneration.Mappers
                         operation,
                         type,
                         typeDescriptors,
-                        alreadyCollectedTypes);
+                        implementations);
                 }
                 else
                 {
-                    alreadyCollectedTypes.Add(typeDescriptors[type.Name].Descriptor);
+                    implementations.Add(
+                        (ObjectTypeDescriptor)typeDescriptors[type.Name].Descriptor);
                 }
             }
-
-            return alreadyCollectedTypes;
         }
 
         private static void AddProperties(
@@ -381,7 +380,6 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     descriptor = new EnumTypeDescriptor(
                         leafType.Name,
                         TypeInfos.New(enumTypeModel.Name, context.Namespace, isValueType: true),
-                        TypeInfos.From(leafType.SerializationType),
                         enumTypeModel.UnderlyingType is null
                             ? null
                             : TypeInfos.From(enumTypeModel.UnderlyingType),
