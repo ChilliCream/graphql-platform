@@ -40,16 +40,26 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
 
             var context = new MapperContext(ns, clientName);
-            EnumDescriptorMapper.Map(clientModel, context);
+
+            // First we run all mappers that do not have any dependencies on others.
             EntityIdFactoryDescriptorMapper.Map(clientModel, context);
+
+            // Second we start with the type descriptor mapper which creates
+            // the type structure for the generators.
+            // The following mappers can depend on this foundational data.
             TypeDescriptorMapper.Map(clientModel, context);
-            EntityTypeDescriptorMapper.Map(clientModel, context);
+
+            // now we execute all mappers that depend on the previous type mappers.
             OperationDescriptorMapper.Map(clientModel, context);
-            ClientDescriptorMapper.Map(clientModel, context);
-            ResultBuilderDescriptorMapper.Map(clientModel, context);
             DependencyInjectionMapper.Map(clientModel, context);
             DataTypeDescriptorMapper.Map(clientModel, context);
+            EntityTypeDescriptorMapper.Map(clientModel, context);
+            ResultBuilderDescriptorMapper.Map(clientModel, context);
 
+            // Lastly we generate the client mapper
+            ClientDescriptorMapper.Map(clientModel, context);
+
+            // Last we execute all our generators with the descriptiptors.
             var code = new StringBuilder();
 
             foreach (var descriptor in context.GetAllDescriptors())
@@ -72,6 +82,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
             code.Clear();
 
             using var writer = new CodeWriter(code);
+
+#if DEBUG
+            writer.WriteLine("// " + generator.GetType().FullName);
+            writer.WriteLine();
+#endif
 
             generator.Generate(writer, descriptor, out string fileName);
 

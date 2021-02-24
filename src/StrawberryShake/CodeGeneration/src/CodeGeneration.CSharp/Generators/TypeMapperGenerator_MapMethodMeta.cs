@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Extensions;
+using StrawberryShake.CodeGeneration.Utilities;
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -13,19 +15,19 @@ namespace StrawberryShake.CodeGeneration.CSharp
         /// </summary>
         protected void AddRequiredMapMethods(
             string propAccess,
-            NamedTypeDescriptor namedTypeDescriptor,
+            ComplexTypeDescriptor typeDescriptor,
             ClassBuilder classBuilder,
             ConstructorBuilder constructorBuilder,
             HashSet<string> processed,
             bool stopAtEntityMappers = false)
         {
-            if (namedTypeDescriptor.IsInterface)
+            if (typeDescriptor is InterfaceTypeDescriptor interfaceType)
             {
-                foreach (var @class in namedTypeDescriptor.ImplementedBy)
+                foreach (var objectTypeDescriptor in interfaceType.ImplementedBy)
                 {
                     AddRequiredMapMethods(
                         propAccess,
-                        @class,
+                        objectTypeDescriptor,
                         classBuilder,
                         constructorBuilder,
                         processed);
@@ -33,7 +35,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
             else
             {
-                foreach (var property in namedTypeDescriptor.Properties)
+                foreach (var property in typeDescriptor.Properties)
                 {
                     AddMapMethod(
                         propAccess,
@@ -42,12 +44,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         constructorBuilder,
                         processed);
 
-                    if (property.Type.NamedType() is NamedTypeDescriptor nt &&
-                        !nt.IsLeafType() && !stopAtEntityMappers)
+                    if (property.Type.NamedType() is ComplexTypeDescriptor ct &&
+                        !ct.IsLeafType() && !stopAtEntityMappers)
                     {
                         AddRequiredMapMethods(
                             propAccess,
-                            nt,
+                            ct,
                             classBuilder,
                             constructorBuilder,
                             processed);
@@ -67,35 +69,29 @@ namespace StrawberryShake.CodeGeneration.CSharp
             ITypeDescriptor typeDescriptor,
             bool parentIsList = false)
         {
-            switch (typeDescriptor)
+            return typeDescriptor switch
             {
-                case ListTypeDescriptor listTypeDescriptor:
-                    return BuildMapMethodName(
-                               listTypeDescriptor.InnerType,
-                               true) +
-                           "Array";
+                ListTypeDescriptor listTypeDescriptor =>
+                    BuildMapMethodName(listTypeDescriptor.InnerType, true) + "Array",
 
-                case NamedTypeDescriptor namedTypeDescriptor:
-                    return namedTypeDescriptor.Kind switch
-                    {
-                        TypeKind.LeafType => typeDescriptor.Name.WithCapitalFirstChar(),
-                        TypeKind.DataType => typeDescriptor.Name,
-                        TypeKind.ComplexDataType => namedTypeDescriptor.ImplementedBy.Count > 1
-                            ? namedTypeDescriptor.ComplexDataTypeParent!
-                            : typeDescriptor.Name,
-                        TypeKind.EntityType => typeDescriptor.Name,
-                        _ => throw new ArgumentOutOfRangeException()
-                    };
+                ILeafTypeDescriptor leafTypeDescriptor =>
+                    GetPropertyName(leafTypeDescriptor.Name),
 
-                case NonNullTypeDescriptor nonNullTypeDescriptor:
-                    return parentIsList
-                        ? BuildMapMethodName(nonNullTypeDescriptor.InnerType) +
-                          "NonNullable"
-                        : "NonNullable" +
-                          BuildMapMethodName(nonNullTypeDescriptor.InnerType);
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(typeDescriptor));
-            }
+                InterfaceTypeDescriptor
+                {
+                    ImplementedBy: { Count: > 1 },
+                    ParentRuntimeType: { } parentRuntimeType
+                } => parentRuntimeType!.Name,
+
+                INamedTypeDescriptor namedTypeDescriptor =>
+                    namedTypeDescriptor.RuntimeType.Name,
+
+                NonNullTypeDescriptor nonNullTypeDescriptor => parentIsList
+                    ? BuildMapMethodName(nonNullTypeDescriptor.InnerType) + "NonNullable"
+                    : "NonNullable" + BuildMapMethodName(nonNullTypeDescriptor.InnerType),
+
+                _ => throw new ArgumentOutOfRangeException(nameof(typeDescriptor))
+            };
         }
 
         private void AddMapMethod(
@@ -156,7 +152,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
             switch (property.Type.Kind)
             {
                 case TypeKind.LeafType:
-                    return CodeInlineBuilder.New().SetText($"{objectName}.{property.Name}");
+                    return CodeInlineBuilder.From($"{objectName}.{property.Name}");
+
                 case TypeKind.ComplexDataType:
                 case TypeKind.DataType:
                 case TypeKind.EntityType:
@@ -171,9 +168,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     {
                         argString += $" ?? throw new {TypeNames.ArgumentNullException}()";
                     }
+
                     mapperMethodCall.AddArgument(argString);
 
                     return mapperMethodCall;
+
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -210,7 +209,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         isNonNullable);
                     break;
 
-                case NamedTypeDescriptor namedTypeDescriptor:
+                case ComplexTypeDescriptor complexTypeDescriptor:
                     switch (typeDescriptor.Kind)
                     {
                         case TypeKind.LeafType:
@@ -221,7 +220,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                 classBuilder,
                                 constructorBuilder,
                                 methodBuilder,
-                                namedTypeDescriptor,
+                                complexTypeDescriptor,
                                 processed,
                                 isNonNullable);
                             break;
@@ -231,7 +230,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                 classBuilder,
                                 constructorBuilder,
                                 methodBuilder,
-                                namedTypeDescriptor,
+                                complexTypeDescriptor,
                                 processed,
                                 isNonNullable);
                             break;
@@ -241,7 +240,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                 classBuilder,
                                 constructorBuilder,
                                 methodBuilder,
-                                namedTypeDescriptor,
+                                complexTypeDescriptor,
                                 processed,
                                 isNonNullable);
                             break;

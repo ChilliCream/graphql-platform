@@ -1,5 +1,18 @@
-﻿// Code:
+﻿// ReSharper disable BuiltInTypeReferenceStyle
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable UnusedType.Global
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable ConvertToAutoProperty
+// ReSharper disable UnusedMember.Global
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable InconsistentNaming
+
+// Code:
 // PersonEntity
+
+// StrawberryShake.CodeGeneration.CSharp.EntityTypeGenerator
 
 #nullable enable
 
@@ -20,6 +33,8 @@ namespace StrawberryShake.GraphQL
 
 
 // GetPeopleResultFactory
+
+// StrawberryShake.CodeGeneration.CSharp.ResultDataFactoryGenerator
 
 #nullable enable
 
@@ -69,6 +84,8 @@ namespace StrawberryShake.GraphQL
 
 // GetPeopleResultInfo
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInfoGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -110,6 +127,8 @@ namespace StrawberryShake.GraphQL
 
 // GetPeopleResult
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -129,6 +148,8 @@ namespace StrawberryShake.GraphQL
 
 
 // GetPeople_Me_PersonFromPersonEntityMapper
+
+// StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
 
 #nullable enable
 
@@ -182,14 +203,14 @@ namespace StrawberryShake.GraphQL
                 return null;
             }
 
-            var iGetPeople_Me_Friends_Nodess = new global::System.Collections.Generic.List<IGetPeople_Me_Friends_Nodes?>();
+            var persons = new global::System.Collections.Generic.List<IGetPeople_Me_Friends_Nodes?>();
 
             foreach (global::StrawberryShake.EntityId? child in list)
             {
-                iGetPeople_Me_Friends_Nodess.Add(MapIGetPeople_Me_Friends_Nodes(child));
+                persons.Add(MapIGetPeople_Me_Friends_Nodes(child));
             }
 
-            return iGetPeople_Me_Friends_Nodess;
+            return persons;
         }
 
         private IGetPeople_Me_Friends_Nodes? MapIGetPeople_Me_Friends_Nodes(global::StrawberryShake.EntityId? entityId)
@@ -214,6 +235,8 @@ namespace StrawberryShake.GraphQL
 
 // GetPeople_Me_Person
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -233,6 +256,8 @@ namespace StrawberryShake.GraphQL
 
 
 // GetPeople_Me_Friends_PersonConnection
+
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
 
 #nullable enable
 
@@ -254,6 +279,8 @@ namespace StrawberryShake.GraphQL
 
 // GetPeople_Me_Friends_Nodes_PersonFromPersonEntityMapper
 
+// StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -274,6 +301,8 @@ namespace StrawberryShake.GraphQL
 
 
 // GetPeople_Me_Friends_Nodes_Person
+
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
 
 #nullable enable
 
@@ -304,6 +333,8 @@ namespace StrawberryShake.GraphQL
 
 // IGetPeopleResult
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -317,6 +348,8 @@ namespace StrawberryShake.GraphQL
 
 
 // IGetPeople_Me
+
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -332,6 +365,8 @@ namespace StrawberryShake.GraphQL
 
 // IGetPeople_Me_Person
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -345,6 +380,8 @@ namespace StrawberryShake.GraphQL
 
 
 // IGetPeople_Me_Friends
+
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -360,6 +397,8 @@ namespace StrawberryShake.GraphQL
 
 // IGetPeople_Me_Friends_PersonConnection
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -373,6 +412,8 @@ namespace StrawberryShake.GraphQL
 
 
 // IGetPeople_Me_Friends_Nodes
+
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -392,6 +433,8 @@ namespace StrawberryShake.GraphQL
 
 // IGetPeople_Me_Friends_Nodes_Person
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -405,6 +448,8 @@ namespace StrawberryShake.GraphQL
 
 
 // GetPeopleQueryDocument
+
+// StrawberryShake.CodeGeneration.CSharp.OperationDocumentGenerator
 
 #nullable enable
 
@@ -457,6 +502,8 @@ namespace StrawberryShake.GraphQL
 
 // GetPeopleQuery
 
+// StrawberryShake.CodeGeneration.CSharp.OperationServiceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -502,6 +549,8 @@ namespace StrawberryShake.GraphQL
 
 // GetPeopleBuilder
 
+// StrawberryShake.CodeGeneration.CSharp.JsonResultBuilderGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -513,8 +562,8 @@ namespace StrawberryShake.GraphQL
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
         private readonly global::StrawberryShake.IOperationResultDataFactory<IGetPeopleResult> _resultDataFactory;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
 
         public GetPeopleBuilder(
             global::StrawberryShake.IEntityStore entityStore,
@@ -529,9 +578,9 @@ namespace StrawberryShake.GraphQL
             _resultDataFactory = resultDataFactory
                  ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String")
-                 ?? throw new global::System.ArgumentNullException(nameof(_stringParser));
+                 ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
             _booleanParser = serializerResolver.GetLeafValueParser<global::System.Boolean, global::System.Boolean>("Boolean")
-                 ?? throw new global::System.ArgumentNullException(nameof(_booleanParser));
+                 ?? throw new global::System.ArgumentException("No serializer for type `Boolean` found.");
         }
 
         public global::StrawberryShake.IOperationResult<IGetPeopleResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
@@ -626,16 +675,16 @@ namespace StrawberryShake.GraphQL
                 return null;
             }
 
-            var iGetPeople_Me_Friends_Nodess = new global::System.Collections.Generic.List<global::StrawberryShake.EntityId?>();
+            var persons = new global::System.Collections.Generic.List<global::StrawberryShake.EntityId?>();
 
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
-                iGetPeople_Me_Friends_Nodess.Add(UpdateIGetPeople_Me_Friends_NodesEntity(
+                persons.Add(UpdateIGetPeople_Me_Friends_NodesEntity(
                     child,
                     entityIds));
             }
 
-            return iGetPeople_Me_Friends_Nodess;
+            return persons;
         }
 
         private global::StrawberryShake.EntityId? UpdateIGetPeople_Me_Friends_NodesEntity(
@@ -689,6 +738,8 @@ namespace StrawberryShake.GraphQL
 
 // PersonConnectionData
 
+// StrawberryShake.CodeGeneration.CSharp.DataTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL.State
@@ -714,6 +765,8 @@ namespace StrawberryShake.GraphQL.State
 
 // GraphQLClient
 
+// StrawberryShake.CodeGeneration.CSharp.ClientGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -735,6 +788,8 @@ namespace StrawberryShake.GraphQL
 
 
 // EntityIdFactory
+
+// StrawberryShake.CodeGeneration.CSharp.EntityIdFactoryGenerator
 
 #nullable enable
 
@@ -767,6 +822,8 @@ namespace StrawberryShake.GraphQL
 
 
 // GraphQLClientServiceCollectionExtensions
+
+// StrawberryShake.CodeGeneration.CSharp.DependencyInjectionGenerator
 
 #nullable enable
 

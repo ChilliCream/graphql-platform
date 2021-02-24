@@ -1,5 +1,18 @@
-﻿// Code:
+﻿// ReSharper disable BuiltInTypeReferenceStyle
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable UnusedType.Global
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable ConvertToAutoProperty
+// ReSharper disable UnusedMember.Global
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable InconsistentNaming
+
+// Code:
 // PersonEntity
+
+// StrawberryShake.CodeGeneration.CSharp.EntityTypeGenerator
 
 #nullable enable
 
@@ -25,6 +38,8 @@ namespace StrawberryShake.GraphQL
 
 // MessageEntity
 
+// StrawberryShake.CodeGeneration.CSharp.EntityTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -47,58 +62,9 @@ namespace StrawberryShake.GraphQL
 }
 
 
-// Direction
-
-#nullable enable
-
-namespace StrawberryShake.GraphQL
-{
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public enum Direction
-    {
-        Incoming,
-        Outgoing
-    }
-}
-
-
-// DirectionSerializer
-
-#nullable enable
-
-namespace StrawberryShake.GraphQL
-{
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class DirectionSerializer
-        : global::StrawberryShake.Serialization.IInputValueFormatter
-        , global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, Direction>
-    {
-        public global::System.String TypeName => "Direction";
-
-        public Direction Parse(global::System.String serializedValue)
-        {
-            return serializedValue switch
-            {
-                "INCOMING" => Direction.Incoming,
-                "OUTGOING" => Direction.Outgoing,
-                _ => throw new global::StrawberryShake.GraphQLClientException()
-            };
-        }
-
-        public object Format(global::System.Object? runtimeValue)
-        {
-            return runtimeValue switch
-            {
-                Direction.Incoming => "INCOMING",
-                Direction.Outgoing => "OUTGOING",
-                _ => throw new global::StrawberryShake.GraphQLClientException()
-            };
-        }
-    }
-}
-
-
 // GetPeopleResultFactory
+
+// StrawberryShake.CodeGeneration.CSharp.ResultDataFactoryGenerator
 
 #nullable enable
 
@@ -157,14 +123,14 @@ namespace StrawberryShake.GraphQL
                 return null;
             }
 
-            var iGetPeople_People_Nodess = new global::System.Collections.Generic.List<IGetPeople_People_Nodes?>();
+            var persons = new global::System.Collections.Generic.List<IGetPeople_People_Nodes?>();
 
             foreach (global::StrawberryShake.EntityId? child in list)
             {
-                iGetPeople_People_Nodess.Add(MapIGetPeople_People_Nodes(child));
+                persons.Add(MapIGetPeople_People_Nodes(child));
             }
 
-            return iGetPeople_People_Nodess;
+            return persons;
         }
 
         private IGetPeople_People_Nodes? MapIGetPeople_People_Nodes(global::StrawberryShake.EntityId? entityId)
@@ -188,6 +154,8 @@ namespace StrawberryShake.GraphQL
 
 
 // GetPeopleResultInfo
+
+// StrawberryShake.CodeGeneration.CSharp.ResultInfoGenerator
 
 #nullable enable
 
@@ -230,6 +198,8 @@ namespace StrawberryShake.GraphQL
 
 // GetPeopleResult
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -250,6 +220,8 @@ namespace StrawberryShake.GraphQL
 
 // GetPeople_People_PersonConnection
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -269,6 +241,8 @@ namespace StrawberryShake.GraphQL
 
 
 // GetPeople_People_Nodes_PersonFromPersonEntityMapper
+
+// StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
 
 #nullable enable
 
@@ -292,6 +266,8 @@ namespace StrawberryShake.GraphQL
 
 
 // GetPeople_People_Nodes_Person
+
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
 
 #nullable enable
 
@@ -330,6 +306,8 @@ namespace StrawberryShake.GraphQL
 
 // IGetPeopleResult
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -343,6 +321,8 @@ namespace StrawberryShake.GraphQL
 
 
 // IGetPeople_People
+
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -358,6 +338,8 @@ namespace StrawberryShake.GraphQL
 
 // IGetPeople_People_PersonConnection
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -371,6 +353,8 @@ namespace StrawberryShake.GraphQL
 
 
 // IParticipant
+
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -390,6 +374,8 @@ namespace StrawberryShake.GraphQL
 
 // IPerson
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -407,6 +393,8 @@ namespace StrawberryShake.GraphQL
 
 // IGetPeople_People_Nodes
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -421,6 +409,8 @@ namespace StrawberryShake.GraphQL
 
 // IGetPeople_People_Nodes_Person
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -434,6 +424,8 @@ namespace StrawberryShake.GraphQL
 
 
 // GetMessagesResultFactory
+
+// StrawberryShake.CodeGeneration.CSharp.ResultDataFactoryGenerator
 
 #nullable enable
 
@@ -483,6 +475,8 @@ namespace StrawberryShake.GraphQL
 
 // GetMessagesResultInfo
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInfoGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -524,6 +518,8 @@ namespace StrawberryShake.GraphQL
 
 // GetMessagesResult
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -543,6 +539,8 @@ namespace StrawberryShake.GraphQL
 
 
 // GetMessages_PersonByEmail_PersonFromPersonEntityMapper
+
+// StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
 
 #nullable enable
 
@@ -604,14 +602,14 @@ namespace StrawberryShake.GraphQL
                 return null;
             }
 
-            var iGetMessages_PersonByEmail_Messages_Nodess = new global::System.Collections.Generic.List<IGetMessages_PersonByEmail_Messages_Nodes?>();
+            var messages = new global::System.Collections.Generic.List<IGetMessages_PersonByEmail_Messages_Nodes?>();
 
             foreach (global::StrawberryShake.EntityId? child in list)
             {
-                iGetMessages_PersonByEmail_Messages_Nodess.Add(MapIGetMessages_PersonByEmail_Messages_Nodes(child));
+                messages.Add(MapIGetMessages_PersonByEmail_Messages_Nodes(child));
             }
 
-            return iGetMessages_PersonByEmail_Messages_Nodess;
+            return messages;
         }
 
         private IGetMessages_PersonByEmail_Messages_Nodes? MapIGetMessages_PersonByEmail_Messages_Nodes(global::StrawberryShake.EntityId? entityId)
@@ -660,6 +658,8 @@ namespace StrawberryShake.GraphQL
 
 // GetMessages_PersonByEmail_Person
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -680,6 +680,8 @@ namespace StrawberryShake.GraphQL
 
 // GetMessages_PersonByEmail_Messages_MessageConnection
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -699,6 +701,8 @@ namespace StrawberryShake.GraphQL
 
 
 // GetMessages_PersonByEmail_Messages_Nodes_MessageFromMessageEntityMapper
+
+// StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
 
 #nullable enable
 
@@ -765,6 +769,8 @@ namespace StrawberryShake.GraphQL
 
 // GetMessages_PersonByEmail_Messages_Nodes_Message
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -806,6 +812,8 @@ namespace StrawberryShake.GraphQL
 
 // GetMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper
 
+// StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -826,6 +834,8 @@ namespace StrawberryShake.GraphQL
 
 
 // GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person
+
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
 
 #nullable enable
 
@@ -856,6 +866,8 @@ namespace StrawberryShake.GraphQL
 
 // GetMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper
 
+// StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -876,6 +888,8 @@ namespace StrawberryShake.GraphQL
 
 
 // GetMessages_PersonByEmail_Messages_Nodes_Sender_Person
+
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
 
 #nullable enable
 
@@ -906,6 +920,8 @@ namespace StrawberryShake.GraphQL
 
 // IGetMessagesResult
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -919,6 +935,8 @@ namespace StrawberryShake.GraphQL
 
 
 // IGetMessages_PersonByEmail
+
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -934,6 +952,8 @@ namespace StrawberryShake.GraphQL
 
 // IGetMessages_PersonByEmail_Person
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -947,6 +967,8 @@ namespace StrawberryShake.GraphQL
 
 
 // IGetMessages_PersonByEmail_Messages
+
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -962,6 +984,8 @@ namespace StrawberryShake.GraphQL
 
 // IGetMessages_PersonByEmail_Messages_MessageConnection
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -975,6 +999,8 @@ namespace StrawberryShake.GraphQL
 
 
 // IMessage
+
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -1000,6 +1026,8 @@ namespace StrawberryShake.GraphQL
 
 // IGetMessages_PersonByEmail_Messages_Nodes
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -1013,6 +1041,8 @@ namespace StrawberryShake.GraphQL
 
 
 // IGetMessages_PersonByEmail_Messages_Nodes_Message
+
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -1028,6 +1058,8 @@ namespace StrawberryShake.GraphQL
 
 // IGetMessages_PersonByEmail_Messages_Nodes_Recipient
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -1041,6 +1073,8 @@ namespace StrawberryShake.GraphQL
 
 
 // IGetMessages_PersonByEmail_Messages_Nodes_Recipient_Person
+
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -1056,6 +1090,8 @@ namespace StrawberryShake.GraphQL
 
 // IGetMessages_PersonByEmail_Messages_Nodes_Sender
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -1070,6 +1106,8 @@ namespace StrawberryShake.GraphQL
 
 // IGetMessages_PersonByEmail_Messages_Nodes_Sender_Person
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -1083,6 +1121,8 @@ namespace StrawberryShake.GraphQL
 
 
 // SendMessageMutResultFactory
+
+// StrawberryShake.CodeGeneration.CSharp.ResultDataFactoryGenerator
 
 #nullable enable
 
@@ -1178,6 +1218,8 @@ namespace StrawberryShake.GraphQL
 
 // SendMessageMutResultInfo
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInfoGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -1219,6 +1261,8 @@ namespace StrawberryShake.GraphQL
 
 // SendMessageMutResult
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -1239,6 +1283,8 @@ namespace StrawberryShake.GraphQL
 
 // SendMessageMut_SendMessage_SendMessagePayload
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -1258,6 +1304,8 @@ namespace StrawberryShake.GraphQL
 
 
 // SendMessageMut_SendMessage_Message_MessageFromMessageEntityMapper
+
+// StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
 
 #nullable enable
 
@@ -1324,6 +1372,8 @@ namespace StrawberryShake.GraphQL
 
 // SendMessageMut_SendMessage_Message_Message
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -1365,6 +1415,8 @@ namespace StrawberryShake.GraphQL
 
 // SendMessageMut_SendMessage_Message_Recipient_PersonFromPersonEntityMapper
 
+// StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -1385,6 +1437,8 @@ namespace StrawberryShake.GraphQL
 
 
 // SendMessageMut_SendMessage_Message_Recipient_Person
+
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
 
 #nullable enable
 
@@ -1415,6 +1469,8 @@ namespace StrawberryShake.GraphQL
 
 // SendMessageMut_SendMessage_Message_Sender_PersonFromPersonEntityMapper
 
+// StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -1435,6 +1491,8 @@ namespace StrawberryShake.GraphQL
 
 
 // SendMessageMut_SendMessage_Message_Sender_Person
+
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
 
 #nullable enable
 
@@ -1465,6 +1523,8 @@ namespace StrawberryShake.GraphQL
 
 // ISendMessageMutResult
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -1478,6 +1538,8 @@ namespace StrawberryShake.GraphQL
 
 
 // ISendMessageMut_SendMessage
+
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -1493,6 +1555,8 @@ namespace StrawberryShake.GraphQL
 
 // ISendMessageMut_SendMessage_SendMessagePayload
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -1506,6 +1570,8 @@ namespace StrawberryShake.GraphQL
 
 
 // ISendMessageMut_SendMessage_Message
+
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -1521,6 +1587,8 @@ namespace StrawberryShake.GraphQL
 
 // ISendMessageMut_SendMessage_Message_Message
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -1534,6 +1602,8 @@ namespace StrawberryShake.GraphQL
 
 
 // ISendMessageMut_SendMessage_Message_Recipient
+
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -1549,6 +1619,8 @@ namespace StrawberryShake.GraphQL
 
 // ISendMessageMut_SendMessage_Message_Recipient_Person
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -1562,6 +1634,8 @@ namespace StrawberryShake.GraphQL
 
 
 // ISendMessageMut_SendMessage_Message_Sender
+
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -1577,6 +1651,8 @@ namespace StrawberryShake.GraphQL
 
 // ISendMessageMut_SendMessage_Message_Sender_Person
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -1590,6 +1666,8 @@ namespace StrawberryShake.GraphQL
 
 
 // ReadMessagesResultFactory
+
+// StrawberryShake.CodeGeneration.CSharp.ResultDataFactoryGenerator
 
 #nullable enable
 
@@ -1639,6 +1717,8 @@ namespace StrawberryShake.GraphQL
 
 // ReadMessagesResultInfo
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInfoGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -1680,6 +1760,8 @@ namespace StrawberryShake.GraphQL
 
 // ReadMessagesResult
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -1699,6 +1781,8 @@ namespace StrawberryShake.GraphQL
 
 
 // ReadMessages_Message_MessageFromMessageEntityMapper
+
+// StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
 
 #nullable enable
 
@@ -1765,6 +1849,8 @@ namespace StrawberryShake.GraphQL
 
 // ReadMessages_Message_Message
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -1806,6 +1892,8 @@ namespace StrawberryShake.GraphQL
 
 // ReadMessages_Message_Recipient_PersonFromPersonEntityMapper
 
+// StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -1826,6 +1914,8 @@ namespace StrawberryShake.GraphQL
 
 
 // ReadMessages_Message_Recipient_Person
+
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
 
 #nullable enable
 
@@ -1856,6 +1946,8 @@ namespace StrawberryShake.GraphQL
 
 // ReadMessages_Message_Sender_PersonFromPersonEntityMapper
 
+// StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -1876,6 +1968,8 @@ namespace StrawberryShake.GraphQL
 
 
 // ReadMessages_Message_Sender_Person
+
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
 
 #nullable enable
 
@@ -1906,6 +2000,8 @@ namespace StrawberryShake.GraphQL
 
 // IReadMessagesResult
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -1919,6 +2015,8 @@ namespace StrawberryShake.GraphQL
 
 
 // IReadMessages_Message
+
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -1934,6 +2032,8 @@ namespace StrawberryShake.GraphQL
 
 // IReadMessages_Message_Message
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -1947,6 +2047,8 @@ namespace StrawberryShake.GraphQL
 
 
 // IReadMessages_Message_Recipient
+
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -1962,6 +2064,8 @@ namespace StrawberryShake.GraphQL
 
 // IReadMessages_Message_Recipient_Person
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -1975,6 +2079,8 @@ namespace StrawberryShake.GraphQL
 
 
 // IReadMessages_Message_Sender
+
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -1990,6 +2096,8 @@ namespace StrawberryShake.GraphQL
 
 // IReadMessages_Message_Sender_Person
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -2002,7 +2110,64 @@ namespace StrawberryShake.GraphQL
 }
 
 
+// Direction
+
+// StrawberryShake.CodeGeneration.CSharp.EnumGenerator
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public enum Direction
+    {
+        Incoming,
+        Outgoing
+    }
+}
+
+
+// DirectionSerializer
+
+// StrawberryShake.CodeGeneration.CSharp.EnumParserGenerator
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class DirectionSerializer
+        : global::StrawberryShake.Serialization.IInputValueFormatter
+        , global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, Direction>
+    {
+        public global::System.String TypeName => "Direction";
+
+        public Direction Parse(global::System.String serializedValue)
+        {
+            return serializedValue switch
+            {
+                "INCOMING" => Direction.Incoming,
+                "OUTGOING" => Direction.Outgoing,
+                _ => throw new global::StrawberryShake.GraphQLClientException()
+            };
+        }
+
+        public object Format(global::System.Object? runtimeValue)
+        {
+            return runtimeValue switch
+            {
+                Direction.Incoming => "INCOMING",
+                Direction.Outgoing => "OUTGOING",
+                _ => throw new global::StrawberryShake.GraphQLClientException()
+            };
+        }
+    }
+}
+
+
 // GetPeopleQueryDocument
+
+// StrawberryShake.CodeGeneration.CSharp.OperationDocumentGenerator
 
 #nullable enable
 
@@ -2059,6 +2224,8 @@ fragment Participant on Person {
 
 // GetPeopleQuery
 
+// StrawberryShake.CodeGeneration.CSharp.OperationServiceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -2103,6 +2270,8 @@ namespace StrawberryShake.GraphQL
 
 
 // GetMessagesQueryDocument
+
+// StrawberryShake.CodeGeneration.CSharp.OperationDocumentGenerator
 
 #nullable enable
 
@@ -2180,6 +2349,8 @@ fragment Participant on Person {
 
 // GetMessagesQuery
 
+// StrawberryShake.CodeGeneration.CSharp.OperationServiceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -2245,6 +2416,8 @@ namespace StrawberryShake.GraphQL
 
 
 // SendMessageMutMutationDocument
+
+// StrawberryShake.CodeGeneration.CSharp.OperationDocumentGenerator
 
 #nullable enable
 
@@ -2315,6 +2488,8 @@ fragment Participant on Person {
 
 
 // SendMessageMutMutation
+
+// StrawberryShake.CodeGeneration.CSharp.OperationServiceGenerator
 
 #nullable enable
 
@@ -2401,6 +2576,8 @@ namespace StrawberryShake.GraphQL
 
 // ReadMessagesSubscriptionDocument
 
+// StrawberryShake.CodeGeneration.CSharp.OperationDocumentGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -2468,6 +2645,8 @@ fragment Participant on Person {
 
 // ReadMessagesSubscription
 
+// StrawberryShake.CodeGeneration.CSharp.OperationServiceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -2502,6 +2681,8 @@ namespace StrawberryShake.GraphQL
 
 // GetPeopleBuilder
 
+// StrawberryShake.CodeGeneration.CSharp.JsonResultBuilderGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -2513,10 +2694,10 @@ namespace StrawberryShake.GraphQL
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
         private readonly global::StrawberryShake.IOperationResultDataFactory<IGetPeopleResult> _resultDataFactory;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.Uri> _uriParser;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.DateTimeOffset> _dateTimeOffsetParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.Uri> _urlParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.DateTimeOffset> _dateTimeParser;
 
         public GetPeopleBuilder(
             global::StrawberryShake.IEntityStore entityStore,
@@ -2531,13 +2712,13 @@ namespace StrawberryShake.GraphQL
             _resultDataFactory = resultDataFactory
                  ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String")
-                 ?? throw new global::System.ArgumentNullException(nameof(_stringParser));
+                 ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
             _booleanParser = serializerResolver.GetLeafValueParser<global::System.Boolean, global::System.Boolean>("Boolean")
-                 ?? throw new global::System.ArgumentNullException(nameof(_booleanParser));
-            _uriParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.Uri>("Url")
-                 ?? throw new global::System.ArgumentNullException(nameof(_uriParser));
-            _dateTimeOffsetParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.DateTimeOffset>("DateTime")
-                 ?? throw new global::System.ArgumentNullException(nameof(_dateTimeOffsetParser));
+                 ?? throw new global::System.ArgumentException("No serializer for type `Boolean` found.");
+            _urlParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.Uri>("Url")
+                 ?? throw new global::System.ArgumentException("No serializer for type `Url` found.");
+            _dateTimeParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.DateTimeOffset>("DateTime")
+                 ?? throw new global::System.ArgumentException("No serializer for type `DateTime` found.");
         }
 
         public global::StrawberryShake.IOperationResult<IGetPeopleResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
@@ -2605,16 +2786,16 @@ namespace StrawberryShake.GraphQL
                 return null;
             }
 
-            var iGetPeople_People_Nodess = new global::System.Collections.Generic.List<global::StrawberryShake.EntityId?>();
+            var persons = new global::System.Collections.Generic.List<global::StrawberryShake.EntityId?>();
 
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
-                iGetPeople_People_Nodess.Add(UpdateIGetPeople_People_NodesEntity(
+                persons.Add(UpdateIGetPeople_People_NodesEntity(
                     child,
                     entityIds));
             }
 
-            return iGetPeople_People_Nodess;
+            return persons;
         }
 
         private global::StrawberryShake.EntityId? UpdateIGetPeople_People_NodesEntity(
@@ -2672,7 +2853,7 @@ namespace StrawberryShake.GraphQL
                 return null;
             }
 
-            return _uriParser.Parse(obj.Value.GetString()!);
+            return _urlParser.Parse(obj.Value.GetString()!);
         }
 
         private global::System.DateTimeOffset DeserializeNonNullableDateTimeOffset(global::System.Text.Json.JsonElement? obj)
@@ -2682,13 +2863,15 @@ namespace StrawberryShake.GraphQL
                 throw new global::System.ArgumentNullException();
             }
 
-            return _dateTimeOffsetParser.Parse(obj.Value.GetString()!);
+            return _dateTimeParser.Parse(obj.Value.GetString()!);
         }
     }
 }
 
 
 // GetMessagesBuilder
+
+// StrawberryShake.CodeGeneration.CSharp.JsonResultBuilderGenerator
 
 #nullable enable
 
@@ -2701,10 +2884,11 @@ namespace StrawberryShake.GraphQL
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
         private readonly global::StrawberryShake.IOperationResultDataFactory<IGetMessagesResult> _resultDataFactory;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, Direction> _directionParser;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.DateTimeOffset> _dateTimeOffsetParser;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::StrawberryShake.GraphQL.Direction> _directionParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _iDParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.DateTimeOffset> _dateTimeParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
 
         public GetMessagesBuilder(
             global::StrawberryShake.IEntityStore entityStore,
@@ -2718,14 +2902,16 @@ namespace StrawberryShake.GraphQL
                  ?? throw new global::System.ArgumentNullException(nameof(extractId));
             _resultDataFactory = resultDataFactory
                  ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
-            _directionParser = serializerResolver.GetLeafValueParser<global::System.String, Direction>("Direction")
-                 ?? throw new global::System.ArgumentNullException(nameof(_directionParser));
-            _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("ID")
-                 ?? throw new global::System.ArgumentNullException(nameof(_stringParser));
-            _dateTimeOffsetParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.DateTimeOffset>("DateTime")
-                 ?? throw new global::System.ArgumentNullException(nameof(_dateTimeOffsetParser));
+            _directionParser = serializerResolver.GetLeafValueParser<global::System.String, global::StrawberryShake.GraphQL.Direction>("Direction")
+                 ?? throw new global::System.ArgumentException("No serializer for type `Direction` found.");
+            _iDParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("ID")
+                 ?? throw new global::System.ArgumentException("No serializer for type `ID` found.");
+            _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String")
+                 ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
+            _dateTimeParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.DateTimeOffset>("DateTime")
+                 ?? throw new global::System.ArgumentException("No serializer for type `DateTime` found.");
             _booleanParser = serializerResolver.GetLeafValueParser<global::System.Boolean, global::System.Boolean>("Boolean")
-                 ?? throw new global::System.ArgumentNullException(nameof(_booleanParser));
+                 ?? throw new global::System.ArgumentException("No serializer for type `Boolean` found.");
         }
 
         public global::StrawberryShake.IOperationResult<IGetMessagesResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
@@ -2820,16 +3006,16 @@ namespace StrawberryShake.GraphQL
                 return null;
             }
 
-            var iGetMessages_PersonByEmail_Messages_Nodess = new global::System.Collections.Generic.List<global::StrawberryShake.EntityId?>();
+            var messages = new global::System.Collections.Generic.List<global::StrawberryShake.EntityId?>();
 
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
-                iGetMessages_PersonByEmail_Messages_Nodess.Add(UpdateIGetMessages_PersonByEmail_Messages_NodesEntity(
+                messages.Add(UpdateIGetMessages_PersonByEmail_Messages_NodesEntity(
                     child,
                     entityIds));
             }
 
-            return iGetMessages_PersonByEmail_Messages_Nodess;
+            return messages;
         }
 
         private global::StrawberryShake.EntityId? UpdateIGetMessages_PersonByEmail_Messages_NodesEntity(
@@ -2872,7 +3058,7 @@ namespace StrawberryShake.GraphQL
                 throw new global::System.ArgumentNullException();
             }
 
-            return _stringParser.Parse(obj.Value.GetString()!);
+            return _iDParser.Parse(obj.Value.GetString()!);
         }
 
         private Direction DeserializeNonNullableDirection(global::System.Text.Json.JsonElement? obj)
@@ -2954,13 +3140,15 @@ namespace StrawberryShake.GraphQL
                 throw new global::System.ArgumentNullException();
             }
 
-            return _dateTimeOffsetParser.Parse(obj.Value.GetString()!);
+            return _dateTimeParser.Parse(obj.Value.GetString()!);
         }
     }
 }
 
 
 // SendMessageMutBuilder
+
+// StrawberryShake.CodeGeneration.CSharp.JsonResultBuilderGenerator
 
 #nullable enable
 
@@ -2973,10 +3161,11 @@ namespace StrawberryShake.GraphQL
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
         private readonly global::StrawberryShake.IOperationResultDataFactory<ISendMessageMutResult> _resultDataFactory;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, Direction> _directionParser;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.DateTimeOffset> _dateTimeOffsetParser;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::StrawberryShake.GraphQL.Direction> _directionParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _iDParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.DateTimeOffset> _dateTimeParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
 
         public SendMessageMutBuilder(
             global::StrawberryShake.IEntityStore entityStore,
@@ -2990,14 +3179,16 @@ namespace StrawberryShake.GraphQL
                  ?? throw new global::System.ArgumentNullException(nameof(extractId));
             _resultDataFactory = resultDataFactory
                  ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
-            _directionParser = serializerResolver.GetLeafValueParser<global::System.String, Direction>("Direction")
-                 ?? throw new global::System.ArgumentNullException(nameof(_directionParser));
-            _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("ID")
-                 ?? throw new global::System.ArgumentNullException(nameof(_stringParser));
-            _dateTimeOffsetParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.DateTimeOffset>("DateTime")
-                 ?? throw new global::System.ArgumentNullException(nameof(_dateTimeOffsetParser));
+            _directionParser = serializerResolver.GetLeafValueParser<global::System.String, global::StrawberryShake.GraphQL.Direction>("Direction")
+                 ?? throw new global::System.ArgumentException("No serializer for type `Direction` found.");
+            _iDParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("ID")
+                 ?? throw new global::System.ArgumentException("No serializer for type `ID` found.");
+            _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String")
+                 ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
+            _dateTimeParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.DateTimeOffset>("DateTime")
+                 ?? throw new global::System.ArgumentException("No serializer for type `DateTime` found.");
             _booleanParser = serializerResolver.GetLeafValueParser<global::System.Boolean, global::System.Boolean>("Boolean")
-                 ?? throw new global::System.ArgumentNullException(nameof(_booleanParser));
+                 ?? throw new global::System.ArgumentException("No serializer for type `Boolean` found.");
         }
 
         public global::StrawberryShake.IOperationResult<ISendMessageMutResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
@@ -3096,7 +3287,7 @@ namespace StrawberryShake.GraphQL
                 throw new global::System.ArgumentNullException();
             }
 
-            return _stringParser.Parse(obj.Value.GetString()!);
+            return _iDParser.Parse(obj.Value.GetString()!);
         }
 
         private Direction DeserializeNonNullableDirection(global::System.Text.Json.JsonElement? obj)
@@ -3178,13 +3369,15 @@ namespace StrawberryShake.GraphQL
                 throw new global::System.ArgumentNullException();
             }
 
-            return _dateTimeOffsetParser.Parse(obj.Value.GetString()!);
+            return _dateTimeParser.Parse(obj.Value.GetString()!);
         }
     }
 }
 
 
 // ReadMessagesBuilder
+
+// StrawberryShake.CodeGeneration.CSharp.JsonResultBuilderGenerator
 
 #nullable enable
 
@@ -3197,10 +3390,11 @@ namespace StrawberryShake.GraphQL
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
         private readonly global::StrawberryShake.IOperationResultDataFactory<IReadMessagesResult> _resultDataFactory;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, Direction> _directionParser;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.DateTimeOffset> _dateTimeOffsetParser;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::StrawberryShake.GraphQL.Direction> _directionParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _iDParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.DateTimeOffset> _dateTimeParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
 
         public ReadMessagesBuilder(
             global::StrawberryShake.IEntityStore entityStore,
@@ -3214,14 +3408,16 @@ namespace StrawberryShake.GraphQL
                  ?? throw new global::System.ArgumentNullException(nameof(extractId));
             _resultDataFactory = resultDataFactory
                  ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
-            _directionParser = serializerResolver.GetLeafValueParser<global::System.String, Direction>("Direction")
-                 ?? throw new global::System.ArgumentNullException(nameof(_directionParser));
-            _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("ID")
-                 ?? throw new global::System.ArgumentNullException(nameof(_stringParser));
-            _dateTimeOffsetParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.DateTimeOffset>("DateTime")
-                 ?? throw new global::System.ArgumentNullException(nameof(_dateTimeOffsetParser));
+            _directionParser = serializerResolver.GetLeafValueParser<global::System.String, global::StrawberryShake.GraphQL.Direction>("Direction")
+                 ?? throw new global::System.ArgumentException("No serializer for type `Direction` found.");
+            _iDParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("ID")
+                 ?? throw new global::System.ArgumentException("No serializer for type `ID` found.");
+            _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String")
+                 ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
+            _dateTimeParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.DateTimeOffset>("DateTime")
+                 ?? throw new global::System.ArgumentException("No serializer for type `DateTime` found.");
             _booleanParser = serializerResolver.GetLeafValueParser<global::System.Boolean, global::System.Boolean>("Boolean")
-                 ?? throw new global::System.ArgumentNullException(nameof(_booleanParser));
+                 ?? throw new global::System.ArgumentException("No serializer for type `Boolean` found.");
         }
 
         public global::StrawberryShake.IOperationResult<IReadMessagesResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
@@ -3298,7 +3494,7 @@ namespace StrawberryShake.GraphQL
                 throw new global::System.ArgumentNullException();
             }
 
-            return _stringParser.Parse(obj.Value.GetString()!);
+            return _iDParser.Parse(obj.Value.GetString()!);
         }
 
         private Direction DeserializeNonNullableDirection(global::System.Text.Json.JsonElement? obj)
@@ -3380,13 +3576,15 @@ namespace StrawberryShake.GraphQL
                 throw new global::System.ArgumentNullException();
             }
 
-            return _dateTimeOffsetParser.Parse(obj.Value.GetString()!);
+            return _dateTimeParser.Parse(obj.Value.GetString()!);
         }
     }
 }
 
 
 // PersonConnectionData
+
+// StrawberryShake.CodeGeneration.CSharp.DataTypeGenerator
 
 #nullable enable
 
@@ -3413,6 +3611,8 @@ namespace StrawberryShake.GraphQL.State
 
 // MessageConnectionData
 
+// StrawberryShake.CodeGeneration.CSharp.DataTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL.State
@@ -3438,6 +3638,8 @@ namespace StrawberryShake.GraphQL.State
 
 // SendMessagePayloadData
 
+// StrawberryShake.CodeGeneration.CSharp.DataTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL.State
@@ -3462,6 +3664,8 @@ namespace StrawberryShake.GraphQL.State
 
 
 // GraphQLClient
+
+// StrawberryShake.CodeGeneration.CSharp.ClientGenerator
 
 #nullable enable
 
@@ -3504,6 +3708,8 @@ namespace StrawberryShake.GraphQL
 
 // EntityIdFactory
 
+// StrawberryShake.CodeGeneration.CSharp.EntityIdFactoryGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -3545,6 +3751,8 @@ namespace StrawberryShake.GraphQL
 
 
 // GraphQLClientServiceCollectionExtensions
+
+// StrawberryShake.CodeGeneration.CSharp.DependencyInjectionGenerator
 
 #nullable enable
 
