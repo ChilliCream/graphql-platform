@@ -13,6 +13,83 @@
       "allowedExecutionDepth": 3,
       "detectedExecutionDepth": 4
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "OperationDefinition",
+      "Location": {
+        "Start": 17,
+        "End": 156,
+        "Line": 2,
+        "Column": 17
+      },
+      "Name": null,
+      "Operation": "Query",
+      "VariableDefinitions": [],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 23,
+          "End": 156,
+          "Line": 2,
+          "Column": 23
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": {
+              "Kind": "SelectionSet",
+              "Location": {
+                "Start": 54,
+                "End": 130,
+                "Line": 3,
+                "Column": 30
+              },
+              "Selections": [
+                {
+                  "Kind": "FragmentSpread",
+                  "Location": {
+                    "Start": 80,
+                    "End": 112,
+                    "Line": 4,
+                    "Column": 25
+                  },
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": {
+                      "Start": 84,
+                      "End": 112,
+                      "Line": 4,
+                      "Column": 29
+                    },
+                    "Value": "level2"
+                  },
+                  "Directives": []
+                }
+              ]
+            },
+            "Location": {
+              "Start": 45,
+              "End": 130,
+              "Line": 3,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 45,
+                "End": 55,
+                "Line": 3,
+                "Column": 21
+              },
+              "Value": "level1_1"
+            },
+            "Directives": []
+          }
+        ]
+      }
+    }
   }
 ]

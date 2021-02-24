@@ -12,7 +12,71 @@
     "Extensions": {
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Executable-Definitions"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "ObjectTypeExtension",
+      "Interfaces": [],
+      "Fields": [
+        {
+          "Kind": "FieldDefinition",
+          "Description": null,
+          "Arguments": [],
+          "Type": {
+            "Kind": "NamedType",
+            "Location": {
+              "Start": 223,
+              "End": 247,
+              "Line": 10,
+              "Column": 28
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 223,
+                "End": 247,
+                "Line": 10,
+                "Column": 28
+              },
+              "Value": "String"
+            }
+          },
+          "Location": {
+            "Start": 216,
+            "End": 247,
+            "Line": 10,
+            "Column": 21
+          },
+          "Name": {
+            "Kind": "Name",
+            "Location": {
+              "Start": 216,
+              "End": 222,
+              "Line": 10,
+              "Column": 21
+            },
+            "Value": "color"
+          },
+          "Directives": []
+        }
+      ],
+      "Location": {
+        "Start": 178,
+        "End": 260,
+        "Line": 9,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 190,
+          "End": 195,
+          "Line": 9,
+          "Column": 29
+        },
+        "Value": "Dog"
+      },
+      "Directives": []
+    }
   },
   {
     "Message": "The field `color` does not exist on the type `Dog`.",
@@ -34,6 +98,29 @@
       "responseName": "color",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": null,
+      "Arguments": [],
+      "SelectionSet": null,
+      "Location": {
+        "Start": 115,
+        "End": 142,
+        "Line": 5,
+        "Column": 25
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 115,
+          "End": 142,
+          "Line": 5,
+          "Column": 25
+        },
+        "Value": "color"
+      },
+      "Directives": []
+    }
   }
 ]
