@@ -70,14 +70,24 @@ namespace StrawberryShake.CodeGeneration.Extensions
                 .InnerType();
         }
 
-        public static NameString? GetGraphQlTypeName(this ITypeDescriptor typeDescriptor)
+        public static NameString GetName(this ITypeDescriptor typeDescriptor)
         {
             if (typeDescriptor.NamedType() is INamedTypeDescriptor namedType)
             {
                 return namedType.Name;
             }
 
-            return default;
+            throw new InvalidOperationException("Invalid type structure.");
+        }
+
+        public static RuntimeTypeInfo GetRuntimeType(this ITypeDescriptor typeDescriptor)
+        {
+            if (typeDescriptor.NamedType() is INamedTypeDescriptor namedType)
+            {
+                return namedType.RuntimeType;
+            }
+
+            throw new InvalidOperationException("Invalid type structure.");
         }
     }
 }

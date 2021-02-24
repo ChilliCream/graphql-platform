@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
+using StrawberryShake.CodeGeneration.Extensions;
 using Xunit;
 using static StrawberryShake.CodeGeneration.Mappers.TestDataHelper;
 
@@ -47,7 +48,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
             // assert
             Assert.Collection(
-                context.DataTypes.OrderBy(t => t.RuntimeType),
+                context.DataTypes.OrderBy(t => t.RuntimeType.ToString()),
                 type =>
                 {
                     Assert.Equal(
@@ -66,7 +67,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                                 property.Name);
                             Assert.Equal(
                                 "IGetHeroNodes_Hero_Friends_Nodes",
-                                property.Type.Name);
+                                property.Type.GetRuntimeType().Name);
                         },
                         property =>
                         {
@@ -75,7 +76,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                                 property.Name);
                             Assert.Equal(
                                 "IGetHeroEdges_Hero_Friends_Edges",
-                                property.Type.Name);
+                                property.Type.GetRuntimeType().Name);
                         });
                 },
                 type =>
@@ -85,7 +86,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                         type.RuntimeType.Name);
                     Assert.Equal(
                         "Foo.Bar.State",
-                        type.RuntimeType.Namespace);
+                        type.RuntimeType.NamespaceWithoutGlobal);
 
                     Assert.Collection(
                         type.Properties,
@@ -96,7 +97,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                                 property.Name);
                             Assert.Equal(
                                 "String",
-                                property.Type.Name);
+                                property.Type.GetRuntimeType().Name);
                         });
                 });
         }
@@ -124,7 +125,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
             // assert
 
             Assert.Collection(
-                context.DataTypes.OrderBy(t => t.RuntimeType),
+                context.DataTypes.OrderBy(t => t.RuntimeType.ToString()),
                 type =>
                 {
                     Assert.Equal(
@@ -191,7 +192,9 @@ namespace StrawberryShake.CodeGeneration.Mappers
         public void MapDataTypeDescriptors_DataInterfaceType()
         {
             // arrange
-            var clientModel = CreateClientModelAsync("interface.query.graphql", "interface.schema.graphql");
+            var clientModel = CreateClientModelAsync(
+                "interface.query.graphql",
+                "interface.schema.graphql");
 
             // act
             var context = new MapperContext(
@@ -209,7 +212,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
             // assert
             Assert.Collection(
-                context.DataTypes.OrderBy(t => t.RuntimeType),
+                context.DataTypes.OrderBy(t => t.RuntimeType.ToString()),
                 type =>
                 {
                     Assert.Equal(

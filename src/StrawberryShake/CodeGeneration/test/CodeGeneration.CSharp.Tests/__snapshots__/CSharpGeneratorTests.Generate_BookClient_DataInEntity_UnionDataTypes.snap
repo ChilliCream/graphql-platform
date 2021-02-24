@@ -9,11 +9,11 @@ namespace StrawberryShake.GraphQL
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchableStoreEntity
     {
-        public global::System.String Id { get; set; } = default!;SearchResultData
+        public global::System.String Id { get; set; } = default!;
 
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.GraphQL.State.BookData?>? Books { get; set; }
 
-        public global::StrawberryShake.GraphQL.State.SearchResultData? Search { get; set; }
+        public global::StrawberryShake.GraphQL.State.ISearchResultData? Search { get; set; }
     }
 }
 
@@ -146,7 +146,7 @@ namespace StrawberryShake.GraphQL
             return new GetStore2_SearchableStore_SearchableStore(
                 entity.Id,
                 MapIGetStore2_SearchableStore_BooksArray(entity.Books),
-                MapSearchResultData(entity.Search));
+                MapISearchResultData(entity.Search));
         }
 
         private global::System.Collections.Generic.IReadOnlyList<IGetStore2_SearchableStore_Books?>? MapIGetStore2_SearchableStore_BooksArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.GraphQL.State.BookData?>? list)
@@ -187,7 +187,7 @@ namespace StrawberryShake.GraphQL
             return returnValue;
         }
 
-        private IGetStore2_SearchableStore_Search? MapSearchResultData(global::StrawberryShake.GraphQL.State.SearchResultData data)
+        private IGetStore2_SearchableStore_Search? MapISearchResultData(global::StrawberryShake.GraphQL.State.ISearchResultData data)
         {
             if (data == default)
             {
@@ -196,15 +196,15 @@ namespace StrawberryShake.GraphQL
 
             IGetStore2_SearchableStore_Search returnValue = default!;
 
-            if (data is global::StrawberryShake.GraphQL.State.GetStore2_SearchableStore_Search_AuthorData Author)
+            if (data is global::StrawberryShake.GraphQL.State.AuthorData author)
             {
-                returnValue = new Author();
+                returnValue = new global::StrawberryShake.GraphQL.GetStore2_SearchableStore_Search_Author();
             }
-            else if (data is global::StrawberryShake.GraphQL.State.GetStore2_SearchableStore_Search_BookData Book)
+            else if (data is global::StrawberryShake.GraphQL.State.BookData book)
             {
-                returnValue = new Book(
-                    Book.Title,
-                    Book.Isbn);
+                returnValue = new global::StrawberryShake.GraphQL.GetStore2_SearchableStore_Search_Book(
+                    book.Title,
+                    book.Isbn);
             }
             else {
                 throw new global::System.NotSupportedException();
@@ -626,7 +626,7 @@ namespace StrawberryShake.GraphQL
                 SearchableStoreEntity entity = _entityStore.GetOrCreate<SearchableStoreEntity>(entityId);
                 entity.Id = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "id"));
                 entity.Books = DeserializeIGetStore2_SearchableStore_BooksArray(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "books"));
-                entity.Search = DeserializeSearchResultData(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "search"));
+                entity.Search = DeserializeISearchResultData(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "search"));
 
                 return entityId;
             }
@@ -681,7 +681,7 @@ namespace StrawberryShake.GraphQL
             throw new global::System.NotSupportedException();
         }
 
-        private global::StrawberryShake.GraphQL.State.SearchResultData? DeserializeSearchResultData(global::System.Text.Json.JsonElement? obj)
+        private global::StrawberryShake.GraphQL.State.ISearchResultData? DeserializeISearchResultData(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {

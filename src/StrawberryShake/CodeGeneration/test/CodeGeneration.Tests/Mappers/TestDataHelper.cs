@@ -1,9 +1,9 @@
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
-using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake.CodeGeneration.Analyzers;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Utilities;
@@ -13,7 +13,9 @@ namespace StrawberryShake.CodeGeneration.Mappers
 {
     public static class TestDataHelper
     {
-        public static ClientModel CreateClientModelAsync(string queryResource, string schemaResource)
+        public static ClientModel CreateClientModelAsync(
+            string queryResource, 
+            string schemaResource)
         {
            ISchema schema = SchemaHelper.Load(
                 (string.Empty, Utf8GraphQLParser.Parse(Open(schemaResource))),

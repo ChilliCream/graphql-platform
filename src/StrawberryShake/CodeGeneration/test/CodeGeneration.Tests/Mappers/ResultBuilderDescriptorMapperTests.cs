@@ -43,7 +43,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
             // assert
             Assert.Collection(
-                context.ResultBuilders.OrderBy(t => t.RuntimeType),
+                context.ResultBuilders.OrderBy(t => t.RuntimeType.ToString()),
                 resultBuilder =>
                 {
                     Assert.Equal("CreateReviewBuilder", resultBuilder.RuntimeType.Name);

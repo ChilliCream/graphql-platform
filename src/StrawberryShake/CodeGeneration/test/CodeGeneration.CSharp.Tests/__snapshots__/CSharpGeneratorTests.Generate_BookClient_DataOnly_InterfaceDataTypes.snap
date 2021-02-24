@@ -56,13 +56,13 @@ namespace StrawberryShake.GraphQL
 
             if (data is global::StrawberryShake.GraphQL.State.BookData book)
             {
-                returnValue = new global::StrawberryShake.GraphQL.State.BookData(
+                returnValue = new global::StrawberryShake.GraphQL.SearchSomething_Prints_Book(
                     book.Isbn,
                     book.Title);
             }
             else if (data is global::StrawberryShake.GraphQL.State.MagazineData magazine)
             {
-                returnValue = new global::StrawberryShake.GraphQL.State.MagazineData(
+                returnValue = new global::StrawberryShake.GraphQL.SearchSomething_Prints_Magazine(
                     magazine.Isbn,
                     magazine.CoverImageUrl);
             }
