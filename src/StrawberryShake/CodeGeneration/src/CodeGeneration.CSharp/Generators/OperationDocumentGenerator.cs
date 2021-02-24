@@ -7,8 +7,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
     public class OperationDocumentGenerator: ClassBaseGenerator<OperationDescriptor>
     {
         protected override void Generate(
-            CodeWriter writer, 
-            OperationDescriptor descriptor, 
+            CodeWriter writer,
+            OperationDescriptor descriptor,
             out string fileName)
         {
             var (classBuilder, constructorBuilder) = CreateClassBuilder();

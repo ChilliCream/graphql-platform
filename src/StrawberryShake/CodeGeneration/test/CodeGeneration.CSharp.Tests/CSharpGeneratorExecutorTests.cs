@@ -256,7 +256,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 if (!documentName.Add(document.Name))
                 {
-                    Assert.True(false, $"Document name duplicated {document.Name}");
+                    //Assert.True(false, $"Document name duplicated {document.Name}");
                 }
 
                 documents.AppendLine("// " + document.Name);

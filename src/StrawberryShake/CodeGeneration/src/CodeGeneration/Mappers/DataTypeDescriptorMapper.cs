@@ -47,7 +47,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     dataTypeInfos.Add(dataType.Name, dataTypeInfo);
                 }
 
-                dataTypeInfo.Components.Add(dataType.Name);
+                dataTypeInfo.Components.Add(dataType.RuntimeType.Name);
             }
 
             var handledAbstractTypes = new HashSet<string>();
@@ -75,7 +75,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     dataTypeInfo.Name,
                     context.StateNamespace,
                     dataTypeInfo.Components
-                        .Select(name => context.Types.Single(t => t.Name.Equals(name)))
+                        .Select(name => context.Types.Single(t => t.RuntimeType.Name.Equals(name)))
                         .OfType<ComplexTypeDescriptor>()
                         .ToList(),
                     implements);

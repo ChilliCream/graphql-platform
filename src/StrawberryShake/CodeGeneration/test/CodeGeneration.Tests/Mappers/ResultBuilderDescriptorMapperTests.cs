@@ -46,15 +46,15 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 context.ResultBuilders.OrderBy(t => t.RuntimeType),
                 resultBuilder =>
                 {
-                    Assert.Equal("CreateReviewBuilder", resultBuilder.RuntimeType);
+                    Assert.Equal("CreateReviewBuilder", resultBuilder.RuntimeType.Name);
                 },
                 resultBuilder =>
                 {
-                    Assert.Equal("GetHeroBuilder", resultBuilder.RuntimeType);
+                    Assert.Equal("GetHeroBuilder", resultBuilder.RuntimeType.Name);
                 },
                 resultBuilder =>
                 {
-                    Assert.Equal("OnReviewBuilder", resultBuilder.RuntimeType);
+                    Assert.Equal("OnReviewBuilder", resultBuilder.RuntimeType.Name);
                 });
         }
     }

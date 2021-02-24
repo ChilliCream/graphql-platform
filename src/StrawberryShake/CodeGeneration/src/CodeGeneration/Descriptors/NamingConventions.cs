@@ -50,9 +50,10 @@ namespace StrawberryShake.CodeGeneration
         public static string ServiceCollectionExtensionsFromClientName(string clientName) =>
             clientName + "ServiceCollectionExtensions";
 
-        public static string InputValueFormatterFromType(NamedTypeDescriptor type) =>
-            type.Kind == TypeKind.InputType
-                ? (type.GraphQLTypeName?.Value ?? type.Name) + "InputValueFormatter"
-                : (type.GraphQLTypeName?.Value ?? type.Name) + "Serializer";
+        public static string InputValueFormatterFromType(InputObjectTypeDescriptor type) =>
+            type.Name + "InputValueFormatter";
+
+        public static string InputValueFormatterFromType(ScalarTypeDescriptor type) =>
+            type.Name + "Serializer";
     }
 }

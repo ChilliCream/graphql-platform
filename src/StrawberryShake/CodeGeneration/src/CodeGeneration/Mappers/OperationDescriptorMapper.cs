@@ -37,7 +37,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                             modelOperation.Name,
                             new QueryOperationDescriptor(
                                 modelOperation.Name,
-                                context.Types.Single(t => t.Name.Equals(resultTypeName)),
+                                context.Types.Single(t => t.RuntimeType.Name.Equals(resultTypeName)),
                                 context.Namespace,
                                 arguments,
                                 modelOperation.Document.ToString()));
@@ -48,7 +48,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                             modelOperation.Name,
                             new MutationOperationDescriptor(
                                 modelOperation.Name,
-                                context.Types.Single(t => t.Name.Equals(resultTypeName)),
+                                context.Types.Single(t => t.RuntimeType.Name.Equals(resultTypeName)),
                                 context.Namespace,
                                 arguments,
                                 modelOperation.Document.ToString()));
@@ -59,7 +59,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                             modelOperation.Name,
                             new SubscriptionOperationDescriptor(
                                 modelOperation.Name,
-                                context.Types.Single(t => t.Name.Equals(resultTypeName)),
+                                context.Types.Single(t => t.RuntimeType.Name.Equals(resultTypeName)),
                                 context.Namespace,
                                 arguments,
                                 modelOperation.Document.ToString()));

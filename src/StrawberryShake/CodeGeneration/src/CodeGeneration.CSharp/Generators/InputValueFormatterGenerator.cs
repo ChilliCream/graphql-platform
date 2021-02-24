@@ -11,21 +11,21 @@ using IInputValueFormatter = StrawberryShake.Serialization.IInputValueFormatter;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public class InputValueFormatterGenerator : CodeGenerator<NamedTypeDescriptor>
+    public class InputValueFormatterGenerator : CodeGenerator<InputObjectTypeDescriptor>
     {
         private static readonly string _keyValuePair =
             TypeNames.KeyValuePair.WithGeneric(
                 TypeNames.String,
                 TypeNames.Object.MakeNullable());
 
-        protected override bool CanHandle(NamedTypeDescriptor descriptor)
+        protected override bool CanHandle(InputObjectTypeDescriptor descriptor)
         {
-            return descriptor.Kind == TypeKind.InputType;
+            return true;
         }
 
         protected override void Generate(
             CodeWriter writer,
-            NamedTypeDescriptor namedTypeDescriptor,
+            InputObjectTypeDescriptor namedTypeDescriptor,
             out string fileName)
         {
             fileName = InputValueFormatterFromType(namedTypeDescriptor);
@@ -138,7 +138,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             CodeFileBuilder
                 .New()
-                .SetNamespace(namedTypeDescriptor.Namespace)
+                .SetNamespace(namedTypeDescriptor.RuntimeType.Namespace)
                 .AddType(classBuilder)
                 .Build(writer);
         }
@@ -150,7 +150,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             switch (typeDescriptor)
             {
-                case NamedTypeDescriptor descriptor:
+                case INamedTypeDescriptor descriptor:
                     var type = descriptor.GetGraphQlTypeName()?.Value + "Formatter";
                     var serializerName = GetFieldName(type);
                     var methodCall = $"{serializerName}.Format({variableName})";
@@ -176,7 +176,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         .AddCode(
                             CodeLineBuilder.From(
                                 $"var {variableName}_list = new " +
-                                $"{TypeNames.List.WithGeneric(TypeNames.Object.MakeNullable())}" + 
+                                $"{TypeNames.List.WithGeneric(TypeNames.Object.MakeNullable())}" +
                                 "();"))
                         .AddEmptyLine()
                         .AddCode(

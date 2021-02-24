@@ -25,10 +25,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
             classBuilder.SetName(fileName);
             constructorBuilder.SetTypeName(fileName);
 
+            var resultTypeReference =
+                (INamedTypeDescriptor)operationDescriptor.ResultTypeReference.NamedType();
+
             AddConstructorAssignedField(
                 TypeReferenceBuilder.New()
                     .SetName(TypeNames.IOperationExecutor)
-                    .AddGeneric(operationDescriptor.ResultTypeReference.Name),
+                    .AddGeneric(resultTypeReference.RuntimeType.Name),
                 OperationExecutorFieldName,
                 classBuilder,
                 constructorBuilder);
@@ -95,7 +98,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 executeMethod = MethodBuilder.New()
                     .SetReturnType(
                         $"async {TypeNames.Task}<{TypeNames.IOperationResult}<" +
-                        $"{operationDescriptor.ResultTypeReference.Name}>>")
+                        $"{resultTypeReference.RuntimeType.Name}>>")
                     .SetAccessModifier(AccessModifier.Public)
                     .SetName(TypeNames.Execute);
             }
@@ -105,7 +108,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetReturnType(
                     $"{TypeNames.IOperationObservable}<" +
                     $"{TypeNames.IOperationResult}<" +
-                    $"{operationDescriptor.ResultTypeReference.Name}>>")
+                    $"{resultTypeReference.RuntimeType.Name}>>")
                 .SetAccessModifier(AccessModifier.Public)
                 .SetName(TypeNames.Watch);
 

@@ -43,7 +43,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             // First we run all mappers that do not have any dependencies on others.
             EntityIdFactoryDescriptorMapper.Map(clientModel, context);
-            ClientDescriptorMapper.Map(clientModel, context);
 
             // Second we start with the type descriptor mapper which creates
             // the type structure for the generators.
@@ -56,6 +55,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
             DataTypeDescriptorMapper.Map(clientModel, context);
             EntityTypeDescriptorMapper.Map(clientModel, context);
             ResultBuilderDescriptorMapper.Map(clientModel, context);
+
+            // Lastly we generate the client mapper
+            ClientDescriptorMapper.Map(clientModel, context);
 
             // Last we execute all our generators with the descriptiptors.
             var code = new StringBuilder();

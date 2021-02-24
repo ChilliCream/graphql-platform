@@ -72,7 +72,7 @@ namespace StrawberryShake.CodeGeneration
         public const string ISet = GenericCollectionsNamespace + "ISet";
         public const string IReadOnlySpan = "global::System.ReadOnlySpan";
         public const string DateTimeOffset = "global::System.DateTimeOffset";
-        public const string OrdinalStringComparisson = "global::System.StringComparison.Ordinal";
+        public const string OrdinalStringComparison = "global::System.StringComparison.Ordinal";
         public const string Func = "global::System.Func";
         public const string Task = "global::System.Threading.Tasks.Task";
         public const string IOperationObservable = "global::System.IObservable";

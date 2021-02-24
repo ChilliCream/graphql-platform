@@ -12,12 +12,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
         /// Adds all required deserializers of the given type descriptors properties
         /// </summary>
         protected void AddRequiredMapMethods(
-                string propAccess,
-                ComplexTypeDescriptor typeDescriptor,
-                ClassBuilder classBuilder,
-                ConstructorBuilder constructorBuilder,
-                HashSet<string> processed,
-                bool stopAtEntityMappers = false)
+            string propAccess,
+            ComplexTypeDescriptor typeDescriptor,
+            ClassBuilder classBuilder,
+            ConstructorBuilder constructorBuilder,
+            HashSet<string> processed,
+            bool stopAtEntityMappers = false)
         {
             if (typeDescriptor is InterfaceTypeDescriptor interfaceType)
             {
@@ -67,35 +67,21 @@ namespace StrawberryShake.CodeGeneration.CSharp
             ITypeDescriptor typeDescriptor,
             bool parentIsList = false)
         {
-            switch (typeDescriptor)
+            return typeDescriptor switch
             {
-                case ListTypeDescriptor listTypeDescriptor:
-                    return BuildMapMethodName(
-                               listTypeDescriptor.InnerType,
-                               true) +
-                           "Array";
-
-                case NamedTypeDescriptor namedTypeDescriptor:
-                    return namedTypeDescriptor.Kind switch
-                    {
-                        TypeKind.LeafType => typeDescriptor.Name.WithCapitalFirstChar(),
-                        TypeKind.DataType => typeDescriptor.Name,
-                        TypeKind.ComplexDataType => namedTypeDescriptor.ImplementedBy.Count > 1
-                            ? namedTypeDescriptor.ComplexDataTypeParent!
-                            : typeDescriptor.Name,
-                        TypeKind.EntityType => typeDescriptor.Name,
-                        _ => throw new ArgumentOutOfRangeException()
-                    };
-
-                case NonNullTypeDescriptor nonNullTypeDescriptor:
-                    return parentIsList
-                        ? BuildMapMethodName(nonNullTypeDescriptor.InnerType) +
-                          "NonNullable"
-                        : "NonNullable" +
-                          BuildMapMethodName(nonNullTypeDescriptor.InnerType);
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(typeDescriptor));
-            }
+                ListTypeDescriptor listTypeDescriptor =>
+                    BuildMapMethodName(listTypeDescriptor.InnerType, true) + "Array",
+                ILeafTypeDescriptor leafTypeDescriptor =>
+                    leafTypeDescriptor.Name.WithCapitalFirstChar(),
+                InterfaceTypeDescriptor { ParentRuntimeType: {} parentRuntimeType } =>
+                    parentRuntimeType!.Name,
+                INamedTypeDescriptor namedTypeDescriptor =>
+                    namedTypeDescriptor.RuntimeType.Name,
+                NonNullTypeDescriptor nonNullTypeDescriptor => parentIsList
+                    ? BuildMapMethodName(nonNullTypeDescriptor.InnerType) + "NonNullable"
+                    : "NonNullable" + BuildMapMethodName(nonNullTypeDescriptor.InnerType),
+                _ => throw new ArgumentOutOfRangeException(nameof(typeDescriptor))
+            };
         }
 
         private void AddMapMethod(
@@ -171,6 +157,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     {
                         argString += $" ?? throw new {TypeNames.ArgumentNullException}()";
                     }
+
                     mapperMethodCall.AddArgument(argString);
 
                     return mapperMethodCall;

@@ -8,7 +8,7 @@ namespace StrawberryShake.CodeGeneration
     {
         private static ITypeDescriptor Unwrap(
             IType type,
-            Func<INamedType, NamedTypeDescriptor> mapNamedType)
+            Func<INamedType, INamedTypeDescriptor> mapNamedType)
         {
             switch (type)
             {

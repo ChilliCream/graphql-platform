@@ -22,8 +22,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
             method.AddParameter(
                 _dataParameterName,
                 x => x.SetType(
-                        $"global::{namedTypeDescriptor.RuntimeType.Namespace}.State." +
-                        DataTypeNameFromTypeName(namedTypeDescriptor.Name)));
+                        $"{namedTypeDescriptor.RuntimeType.Namespace}.State." +
+                        DataTypeNameFromTypeName(namedTypeDescriptor.RuntimeType.Name)));
 
             if (!isNonNullable)
             {
@@ -31,7 +31,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
 
             var variableName = "returnValue";
-            method.AddCode($"{namedTypeDescriptor.Name} {variableName} = default!;");
+            method.AddCode($"{namedTypeDescriptor.RuntimeType.Name} {variableName} = default!;");
             method.AddEmptyLine();
 
             GenerateIfForEachImplementedBy(
@@ -61,20 +61,20 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 ifCorrectType.SetCondition(
                     $"{_dataParameterName}.__typename.Equals(\"" +
                     $"{objectTypeDescriptor.Name}\", " +
-                    $"{TypeNames.OrdinalStringComparisson})");
+                    $"{TypeNames.OrdinalStringComparison})");
             }
             else
             {
                 ifCorrectType.SetCondition(
                     $"{_dataParameterName}?.__typename.Equals(\"" +
                     $"{objectTypeDescriptor.Name}\", " +
-                    $"{TypeNames.OrdinalStringComparisson}) ?? false");
+                    $"{TypeNames.OrdinalStringComparison}) ?? false");
             }
 
 
             var constructorCall = MethodCallBuilder.New()
                 .SetPrefix($"{variableName} = new ")
-                .SetMethodName(objectTypeDescriptor.Name);
+                .SetMethodName(objectTypeDescriptor.RuntimeType.Name);
 
             foreach (PropertyDescriptor prop in objectTypeDescriptor.Properties)
             {

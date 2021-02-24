@@ -200,18 +200,19 @@ namespace StrawberryShake.CodeGeneration.CSharp
             codeWriter.WriteComment("register mappers");
             codeWriter.WriteLine();
 
-            foreach (var typeDescriptor in descriptor.TypeDescriptors)
+            foreach (var typeDescriptor in descriptor.TypeDescriptors
+                .OfType<INamedTypeDescriptor>())
             {
                 if (typeDescriptor.Kind == TypeKind.EntityType && !typeDescriptor.IsInterface())
                 {
-                    NamedTypeDescriptor namedTypeDescriptor =
-                        (NamedTypeDescriptor)typeDescriptor.NamedType();
+                    INamedTypeDescriptor namedTypeDescriptor =
+                        (INamedTypeDescriptor)typeDescriptor.NamedType();
                     NameString className = namedTypeDescriptor.ExtractMapperName();
 
                     var interfaceName =
                         TypeNames.IEntityMapper.WithGeneric(
                             namedTypeDescriptor.ExtractTypeName(),
-                            typeDescriptor.Name);
+                            typeDescriptor.RuntimeType.Name);
 
                     AddSingleton(codeWriter, interfaceName, className);
                 }
@@ -244,7 +245,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     codeWriter,
                     TypeNames.ISerializer,
                     InputValueFormatterFromType(
-                        (NamedTypeDescriptor)inputTypeDescriptor.NamedType()));
+                        (InputObjectTypeDescriptor)inputTypeDescriptor.NamedType()));
             }
 
             RegisterSerializerResolver().Build(codeWriter);
@@ -253,25 +254,30 @@ namespace StrawberryShake.CodeGeneration.CSharp
             codeWriter.WriteComment("register operations");
             foreach (var operation in descriptor.Operations)
             {
+                if (!(operation.ResultTypeReference is InterfaceTypeDescriptor typeDescriptor))
+                {
+                    continue;
+                }
+
                 string connectionKind = operation is SubscriptionOperationDescriptor
                     ? TypeNames.WebSocketConnection
                     : TypeNames.HttpConnection;
                 NameString operationName = operation.OperationName;
                 NameString fullName = operation.Name;
-                NameString operationInterface = operation.ResultTypeReference.Name;
+                NameString operationInterface = typeDescriptor.RuntimeType.Name;
 
-                // The resulttype of the operation is a NamedTypeDescriptor, that is an Interface
-                var resultType = operation.ResultTypeReference as NamedTypeDescriptor
-                                         ?? throw new ArgumentException("ResultTypeReference");
                 // The factories are generated based on the concrete result type, which is the
                 // only implementee of the result type interface.
-                var factoryName = ResultFactoryNameFromTypeName(resultType.ImplementedBy[0].Name);
+
+                var factoryName =
+                    ResultFactoryNameFromTypeName(
+                        typeDescriptor.ImplementedBy.First().RuntimeType.Name);
 
                 var builderName = ResultBuilderNameFromTypeName(operationName);
                 stringBuilder.AppendLine(
                     RegisterOperation(
                         connectionKind,
-                        descriptor.Name,
+                        descriptor.RuntimeType.Name,
                         fullName,
                         operationInterface,
                         factoryName,
@@ -279,7 +285,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
 
             stringBuilder.AppendLine(
-                $"{TypeNames.AddSingleton.WithGeneric(descriptor.Name)}(services);");
+                $"{TypeNames.AddSingleton.WithGeneric(descriptor.RuntimeType.Name)}(services);");
 
             stringBuilder.AppendLine();
             stringBuilder.AppendLine("return services;");

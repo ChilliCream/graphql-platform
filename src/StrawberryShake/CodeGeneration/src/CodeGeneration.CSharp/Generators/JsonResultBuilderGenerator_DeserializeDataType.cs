@@ -25,7 +25,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     var ifStatement = IfBuilder.New()
                         .SetCondition(
                             $"typename?.Equals(\"{concreteType.Name}\", " +
-                            $"{TypeNames.OrdinalStringComparisson}) ?? false");
+                            $"{TypeNames.OrdinalStringComparison}) ?? false");
 
                     var dataTypeName = $"global::{concreteType.RuntimeType.Namespace}.State."
                     + DataTypeNameFromTypeName(concreteType.Name);

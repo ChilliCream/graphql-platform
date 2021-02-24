@@ -36,7 +36,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
 
             var variableName = "returnValue";
-            method.AddCode($"{complexTypeDescriptor.Name} {variableName} = default!;");
+            method.AddCode($"{complexTypeDescriptor.RuntimeType.Name} {variableName} = default!;");
             method.AddEmptyLine();
 
             GenerateIfForEachImplementedBy(
@@ -60,12 +60,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
             Func<ObjectTypeDescriptor, IfBuilder> generator)
         {
             if (!(complexTypeDescriptor is InterfaceTypeDescriptor interfaceTypeDescriptor) ||
-                interfaceTypeDescriptor.ImplementedBy.Any())
+                !interfaceTypeDescriptor.ImplementedBy.Any())
             {
                 return;
             }
 
-            var ifChain = generator(interfaceTypeDescriptor.ImplementedBy[0]);
+            var ifChain = generator(interfaceTypeDescriptor.ImplementedBy.First());
 
             foreach (ObjectTypeDescriptor objectTypeDescriptor in
                 interfaceTypeDescriptor.ImplementedBy.Skip(1))

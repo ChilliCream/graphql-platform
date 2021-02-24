@@ -8,121 +8,101 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
 {
     public static class DescriptorExtensions
     {
-        public static NameString ExtractMapperName(this NamedTypeDescriptor descriptor)
+        public static NameString ExtractMapperName(this INamedTypeDescriptor descriptor)
         {
             return descriptor.Kind == TypeKind.EntityType
                 ? EntityMapperNameFromGraphQLTypeName(
-                    descriptor.Name,
-                    descriptor.GraphQLTypeName!)
+                    descriptor.RuntimeType.Name,
+                    descriptor.Name)
                 : DataMapperNameFromGraphQLTypeName(
-                    descriptor.Name,
-                    descriptor.GraphQLTypeName!);
+                    descriptor.RuntimeType.Name,
+                    descriptor.Name);
         }
 
-        public static NameString ExtractTypeName(this NamedTypeDescriptor descriptor)
+        public static NameString ExtractTypeName(this INamedTypeDescriptor descriptor)
         {
             return descriptor.IsEntityType()
-                ? CreateEntityTypeName(descriptor.GraphQLTypeName!)
+                ? CreateEntityTypeName(descriptor.Name)
                 : descriptor.Name;
         }
 
         public static TypeReferenceBuilder ToBuilder(
             this ITypeDescriptor typeReferenceDescriptor,
             string? nameOverride = null,
-            TypeReferenceBuilder? builder = null,
-            bool isNonNull = false)
+            TypeReferenceBuilder? builder = null)
         {
-            var actualBuilder = builder ?? TypeReferenceBuilder.New();
-            switch (typeReferenceDescriptor)
+            TypeReferenceBuilder actualBuilder = builder ?? TypeReferenceBuilder.New();
+
+            if (typeReferenceDescriptor is NonNullTypeDescriptor n)
             {
-                case ListTypeDescriptor listTypeDescriptor:
-                    actualBuilder.SetIsNullable(!isNonNull);
-                    actualBuilder.SetListType();
-                    ToBuilder(
-                        listTypeDescriptor.InnerType,
-                        nameOverride,
-                        actualBuilder);
-                    break;
-                case NamedTypeDescriptor namedTypeDescriptor:
-                    actualBuilder.SetIsNullable(!isNonNull);
-                    if (namedTypeDescriptor.IsLeafType() && !namedTypeDescriptor.IsEnum)
-                    {
-                        actualBuilder.SetName(
-                            $"{namedTypeDescriptor.Namespace}." +
-                            (nameOverride ?? namedTypeDescriptor.Name));
-                    }
-                    else
-                    {
-                        actualBuilder.SetName(nameOverride ?? namedTypeDescriptor.Name);
-                    }
-                    break;
-                case NonNullTypeDescriptor nonNullTypeDescriptor:
-                    ToBuilder(
-                        nonNullTypeDescriptor.InnerType,
-                        nameOverride,
-                        actualBuilder,
-                        true);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(typeReferenceDescriptor));
+                typeReferenceDescriptor = n.InnerType;
+            }
+            else
+            {
+                actualBuilder.SetIsNullable(true);
             }
 
-            return actualBuilder;
+            return typeReferenceDescriptor switch
+            {
+                ListTypeDescriptor list =>
+                    ToBuilder(list.InnerType, nameOverride, actualBuilder.SetListType()),
+
+                EnumTypeDescriptor @enum =>
+                    actualBuilder.SetName(nameOverride ?? @enum.RuntimeType.Name),
+
+                ILeafTypeDescriptor leaf =>
+                    actualBuilder.SetName(
+                        $"{leaf.RuntimeType.Namespace}.{nameOverride ?? leaf.RuntimeType.Name}"),
+
+                INamedTypeDescriptor named =>
+                    actualBuilder.SetName(nameOverride ?? named.RuntimeType.Name),
+
+                _ => throw new ArgumentOutOfRangeException(nameof(typeReferenceDescriptor))
+            };
         }
 
         public static TypeReferenceBuilder ToEntityIdBuilder(
             this ITypeDescriptor typeDescriptor,
-            TypeReferenceBuilder? builder = null,
-            bool isNonNull = false)
+            TypeReferenceBuilder? builder = null)
         {
             TypeReferenceBuilder actualBuilder = builder ?? TypeReferenceBuilder.New();
-            switch (typeDescriptor)
+
+            if (typeDescriptor is NonNullTypeDescriptor n)
             {
-                case ListTypeDescriptor listTypeDescriptor:
-                    actualBuilder.SetIsNullable(!isNonNull);
-                    actualBuilder.SetListType();
-                    ToEntityIdBuilder(
-                        listTypeDescriptor.InnerType,
-                        actualBuilder);
-                    break;
-                case NamedTypeDescriptor namedTypeDescriptor:
-                    actualBuilder.SetIsNullable(!isNonNull);
-                    if (namedTypeDescriptor.IsLeafType() && !namedTypeDescriptor.IsEnum)
-                    {
-                        actualBuilder.SetName(
-                            $"{namedTypeDescriptor.Namespace}.{namedTypeDescriptor.Name}");
-                    }
-                    else if (namedTypeDescriptor.IsDataType())
-                    {
-                        actualBuilder.SetName(
-                            namedTypeDescriptor.Kind == TypeKind.ComplexDataType
-                                ? $"global::{namedTypeDescriptor.Namespace}.State.I" +
-                                    DataTypeNameFromTypeName(
-                                        namedTypeDescriptor.ComplexDataTypeParent!)
-                                : $"global::{namedTypeDescriptor.Namespace}.State." + 
-                                    DataTypeNameFromTypeName(
-                                        namedTypeDescriptor.GraphQLTypeName!));
-                    }
-                    else if (namedTypeDescriptor.IsEntityType())
-                    {
-                        actualBuilder.SetName(TypeNames.EntityId);
-                    }
-                    else
-                    {
-                        actualBuilder.SetName(typeDescriptor.Name);
-                    }
-                    break;
-                case NonNullTypeDescriptor nonNullTypeDescriptor:
-                    ToEntityIdBuilder(
-                        nonNullTypeDescriptor.InnerType,
-                        actualBuilder,
-                        true);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(typeDescriptor));
+                typeDescriptor = n.InnerType;
+            }
+            else
+            {
+                actualBuilder.SetIsNullable(true);
             }
 
-            return actualBuilder;
+            return typeDescriptor switch
+            {
+                ListTypeDescriptor listTypeDescriptor =>
+                    ToEntityIdBuilder(listTypeDescriptor.InnerType, actualBuilder.SetListType()),
+
+                EnumTypeDescriptor @enum =>
+                    actualBuilder.SetName(@enum.RuntimeType.Name),
+
+                ILeafTypeDescriptor leaf =>
+                    actualBuilder.SetName(leaf.RuntimeType.ToString()),
+
+                ComplexTypeDescriptor { ParentRuntimeType: { } parentRuntimeType } d =>
+                    actualBuilder.SetName(
+                        $"global::{parentRuntimeType.Namespace}." +
+                        DataTypeNameFromTypeName(d.Name!)),
+
+                INamedTypeDescriptor { Kind: TypeKind.DataType } d =>
+                    actualBuilder.SetName(
+                        $"global::{d.RuntimeType.Namespace}." + DataTypeNameFromTypeName(d.Name!)),
+
+                INamedTypeDescriptor { Kind: TypeKind.EntityType } =>
+                    actualBuilder.SetName(TypeNames.EntityId),
+
+                INamedTypeDescriptor d => actualBuilder.SetName(d.RuntimeType.Name),
+
+                _ => throw new ArgumentOutOfRangeException(nameof(typeDescriptor))
+            };
         }
     }
 }

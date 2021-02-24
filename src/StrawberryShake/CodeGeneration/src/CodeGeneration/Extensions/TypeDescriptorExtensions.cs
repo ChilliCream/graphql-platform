@@ -22,17 +22,17 @@ namespace StrawberryShake.CodeGeneration.Extensions
             {
                 ListTypeDescriptor listTypeDescriptor =>
                     listTypeDescriptor.InnerType.ContainsEntity(),
-                NamedTypeDescriptor namedTypeDescriptor =>
-                    namedTypeDescriptor.Properties.Any(prop => prop.Type.IsEntityType()
-                                                               || prop.Type.ContainsEntity()),
+                ComplexTypeDescriptor namedTypeDescriptor =>
+                    namedTypeDescriptor.Properties.Any(
+                        prop => prop.Type.IsEntityType() || prop.Type.ContainsEntity()),
                 NonNullTypeDescriptor nonNullTypeDescriptor =>
                     nonNullTypeDescriptor.InnerType.ContainsEntity(),
-                _ => throw new ArgumentOutOfRangeException(nameof(typeDescriptor))
+                _ => false
             };
         }
 
         public static bool IsInterface(this ITypeDescriptor typeDescriptor) =>
-            typeDescriptor is NamedTypeDescriptor { IsInterface: true };
+            typeDescriptor is InterfaceTypeDescriptor;
 
         public static bool IsNullableType(this ITypeDescriptor typeDescriptor) =>
             typeDescriptor is not NonNullTypeDescriptor;
@@ -72,9 +72,9 @@ namespace StrawberryShake.CodeGeneration.Extensions
 
         public static NameString? GetGraphQlTypeName(this ITypeDescriptor typeDescriptor)
         {
-            if (typeDescriptor.NamedType() is NamedTypeDescriptor namedType)
+            if (typeDescriptor.NamedType() is INamedTypeDescriptor namedType)
             {
-                return namedType.GraphQLTypeName;
+                return namedType.Name;
             }
 
             return default;

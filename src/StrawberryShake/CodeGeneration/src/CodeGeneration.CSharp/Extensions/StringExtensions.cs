@@ -24,9 +24,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return typeInfo + "<" + string.Join(", ", generics) + ">";
         }
 
-        public static string MakeNullable(this string str)
+        public static string MakeNullable(this string str, bool isNullable = true)
         {
-            return str + "?";
+            if (isNullable)
+            {
+                return str + "?";
+            }
+
+            return str;
         }
     }
 }

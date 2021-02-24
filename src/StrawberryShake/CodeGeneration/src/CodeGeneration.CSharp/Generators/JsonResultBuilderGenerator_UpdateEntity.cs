@@ -9,7 +9,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private void AddUpdateEntityMethod(
             ClassBuilder classBuilder,
             MethodBuilder methodBuilder,
-            NamedTypeDescriptor namedTypeDescriptor,
+            INamedTypeDescriptor namedTypeDescriptor,
             HashSet<string> processed)
         {
             var entityIdVarName = "entityId";
@@ -26,16 +26,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             var entityVarName = "entity";
 
-            if (namedTypeDescriptor.IsInterface)
+            if (namedTypeDescriptor is InterfaceTypeDescriptor interfaceTypeDescriptor)
             {
                 // If the type is an interface
-                foreach (ObjectTypeDescriptor concreteType in namedTypeDescriptor.ImplementedBy)
+                foreach (ObjectTypeDescriptor concreteType in interfaceTypeDescriptor.ImplementedBy)
                 {
                     methodBuilder.AddEmptyLine();
                     var ifStatement = IfBuilder.New()
                         .SetCondition(
                             $"entityId.Name.Equals(\"{concreteType.Name}\", " +
-                            $"{TypeNames.OrdinalStringComparisson})");
+                            $"{TypeNames.OrdinalStringComparison})");
 
                     var entityTypeName = CreateEntityTypeName(concreteType.Name);
 
@@ -58,17 +58,17 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 methodBuilder.AddEmptyLine();
                 methodBuilder.AddCode($"throw new {TypeNames.NotSupportedException}();");
             }
-            else
+            else if (namedTypeDescriptor is ComplexTypeDescriptor complexTypeDescriptor)
             {
                 WriteEntityLoader(
                     methodBuilder,
-                    EntityTypeNameFromGraphQLTypeName(namedTypeDescriptor.GraphQLTypeName),
+                    CreateEntityTypeName(namedTypeDescriptor.Name),
                     entityVarName,
                     entityIdVarName);
 
                 WritePropertyAssignments(
                     methodBuilder,
-                    namedTypeDescriptor.Properties,
+                    complexTypeDescriptor.Properties,
                     entityVarName);
 
                 methodBuilder.AddEmptyLine();
@@ -92,8 +92,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 $".GetOrCreate<{entityTypeName}>({entityIdVarName});");
         }
 
-        private void WritePropertyAssignments<T>(ICodeContainer<T> codeContainer,
-            IReadOnlyList<PropertyDescriptor> properties, string entityVarName)
+        private void WritePropertyAssignments<T>(
+            ICodeContainer<T> codeContainer,
+            IReadOnlyList<PropertyDescriptor> properties,
+            string entityVarName)
         {
             foreach (PropertyDescriptor property in properties)
             {

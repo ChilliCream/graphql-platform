@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using HotChocolate;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.NamingConventions;
@@ -17,17 +18,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
             HashSet<string> processed,
             bool isNonNullable)
         {
-            var nullabilityAdditive = "?";
-
-            if (isNonNullable)
-            {
-                nullabilityAdditive = "";
-            }
-
             method.AddParameter(
-                ParameterBuilder.New()
-                    .SetType(TypeNames.EntityId + nullabilityAdditive)
-                    .SetName(EntityIdParamName));
+                EntityIdParamName,
+                x => x.SetType(TypeNames.EntityId.MakeNullable(!isNonNullable)));
 
             if (!isNonNullable)
             {
@@ -41,7 +34,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 foreach (ObjectTypeDescriptor implementee in interfaceTypeDescriptor.ImplementedBy)
                 {
-                    var dataMapperName =
+                    NameString dataMapperName =
                         EntityMapperNameFromGraphQLTypeName(
                             implementee.RuntimeType.Name,
                             implementee.Name);
@@ -49,9 +42,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     if (processed.Add(dataMapperName))
                     {
                         var dataMapperType =
-                            $"{TypeNames.IEntityMapper}<" +
-                            $"{CreateEntityTypeName(implementee.Name)}, " +
-                            $"{implementee.Name}>";
+                            TypeNames.IEntityMapper.WithGeneric(
+                                CreateEntityTypeName(implementee.Name),
+                                implementee.RuntimeType.Name);
 
                         AddConstructorAssignedField(
                             dataMapperType,
@@ -65,7 +58,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
 
             method.AddCode(ExceptionBuilder.New(TypeNames.NotSupportedException));
-
         }
 
         private static ICode GenerateEntityHandlerIfClause(
@@ -74,8 +66,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             var dataMapperName =
                 EntityMapperNameFromGraphQLTypeName(
-                    objectTypeDescriptor.RuntimeType.Name,
-                    objectTypeDescriptor.Name)
+                        objectTypeDescriptor.RuntimeType.Name,
+                        objectTypeDescriptor.Name)
                     .ToFieldName();
 
             var ifCorrectType = IfBuilder.New();
@@ -85,14 +77,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 ifCorrectType.SetCondition(
                     $"{EntityIdParamName}.Name.Equals(\"" +
                     $"{objectTypeDescriptor.Name}\", " +
-                    $"{TypeNames.OrdinalStringComparisson})");
+                    $"{TypeNames.OrdinalStringComparison})");
             }
             else
             {
                 ifCorrectType.SetCondition(
                     $"{EntityIdParamName}.Value.Name.Equals(\"" +
                     $"{objectTypeDescriptor.Name}\", " +
-                    $"{TypeNames.OrdinalStringComparisson})");
+                    $"{TypeNames.OrdinalStringComparison})");
             }
 
             MethodCallBuilder constructorCall = MethodCallBuilder.New()
@@ -113,6 +105,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetCode(ExceptionBuilder
                         .New(TypeNames.GraphQLClientException)
                         .SetDetermineStatement(false)));
+
+            ifCorrectType.AddCode(constructorCall);
 
             return CodeBlockBuilder.New()
                 .AddEmptyLine()

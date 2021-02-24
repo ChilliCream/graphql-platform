@@ -46,7 +46,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     entityType.Key,
                     context.Namespace,
                     entityType.Value
-                        .Select(name => context.Types.Single(t => t.Name.Equals(name)))
+                        .Select(name => context.Types.Single(t => t.RuntimeType.Name.Equals(name)))
                         .OfType<ComplexTypeDescriptor>()
                         .ToList());
             }

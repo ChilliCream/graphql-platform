@@ -20,20 +20,25 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         protected override void Generate(
             CodeWriter writer,
-            ResultBuilderDescriptor resultBuilderDescriptor, out string fileName)
+            ResultBuilderDescriptor resultBuilderDescriptor,
+            out string fileName)
         {
             var processed = new HashSet<string>();
-            var resultTypeDescriptor = resultBuilderDescriptor.ResultNamedType;
+            var resultTypeDescriptor =
+                resultBuilderDescriptor.ResultNamedType as InterfaceTypeDescriptor
+                ?? throw new InvalidOperationException(
+                    "A result type can only be generated for complex types");
+
             var (classBuilder, constructorBuilder) = CreateClassBuilder();
 
-            fileName = resultBuilderDescriptor.RuntimeType;
+            fileName = resultBuilderDescriptor.RuntimeType.Name;
             classBuilder.SetName(fileName);
 
             constructorBuilder.SetTypeName(fileName);
 
             classBuilder.AddImplements(
                 $"{TypeNames.IOperationResultBuilder}<{TypeNames.JsonDocument}," +
-                $" {resultTypeDescriptor.Name}>");
+                $" {resultTypeDescriptor.RuntimeType.Name}>");
 
             AddConstructorAssignedField(
                 TypeNames.IEntityStore,
@@ -53,7 +58,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             AddConstructorAssignedField(
                 TypeReferenceBuilder.New()
                     .SetName(TypeNames.IOperationResultDataFactory)
-                    .AddGeneric(resultTypeDescriptor.Name),
+                    .AddGeneric(resultTypeDescriptor.RuntimeType.Name),
                 _resultDataFactoryFieldName,
                 classBuilder,
                 constructorBuilder);
@@ -73,11 +78,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 var parserFieldName =
                     $"_{valueParser.RuntimeType.Split('.').Last().WithLowerFirstChar()}Parser";
                 classBuilder.AddField(
-                    FieldBuilder.New().SetName(parserFieldName).SetType(
-                        TypeReferenceBuilder.New()
-                            .SetName(TypeNames.ILeafValueParser)
-                            .AddGeneric(valueParser.SerializedType)
-                            .AddGeneric(valueParser.RuntimeType)));
+                    FieldBuilder.New()
+                        .SetName(parserFieldName)
+                        .SetType(
+                            TypeReferenceBuilder.New()
+                                .SetName(TypeNames.ILeafValueParser)
+                                .AddGeneric(valueParser.SerializedType)
+                                .AddGeneric(valueParser.RuntimeType)));
 
                 constructorBuilder.AddCode(
                     AssignmentBuilder.New()
@@ -107,7 +114,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 processed);
 
             CodeFileBuilder.New()
-                .SetNamespace(resultBuilderDescriptor.ResultNamedType.Namespace)
+                .SetNamespace(
+                    resultBuilderDescriptor.ResultNamedType.RuntimeType.NamespaceWithoutGlobal)
                 .AddType(classBuilder)
                 .Build(writer);
         }
@@ -116,27 +124,27 @@ namespace StrawberryShake.CodeGeneration.CSharp
         /// Adds all required deserializers of the given type descriptors properties
         /// </summary>
         private void AddRequiredDeserializeMethods(
-            NamedTypeDescriptor namedTypeDescriptor,
+            INamedTypeDescriptor namedTypeDescriptor,
             ClassBuilder classBuilder,
             HashSet<string> processed)
         {
-            if (namedTypeDescriptor.IsInterface)
+            if (namedTypeDescriptor is InterfaceTypeDescriptor interfaceTypeDescriptor)
             {
-                foreach (var @class in namedTypeDescriptor.ImplementedBy)
+                foreach (var @class in interfaceTypeDescriptor.ImplementedBy)
                 {
                     AddRequiredDeserializeMethods(@class, classBuilder, processed);
                 }
             }
-            else
+            else if (namedTypeDescriptor is ComplexTypeDescriptor complexTypeDescriptor)
             {
-                foreach (var property in namedTypeDescriptor.Properties)
+                foreach (var property in complexTypeDescriptor.Properties)
                 {
                     AddDeserializeMethod(
                         property.Type,
                         classBuilder,
                         processed);
 
-                    if (property.Type.NamedType() is NamedTypeDescriptor nt &&
+                    if (property.Type.NamedType() is INamedTypeDescriptor nt &&
                         !nt.IsLeafType())
                     {
                         AddRequiredDeserializeMethods(nt, classBuilder, processed);
@@ -185,7 +193,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
         }
 
-        private void AddDeserializeMethodBody(ClassBuilder classBuilder,
+        private void AddDeserializeMethodBody(
+            ClassBuilder classBuilder,
             MethodBuilder methodBuilder,
             ITypeDescriptor typeDescriptor,
             HashSet<string> processed)
@@ -200,22 +209,24 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         processed);
                     break;
 
-                case NamedTypeDescriptor namedTypeDescriptor:
+                case INamedTypeDescriptor namedTypeDescriptor:
                     switch (typeDescriptor.Kind)
                     {
-                        case TypeKind.LeafType:
-                            AddScalarTypeDeserializerMethod(
-                                methodBuilder,
-                                namedTypeDescriptor);
+                        case TypeKind.LeafType when namedTypeDescriptor is ILeafTypeDescriptor l:
+                            AddScalarTypeDeserializerMethod(methodBuilder, l);
                             break;
 
                         case TypeKind.ComplexDataType:
                         case TypeKind.DataType:
-                            AddDataTypeDeserializerMethod(
-                                classBuilder,
-                                methodBuilder,
-                                namedTypeDescriptor,
-                                processed);
+                            if (namedTypeDescriptor is ComplexTypeDescriptor complexTypeDescriptor)
+                            {
+                                AddDataTypeDeserializerMethod(
+                                    classBuilder,
+                                    methodBuilder,
+                                    complexTypeDescriptor,
+                                    processed);
+                            }
+
                             break;
 
                         case TypeKind.EntityType:
@@ -229,6 +240,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         default:
                             throw new ArgumentOutOfRangeException();
                     }
+
                     break;
 
                 case NonNullTypeDescriptor nonNullTypeDescriptor:
@@ -245,7 +257,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         }
 
         private void AddBuildMethod(
-            NamedTypeDescriptor resultNamedType,
+            InterfaceTypeDescriptor resultNamedType,
             ClassBuilder classBuilder)
         {
             var responseParameterName = "response";
@@ -257,7 +269,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetReturnType(
                     TypeReferenceBuilder.New()
                         .SetName(TypeNames.IOperationResult)
-                        .AddGeneric(resultNamedType.Name))
+                        .AddGeneric(resultNamedType.RuntimeType.Name))
                 .AddParameter(
                     ParameterBuilder.New()
                         .SetType(
@@ -267,11 +279,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                 .SetName(TypeNames.Response))
                         .SetName(responseParameterName));
 
+            var concreteResultType =
+                CreateResultInfoName(resultNamedType.ImplementedBy.First().RuntimeType.Name);
             buildMethod.AddCode(
                 AssignmentBuilder.New()
                     .SetLefthandSide(
-                        $"({resultNamedType.Name} Result, " +
-                        $"{ResultInfoNameFromTypeName(resultNamedType.ImplementedBy[0].Name)} " +
+                        $"({resultNamedType.RuntimeType.Name} Result, {concreteResultType} " +
                         "Info)? data")
                     .SetRighthandSide("null"));
 
@@ -289,7 +302,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
             buildMethod.AddCode(
                 MethodCallBuilder.New()
                     .SetPrefix("return new ")
-                    .SetMethodName($"{TypeNames.OperationResult}<{resultNamedType.Name}>")
+                    .SetMethodName(
+                        TypeNames.OperationResult.WithGeneric(resultNamedType.RuntimeType.Name))
                     .AddArgument("data?.Result")
                     .AddArgument("data?.Info")
                     .AddArgument(_resultDataFactoryFieldName)
@@ -368,36 +382,21 @@ namespace StrawberryShake.CodeGeneration.CSharp
             ITypeDescriptor typeDescriptor,
             bool parentIsList = false)
         {
-            switch (typeDescriptor)
+            return typeDescriptor switch
             {
-                case ListTypeDescriptor listTypeDescriptor:
-                    return BuildDeserializeMethodName(
-                               listTypeDescriptor.InnerType,
-                               true) +
-                           "Array";
-
-                case NamedTypeDescriptor namedTypeDescriptor:
-                    return namedTypeDescriptor.Kind switch
-                    {
-                        TypeKind.LeafType => typeDescriptor.Name.WithCapitalFirstChar(),
-                        TypeKind.DataType => typeDescriptor.Name,
-                        TypeKind.ComplexDataType => namedTypeDescriptor.ImplementedBy.Count > 1
-                            ? namedTypeDescriptor.ComplexDataTypeParent!
-                            : typeDescriptor.Name,
-                        TypeKind.EntityType => CreateEntityTypeName(
-                            typeDescriptor.Name),
-                        _ => throw new ArgumentOutOfRangeException()
-                    };
-
-                case NonNullTypeDescriptor nonNullTypeDescriptor:
-                    return parentIsList
-                        ? BuildDeserializeMethodName(nonNullTypeDescriptor.InnerType) +
-                          "NonNullable"
-                        : "NonNullable" +
-                          BuildDeserializeMethodName(nonNullTypeDescriptor.InnerType);
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(typeDescriptor));
-            }
+                ListTypeDescriptor listTypeDescriptor =>
+                    BuildDeserializeMethodName(listTypeDescriptor.InnerType, true) + "Array",
+                InterfaceTypeDescriptor { ParentRuntimeType: { } parentRuntimeType } =>
+                    parentRuntimeType.Name,
+                INamedTypeDescriptor { Kind: TypeKind.EntityType } d =>
+                    CreateEntityTypeName(d.RuntimeType.Name),
+                INamedTypeDescriptor d =>
+                    d.RuntimeType.Name,
+                NonNullTypeDescriptor nonNullTypeDescriptor => parentIsList
+                    ? BuildDeserializeMethodName(nonNullTypeDescriptor.InnerType) + "NonNullable"
+                    : "NonNullable" + BuildDeserializeMethodName(nonNullTypeDescriptor.InnerType),
+                _ => throw new ArgumentOutOfRangeException(nameof(typeDescriptor))
+            };
         }
     }
 }

@@ -6,11 +6,24 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     internal static class ClassBuilderExtensions
     {
+        // TODO Remove!
+        [Obsolete]
         public static MethodBuilder AddMethod(this ClassBuilder builder, string name)
         {
             MethodBuilder methodBuilder = MethodBuilder.New().SetName(name);
             builder.AddMethod(methodBuilder);
             return methodBuilder;
+        }
+
+        public static ClassBuilder AddMethod(
+            this ClassBuilder builder,
+            string name,
+            Action<MethodBuilder> configure)
+        {
+            MethodBuilder methodBuilder = MethodBuilder.New().SetName(name);
+            configure(methodBuilder);
+            builder.AddMethod(methodBuilder);
+            return builder;
         }
 
         public static FieldBuilder AddField(this ClassBuilder builder, string name)
@@ -20,6 +33,19 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return fieldBuilder;
         }
 
+        public static ClassBuilder AddProperty(
+            this ClassBuilder builder,
+            string name,
+            Action<PropertyBuilder> configure)
+        {
+            PropertyBuilder propertyBuilder = PropertyBuilder.New().SetName(name);
+            configure(propertyBuilder);
+            builder.AddProperty(propertyBuilder);
+            return builder;
+        }
+
+        // TODO Remove!
+        [Obsolete]
         public static PropertyBuilder AddProperty(this ClassBuilder builder, string name)
         {
             PropertyBuilder propertyBuilder = PropertyBuilder.New().SetName(name);

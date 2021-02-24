@@ -197,7 +197,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
             {
                 parentRuntimeType =
                     new RuntimeTypeInfo(
-                        NamingConventions.DataTypeNameFromTypeName(parentRuntimeTypeName), 
+                        NamingConventions.DataTypeNameFromTypeName(parentRuntimeTypeName),
                         context.StateNamespace);
             }
         }
@@ -222,7 +222,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
             OutputTypeModel outputType,
             TypeKind kind)
         {
-            if (kind != TypeKind.ResultType)
+            if (kind == TypeKind.ResultType)
             {
                 return new RuntimeTypeInfo(
                     NamingConventions.ResultRootTypeNameFromTypeName(outputType.Name),
@@ -244,9 +244,9 @@ namespace StrawberryShake.CodeGeneration.Mappers
         {
             var implementedBy = new HashSet<ObjectTypeDescriptor>();
             CollectClassesThatImplementInterface(
-                operationModel, 
-                outputType, 
-                typeDescriptors, 
+                operationModel,
+                outputType,
+                typeDescriptors,
                 implementedBy);
 
             ExtractTypeKindAndParentRuntimeType(

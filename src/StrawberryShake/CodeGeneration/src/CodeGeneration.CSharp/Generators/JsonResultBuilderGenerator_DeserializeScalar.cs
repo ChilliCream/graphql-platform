@@ -11,9 +11,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
     {
         private void AddScalarTypeDeserializerMethod(
             MethodBuilder methodBuilder,
-            NamedTypeDescriptor namedType)
+            ILeafTypeDescriptor namedType)
         {
-            string deserializeMethod = namedType.SerializationType switch
+            string deserializeMethod = namedType.SerializationType.ToString() switch
             {
                 TypeNames.String => nameof(JsonElement.GetString),
                 TypeNames.Uri => nameof(JsonElement.GetString),

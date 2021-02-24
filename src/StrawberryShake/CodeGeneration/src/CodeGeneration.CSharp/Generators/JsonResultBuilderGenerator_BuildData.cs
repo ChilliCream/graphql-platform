@@ -13,16 +13,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
             ClassBuilder classBuilder)
         {
             var objParameter = "obj";
+
+            var concreteType =
+                CreateResultInfoName(resultNamedType.ImplementedBy.First().RuntimeType.Name);
+
             var buildDataMethod = MethodBuilder.New()
                 .SetAccessModifier(AccessModifier.Private)
                 .SetName("BuildData")
-                .SetReturnType(
-                    $"({resultNamedType.Name}, " +
-                    $"{CreateResultInfoName(resultNamedType.ImplementedBy.First().Name)})")
-                .AddParameter(
-                    ParameterBuilder.New()
-                        .SetType(TypeNames.JsonElement)
-                        .SetName(objParameter));
+                .SetReturnType($"({resultNamedType.RuntimeType.Name}, {concreteType})")
+                .AddParameter(objParameter, x => x.SetType(TypeNames.JsonElement));
 
             var sessionName = "session";
             buildDataMethod.AddCode(
@@ -52,8 +51,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
 
             var resultInfoConstructor = MethodCallBuilder.New()
-                .SetMethodName(
-                    $"new {CreateResultInfoName(resultNamedType.ImplementedBy.First().Name)}")
+                .SetMethodName($"new {concreteType}")
                 .SetDetermineStatement(false);
 
             foreach (PropertyDescriptor property in resultNamedType.Properties)

@@ -48,14 +48,14 @@ namespace StrawberryShake.CodeGeneration
         public IReadOnlyList<NameString> Implements { get; }
 
         /// <summary>
-        /// Gets the .NET runtime type of the parent. If there is no parent type, this property is 
-        /// null 
+        /// Gets the .NET runtime type of the parent. If there is no parent type, this property is
+        /// null
         /// </summary>
         public RuntimeTypeInfo? ParentRuntimeType { get; }
 
         public void CompleteProperties(IReadOnlyList<PropertyDescriptor> properties)
         {
-            if (Properties is not null)
+            if (Properties.Count > 0)
             {
                 throw new InvalidOperationException("Properties are already completed.");
             }

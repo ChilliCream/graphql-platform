@@ -93,6 +93,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
                     case TypeKind.DataType:
                         typeBuilder.AddProperty(item.Name)
+                            // TODO this looks wrong. We should avoid nameoverride and delete it
                             .SetType(item.Type.ToBuilder(item.Type.Name))
                             .SetAccessModifier(AccessModifier.Public);
                         break;
