@@ -23,7 +23,7 @@ namespace HotChocolate.Data.Neo4J
         /// </returns>
         public static ISchemaBuilder AddNeo4JFiltering(
             this ISchemaBuilder builder,
-            string? name = null) =>
+            string name = null) =>
             builder.AddFiltering(x => x.AddNeo4JDefaults(), name);
 
         /// <summary>
@@ -40,7 +40,7 @@ namespace HotChocolate.Data.Neo4J
         /// </returns>
         public static ISchemaBuilder AddNeo4JSorting(
             this ISchemaBuilder builder,
-            string? name = null) =>
+            string name = null) =>
             builder.AddSorting(x => x.AddNeo4JDefaults(), name);
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace HotChocolate.Data.Neo4J
         /// </returns>
         public static ISchemaBuilder AddNeo4JProjections(
             this ISchemaBuilder builder,
-            string? name = null) =>
+            string name = null) =>
             builder.AddProjections(x => x.AddNeo4JDefaults(), name);
     }
 }

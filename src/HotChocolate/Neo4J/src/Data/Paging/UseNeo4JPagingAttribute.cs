@@ -22,7 +22,7 @@ namespace HotChocolate.Data.Neo4J.Paging
         /// <param name="type">
         /// The schema type representing the item type.
         /// </param>
-        public UseNeo4JPagingAttribute(Type? type = null)
+        public UseNeo4JPagingAttribute(Type type = null)
         {
             Type = type;
         }
@@ -30,7 +30,7 @@ namespace HotChocolate.Data.Neo4J.Paging
         /// <summary>
         /// The schema type representation of the item type.
         /// </summary>
-        public Type? Type { get; }
+        public Type Type { get; }
 
         /// <summary>
         /// Specifies the default page size for this field.
@@ -65,19 +65,17 @@ namespace HotChocolate.Data.Neo4J.Paging
             IDescriptor descriptor,
             ICustomAttributeProvider element)
         {
-            if (element is MemberInfo)
+            if (element is not MemberInfo) return;
+            if (descriptor is IObjectFieldDescriptor ofd)
             {
-                if (descriptor is IObjectFieldDescriptor ofd)
-                {
-                    ofd.UseNeo4JPaging(
-                        Type,
-                        options: new PagingOptions
-                        {
-                            DefaultPageSize = _defaultPageSize,
-                            MaxPageSize = _maxPageSize,
-                            IncludeTotalCount = _includeTotalCount
-                        });
-                }
+                ofd.UseNeo4JPaging(
+                    Type,
+                    options: new PagingOptions
+                    {
+                        DefaultPageSize = _defaultPageSize,
+                        MaxPageSize = _maxPageSize,
+                        IncludeTotalCount = _includeTotalCount
+                    });
             }
         }
     }

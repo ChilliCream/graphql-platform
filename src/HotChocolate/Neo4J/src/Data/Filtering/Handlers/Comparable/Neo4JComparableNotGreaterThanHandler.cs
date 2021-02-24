@@ -2,6 +2,8 @@ using System;
 using HotChocolate.Data.Filters;
 using HotChocolate.Language;
 
+#nullable enable
+
 namespace HotChocolate.Data.Neo4J.Filtering
 {
     /// <summary>
@@ -26,15 +28,12 @@ namespace HotChocolate.Data.Neo4J.Filtering
             IValueNode value,
             object? parsedValue)
         {
-            if (parsedValue is {})
-            {
-                var doc = new Neo4JNotFilterDefinition(
-                    new Neo4JFilterOperation("$gt", parsedValue));
+            if (parsedValue is null) throw new InvalidOperationException();
+            var doc = new Neo4JNotFilterDefinition(
+                new Neo4JFilterOperation("$gt", parsedValue));
 
-                return new Neo4JFilterOperation(context.GetNeo4JFilterScope().GetPath(), doc);
-            }
+            return new Neo4JFilterOperation(context.GetNeo4JFilterScope().GetPath(), doc);
 
-            throw new InvalidOperationException();
         }
     }
 }

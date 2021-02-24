@@ -10,7 +10,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
 
         public static bool TryCreateQuery(
             this Neo4JFilterScope scope,
-            [NotNullWhen(true)] out Neo4JFilterDefinition? query)
+            [NotNullWhen(true)] out Neo4JFilterDefinition query)
         {
             query = null;
 

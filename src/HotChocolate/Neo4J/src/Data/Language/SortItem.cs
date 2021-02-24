@@ -1,4 +1,4 @@
-﻿using System;
+﻿#nullable enable
 
 namespace HotChocolate.Data.Neo4J.Language
 {

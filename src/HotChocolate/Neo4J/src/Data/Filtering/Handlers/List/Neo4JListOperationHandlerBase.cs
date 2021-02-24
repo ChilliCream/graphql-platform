@@ -6,6 +6,8 @@ using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 
+#nullable enable
+
 namespace HotChocolate.Data.Neo4J.Filtering
 {
     /// <summary>

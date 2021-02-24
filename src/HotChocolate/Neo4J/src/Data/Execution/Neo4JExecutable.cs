@@ -7,6 +7,8 @@ using HotChocolate.Data.Neo4J.Projections;
 using HotChocolate.Data.Neo4J.Sorting;
 using Neo4j.Driver;
 
+#nullable enable
+
 namespace HotChocolate.Data.Neo4J.Execution
 {
     public class Neo4JExecutable<T> : INeo4JExecutable, IExecutable<T>
@@ -29,7 +31,6 @@ namespace HotChocolate.Data.Neo4J.Execution
         /// </summary>
         protected Neo4JProjectionDefinition Projection { get; private set; }
 
-        /// <inheritdoc />
         public Neo4JExecutable(IAsyncSession session)
         {
             _session = session;
@@ -44,8 +45,8 @@ namespace HotChocolate.Data.Neo4J.Execution
         public async ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
         {
             IResultCursor cursor = await _session.RunAsync(@"
-                MATCH (m:Movie)
-                RETURN m
+                MATCH (business:Business)
+                RETURN business { .name, .city, .state, reviews: [(business)<-[:REVIEWS]-(reviews) | reviews {.rating, .text}] }
             ").ConfigureAwait(false);
 
             return await cursor.MapAsync<T>().ConfigureAwait(false);

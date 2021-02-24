@@ -39,7 +39,6 @@ namespace HotChocolate.Data.Neo4J.Sorting
                 FieldDelegate next,
                 IMiddlewareContext context)
             {
-                Neo4JSortVisitorContext? visitorContext = null;
                 IInputField argument = context.Field.Arguments[argumentName];
                 IValueNode filter = context.ArgumentLiteral<IValueNode>(argumentName);
 
@@ -48,11 +47,11 @@ namespace HotChocolate.Data.Neo4J.Sorting
                     listType.ElementType is NonNullType nn &&
                     nn.NamedType() is SortInputType sortInputType)
                 {
-                    visitorContext = new Neo4JSortVisitorContext(sortInputType);
+                    var visitorContext = new Neo4JSortVisitorContext(sortInputType);
 
                     Visitor.Visit(filter, visitorContext);
 
-                    if (!visitorContext.TryCreateQuery(out Neo4JSortDefinition? order) ||
+                    if (!visitorContext.TryCreateQuery(out Neo4JSortDefinition order) ||
                         visitorContext.Errors.Count > 0)
                     {
                         context.Result = Array.Empty<TEntityType>();
@@ -63,10 +62,10 @@ namespace HotChocolate.Data.Neo4J.Sorting
                     }
                     else
                     {
-                        // context.LocalContextData =
-                        //     context.LocalContextData.SetItem(
-                        //         nameof(SortDefinition<TEntityType>),
-                        //         order);
+                        context.LocalContextData =
+                            context.LocalContextData.SetItem(
+                                nameof(Neo4JSortDefinition),
+                                order);
 
                         await next(context).ConfigureAwait(false);
 

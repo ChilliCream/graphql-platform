@@ -16,10 +16,8 @@ namespace HotChocolate.Data.Neo4J
         /// <returns>The value of the parameter.</returns>
         public static T IsNotNull<T>(T value, string paramName) where T : class
         {
-            if (value == null)
-            {
-                throw new ArgumentNullException(paramName, "Value cannot be null.");
-            }
+            _ = value ?? throw new ArgumentNullException(paramName, @"Value cannot be null.");
+
             return value;
         }
     }

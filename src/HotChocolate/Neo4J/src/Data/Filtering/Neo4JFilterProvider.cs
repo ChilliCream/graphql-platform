@@ -48,7 +48,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
 
                     Visitor.Visit(filter, visitorContext);
 
-                    if (!visitorContext.TryCreateQuery(out Neo4JFilterDefinition? whereQuery) ||
+                    if (!visitorContext.TryCreateQuery(out Neo4JFilterDefinition whereQuery) ||
                         visitorContext.Errors.Count > 0)
                     {
                         context.Result = Array.Empty<TEntityType>();

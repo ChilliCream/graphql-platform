@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Neo4j.Driver;
 using HotChocolate.Data.Neo4J;
+using Neo4jDemo.Schema;
 
 namespace Neo4jDemo
 {
@@ -18,7 +19,7 @@ namespace Neo4jDemo
                     DbClient.CreateDriver("bolt://localhost:7687", "neo4j", "test123"))
                 .AddGraphQLServer()
                 .AddQueryType(d => d.Name("Query"))
-                    .AddType<Query>()
+                    .AddType<Schema.Query>()
                 .AddNeo4JProjections()
                 .AddNeo4JFiltering()
                 .AddNeo4JSorting();

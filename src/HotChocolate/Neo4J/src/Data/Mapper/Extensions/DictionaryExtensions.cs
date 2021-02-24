@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Reflection;
 
+#nullable enable
+
 namespace HotChocolate.Data.Neo4J
 {
     public static class DictionaryExtensions

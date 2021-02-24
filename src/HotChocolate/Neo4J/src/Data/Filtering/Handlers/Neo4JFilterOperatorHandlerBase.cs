@@ -3,6 +3,8 @@ using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Data.Filters;
 using HotChocolate.Language;
 
+#nullable enable
+
 namespace HotChocolate.Data.Neo4J.Filtering
 {
     /// <summary>
@@ -26,7 +28,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
             if ((!context.RuntimeTypes.Peek().IsNullable || !CanBeNull) &&
                 parsedValue is null)
             {
-                //context.ReportError(ErrorHelper.CreateNonNullError(field, value, context));
+                context.ReportError(ErrorHelper.CreateNonNullError(field, value, context));
 
                 result = null!;
                 return false;

@@ -1,6 +1,8 @@
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
+#nullable enable
+
 namespace HotChocolate.Data.Neo4J
 {
     /// <summary>
@@ -25,7 +27,6 @@ namespace HotChocolate.Data.Neo4J
             string? name = null) =>
             builder.ConfigureSchema(s => s.AddNeo4JFiltering(name));
 
-        // TODO: Implement sorting RequestExecutorBuilder Extension
         /// <summary>
         /// Adds sorting support for Neo4j.
         /// </summary>

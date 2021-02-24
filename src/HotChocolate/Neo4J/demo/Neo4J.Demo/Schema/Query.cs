@@ -11,6 +11,9 @@ namespace Neo4jDemo.Schema
     [ExtendObjectType(Name = "Query")]
     public class Query
     {
+        // [UseNeo4J(database="neo4j")]
+        // public Neo4JExecutable<Business> Businesses() => new();
+
         [UseNeo4JDatabase("neo4j")]
         [UseProjection]
         [UseFiltering]

@@ -6,6 +6,8 @@ using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types.Descriptors.Definitions;
 
+#nullable enable
+
 namespace HotChocolate.Data.Neo4J.Sorting
 {
     /// <summary>
@@ -52,9 +54,7 @@ namespace HotChocolate.Data.Neo4J.Sorting
                 return false;
             }
 
-            // TODO: Implement sorting directional sorting operation
-            //context.Operations.Enqueue(
-            //    new Neo4JDirectionalSortOperation(context.GetPath(), _sortDirection));
+            context.Operations.Enqueue(new Neo4JDirectionalSortOperation(context.GetPath(), _sortDirection));
 
             action = SyntaxVisitor.Continue;
             return true;

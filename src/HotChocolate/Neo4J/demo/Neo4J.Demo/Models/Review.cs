@@ -1,3 +1,4 @@
+using HotChocolate.Data;
 using HotChocolate.Data.Neo4J;
 using HotChocolate.Data.Neo4J.Language;
 

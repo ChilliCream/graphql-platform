@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 
+#nullable enable
+
 namespace HotChocolate.Data.Neo4J.Language
 {
     /// <summary>

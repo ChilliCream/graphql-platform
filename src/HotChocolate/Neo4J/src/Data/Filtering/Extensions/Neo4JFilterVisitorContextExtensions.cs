@@ -22,7 +22,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
         /// <returns>True in case the query has been build successfully, otherwise false</returns>
         public static bool TryCreateQuery(
             this Neo4JFilterVisitorContext context,
-            [NotNullWhen(true)] out Neo4JFilterDefinition? query)
+            [NotNullWhen(true)] out Neo4JFilterDefinition query)
         {
             return context.GetNeo4JFilterScope().TryCreateQuery(out query);
         }
