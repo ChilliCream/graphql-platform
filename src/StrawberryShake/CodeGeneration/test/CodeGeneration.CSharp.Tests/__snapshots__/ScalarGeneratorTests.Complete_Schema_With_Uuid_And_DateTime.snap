@@ -9,14 +9,13 @@
 // ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
 
-// Code:
 // ExpenseEntity
 
 // StrawberryShake.CodeGeneration.CSharp.EntityTypeGenerator
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ExpenseEntity
@@ -33,7 +32,7 @@ namespace StrawberryShake.GraphQL
 
         public PaymentMethod PaymentMethod { get; set; } = default!;
 
-        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.GraphQL.State.TagData?>? Tags { get; set; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.State.TagData?>? Tags { get; set; }
     }
 }
 
@@ -44,7 +43,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class AllExpensesResultFactory
@@ -116,7 +115,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class AllExpensesResultInfo
@@ -159,7 +158,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class AllExpensesResult
@@ -181,7 +180,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class AllExpenses_Expense_ExpenseFromExpenseEntityMapper
@@ -199,7 +198,7 @@ namespace StrawberryShake.GraphQL
                 MapIAllExpenses_Expense_TagsArray(entity.Tags));
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<IAllExpenses_Expense_Tags?>? MapIAllExpenses_Expense_TagsArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.GraphQL.State.TagData?>? list)
+        private global::System.Collections.Generic.IReadOnlyList<IAllExpenses_Expense_Tags?>? MapIAllExpenses_Expense_TagsArray(global::System.Collections.Generic.IReadOnlyList<global::Foo.State.TagData?>? list)
         {
             if (list == default)
             {
@@ -208,7 +207,7 @@ namespace StrawberryShake.GraphQL
 
             var tags = new global::System.Collections.Generic.List<IAllExpenses_Expense_Tags?>();
 
-            foreach (global::StrawberryShake.GraphQL.State.TagData? child in list)
+            foreach (global::Foo.State.TagData? child in list)
             {
                 tags.Add(MapIAllExpenses_Expense_Tags(child));
             }
@@ -216,7 +215,7 @@ namespace StrawberryShake.GraphQL
             return tags;
         }
 
-        private IAllExpenses_Expense_Tags? MapIAllExpenses_Expense_Tags(global::StrawberryShake.GraphQL.State.TagData data)
+        private IAllExpenses_Expense_Tags? MapIAllExpenses_Expense_Tags(global::Foo.State.TagData data)
         {
             if (data == default)
             {
@@ -244,7 +243,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class AllExpenses_Expense_Expense
@@ -291,7 +290,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class AllExpenses_Expense_Tags_Tag
@@ -313,7 +312,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IAllExpensesResult
@@ -329,7 +328,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IAllExpenses_Expense
@@ -357,7 +356,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IAllExpenses_Expense_Expense
@@ -373,7 +372,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IAllExpenses_Expense_Tags
@@ -389,7 +388,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IAllExpenses_Expense_Tags_Tag
@@ -405,7 +404,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public enum ExpenseCategory
@@ -436,7 +435,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ExpenseCategorySerializer
@@ -502,7 +501,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public enum PaymentMethod
@@ -522,7 +521,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class PaymentMethodSerializer
@@ -566,7 +565,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class AllExpensesQueryDocument
@@ -617,7 +616,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class AllExpensesQuery
@@ -664,7 +663,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class AllExpensesBuilder
@@ -673,8 +672,8 @@ namespace StrawberryShake.GraphQL
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
         private readonly global::StrawberryShake.IOperationResultDataFactory<IAllExpensesResult> _resultDataFactory;
-        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::StrawberryShake.GraphQL.ExpenseCategory> _expenseCategoryParser;
-        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::StrawberryShake.GraphQL.PaymentMethod> _paymentMethodParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::Foo.ExpenseCategory> _expenseCategoryParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::Foo.PaymentMethod> _paymentMethodParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Guid, global::System.Guid> _uuidParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Decimal, global::System.Decimal> _decimalParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.DateTimeOffset> _dateTimeParser;
@@ -692,9 +691,9 @@ namespace StrawberryShake.GraphQL
                  ?? throw new global::System.ArgumentNullException(nameof(extractId));
             _resultDataFactory = resultDataFactory
                  ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
-            _expenseCategoryParser = serializerResolver.GetLeafValueParser<global::System.String, global::StrawberryShake.GraphQL.ExpenseCategory>("ExpenseCategory")
+            _expenseCategoryParser = serializerResolver.GetLeafValueParser<global::System.String, global::Foo.ExpenseCategory>("ExpenseCategory")
                  ?? throw new global::System.ArgumentException("No serializer for type `ExpenseCategory` found.");
-            _paymentMethodParser = serializerResolver.GetLeafValueParser<global::System.String, global::StrawberryShake.GraphQL.PaymentMethod>("PaymentMethod")
+            _paymentMethodParser = serializerResolver.GetLeafValueParser<global::System.String, global::Foo.PaymentMethod>("PaymentMethod")
                  ?? throw new global::System.ArgumentException("No serializer for type `PaymentMethod` found.");
             _uuidParser = serializerResolver.GetLeafValueParser<global::System.Guid, global::System.Guid>("Uuid")
                  ?? throw new global::System.ArgumentException("No serializer for type `Uuid` found.");
@@ -851,14 +850,14 @@ namespace StrawberryShake.GraphQL
             return _paymentMethodParser.Parse(obj.Value.GetString()!);
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.GraphQL.State.TagData?>? DeserializeIAllExpenses_Expense_TagsArray(global::System.Text.Json.JsonElement? obj)
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.State.TagData?>? DeserializeIAllExpenses_Expense_TagsArray(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {
                 return null;
             }
 
-            var tags = new global::System.Collections.Generic.List<global::StrawberryShake.GraphQL.State.TagData?>();
+            var tags = new global::System.Collections.Generic.List<global::Foo.State.TagData?>();
 
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
@@ -868,7 +867,7 @@ namespace StrawberryShake.GraphQL
             return tags;
         }
 
-        private global::StrawberryShake.GraphQL.State.TagData? DeserializeIAllExpenses_Expense_Tags(global::System.Text.Json.JsonElement? obj)
+        private global::Foo.State.TagData? DeserializeIAllExpenses_Expense_Tags(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {
@@ -879,7 +878,7 @@ namespace StrawberryShake.GraphQL
 
             if (typename?.Equals("Tag", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new global::StrawberryShake.GraphQL.State.TagData(
+                return new global::Foo.State.TagData(
                     typename,
                     name: DeserializeString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "name")));
             }
@@ -896,7 +895,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL.State
+namespace Foo.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TagData
@@ -917,20 +916,20 @@ namespace StrawberryShake.GraphQL.State
 }
 
 
-// GraphQLClient
+// FooClient
 
 // StrawberryShake.CodeGeneration.CSharp.ClientGenerator
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GraphQLClient
+    public partial class FooClient
     {
         private readonly AllExpensesQuery _allExpensesQuery;
 
-        public GraphQLClient(AllExpensesQuery allExpensesQuery)
+        public FooClient(AllExpensesQuery allExpensesQuery)
         {
             _allExpensesQuery = allExpensesQuery
                  ?? throw new global::System.ArgumentNullException(nameof(allExpensesQuery));
@@ -947,7 +946,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class EntityIdFactory
@@ -975,18 +974,18 @@ namespace StrawberryShake.GraphQL
 }
 
 
-// GraphQLClientServiceCollectionExtensions
+// FooClientServiceCollectionExtensions
 
 // StrawberryShake.CodeGeneration.CSharp.DependencyInjectionGenerator
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public static partial class GraphQLClientServiceCollectionExtensions
+    public static partial class FooClientServiceCollectionExtensions
     {
-        public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddGraphQLClient(
+        public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddFooClient(
             this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
             global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
@@ -1012,7 +1011,7 @@ namespace StrawberryShake.GraphQL
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<GraphQLClient>(
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<FooClient>(
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
 
             return services;
@@ -1061,7 +1060,7 @@ namespace StrawberryShake.GraphQL
                             >(parentServices);
             
                     return new global::StrawberryShake.Transport.Http.HttpConnection(
-                        () => clientFactory.CreateClient("GraphQLClient"));
+                        () => clientFactory.CreateClient("FooClient"));
                 });
             
             // register mappers
@@ -1117,7 +1116,7 @@ namespace StrawberryShake.GraphQL
             
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<AllExpensesQuery>(services);
             
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<GraphQLClient>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<FooClient>(services);
             
             return services;
         }

@@ -66,7 +66,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private static ClientModel CreateClientModel(params string[] sourceText)
         {
             var documents = sourceText
-                .Select(sourceText => ("", Utf8GraphQLParser.Parse(sourceText)))
+                .Select(sourceText => (string.Empty, Utf8GraphQLParser.Parse(sourceText)))
                 .ToList();
 
             var typeSystemDocs = documents.GetTypeSystemDocuments().ToList();

@@ -71,8 +71,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             IEnumerable<ValueParserDescriptor> valueParsers = resultBuilderDescriptor
                 .ValueParsers
-                .ToLookup(x => x.RuntimeType)
-                .Select(x => x.First());
+                .GroupBy(t => t.Name)
+                .Select(t => t.First());
 
             foreach (ValueParserDescriptor valueParser in valueParsers)
             {
@@ -80,6 +80,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 
                 classBuilder.AddField(
                     FieldBuilder.New()
+                        .SetReadOnly()
                         .SetName(parserFieldName)
                         .SetType(
                             TypeReferenceBuilder.New()

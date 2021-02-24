@@ -2694,10 +2694,10 @@ namespace StrawberryShake.GraphQL
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
         private readonly global::StrawberryShake.IOperationResultDataFactory<IGetPeopleResult> _resultDataFactory;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.Uri> _urlParser;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.DateTimeOffset> _dateTimeParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.Uri> _urlParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.DateTimeOffset> _dateTimeParser;
 
         public GetPeopleBuilder(
             global::StrawberryShake.IEntityStore entityStore,
@@ -2884,10 +2884,11 @@ namespace StrawberryShake.GraphQL
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
         private readonly global::StrawberryShake.IOperationResultDataFactory<IGetMessagesResult> _resultDataFactory;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::StrawberryShake.GraphQL.Direction> _directionParser;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _iDParser;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.DateTimeOffset> _dateTimeParser;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::StrawberryShake.GraphQL.Direction> _directionParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _iDParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.DateTimeOffset> _dateTimeParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
 
         public GetMessagesBuilder(
             global::StrawberryShake.IEntityStore entityStore,
@@ -2905,6 +2906,8 @@ namespace StrawberryShake.GraphQL
                  ?? throw new global::System.ArgumentException("No serializer for type `Direction` found.");
             _iDParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("ID")
                  ?? throw new global::System.ArgumentException("No serializer for type `ID` found.");
+            _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String")
+                 ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
             _dateTimeParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.DateTimeOffset>("DateTime")
                  ?? throw new global::System.ArgumentException("No serializer for type `DateTime` found.");
             _booleanParser = serializerResolver.GetLeafValueParser<global::System.Boolean, global::System.Boolean>("Boolean")
@@ -3158,10 +3161,11 @@ namespace StrawberryShake.GraphQL
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
         private readonly global::StrawberryShake.IOperationResultDataFactory<ISendMessageMutResult> _resultDataFactory;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::StrawberryShake.GraphQL.Direction> _directionParser;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _iDParser;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.DateTimeOffset> _dateTimeParser;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::StrawberryShake.GraphQL.Direction> _directionParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _iDParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.DateTimeOffset> _dateTimeParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
 
         public SendMessageMutBuilder(
             global::StrawberryShake.IEntityStore entityStore,
@@ -3179,6 +3183,8 @@ namespace StrawberryShake.GraphQL
                  ?? throw new global::System.ArgumentException("No serializer for type `Direction` found.");
             _iDParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("ID")
                  ?? throw new global::System.ArgumentException("No serializer for type `ID` found.");
+            _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String")
+                 ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
             _dateTimeParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.DateTimeOffset>("DateTime")
                  ?? throw new global::System.ArgumentException("No serializer for type `DateTime` found.");
             _booleanParser = serializerResolver.GetLeafValueParser<global::System.Boolean, global::System.Boolean>("Boolean")
@@ -3384,10 +3390,11 @@ namespace StrawberryShake.GraphQL
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
         private readonly global::StrawberryShake.IOperationResultDataFactory<IReadMessagesResult> _resultDataFactory;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::StrawberryShake.GraphQL.Direction> _directionParser;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _iDParser;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.DateTimeOffset> _dateTimeParser;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::StrawberryShake.GraphQL.Direction> _directionParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _iDParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.DateTimeOffset> _dateTimeParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
 
         public ReadMessagesBuilder(
             global::StrawberryShake.IEntityStore entityStore,
@@ -3405,6 +3412,8 @@ namespace StrawberryShake.GraphQL
                  ?? throw new global::System.ArgumentException("No serializer for type `Direction` found.");
             _iDParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("ID")
                  ?? throw new global::System.ArgumentException("No serializer for type `ID` found.");
+            _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String")
+                 ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
             _dateTimeParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.DateTimeOffset>("DateTime")
                  ?? throw new global::System.ArgumentException("No serializer for type `DateTime` found.");
             _booleanParser = serializerResolver.GetLeafValueParser<global::System.Boolean, global::System.Boolean>("Boolean")

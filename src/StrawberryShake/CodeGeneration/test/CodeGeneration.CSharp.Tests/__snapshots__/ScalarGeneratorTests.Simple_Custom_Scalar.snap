@@ -307,7 +307,8 @@ namespace Foo
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
         private readonly global::StrawberryShake.IOperationResultDataFactory<IGetPersonResult> _resultDataFactory;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _emailParser;
 
         public GetPersonBuilder(
             global::StrawberryShake.IEntityStore entityStore,
@@ -323,6 +324,8 @@ namespace Foo
                  ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String")
                  ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
+            _emailParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("Email")
+                 ?? throw new global::System.ArgumentException("No serializer for type `Email` found.");
         }
 
         public global::StrawberryShake.IOperationResult<IGetPersonResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
