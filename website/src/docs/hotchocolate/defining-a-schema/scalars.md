@@ -382,7 +382,7 @@ scalar EmailAddress
 ## HexColor
 ```sdl
 """
-The HexColor scalar type represents a valid hex color code.
+The HexColor scalar type represents a valid HEX color code.
 """
 scalar HexColor
 ```
@@ -390,7 +390,7 @@ scalar HexColor
 ## Hsl
 ```sdl
 """
-The `Hsl` scalar type represents a valid a Css Hsl color as defined here https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors.
+The `Hsl` scalar type represents a valid a CSS HSL color as defined here https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors.
 """
 scalar Hsl
 ```
@@ -398,7 +398,7 @@ scalar Hsl
 ## Hsla
 ```sdl
 """
-The `Hsla` scalar type represents a valid a Css Hsla color as defined here https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors.
+The `Hsla` scalar type represents a valid a CSS HSLA color as defined here https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors.
 """
 scalar Hsla
 ```
