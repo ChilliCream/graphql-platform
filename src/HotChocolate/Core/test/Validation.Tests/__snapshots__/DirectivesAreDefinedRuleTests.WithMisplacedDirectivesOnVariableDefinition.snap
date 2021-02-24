@@ -12,6 +12,56 @@
     "Extensions": {
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Directives-Are-In-Valid-Locations"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Directive",
+      "Location": {
+        "Start": 41,
+        "End": 60,
+        "Line": 2,
+        "Column": 41
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 42,
+          "End": 50,
+          "Line": 2,
+          "Column": 42
+        },
+        "Value": "onQuery"
+      },
+      "Arguments": [
+        {
+          "Kind": "Argument",
+          "Location": {
+            "Start": 50,
+            "End": 59,
+            "Line": 2,
+            "Column": 50
+          },
+          "Name": {
+            "Kind": "Name",
+            "Location": {
+              "Start": 50,
+              "End": 53,
+              "Line": 2,
+              "Column": 50
+            },
+            "Value": "if"
+          },
+          "Value": {
+            "Kind": "BooleanValue",
+            "Location": {
+              "Start": 54,
+              "End": 59,
+              "Line": 2,
+              "Column": 54
+            },
+            "Value": true
+          }
+        }
+      ]
+    }
   }
 ]
