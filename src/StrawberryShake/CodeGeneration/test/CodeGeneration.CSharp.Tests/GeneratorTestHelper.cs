@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using HotChocolate.Language;
 using Snapshooter.Xunit;
@@ -19,6 +18,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             ClientModel clientModel = CreateClientModel(sourceTexts);
 
             var documents = new StringBuilder();
+            var documentNames = new HashSet<string>();
             var generator = new CSharpGeneratorExecutor();
 
             documents.AppendLine("// ReSharper disable BuiltInTypeReferenceStyle");
@@ -33,10 +33,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
             documents.AppendLine("// ReSharper disable InconsistentNaming");
             documents.AppendLine();
 
-            var documentName = new HashSet<string>();
             foreach (CSharpDocument document in generator.Generate(clientModel, "Foo", "FooClient"))
             {
-                if (!documentName.Add(document.Name))
+                if (!documentNames.Add(document.Name))
                 {
                     Assert.True(false, $"Document name duplicated {document.Name}");
                 }
