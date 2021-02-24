@@ -69,27 +69,27 @@ namespace HotChocolate.Types.Scalars {
             }
         }
         
-        internal static string HexType_Description {
+        internal static string HexColorType_Description {
             get {
-                return ResourceManager.GetString("HexType_Description", resourceCulture);
+                return ResourceManager.GetString("HexColorType_Description", resourceCulture);
             }
         }
         
-        internal static string HexType_IsInvalid_ParseLiteral {
+        internal static string HexColorType_IsInvalid_ParseLiteral {
             get {
-                return ResourceManager.GetString("HexType_IsInvalid_ParseLiteral", resourceCulture);
+                return ResourceManager.GetString("HexColorType_IsInvalid_ParseLiteral", resourceCulture);
             }
         }
         
-        internal static string HexType_IsInvalid_ParseValue {
+        internal static string HexColorType_IsInvalid_ParseValue {
             get {
-                return ResourceManager.GetString("HexType_IsInvalid_ParseValue", resourceCulture);
+                return ResourceManager.GetString("HexColorType_IsInvalid_ParseValue", resourceCulture);
             }
         }
         
-        internal static string HexType_ValidationPattern {
+        internal static string HexColorType_ValidationPattern {
             get {
-                return ResourceManager.GetString("HexType_ValidationPattern", resourceCulture);
+                return ResourceManager.GetString("HexColorType_ValidationPattern", resourceCulture);
             }
         }
         
@@ -438,6 +438,30 @@ namespace HotChocolate.Types.Scalars {
         internal static string UnsignedIntType_IsNotUnsigned_ParseValue {
             get {
                 return ResourceManager.GetString("UnsignedIntType_IsNotUnsigned_ParseValue", resourceCulture);
+            }
+        }
+        
+        internal static string IPv4Type_Description {
+            get {
+                return ResourceManager.GetString("IPv4Type_Description", resourceCulture);
+            }
+        }
+        
+        internal static string IPv4Type_IsInvalid_ParseLiteral {
+            get {
+                return ResourceManager.GetString("IPv4Type_IsInvalid_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        internal static string IPv4Type_IsInvalid_ParseValue {
+            get {
+                return ResourceManager.GetString("IPv4Type_IsInvalid_ParseValue", resourceCulture);
+            }
+        }
+        
+        internal static string IPv4Type_ValidationPattern {
+            get {
+                return ResourceManager.GetString("IPv4Type_ValidationPattern", resourceCulture);
             }
         }
     }

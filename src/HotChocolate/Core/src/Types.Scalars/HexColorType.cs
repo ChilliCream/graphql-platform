@@ -4,30 +4,30 @@ using HotChocolate.Language;
 namespace HotChocolate.Types.Scalars
 {
     /// <summary>
-    /// The Hex scalar type represents a valid hex color code.
+    /// The `HexColor` scalar type represents a valid HEX color code.
     /// </summary>
-    public class HexType : StringType
+    public class HexColorType : StringType
     {
         private static readonly string _validationPattern =
-            ScalarResources.HexType_ValidationPattern;
+            ScalarResources.HexColorType_ValidationPattern;
 
         private static readonly Regex _validationRegex =
             new(_validationPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="HexType"/> class.
+        /// Initializes a new instance of the <see cref="HexColorType"/> class.
         /// </summary>
-        public HexType()
+        public HexColorType()
             : this(
-                WellKnownScalarTypes.Hex,
-                ScalarResources.HexType_Description)
+                WellKnownScalarTypes.HexColor,
+                ScalarResources.HexColorType_Description)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="HexType"/> class.
+        /// Initializes a new instance of the <see cref="HexColorType"/> class.
         /// </summary>
-        public HexType(
+        public HexColorType(
             NameString name,
             string? description = null,
             BindingBehavior bind = BindingBehavior.Explicit)
@@ -53,7 +53,7 @@ namespace HotChocolate.Types.Scalars
         {
             if(!_validationRegex.IsMatch(valueSyntax.Value))
             {
-                throw ThrowHelper.HexType_ParseLiteral_IsInvalid(this);
+                throw ThrowHelper.HexColorType_ParseLiteral_IsInvalid(this);
             }
 
             return base.ParseLiteral(valueSyntax);
@@ -64,7 +64,7 @@ namespace HotChocolate.Types.Scalars
         {
             if(!_validationRegex.IsMatch(runtimeValue))
             {
-                throw ThrowHelper.HexType_ParseValue_IsInvalid(this);
+                throw ThrowHelper.HexColorType_ParseValue_IsInvalid(this);
             }
 
             return base.ParseValue(runtimeValue);

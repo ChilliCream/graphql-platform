@@ -5,7 +5,7 @@ using Xunit;
 
 namespace HotChocolate.Types.Scalars
 {
-    public class HslaColorCodeTypeTests : ScalarTypeTestBase
+    public class HslaTypeTests : ScalarTypeTestBase
     {
         [Fact]
         public void Schema_WithScalar_IsMatch()

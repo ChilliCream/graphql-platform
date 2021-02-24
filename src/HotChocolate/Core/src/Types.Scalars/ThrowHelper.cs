@@ -13,24 +13,24 @@ namespace HotChocolate.Types.Scalars
                 type);
         }
 
-        public static SerializationException HexType_ParseValue_IsInvalid(IType type)
+        public static SerializationException HexColorType_ParseValue_IsInvalid(IType type)
         {
             return new SerializationException(
                 ErrorBuilder.New()
-                    .SetMessage(ScalarResources.HexType_IsInvalid_ParseValue)
+                    .SetMessage(ScalarResources.HexColorType_IsInvalid_ParseValue)
                     .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                    .SetExtension("actualType", WellKnownScalarTypes.Hex)
+                    .SetExtension("actualType", WellKnownScalarTypes.HexColor)
                     .Build(),
                 type);
         }
 
-        public static SerializationException HexType_ParseLiteral_IsInvalid(IType type)
+        public static SerializationException HexColorType_ParseLiteral_IsInvalid(IType type)
         {
             return new SerializationException(
                 ErrorBuilder.New()
-                    .SetMessage(ScalarResources.HexType_IsInvalid_ParseLiteral)
+                    .SetMessage(ScalarResources.HexColorType_IsInvalid_ParseLiteral)
                     .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
-                    .SetExtension("actualType", WellKnownScalarTypes.Hex)
+                    .SetExtension("actualType", WellKnownScalarTypes.HexColor)
                     .Build(),
                 type);
         }
@@ -39,7 +39,7 @@ namespace HotChocolate.Types.Scalars
         {
             return new SerializationException(
                 ErrorBuilder.New()
-                    .SetMessage(ScalarResources.HslColorCodeType_IsInvalid_ParseValue)
+                    .SetMessage(ScalarResources.HslType_IsInvalid_ParseValue)
                     .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
                     .SetExtension("actualType", WellKnownScalarTypes.Hsl)
                     .Build(),

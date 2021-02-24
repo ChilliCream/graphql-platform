@@ -4,7 +4,7 @@ using HotChocolate.Language;
 namespace HotChocolate.Types.Scalars
 {
     /// <summary>
-    /// The `Hsl` scalar type represents a valid a Css Hsl color as defined
+    /// The `HSL` scalar type represents a valid a CSS HSL color as defined
     /// here https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors.
     /// </summary>
     public class HslType : StringType
