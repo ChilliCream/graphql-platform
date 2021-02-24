@@ -1,7 +1,19 @@
-﻿// Code:
+﻿// ReSharper disable BuiltInTypeReferenceStyle
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable UnusedType.Global
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable ConvertToAutoProperty
+// ReSharper disable UnusedMember.Global
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable InconsistentNaming
+
+// Code:
 // PersonEntity
 
 // StrawberryShake.CodeGeneration.CSharp.EntityTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -23,6 +35,7 @@ namespace StrawberryShake.GraphQL
 // GetPeopleResultFactory
 
 // StrawberryShake.CodeGeneration.CSharp.ResultDataFactoryGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -72,6 +85,7 @@ namespace StrawberryShake.GraphQL
 // GetPeopleResultInfo
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInfoGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -114,6 +128,7 @@ namespace StrawberryShake.GraphQL
 // GetPeopleResult
 
 // StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -135,6 +150,7 @@ namespace StrawberryShake.GraphQL
 // GetPeople_Me_PersonFromPersonEntityMapper
 
 // StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -220,6 +236,7 @@ namespace StrawberryShake.GraphQL
 // GetPeople_Me_Person
 
 // StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -241,6 +258,7 @@ namespace StrawberryShake.GraphQL
 // GetPeople_Me_Friends_PersonConnection
 
 // StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -262,6 +280,7 @@ namespace StrawberryShake.GraphQL
 // GetPeople_Me_Friends_Nodes_PersonFromPersonEntityMapper
 
 // StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -284,6 +303,7 @@ namespace StrawberryShake.GraphQL
 // GetPeople_Me_Friends_Nodes_Person
 
 // StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -314,6 +334,7 @@ namespace StrawberryShake.GraphQL
 // IGetPeopleResult
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -329,6 +350,7 @@ namespace StrawberryShake.GraphQL
 // IGetPeople_Me
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -344,6 +366,7 @@ namespace StrawberryShake.GraphQL
 // IGetPeople_Me_Person
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -359,6 +382,7 @@ namespace StrawberryShake.GraphQL
 // IGetPeople_Me_Friends
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -374,6 +398,7 @@ namespace StrawberryShake.GraphQL
 // IGetPeople_Me_Friends_PersonConnection
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -389,6 +414,7 @@ namespace StrawberryShake.GraphQL
 // IGetPeople_Me_Friends_Nodes
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -408,6 +434,7 @@ namespace StrawberryShake.GraphQL
 // IGetPeople_Me_Friends_Nodes_Person
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -423,6 +450,7 @@ namespace StrawberryShake.GraphQL
 // GetPeopleQueryDocument
 
 // StrawberryShake.CodeGeneration.CSharp.OperationDocumentGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -475,6 +503,7 @@ namespace StrawberryShake.GraphQL
 // GetPeopleQuery
 
 // StrawberryShake.CodeGeneration.CSharp.OperationServiceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -521,6 +550,7 @@ namespace StrawberryShake.GraphQL
 // GetPeopleBuilder
 
 // StrawberryShake.CodeGeneration.CSharp.JsonResultBuilderGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -709,6 +739,7 @@ namespace StrawberryShake.GraphQL
 // PersonConnectionData
 
 // StrawberryShake.CodeGeneration.CSharp.DataTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL.State
@@ -735,6 +766,7 @@ namespace StrawberryShake.GraphQL.State
 // GraphQLClient
 
 // StrawberryShake.CodeGeneration.CSharp.ClientGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -758,6 +790,7 @@ namespace StrawberryShake.GraphQL
 // EntityIdFactory
 
 // StrawberryShake.CodeGeneration.CSharp.EntityIdFactoryGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -791,6 +824,7 @@ namespace StrawberryShake.GraphQL
 // GraphQLClientServiceCollectionExtensions
 
 // StrawberryShake.CodeGeneration.CSharp.DependencyInjectionGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL

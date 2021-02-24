@@ -280,6 +280,18 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             var content = new StringBuilder();
 
+            content.AppendLine("// ReSharper disable BuiltInTypeReferenceStyle");
+            content.AppendLine("// ReSharper disable RedundantNameQualifier");
+            content.AppendLine("// ReSharper disable ArrangeObjectCreationWhenTypeEvident");
+            content.AppendLine("// ReSharper disable UnusedType.Global");
+            content.AppendLine("// ReSharper disable PartialTypeWithSinglePart");
+            content.AppendLine("// ReSharper disable UnusedMethodReturnValue.Local");
+            content.AppendLine("// ReSharper disable ConvertToAutoProperty");
+            content.AppendLine("// ReSharper disable UnusedMember.Global");
+            content.AppendLine("// ReSharper disable SuggestVarOrType_SimpleTypes");
+            content.AppendLine("// ReSharper disable InconsistentNaming");
+            content.AppendLine();
+
             if (result.Errors.Any())
             {
                 content.AppendLine("// Errors:");

@@ -1,6 +1,18 @@
-﻿// TestResultFactory
+﻿// ReSharper disable BuiltInTypeReferenceStyle
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable UnusedType.Global
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable ConvertToAutoProperty
+// ReSharper disable UnusedMember.Global
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable InconsistentNaming
+
+// TestResultFactory
 
 // StrawberryShake.CodeGeneration.CSharp.ResultDataFactoryGenerator
+
 #nullable enable
 
 namespace Foo
@@ -33,6 +45,7 @@ namespace Foo
 // TestResultInfo
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInfoGenerator
+
 #nullable enable
 
 namespace Foo
@@ -75,6 +88,7 @@ namespace Foo
 // TestResult
 
 // StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
 namespace Foo
@@ -96,6 +110,7 @@ namespace Foo
 // ITestResult
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace Foo
@@ -111,6 +126,7 @@ namespace Foo
 // BarInputValueFormatter
 
 // StrawberryShake.CodeGeneration.CSharp.InputValueFormatterGenerator
+
 #nullable enable
 
 namespace Foo
@@ -221,6 +237,7 @@ namespace Foo
 // Bar
 
 // StrawberryShake.CodeGeneration.CSharp.InputTypeGenerator
+
 #nullable enable
 
 namespace Foo
@@ -244,6 +261,7 @@ namespace Foo
 // TestQueryDocument
 
 // StrawberryShake.CodeGeneration.CSharp.OperationDocumentGenerator
+
 #nullable enable
 
 namespace Foo
@@ -279,6 +297,7 @@ namespace Foo
 // TestQuery
 
 // StrawberryShake.CodeGeneration.CSharp.OperationServiceGenerator
+
 #nullable enable
 
 namespace Foo
@@ -406,6 +425,7 @@ namespace Foo
 // TestBuilder
 
 // StrawberryShake.CodeGeneration.CSharp.JsonResultBuilderGenerator
+
 #nullable enable
 
 namespace Foo
@@ -482,6 +502,7 @@ namespace Foo
 // FooClient
 
 // StrawberryShake.CodeGeneration.CSharp.ClientGenerator
+
 #nullable enable
 
 namespace Foo
@@ -505,6 +526,7 @@ namespace Foo
 // EntityIdFactory
 
 // StrawberryShake.CodeGeneration.CSharp.EntityIdFactoryGenerator
+
 #nullable enable
 
 namespace Foo
@@ -528,6 +550,7 @@ namespace Foo
 // FooClientServiceCollectionExtensions
 
 // StrawberryShake.CodeGeneration.CSharp.DependencyInjectionGenerator
+
 #nullable enable
 
 namespace Foo

@@ -1,6 +1,18 @@
-﻿// DroidEntity
+﻿// ReSharper disable BuiltInTypeReferenceStyle
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable UnusedType.Global
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable ConvertToAutoProperty
+// ReSharper disable UnusedMember.Global
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable InconsistentNaming
+
+// DroidEntity
 
 // StrawberryShake.CodeGeneration.CSharp.EntityTypeGenerator
+
 #nullable enable
 
 namespace Foo
@@ -20,6 +32,7 @@ namespace Foo
 // HumanEntity
 
 // StrawberryShake.CodeGeneration.CSharp.EntityTypeGenerator
+
 #nullable enable
 
 namespace Foo
@@ -39,6 +52,7 @@ namespace Foo
 // GetHeroResultFactory
 
 // StrawberryShake.CodeGeneration.CSharp.ResultDataFactoryGenerator
+
 #nullable enable
 
 namespace Foo
@@ -104,6 +118,7 @@ namespace Foo
 // GetHeroResultInfo
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInfoGenerator
+
 #nullable enable
 
 namespace Foo
@@ -146,6 +161,7 @@ namespace Foo
 // GetHeroResult
 
 // StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
 namespace Foo
@@ -167,6 +183,7 @@ namespace Foo
 // GetHero_Hero_DroidFromDroidEntityMapper
 
 // StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
+
 #nullable enable
 
 namespace Foo
@@ -266,6 +283,7 @@ namespace Foo
 // GetHero_Hero_Droid
 
 // StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
 namespace Foo
@@ -296,6 +314,7 @@ namespace Foo
 // GetHero_Hero_HumanFromHumanEntityMapper
 
 // StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
+
 #nullable enable
 
 namespace Foo
@@ -395,6 +414,7 @@ namespace Foo
 // GetHero_Hero_Human
 
 // StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
 namespace Foo
@@ -425,6 +445,7 @@ namespace Foo
 // GetHero_Hero_Friends_CharacterConnection
 
 // StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
 namespace Foo
@@ -446,6 +467,7 @@ namespace Foo
 // GetHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper
 
 // StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
+
 #nullable enable
 
 namespace Foo
@@ -465,6 +487,7 @@ namespace Foo
 // GetHero_Hero_Friends_Nodes_Droid
 
 // StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
 namespace Foo
@@ -486,6 +509,7 @@ namespace Foo
 // GetHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper
 
 // StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
+
 #nullable enable
 
 namespace Foo
@@ -505,6 +529,7 @@ namespace Foo
 // GetHero_Hero_Friends_Nodes_Human
 
 // StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
 namespace Foo
@@ -526,6 +551,7 @@ namespace Foo
 // IGetHeroResult
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace Foo
@@ -541,6 +567,7 @@ namespace Foo
 // IHero
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace Foo
@@ -558,6 +585,7 @@ namespace Foo
 // IGetHero_Hero
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace Foo
@@ -573,6 +601,7 @@ namespace Foo
 // IDroid
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace Foo
@@ -588,6 +617,7 @@ namespace Foo
 // IHero_Droid
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace Foo
@@ -606,6 +636,7 @@ namespace Foo
 // IGetHero_Hero_Droid
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace Foo
@@ -622,6 +653,7 @@ namespace Foo
 // IHuman
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace Foo
@@ -637,6 +669,7 @@ namespace Foo
 // IHero_Human
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace Foo
@@ -655,6 +688,7 @@ namespace Foo
 // IGetHero_Hero_Human
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace Foo
@@ -671,6 +705,7 @@ namespace Foo
 // IGetHero_Hero_Friends
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace Foo
@@ -686,6 +721,7 @@ namespace Foo
 // IGetHero_Hero_Friends_CharacterConnection
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace Foo
@@ -701,6 +737,7 @@ namespace Foo
 // IGetHero_Hero_Friends_Nodes
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace Foo
@@ -716,6 +753,7 @@ namespace Foo
 // IGetHero_Hero_Friends_Nodes_Droid
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace Foo
@@ -731,6 +769,7 @@ namespace Foo
 // IGetHero_Hero_Friends_Nodes_Human
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace Foo
@@ -746,6 +785,7 @@ namespace Foo
 // GetHeroQueryDocument
 
 // StrawberryShake.CodeGeneration.CSharp.OperationDocumentGenerator
+
 #nullable enable
 
 namespace Foo
@@ -817,6 +857,7 @@ fragment Droid on Droid {
 // GetHeroQuery
 
 // StrawberryShake.CodeGeneration.CSharp.OperationServiceGenerator
+
 #nullable enable
 
 namespace Foo
@@ -863,6 +904,7 @@ namespace Foo
 // GetHeroBuilder
 
 // StrawberryShake.CodeGeneration.CSharp.JsonResultBuilderGenerator
+
 #nullable enable
 
 namespace Foo
@@ -1068,6 +1110,7 @@ namespace Foo
 // CharacterConnectionData
 
 // StrawberryShake.CodeGeneration.CSharp.DataTypeGenerator
+
 #nullable enable
 
 namespace Foo.State
@@ -1094,6 +1137,7 @@ namespace Foo.State
 // FooClient
 
 // StrawberryShake.CodeGeneration.CSharp.ClientGenerator
+
 #nullable enable
 
 namespace Foo
@@ -1117,6 +1161,7 @@ namespace Foo
 // EntityIdFactory
 
 // StrawberryShake.CodeGeneration.CSharp.EntityIdFactoryGenerator
+
 #nullable enable
 
 namespace Foo
@@ -1160,6 +1205,7 @@ namespace Foo
 // FooClientServiceCollectionExtensions
 
 // StrawberryShake.CodeGeneration.CSharp.DependencyInjectionGenerator
+
 #nullable enable
 
 namespace Foo

@@ -1,7 +1,19 @@
-﻿// Code:
+﻿// ReSharper disable BuiltInTypeReferenceStyle
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable UnusedType.Global
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable ConvertToAutoProperty
+// ReSharper disable UnusedMember.Global
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable InconsistentNaming
+
+// Code:
 // DroidEntity
 
 // StrawberryShake.CodeGeneration.CSharp.EntityTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -19,6 +31,7 @@ namespace StrawberryShake.GraphQL
 // HumanEntity
 
 // StrawberryShake.CodeGeneration.CSharp.EntityTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -36,6 +49,7 @@ namespace StrawberryShake.GraphQL
 // GetHeroResultFactory
 
 // StrawberryShake.CodeGeneration.CSharp.ResultDataFactoryGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -101,6 +115,7 @@ namespace StrawberryShake.GraphQL
 // GetHeroResultInfo
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInfoGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -143,6 +158,7 @@ namespace StrawberryShake.GraphQL
 // GetHeroResult
 
 // StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -164,6 +180,7 @@ namespace StrawberryShake.GraphQL
 // GetHero_Hero_DroidFromDroidEntityMapper
 
 // StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -185,6 +202,7 @@ namespace StrawberryShake.GraphQL
 // GetHero_Hero_Droid
 
 // StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -211,6 +229,7 @@ namespace StrawberryShake.GraphQL
 // GetHero_Hero_HumanFromHumanEntityMapper
 
 // StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -232,6 +251,7 @@ namespace StrawberryShake.GraphQL
 // GetHero_Hero_Human
 
 // StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -258,6 +278,7 @@ namespace StrawberryShake.GraphQL
 // IGetHeroResult
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -273,6 +294,7 @@ namespace StrawberryShake.GraphQL
 // IGetHero_Hero
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -290,6 +312,7 @@ namespace StrawberryShake.GraphQL
 // IGetHero_Hero_Droid
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -305,6 +328,7 @@ namespace StrawberryShake.GraphQL
 // IGetHero_Hero_Human
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -320,6 +344,7 @@ namespace StrawberryShake.GraphQL
 // Episode
 
 // StrawberryShake.CodeGeneration.CSharp.EnumGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -337,6 +362,7 @@ namespace StrawberryShake.GraphQL
 // EpisodeSerializer
 
 // StrawberryShake.CodeGeneration.CSharp.EnumParserGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -376,6 +402,7 @@ namespace StrawberryShake.GraphQL
 // GetHeroQueryDocument
 
 // StrawberryShake.CodeGeneration.CSharp.OperationDocumentGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -421,6 +448,7 @@ namespace StrawberryShake.GraphQL
 // GetHeroQuery
 
 // StrawberryShake.CodeGeneration.CSharp.OperationServiceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -467,6 +495,7 @@ namespace StrawberryShake.GraphQL
 // GetHeroBuilder
 
 // StrawberryShake.CodeGeneration.CSharp.JsonResultBuilderGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -610,6 +639,7 @@ namespace StrawberryShake.GraphQL
 // GraphQLClient
 
 // StrawberryShake.CodeGeneration.CSharp.ClientGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -633,6 +663,7 @@ namespace StrawberryShake.GraphQL
 // EntityIdFactory
 
 // StrawberryShake.CodeGeneration.CSharp.EntityIdFactoryGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -676,6 +707,7 @@ namespace StrawberryShake.GraphQL
 // GraphQLClientServiceCollectionExtensions
 
 // StrawberryShake.CodeGeneration.CSharp.DependencyInjectionGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL

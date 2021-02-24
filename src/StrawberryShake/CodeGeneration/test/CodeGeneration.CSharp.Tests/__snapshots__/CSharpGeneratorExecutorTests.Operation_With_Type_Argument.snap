@@ -1,6 +1,18 @@
-﻿// CreateReviewMutResultFactory
+﻿// ReSharper disable BuiltInTypeReferenceStyle
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable UnusedType.Global
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable ConvertToAutoProperty
+// ReSharper disable UnusedMember.Global
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable InconsistentNaming
+
+// CreateReviewMutResultFactory
 
 // StrawberryShake.CodeGeneration.CSharp.ResultDataFactoryGenerator
+
 #nullable enable
 
 namespace Foo
@@ -49,6 +61,7 @@ namespace Foo
 // CreateReviewMutResultInfo
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInfoGenerator
+
 #nullable enable
 
 namespace Foo
@@ -91,6 +104,7 @@ namespace Foo
 // CreateReviewMutResult
 
 // StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
 namespace Foo
@@ -112,6 +126,7 @@ namespace Foo
 // CreateReviewMut_CreateReview_Review
 
 // StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
 namespace Foo
@@ -138,6 +153,7 @@ namespace Foo
 // ICreateReviewMutResult
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace Foo
@@ -153,6 +169,7 @@ namespace Foo
 // ICreateReviewMut_CreateReview
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace Foo
@@ -170,6 +187,7 @@ namespace Foo
 // ICreateReviewMut_CreateReview_Review
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace Foo
@@ -185,6 +203,7 @@ namespace Foo
 // ReviewInputInputValueFormatter
 
 // StrawberryShake.CodeGeneration.CSharp.InputValueFormatterGenerator
+
 #nullable enable
 
 namespace Foo
@@ -242,6 +261,7 @@ namespace Foo
 // ReviewInput
 
 // StrawberryShake.CodeGeneration.CSharp.InputTypeGenerator
+
 #nullable enable
 
 namespace Foo
@@ -259,6 +279,7 @@ namespace Foo
 // Episode
 
 // StrawberryShake.CodeGeneration.CSharp.EnumGenerator
+
 #nullable enable
 
 namespace Foo
@@ -276,6 +297,7 @@ namespace Foo
 // EpisodeSerializer
 
 // StrawberryShake.CodeGeneration.CSharp.EnumParserGenerator
+
 #nullable enable
 
 namespace Foo
@@ -315,6 +337,7 @@ namespace Foo
 // CreateReviewMutMutationDocument
 
 // StrawberryShake.CodeGeneration.CSharp.OperationDocumentGenerator
+
 #nullable enable
 
 namespace Foo
@@ -354,6 +377,7 @@ namespace Foo
 // CreateReviewMutMutation
 
 // StrawberryShake.CodeGeneration.CSharp.OperationServiceGenerator
+
 #nullable enable
 
 namespace Foo
@@ -442,6 +466,7 @@ namespace Foo
 // CreateReviewMutBuilder
 
 // StrawberryShake.CodeGeneration.CSharp.JsonResultBuilderGenerator
+
 #nullable enable
 
 namespace Foo
@@ -554,6 +579,7 @@ namespace Foo
 // ReviewData
 
 // StrawberryShake.CodeGeneration.CSharp.DataTypeGenerator
+
 #nullable enable
 
 namespace Foo.State
@@ -584,6 +610,7 @@ namespace Foo.State
 // FooClient
 
 // StrawberryShake.CodeGeneration.CSharp.ClientGenerator
+
 #nullable enable
 
 namespace Foo
@@ -607,6 +634,7 @@ namespace Foo
 // EntityIdFactory
 
 // StrawberryShake.CodeGeneration.CSharp.EntityIdFactoryGenerator
+
 #nullable enable
 
 namespace Foo
@@ -630,6 +658,7 @@ namespace Foo
 // FooClientServiceCollectionExtensions
 
 // StrawberryShake.CodeGeneration.CSharp.DependencyInjectionGenerator
+
 #nullable enable
 
 namespace Foo

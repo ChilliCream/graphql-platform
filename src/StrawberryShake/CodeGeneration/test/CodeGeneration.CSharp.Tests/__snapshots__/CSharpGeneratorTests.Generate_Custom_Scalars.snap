@@ -1,7 +1,19 @@
-﻿// Code:
+﻿// ReSharper disable BuiltInTypeReferenceStyle
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable UnusedType.Global
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable ConvertToAutoProperty
+// ReSharper disable UnusedMember.Global
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable InconsistentNaming
+
+// Code:
 // ExpenseEntity
 
 // StrawberryShake.CodeGeneration.CSharp.EntityTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -29,6 +41,7 @@ namespace StrawberryShake.GraphQL
 // AllExpensesResultFactory
 
 // StrawberryShake.CodeGeneration.CSharp.ResultDataFactoryGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -100,6 +113,7 @@ namespace StrawberryShake.GraphQL
 // AllExpensesResultInfo
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInfoGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -142,6 +156,7 @@ namespace StrawberryShake.GraphQL
 // AllExpensesResult
 
 // StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -163,6 +178,7 @@ namespace StrawberryShake.GraphQL
 // AllExpenses_Expense_ExpenseFromExpenseEntityMapper
 
 // StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -225,6 +241,7 @@ namespace StrawberryShake.GraphQL
 // AllExpenses_Expense_Expense
 
 // StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -271,6 +288,7 @@ namespace StrawberryShake.GraphQL
 // AllExpenses_Expense_Tags_Tag
 
 // StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -292,6 +310,7 @@ namespace StrawberryShake.GraphQL
 // IAllExpensesResult
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -307,6 +326,7 @@ namespace StrawberryShake.GraphQL
 // IAllExpenses_Expense
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -334,6 +354,7 @@ namespace StrawberryShake.GraphQL
 // IAllExpenses_Expense_Expense
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -349,6 +370,7 @@ namespace StrawberryShake.GraphQL
 // IAllExpenses_Expense_Tags
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -364,6 +386,7 @@ namespace StrawberryShake.GraphQL
 // IAllExpenses_Expense_Tags_Tag
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -379,6 +402,7 @@ namespace StrawberryShake.GraphQL
 // ExpenseCategory
 
 // StrawberryShake.CodeGeneration.CSharp.EnumGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -409,6 +433,7 @@ namespace StrawberryShake.GraphQL
 // ExpenseCategorySerializer
 
 // StrawberryShake.CodeGeneration.CSharp.EnumParserGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -474,6 +499,7 @@ namespace StrawberryShake.GraphQL
 // PaymentMethod
 
 // StrawberryShake.CodeGeneration.CSharp.EnumGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -493,6 +519,7 @@ namespace StrawberryShake.GraphQL
 // PaymentMethodSerializer
 
 // StrawberryShake.CodeGeneration.CSharp.EnumParserGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -536,6 +563,7 @@ namespace StrawberryShake.GraphQL
 // AllExpensesQueryDocument
 
 // StrawberryShake.CodeGeneration.CSharp.OperationDocumentGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -586,6 +614,7 @@ namespace StrawberryShake.GraphQL
 // AllExpensesQuery
 
 // StrawberryShake.CodeGeneration.CSharp.OperationServiceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -632,6 +661,7 @@ namespace StrawberryShake.GraphQL
 // AllExpensesBuilder
 
 // StrawberryShake.CodeGeneration.CSharp.JsonResultBuilderGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -863,6 +893,7 @@ namespace StrawberryShake.GraphQL
 // TagData
 
 // StrawberryShake.CodeGeneration.CSharp.DataTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL.State
@@ -889,6 +920,7 @@ namespace StrawberryShake.GraphQL.State
 // GraphQLClient
 
 // StrawberryShake.CodeGeneration.CSharp.ClientGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -912,6 +944,7 @@ namespace StrawberryShake.GraphQL
 // EntityIdFactory
 
 // StrawberryShake.CodeGeneration.CSharp.EntityIdFactoryGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -945,6 +978,7 @@ namespace StrawberryShake.GraphQL
 // GraphQLClientServiceCollectionExtensions
 
 // StrawberryShake.CodeGeneration.CSharp.DependencyInjectionGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL

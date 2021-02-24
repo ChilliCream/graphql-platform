@@ -247,12 +247,24 @@ namespace StrawberryShake.CodeGeneration.CSharp
             CSharpGeneratorExecutor generator,
             StringBuilder documents)
         {
+            documents.AppendLine("// ReSharper disable BuiltInTypeReferenceStyle");
+            documents.AppendLine("// ReSharper disable RedundantNameQualifier");
+            documents.AppendLine("// ReSharper disable ArrangeObjectCreationWhenTypeEvident");
+            documents.AppendLine("// ReSharper disable UnusedType.Global");
+            documents.AppendLine("// ReSharper disable PartialTypeWithSinglePart");
+            documents.AppendLine("// ReSharper disable UnusedMethodReturnValue.Local");
+            documents.AppendLine("// ReSharper disable ConvertToAutoProperty");
+            documents.AppendLine("// ReSharper disable UnusedMember.Global");
+            documents.AppendLine("// ReSharper disable SuggestVarOrType_SimpleTypes");
+            documents.AppendLine("// ReSharper disable InconsistentNaming");
+            documents.AppendLine();
+
             var documentName = new HashSet<string>();
             foreach (CSharpDocument document in generator.Generate(clientModel, "Foo", "FooClient"))
             {
                 if (!documentName.Add(document.Name))
                 {
-                    // Assert.True(false, $"Document name duplicated {document.Name}");
+                    Assert.True(false, $"Document name duplicated {document.Name}");
                 }
 
                 documents.AppendLine("// " + document.Name);
