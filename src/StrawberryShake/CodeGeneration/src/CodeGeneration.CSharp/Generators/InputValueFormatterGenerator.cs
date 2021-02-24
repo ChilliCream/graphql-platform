@@ -50,7 +50,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             foreach (var property in neededSerializers.Values)
             {
-                if (property.Type.GetName()?.Value is { } name)
+                if (property.Type.GetName().Value is { } name)
                 {
                     MethodCallBuilder call = MethodCallBuilder.New()
                         .SetMethodName("serializerResolver." +
@@ -72,7 +72,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             foreach (var property in neededSerializers.Values)
             {
-                if (property.Type.GetName()?.Value is { } name)
+                if (property.Type.GetName().Value is { } name)
                 {
                     FieldBuilder field = FieldBuilder.New()
                         .SetName(GetFieldName(name) + "Formatter")
@@ -151,7 +151,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             switch (typeDescriptor)
             {
                 case INamedTypeDescriptor descriptor:
-                    var type = descriptor.GetName()?.Value + "Formatter";
+                    var type = descriptor.GetName().Value + "Formatter";
                     var serializerName = GetFieldName(type);
                     var methodCall = $"{serializerName}.Format({variableName})";
                     return assignment == "return"
