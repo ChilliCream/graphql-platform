@@ -11,7 +11,8 @@
       "Extensions": {
         "code": "HC0015"
       },
-      "Exception": null
+      "Exception": null,
+      "SyntaxNode": null
     }
   ],
   "Extensions": null,
