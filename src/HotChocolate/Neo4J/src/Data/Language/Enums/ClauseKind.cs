@@ -22,6 +22,8 @@ namespace HotChocolate.Data.Neo4J.Language
         Property,
         PropertyLookup,
         PatternComprehension,
+        RelationshipChain,
+        RelationshipPatternCondition,
 
         SortItem,
 

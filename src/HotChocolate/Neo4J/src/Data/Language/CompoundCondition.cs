@@ -1,9 +1,11 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace HotChocolate.Data.Neo4J.Language
 {
+    /// <summary>
+    /// A condition that consists of one or two
+    /// </summary>
     public class CompoundCondition : Condition
     {
         public override ClauseKind Kind => ClauseKind.CompoundCondition;
@@ -83,6 +85,9 @@ namespace HotChocolate.Data.Neo4J.Language
 
         private bool CanBeFlattenedWith(Operator operatorBefore)
         {
+            if (_operator != operatorBefore) {
+                return false;
+            }
             foreach (Condition c in _conditions)
             {
                 if (c is CompoundCondition condition && condition._operator != operatorBefore)
@@ -95,25 +100,29 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public override void Visit(CypherVisitor visitor)
         {
+            // There is nothing to visit here
             if (!_conditions.Any())
             {
                 return;
             }
-            var hasManyConditions = _conditions.Count > 1;
 
+            // Fold single condition
+            var hasManyConditions = _conditions.Count > 1;
             if (hasManyConditions)
             {
                 visitor.Enter(this);
             }
 
+            // The first nested condition does not need an operator
             AcceptVisitorWithOperatorForChildCondition(visitor, null, _conditions[0]);
 
+            // All others do
             if (!hasManyConditions) return;
             foreach (Condition condition in _conditions.Skip(1))
             {
                 // This takes care of a potential inner compound condition that got added with a different operator
                 // and thus forms a tree.
-                Operator? actualOperator = condition is CompoundCondition condition1 ?
+                Operator actualOperator = condition is CompoundCondition condition1 ?
                     condition1._operator :
                     _operator;
                 AcceptVisitorWithOperatorForChildCondition(visitor, actualOperator, condition);
@@ -122,7 +131,7 @@ namespace HotChocolate.Data.Neo4J.Language
         }
 
         private static void AcceptVisitorWithOperatorForChildCondition(
-            CypherVisitor visitor, IVisitable? op, IVisitable condition)
+            CypherVisitor visitor, IVisitable op, IVisitable condition)
         {
             op?.Visit(visitor);
             condition.Visit(visitor);

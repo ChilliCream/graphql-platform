@@ -1,4 +1,4 @@
 namespace HotChocolate.Data.Neo4J.Language
 {
-    public interface IPatternElement { }
+    public interface IPatternElement : IVisitable { }
 }

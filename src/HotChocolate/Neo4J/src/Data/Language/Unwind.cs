@@ -11,16 +11,7 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public Unwind(Expression expressionToUnwind, string variable)
         {
-            if (_expressionToUnwind is IAliased)
-            {
-                _expressionToUnwind = ((IAliased)expressionToUnwind).AsName();
-            }
-            else
-            {
-                _expressionToUnwind = expressionToUnwind;
-            }
-
-            _expressionToUnwind = expressionToUnwind;
+            _expressionToUnwind = _expressionToUnwind is IAliased ? ((IAliased)expressionToUnwind).AsName() : expressionToUnwind;
             _variable = variable;
         }
 

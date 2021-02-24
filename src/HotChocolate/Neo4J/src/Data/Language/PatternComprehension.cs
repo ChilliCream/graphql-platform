@@ -19,10 +19,7 @@ namespace HotChocolate.Data.Neo4J.Language
             _expression = expression;
         }
 
-        public PatternComprehension BasedOn(RelationshipPattern pattern)
-        {
-            new
-        }
+
 
         public override void Visit(CypherVisitor visitor)
         {

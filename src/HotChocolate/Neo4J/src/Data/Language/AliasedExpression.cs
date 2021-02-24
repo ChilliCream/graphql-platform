@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Data.Neo4J.Language
 {
     /// <summary>
@@ -25,8 +23,7 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public new AliasedExpression As(string newAlias)
         {
-            _ = newAlias ??
-                throw new ArgumentNullException(nameof(newAlias));
+            Assertions.HasText(newAlias, "The alias may not be null or empty.");
             return new AliasedExpression(_expression, newAlias);
         }
 

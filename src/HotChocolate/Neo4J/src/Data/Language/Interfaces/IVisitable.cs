@@ -6,7 +6,7 @@ namespace HotChocolate.Data.Neo4J.Language
     public interface IVisitable
     {
         /// <summary>
-        /// Returns the <see cref="ClauseKind"/> of the vistable.
+        /// Returns the <see cref="ClauseKind"/> of the visitable.
         /// </summary>
         ClauseKind Kind { get; }
 

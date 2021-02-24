@@ -10,7 +10,7 @@
         private readonly Operator _operator;
         private readonly Expression _right;
 
-        public Comparison(Expression left, Operator op, Expression right)
+        private Comparison(Expression left, Operator op, Expression right)
         {
             _left = NestedIfCondition(left);
             _operator = op;
