@@ -25,7 +25,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                         inputType,
                         new InputObjectTypeDescriptor(
                             inputType.Type.Name,
-                            TypeInfos.New(inputType.Name, context.Namespace)));
+                            new (inputType.Name, context.Namespace)));
 
                     typeDescriptors.Add(inputType.Name, descriptorModel);
                 }
@@ -33,13 +33,10 @@ namespace StrawberryShake.CodeGeneration.Mappers
         }
 
         private static void AddInputTypeProperties(
-            ClientModel model,
-            IMapperContext context,
             Dictionary<NameString, InputTypeDescriptorModel> typeDescriptors,
             Dictionary<NameString, INamedTypeDescriptor> leafTypeDescriptors)
         {
-            foreach (InputTypeDescriptorModel typeDescriptorModel in typeDescriptors.Values.ToList()
-            )
+            foreach (InputTypeDescriptorModel typeDescriptorModel in typeDescriptors.Values)
             {
                 var properties = new List<PropertyDescriptor>();
 
@@ -55,7 +52,6 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     else
                     {
                         fieldType = GetInputTypeDescriptor(
-                            model,
                             field.Type.NamedType(),
                             typeDescriptors);
                     }
@@ -73,7 +69,6 @@ namespace StrawberryShake.CodeGeneration.Mappers
         }
 
         private static INamedTypeDescriptor GetInputTypeDescriptor(
-            ClientModel model,
             INamedType fieldNamedType,
             Dictionary<NameString, InputTypeDescriptorModel> typeDescriptors)
         {

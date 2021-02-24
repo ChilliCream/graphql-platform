@@ -111,8 +111,10 @@ namespace StrawberryShake.CodeGeneration.Utilities
                 }
                 else if (parameterName[i] == '_')
                 {
-                    if (i + 1 < parameterName.Length
-                        && char.IsLetter(parameterName[i + 1]))
+                    value.Append(char.ToLower(parameterName[i], CultureInfo.InvariantCulture));
+
+                    if (i + 1 < parameterName.Length && 
+                        char.IsLetter(parameterName[i + 1]))
                     {
                         value.Append(first
                             ? char.ToLower(parameterName[++i], CultureInfo.InvariantCulture)

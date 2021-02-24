@@ -30,17 +30,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 classBuilder.AddProperty(propBuilder);
             }
 
-            /*
-             TODO: I dont think this is needed?
-            foreach (var implement in namedTypeDescriptor.Implements)
-            {
-                classBuilder.AddImplements(implement);
-            }
-            */
-
             CodeFileBuilder
                 .New()
-                .SetNamespace(namedTypeDescriptor.RuntimeType.Namespace)
+                .SetNamespace(namedTypeDescriptor.RuntimeType.NamespaceWithoutGlobal)
                 .AddType(classBuilder)
                 .Build(writer);
         }

@@ -1,5 +1,6 @@
 ﻿// TestOperationResultFactory
 
+// StrawberryShake.CodeGeneration.CSharp.ResultDataFactoryGenerator
 #nullable enable
 
 namespace Foo
@@ -31,6 +32,7 @@ namespace Foo
 
 // TestOperationResultInfo
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInfoGenerator
 #nullable enable
 
 namespace Foo
@@ -72,6 +74,7 @@ namespace Foo
 
 // TestOperationResult
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
 #nullable enable
 
 namespace Foo
@@ -92,6 +95,7 @@ namespace Foo
 
 // ITestOperationResult
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace Foo
@@ -106,6 +110,7 @@ namespace Foo
 
 // TestOperation2ResultFactory
 
+// StrawberryShake.CodeGeneration.CSharp.ResultDataFactoryGenerator
 #nullable enable
 
 namespace Foo
@@ -137,6 +142,7 @@ namespace Foo
 
 // TestOperation2ResultInfo
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInfoGenerator
 #nullable enable
 
 namespace Foo
@@ -178,6 +184,7 @@ namespace Foo
 
 // TestOperation2Result
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
 #nullable enable
 
 namespace Foo
@@ -198,6 +205,7 @@ namespace Foo
 
 // ITestOperation2Result
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace Foo
@@ -212,6 +220,7 @@ namespace Foo
 
 // TestOperation3ResultFactory
 
+// StrawberryShake.CodeGeneration.CSharp.ResultDataFactoryGenerator
 #nullable enable
 
 namespace Foo
@@ -243,6 +252,7 @@ namespace Foo
 
 // TestOperation3ResultInfo
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInfoGenerator
 #nullable enable
 
 namespace Foo
@@ -284,6 +294,7 @@ namespace Foo
 
 // TestOperation3Result
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
 #nullable enable
 
 namespace Foo
@@ -304,6 +315,7 @@ namespace Foo
 
 // ITestOperation3Result
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace Foo
@@ -318,6 +330,7 @@ namespace Foo
 
 // BarInputValueFormatter
 
+// StrawberryShake.CodeGeneration.CSharp.InputValueFormatterGenerator
 #nullable enable
 
 namespace Foo
@@ -427,6 +440,7 @@ namespace Foo
 
 // Bar
 
+// StrawberryShake.CodeGeneration.CSharp.InputTypeGenerator
 #nullable enable
 
 namespace Foo
@@ -449,6 +463,7 @@ namespace Foo
 
 // TestOperationQueryDocument
 
+// StrawberryShake.CodeGeneration.CSharp.OperationDocumentGenerator
 #nullable enable
 
 namespace Foo
@@ -483,6 +498,7 @@ namespace Foo
 
 // TestOperationQuery
 
+// StrawberryShake.CodeGeneration.CSharp.OperationServiceGenerator
 #nullable enable
 
 namespace Foo
@@ -609,6 +625,7 @@ namespace Foo
 
 // TestOperation2QueryDocument
 
+// StrawberryShake.CodeGeneration.CSharp.OperationDocumentGenerator
 #nullable enable
 
 namespace Foo
@@ -643,6 +660,7 @@ namespace Foo
 
 // TestOperation2Query
 
+// StrawberryShake.CodeGeneration.CSharp.OperationServiceGenerator
 #nullable enable
 
 namespace Foo
@@ -769,6 +787,7 @@ namespace Foo
 
 // TestOperation3QueryDocument
 
+// StrawberryShake.CodeGeneration.CSharp.OperationDocumentGenerator
 #nullable enable
 
 namespace Foo
@@ -803,6 +822,7 @@ namespace Foo
 
 // TestOperation3Query
 
+// StrawberryShake.CodeGeneration.CSharp.OperationServiceGenerator
 #nullable enable
 
 namespace Foo
@@ -929,6 +949,7 @@ namespace Foo
 
 // TestOperationBuilder
 
+// StrawberryShake.CodeGeneration.CSharp.JsonResultBuilderGenerator
 #nullable enable
 
 namespace Foo
@@ -955,7 +976,7 @@ namespace Foo
             _resultDataFactory = resultDataFactory
                  ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String")
-                 ?? throw new global::System.ArgumentNullException(nameof(_stringParser));
+                 ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
         }
 
         public global::StrawberryShake.IOperationResult<ITestOperationResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
@@ -1004,6 +1025,7 @@ namespace Foo
 
 // TestOperation2Builder
 
+// StrawberryShake.CodeGeneration.CSharp.JsonResultBuilderGenerator
 #nullable enable
 
 namespace Foo
@@ -1030,7 +1052,7 @@ namespace Foo
             _resultDataFactory = resultDataFactory
                  ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String")
-                 ?? throw new global::System.ArgumentNullException(nameof(_stringParser));
+                 ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
         }
 
         public global::StrawberryShake.IOperationResult<ITestOperation2Result> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
@@ -1079,6 +1101,7 @@ namespace Foo
 
 // TestOperation3Builder
 
+// StrawberryShake.CodeGeneration.CSharp.JsonResultBuilderGenerator
 #nullable enable
 
 namespace Foo
@@ -1105,7 +1128,7 @@ namespace Foo
             _resultDataFactory = resultDataFactory
                  ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String")
-                 ?? throw new global::System.ArgumentNullException(nameof(_stringParser));
+                 ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
         }
 
         public global::StrawberryShake.IOperationResult<ITestOperation3Result> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
@@ -1154,6 +1177,7 @@ namespace Foo
 
 // FooClient
 
+// StrawberryShake.CodeGeneration.CSharp.ClientGenerator
 #nullable enable
 
 namespace Foo
@@ -1189,6 +1213,7 @@ namespace Foo
 
 // EntityIdFactory
 
+// StrawberryShake.CodeGeneration.CSharp.EntityIdFactoryGenerator
 #nullable enable
 
 namespace Foo
@@ -1211,6 +1236,7 @@ namespace Foo
 
 // FooClientServiceCollectionExtensions
 
+// StrawberryShake.CodeGeneration.CSharp.DependencyInjectionGenerator
 #nullable enable
 
 namespace Foo

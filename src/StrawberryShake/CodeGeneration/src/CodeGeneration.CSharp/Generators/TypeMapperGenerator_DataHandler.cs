@@ -21,9 +21,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             method.AddParameter(
                 _dataParameterName,
-                x => x.SetType(
-                        $"{namedTypeDescriptor.RuntimeType.Namespace}.State." +
-                        CreateDataTypeName(namedTypeDescriptor.RuntimeType.Name)));
+                x => x.SetType(namedTypeDescriptor.ParentRuntimeType!.ToString()));
 
             if (!isNonNullable)
             {

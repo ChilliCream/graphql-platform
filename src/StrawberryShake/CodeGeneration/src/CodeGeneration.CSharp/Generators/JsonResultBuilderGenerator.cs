@@ -69,27 +69,30 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetName(_serializerResolverParamName)
                     .SetType(TypeNames.ISerializerResolver));
 
-            IEnumerable<ValueParserDescriptor> neededSerializers = resultBuilderDescriptor
+            IEnumerable<ValueParserDescriptor> valueParsers = resultBuilderDescriptor
                 .ValueParsers
                 .ToLookup(x => x.RuntimeType)
                 .Select(x => x.First());
 
-            foreach (ValueParserDescriptor valueParser in neededSerializers)
+            foreach (ValueParserDescriptor valueParser in valueParsers)
             {
-                var parserFieldName =
-                    $"{GetFieldName(valueParser.RuntimeType.Split('.').Last())}Parser";
+                var parserFieldName = $"{GetFieldName(valueParser.Name)}Parser";
+                
                 classBuilder.AddField(
                     FieldBuilder.New()
                         .SetName(parserFieldName)
                         .SetType(
                             TypeReferenceBuilder.New()
                                 .SetName(TypeNames.ILeafValueParser)
-                                .AddGeneric(valueParser.SerializedType)
-                                .AddGeneric(valueParser.RuntimeType)));
+                                .AddGeneric(valueParser.SerializedType.ToString())
+                                .AddGeneric(valueParser.RuntimeType.ToString())));
 
                 constructorBuilder.AddCode(
                     AssignmentBuilder.New()
-                        .AssertNonNull(parserFieldName)
+                        .SetAssertNonNull()
+                        .SetAssertException(
+                            TypeNames.ArgumentException +
+                            $"(\"No serializer for type `{valueParser.Name}` found.\")")
                         .SetLefthandSide(parserFieldName)
                         .SetRighthandSide(
                             MethodCallBuilder.New()
@@ -98,7 +101,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                 .SetMethodName(
                                     $"GetLeafValueParser<{valueParser.SerializedType}, " +
                                     $"{valueParser.RuntimeType}>")
-                                .AddArgument($"\"{valueParser.GraphQLTypeName}\"")));
+                                .AddArgument($"\"{valueParser.Name}\"")));
             }
 
             AddBuildMethod(
@@ -388,8 +391,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 ListTypeDescriptor listTypeDescriptor =>
                     BuildDeserializeMethodName(listTypeDescriptor.InnerType, true) + "Array",
 
-                InterfaceTypeDescriptor { ParentRuntimeType: { } parentRuntimeType } =>
-                    parentRuntimeType.Name,
+                InterfaceTypeDescriptor
+                {
+                    ImplementedBy: { Count: > 1 },
+                    ParentRuntimeType: { } parentRuntimeType
+                } => parentRuntimeType.Name,
 
                 INamedTypeDescriptor { Kind: TypeKind.EntityType } d =>
                     CreateEntityTypeName(d.RuntimeType.Name),

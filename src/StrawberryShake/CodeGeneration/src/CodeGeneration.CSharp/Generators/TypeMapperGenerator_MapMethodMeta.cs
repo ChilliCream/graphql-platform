@@ -77,8 +77,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 ILeafTypeDescriptor leafTypeDescriptor =>
                     GetPropertyName(leafTypeDescriptor.Name),
 
-                InterfaceTypeDescriptor { ParentRuntimeType: { } parentRuntimeType } =>
-                    parentRuntimeType!.Name,
+                InterfaceTypeDescriptor
+                {
+                    ImplementedBy: { Count: > 1 },
+                    ParentRuntimeType: { } parentRuntimeType
+                } => parentRuntimeType!.Name,
 
                 INamedTypeDescriptor namedTypeDescriptor =>
                     namedTypeDescriptor.RuntimeType.Name,
@@ -149,7 +152,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
             switch (property.Type.Kind)
             {
                 case TypeKind.LeafType:
-                    return CodeInlineBuilder.New().SetText($"{objectName}.{property.Name}");
+                    return CodeInlineBuilder.From($"{objectName}.{property.Name}");
+
                 case TypeKind.ComplexDataType:
                 case TypeKind.DataType:
                 case TypeKind.EntityType:
@@ -168,6 +172,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     mapperMethodCall.AddArgument(argString);
 
                     return mapperMethodCall;
+
                 default:
                     throw new ArgumentOutOfRangeException();
             }

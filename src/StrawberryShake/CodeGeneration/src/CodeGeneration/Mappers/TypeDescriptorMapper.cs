@@ -39,14 +39,12 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
             // and in a second step complete the input object types since we now know all
             // the possible property types.
-            AddInputTypeProperties(model, context, inputTypeDescriptors, leafTypeDescriptors);
+            AddInputTypeProperties(inputTypeDescriptors, leafTypeDescriptors);
 
             return typeDescriptors.Values
                 .Select(t => t.Descriptor)
-                .Cast<INamedTypeDescriptor>()
                 .Concat(inputTypeDescriptors.Values
                     .Select(t => t.Descriptor)
-                    .Cast<INamedTypeDescriptor>()
                     .Concat(leafTypeDescriptors.Values));
         }
 
@@ -380,7 +378,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 {
                     descriptor = new EnumTypeDescriptor(
                         leafType.Name,
-                        TypeInfos.New(enumTypeModel.Name, context.Namespace, isValueType: true),
+                        new (enumTypeModel.Name, context.Namespace, isValueType: true),
                         enumTypeModel.UnderlyingType is null
                             ? null
                             : TypeInfos.From(enumTypeModel.UnderlyingType),

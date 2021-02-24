@@ -83,6 +83,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             using var writer = new CodeWriter(code);
 
+            writer.WriteLine("// " + generator.GetType().FullName);
+
             generator.Generate(writer, descriptor, out string fileName);
 
             writer.Flush();

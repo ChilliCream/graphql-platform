@@ -1,6 +1,7 @@
 ﻿// Code:
 // PersonEntity
 
+// StrawberryShake.CodeGeneration.CSharp.EntityTypeGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -17,6 +18,7 @@ namespace StrawberryShake.GraphQL
 
 // MessageEntity
 
+// StrawberryShake.CodeGeneration.CSharp.EntityTypeGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -33,6 +35,7 @@ namespace StrawberryShake.GraphQL
 
 // GetPeopleResultFactory
 
+// StrawberryShake.CodeGeneration.CSharp.ResultDataFactoryGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -98,14 +101,14 @@ namespace StrawberryShake.GraphQL
                 return null;
             }
 
-            var iGetPeople_People_Nodess = new global::System.Collections.Generic.List<IGetPeople_People_Nodes?>();
+            var persons = new global::System.Collections.Generic.List<IGetPeople_People_Nodes?>();
 
             foreach (global::StrawberryShake.EntityId? child in list)
             {
-                iGetPeople_People_Nodess.Add(MapIGetPeople_People_Nodes(child));
+                persons.Add(MapIGetPeople_People_Nodes(child));
             }
 
-            return iGetPeople_People_Nodess;
+            return persons;
         }
 
         private IGetPeople_People_Nodes? MapIGetPeople_People_Nodes(global::StrawberryShake.EntityId? entityId)
@@ -151,14 +154,14 @@ namespace StrawberryShake.GraphQL
                 return null;
             }
 
-            var iGetPeople_People_Nodes_Messages_Nodess = new global::System.Collections.Generic.List<IGetPeople_People_Nodes_Messages_Nodes?>();
+            var messages = new global::System.Collections.Generic.List<IGetPeople_People_Nodes_Messages_Nodes?>();
 
             foreach (global::StrawberryShake.EntityId? child in list)
             {
-                iGetPeople_People_Nodes_Messages_Nodess.Add(MapIGetPeople_People_Nodes_Messages_Nodes(child));
+                messages.Add(MapIGetPeople_People_Nodes_Messages_Nodes(child));
             }
 
-            return iGetPeople_People_Nodes_Messages_Nodess;
+            return messages;
         }
 
         private IGetPeople_People_Nodes_Messages_Nodes? MapIGetPeople_People_Nodes_Messages_Nodes(global::StrawberryShake.EntityId? entityId)
@@ -195,6 +198,7 @@ namespace StrawberryShake.GraphQL
 
 // GetPeopleResultInfo
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInfoGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -236,6 +240,7 @@ namespace StrawberryShake.GraphQL
 
 // GetPeopleResult
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -256,6 +261,7 @@ namespace StrawberryShake.GraphQL
 
 // GetPeople_People_PersonConnection
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -276,6 +282,7 @@ namespace StrawberryShake.GraphQL
 
 // GetPeople_People_Nodes_PersonFromPersonEntityMapper
 
+// StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -334,14 +341,14 @@ namespace StrawberryShake.GraphQL
                 return null;
             }
 
-            var iGetPeople_People_Nodes_Messages_Nodess = new global::System.Collections.Generic.List<IGetPeople_People_Nodes_Messages_Nodes?>();
+            var messages = new global::System.Collections.Generic.List<IGetPeople_People_Nodes_Messages_Nodes?>();
 
             foreach (global::StrawberryShake.EntityId? child in list)
             {
-                iGetPeople_People_Nodes_Messages_Nodess.Add(MapIGetPeople_People_Nodes_Messages_Nodes(child));
+                messages.Add(MapIGetPeople_People_Nodes_Messages_Nodes(child));
             }
 
-            return iGetPeople_People_Nodes_Messages_Nodess;
+            return messages;
         }
 
         private IGetPeople_People_Nodes_Messages_Nodes? MapIGetPeople_People_Nodes_Messages_Nodes(global::StrawberryShake.EntityId? entityId)
@@ -378,6 +385,7 @@ namespace StrawberryShake.GraphQL
 
 // GetPeople_People_Nodes_Person
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -403,6 +411,7 @@ namespace StrawberryShake.GraphQL
 
 // GetPeople_People_Nodes_Messages_MessageConnection
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -423,6 +432,7 @@ namespace StrawberryShake.GraphQL
 
 // GetPeople_People_Nodes_Messages_Nodes_MessageFromMessageEntityMapper
 
+// StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -468,6 +478,7 @@ namespace StrawberryShake.GraphQL
 
 // GetPeople_People_Nodes_Messages_Nodes_Message
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -493,6 +504,7 @@ namespace StrawberryShake.GraphQL
 
 // GetPeople_People_Nodes_Messages_Nodes_Sender_PersonFromPersonEntityMapper
 
+// StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -511,6 +523,7 @@ namespace StrawberryShake.GraphQL
 
 // GetPeople_People_Nodes_Messages_Nodes_Sender_Person
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -531,6 +544,7 @@ namespace StrawberryShake.GraphQL
 
 // IGetPeopleResult
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -545,6 +559,7 @@ namespace StrawberryShake.GraphQL
 
 // IGetPeople_People
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -559,6 +574,7 @@ namespace StrawberryShake.GraphQL
 
 // IGetPeople_People_PersonConnection
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -573,6 +589,7 @@ namespace StrawberryShake.GraphQL
 
 // IPerson
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -587,6 +604,7 @@ namespace StrawberryShake.GraphQL
 
 // IGetPeople_People_Nodes
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -602,6 +620,7 @@ namespace StrawberryShake.GraphQL
 
 // IGetPeople_People_Nodes_Person
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -616,6 +635,7 @@ namespace StrawberryShake.GraphQL
 
 // IGetPeople_People_Nodes_Messages
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -630,6 +650,7 @@ namespace StrawberryShake.GraphQL
 
 // IGetPeople_People_Nodes_Messages_MessageConnection
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -644,6 +665,7 @@ namespace StrawberryShake.GraphQL
 
 // IMessage
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -660,6 +682,7 @@ namespace StrawberryShake.GraphQL
 
 // IGetPeople_People_Nodes_Messages_Nodes
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -674,6 +697,7 @@ namespace StrawberryShake.GraphQL
 
 // IGetPeople_People_Nodes_Messages_Nodes_Message
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -688,6 +712,7 @@ namespace StrawberryShake.GraphQL
 
 // IGetPeople_People_Nodes_Messages_Nodes_Sender
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -702,6 +727,7 @@ namespace StrawberryShake.GraphQL
 
 // IGetPeople_People_Nodes_Messages_Nodes_Sender_Person
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -716,6 +742,7 @@ namespace StrawberryShake.GraphQL
 
 // WriteMessageResultFactory
 
+// StrawberryShake.CodeGeneration.CSharp.ResultDataFactoryGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -794,6 +821,7 @@ namespace StrawberryShake.GraphQL
 
 // WriteMessageResultInfo
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInfoGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -835,6 +863,7 @@ namespace StrawberryShake.GraphQL
 
 // WriteMessageResult
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -855,6 +884,7 @@ namespace StrawberryShake.GraphQL
 
 // WriteMessage_SendMessage_SendMessagePayload
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -875,6 +905,7 @@ namespace StrawberryShake.GraphQL
 
 // WriteMessage_SendMessage_Message_MessageFromMessageEntityMapper
 
+// StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -920,6 +951,7 @@ namespace StrawberryShake.GraphQL
 
 // WriteMessage_SendMessage_Message_Message
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -945,6 +977,7 @@ namespace StrawberryShake.GraphQL
 
 // WriteMessage_SendMessage_Message_Sender_PersonFromPersonEntityMapper
 
+// StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -963,6 +996,7 @@ namespace StrawberryShake.GraphQL
 
 // WriteMessage_SendMessage_Message_Sender_Person
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -983,6 +1017,7 @@ namespace StrawberryShake.GraphQL
 
 // IWriteMessageResult
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -997,6 +1032,7 @@ namespace StrawberryShake.GraphQL
 
 // IWriteMessage_SendMessage
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -1011,6 +1047,7 @@ namespace StrawberryShake.GraphQL
 
 // IWriteMessage_SendMessage_SendMessagePayload
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -1025,6 +1062,7 @@ namespace StrawberryShake.GraphQL
 
 // IWriteMessage_SendMessage_Message
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -1039,6 +1077,7 @@ namespace StrawberryShake.GraphQL
 
 // IWriteMessage_SendMessage_Message_Message
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -1053,6 +1092,7 @@ namespace StrawberryShake.GraphQL
 
 // IWriteMessage_SendMessage_Message_Sender
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -1067,6 +1107,7 @@ namespace StrawberryShake.GraphQL
 
 // IWriteMessage_SendMessage_Message_Sender_Person
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -1081,6 +1122,7 @@ namespace StrawberryShake.GraphQL
 
 // GetPeopleQueryDocument
 
+// StrawberryShake.CodeGeneration.CSharp.OperationDocumentGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -1149,6 +1191,7 @@ fragment Message on Message {
 
 // GetPeopleQuery
 
+// StrawberryShake.CodeGeneration.CSharp.OperationServiceGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -1194,6 +1237,7 @@ namespace StrawberryShake.GraphQL
 
 // WriteMessageMutationDocument
 
+// StrawberryShake.CodeGeneration.CSharp.OperationDocumentGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -1252,6 +1296,7 @@ fragment Person on Person {
 
 // WriteMessageMutation
 
+// StrawberryShake.CodeGeneration.CSharp.OperationServiceGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -1337,6 +1382,7 @@ namespace StrawberryShake.GraphQL
 
 // GetPeopleBuilder
 
+// StrawberryShake.CodeGeneration.CSharp.JsonResultBuilderGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -1363,7 +1409,7 @@ namespace StrawberryShake.GraphQL
             _resultDataFactory = resultDataFactory
                  ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String")
-                 ?? throw new global::System.ArgumentNullException(nameof(_stringParser));
+                 ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
         }
 
         public global::StrawberryShake.IOperationResult<IGetPeopleResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
@@ -1431,16 +1477,16 @@ namespace StrawberryShake.GraphQL
                 return null;
             }
 
-            var iGetPeople_People_Nodess = new global::System.Collections.Generic.List<global::StrawberryShake.EntityId?>();
+            var persons = new global::System.Collections.Generic.List<global::StrawberryShake.EntityId?>();
 
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
-                iGetPeople_People_Nodess.Add(UpdateIGetPeople_People_NodesEntity(
+                persons.Add(UpdateIGetPeople_People_NodesEntity(
                     child,
                     entityIds));
             }
 
-            return iGetPeople_People_Nodess;
+            return persons;
         }
 
         private global::StrawberryShake.EntityId? UpdateIGetPeople_People_NodesEntity(
@@ -1512,16 +1558,16 @@ namespace StrawberryShake.GraphQL
                 return null;
             }
 
-            var iGetPeople_People_Nodes_Messages_Nodess = new global::System.Collections.Generic.List<global::StrawberryShake.EntityId?>();
+            var messages = new global::System.Collections.Generic.List<global::StrawberryShake.EntityId?>();
 
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
-                iGetPeople_People_Nodes_Messages_Nodess.Add(UpdateIGetPeople_People_Nodes_Messages_NodesEntity(
+                messages.Add(UpdateIGetPeople_People_Nodes_Messages_NodesEntity(
                     child,
                     entityIds));
             }
 
-            return iGetPeople_People_Nodes_Messages_Nodess;
+            return messages;
         }
 
         private global::StrawberryShake.EntityId? UpdateIGetPeople_People_Nodes_Messages_NodesEntity(
@@ -1580,6 +1626,7 @@ namespace StrawberryShake.GraphQL
 
 // WriteMessageBuilder
 
+// StrawberryShake.CodeGeneration.CSharp.JsonResultBuilderGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -1606,7 +1653,7 @@ namespace StrawberryShake.GraphQL
             _resultDataFactory = resultDataFactory
                  ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String")
-                 ?? throw new global::System.ArgumentNullException(nameof(_stringParser));
+                 ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
         }
 
         public global::StrawberryShake.IOperationResult<IWriteMessageResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
@@ -1731,6 +1778,7 @@ namespace StrawberryShake.GraphQL
 
 // PersonConnectionData
 
+// StrawberryShake.CodeGeneration.CSharp.DataTypeGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL.State
@@ -1756,6 +1804,7 @@ namespace StrawberryShake.GraphQL.State
 
 // MessageConnectionData
 
+// StrawberryShake.CodeGeneration.CSharp.DataTypeGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL.State
@@ -1781,6 +1830,7 @@ namespace StrawberryShake.GraphQL.State
 
 // SendMessagePayloadData
 
+// StrawberryShake.CodeGeneration.CSharp.DataTypeGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL.State
@@ -1806,6 +1856,7 @@ namespace StrawberryShake.GraphQL.State
 
 // GraphQLClient
 
+// StrawberryShake.CodeGeneration.CSharp.ClientGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -1835,6 +1886,7 @@ namespace StrawberryShake.GraphQL
 
 // EntityIdFactory
 
+// StrawberryShake.CodeGeneration.CSharp.EntityIdFactoryGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -1877,6 +1929,7 @@ namespace StrawberryShake.GraphQL
 
 // GraphQLClientServiceCollectionExtensions
 
+// StrawberryShake.CodeGeneration.CSharp.DependencyInjectionGenerator
 #nullable enable
 
 namespace StrawberryShake.GraphQL

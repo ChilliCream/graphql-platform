@@ -38,7 +38,7 @@ namespace StrawberryShake.CodeGeneration
 
         public void CompleteProperties(IReadOnlyList<PropertyDescriptor> properties)
         {
-            if (Properties is not null)
+            if (Properties.Count > 0)
             {
                 throw new InvalidOperationException("Properties are already completed.");
             }

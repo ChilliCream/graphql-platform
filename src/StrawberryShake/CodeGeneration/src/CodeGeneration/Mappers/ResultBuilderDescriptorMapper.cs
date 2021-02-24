@@ -20,9 +20,9 @@ namespace StrawberryShake.CodeGeneration.Mappers
                         context.Types.Single(t => t.RuntimeType.Name.Equals(resultTypeName)),
                         modelOperation.LeafTypes.Select(
                             leafType => new ValueParserDescriptor(
-                                leafType.SerializationType,
-                                leafType.RuntimeType,
-                                leafType.Name)).ToList()));
+                                leafType.Name,
+                                TypeInfos.GetOrCreate(leafType.RuntimeType),
+                                TypeInfos.GetOrCreate(leafType.SerializationType))).ToList()));
             }
         }
     }

@@ -76,6 +76,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             classBuilder.AddMethod(createMethod);
 
             var processed = new HashSet<string>();
+
             AddRequiredMapMethods(
                 "info",
                 descriptor,

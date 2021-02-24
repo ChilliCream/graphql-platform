@@ -212,29 +212,25 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                 nested: Bar
                                 nestedList: [Bar!]!
                                 nestedMatrix: [[Bar]]
-                            }"))
-                    ))
+                            }"))))
                 .AddDocument(
                     Utf8GraphQLParser.Parse(
                         @"
                         query TestOperation($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
                           foo(single: $single, list: $list, nestedList:$nestedList)
-                        }
-                    "))
+                        }"))
                 .AddDocument(
                     Utf8GraphQLParser.Parse(
                         @"
                         query TestOperation2($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
                           foo(single: $single, list: $list, nestedList:$nestedList)
-                        }
-                    "))
+                        }"))
                 .AddDocument(
                     Utf8GraphQLParser.Parse(
                         @"
                         query TestOperation3($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
                           foo(single: $single, list: $list, nestedList:$nestedList)
-                        }
-                    "))
+                        }"))
                 .AddDocument(Utf8GraphQLParser.Parse("extend schema @key(fields: \"id\")"))
                 .Analyze();
 
@@ -256,7 +252,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 if (!documentName.Add(document.Name))
                 {
-                    //Assert.True(false, $"Document name duplicated {document.Name}");
+                    // Assert.True(false, $"Document name duplicated {document.Name}");
                 }
 
                 documents.AppendLine("// " + document.Name);

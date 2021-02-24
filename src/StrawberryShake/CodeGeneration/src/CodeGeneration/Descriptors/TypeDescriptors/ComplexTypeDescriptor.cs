@@ -6,7 +6,7 @@ namespace StrawberryShake.CodeGeneration
 {
     public abstract class ComplexTypeDescriptor : INamedTypeDescriptor
     {
-        public ComplexTypeDescriptor(
+        protected ComplexTypeDescriptor(
             NameString name,
             TypeKind typeKind,
             RuntimeTypeInfo runtimeType,

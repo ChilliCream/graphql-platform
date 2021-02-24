@@ -1,5 +1,6 @@
 ﻿// DroidEntity
 
+// StrawberryShake.CodeGeneration.CSharp.EntityTypeGenerator
 #nullable enable
 
 namespace Foo
@@ -16,6 +17,7 @@ namespace Foo
 
 // HumanEntity
 
+// StrawberryShake.CodeGeneration.CSharp.EntityTypeGenerator
 #nullable enable
 
 namespace Foo
@@ -32,6 +34,7 @@ namespace Foo
 
 // GetHeroResultFactory
 
+// StrawberryShake.CodeGeneration.CSharp.ResultDataFactoryGenerator
 #nullable enable
 
 namespace Foo
@@ -96,6 +99,7 @@ namespace Foo
 
 // GetHeroResultInfo
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInfoGenerator
 #nullable enable
 
 namespace Foo
@@ -137,6 +141,7 @@ namespace Foo
 
 // GetHeroResult
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
 #nullable enable
 
 namespace Foo
@@ -157,6 +162,7 @@ namespace Foo
 
 // GetHero_Hero_DroidFromDroidEntityMapper
 
+// StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
 #nullable enable
 
 namespace Foo
@@ -177,6 +183,7 @@ namespace Foo
 
 // GetHero_Hero_Droid
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
 #nullable enable
 
 namespace Foo
@@ -202,6 +209,7 @@ namespace Foo
 
 // GetHero_Hero_HumanFromHumanEntityMapper
 
+// StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
 #nullable enable
 
 namespace Foo
@@ -222,6 +230,7 @@ namespace Foo
 
 // GetHero_Hero_Human
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
 #nullable enable
 
 namespace Foo
@@ -247,6 +256,7 @@ namespace Foo
 
 // IGetHeroResult
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace Foo
@@ -261,6 +271,7 @@ namespace Foo
 
 // IGetHero_Hero
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace Foo
@@ -277,6 +288,7 @@ namespace Foo
 
 // IGetHero_Hero_Droid
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace Foo
@@ -291,6 +303,7 @@ namespace Foo
 
 // IGetHero_Hero_Human
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace Foo
@@ -305,6 +318,7 @@ namespace Foo
 
 // Episode
 
+// StrawberryShake.CodeGeneration.CSharp.EnumGenerator
 #nullable enable
 
 namespace Foo
@@ -321,6 +335,7 @@ namespace Foo
 
 // EpisodeSerializer
 
+// StrawberryShake.CodeGeneration.CSharp.EnumParserGenerator
 #nullable enable
 
 namespace Foo
@@ -359,6 +374,7 @@ namespace Foo
 
 // GetHeroQueryDocument
 
+// StrawberryShake.CodeGeneration.CSharp.OperationDocumentGenerator
 #nullable enable
 
 namespace Foo
@@ -403,6 +419,7 @@ namespace Foo
 
 // GetHeroQuery
 
+// StrawberryShake.CodeGeneration.CSharp.OperationServiceGenerator
 #nullable enable
 
 namespace Foo
@@ -464,6 +481,7 @@ namespace Foo
 
 // GetHeroBuilder
 
+// StrawberryShake.CodeGeneration.CSharp.JsonResultBuilderGenerator
 #nullable enable
 
 namespace Foo
@@ -475,7 +493,7 @@ namespace Foo
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
         private readonly global::StrawberryShake.IOperationResultDataFactory<IGetHeroResult> _resultDataFactory;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, Episode> _episodeParser;
+        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::.Episode> _episodeParser;
         private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
 
         public GetHeroBuilder(
@@ -490,10 +508,10 @@ namespace Foo
                  ?? throw new global::System.ArgumentNullException(nameof(extractId));
             _resultDataFactory = resultDataFactory
                  ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
-            _episodeParser = serializerResolver.GetLeafValueParser<global::System.String, Episode>("Episode")
-                 ?? throw new global::System.ArgumentNullException(nameof(_episodeParser));
+            _episodeParser = serializerResolver.GetLeafValueParser<global::System.String, global::.Episode>("Episode")
+                 ?? throw new global::System.ArgumentException("No serializer for type `Episode` found.");
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String")
-                 ?? throw new global::System.ArgumentNullException(nameof(_stringParser));
+                 ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
         }
 
         public global::StrawberryShake.IOperationResult<IGetHeroResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
@@ -606,6 +624,7 @@ namespace Foo
 
 // FooClient
 
+// StrawberryShake.CodeGeneration.CSharp.ClientGenerator
 #nullable enable
 
 namespace Foo
@@ -628,6 +647,7 @@ namespace Foo
 
 // EntityIdFactory
 
+// StrawberryShake.CodeGeneration.CSharp.EntityIdFactoryGenerator
 #nullable enable
 
 namespace Foo
@@ -670,6 +690,7 @@ namespace Foo
 
 // FooClientServiceCollectionExtensions
 
+// StrawberryShake.CodeGeneration.CSharp.DependencyInjectionGenerator
 #nullable enable
 
 namespace Foo

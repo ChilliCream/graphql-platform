@@ -1,5 +1,6 @@
 ﻿// DroidEntity
 
+// StrawberryShake.CodeGeneration.CSharp.EntityTypeGenerator
 #nullable enable
 
 namespace Foo
@@ -18,6 +19,7 @@ namespace Foo
 
 // HumanEntity
 
+// StrawberryShake.CodeGeneration.CSharp.EntityTypeGenerator
 #nullable enable
 
 namespace Foo
@@ -36,6 +38,7 @@ namespace Foo
 
 // GetHeroResultFactory
 
+// StrawberryShake.CodeGeneration.CSharp.ResultDataFactoryGenerator
 #nullable enable
 
 namespace Foo
@@ -100,6 +103,7 @@ namespace Foo
 
 // GetHeroResultInfo
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInfoGenerator
 #nullable enable
 
 namespace Foo
@@ -141,6 +145,7 @@ namespace Foo
 
 // GetHeroResult
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
 #nullable enable
 
 namespace Foo
@@ -161,6 +166,7 @@ namespace Foo
 
 // GetHero_Hero_DroidFromDroidEntityMapper
 
+// StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
 #nullable enable
 
 namespace Foo
@@ -220,14 +226,14 @@ namespace Foo
                 return null;
             }
 
-            var iGetHero_Hero_Friends_Nodess = new global::System.Collections.Generic.List<IGetHero_Hero_Friends_Nodes?>();
+            var characters = new global::System.Collections.Generic.List<IGetHero_Hero_Friends_Nodes?>();
 
             foreach (global::StrawberryShake.EntityId? child in list)
             {
-                iGetHero_Hero_Friends_Nodess.Add(MapIGetHero_Hero_Friends_Nodes(child));
+                characters.Add(MapIGetHero_Hero_Friends_Nodes(child));
             }
 
-            return iGetHero_Hero_Friends_Nodess;
+            return characters;
         }
 
         private IGetHero_Hero_Friends_Nodes? MapIGetHero_Hero_Friends_Nodes(global::StrawberryShake.EntityId? entityId)
@@ -259,6 +265,7 @@ namespace Foo
 
 // GetHero_Hero_Droid
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
 #nullable enable
 
 namespace Foo
@@ -288,6 +295,7 @@ namespace Foo
 
 // GetHero_Hero_HumanFromHumanEntityMapper
 
+// StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
 #nullable enable
 
 namespace Foo
@@ -347,14 +355,14 @@ namespace Foo
                 return null;
             }
 
-            var iGetHero_Hero_Friends_Nodess = new global::System.Collections.Generic.List<IGetHero_Hero_Friends_Nodes?>();
+            var characters = new global::System.Collections.Generic.List<IGetHero_Hero_Friends_Nodes?>();
 
             foreach (global::StrawberryShake.EntityId? child in list)
             {
-                iGetHero_Hero_Friends_Nodess.Add(MapIGetHero_Hero_Friends_Nodes(child));
+                characters.Add(MapIGetHero_Hero_Friends_Nodes(child));
             }
 
-            return iGetHero_Hero_Friends_Nodess;
+            return characters;
         }
 
         private IGetHero_Hero_Friends_Nodes? MapIGetHero_Hero_Friends_Nodes(global::StrawberryShake.EntityId? entityId)
@@ -386,6 +394,7 @@ namespace Foo
 
 // GetHero_Hero_Human
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
 #nullable enable
 
 namespace Foo
@@ -415,6 +424,7 @@ namespace Foo
 
 // GetHero_Hero_Friends_CharacterConnection
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
 #nullable enable
 
 namespace Foo
@@ -435,6 +445,7 @@ namespace Foo
 
 // GetHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper
 
+// StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
 #nullable enable
 
 namespace Foo
@@ -453,6 +464,7 @@ namespace Foo
 
 // GetHero_Hero_Friends_Nodes_Droid
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
 #nullable enable
 
 namespace Foo
@@ -473,6 +485,7 @@ namespace Foo
 
 // GetHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper
 
+// StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
 #nullable enable
 
 namespace Foo
@@ -491,6 +504,7 @@ namespace Foo
 
 // GetHero_Hero_Friends_Nodes_Human
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
 #nullable enable
 
 namespace Foo
@@ -511,6 +525,7 @@ namespace Foo
 
 // IGetHeroResult
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace Foo
@@ -525,6 +540,7 @@ namespace Foo
 
 // IHero
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace Foo
@@ -541,6 +557,7 @@ namespace Foo
 
 // IGetHero_Hero
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace Foo
@@ -555,6 +572,7 @@ namespace Foo
 
 // IDroid
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace Foo
@@ -569,6 +587,7 @@ namespace Foo
 
 // IHero_Droid
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace Foo
@@ -586,6 +605,7 @@ namespace Foo
 
 // IGetHero_Hero_Droid
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace Foo
@@ -601,6 +621,7 @@ namespace Foo
 
 // IHuman
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace Foo
@@ -615,6 +636,7 @@ namespace Foo
 
 // IHero_Human
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace Foo
@@ -632,6 +654,7 @@ namespace Foo
 
 // IGetHero_Hero_Human
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace Foo
@@ -647,6 +670,7 @@ namespace Foo
 
 // IGetHero_Hero_Friends
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace Foo
@@ -661,6 +685,7 @@ namespace Foo
 
 // IGetHero_Hero_Friends_CharacterConnection
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace Foo
@@ -675,6 +700,7 @@ namespace Foo
 
 // IGetHero_Hero_Friends_Nodes
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace Foo
@@ -689,6 +715,7 @@ namespace Foo
 
 // IGetHero_Hero_Friends_Nodes_Droid
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace Foo
@@ -703,6 +730,7 @@ namespace Foo
 
 // IGetHero_Hero_Friends_Nodes_Human
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 #nullable enable
 
 namespace Foo
@@ -717,6 +745,7 @@ namespace Foo
 
 // GetHeroQueryDocument
 
+// StrawberryShake.CodeGeneration.CSharp.OperationDocumentGenerator
 #nullable enable
 
 namespace Foo
@@ -787,6 +816,7 @@ fragment Droid on Droid {
 
 // GetHeroQuery
 
+// StrawberryShake.CodeGeneration.CSharp.OperationServiceGenerator
 #nullable enable
 
 namespace Foo
@@ -832,6 +862,7 @@ namespace Foo
 
 // GetHeroBuilder
 
+// StrawberryShake.CodeGeneration.CSharp.JsonResultBuilderGenerator
 #nullable enable
 
 namespace Foo
@@ -858,7 +889,7 @@ namespace Foo
             _resultDataFactory = resultDataFactory
                  ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String")
-                 ?? throw new global::System.ArgumentNullException(nameof(_stringParser));
+                 ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
         }
 
         public global::StrawberryShake.IOperationResult<IGetHeroResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
@@ -987,16 +1018,16 @@ namespace Foo
                 return null;
             }
 
-            var iGetHero_Hero_Friends_Nodess = new global::System.Collections.Generic.List<global::StrawberryShake.EntityId?>();
+            var characters = new global::System.Collections.Generic.List<global::StrawberryShake.EntityId?>();
 
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
-                iGetHero_Hero_Friends_Nodess.Add(UpdateIGetHero_Hero_Friends_NodesEntity(
+                characters.Add(UpdateIGetHero_Hero_Friends_NodesEntity(
                     child,
                     entityIds));
             }
 
-            return iGetHero_Hero_Friends_Nodess;
+            return characters;
         }
 
         private global::StrawberryShake.EntityId? UpdateIGetHero_Hero_Friends_NodesEntity(
@@ -1036,6 +1067,7 @@ namespace Foo
 
 // CharacterConnectionData
 
+// StrawberryShake.CodeGeneration.CSharp.DataTypeGenerator
 #nullable enable
 
 namespace Foo.State
@@ -1061,6 +1093,7 @@ namespace Foo.State
 
 // FooClient
 
+// StrawberryShake.CodeGeneration.CSharp.ClientGenerator
 #nullable enable
 
 namespace Foo
@@ -1083,6 +1116,7 @@ namespace Foo
 
 // EntityIdFactory
 
+// StrawberryShake.CodeGeneration.CSharp.EntityIdFactoryGenerator
 #nullable enable
 
 namespace Foo
@@ -1125,6 +1159,7 @@ namespace Foo
 
 // FooClientServiceCollectionExtensions
 
+// StrawberryShake.CodeGeneration.CSharp.DependencyInjectionGenerator
 #nullable enable
 
 namespace Foo

@@ -84,13 +84,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             classBuilder.AddMethod(mapMethod);
 
-            var processed = new HashSet<string>();
             AddRequiredMapMethods(
                 _entityParamName,
                 descriptor,
                 classBuilder,
                 constructorBuilder,
-                processed);
+                new HashSet<string>());
 
             CodeFileBuilder
                 .New()
