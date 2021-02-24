@@ -11,10 +11,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
         public static NameString ExtractMapperName(this INamedTypeDescriptor descriptor)
         {
             return descriptor.Kind == TypeKind.EntityType
-                ? EntityMapperNameFromGraphQLTypeName(
+                ? CreateEntityMapperName(
                     descriptor.RuntimeType.Name,
                     descriptor.Name)
-                : DataMapperNameFromGraphQLTypeName(
+                : CreateDataMapperName(
                     descriptor.RuntimeType.Name,
                     descriptor.Name);
         }
@@ -89,12 +89,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
 
                 ComplexTypeDescriptor { ParentRuntimeType: { } parentRuntimeType } d =>
                     actualBuilder.SetName(
-                        $"global::{parentRuntimeType.Namespace}." +
-                        DataTypeNameFromTypeName(d.Name!)),
+                        $"{parentRuntimeType.Namespace}." +
+                        CreateDataTypeName(d.Name!)),
 
                 INamedTypeDescriptor { Kind: TypeKind.DataType } d =>
                     actualBuilder.SetName(
-                        $"global::{d.RuntimeType.Namespace}." + DataTypeNameFromTypeName(d.Name!)),
+                        $"{d.RuntimeType.Namespace}." + CreateDataTypeName(d.Name!)),
 
                 INamedTypeDescriptor { Kind: TypeKind.EntityType } =>
                     actualBuilder.SetName(TypeNames.EntityId),

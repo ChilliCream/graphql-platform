@@ -1,9 +1,7 @@
 using System;
-using System.Linq;
 using System.Text.Json;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
-using StrawberryShake.CodeGeneration.Extensions;
-using static StrawberryShake.Serialization.BuiltInTypeNames;
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -36,7 +34,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             };
 
             methodBuilder.AddCode(
-                $"return {namedType.Name.ToFieldName()}Parser.Parse({_objParamName}.Value" +
+                $"return {GetFieldName(namedType.Name)}Parser.Parse({_objParamName}.Value" +
                 $".{deserializeMethod}()!);");
         }
     }

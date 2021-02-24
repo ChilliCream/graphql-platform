@@ -4,6 +4,7 @@ using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.NamingConventions;
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -66,7 +67,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             // Add Properties to class
             foreach (PropertyDescriptor item in descriptor.Properties)
             {
-                var itemParamName = item.Name.WithLowerFirstChar();
+                var itemParamName = GetParameterName(item.Name);
                 var assignment = AssignmentBuilder
                     .New()
                     .SetLefthandSide(item.Name)
@@ -111,7 +112,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             foreach (NameString superType in descriptor.Implements)
             {
-                typeBuilder.AddImplements(DataTypeNameFromTypeName(superType));
+                typeBuilder.AddImplements(CreateDataTypeName(superType));
             }
 
             CodeFileBuilder

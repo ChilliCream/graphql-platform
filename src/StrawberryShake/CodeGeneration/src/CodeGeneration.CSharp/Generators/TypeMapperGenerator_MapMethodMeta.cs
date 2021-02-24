@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Extensions;
+using StrawberryShake.CodeGeneration.Utilities;
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -71,15 +73,20 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 ListTypeDescriptor listTypeDescriptor =>
                     BuildMapMethodName(listTypeDescriptor.InnerType, true) + "Array",
+
                 ILeafTypeDescriptor leafTypeDescriptor =>
-                    leafTypeDescriptor.Name.WithCapitalFirstChar(),
-                InterfaceTypeDescriptor { ParentRuntimeType: {} parentRuntimeType } =>
+                    GetPropertyName(leafTypeDescriptor.Name),
+
+                InterfaceTypeDescriptor { ParentRuntimeType: { } parentRuntimeType } =>
                     parentRuntimeType!.Name,
+
                 INamedTypeDescriptor namedTypeDescriptor =>
                     namedTypeDescriptor.RuntimeType.Name,
+
                 NonNullTypeDescriptor nonNullTypeDescriptor => parentIsList
                     ? BuildMapMethodName(nonNullTypeDescriptor.InnerType) + "NonNullable"
                     : "NonNullable" + BuildMapMethodName(nonNullTypeDescriptor.InnerType),
+
                 _ => throw new ArgumentOutOfRangeException(nameof(typeDescriptor))
             };
         }

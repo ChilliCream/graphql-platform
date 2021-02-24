@@ -10,50 +10,50 @@ namespace StrawberryShake.CodeGeneration
         public static string CreateMutationServiceName(string typeName) =>
             typeName + "Mutation";
 
-        public static string SubscriptionServiceNameFromTypeName(string typeName) =>
+        public static string CreateSubscriptionServiceName(string typeName) =>
             typeName + "Subscription";
 
-        public static string QueryServiceNameFromTypeName(string typeName) =>
+        public static string CreateQueryServiceName(string typeName) =>
             typeName + "Query";
 
         public static string CreateEntityTypeName(string typeName) =>
             typeName + "Entity";
 
-        public static string DocumentTypeNameFromOperationName(string typeName) =>
-            typeName + "Document";
+        public static string CreateDocumentTypeName(string operationTypeName) =>
+            operationTypeName + "Document";
 
-        public static NameString DataMapperNameFromGraphQLTypeName(
+        public static NameString CreateDataMapperName(
             string typeName,
             string graphqlTypename) =>
-            typeName + "From" + DataTypeNameFromTypeName(graphqlTypename) + "Mapper";
+            typeName + "From" + CreateDataTypeName(graphqlTypename) + "Mapper";
 
-        public static NameString EntityMapperNameFromGraphQLTypeName(
+        public static NameString CreateEntityMapperName(
             string typeName,
             string graphqlTypename) =>
             typeName + "From" + CreateEntityTypeName(graphqlTypename) + "Mapper";
 
-        public static string ResultFactoryNameFromTypeName(string typeName) =>
+        public static string CreateResultFactoryName(string typeName) =>
             typeName + "Factory";
 
-        public static string ResultRootTypeNameFromTypeName(string typeName) =>
+        public static string CreateResultRootTypeName(string typeName) =>
             typeName + "Result";
 
-        public static string ResultBuilderNameFromTypeName(string typeName) =>
+        public static string CreateResultBuilderName(string typeName) =>
             typeName + "Builder";
 
-        public static string DataTypeNameFromTypeName(string typeName) =>
+        public static string CreateDataTypeName(string typeName) =>
             typeName + "Data";
 
         public static string CreateEnumParserName(string enumTypeName) =>
             enumTypeName + "Serializer";
 
-        public static string ServiceCollectionExtensionsFromClientName(string clientName) =>
+        public static string CreateServiceCollectionExtensions(string clientName) =>
             clientName + "ServiceCollectionExtensions";
 
-        public static string InputValueFormatterFromType(InputObjectTypeDescriptor type) =>
+        public static string CreateInputValueFormatter(InputObjectTypeDescriptor type) =>
             type.Name + "InputValueFormatter";
 
-        public static string InputValueFormatterFromType(ScalarTypeDescriptor type) =>
+        public static string CreateInputValueFormatter(ScalarTypeDescriptor type) =>
             type.Name + "Serializer";
     }
 }

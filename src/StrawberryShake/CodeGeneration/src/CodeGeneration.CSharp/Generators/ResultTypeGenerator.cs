@@ -2,6 +2,7 @@ using HotChocolate;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Extensions;
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -39,7 +40,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         .SetValue(prop.Type.IsNullableType() ? "default!" : null));
 
                 // Add initialization of property to the constructor
-                var paramName = prop.Name.WithLowerFirstChar();
+                var paramName = GetParameterName(prop.Name);
                 constructorBuilder.AddParameter(paramName, x => x.SetType(propTypeBuilder));
                 constructorBuilder.AddCode(prop.Name + " = " + paramName + ";");
             }

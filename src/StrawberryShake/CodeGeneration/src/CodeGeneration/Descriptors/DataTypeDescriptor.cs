@@ -55,7 +55,7 @@ namespace StrawberryShake.CodeGeneration
 
             Properties = allProperties.Select(pair => pair.Value).ToList();
             Name = name;
-            RuntimeType = new(NamingConventions.DataTypeNameFromTypeName(name), @namespace);
+            RuntimeType = new(NamingConventions.CreateDataTypeName(name), @namespace);
             Implements = implements;
             IsInterface = isInterface;
         }

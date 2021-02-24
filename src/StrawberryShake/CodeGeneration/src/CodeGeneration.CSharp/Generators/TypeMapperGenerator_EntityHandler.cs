@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using HotChocolate;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
-using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.NamingConventions;
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -35,7 +35,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 foreach (ObjectTypeDescriptor implementee in interfaceTypeDescriptor.ImplementedBy)
                 {
                     NameString dataMapperName =
-                        EntityMapperNameFromGraphQLTypeName(
+                        CreateEntityMapperName(
                             implementee.RuntimeType.Name,
                             implementee.Name);
 
@@ -48,7 +48,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
                         AddConstructorAssignedField(
                             dataMapperType,
-                            dataMapperName.ToFieldName(),
+                            GetFieldName(dataMapperName),
                             classBuilder,
                             constructorBuilder);
                     }
@@ -65,10 +65,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
             bool isNonNullable)
         {
             var dataMapperName =
-                EntityMapperNameFromGraphQLTypeName(
+                GetFieldName(
+                    CreateEntityMapperName(
                         objectTypeDescriptor.RuntimeType.Name,
-                        objectTypeDescriptor.Name)
-                    .ToFieldName();
+                        objectTypeDescriptor.Name));
 
             var ifCorrectType = IfBuilder.New();
 

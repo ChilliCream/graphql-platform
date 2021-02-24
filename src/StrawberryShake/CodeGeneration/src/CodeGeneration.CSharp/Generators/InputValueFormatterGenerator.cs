@@ -5,9 +5,9 @@ using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Extensions;
 using StrawberryShake.Serialization;
+using IInputValueFormatter = StrawberryShake.Serialization.IInputValueFormatter;
 using static StrawberryShake.CodeGeneration.NamingConventions;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
-using IInputValueFormatter = StrawberryShake.Serialization.IInputValueFormatter;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -28,7 +28,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             InputObjectTypeDescriptor namedTypeDescriptor,
             out string fileName)
         {
-            fileName = InputValueFormatterFromType(namedTypeDescriptor);
+            fileName = CreateInputValueFormatter(namedTypeDescriptor);
 
             NameString typeName = namedTypeDescriptor.Name;
             ClassBuilder classBuilder = ClassBuilder.New()
@@ -119,7 +119,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                 .SetPrefix("new ")
                                 .SetDetermineStatement(false)
                                 .SetMethodName(_keyValuePair)
-                                .AddArgument(property.Name.WithLowerFirstChar().AsStringToken())
+                                .AddArgument(GetParameterName(property.Name).AsStringToken())
                                 .AddArgument(MethodCallBuilder.New()
                                     .SetMethodName($"Format{property.Name}")
                                     .SetDetermineStatement(false)

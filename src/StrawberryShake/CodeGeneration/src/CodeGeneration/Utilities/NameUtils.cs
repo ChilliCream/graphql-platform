@@ -40,6 +40,8 @@ namespace StrawberryShake.CodeGeneration.Utilities
             return builder.ToString();
         }
 
+        public static string GetMethodName(string fieldName) => GetPropertyName(fieldName);
+
         public static string GetPropertyName(string fieldName)
         {
             var value = new StringBuilder();

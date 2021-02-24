@@ -120,7 +120,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 var typeReferenceBuilder = arg.Type.ToBuilder();
 
-                var paramName = arg.Name.WithLowerFirstChar();
+                var paramName = GetParameterName(arg.Name);
                 var paramBuilder = ParameterBuilder.New()
                     .SetName(paramName)
                     .SetType(typeReferenceBuilder);
@@ -195,7 +195,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             foreach (var argument in operationDescriptor.Arguments)
             {
-                classBuilder.AddMethod("Format" + argument.Name.WithCapitalFirstChar())
+                classBuilder.AddMethod("Format" + GetPropertyName(argument.Name))
                     .AddParameter(
                         "value",
                         x => x.SetType(argument.Type.ToBuilder()))
@@ -216,7 +216,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         private MethodBuilder CreateRequestMethod(OperationDescriptor operationDescriptor)
         {
-            string typeName = DocumentTypeNameFromOperationName(operationDescriptor.Name);
+            string typeName = CreateDocumentTypeName(operationDescriptor.Name);
 
             var method = MethodBuilder
                 .New()
@@ -246,7 +246,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
                 first = false;
 
-                var argName = arg.Name.WithLowerFirstChar();
+                var argName = GetParameterName(arg.Name);
 
                 method.AddParameter(
                     ParameterBuilder.New()
@@ -257,7 +257,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     CodeLineBuilder.New()
                         .SetLine(
                             $"arguments.Add(\"{arg.Name}\", " +
-                            $"Format{arg.Name.WithCapitalFirstChar()}({argName}));"));
+                            $"Format{GetPropertyName(arg.Name)}({argName}));"));
             }
 
             method.AddEmptyLine();

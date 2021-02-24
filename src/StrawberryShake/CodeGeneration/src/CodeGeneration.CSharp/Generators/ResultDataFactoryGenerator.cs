@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.NamingConventions;
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -27,7 +28,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             var (classBuilder, constructorBuilder) = CreateClassBuilder();
 
-            fileName = ResultFactoryNameFromTypeName(descriptor.RuntimeType.Name);
+            fileName = CreateResultFactoryName(descriptor.RuntimeType.Name);
             classBuilder
                 .SetName(fileName)
                 .AddImplements( // TODO: This should be descriptor.RuntimeType!
@@ -96,10 +97,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             return MethodCallBuilder.New()
                 .SetMethodName(
-                    EntityMapperNameFromGraphQLTypeName(
+                    GetFieldName(
+                        CreateEntityMapperName(
                             complexTypeDescriptor.RuntimeType.Name,
-                            complexTypeDescriptor.Name)
-                        .ToFieldName() + ".Map")
+                            complexTypeDescriptor.Name)) + 
+                        ".Map")
                 .SetDetermineStatement(false)
                 .AddArgument(
                     $"{StoreParamName}.GetEntity<" +

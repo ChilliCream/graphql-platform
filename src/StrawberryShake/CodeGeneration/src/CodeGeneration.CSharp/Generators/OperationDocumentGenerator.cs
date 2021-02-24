@@ -13,7 +13,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             var (classBuilder, constructorBuilder) = CreateClassBuilder();
 
-            fileName = DocumentTypeNameFromOperationName(descriptor.Name);
+            fileName = CreateDocumentTypeName(descriptor.Name);
             classBuilder
                 .AddImplements(TypeNames.IDocument)
                 .SetName(fileName);

@@ -17,7 +17,7 @@ namespace StrawberryShake.CodeGeneration
         {
             _name = name;
             ResultNamedType = resultNamedType;
-            RuntimeType = new(NamingConventions.ResultBuilderNameFromTypeName(_name));
+            RuntimeType = new(NamingConventions.CreateResultBuilderName(_name));
             ValueParsers = valueParsers;
         }
 

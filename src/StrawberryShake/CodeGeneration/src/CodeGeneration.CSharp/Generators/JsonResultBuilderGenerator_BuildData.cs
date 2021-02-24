@@ -3,6 +3,7 @@ using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.NamingConventions;
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -46,7 +47,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     AssignmentBuilder.New()
                         .SetLefthandSide(CodeBlockBuilder.New()
                             .AddCode(property.Type.ToEntityIdBuilder())
-                            .AddCode($"{property.Name.WithLowerFirstChar()}Id"))
+                            .AddCode($"{GetParameterName(property.Name)}Id"))
                         .SetRighthandSide(BuildUpdateMethodCall(property, "")));
             }
 
@@ -58,7 +59,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 if (property.Type.IsEntityType())
                 {
-                    resultInfoConstructor.AddArgument($"{property.Name.WithLowerFirstChar()}Id");
+                    resultInfoConstructor.AddArgument($"{GetParameterName(property.Name)}Id");
                 }
                 else
                 {

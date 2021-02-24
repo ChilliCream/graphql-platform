@@ -28,7 +28,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     })
                     .ToList();
 
-                var resultTypeName = ResultRootTypeNameFromTypeName(modelOperation.ResultType.Name);
+                var resultTypeName = CreateResultRootTypeName(modelOperation.ResultType.Name);
 
                 switch (modelOperation.OperationType)
                 {

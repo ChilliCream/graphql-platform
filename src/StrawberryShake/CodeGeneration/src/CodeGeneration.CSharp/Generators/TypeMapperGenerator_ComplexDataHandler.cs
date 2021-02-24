@@ -4,6 +4,7 @@ using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.NamingConventions;
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -87,11 +88,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
             string variableName)
         {
             var ifCorrectType = IfBuilder.New();
-            var matchedTypeName = objectTypeDescriptor.Name.WithLowerFirstChar();
+            var matchedTypeName = GetPropertyName(objectTypeDescriptor.Name);
 
             ifCorrectType.SetCondition(
                 $"{_dataParameterName} is {objectTypeDescriptor.RuntimeType.Namespace}.State." +
-                $"{DataTypeNameFromTypeName(objectTypeDescriptor.RuntimeType.Name)} " +
+                $"{CreateDataTypeName(objectTypeDescriptor.RuntimeType.Name)} " +
                 $"{matchedTypeName}");
 
 

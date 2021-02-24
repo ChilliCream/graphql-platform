@@ -5,6 +5,7 @@ using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.NamingConventions;
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -76,7 +77,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             foreach (ValueParserDescriptor valueParser in neededSerializers)
             {
                 var parserFieldName =
-                    $"_{valueParser.RuntimeType.Split('.').Last().WithLowerFirstChar()}Parser";
+                    $"{GetFieldName(valueParser.RuntimeType.Split('.').Last())}Parser";
                 classBuilder.AddField(
                     FieldBuilder.New()
                         .SetName(parserFieldName)
@@ -345,7 +346,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             deserializeMethodCaller.AddArgument(
                 $"{TypeNames.GetPropertyOrNull}({_objParamName}{propertyAccess}, " +
-                $"\"{property.Name.WithLowerFirstChar()}\")");
+                $"\"{GetParameterName(property.Name)}\")");
 
             if (property.Type.IsEntityType() || property.Type.ContainsEntity())
             {
@@ -386,15 +387,20 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 ListTypeDescriptor listTypeDescriptor =>
                     BuildDeserializeMethodName(listTypeDescriptor.InnerType, true) + "Array",
+
                 InterfaceTypeDescriptor { ParentRuntimeType: { } parentRuntimeType } =>
                     parentRuntimeType.Name,
+
                 INamedTypeDescriptor { Kind: TypeKind.EntityType } d =>
                     CreateEntityTypeName(d.RuntimeType.Name),
+
                 INamedTypeDescriptor d =>
                     d.RuntimeType.Name,
+
                 NonNullTypeDescriptor nonNullTypeDescriptor => parentIsList
                     ? BuildDeserializeMethodName(nonNullTypeDescriptor.InnerType) + "NonNullable"
                     : "NonNullable" + BuildDeserializeMethodName(nonNullTypeDescriptor.InnerType),
+
                 _ => throw new ArgumentOutOfRangeException(nameof(typeDescriptor))
             };
         }

@@ -11,7 +11,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
             foreach (OperationModel modelOperation in model.Operations)
             {
                 var resultTypeName =
-                    ResultRootTypeNameFromTypeName(modelOperation.ResultType.Name);
+                    CreateResultRootTypeName(modelOperation.ResultType.Name);
 
                 context.Register(
                     modelOperation.Name,

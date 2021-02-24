@@ -4,6 +4,7 @@ using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.NamingConventions;
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -48,7 +49,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     x => x.SetType(propTypeBuilder).SetAccessModifier(AccessModifier.Public));
 
                 // Add initialization of property to the constructor
-                var paramName = prop.Name.WithLowerFirstChar();
+                var paramName = GetParameterName(prop.Name);
                 ParameterBuilder parameterBuilder = ParameterBuilder.New()
                     .SetName(paramName)
                     .SetType(propTypeBuilder);

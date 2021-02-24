@@ -14,7 +14,7 @@ namespace StrawberryShake.CodeGeneration
         }
 
         public NameString Name =>
-            NamingConventions.EntityMapperNameFromGraphQLTypeName(
+            NamingConventions.CreateEntityMapperName(
                 ResultNamedType.RuntimeType.Name,
                 ResultNamedType.Name);
 

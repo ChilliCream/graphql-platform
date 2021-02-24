@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
-using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.NamingConventions;
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -27,8 +27,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                             $"typename?.Equals(\"{concreteType.Name}\", " +
                             $"{TypeNames.OrdinalStringComparison}) ?? false");
 
-                    var dataTypeName = $"global::{concreteType.RuntimeType.Namespace}.State."
-                    + DataTypeNameFromTypeName(concreteType.Name);
+                    var dataTypeName = $"{concreteType.RuntimeType.Namespace}.State."
+                    + CreateDataTypeName(concreteType.Name);
 
                     var returnStatement = MethodCallBuilder.New()
                         .SetPrefix("return new ")
@@ -39,7 +39,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     {
                         returnStatement.AddArgument(
                             CodeBlockBuilder.New()
-                                .AddCode($"{property.Name.WithLowerFirstChar()}: ")
+                                .AddCode($"{GetParameterName(property.Name)}: ")
                                 .AddCode(BuildUpdateMethodCall(property)));
                     }
 

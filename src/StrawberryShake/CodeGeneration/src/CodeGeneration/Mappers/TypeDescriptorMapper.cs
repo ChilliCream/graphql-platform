@@ -197,7 +197,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
             {
                 parentRuntimeType =
                     new RuntimeTypeInfo(
-                        NamingConventions.DataTypeNameFromTypeName(parentRuntimeTypeName),
+                        NamingConventions.CreateDataTypeName(parentRuntimeTypeName),
                         context.StateNamespace);
             }
         }
@@ -213,7 +213,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     .ToList();
             }
             return outputType.Implements
-                .Select(t => (NameString)NamingConventions.ResultRootTypeNameFromTypeName(t.Name))
+                .Select(t => (NameString)NamingConventions.CreateResultRootTypeName(t.Name))
                 .ToList();
         }
 
@@ -225,7 +225,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
             if (kind == TypeKind.ResultType)
             {
                 return new RuntimeTypeInfo(
-                    NamingConventions.ResultRootTypeNameFromTypeName(outputType.Name),
+                    NamingConventions.CreateResultRootTypeName(outputType.Name),
                     context.Namespace);
             }
 
@@ -243,6 +243,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
             TypeKind? kind = null)
         {
             var implementedBy = new HashSet<ObjectTypeDescriptor>();
+
             CollectClassesThatImplementInterface(
                 operationModel,
                 outputType,

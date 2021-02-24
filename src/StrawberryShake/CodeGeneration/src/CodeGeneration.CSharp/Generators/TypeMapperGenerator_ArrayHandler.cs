@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
-using StrawberryShake.CodeGeneration.Extensions;
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -21,7 +21,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 _listParameterName,
                 x => x.SetType(listTypeDescriptor.ToEntityIdBuilder()));
 
-            var listVarName = listTypeDescriptor.Name.WithLowerFirstChar() + "s";
+            var listVarName = GetParameterName(listTypeDescriptor.Name) + "s";
 
             if (!isNonNullable)
             {

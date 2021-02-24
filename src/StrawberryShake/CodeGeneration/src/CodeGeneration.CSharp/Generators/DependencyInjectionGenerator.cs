@@ -35,7 +35,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             DependencyInjectionDescriptor descriptor,
             out string fileName)
         {
-            fileName = ServiceCollectionExtensionsFromClientName(descriptor.Name);
+            fileName = CreateServiceCollectionExtensions(descriptor.Name);
 
             ClassBuilder factory = ClassBuilder
                 .New(fileName)
@@ -244,7 +244,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 AddSingleton(
                     codeWriter,
                     TypeNames.ISerializer,
-                    InputValueFormatterFromType(
+                    CreateInputValueFormatter(
                         (InputObjectTypeDescriptor)inputTypeDescriptor.NamedType()));
             }
 
@@ -270,10 +270,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 // only implementee of the result type interface.
 
                 var factoryName =
-                    ResultFactoryNameFromTypeName(
+                    CreateResultFactoryName(
                         typeDescriptor.ImplementedBy.First().RuntimeType.Name);
 
-                var builderName = ResultBuilderNameFromTypeName(operationName);
+                var builderName = CreateResultBuilderName(operationName);
                 stringBuilder.AppendLine(
                     RegisterOperation(
                         connectionKind,
