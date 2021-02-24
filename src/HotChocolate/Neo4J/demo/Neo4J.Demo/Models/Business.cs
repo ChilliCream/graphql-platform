@@ -17,7 +17,7 @@ namespace Neo4jDemo.Models
         [Neo4JRelationship("REVIEWS", RelationshipDirection.Incoming)]
         public List<Review> Reviews { get; set; }
 
-        //[Cypher(@"MATCH (this)<-[:REVIEWS]-(r:Review) RETURN avg(r.stars)")]
-        //public double AverageRating { get; set; }
+        [Cypher(@"MATCH (this)<-[:REVIEWS]-(r:Review) RETURN avg(r.stars)")]
+        public double AverageRating { get; set; }
     }
 }

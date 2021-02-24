@@ -17,5 +17,19 @@ namespace Neo4jDemo.Schema
         [UseSorting]
         public Neo4JExecutable<Business> Businesses([ScopedService] IAsyncSession session) =>
             new (session);
+
+        [UseNeo4JDatabase("neo4j")]
+        [UseProjection]
+        [UseFiltering]
+        [UseSorting]
+        public Neo4JExecutable<User> Users([ScopedService] IAsyncSession session) =>
+            new (session);
+
+        [UseNeo4JDatabase("neo4j")]
+        [UseProjection]
+        [UseFiltering]
+        [UseSorting]
+        public Neo4JExecutable<Review> Reviews([ScopedService] IAsyncSession session) =>
+            new (session);
     }
 }
