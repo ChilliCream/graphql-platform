@@ -379,12 +379,12 @@ The EmailAddress scalar type represents a email address, represented as UTF-8 ch
 scalar EmailAddress
 ```
 
-## Hex
+## HexColor
 ```sdl
 """
-The Hex scalar type represents a valid hex color code.
+The HexColor scalar type represents a valid hex color code.
 """
-scalar Hex
+scalar HexColor
 ```
 
 ## Hsl
