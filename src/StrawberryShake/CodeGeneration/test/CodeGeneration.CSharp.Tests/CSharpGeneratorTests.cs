@@ -179,7 +179,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
             AssertResult(result);
         }
 
-
         [Fact]
         public void Generate_BookClient_DataOnly_UnionDataTypes()
         {

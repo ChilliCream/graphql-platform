@@ -478,7 +478,7 @@ namespace StrawberryShake.GraphQL
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
         private readonly global::StrawberryShake.IOperationResultDataFactory<IGetHeroResult> _resultDataFactory;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::.Episode> _episodeParser;
+        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::StrawberryShake.GraphQL.Episode> _episodeParser;
         private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
 
         public GetHeroBuilder(
@@ -493,7 +493,7 @@ namespace StrawberryShake.GraphQL
                  ?? throw new global::System.ArgumentNullException(nameof(extractId));
             _resultDataFactory = resultDataFactory
                  ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
-            _episodeParser = serializerResolver.GetLeafValueParser<global::System.String, global::.Episode>("Episode")
+            _episodeParser = serializerResolver.GetLeafValueParser<global::System.String, global::StrawberryShake.GraphQL.Episode>("Episode")
                  ?? throw new global::System.ArgumentException("No serializer for type `Episode` found.");
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String")
                  ?? throw new global::System.ArgumentException("No serializer for type `String` found.");

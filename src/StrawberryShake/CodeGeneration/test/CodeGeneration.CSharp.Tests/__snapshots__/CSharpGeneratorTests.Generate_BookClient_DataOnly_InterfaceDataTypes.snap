@@ -22,13 +22,13 @@ namespace StrawberryShake.GraphQL
         {
             if (dataInfo is SearchSomethingResultInfo info)
             {
-                return new SearchSomethingResult(MapPrintDataArray(info.Prints));
+                return new SearchSomethingResult(MapIPrintDataArray(info.Prints));
             }
 
             throw new global::System.ArgumentException("SearchSomethingResultInfo expected.");
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<ISearchSomething_Prints?>? MapPrintDataArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.GraphQL.State.PrintData?>? list)
+        private global::System.Collections.Generic.IReadOnlyList<ISearchSomething_Prints?>? MapIPrintDataArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.GraphQL.State.IPrintData?>? list)
         {
             if (list == default)
             {
@@ -37,15 +37,15 @@ namespace StrawberryShake.GraphQL
 
             var prints = new global::System.Collections.Generic.List<ISearchSomething_Prints?>();
 
-            foreach (global::StrawberryShake.GraphQL.State.PrintData? child in list)
+            foreach (global::StrawberryShake.GraphQL.State.IPrintData? child in list)
             {
-                prints.Add(MapPrintData(child));
+                prints.Add(MapIPrintData(child));
             }
 
             return prints;
         }
 
-        private ISearchSomething_Prints? MapPrintData(global::StrawberryShake.GraphQL.State.PrintData data)
+        private ISearchSomething_Prints? MapIPrintData(global::StrawberryShake.GraphQL.State.IPrintData data)
         {
             if (data == default)
             {
@@ -54,17 +54,17 @@ namespace StrawberryShake.GraphQL
 
             ISearchSomething_Prints returnValue = default!;
 
-            if (data is global::StrawberryShake.GraphQL.State.SearchSomething_Prints_BookData Book)
+            if (data is global::StrawberryShake.GraphQL.State.BookData book)
             {
-                returnValue = new Book(
-                    Book.Isbn,
-                    Book.Title);
+                returnValue = new global::StrawberryShake.GraphQL.State.BookData(
+                    book.Isbn,
+                    book.Title);
             }
-            else if (data is global::StrawberryShake.GraphQL.State.SearchSomething_Prints_MagazineData Magazine)
+            else if (data is global::StrawberryShake.GraphQL.State.MagazineData magazine)
             {
-                returnValue = new Magazine(
-                    Magazine.Isbn,
-                    Magazine.CoverImageUrl);
+                returnValue = new global::StrawberryShake.GraphQL.State.MagazineData(
+                    magazine.Isbn,
+                    magazine.CoverImageUrl);
             }
             else {
                 throw new global::System.NotSupportedException();
@@ -90,7 +90,7 @@ namespace StrawberryShake.GraphQL
         private readonly ulong _version;
 
         public SearchSomethingResultInfo(
-            global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.GraphQL.State.PrintData?>? prints,
+            global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.GraphQL.State.IPrintData?>? prints,
             global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds,
             ulong version)
         {
@@ -100,7 +100,7 @@ namespace StrawberryShake.GraphQL
             _version = version;
         }
 
-        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.GraphQL.State.PrintData?>? Prints { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.GraphQL.State.IPrintData?>? Prints { get; }
 
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
 
@@ -398,31 +398,31 @@ namespace StrawberryShake.GraphQL
 
 
             var resultInfo = new SearchSomethingResultInfo(
-                DeserializePrintDataArray(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj, "prints")),
+                DeserializeIPrintDataArray(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj, "prints")),
                 entityIds,
                 session.Version);
 
             return (_resultDataFactory.Create(resultInfo), resultInfo);
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.GraphQL.State.PrintData?>? DeserializePrintDataArray(global::System.Text.Json.JsonElement? obj)
+        private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.GraphQL.State.IPrintData?>? DeserializeIPrintDataArray(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {
                 return null;
             }
 
-            var prints = new global::System.Collections.Generic.List<global::StrawberryShake.GraphQL.State.PrintData?>();
+            var prints = new global::System.Collections.Generic.List<global::StrawberryShake.GraphQL.State.IPrintData?>();
 
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
-                prints.Add(DeserializePrintData(child));
+                prints.Add(DeserializeIPrintData(child));
             }
 
             return prints;
         }
 
-        private global::StrawberryShake.GraphQL.State.PrintData? DeserializePrintData(global::System.Text.Json.JsonElement? obj)
+        private global::StrawberryShake.GraphQL.State.IPrintData? DeserializeIPrintData(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {

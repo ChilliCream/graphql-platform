@@ -6,6 +6,7 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Extensions;
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.Mappers
 {
@@ -168,7 +169,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 if (outputType.Type.IsAbstractType())
                 {
                     fallbackKind = TypeKind.ComplexDataType;
-                    parentRuntimeTypeName = outputType.Type.Name;
+                    parentRuntimeTypeName = GetInterfaceName(outputType.Type.Name);
                 }
                 else
                 {
@@ -178,20 +179,19 @@ namespace StrawberryShake.CodeGeneration.Mappers
                         mostAbstractTypeModel = mostAbstractTypeModel.Implements[0];
                     }
 
-                    parentRuntimeTypeName = mostAbstractTypeModel.Type.Name;
+                    parentRuntimeTypeName = 
+                        mostAbstractTypeModel.Type.IsAbstractType()
+                            ? GetInterfaceName(mostAbstractTypeModel.Type.Name)
+                            : mostAbstractTypeModel.Type.Name;
 
-                    if (parentRuntimeTypeName == outputType.Type.Name)
-                    {
-                        fallbackKind = TypeKind.DataType;
-                    }
-                    else
-                    {
-                        fallbackKind = TypeKind.ComplexDataType;
-                    }
+                    fallbackKind =
+                        parentRuntimeTypeName == outputType.Type.Name
+                            ? TypeKind.DataType
+                            : TypeKind.ComplexDataType;
                 }
             }
 
-            if (parentRuntimeTypeName is { })
+            if (parentRuntimeTypeName is not null)
             {
                 parentRuntimeType =
                     new RuntimeTypeInfo(
@@ -378,7 +378,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 {
                     descriptor = new EnumTypeDescriptor(
                         leafType.Name,
-                        new (enumTypeModel.Name, context.Namespace, isValueType: true),
+                        new(enumTypeModel.Name, context.Namespace, isValueType: true),
                         enumTypeModel.UnderlyingType is null
                             ? null
                             : TypeInfos.From(enumTypeModel.UnderlyingType),

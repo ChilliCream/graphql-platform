@@ -453,7 +453,7 @@ namespace Foo
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
         private readonly global::StrawberryShake.IOperationResultDataFactory<ICreateReviewMutResult> _resultDataFactory;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::.Episode> _episodeParser;
+        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::Foo.Episode> _episodeParser;
         private global::StrawberryShake.Serialization.ILeafValueParser<global::System.Int32, global::System.Int32> _intParser;
         private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
 
@@ -469,7 +469,7 @@ namespace Foo
                  ?? throw new global::System.ArgumentNullException(nameof(extractId));
             _resultDataFactory = resultDataFactory
                  ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
-            _episodeParser = serializerResolver.GetLeafValueParser<global::System.String, global::.Episode>("Episode")
+            _episodeParser = serializerResolver.GetLeafValueParser<global::System.String, global::Foo.Episode>("Episode")
                  ?? throw new global::System.ArgumentException("No serializer for type `Episode` found.");
             _intParser = serializerResolver.GetLeafValueParser<global::System.Int32, global::System.Int32>("Int")
                  ?? throw new global::System.ArgumentException("No serializer for type `Int` found.");

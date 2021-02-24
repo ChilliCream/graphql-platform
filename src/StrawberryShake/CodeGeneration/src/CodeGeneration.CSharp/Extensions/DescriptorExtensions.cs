@@ -88,13 +88,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
                     actualBuilder.SetName(leaf.RuntimeType.ToString()),
 
                 ComplexTypeDescriptor { ParentRuntimeType: { } parentRuntimeType } d =>
-                    actualBuilder.SetName(
-                        $"{parentRuntimeType.Namespace}." +
-                        CreateDataTypeName(d.Name!)),
+                    actualBuilder.SetName(parentRuntimeType.ToString()),
 
                 INamedTypeDescriptor { Kind: TypeKind.DataType } d =>
-                    actualBuilder.SetName(
-                        $"{d.RuntimeType.Namespace}." + CreateDataTypeName(d.Name!)),
+                    actualBuilder.SetName(d.RuntimeType.ToString()),
 
                 INamedTypeDescriptor { Kind: TypeKind.EntityType } =>
                     actualBuilder.SetName(TypeNames.EntityId),

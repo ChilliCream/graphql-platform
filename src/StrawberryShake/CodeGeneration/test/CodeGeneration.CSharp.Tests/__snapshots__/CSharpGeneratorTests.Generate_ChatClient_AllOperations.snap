@@ -2787,7 +2787,7 @@ namespace StrawberryShake.GraphQL
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
         private readonly global::StrawberryShake.IOperationResultDataFactory<IGetMessagesResult> _resultDataFactory;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::.Direction> _directionParser;
+        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::StrawberryShake.GraphQL.Direction> _directionParser;
         private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _iDParser;
         private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.DateTimeOffset> _dateTimeParser;
         private global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
@@ -2804,7 +2804,7 @@ namespace StrawberryShake.GraphQL
                  ?? throw new global::System.ArgumentNullException(nameof(extractId));
             _resultDataFactory = resultDataFactory
                  ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
-            _directionParser = serializerResolver.GetLeafValueParser<global::System.String, global::.Direction>("Direction")
+            _directionParser = serializerResolver.GetLeafValueParser<global::System.String, global::StrawberryShake.GraphQL.Direction>("Direction")
                  ?? throw new global::System.ArgumentException("No serializer for type `Direction` found.");
             _iDParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("ID")
                  ?? throw new global::System.ArgumentException("No serializer for type `ID` found.");
@@ -3060,7 +3060,7 @@ namespace StrawberryShake.GraphQL
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
         private readonly global::StrawberryShake.IOperationResultDataFactory<ISendMessageMutResult> _resultDataFactory;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::.Direction> _directionParser;
+        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::StrawberryShake.GraphQL.Direction> _directionParser;
         private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _iDParser;
         private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.DateTimeOffset> _dateTimeParser;
         private global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
@@ -3077,7 +3077,7 @@ namespace StrawberryShake.GraphQL
                  ?? throw new global::System.ArgumentNullException(nameof(extractId));
             _resultDataFactory = resultDataFactory
                  ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
-            _directionParser = serializerResolver.GetLeafValueParser<global::System.String, global::.Direction>("Direction")
+            _directionParser = serializerResolver.GetLeafValueParser<global::System.String, global::StrawberryShake.GraphQL.Direction>("Direction")
                  ?? throw new global::System.ArgumentException("No serializer for type `Direction` found.");
             _iDParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("ID")
                  ?? throw new global::System.ArgumentException("No serializer for type `ID` found.");
@@ -3285,7 +3285,7 @@ namespace StrawberryShake.GraphQL
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
         private readonly global::StrawberryShake.IOperationResultDataFactory<IReadMessagesResult> _resultDataFactory;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::.Direction> _directionParser;
+        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::StrawberryShake.GraphQL.Direction> _directionParser;
         private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _iDParser;
         private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.DateTimeOffset> _dateTimeParser;
         private global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
@@ -3302,7 +3302,7 @@ namespace StrawberryShake.GraphQL
                  ?? throw new global::System.ArgumentNullException(nameof(extractId));
             _resultDataFactory = resultDataFactory
                  ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
-            _directionParser = serializerResolver.GetLeafValueParser<global::System.String, global::.Direction>("Direction")
+            _directionParser = serializerResolver.GetLeafValueParser<global::System.String, global::StrawberryShake.GraphQL.Direction>("Direction")
                  ?? throw new global::System.ArgumentException("No serializer for type `Direction` found.");
             _iDParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("ID")
                  ?? throw new global::System.ArgumentException("No serializer for type `ID` found.");

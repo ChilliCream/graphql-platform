@@ -9,7 +9,7 @@ namespace StrawberryShake.CodeGeneration.Utilities
     {
         public static string GetInterfaceName(string typeName)
         {
-            return 'I' + GetPropertyName(typeName);
+            return 'I' + GetClassName(typeName);
         }
 
         public static string GetClassName(params string[] s)

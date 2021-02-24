@@ -9,7 +9,7 @@ namespace StrawberryShake.GraphQL
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchableStoreEntity
     {
-        public global::System.String Id { get; set; } = default!;
+        public global::System.String Id { get; set; } = default!;SearchResultData
 
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.GraphQL.State.BookData?>? Books { get; set; }
 

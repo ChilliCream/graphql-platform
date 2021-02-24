@@ -88,17 +88,21 @@ namespace StrawberryShake.CodeGeneration.CSharp
             string variableName)
         {
             var ifCorrectType = IfBuilder.New();
-            var matchedTypeName = GetPropertyName(objectTypeDescriptor.Name);
+            var matchedTypeName = GetParameterName(objectTypeDescriptor.Name);
+            
+            // since we want to create the data name we will need to craft the type name
+            // by hand by using the GraphQL type name and the state namespace.
+            // TODO : state namespace should be available here!
+            var dataTypeName = new RuntimeTypeInfo(
+                CreateDataTypeName(objectTypeDescriptor.Name),
+                $"{objectTypeDescriptor.RuntimeType.Namespace}.State");
 
             ifCorrectType.SetCondition(
-                $"{_dataParameterName} is {objectTypeDescriptor.RuntimeType.Namespace}.State." +
-                $"{CreateDataTypeName(objectTypeDescriptor.RuntimeType.Name)} " +
-                $"{matchedTypeName}");
-
+                $"{_dataParameterName} is {dataTypeName} {matchedTypeName}");
 
             var constructorCall = MethodCallBuilder.New()
                 .SetPrefix($"{variableName} = new ")
-                .SetMethodName(objectTypeDescriptor.Name);
+                .SetMethodName(objectTypeDescriptor.RuntimeType.ToString());
 
             foreach (PropertyDescriptor prop in objectTypeDescriptor.Properties)
             {

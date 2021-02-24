@@ -22,13 +22,13 @@ namespace StrawberryShake.GraphQL
         {
             if (dataInfo is SearchSomethingResultInfo info)
             {
-                return new SearchSomethingResult(MapSearchResultData(info.Search));
+                return new SearchSomethingResult(MapISearchResultData(info.Search));
             }
 
             throw new global::System.ArgumentException("SearchSomethingResultInfo expected.");
         }
 
-        private ISearchSomething_Search? MapSearchResultData(global::StrawberryShake.GraphQL.State.SearchResultData data)
+        private ISearchSomething_Search? MapISearchResultData(global::StrawberryShake.GraphQL.State.ISearchResultData data)
         {
             if (data == default)
             {
@@ -37,13 +37,13 @@ namespace StrawberryShake.GraphQL
 
             ISearchSomething_Search returnValue = default!;
 
-            if (data is global::StrawberryShake.GraphQL.State.SearchSomething_Search_AuthorData Author)
+            if (data is global::StrawberryShake.GraphQL.State.AuthorData author)
             {
-                returnValue = new Author(Author.Name);
+                returnValue = new global::StrawberryShake.GraphQL.SearchSomething_Search_Author(author.Name);
             }
-            else if (data is global::StrawberryShake.GraphQL.State.SearchSomething_Search_BookData Book)
+            else if (data is global::StrawberryShake.GraphQL.State.BookData book)
             {
-                returnValue = new Book(Book.Title);
+                returnValue = new global::StrawberryShake.GraphQL.SearchSomething_Search_Book(book.Title);
             }
             else {
                 throw new global::System.NotSupportedException();
@@ -69,7 +69,7 @@ namespace StrawberryShake.GraphQL
         private readonly ulong _version;
 
         public SearchSomethingResultInfo(
-            global::StrawberryShake.GraphQL.State.SearchResultData? search,
+            global::StrawberryShake.GraphQL.State.ISearchResultData? search,
             global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds,
             ulong version)
         {
@@ -79,7 +79,7 @@ namespace StrawberryShake.GraphQL
             _version = version;
         }
 
-        public global::StrawberryShake.GraphQL.State.SearchResultData? Search { get; }
+        public global::StrawberryShake.GraphQL.State.ISearchResultData? Search { get; }
 
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
 
@@ -365,14 +365,14 @@ namespace StrawberryShake.GraphQL
 
 
             var resultInfo = new SearchSomethingResultInfo(
-                DeserializeSearchResultData(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj, "search")),
+                DeserializeISearchResultData(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj, "search")),
                 entityIds,
                 session.Version);
 
             return (_resultDataFactory.Create(resultInfo), resultInfo);
         }
 
-        private global::StrawberryShake.GraphQL.State.SearchResultData? DeserializeSearchResultData(global::System.Text.Json.JsonElement? obj)
+        private global::StrawberryShake.GraphQL.State.ISearchResultData? DeserializeISearchResultData(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {
