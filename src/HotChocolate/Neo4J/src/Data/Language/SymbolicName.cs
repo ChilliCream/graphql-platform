@@ -66,6 +66,6 @@ namespace HotChocolate.Data.Neo4J.Language
         }
 
         // TODO: does not look right come back to this
-        public override int GetHashCode() => _value == null ? base.GetHashCode() : _value.GetHashCode();
+        //public override int GetHashCode() => _value == null ? base.GetHashCode() : _value.GetHashCode();
     }
 }
