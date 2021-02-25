@@ -1,6 +1,4 @@
-﻿using System;
-using HotChocolate.Data.Neo4J.Extensions;
-using HotChocolate.Data.Neo4J;
+﻿using System.Collections.Generic;
 
 namespace HotChocolate.Data.Neo4J.Language
 {
@@ -30,14 +28,15 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public SymbolicName Concat(string otherValue)
         {
-            _ = otherValue ??
-                throw new ArgumentNullException(nameof(otherValue));
-            if (string.IsNullOrEmpty(otherValue))
-            {
-                return this;
-            }
-            return Of(_value + otherValue);
+            Ensure.IsNotNull(otherValue, "Value to concat must not be null.");
+            return string.IsNullOrEmpty(otherValue) ? this : Of(_value + otherValue);
         }
+
+        public Condition AsCondition() => new ExpressionCondition(this);
+
+        public MapProjection Project(List<object> entries) => Project(entries.ToArray());
+
+        public MapProjection Project(params object[] entries) => MapProjection.Create(this, entries);
 
         public override string ToString()
         {
@@ -61,7 +60,7 @@ namespace HotChocolate.Data.Neo4J.Language
             {
                 return false;
             }
-            SymbolicName that = (SymbolicName) obj;
+            var that = (SymbolicName) obj;
             return _value.Equals(that._value);
         }
 
