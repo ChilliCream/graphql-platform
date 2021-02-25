@@ -236,7 +236,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     serializer);
             }
 
-            var stringTypeInfo = TypeInfos.From(TypeNames.String);
+            RuntimeTypeInfo stringTypeInfo = TypeInfos.From(TypeNames.String);
             foreach (var scalar in descriptor.TypeDescriptors.OfType<ScalarTypeDescriptor>())
             {
                 if (scalar.RuntimeType.Equals(stringTypeInfo) &&
