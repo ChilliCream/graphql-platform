@@ -30,17 +30,7 @@ namespace StrawberryShake.Serialization
 
             foreach (ISerializer serializer in serializers)
             {
-                if (_serializers.TryGetValue(serializer.TypeName, out var registeredSerializer))
-                {
-                    // In case the serializer that is already registered is a built in serializer,
-                    // register the serializer provided by the user
-                    if (registeredSerializer.GetType() is { FullName: { } fullName } &&
-                        fullName.StartsWith($"{nameof(StrawberryShake)}.{nameof(Serialization)}"))
-                    {
-                        _serializers[serializer.TypeName] = serializer;
-                    }
-                }
-                else
+                if (!_serializers.ContainsKey(serializer.TypeName))
                 {
                     _serializers[serializer.TypeName] = serializer;
                 }

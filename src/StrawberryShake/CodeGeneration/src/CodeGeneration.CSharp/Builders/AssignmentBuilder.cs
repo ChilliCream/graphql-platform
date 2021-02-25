@@ -9,6 +9,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private ICode? _rightHandSide;
         private bool _assertNonNull;
         private string? _nonNullAssertTypeNameOverride;
+        private string? _assertException;
 
         public static AssignmentBuilder New() => new AssignmentBuilder();
 
@@ -42,9 +43,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return SetAssertNonNull(true);
         }
 
-        public AssignmentBuilder SetAssertNonNull(bool value)
+        public AssignmentBuilder SetAssertNonNull(bool value = true)
         {
             _assertNonNull = value;
+            return this;
+        }
+
+        public AssignmentBuilder SetAssertException(string code)
+        {
+            _assertException = code;
             return this;
         }
 
@@ -71,16 +78,26 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 {
                     writer.WriteIndent();
                     writer.Write(" ?? ");
-                    writer.Write($"throw new {TypeNames.ArgumentNullException}(nameof(");
-                    if (_nonNullAssertTypeNameOverride is not null)
+                    writer.Write("throw new ");
+
+                    if (_assertException is null)
                     {
-                        writer.Write(_nonNullAssertTypeNameOverride);
+                        writer.Write($"{TypeNames.ArgumentNullException}(nameof(");
+                        if (_nonNullAssertTypeNameOverride is not null)
+                        {
+                            writer.Write(_nonNullAssertTypeNameOverride);
+                        }
+                        else
+                        {
+                            _rightHandSide.Build(writer);
+                        }
+                        writer.Write("))");
                     }
                     else
                     {
-                        _rightHandSide.Build(writer);
+                        writer.Write(_assertException);
                     }
-                    writer.Write("))");
+
                 }
             }
             writer.Write(";");

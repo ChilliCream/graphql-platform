@@ -23,6 +23,16 @@
       "locationType": "String",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "IntValue",
+      "Location": {
+        "Start": 101,
+        "End": 103,
+        "Line": 4,
+        "Column": 51
+      },
+      "Value": "1"
+    }
   }
 ]

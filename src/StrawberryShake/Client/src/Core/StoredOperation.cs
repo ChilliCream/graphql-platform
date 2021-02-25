@@ -49,6 +49,11 @@ namespace StrawberryShake
             }
         }
 
+        public void ClearResult()
+        {
+            LastResult = null;
+        }
+
         public void UpdateResult(ulong version)
         {
             if (LastResult is { DataInfo: not null } result)

@@ -1,8 +1,7 @@
-using System.Linq;
+using System;
 using System.Text.Json;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
-using StrawberryShake.CodeGeneration.Extensions;
-using static StrawberryShake.Serialization.BuiltInTypeNames;
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -10,31 +9,33 @@ namespace StrawberryShake.CodeGeneration.CSharp
     {
         private void AddScalarTypeDeserializerMethod(
             MethodBuilder methodBuilder,
-            NamedTypeDescriptor namedType)
+            ILeafTypeDescriptor namedType)
         {
-            string deserializeMethod = namedType.GraphQLTypeName?.Value switch
+            string deserializeMethod = namedType.SerializationType.ToString() switch
             {
-                String => nameof(JsonElement.GetString),
-                ID => nameof(JsonElement.GetString),
-                Url => nameof(JsonElement.GetString),
-                Uuid => nameof(JsonElement.GetString),
-                DateTime => nameof(JsonElement.GetString),
-                Date => nameof(JsonElement.GetString),
-                TimeSpan => nameof(JsonElement.GetString),
-                Boolean => nameof(JsonElement.GetBoolean),
-                Byte => nameof(JsonElement.GetByte),
-                Short => nameof(JsonElement.GetInt16),
-                Int => nameof(JsonElement.GetInt32),
-                Long => nameof(JsonElement.GetInt64),
-                Float => nameof(JsonElement.GetDouble),
-                Decimal => nameof(JsonElement.GetDecimal),
-                ByteArray => nameof(JsonElement.GetBytesFromBase64),
-                _ => "Get" + (namedType.SerializationType?.Split('.').Last() ??
-                    namedType.Name.WithCapitalFirstChar())
+                TypeNames.String => nameof(JsonElement.GetString),
+                TypeNames.Uri => nameof(JsonElement.GetString),
+                TypeNames.Byte => nameof(JsonElement.GetByte),
+                TypeNames.ByteArray => nameof(JsonElement.GetBytesFromBase64),
+                TypeNames.Int16 => nameof(JsonElement.GetInt16),
+                TypeNames.Int32 => nameof(JsonElement.GetInt32),
+                TypeNames.Int64 => nameof(JsonElement.GetInt64),
+                TypeNames.UInt16 => nameof(JsonElement.GetUInt16),
+                TypeNames.UInt32 => nameof(JsonElement.GetUInt32),
+                TypeNames.UInt64 => nameof(JsonElement.GetUInt64),
+                TypeNames.Single => nameof(JsonElement.GetSingle),
+                TypeNames.Double => nameof(JsonElement.GetDouble),
+                TypeNames.Decimal => nameof(JsonElement.GetDecimal),
+                TypeNames.DateTimeOffset => nameof(JsonElement.GetString),
+                TypeNames.DateTime => nameof(JsonElement.GetString),
+                TypeNames.TimeSpan => nameof(JsonElement.GetString),
+                TypeNames.Boolean => nameof(JsonElement.GetBoolean),
+                TypeNames.Guid => nameof(JsonElement.GetGuid),
+                _ => throw new NotSupportedException("Serialization format not supported.")
             };
 
             methodBuilder.AddCode(
-                $"return {namedType.Name.ToFieldName()}Parser.Parse({_objParamName}.Value" +
+                $"return {GetFieldName(namedType.Name)}Parser.Parse({_objParamName}.Value" +
                 $".{deserializeMethod}()!);");
         }
     }

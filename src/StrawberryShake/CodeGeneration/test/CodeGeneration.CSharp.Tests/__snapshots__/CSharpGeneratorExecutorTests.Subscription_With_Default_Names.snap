@@ -1,4 +1,17 @@
-﻿// OnReviewSubResultFactory
+﻿// ReSharper disable BuiltInTypeReferenceStyle
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable UnusedType.Global
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable ConvertToAutoProperty
+// ReSharper disable UnusedMember.Global
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable InconsistentNaming
+
+// OnReviewSubResultFactory
+
+// StrawberryShake.CodeGeneration.CSharp.ResultDataFactoryGenerator
 
 #nullable enable
 
@@ -47,6 +60,8 @@ namespace Foo
 
 // OnReviewSubResultInfo
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInfoGenerator
+
 #nullable enable
 
 namespace Foo
@@ -88,6 +103,8 @@ namespace Foo
 
 // OnReviewSubResult
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
 namespace Foo
@@ -107,6 +124,8 @@ namespace Foo
 
 
 // OnReviewSub_OnReview_Review
+
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
 
 #nullable enable
 
@@ -133,6 +152,8 @@ namespace Foo
 
 // IOnReviewSubResult
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace Foo
@@ -146,6 +167,8 @@ namespace Foo
 
 
 // IOnReviewSub_OnReview
+
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -163,6 +186,8 @@ namespace Foo
 
 // IOnReviewSub_OnReview_Review
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace Foo
@@ -176,6 +201,8 @@ namespace Foo
 
 
 // OnReviewSubSubscriptionDocument
+
+// StrawberryShake.CodeGeneration.CSharp.OperationDocumentGenerator
 
 #nullable enable
 
@@ -215,6 +242,8 @@ namespace Foo
 
 // OnReviewSubSubscription
 
+// StrawberryShake.CodeGeneration.CSharp.OperationServiceGenerator
+
 #nullable enable
 
 namespace Foo
@@ -249,6 +278,8 @@ namespace Foo
 
 // OnReviewSubBuilder
 
+// StrawberryShake.CodeGeneration.CSharp.JsonResultBuilderGenerator
+
 #nullable enable
 
 namespace Foo
@@ -260,8 +291,8 @@ namespace Foo
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
         private readonly global::StrawberryShake.IOperationResultDataFactory<IOnReviewSubResult> _resultDataFactory;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.Int32, global::System.Int32> _int32Parser;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Int32, global::System.Int32> _intParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
 
         public OnReviewSubBuilder(
             global::StrawberryShake.IEntityStore entityStore,
@@ -275,10 +306,10 @@ namespace Foo
                  ?? throw new global::System.ArgumentNullException(nameof(extractId));
             _resultDataFactory = resultDataFactory
                  ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
-            _int32Parser = serializerResolver.GetLeafValueParser<global::System.Int32, global::System.Int32>("Int")
-                 ?? throw new global::System.ArgumentNullException(nameof(_int32Parser));
+            _intParser = serializerResolver.GetLeafValueParser<global::System.Int32, global::System.Int32>("Int")
+                 ?? throw new global::System.ArgumentException("No serializer for type `Int` found.");
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String")
-                 ?? throw new global::System.ArgumentNullException(nameof(_stringParser));
+                 ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
         }
 
         public global::StrawberryShake.IOperationResult<IOnReviewSubResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
@@ -339,7 +370,7 @@ namespace Foo
                 throw new global::System.ArgumentNullException();
             }
 
-            return _int32Parser.Parse(obj.Value.GetInt32()!);
+            return _intParser.Parse(obj.Value.GetInt32()!);
         }
 
         private global::System.String? DeserializeString(global::System.Text.Json.JsonElement? obj)
@@ -356,6 +387,8 @@ namespace Foo
 
 
 // ReviewData
+
+// StrawberryShake.CodeGeneration.CSharp.DataTypeGenerator
 
 #nullable enable
 
@@ -386,6 +419,8 @@ namespace Foo.State
 
 // FooClient
 
+// StrawberryShake.CodeGeneration.CSharp.ClientGenerator
+
 #nullable enable
 
 namespace Foo
@@ -407,6 +442,8 @@ namespace Foo
 
 
 // EntityIdFactory
+
+// StrawberryShake.CodeGeneration.CSharp.EntityIdFactoryGenerator
 
 #nullable enable
 
@@ -430,6 +467,8 @@ namespace Foo
 
 // FooClientServiceCollectionExtensions
 
+// StrawberryShake.CodeGeneration.CSharp.DependencyInjectionGenerator
+
 #nullable enable
 
 namespace Foo
@@ -441,15 +480,20 @@ namespace Foo
             this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
             global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
-            var serviceCollection = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
-
-            ConfigureClient(
-                serviceCollection,
-                strategy);
-
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
-                sp => new ClientServiceProvider(sp));
+                sp => 
+                {
+                    var serviceCollection = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
+
+                    ConfigureClient(
+                        serviceCollection,
+                        sp,
+                        strategy);
+
+                    return new ClientServiceProvider(
+                        global::Microsoft.Extensions.DependencyInjection.ServiceCollectionContainerBuilderExtensions.BuildServiceProvider(serviceCollection));
+                });
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
@@ -466,6 +510,7 @@ namespace Foo
 
         private static global::Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureClient(
             global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
+            global::System.IServiceProvider parentServices,
             global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
             
@@ -503,7 +548,7 @@ namespace Foo
                     var sessionPool =
                         global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<
                             global::StrawberryShake.Transport.WebSockets.ISessionPool
-                            >(sp);
+                            >(parentServices);
             
                     return new global::StrawberryShake.Transport.WebSockets.WebSocketConnection(
                         () => sessionPool.CreateAsync("FooClient", default));
@@ -529,7 +574,14 @@ namespace Foo
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializerResolver, global::StrawberryShake.Serialization.SerializerResolver>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializerResolver>(
+                services,
+                sp => new global::StrawberryShake.Serialization.SerializerResolver(
+                    global::System.Linq.Enumerable.Concat(
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(
+                            parentServices),
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(
+                            sp))));
             
             // register operations
             
@@ -553,9 +605,6 @@ namespace Foo
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<OnReviewSubSubscription>(services);
             
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<FooClient>(services);
-            
-            // register websocket protocols
-            global::Microsoft.Extensions.DependencyInjection.WebSocketClientFactoryServiceCollectionExtensions.AddProtocol<global::StrawberryShake.Transport.WebSockets.Protocol.GraphQLWebSocketProtocolFactory>(services);
             
             return services;
         }
