@@ -23,9 +23,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 _ => throw new ArgumentOutOfRangeException(nameof(descriptor))
             };
 
-            var (classBuilder, constructorBuilder) = CreateClassBuilder();
+            var classBuilder = ClassBuilder.New();
 
-            constructorBuilder.SetAccessModifier(AccessModifier.Private);
+            classBuilder
+                .AddConstructor()
+                .SetAccessModifier(AccessModifier.Private);
 
             classBuilder
                 .AddImplements(TypeNames.IDocument)

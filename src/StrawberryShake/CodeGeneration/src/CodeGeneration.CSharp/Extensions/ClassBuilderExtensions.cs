@@ -56,6 +56,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return propertyBuilder;
         }
 
+        public static ConstructorBuilder AddConstructor(this ClassBuilder builder)
+        {
+            var constructorBuilder = ConstructorBuilder.New();
+            builder.AddConstructor(constructorBuilder);
+            return constructorBuilder;
+        }
+
         public static ClassBuilder ForEach<T>(
             this ClassBuilder classBuilder,
             IEnumerable<T> enumerable,
