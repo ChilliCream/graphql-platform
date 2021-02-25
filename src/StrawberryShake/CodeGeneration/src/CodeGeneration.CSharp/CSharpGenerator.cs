@@ -104,11 +104,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
                             // if the error has a syntax node we will try to lookup the
                             // document and add the filename to the error.
+                            /*
                             if (error is Error { SyntaxNode: { } node } &&
                                 lookup.TryGetValue(node, out var filename))
                             {
                                 extensions.Add(FileExtensionKey, filename);
                             }
+                            */
 
                             return error
                                 .WithCode(CodeGenerationErrorCodes.SchemaValidationError)

@@ -11,7 +11,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public class CSharpGeneratorTests
     {
-        
+
 
         [Fact]
         public void Generate_NoErrors()
@@ -32,7 +32,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             AssertResult(result);
         }
 
-        [Fact(Skip = "Pascal: Generator issue with serialized document.")]
+        [Fact]
         public void Generate_StarWarsIntegrationTest()
         {
             // arrange
