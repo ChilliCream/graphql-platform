@@ -6,8 +6,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     internal static class ClassBuilderExtensions
     {
-        // TODO Remove!
-        [Obsolete]
         public static MethodBuilder AddMethod(this ClassBuilder builder, string name)
         {
             MethodBuilder methodBuilder = MethodBuilder.New().SetName(name);
@@ -44,8 +42,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return builder;
         }
 
-        // TODO Remove!
-        [Obsolete]
         public static PropertyBuilder AddProperty(this ClassBuilder builder, string name)
         {
             PropertyBuilder propertyBuilder = PropertyBuilder.New().SetName(name);

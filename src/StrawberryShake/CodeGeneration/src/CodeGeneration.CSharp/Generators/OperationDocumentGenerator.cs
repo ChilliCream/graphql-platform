@@ -12,13 +12,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
             OperationDescriptor descriptor,
             out string fileName)
         {
-            var (classBuilder, constructorBuilder) = CreateClassBuilder();
-
-            fileName = CreateDocumentTypeName(descriptor.Name);
-            classBuilder
-                .AddImplements(TypeNames.IDocument)
-                .SetName(fileName);
-            constructorBuilder.SetAccessModifier(AccessModifier.Private);
+            var documentName = CreateDocumentTypeName(descriptor.Name);
+            fileName = documentName;
 
             string operationKind = descriptor switch
             {
@@ -28,32 +23,39 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 _ => throw new ArgumentOutOfRangeException(nameof(descriptor))
             };
 
-            classBuilder.AddProperty(
-                PropertyBuilder.New()
-                    .SetStatic()
-                    .SetType(fileName)
-                    .SetName("Instance")
-                    .SetValue($"new {fileName}()"));
+            var (classBuilder, constructorBuilder) = CreateClassBuilder();
 
-            classBuilder.AddProperty(
-                "Kind",
-                x => x.SetType(TypeNames.OperationKind)
-                    .AsLambda($"{TypeNames.OperationKind}.{operationKind}"));
+            constructorBuilder.SetAccessModifier(AccessModifier.Private);
 
-            classBuilder.AddProperty(
-                PropertyBuilder.New()
-                    .SetType(TypeNames.IReadOnlySpan.WithGeneric(TypeNames.Byte))
-                    .SetName("Body")
-                    .AsLambda(GetByteArray(descriptor.BodyString)));
+            classBuilder
+                .AddImplements(TypeNames.IDocument)
+                .SetName(fileName);
 
-            classBuilder.AddMethod(
-                MethodBuilder.New()
-                    .SetAccessModifier(AccessModifier.Public)
-                    .SetReturnType("override string")
-                    .SetName("ToString")
-                    .AddCode(MethodCallBuilder.New()
-                        .SetMethodName($"return {TypeNames.EncodingUtf8}.GetString")
-                        .AddArgument("Body")));
+            classBuilder
+                .AddProperty("Instance")
+                .SetStatic()
+                .SetType(documentName)
+                .SetValue($"new {documentName}()");
+
+            classBuilder
+                .AddProperty("Kind")
+                .SetType(TypeNames.OperationKind)
+                .AsLambda($"{TypeNames.OperationKind}.{operationKind}");
+
+            classBuilder
+                .AddProperty("Body")
+                .SetType(TypeNames.IReadOnlySpan.WithGeneric(TypeNames.Byte))
+                .AsLambda(GetByteArray(descriptor.BodyString));
+
+            classBuilder
+                .AddMethod("ToString")
+                .SetAccessModifier(AccessModifier.Public)
+                .SetOverride()
+                .SetReturnType("string")
+                .AddCode(MethodCallBuilder.New()
+                    .SetPrefix("return ")
+                    .SetMethodName($"{TypeNames.EncodingUtf8}.GetString")
+                    .AddArgument("Body"));
 
             CodeFileBuilder
                 .New()
