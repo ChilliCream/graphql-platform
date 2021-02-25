@@ -1,4 +1,3 @@
-using System.IO;
 using ChilliCream.Testing;
 using Xunit;
 using static StrawberryShake.CodeGeneration.CSharp.GeneratorTestHelper;
@@ -23,6 +22,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 "type Query { person: Person }",
                 "type Person { email: Email }",
                 "scalar Email",
+                "extend schema @key(fields: \"id\")");
+
+        [Fact]
+        public void Any_Type() =>
+            AssertResult(
+                "query GetPerson { person { name email } }",
+                "type Query { person: Person }",
+                "type Person { name: String! email: Any }",
+                "scalar Any",
                 "extend schema @key(fields: \"id\")");
 
         [Fact]

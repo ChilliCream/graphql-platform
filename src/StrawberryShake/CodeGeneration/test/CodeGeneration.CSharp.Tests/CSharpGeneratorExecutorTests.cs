@@ -30,7 +30,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             // act
             var documents = new StringBuilder();
-            var generator = new CSharpGeneratorExecutor();
+            var generator = new CSharpCodeGenerator();
 
             // assert
             AssertResult(clientModel, generator, documents);
@@ -54,7 +54,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             // act
             var documents = new StringBuilder();
-            var generator = new CSharpGeneratorExecutor();
+            var generator = new CSharpCodeGenerator();
 
             // assert
             AssertResult(clientModel, generator, documents);
@@ -78,7 +78,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             // act
             var documents = new StringBuilder();
-            var generator = new CSharpGeneratorExecutor();
+            var generator = new CSharpCodeGenerator();
 
             // assert
             AssertResult(clientModel, generator, documents);
@@ -118,7 +118,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             // act
             var documents = new StringBuilder();
-            var generator = new CSharpGeneratorExecutor();
+            var generator = new CSharpCodeGenerator();
 
             // assert
             AssertResult(clientModel, generator, documents);
@@ -140,7 +140,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             // act
             var documents = new StringBuilder();
-            var generator = new CSharpGeneratorExecutor();
+            var generator = new CSharpCodeGenerator();
 
             // assert
             AssertResult(clientModel, generator, documents);
@@ -183,7 +183,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             // act
             var documents = new StringBuilder();
-            var generator = new CSharpGeneratorExecutor();
+            var generator = new CSharpCodeGenerator();
 
             // assert
             AssertResult(clientModel, generator, documents);
@@ -236,7 +236,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             // act
             var documents = new StringBuilder();
-            var generator = new CSharpGeneratorExecutor();
+            var generator = new CSharpCodeGenerator();
 
             // assert
             AssertResult(clientModel, generator, documents);
@@ -244,7 +244,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         private static void AssertResult(
             ClientModel clientModel,
-            CSharpGeneratorExecutor generator,
+            CSharpCodeGenerator generator,
             StringBuilder documents)
         {
             documents.AppendLine("// ReSharper disable BuiltInTypeReferenceStyle");

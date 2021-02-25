@@ -19,7 +19,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             var documents = new StringBuilder();
             var documentNames = new HashSet<string>();
-            var generator = new CSharpGeneratorExecutor();
 
             documents.AppendLine("// ReSharper disable BuiltInTypeReferenceStyle");
             documents.AppendLine("// ReSharper disable RedundantNameQualifier");
@@ -33,7 +32,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
             documents.AppendLine("// ReSharper disable InconsistentNaming");
             documents.AppendLine();
 
-            foreach (CSharpDocument document in generator.Generate(clientModel, "Foo", "FooClient"))
+            var result = CSharpGenerator.Generate(clientModel, "Foo", "FooClient");
+
+            foreach (CSharpDocument document in result.CSharpDocuments)
             {
                 if (!documentNames.Add(document.Name))
                 {
@@ -65,18 +66,18 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         private static ClientModel CreateClientModel(params string[] sourceText)
         {
-            var documents = sourceText
-                .Select(sourceText => (string.Empty, Utf8GraphQLParser.Parse(sourceText)))
+            var files = sourceText
+                .Select(sourceText => new GraphQLFile(Utf8GraphQLParser.Parse(sourceText)))
                 .ToList();
 
-            var typeSystemDocs = documents.GetTypeSystemDocuments().ToList();
-            var executableDocs = documents.GetExecutableDocuments().ToList();
+            var typeSystemDocs = files.GetTypeSystemDocuments().ToList();
+            var executableDocs = files.GetExecutableDocuments().ToList();
 
             var analyzer = new DocumentAnalyzer();
 
             analyzer.SetSchema(SchemaHelper.Load(typeSystemDocs));
 
-            foreach (DocumentNode executable in executableDocs.Select(doc => doc.document))
+            foreach (DocumentNode executable in executableDocs.Select(file => file.Document))
             {
                 analyzer.AddDocument(executable);
             }
