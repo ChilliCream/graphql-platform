@@ -7,9 +7,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
 {
     public static class EntityIdFactoryDescriptorMapper
     {
-        public static void Map(
-            ClientModel model,
-            IMapperContext context)
+        public static void Map(ClientModel model, IMapperContext context)
         {
             var entities = new List<EntityIdDescriptor>();
 

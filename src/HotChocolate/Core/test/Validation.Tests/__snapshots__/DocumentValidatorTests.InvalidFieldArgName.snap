@@ -19,7 +19,36 @@
       "argument": "command",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Argument",
+      "Location": {
+        "Start": 214,
+        "End": 238,
+        "Line": 9,
+        "Column": 37
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 214,
+          "End": 222,
+          "Line": 9,
+          "Column": 37
+        },
+        "Value": "command"
+      },
+      "Value": {
+        "Kind": "EnumValue",
+        "Location": {
+          "Start": 223,
+          "End": 238,
+          "Line": 9,
+          "Column": 46
+        },
+        "Value": "CLEAN_UP_HOUSE"
+      }
+    }
   },
   {
     "Message": "The argument `dogCommand` is required.",
@@ -41,6 +70,59 @@
       "argument": "dogCommand",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": null,
+      "Arguments": [
+        {
+          "Kind": "Argument",
+          "Location": {
+            "Start": 214,
+            "End": 238,
+            "Line": 9,
+            "Column": 37
+          },
+          "Name": {
+            "Kind": "Name",
+            "Location": {
+              "Start": 214,
+              "End": 222,
+              "Line": 9,
+              "Column": 37
+            },
+            "Value": "command"
+          },
+          "Value": {
+            "Kind": "EnumValue",
+            "Location": {
+              "Start": 223,
+              "End": 238,
+              "Line": 9,
+              "Column": 46
+            },
+            "Value": "CLEAN_UP_HOUSE"
+          }
+        }
+      ],
+      "SelectionSet": null,
+      "Location": {
+        "Start": 198,
+        "End": 256,
+        "Line": 9,
+        "Column": 21
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 198,
+          "End": 214,
+          "Line": 9,
+          "Column": 21
+        },
+        "Value": "doesKnowCommand"
+      },
+      "Directives": []
+    }
   }
 ]

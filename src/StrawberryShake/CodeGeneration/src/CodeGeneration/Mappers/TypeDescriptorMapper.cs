@@ -6,76 +6,47 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Extensions;
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.Mappers
 {
     public static partial class TypeDescriptorMapper
     {
-        public static void Map(
-            ClientModel model,
-            IMapperContext context)
+        public static void Map(ClientModel model, IMapperContext context)
         {
-            foreach (var (nameString, namedTypeDescriptor) in
-                CollectTypeDescriptors(
-                    model,
-                    context))
-            {
-                context.Register(
-                    nameString,
-                    namedTypeDescriptor);
-            }
+            context.Register(CollectTypeDescriptors(model, context));
         }
 
-        public static IEnumerable<(NameString, NamedTypeDescriptor )> CollectTypeDescriptors(
+        private static IEnumerable<INamedTypeDescriptor> CollectTypeDescriptors(
             ClientModel model,
             IMapperContext context)
         {
             var typeDescriptors = new Dictionary<NameString, TypeDescriptorModel>();
             var inputTypeDescriptors = new Dictionary<NameString, InputTypeDescriptorModel>();
-            var scalarTypeDescriptors = new Dictionary<NameString, NamedTypeDescriptor>();
+            var leafTypeDescriptors = new Dictionary<NameString, INamedTypeDescriptor>();
 
-            CollectTypes(
-                model,
-                context,
-                typeDescriptors);
+            // first we create type descriptor for the leaf types ...
+            CollectLeafTypes(model, context, leafTypeDescriptors);
 
-            AddProperties(
-                model,
-                context,
-                typeDescriptors,
-                scalarTypeDescriptors);
+            // after that we collect all the output types that we have ...
+            CollectTypes(model, context, typeDescriptors);
 
-            CollectInputTypes(
-                model,
-                context,
-                inputTypeDescriptors);
+            // with these two completed we can create the properties for all output
+            // types and complete them since we know now all the property types.
+            AddProperties(model, context, typeDescriptors, leafTypeDescriptors);
 
-            AddInputTypeProperties(
-                model,
-                context,
-                inputTypeDescriptors,
-                scalarTypeDescriptors);
+            // last but not least we will collect all the input object types ...
+            CollectInputTypes(model, context, inputTypeDescriptors);
 
-            foreach (TypeDescriptorModel descriptorModel in typeDescriptors.Values)
-            {
-                yield return (
-                    descriptorModel.NamedTypeDescriptor.Name,
-                    descriptorModel.NamedTypeDescriptor);
-            }
+            // and in a second step complete the input object types since we now know all
+            // the possible property types.
+            AddInputTypeProperties(inputTypeDescriptors, leafTypeDescriptors);
 
-            foreach (InputTypeDescriptorModel descriptorModel in inputTypeDescriptors.Values)
-            {
-                yield return (
-                    descriptorModel.NamedTypeDescriptor.Name,
-                    descriptorModel.NamedTypeDescriptor);
-            }
-
-            foreach (NamedTypeDescriptor typeDescriptor in scalarTypeDescriptors.Values)
-            {
-                yield return (
-                    typeDescriptor.Name + "_" + typeDescriptor.GraphQLTypeName!.Value,
-                    typeDescriptor);
-            }
+            return typeDescriptors.Values
+                .Select(t => t.Descriptor)
+                .Concat(inputTypeDescriptors.Values
+                    .Select(t => t.Descriptor)
+                    .Concat(leafTypeDescriptors.Values));
         }
 
         private static void CollectTypes(
@@ -145,81 +116,196 @@ namespace StrawberryShake.CodeGeneration.Mappers
             TypeKind? kind = null,
             OperationModel? operationModel = null)
         {
-            if (!typeDescriptors.TryGetValue(
+            if (typeDescriptors.TryGetValue(
                 outputType.Name,
                 out TypeDescriptorModel descriptorModel))
             {
-                IReadOnlyList<NamedTypeDescriptor> implementedBy =
-                    Array.Empty<NamedTypeDescriptor>();
+                return;
+            }
 
-                if (operationModel is not null && outputType.IsInterface)
-                {
-                    var classes = new HashSet<NamedTypeDescriptor>();
-                    CollectClassesThatImplementInterface(
-                        operationModel,
-                        outputType,
-                        typeDescriptors,
-                        classes);
-                    implementedBy = classes.ToList();
-                }
+            if (operationModel is not null && outputType.IsInterface)
+            {
+                descriptorModel = CreateInterfaceTypeModel(
+                    model,
+                    context,
+                    typeDescriptors,
+                    outputType,
+                    unionTypes,
+                    descriptorModel,
+                    operationModel,
+                    kind);
+            }
+            else
+            {
+                descriptorModel = CreateObjectTypeModel(
+                    model,
+                    context,
+                    typeDescriptors,
+                    outputType,
+                    unionTypes,
+                    descriptorModel,
+                    kind);
 
-                TypeKind fallbackKind;
-                string? complexDataTypeParent = null;
-                if (outputType.Type.IsEntity())
+            }
+
+            typeDescriptors.Add(outputType.Name, descriptorModel);
+        }
+
+        private static void ExtractTypeKindAndParentRuntimeType(
+            IMapperContext context,
+            OutputTypeModel outputType,
+            out TypeKind fallbackKind,
+            out RuntimeTypeInfo? parentRuntimeType)
+        {
+            parentRuntimeType = null;
+            string? parentRuntimeTypeName = null;
+
+            if (outputType.Type.IsEntity())
+            {
+                fallbackKind = TypeKind.EntityType;
+            }
+            else
+            {
+                if (outputType.Type.IsAbstractType())
                 {
-                    fallbackKind = TypeKind.EntityType;
+                    fallbackKind = TypeKind.ComplexDataType;
+                    parentRuntimeTypeName = GetInterfaceName(outputType.Type.Name);
                 }
                 else
                 {
-                    if (outputType.Type.IsAbstractType())
+                    OutputTypeModel? mostAbstractTypeModel = outputType;
+                    while (mostAbstractTypeModel.Implements.Count > 0)
                     {
-                        fallbackKind = TypeKind.ComplexDataType;
-                        complexDataTypeParent = outputType.Type.Name;
+                        mostAbstractTypeModel = mostAbstractTypeModel.Implements[0];
                     }
-                    else
-                    {
-                        OutputTypeModel? mostAbstractTypeModel = outputType;
-                        while (mostAbstractTypeModel.Implements.Count > 0)
-                        {
-                            mostAbstractTypeModel = mostAbstractTypeModel.Implements[0];
-                        }
 
-                        complexDataTypeParent = mostAbstractTypeModel.Type.Name;
+                    parentRuntimeTypeName = 
+                        mostAbstractTypeModel.Type.IsAbstractType()
+                            ? GetInterfaceName(mostAbstractTypeModel.Type.Name)
+                            : mostAbstractTypeModel.Type.Name;
 
-                        if (complexDataTypeParent == outputType.Type.Name)
-                        {
-                            fallbackKind = TypeKind.DataType;
-                        }
-                        else
-                        {
-                            fallbackKind = TypeKind.ComplexDataType;
-                        }
-                    }
+                    fallbackKind =
+                        parentRuntimeTypeName == outputType.Type.Name
+                            ? TypeKind.DataType
+                            : TypeKind.ComplexDataType;
                 }
+            }
 
-                descriptorModel = new TypeDescriptorModel(
-                    outputType,
-                    new NamedTypeDescriptor(
-                        outputType.Name,
-                        context.Namespace,
-                        outputType.IsInterface,
-                        outputType.Implements.Select(t => t.Name).ToList(),
-                        kind: kind ?? fallbackKind,
-                        graphQLTypeName: outputType.Type.Name,
-                        implementedBy: implementedBy,
-                        complexDataTypeParent: complexDataTypeParent));
-
-                typeDescriptors.Add(
-                    outputType.Name,
-                    descriptorModel);
+            if (parentRuntimeTypeName is not null)
+            {
+                parentRuntimeType =
+                    new RuntimeTypeInfo(
+                        NamingConventions.CreateDataTypeName(parentRuntimeTypeName),
+                        context.StateNamespace);
             }
         }
+
+        private static IReadOnlyList<NameString> ExtractImplementsBy(
+            OutputTypeModel outputType,
+            TypeKind kind)
+        {
+            if (kind != TypeKind.ResultType)
+            {
+                return outputType.Implements
+                    .Select(t => t.Name)
+                    .ToList();
+            }
+            return outputType.Implements
+                .Select(t => (NameString)NamingConventions.CreateResultRootTypeName(t.Name))
+                .ToList();
+        }
+
+        private static RuntimeTypeInfo ExtractRuntimeType(
+            IMapperContext context,
+            OutputTypeModel outputType,
+            TypeKind kind)
+        {
+            if (kind == TypeKind.ResultType)
+            {
+                return new RuntimeTypeInfo(
+                    NamingConventions.CreateResultRootTypeName(outputType.Name),
+                    context.Namespace);
+            }
+
+            return new RuntimeTypeInfo(outputType.Name, context.Namespace);
+        }
+
+        private static TypeDescriptorModel CreateInterfaceTypeModel(
+            ClientModel model,
+            IMapperContext context,
+            Dictionary<NameString, TypeDescriptorModel> typeDescriptors,
+            OutputTypeModel outputType,
+            List<UnionType> unionTypes,
+            TypeDescriptorModel descriptorModel,
+            OperationModel operationModel,
+            TypeKind? kind = null)
+        {
+            var implementedBy = new HashSet<ObjectTypeDescriptor>();
+
+            CollectClassesThatImplementInterface(
+                operationModel,
+                outputType,
+                typeDescriptors,
+                implementedBy);
+
+            ExtractTypeKindAndParentRuntimeType(
+                context,
+                outputType,
+                out var extractedKind,
+                out var parentRuntimeType);
+
+            var typeKind = kind ?? extractedKind;
+
+            IReadOnlyList<NameString> implements = ExtractImplementsBy(outputType, typeKind);
+            RuntimeTypeInfo runtimeTypeInfo = ExtractRuntimeType(context, outputType, typeKind);
+
+            return new TypeDescriptorModel(
+                outputType,
+                new InterfaceTypeDescriptor(
+                    outputType.Type.Name,
+                    typeKind,
+                    runtimeTypeInfo,
+                    implementedBy,
+                    implements,
+                    parentRuntimeType));
+        }
+
+        private static TypeDescriptorModel CreateObjectTypeModel(
+            ClientModel model,
+            IMapperContext context,
+            Dictionary<NameString, TypeDescriptorModel> typeDescriptors,
+            OutputTypeModel outputType,
+            List<UnionType> unionTypes,
+            TypeDescriptorModel descriptorModel,
+            TypeKind? kind = null)
+        {
+            ExtractTypeKindAndParentRuntimeType(
+                context,
+                outputType,
+                out var extractedKind,
+                out var parentRuntimeType);
+
+            var typeKind = kind ?? extractedKind;
+
+            IReadOnlyList<NameString> implements = ExtractImplementsBy(outputType, typeKind);
+            RuntimeTypeInfo runtimeTypeInfo = ExtractRuntimeType(context, outputType, typeKind);
+
+            return new TypeDescriptorModel(
+                outputType,
+                new ObjectTypeDescriptor(
+                    outputType.Type.Name,
+                    typeKind,
+                    runtimeTypeInfo,
+                    implements,
+                    parentRuntimeType));
+        }
+
 
         private static void CollectClassesThatImplementInterface(
             OperationModel operation,
             OutputTypeModel outputType,
             Dictionary<NameString, TypeDescriptorModel> typeDescriptors,
-            HashSet<NamedTypeDescriptor> classes)
+            HashSet<ObjectTypeDescriptor> implementations)
         {
             foreach (var type in operation.GetImplementations(outputType))
             {
@@ -229,11 +315,12 @@ namespace StrawberryShake.CodeGeneration.Mappers
                         operation,
                         type,
                         typeDescriptors,
-                        classes);
+                        implementations);
                 }
                 else
                 {
-                    classes.Add(typeDescriptors[type.Name].NamedTypeDescriptor);
+                    implementations.Add(
+                        (ObjectTypeDescriptor)typeDescriptors[type.Name].Descriptor);
                 }
             }
         }
@@ -242,64 +329,20 @@ namespace StrawberryShake.CodeGeneration.Mappers
             ClientModel model,
             IMapperContext context,
             Dictionary<NameString, TypeDescriptorModel> typeDescriptors,
-            Dictionary<NameString, NamedTypeDescriptor> scalarTypeDescriptors)
+            Dictionary<NameString, INamedTypeDescriptor> leafTypeDescriptors)
         {
             foreach (TypeDescriptorModel typeDescriptorModel in typeDescriptors.Values.ToList())
             {
                 var properties = new List<PropertyDescriptor>();
 
-                foreach (var field in typeDescriptorModel.TypeModel.Fields)
+                foreach (var field in typeDescriptorModel.Model.Fields)
                 {
-                    NamedTypeDescriptor? fieldType;
+                    INamedTypeDescriptor? fieldType;
                     INamedType namedType = field.Type.NamedType();
 
-                    if (namedType.IsScalarType())
+                    if (namedType.IsScalarType() || namedType.IsEnumType())
                     {
-                        var scalarType = (ScalarType)namedType;
-
-                        if (!scalarTypeDescriptors.TryGetValue(
-                            scalarType.Name,
-                            out fieldType))
-                        {
-                            string[] runtimeTypeName = scalarType.GetRuntimeType().Split('.');
-
-                            fieldType = new NamedTypeDescriptor(
-                                runtimeTypeName.Last(),
-                                string.Join(
-                                    ".",
-                                    runtimeTypeName.Take(runtimeTypeName.Length - 1)),
-                                false,
-                                graphQLTypeName: scalarType.Name,
-                                kind: TypeKind.LeafType);
-
-                            scalarTypeDescriptors.Add(
-                                scalarType.Name,
-                                fieldType);
-                        }
-                    }
-                    else if (namedType.IsEnumType())
-                    {
-                        var enumTypeModel = model.LeafTypes
-                            .OfType<EnumTypeModel>()
-                            .First(t => t.Type == namedType);
-
-                        if (!scalarTypeDescriptors.TryGetValue(
-                            namedType.Name,
-                            out fieldType))
-                        {
-                            fieldType = new NamedTypeDescriptor(
-                                enumTypeModel.Name,
-                                context.Namespace,
-                                false,
-                                graphQLTypeName: namedType.Name,
-                                serializationType: enumTypeModel.Type.GetSerializationType(),
-                                kind: TypeKind.LeafType,
-                                isEnum: true);
-
-                            scalarTypeDescriptors.Add(
-                                enumTypeModel.Name,
-                                fieldType);
-                        }
+                        fieldType = leafTypeDescriptors[namedType.Name];
                     }
                     else
                     {
@@ -318,11 +361,46 @@ namespace StrawberryShake.CodeGeneration.Mappers
                                 fieldType)));
                 }
 
-                typeDescriptorModel.NamedTypeDescriptor.Complete(properties);
+                typeDescriptorModel.Descriptor.CompleteProperties(properties);
             }
         }
 
-        private static NamedTypeDescriptor GetFieldTypeDescriptor(
+        private static void CollectLeafTypes(
+            ClientModel model,
+            IMapperContext context,
+            Dictionary<NameString, INamedTypeDescriptor> leafTypeDescriptors)
+        {
+            foreach (var leafType in model.LeafTypes)
+            {
+                INamedTypeDescriptor descriptor;
+
+                if (leafType is EnumTypeModel enumTypeModel)
+                {
+                    descriptor = new EnumTypeDescriptor(
+                        leafType.Name,
+                        new(enumTypeModel.Name, context.Namespace, isValueType: true),
+                        enumTypeModel.UnderlyingType is null
+                            ? null
+                            : TypeInfos.From(enumTypeModel.UnderlyingType),
+                        enumTypeModel.Values
+                            .Select(t => new EnumValueDescriptor(t.Name, t.Value.Name))
+                            .ToList());
+
+                    leafTypeDescriptors.Add(leafType.Name, descriptor);
+                }
+                else
+                {
+                    descriptor = new ScalarTypeDescriptor(
+                        leafType.Name,
+                        TypeInfos.From(leafType.RuntimeType),
+                        TypeInfos.From(leafType.SerializationType));
+
+                    leafTypeDescriptors.Add(leafType.Name, descriptor);
+                }
+            }
+        }
+
+        private static INamedTypeDescriptor GetFieldTypeDescriptor(
             ClientModel model,
             FieldNode fieldSyntax,
             INamedType fieldNamedType,
@@ -336,8 +414,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     out OutputTypeModel? fieldType))
                 {
                     return typeDescriptors.Values
-                        .First(t => t.TypeModel == fieldType)
-                        .NamedTypeDescriptor;
+                        .First(t => t.Model == fieldType)
+                        .Descriptor;
                 }
             }
 
@@ -347,7 +425,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
         private static ITypeDescriptor BuildFieldType(
             this IType original,
-            NamedTypeDescriptor namedTypeDescriptor)
+            INamedTypeDescriptor namedTypeDescriptor)
         {
             if (original is NonNullType nnt)
             {
@@ -377,30 +455,30 @@ namespace StrawberryShake.CodeGeneration.Mappers
         {
             public TypeDescriptorModel(
                 OutputTypeModel typeModel,
-                NamedTypeDescriptor namedTypeDescriptor)
+                ComplexTypeDescriptor namedTypeDescriptor)
             {
-                TypeModel = typeModel;
-                NamedTypeDescriptor = namedTypeDescriptor;
+                Model = typeModel;
+                Descriptor = namedTypeDescriptor;
             }
 
-            public OutputTypeModel TypeModel { get; }
+            public OutputTypeModel Model { get; }
 
-            public NamedTypeDescriptor NamedTypeDescriptor { get; }
+            public ComplexTypeDescriptor Descriptor { get; }
         }
 
         private readonly struct InputTypeDescriptorModel
         {
             public InputTypeDescriptorModel(
-                InputObjectTypeModel typeModel,
-                NamedTypeDescriptor namedTypeDescriptor)
+                InputObjectTypeModel model,
+                InputObjectTypeDescriptor descriptor)
             {
-                TypeModel = typeModel;
-                NamedTypeDescriptor = namedTypeDescriptor;
+                Model = model;
+                Descriptor = descriptor;
             }
 
-            public InputObjectTypeModel TypeModel { get; }
+            public InputObjectTypeModel Model { get; }
 
-            public NamedTypeDescriptor NamedTypeDescriptor { get; }
+            public InputObjectTypeDescriptor Descriptor { get; }
         }
     }
 }

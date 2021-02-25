@@ -41,6 +41,24 @@ namespace StrawberryShake
             storedOperation.SetResult(operationResult);
         }
 
+        public void ClearResult<T>(
+            OperationRequest operationRequest)
+            where T : class
+        {
+            if (operationRequest is null)
+            {
+                throw new ArgumentNullException(nameof(operationRequest));
+            }
+
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(nameof(OperationStore));
+            }
+
+            StoredOperation<T> storedOperation = GetOrAddStoredOperation<T>(operationRequest);
+            storedOperation.ClearResult();
+        }
+
         public bool TryGet<T>(
             OperationRequest operationRequest,
             [NotNullWhen(true)] out IOperationResult<T>? result)

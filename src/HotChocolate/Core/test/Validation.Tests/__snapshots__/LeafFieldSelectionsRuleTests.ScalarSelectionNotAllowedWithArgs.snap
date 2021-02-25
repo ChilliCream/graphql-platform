@@ -20,6 +20,92 @@
       "responseName": "doesKnowCommand",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Leaf-Field-Selections"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": null,
+      "Arguments": [
+        {
+          "Kind": "Argument",
+          "Location": {
+            "Start": 85,
+            "End": 101,
+            "Line": 4,
+            "Column": 41
+          },
+          "Name": {
+            "Kind": "Name",
+            "Location": {
+              "Start": 85,
+              "End": 96,
+              "Line": 4,
+              "Column": 41
+            },
+            "Value": "dogCommand"
+          },
+          "Value": {
+            "Kind": "EnumValue",
+            "Location": {
+              "Start": 97,
+              "End": 101,
+              "Line": 4,
+              "Column": 53
+            },
+            "Value": "SIT"
+          }
+        }
+      ],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 102,
+          "End": 137,
+          "Line": 4,
+          "Column": 58
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": null,
+            "Location": {
+              "Start": 104,
+              "End": 115,
+              "Line": 4,
+              "Column": 60
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 104,
+                "End": 115,
+                "Line": 4,
+                "Column": 60
+              },
+              "Value": "sinceWhen"
+            },
+            "Directives": []
+          }
+        ]
+      },
+      "Location": {
+        "Start": 69,
+        "End": 137,
+        "Line": 4,
+        "Column": 25
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 69,
+          "End": 85,
+          "Line": 4,
+          "Column": 25
+        },
+        "Value": "doesKnowCommand"
+      },
+      "Directives": []
+    }
   }
 ]

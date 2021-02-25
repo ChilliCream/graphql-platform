@@ -13,21 +13,25 @@ namespace StrawberryShake.CodeGeneration
             string @namespace,
             List<OperationDescriptor> operations)
         {
-            Name = name;
+            RuntimeType = new(name, @namespace);
             Operations = operations;
-            Namespace = @namespace;
         }
 
         /// <summary>
+        /// Gets the client name
+        /// </summary>
+        /// <value></value>
+        public NameString Name => RuntimeType.Name;
+ 
+        /// <summary>
         /// The name of the client
         /// </summary>
-        public NameString Name { get; }
-
-        public string Namespace { get; }
+        public RuntimeTypeInfo RuntimeType { get; }
 
         /// <summary>
         /// The operations that are contained in this client class
         /// </summary>
         public List<OperationDescriptor> Operations { get; }
+
     }
 }
