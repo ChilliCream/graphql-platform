@@ -243,10 +243,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     scalar.SerializationType.Equals(stringTypeInfo) &&
                     !BuiltInScalarNames.IsBuiltInScalar(scalar.Name))
                 {
-                    AddSingleton(
-                        codeWriter,
-                        TypeNames.ISerializer,
-                        $"new {TypeNames.StringSerializer}({scalar.Name.AsStringToken()})");
+                    codeWriter.WriteLine(
+                        TypeNames.AddSingleton.WithGeneric(TypeNames.ISerializer) +
+                        $"(services, new {TypeNames.StringSerializer}" +
+                        $"({scalar.Name.AsStringToken()}));");
                 }
             }
 
