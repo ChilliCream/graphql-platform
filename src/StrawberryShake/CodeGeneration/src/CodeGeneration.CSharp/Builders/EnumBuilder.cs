@@ -17,6 +17,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
+        public EnumBuilder SetUnderlyingType(RuntimeTypeInfo? value)
+        {
+            _underlyingType = value?.ToString();
+            return this;
+        }
+
         public EnumBuilder SetUnderlyingType(string? value)
         {
             _underlyingType = value;

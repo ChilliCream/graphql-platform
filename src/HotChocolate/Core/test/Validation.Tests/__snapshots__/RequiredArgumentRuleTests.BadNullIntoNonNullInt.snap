@@ -19,6 +19,35 @@
       "argument": "intArg",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Argument",
+      "Location": {
+        "Start": 94,
+        "End": 107,
+        "Line": 4,
+        "Column": 44
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 94,
+          "End": 101,
+          "Line": 4,
+          "Column": 44
+        },
+        "Value": "intArg"
+      },
+      "Value": {
+        "Kind": "NullValue",
+        "Location": {
+          "Start": 102,
+          "End": 107,
+          "Line": 4,
+          "Column": 52
+        },
+        "Value": null
+      }
+    }
   }
 ]

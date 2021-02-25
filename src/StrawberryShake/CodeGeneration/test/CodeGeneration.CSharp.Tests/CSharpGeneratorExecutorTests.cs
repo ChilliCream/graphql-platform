@@ -2,8 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using HotChocolate.Language;
 using Microsoft.CodeAnalysis;
+using HotChocolate.Language;
 using Snapshooter.Xunit;
 using StrawberryShake.CodeGeneration.Analyzers;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
@@ -212,29 +212,25 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                 nested: Bar
                                 nestedList: [Bar!]!
                                 nestedMatrix: [[Bar]]
-                            }"))
-                    ))
+                            }"))))
                 .AddDocument(
                     Utf8GraphQLParser.Parse(
                         @"
                         query TestOperation($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
                           foo(single: $single, list: $list, nestedList:$nestedList)
-                        }
-                    "))
+                        }"))
                 .AddDocument(
                     Utf8GraphQLParser.Parse(
                         @"
                         query TestOperation2($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
                           foo(single: $single, list: $list, nestedList:$nestedList)
-                        }
-                    "))
+                        }"))
                 .AddDocument(
                     Utf8GraphQLParser.Parse(
                         @"
                         query TestOperation3($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
                           foo(single: $single, list: $list, nestedList:$nestedList)
-                        }
-                    "))
+                        }"))
                 .AddDocument(Utf8GraphQLParser.Parse("extend schema @key(fields: \"id\")"))
                 .Analyze();
 
@@ -251,6 +247,18 @@ namespace StrawberryShake.CodeGeneration.CSharp
             CSharpGeneratorExecutor generator,
             StringBuilder documents)
         {
+            documents.AppendLine("// ReSharper disable BuiltInTypeReferenceStyle");
+            documents.AppendLine("// ReSharper disable RedundantNameQualifier");
+            documents.AppendLine("// ReSharper disable ArrangeObjectCreationWhenTypeEvident");
+            documents.AppendLine("// ReSharper disable UnusedType.Global");
+            documents.AppendLine("// ReSharper disable PartialTypeWithSinglePart");
+            documents.AppendLine("// ReSharper disable UnusedMethodReturnValue.Local");
+            documents.AppendLine("// ReSharper disable ConvertToAutoProperty");
+            documents.AppendLine("// ReSharper disable UnusedMember.Global");
+            documents.AppendLine("// ReSharper disable SuggestVarOrType_SimpleTypes");
+            documents.AppendLine("// ReSharper disable InconsistentNaming");
+            documents.AppendLine();
+
             var documentName = new HashSet<string>();
             foreach (CSharpDocument document in generator.Generate(clientModel, "Foo", "FooClient"))
             {

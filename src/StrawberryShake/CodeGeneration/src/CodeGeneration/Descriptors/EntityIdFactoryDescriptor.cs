@@ -17,17 +17,17 @@ namespace StrawberryShake.CodeGeneration
         /// <param name="entities">
         /// The entity descriptors.
         /// </param>
-        /// <param name="ns">
+        /// <param name="namespace">
         /// The namespace of this class.
         /// </param>
         public EntityIdFactoryDescriptor(
             NameString name,
             IReadOnlyList<EntityIdDescriptor> entities,
-            string ns)
+            string @namespace)
         {
             Name = name;
             Entities = entities;
-            Namespace = ns;
+            Namespace = @namespace;
         }
 
         /// <summary>

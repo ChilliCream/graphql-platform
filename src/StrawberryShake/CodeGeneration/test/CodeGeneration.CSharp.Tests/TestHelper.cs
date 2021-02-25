@@ -14,6 +14,7 @@ namespace StrawberryShake
 {
     public static class TestHelper
     {
+        /*
         public static PropertyDescriptor GetNamedNonNullStringTypeReference(
             string referenceName) =>
             new(
@@ -31,9 +32,9 @@ namespace StrawberryShake
             new(
                 referenceName,
                 new NonNullTypeDescriptor(new NamedTypeDescriptor("int", "System", false)));
+                */
 
-        public static async Task<ClientModel> CreateClientModelAsync(
-            params string[] sourceText)
+        public static async Task<ClientModel> CreateClientModelAsync(params string[] sourceText)
         {
             ISchema schema =
                 await new ServiceCollection()

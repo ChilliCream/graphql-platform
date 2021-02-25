@@ -19,6 +19,6 @@ namespace StrawberryShake.CodeGeneration
         }
 
         public override NameString Name =>
-            NamingConventions.SubscriptionServiceNameFromTypeName(OperationName);
+            NamingConventions.CreateSubscriptionServiceName(OperationName);
     }
 }

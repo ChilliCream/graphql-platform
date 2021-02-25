@@ -1,5 +1,18 @@
-﻿// Code:
+﻿// ReSharper disable BuiltInTypeReferenceStyle
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable UnusedType.Global
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable ConvertToAutoProperty
+// ReSharper disable UnusedMember.Global
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable InconsistentNaming
+
+// Code:
 // SearchSomethingResultFactory
+
+// StrawberryShake.CodeGeneration.CSharp.ResultDataFactoryGenerator
 
 #nullable enable
 
@@ -21,13 +34,13 @@ namespace StrawberryShake.GraphQL
         {
             if (dataInfo is SearchSomethingResultInfo info)
             {
-                return new SearchSomethingResult(MapSearchResult(info.Search));
+                return new SearchSomethingResult(MapISearchResultData(info.Search));
             }
 
             throw new global::System.ArgumentException("SearchSomethingResultInfo expected.");
         }
 
-        private ISearchSomething_Search? MapSearchResult(global::StrawberryShake.GraphQL.State.ISearchResultData data)
+        private ISearchSomething_Search? MapISearchResultData(global::StrawberryShake.GraphQL.State.ISearchResultData data)
         {
             if (data == default)
             {
@@ -36,13 +49,13 @@ namespace StrawberryShake.GraphQL
 
             ISearchSomething_Search returnValue = default!;
 
-            if (data is StrawberryShake.GraphQL.State.AuthorData author)
+            if (data is global::StrawberryShake.GraphQL.State.AuthorData author)
             {
-                returnValue = new SearchSomething_Search_Author(author.Name);
+                returnValue = new global::StrawberryShake.GraphQL.SearchSomething_Search_Author(author.Name);
             }
-            else if (data is StrawberryShake.GraphQL.State.BookData book)
+            else if (data is global::StrawberryShake.GraphQL.State.BookData book)
             {
-                returnValue = new SearchSomething_Search_Book(book.Title);
+                returnValue = new global::StrawberryShake.GraphQL.SearchSomething_Search_Book(book.Title);
             }
             else {
                 throw new global::System.NotSupportedException();
@@ -54,6 +67,8 @@ namespace StrawberryShake.GraphQL
 
 
 // SearchSomethingResultInfo
+
+// StrawberryShake.CodeGeneration.CSharp.ResultInfoGenerator
 
 #nullable enable
 
@@ -96,6 +111,8 @@ namespace StrawberryShake.GraphQL
 
 // SearchSomethingResult
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -115,6 +132,8 @@ namespace StrawberryShake.GraphQL
 
 
 // SearchSomething_Search_Author
+
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
 
 #nullable enable
 
@@ -136,6 +155,8 @@ namespace StrawberryShake.GraphQL
 
 // SearchSomething_Search_Book
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -156,6 +177,8 @@ namespace StrawberryShake.GraphQL
 
 // ISearchSomethingResult
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -170,6 +193,8 @@ namespace StrawberryShake.GraphQL
 
 // ISearchSomething_Search
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -182,6 +207,8 @@ namespace StrawberryShake.GraphQL
 
 
 // ISearchSomething_Search_Author
+
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -198,6 +225,8 @@ namespace StrawberryShake.GraphQL
 
 // ISearchSomething_Search_Book
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -212,6 +241,8 @@ namespace StrawberryShake.GraphQL
 
 
 // SearchSomethingQueryDocument
+
+// StrawberryShake.CodeGeneration.CSharp.OperationDocumentGenerator
 
 #nullable enable
 
@@ -254,6 +285,8 @@ namespace StrawberryShake.GraphQL
 
 
 // SearchSomethingQuery
+
+// StrawberryShake.CodeGeneration.CSharp.OperationServiceGenerator
 
 #nullable enable
 
@@ -300,6 +333,8 @@ namespace StrawberryShake.GraphQL
 
 // SearchSomethingBuilder
 
+// StrawberryShake.CodeGeneration.CSharp.JsonResultBuilderGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -311,7 +346,7 @@ namespace StrawberryShake.GraphQL
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
         private readonly global::StrawberryShake.IOperationResultDataFactory<ISearchSomethingResult> _resultDataFactory;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
 
         public SearchSomethingBuilder(
             global::StrawberryShake.IEntityStore entityStore,
@@ -326,7 +361,7 @@ namespace StrawberryShake.GraphQL
             _resultDataFactory = resultDataFactory
                  ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String")
-                 ?? throw new global::System.ArgumentNullException(nameof(_stringParser));
+                 ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
         }
 
         public global::StrawberryShake.IOperationResult<ISearchSomethingResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
@@ -353,14 +388,14 @@ namespace StrawberryShake.GraphQL
 
 
             var resultInfo = new SearchSomethingResultInfo(
-                DeserializeSearchResult(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj, "search")),
+                DeserializeISearchResultData(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj, "search")),
                 entityIds,
                 session.Version);
 
             return (_resultDataFactory.Create(resultInfo), resultInfo);
         }
 
-        private global::StrawberryShake.GraphQL.State.ISearchResultData? DeserializeSearchResult(global::System.Text.Json.JsonElement? obj)
+        private global::StrawberryShake.GraphQL.State.ISearchResultData? DeserializeISearchResultData(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {
@@ -401,6 +436,8 @@ namespace StrawberryShake.GraphQL
 
 // ISearchResultData
 
+// StrawberryShake.CodeGeneration.CSharp.DataTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL.State
@@ -414,6 +451,8 @@ namespace StrawberryShake.GraphQL.State
 
 
 // AuthorData
+
+// StrawberryShake.CodeGeneration.CSharp.DataTypeGenerator
 
 #nullable enable
 
@@ -441,6 +480,8 @@ namespace StrawberryShake.GraphQL.State
 
 // IPrintData
 
+// StrawberryShake.CodeGeneration.CSharp.DataTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL.State
@@ -454,6 +495,8 @@ namespace StrawberryShake.GraphQL.State
 
 
 // BookData
+
+// StrawberryShake.CodeGeneration.CSharp.DataTypeGenerator
 
 #nullable enable
 
@@ -482,6 +525,8 @@ namespace StrawberryShake.GraphQL.State
 
 // GraphQLClient
 
+// StrawberryShake.CodeGeneration.CSharp.ClientGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -504,6 +549,8 @@ namespace StrawberryShake.GraphQL
 
 // EntityIdFactory
 
+// StrawberryShake.CodeGeneration.CSharp.EntityIdFactoryGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -525,6 +572,8 @@ namespace StrawberryShake.GraphQL
 
 
 // GraphQLClientServiceCollectionExtensions
+
+// StrawberryShake.CodeGeneration.CSharp.DependencyInjectionGenerator
 
 #nullable enable
 

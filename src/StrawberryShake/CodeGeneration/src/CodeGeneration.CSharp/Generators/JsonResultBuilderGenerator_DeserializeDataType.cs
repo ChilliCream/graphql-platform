@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
-using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.NamingConventions;
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -10,25 +10,25 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private void AddDataTypeDeserializerMethod(
             ClassBuilder classBuilder,
             MethodBuilder methodBuilder,
-            NamedTypeDescriptor namedTypeDescriptor,
+            ComplexTypeDescriptor complexTypeDescriptor,
             HashSet<string> processed)
         {
-            if (namedTypeDescriptor.IsInterface)
+            if (complexTypeDescriptor is InterfaceTypeDescriptor interfaceTypeDescriptor)
             {
                 methodBuilder.AddCode(
                     "var typename = obj.Value.GetProperty(\"__typename\").GetString();");
 
                 // If the type is an interface
-                foreach (NamedTypeDescriptor concreteType in namedTypeDescriptor.ImplementedBy)
+                foreach (ObjectTypeDescriptor concreteType in interfaceTypeDescriptor.ImplementedBy)
                 {
                     methodBuilder.AddEmptyLine();
                     var ifStatement = IfBuilder.New()
                         .SetCondition(
-                            $"typename?.Equals(\"{concreteType.GraphQLTypeName}\", " +
-                            $"{TypeNames.OrdinalStringComparisson}) ?? false");
+                            $"typename?.Equals(\"{concreteType.Name}\", " +
+                            $"{TypeNames.OrdinalStringComparison}) ?? false");
 
-                    var dataTypeName = $"global::{concreteType.Namespace}.State."
-                    + DataTypeNameFromTypeName(concreteType.GraphQLTypeName);
+                    var dataTypeName = $"{concreteType.RuntimeType.Namespace}.State."
+                    + CreateDataTypeName(concreteType.Name);
 
                     var returnStatement = MethodCallBuilder.New()
                         .SetPrefix("return new ")
@@ -39,7 +39,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     {
                         returnStatement.AddArgument(
                             CodeBlockBuilder.New()
-                                .AddCode($"{property.Name.WithLowerFirstChar()}: ")
+                                .AddCode($"{GetParameterName(property.Name)}: ")
                                 .AddCode(BuildUpdateMethodCall(property)));
                     }
 
@@ -54,9 +54,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 var returnStatement = MethodCallBuilder.New()
                     .SetPrefix("return new ")
-                    .SetMethodName(namedTypeDescriptor.Name);
+                    .SetMethodName(complexTypeDescriptor.Name);
 
-                foreach (PropertyDescriptor property in namedTypeDescriptor.Properties)
+                foreach (PropertyDescriptor property in complexTypeDescriptor.Properties)
                 {
                     returnStatement.AddArgument(BuildUpdateMethodCall(property));
                 }
@@ -65,7 +65,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
 
             AddRequiredDeserializeMethods(
-                namedTypeDescriptor,
+                complexTypeDescriptor,
                 classBuilder,
                 processed);
         }

@@ -18,7 +18,7 @@ namespace HotChocolate.Types
         {
             object? current = runtimeValue;
 
-            for (int i = 0; i < _formatters.Count; i++)
+            for (var i = 0; i < _formatters.Count; i++)
             {
                 current = _formatters[i].OnAfterDeserialize(current);
             }

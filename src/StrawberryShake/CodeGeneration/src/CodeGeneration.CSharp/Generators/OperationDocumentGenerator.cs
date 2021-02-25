@@ -7,13 +7,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
     public class OperationDocumentGenerator: ClassBaseGenerator<OperationDescriptor>
     {
         protected override void Generate(
-            CodeWriter writer, 
-            OperationDescriptor descriptor, 
+            CodeWriter writer,
+            OperationDescriptor descriptor,
             out string fileName)
         {
             var (classBuilder, constructorBuilder) = CreateClassBuilder();
 
-            fileName = DocumentTypeNameFromOperationName(descriptor.Name);
+            fileName = CreateDocumentTypeName(descriptor.Name);
             classBuilder
                 .AddImplements(TypeNames.IDocument)
                 .SetName(fileName);
