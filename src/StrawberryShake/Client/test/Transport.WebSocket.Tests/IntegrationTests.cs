@@ -6,7 +6,11 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.AspNetCore;
+using HotChocolate.AspNetCore.Subscriptions;
+using HotChocolate.AspNetCore.Subscriptions.Messages;
 using HotChocolate.AspNetCore.Utilities;
+using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -137,6 +141,56 @@ namespace StrawberryShake.Transport.WebSockets
 
             // assert
             results.Select(x => x.RootElement.ToString()).ToList().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Request_With_ConnectionPayload()
+        {
+            // arrange
+            CancellationToken ct = new CancellationTokenSource(20_000).Token;
+            var payload = new Dictionary<string, object> { ["Key"] = "Value" };
+            var sessionInterceptor = new StubSessionInterceptor();
+            using IWebHost host = TestServerHelper.CreateServer(
+                x => x
+                    .AddTypeExtension<StringSubscriptionExtensions>()
+                    .AddSocketSessionInterceptor<ISocketSessionInterceptor>(
+                        _ => sessionInterceptor),
+                out int port);
+
+            var serviceCollection = new ServiceCollection();
+            serviceCollection
+                .AddProtocol<GraphQLWebSocketProtocolFactory>()
+                .AddWebSocketClient(
+                    "Foo",
+                    c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"))
+                .ConfigureConnectionInterceptor(new StubConnectionInterceptor(payload));
+            IServiceProvider services =
+                serviceCollection.BuildServiceProvider();
+
+            ISessionPool sessionPool =
+                services.GetRequiredService<ISessionPool>();
+
+            List<JsonDocument> results = new();
+            MockDocument document = new("subscription Test { onTest(id:1) }");
+            OperationRequest request = new("Test", document);
+
+            // act
+            var connection = new WebSocketConnection(() => sessionPool.CreateAsync("Foo", ct));
+            await foreach (var response in connection.ExecuteAsync(request, ct))
+            {
+                if (response.Body is not null)
+                {
+                    results.Add(response.Body);
+                }
+            }
+
+
+            // assert
+            Dictionary<string, object> message =
+                Assert.IsType<Dictionary<string, object>>(
+                    sessionInterceptor.InitializeConnectionMessage?.Payload);
+
+            Assert.Equal(payload["Key"], message["Key"]);
         }
 
         [Fact]
@@ -392,6 +446,37 @@ namespace StrawberryShake.Transport.WebSockets
             public OperationKind Kind => OperationKind.Query;
 
             public ReadOnlySpan<byte> Body => _query;
+        }
+
+        private class StubSessionInterceptor : DefaultSocketSessionInterceptor
+        {
+            public override ValueTask<ConnectionStatus> OnConnectAsync(
+                ISocketConnection connection,
+                InitializeConnectionMessage message,
+                CancellationToken cancellationToken)
+            {
+                InitializeConnectionMessage = message;
+                return new ValueTask<ConnectionStatus>(ConnectionStatus.Accept());
+            }
+
+            public InitializeConnectionMessage? InitializeConnectionMessage { get; private set; }
+        }
+
+        private class StubConnectionInterceptor : ISocketConnectionInterceptor
+        {
+            private readonly object? _payload;
+
+            public StubConnectionInterceptor(object? payload)
+            {
+                _payload = payload;
+            }
+
+            public ValueTask<object?> CreateConnectionInitPayload(
+                ISocketProtocol protocol,
+                CancellationToken cancellationToken)
+            {
+                return new(_payload);
+            }
         }
     }
 }
