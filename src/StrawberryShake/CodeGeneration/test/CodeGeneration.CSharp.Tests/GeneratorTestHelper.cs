@@ -8,6 +8,13 @@ using StrawberryShake.CodeGeneration.Analyzers;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Utilities;
 using Xunit;
+using System.Threading.Tasks;
+using HotChocolate;
+using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.StarWars;
+using HotChocolate.Execution;
+using ChilliCream.Testing;
+using System;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -62,6 +69,23 @@ namespace StrawberryShake.CodeGeneration.CSharp
                             $" (Line: {x.Location.GetLineSpan().StartLinePosition.Line})")
                         .Aggregate((acc, val) => acc + "\n" + val));
             }
+        }
+
+        public static void AssertStarWarsResult(params string[] sourceTexts)
+        {
+            var source = new string[sourceTexts.Length];
+
+            source[0] = FileResource.Open("Schema.graphql");
+            source[1] = FileResource.Open("Schema.extensions.graphql");
+            
+            Array.Copy(
+                sourceTexts, 
+                sourceIndex: 0, 
+                source, 
+                destinationIndex: 2, 
+                length: sourceTexts.Length);
+
+            AssertResult(source);
         }
 
         private static ClientModel CreateClientModel(params string[] sourceText)
