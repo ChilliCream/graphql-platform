@@ -1,16 +1,6 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using HotChocolate.Language;
-using Snapshooter.Xunit;
-using StrawberryShake.CodeGeneration.Analyzers;
-using StrawberryShake.CodeGeneration.Analyzers.Models;
-using StrawberryShake.CodeGeneration.Utilities;
+using ChilliCream.Testing;
 using Xunit;
 using static StrawberryShake.CodeGeneration.CSharp.GeneratorTestHelper;
-using ChilliCream.Testing;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {

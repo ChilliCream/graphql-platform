@@ -1,20 +1,16 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using ChilliCream.Testing;
+using HotChocolate;
 using HotChocolate.Language;
 using Snapshooter.Xunit;
 using StrawberryShake.CodeGeneration.Analyzers;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Utilities;
 using Xunit;
-using System.Threading.Tasks;
-using HotChocolate;
-using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.StarWars;
-using HotChocolate.Execution;
-using ChilliCream.Testing;
-using System;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {

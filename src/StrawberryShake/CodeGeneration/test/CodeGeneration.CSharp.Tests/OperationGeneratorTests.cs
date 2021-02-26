@@ -1,13 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using HotChocolate.Language;
-using Snapshooter.Xunit;
-using StrawberryShake.CodeGeneration.Analyzers;
-using StrawberryShake.CodeGeneration.Analyzers.Models;
-using StrawberryShake.CodeGeneration.Utilities;
 using Xunit;
 using static StrawberryShake.CodeGeneration.CSharp.GeneratorTestHelper;
 
@@ -15,7 +5,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public class OperationGeneratorTests
     {
-       
+
         [Fact]
         public void Operation_With_MultipleOperations()
         {
@@ -41,6 +31,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     nestedMatrix: [[Bar]]
                 }",
                 "extend schema @key(fields: \"id\")");
+        }
+
+        [Fact]
+        public void Generate_ChatClient_AllOperations()
+        {
+            // arrange
+            AssertResult(
+                "ChatOperations.graphql",
+                "Schema.extensions.graphql",
+                "ChatSchema.graphql");
         }
     }
 }
