@@ -24,7 +24,6 @@ The GraphQL specification defines the following scalars
 | `ID`      | Unique identifier                                           |
 
 In addition to the scalars defined by the specification, HotChocolate also supports the following set of scalar types:
-
 | Type        | Description                                                 |
 | ----------- | ----------------------------------------------------------- |
 | `Byte`      |                                                             |
@@ -39,10 +38,9 @@ In addition to the scalars defined by the specification, HotChocolate also suppo
 | `Any`       | This type can be anything, string, int, list or object etc. |
 
 # Using Scalars
-
 HotChocolate will automatically detect which scalars are in use and will only expose those in the introspection. This keeps the schema definition small, simple and clean.
 
-The schema discovers .NET types and binds the matching scalar to the type.
+The schema discovers .NET types and binds the matching scalar to the type. 
 HotChocolate, for example, automatically binds the `StringType` on a member of the type `System.String`.
 You can override these mappings by explicitly specifying type bindings on the request executor builder.
 
@@ -72,7 +70,7 @@ public void ConfigureServices(IServiceCollection services)
 
 # Any Type
 
-The `Any` scalar is a special type that can be compared to `object` in C#.
+The `Any` scalar is a special type that can be compared to `object` in C#. 
 `Any` allows us to specify any literal or return any output type.
 
 Consider the following type:
@@ -132,14 +130,13 @@ If you want to access an object dynamically without serializing it to a strongly
 Lists can be accessed generically by getting them as `IReadOnlyList<object>` or as `ListValueNode`.
 
 # Custom Converter
-
 HotChocolate converts .Net types to match the types supported by the scalar of the field.
-By default, all standard .Net types have converters registered.
+By default, all standard .Net types have converters registered. 
 You can register converters and reuse the built-in scalar types.
 In case you use a non-standard library, e.g. [NodeTime](https://nodatime.org/), you can register a converter and use the standard `DateTimeType`.
 
 ```csharp
-public class Query
+public class Query 
 {
     public OffsetDateTime GetDateTime(OffsetDateTime offsetDateTime)
     {
@@ -147,9 +144,7 @@ public class Query
     }
 }
 ```
-
-_Startup_
-
+*Startup*
 ```csharp
 public void ConfigureServices(IServiceCollection services)
 {
@@ -326,4 +321,172 @@ By extending `ScalarType` you have full control over serialization and parsing.
             return false;
         }
     }
+```
+
+# Additional Scalars
+HotChocolate provides additional scalars for more specific usecases. 
+
+To use these scalars you have to add the package `HotChocolate.Types.Scalars`
+
+```csharp
+dotnet add package HotChocolate.Types.Scalars
+```
+
+These scalars cannot be mapped by HotChocolate to a field. 
+You need to specify them manually.
+
+**Annotation Based**
+```csharp
+public class User 
+{
+    [GraphQLType(typeof(NonEmptyStringType))]
+    public string UserName { get; set; }
+}
+```
+
+**Code First**
+```csharp
+public class UserType : ObjectType<User> 
+{
+    protected override void Configure(
+        IObjectTypeDescriptor<User> descriptor)
+    {
+        descriptor.Field(x => x.UserName).Type<NonEmptyStringType>();
+    }
+}
+```
+
+**Schema First**
+```sql
+type User {
+  userName: NonEmptyString
+}
+```
+
+You will also have to add the Scalar to the schema: 
+```csharp
+services
+  .AddGraphQLServer()
+  // ....
+  .AddType<NonEmptyStringType>()
+```
+
+## EmailAddress
+```sdl
+"""
+The EmailAddress scalar type represents a email address, represented as UTF-8 character sequences that follows the specification defined in RFC 5322
+"""
+scalar EmailAddress
+```
+
+## HexColorCode
+```sdl
+"""
+The HexColorCode scalar type represents a valid hex color code.
+"""
+scalar HexColorCode
+```
+
+## HslColorCode
+```sdl
+"""
+The `HslColorCode` scalar type represents a valid a CSS HSL color as defined here https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors.
+"""
+scalar HslColorCode
+```
+
+## NegativeFloat
+```sdl
+"""
+The NegativeFloat scalar type represents a double‐precision fractional value less than 0
+"""
+scalar NegativeFloat
+```
+
+## NegativeInt
+```sdl
+"""
+The NegativeIntType scalar type represents a signed 32-bit numeric non-fractional with a maximum of -1.
+"""
+scalar NegativeInt
+```
+
+## NonEmptyString
+```sdl
+"""
+The NonNullString scalar type represents non empty textual data, represented as UTF‐8 character sequences with at least one character
+"""
+scalar NonEmptyString
+```
+
+## NonNegativeFloat
+```sdl
+"""
+The NonNegativeFloat scalar type represents a double‐precision fractional value greater than or equal to 0.
+"""
+scalar NonNegativeFloat
+```
+
+## NonNegativeInt
+```sdl
+"""
+The NonNegativeIntType scalar type represents a unsigned 32-bit numeric non-fractional value greater than or equal to 0.
+"""
+scalar NonNegativeInt
+```
+
+## NonPositiveFloat
+```sdl
+"""
+The NonPositiveFloat scalar type represents a double‐precision fractional value less than or equal to 0.
+"""
+scalar NonPositiveFloat
+```
+
+## NonPositiveInt
+```sdl
+"""
+The NonPositiveInt scalar type represents a signed 32-bit numeric non-fractional value less than or equal to 0.
+"""
+scalar NonPositiveInt
+```
+
+## PhoneNumber
+```sdl
+"""
+The PhoneNumber scalar type represents a value that conforms to the standard E.164 format as specified in: https://en.wikipedia.org/wiki/E.164.
+"""
+scalar PhoneNumber
+```
+
+## PositiveInt
+```sdl
+"""
+The PositiveInt scalar type represents a signed 32‐bit numeric non‐fractional value of at least the value 1.
+"""
+scalar PositiveInt
+```
+
+## PostalCode
+```sdl
+"""
+The PostalCode scalar type represents a valid postal code.
+"""
+scalar PostalCode
+```
+
+## UnsignedInt
+```sdl
+"""
+The UnsignedInt scalar type represents a unsigned 32‐bit numeric non‐fractional value greater than or equal to 0.
+"""
+scalar UnsignedInt
+```
+
+## IPv4
+```sdl
+"""
+The `IPv4` scalar type represents a valid a IPv4 address as defined here https://en.wikipedia.org/wiki/IPv4.
+"""
+scalar IPv4
 ```
