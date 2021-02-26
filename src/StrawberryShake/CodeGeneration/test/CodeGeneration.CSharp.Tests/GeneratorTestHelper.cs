@@ -20,6 +20,22 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public static class GeneratorTestHelper
     {
+        public static IReadOnlyList<IError> AssertError(params string[] sourceTexts)
+        {
+            ClientModel clientModel = CreateClientModel(sourceTexts);
+
+            var documents = new StringBuilder();
+            var documentNames = new HashSet<string>();
+
+            var result = CSharpGenerator.Generate(clientModel, "Foo", "FooClient");
+
+            Assert.True(
+                result.Errors.Any(), 
+                "It is expected that the result has no generator errors!");
+
+            return result.Errors;
+        }
+
         public static void AssertResult(params string[] sourceTexts)
         {
             ClientModel clientModel = CreateClientModel(sourceTexts);
@@ -40,6 +56,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
             documents.AppendLine();
 
             var result = CSharpGenerator.Generate(clientModel, "Foo", "FooClient");
+
+            Assert.False(
+                result.Errors.Any(), 
+                "It is expected that the result has no generator errors!");
 
             foreach (CSharpDocument document in result.CSharpDocuments)
             {

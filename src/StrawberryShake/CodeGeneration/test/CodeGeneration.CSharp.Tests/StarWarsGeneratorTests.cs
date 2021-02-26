@@ -10,6 +10,7 @@ using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Utilities;
 using Xunit;
 using static StrawberryShake.CodeGeneration.CSharp.GeneratorTestHelper;
+using ChilliCream.Testing;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -91,6 +92,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         commentary
                     }
                 }");
+        }
+
+        [Fact(Skip = "Pascal: Generator issue with serialized document.")]
+        public void Generate_StarWarsIntegrationTest()
+        {
+            AssertStarWarsResult(
+                FileResource.Open("QueryWithSubscription.graphql"));
         }
     }
 }
