@@ -17,5 +17,6 @@ namespace HotChocolate.Types
         public const string PostalCode = nameof(PostalCode);
         public const string UnsignedInt = nameof(UnsignedInt);
         public const string IPv4 = nameof(IPv4);
+        public const string RegularExpression = nameof(RegularExpression);
     }
 }

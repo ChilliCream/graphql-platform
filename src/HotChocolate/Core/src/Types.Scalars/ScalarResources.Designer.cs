@@ -638,6 +638,34 @@ namespace HotChocolate.Types.Scalars {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The Regular Expression scalar type represents a String Type following a regular expression pattern/format, as defined
+        /// here https://en.wikipedia.org/wiki/Regular_expression..
+        /// </summary>
+        internal static string RegularExpressionType_Description {
+            get {
+                return ResourceManager.GetString("RegularExpressionType_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to RegularExpressionType cannot parse the provided literal. The provided value does not match the regular expression pattern..
+        /// </summary>
+        internal static string RegularExpressionType_IsInvalid_ParseLiteral {
+            get {
+                return ResourceManager.GetString("RegularExpressionType_IsInvalid_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to RegularExpressionType cannot parse the provided value. The provided value does not match the regular expression pattern..
+        /// </summary>
+        internal static string RegularExpressionType_IsInvalid_ParseValue {
+            get {
+                return ResourceManager.GetString("RegularExpressionType_IsInvalid_ParseValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The UnsignedInt scalar type represents a unsigned 32-bit numeric non-fractional value greater than or equal to 0..
         /// </summary>
         internal static string UnsignedIntType_Description {
