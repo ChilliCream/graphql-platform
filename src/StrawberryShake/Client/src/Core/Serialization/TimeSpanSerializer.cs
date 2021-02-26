@@ -10,7 +10,7 @@ namespace StrawberryShake.Serialization
         private readonly TimeSpanFormat _format;
 
         public TimeSpanSerializer(
-            string typeName = BuiltInTypeNames.TimeSpan,
+            string typeName = BuiltInScalarNames.TimeSpan,
             TimeSpanFormat format = TimeSpanFormat.Iso8601)
             : base(typeName)
         {
