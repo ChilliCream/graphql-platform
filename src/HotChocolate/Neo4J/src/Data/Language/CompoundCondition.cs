@@ -98,7 +98,7 @@ namespace HotChocolate.Data.Neo4J.Language
             return true;
         }
 
-        public override void Visit(CypherVisitor visitor)
+        public override void Visit(CypherVisitor cypherVisitor)
         {
             // There is nothing to visit here
             if (!_conditions.Any())
@@ -110,11 +110,11 @@ namespace HotChocolate.Data.Neo4J.Language
             var hasManyConditions = _conditions.Count > 1;
             if (hasManyConditions)
             {
-                visitor.Enter(this);
+                cypherVisitor.Enter(this);
             }
 
             // The first nested condition does not need an operator
-            AcceptVisitorWithOperatorForChildCondition(visitor, null, _conditions[0]);
+            AcceptVisitorWithOperatorForChildCondition(cypherVisitor, null, _conditions[0]);
 
             // All others do
             if (!hasManyConditions) return;
@@ -125,16 +125,16 @@ namespace HotChocolate.Data.Neo4J.Language
                 Operator actualOperator = condition is CompoundCondition condition1 ?
                     condition1._operator :
                     _operator;
-                AcceptVisitorWithOperatorForChildCondition(visitor, actualOperator, condition);
+                AcceptVisitorWithOperatorForChildCondition(cypherVisitor, actualOperator, condition);
             }
-            visitor.Leave(this);
+            cypherVisitor.Leave(this);
         }
 
         private static void AcceptVisitorWithOperatorForChildCondition(
-            CypherVisitor visitor, IVisitable op, IVisitable condition)
+            CypherVisitor cypherVisitor, IVisitable op, IVisitable condition)
         {
-            op?.Visit(visitor);
-            condition.Visit(visitor);
+            op?.Visit(cypherVisitor);
+            condition.Visit(cypherVisitor);
         }
     }
 }

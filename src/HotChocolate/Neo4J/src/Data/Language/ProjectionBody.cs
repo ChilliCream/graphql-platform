@@ -21,12 +21,12 @@ namespace HotChocolate.Data.Neo4J.Language
             _limit = limit;
         }
 
-        public new void Visit(CypherVisitor visitor)
+        public new void Visit(CypherVisitor cypherVisitor)
         {
-            _returnItems.Visit(visitor);
-            _order?.Visit(visitor);
-            _skip?.Visit(visitor);
-            _limit?.Visit(visitor);
+            _returnItems.Visit(cypherVisitor);
+            _order?.Visit(cypherVisitor);
+            _skip?.Visit(cypherVisitor);
+            _limit?.Visit(cypherVisitor);
         }
     }
 }

@@ -20,11 +20,11 @@
             return new (new IntegerLiteral(value));
         }
 
-        public override void Visit(CypherVisitor visitor)
+        public override void Visit(CypherVisitor cypherVisitor)
         {
-            visitor.Enter(this);
-            _skipAmount.Visit(visitor);
-            visitor.Leave(this);
+            cypherVisitor.Enter(this);
+            _skipAmount.Visit(cypherVisitor);
+            cypherVisitor.Leave(this);
         }
     }
 }

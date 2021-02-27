@@ -14,11 +14,11 @@
             _limitAmount = new IntegerLiteral(value);
         }
 
-        public override void Visit(CypherVisitor visitor)
+        public override void Visit(CypherVisitor cypherVisitor)
         {
-            visitor.Enter(this);
-            _limitAmount.Visit(visitor);
-            visitor.Leave(this);
+            cypherVisitor.Enter(this);
+            _limitAmount.Visit(cypherVisitor);
+            cypherVisitor.Leave(this);
         }
     }
 }

@@ -7,7 +7,7 @@ namespace HotChocolate.Data.Neo4J.Language
         public static readonly BooleanLiteral True = new (true);
         public static readonly BooleanLiteral False = new (false);
 
-        private BooleanLiteral(bool context) : base(context) { }
+        public BooleanLiteral(bool context) : base(context) { }
 
         public static Literal<bool> Of(bool value) => value ? True : False;
 

@@ -64,12 +64,12 @@ namespace HotChocolate.Data.Neo4J.Language
             return newContent;
         }
 
-        public override void Visit(CypherVisitor visitor)
+        public override void Visit(CypherVisitor cypherVisitor)
         {
-            visitor.Enter(this);
-            _name.Visit(visitor);
-            _expression.Visit(visitor);
-            visitor.Leave(this);
+            cypherVisitor.Enter(this);
+            _name.Visit(cypherVisitor);
+            _expression.Visit(cypherVisitor);
+            cypherVisitor.Leave(this);
         }
     }
 }

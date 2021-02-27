@@ -6,11 +6,11 @@
         /// <summary>
         /// Visits a visitor visiting this Visitable and its nested Visitables if applicable.
         /// </summary>
-        /// <param name="visitor"></param>
-        public virtual void Visit(CypherVisitor visitor)
+        /// <param name="cypherVisitor"></param>
+        public virtual void Visit(CypherVisitor cypherVisitor)
         {
-            visitor.Enter(this);
-            visitor.Leave(this);
+            cypherVisitor.Enter(this);
+            cypherVisitor.Leave(this);
         }
     }
 }

@@ -1,9 +1,15 @@
+using System.Collections.Generic;
+
 namespace HotChocolate.Data.Neo4J.Language
 {
-    public class Statement : Visitable
+    public abstract class Statement
     {
-        public override ClauseKind Kind { get; }
-
         public static StatementBuilder Builder() => new();
+
+        public abstract Dictionary<string, object> GetParameters();
+
+        public abstract List<string> GetParameterNames();
+
+        public abstract string GetCypher();
     }
 }

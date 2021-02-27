@@ -15,11 +15,11 @@ namespace HotChocolate.Data.Neo4J.Language
             _properties = properties;
         }
 
-        public override void Visit(CypherVisitor visitor)
+        public override void Visit(CypherVisitor cypherVisitor)
         {
-            visitor.Enter(this);
-            _properties.Visit(visitor);
-            visitor.Leave(this);
+            cypherVisitor.Enter(this);
+            _properties.Visit(cypherVisitor);
+            cypherVisitor.Leave(this);
         }
     }
 }

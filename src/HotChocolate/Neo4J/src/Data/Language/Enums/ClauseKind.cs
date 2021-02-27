@@ -38,6 +38,7 @@ namespace HotChocolate.Data.Neo4J.Language
         NodeLabels,
 
         Operation,
+        Statement,
 
         Relationship,
 

@@ -20,11 +20,11 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public SingleQuery GetQuery() => _query;
 
-        public new void Visit(CypherVisitor visitor)
+        public new void Visit(CypherVisitor cypherVisitor)
         {
-            visitor.Enter(this);
-            _query.Visit(visitor);
-            visitor.Leave(this);
+            cypherVisitor.Enter(this);
+            _query.Visit(cypherVisitor);
+            cypherVisitor.Leave(this);
         }
     }
 }

@@ -20,11 +20,11 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public bool IsDetach => _detach;
 
-        public override void Visit(CypherVisitor visitor)
+        public override void Visit(CypherVisitor cypherVisitor)
         {
-            visitor.Enter(this);
-            _deleteItems.ForEach(i => PrepareVisit(i).Visit(visitor));
-            visitor.Leave(this);
+            cypherVisitor.Enter(this);
+            _deleteItems.ForEach(i => PrepareVisit(i).Visit(cypherVisitor));
+            cypherVisitor.Leave(this);
         }
 
         private static Visitable PrepareVisit(Expression child) {

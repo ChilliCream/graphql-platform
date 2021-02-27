@@ -22,15 +22,15 @@ namespace HotChocolate.Data.Neo4J.Language
         public SortItem Ascending() => new (_expression, SortDirection.Ascending);
         public SortItem Descending() => new (_expression, SortDirection.Descending);
 
-        public override void Visit(CypherVisitor visitor)
+        public override void Visit(CypherVisitor cypherVisitor)
         {
-            visitor.Enter(this);
-            Expressions.NameOrExpression(_expression).Visit(visitor);
+            cypherVisitor.Enter(this);
+            Expressions.NameOrExpression(_expression).Visit(cypherVisitor);
             if (_direction != SortDirection.Undefined)
             {
-                _direction?.Visit(visitor);
+                _direction?.Visit(cypherVisitor);
             }
-            visitor.Leave(this);
+            cypherVisitor.Leave(this);
         }
     }
 }

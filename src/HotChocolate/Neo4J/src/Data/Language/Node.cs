@@ -111,13 +111,13 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public Condition IsEqualTo(Node otherNode) => GetSymbolicName().IsEqualTo(otherNode.GetSymbolicName());
 
-        public override void Visit(CypherVisitor visitor)
+        public override void Visit(CypherVisitor cypherVisitor)
         {
-            visitor.Enter(this);
-            _symbolicName?.Visit(visitor);
-            _labels?.ForEach(label => label.Visit(visitor));
-            _properties?.Visit(visitor);
-            visitor.Leave(this);
+            cypherVisitor.Enter(this);
+            _symbolicName?.Visit(cypherVisitor);
+            _labels?.ForEach(label => label.Visit(cypherVisitor));
+            _properties?.Visit(cypherVisitor);
+            cypherVisitor.Leave(this);
         }
     }
 }

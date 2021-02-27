@@ -31,15 +31,15 @@
         private static Expression NestedIfCondition(Expression expression) =>
             expression is Condition ? new NestedExpression(expression) : expression;
 
-        public override void Visit(CypherVisitor visitor)
+        public override void Visit(CypherVisitor cypherVisitor)
         {
-            visitor.Enter(this);
+            cypherVisitor.Enter(this);
             if (_left != null)
-                Expressions.NameOrExpression(_left).Visit(visitor);
-            _operator.Visit(visitor);
+                Expressions.NameOrExpression(_left).Visit(cypherVisitor);
+            _operator.Visit(cypherVisitor);
             if (_right != null)
-                Expressions.NameOrExpression(_right).Visit(visitor);
-            visitor.Leave(this);
+                Expressions.NameOrExpression(_right).Visit(cypherVisitor);
+            cypherVisitor.Leave(this);
         }
     }
 }

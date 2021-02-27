@@ -20,12 +20,12 @@
 
         public bool IsOptional() => _optional;
 
-        public override void Visit(CypherVisitor visitor)
+        public override void Visit(CypherVisitor cypherVisitor)
         {
-            visitor.Enter(this);
-            _pattern.Visit(visitor);
-            _optionalWhere?.Visit(visitor);
-            visitor.Leave(this);
+            cypherVisitor.Enter(this);
+            _pattern.Visit(cypherVisitor);
+            _optionalWhere?.Visit(cypherVisitor);
+            cypherVisitor.Leave(this);
         }
     }
 }

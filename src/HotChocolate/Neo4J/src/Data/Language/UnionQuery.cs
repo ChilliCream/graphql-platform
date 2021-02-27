@@ -34,12 +34,12 @@ namespace HotChocolate.Data.Neo4J.Language
             queries.AddRange(newAdditionalQueries);
             return Create(_all, queries);
         }
-        public new void Visit(CypherVisitor visitor)
+        public new void Visit(CypherVisitor cypherVisitor)
         {
-            visitor.Enter(this);
-            _firstQuery.Visit(visitor);
-            _additionalQueries.ForEach(q => q.Visit(visitor));
-            visitor.Leave(this);
+            cypherVisitor.Enter(this);
+            _firstQuery.Visit(cypherVisitor);
+            _additionalQueries.ForEach(q => q.Visit(cypherVisitor));
+            cypherVisitor.Leave(this);
         }
     }
 }

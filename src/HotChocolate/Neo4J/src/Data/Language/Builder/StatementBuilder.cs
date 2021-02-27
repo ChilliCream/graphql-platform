@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 
 #nullable enable
@@ -7,8 +6,7 @@ namespace HotChocolate.Data.Neo4J.Language
 {
     public class StatementBuilder
     {
-        private readonly int STATEMENT_CACHE_SIZE = 128;
-        private bool IsWrite = false;
+        private bool _isWrite = false;
         private Match? _match;
         private Where? _where;
         private Return? _return;
@@ -23,27 +21,29 @@ namespace HotChocolate.Data.Neo4J.Language
 
         private StatementBuilder Match(bool optional, params PatternElement[] elements)
         {
-            _match = new Match(optional, new Pattern(elements), null);
+            _match = new Match(optional, new Pattern(elements.ToList()), null);
             return this;
         }
 
-        // public StatementBuilder Return(params PatternElement[] elements) =>
-        //      Return(false, elements);
-        //  public StatementBuilder ReturnDistinct(params PatternElement[] elements) =>
-        //      Return(true, elements);
-        //
-        //  private StatementBuilder Return(bool distinct, params Expression elements)
-        // {
-        //     _return = new Return(distinct, elements);
-        //     return this;
-        // }
+        public StatementBuilder Return(params INamed[] elements)
+        {
+            _return = new Return(false, Expressions.CreateSymbolicNames(elements));
+            return this;
+        }
+
+        public StatementBuilder Return(params Expression[] elements)
+        {
+            _return = new Return(false, elements);
+            return this;
+        }
+
 
         public string Build()
         {
             // TODO: Implement cache
 
             using var visitor = new CypherVisitor();
-            switch (IsWrite)
+            switch (_isWrite)
             {
                 case false:
                     _match?.Visit(visitor);

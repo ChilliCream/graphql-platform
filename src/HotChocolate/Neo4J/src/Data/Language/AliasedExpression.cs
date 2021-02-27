@@ -27,11 +27,11 @@ namespace HotChocolate.Data.Neo4J.Language
             return new AliasedExpression(_expression, newAlias);
         }
 
-        public override void Visit(CypherVisitor visitor)
+        public override void Visit(CypherVisitor cypherVisitor)
         {
-            visitor.Enter(this);
-            Expressions.NameOrExpression(_expression).Visit(visitor);
-            visitor.Leave(this);
+            cypherVisitor.Enter(this);
+            Expressions.NameOrExpression(_expression).Visit(cypherVisitor);
+            cypherVisitor.Leave(this);
         }
     }
 }

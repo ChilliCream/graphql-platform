@@ -17,11 +17,11 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public string GetVariable() => _variable;
 
-        public override void Visit(CypherVisitor visitor)
+        public override void Visit(CypherVisitor cypherVisitor)
         {
-            visitor.Enter(this);
-            _expressionToUnwind.Visit(visitor);
-            visitor.Leave(this);
+            cypherVisitor.Enter(this);
+            _expressionToUnwind.Visit(cypherVisitor);
+            cypherVisitor.Leave(this);
         }
     }
 }

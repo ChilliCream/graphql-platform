@@ -14,12 +14,12 @@ namespace HotChocolate.Data.Neo4J.Language
             _patternElement = patternElement;
         }
 
-        public override void Visit(CypherVisitor visitor)
+        public override void Visit(CypherVisitor cypherVisitor)
         {
-            visitor.Enter(this);
-            Operator.Not.Visit(visitor);
-            _patternElement.Visit(visitor);
-            visitor.Leave(this);
+            cypherVisitor.Enter(this);
+            Operator.Not.Visit(cypherVisitor);
+            _patternElement.Visit(cypherVisitor);
+            cypherVisitor.Leave(this);
         }
     }
 }

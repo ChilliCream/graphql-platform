@@ -17,23 +17,23 @@ namespace HotChocolate.Data.Neo4J.Language
         private readonly Skip? _skip;
         private readonly Limit? _limit;
 
-        public Return(bool distinct, List<Expression> expressions, OrderBy? orderBy, Skip? skip, Limit? limit) {
+        public Return(bool distinct, Expression[] expressions, OrderBy? orderBy = null, Skip? skip = null, Limit? limit = null) {
             _distinct = distinct ? Distinct.Instance : null;
-            _expressions = expressions;
+            _expressions = expressions.ToList();
             _order = orderBy;
             _skip = skip;
             _limit = limit;
         }
 
-        public override void Visit(CypherVisitor visitor)
+        public override void Visit(CypherVisitor cypherVisitor)
         {
-            visitor.Enter(this);
-            _distinct?.Visit(visitor);
-            _expressions.ForEach(element => element.Visit(visitor));
-            _order?.Visit(visitor);
-            _skip?.Visit(visitor);
-            _limit?.Visit(visitor);
-            visitor.Leave(this);
+            cypherVisitor.Enter(this);
+            _distinct?.Visit(cypherVisitor);
+            _expressions.ForEach(element => element.Visit(cypherVisitor));
+            _order?.Visit(cypherVisitor);
+            _skip?.Visit(cypherVisitor);
+            _limit?.Visit(cypherVisitor);
+            cypherVisitor.Leave(this);
         }
     }
 }

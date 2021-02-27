@@ -5,8 +5,7 @@
     /// </summary>
     public static class Symbol
     {
-        public const string NodeLabelStart = ":";
-        public const string RelationshipTypeStart = ":";
-        public const string RelationshipTypeSeperator = "|";
+        public const string Colon = ":";
+        public const string Pipe = "|";
     }
 }

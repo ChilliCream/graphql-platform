@@ -12,23 +12,21 @@ namespace HotChocolate.Data.Neo4J.Language
         private readonly Where _where;
         private readonly Expression _expression;
 
-        private PatternComprehension(PatternElement patternElement, Where where, Expression expression)
+        public PatternComprehension(PatternElement patternElement, Where where, Expression expression)
         {
             _patternElement = patternElement;
             _where = where;
             _expression = expression;
         }
 
-
-
-        public override void Visit(CypherVisitor visitor)
+        public override void Visit(CypherVisitor cypherVisitor)
         {
-            visitor.Enter(this);
-            _patternElement.Visit(visitor);
-            _where?.Visit(visitor);
-            Operator.Pipe.Visit(visitor);
-            _expression.Visit(visitor);
-            visitor.Leave(this);
+            cypherVisitor.Enter(this);
+            _patternElement.Visit(cypherVisitor);
+            _where?.Visit(cypherVisitor);
+            Operator.Pipe.Visit(cypherVisitor);
+            _expression.Visit(cypherVisitor);
+            cypherVisitor.Leave(this);
         }
     }
 }

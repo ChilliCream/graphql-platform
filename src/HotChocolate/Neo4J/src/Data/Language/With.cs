@@ -26,16 +26,16 @@ namespace HotChocolate.Data.Neo4J.Language
             _where = where;
         }
 
-        public override void Visit(CypherVisitor visitor)
+        public override void Visit(CypherVisitor cypherVisitor)
         {
-            visitor.Enter(this);
-            _distinct?.Visit(visitor);
-            _expressions.ForEach(element => element.Visit(visitor));
-            _orderBy?.Visit(visitor);
-            _skip?.Visit(visitor);
-            _limit?.Visit(visitor);
-            _where?.Visit(visitor);
-            visitor.Leave(this);
+            cypherVisitor.Enter(this);
+            _distinct?.Visit(cypherVisitor);
+            _expressions.ForEach(element => element.Visit(cypherVisitor));
+            _orderBy?.Visit(cypherVisitor);
+            _skip?.Visit(cypherVisitor);
+            _limit?.Visit(cypherVisitor);
+            _where?.Visit(cypherVisitor);
+            cypherVisitor.Leave(this);
         }
     }
 }

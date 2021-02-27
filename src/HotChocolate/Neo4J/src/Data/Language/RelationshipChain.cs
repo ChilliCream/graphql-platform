@@ -9,7 +9,7 @@ namespace HotChocolate.Data.Neo4J.Language
     public class RelationshipChain : IRelationshipPattern
     {
         public ClauseKind Kind { get; } = ClauseKind.RelationshipChain;
-        public void Visit(CypherVisitor visitor)
+        public void Visit(CypherVisitor cypherVisitor)
         {
             throw new System.NotImplementedException();
         }

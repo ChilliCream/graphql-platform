@@ -55,7 +55,7 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public void EnterVisitable(NodeLabel nodeLabel)
         {
-            _writer.Write(Symbol.NodeLabelStart);
+            _writer.Write(Symbol.Colon);
             _writer.Write(nodeLabel.GetValue());
         }
 

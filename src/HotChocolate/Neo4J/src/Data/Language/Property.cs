@@ -35,12 +35,12 @@ namespace HotChocolate.Data.Neo4J.Language
 
         //public Operation To(Expression expression) => Operations.Set(this, expression);
 
-        public override void Visit(CypherVisitor visitor)
+        public override void Visit(CypherVisitor cypherVisitor)
         {
-            visitor.Enter(this);
-            _container.Visit(visitor);
-            _name.Visit(visitor);
-            visitor.Leave(this);
+            cypherVisitor.Enter(this);
+            _container.Visit(cypherVisitor);
+            _name.Visit(cypherVisitor);
+            cypherVisitor.Leave(this);
         }
     }
 }

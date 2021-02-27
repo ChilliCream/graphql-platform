@@ -4,17 +4,13 @@ using System.Linq;
 namespace HotChocolate.Data.Neo4J.Language
 {
     /// <summary>
-    /// List of expressions on a node or relationship.
+    /// A dedicated map expression.
     /// </summary>
-    public class MapExpression : Expression
+    public class MapExpression : TypedSubtree<Expression>, IExpression
     {
         public override ClauseKind Kind => ClauseKind.MapExpression;
-        private readonly List<Expression> _expressions;
 
-        private MapExpression(List<Expression> expressions)
-        {
-            _expressions = expressions;
-        }
+        private MapExpression(List<Expression> expressions) : base(expressions) { }
 
         public static MapExpression Create(params object[] input)
         {
@@ -36,25 +32,28 @@ namespace HotChocolate.Data.Neo4J.Language
         public MapExpression AddEntries(IEnumerable<Expression> entries)
         {
             var newContent = new List<Expression>();
-            newContent.AddRange(_expressions);
+            newContent.AddRange(Children);
             newContent.AddRange(entries);
 
             return new MapExpression(newContent);
         }
 
-        public override void Visit(CypherVisitor visitor)
+        protected override IVisitable PrepareVisit(Expression child) =>
+            Expressions.NameOrExpression(child);
+
+        /*public override void Visit(CypherVisitor visitor)
         {
-            var singleExpression = _expressions.Any() && !_expressions.Skip(1).Any();
-            var hasManyExpressions = _expressions.Any() && _expressions.Skip(1).Any();
+            var singleExpression = _children.Any() && !_children.Skip(1).Any();
+            var hasManyExpressions = _children.Any() && _children.Skip(1).Any();
 
             visitor.Enter(this);
             if(singleExpression)
-                _expressions.First().Visit(visitor);
+                _children.First().Visit(visitor);
             else if (hasManyExpressions)
             {
-                foreach (Expression expression in _expressions)
+                foreach (Expression expression in _children)
                 {
-                    if (_expressions.IndexOf(expression) == _expressions.Count - 1)
+                    if (_children.IndexOf(expression) == _children.Count - 1)
                     {
                         expression.Visit(visitor);
                         break;
@@ -64,6 +63,6 @@ namespace HotChocolate.Data.Neo4J.Language
                 }
             }
             visitor.Leave(this);
-        }
+        }*/
     }
 }

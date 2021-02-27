@@ -21,12 +21,12 @@
             _condition = condition;
         }
 
-        public override void Visit(CypherVisitor visitor)
+        public override void Visit(CypherVisitor cypherVisitor)
         {
-            visitor.Enter(this);
-            _exists?.Visit(visitor);
-            _condition.Visit(visitor);
-            visitor.Leave(this);
+            cypherVisitor.Enter(this);
+            _exists?.Visit(cypherVisitor);
+            _condition.Visit(cypherVisitor);
+            cypherVisitor.Leave(this);
         }
     }
 }

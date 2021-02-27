@@ -26,6 +26,8 @@ namespace HotChocolate.Data.Neo4J.Language
             return new SymbolicName(name);
         }
 
+        public static SymbolicName Unresolved() => new (null);
+
         public SymbolicName Concat(string otherValue)
         {
             Ensure.IsNotNull(otherValue, "Value to concat must not be null.");
@@ -64,7 +66,6 @@ namespace HotChocolate.Data.Neo4J.Language
             return _value.Equals(that._value);
         }
 
-        // TODO: does not look right come back to this
-        //public override int GetHashCode() => _value == null ? base.GetHashCode() : _value.GetHashCode();
+        public override int GetHashCode() => _value.GetHashCode();
     }
 }
