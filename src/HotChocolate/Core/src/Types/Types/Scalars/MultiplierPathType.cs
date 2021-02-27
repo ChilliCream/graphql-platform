@@ -9,7 +9,7 @@ namespace HotChocolate.Types
     /// The name scalar represents a valid GraphQL name as specified in the spec
     /// and can be used to refer to fields or types.
     /// </summary>
-    public sealed class MultiplierPathType
+    public class MultiplierPathType
         : ScalarType<MultiplierPathString, StringValueNode>
     {
         /// <summary>
