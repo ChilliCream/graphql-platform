@@ -15,7 +15,7 @@
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestResultFactory
@@ -48,7 +48,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestResultInfo
@@ -91,7 +91,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestResult
@@ -113,7 +113,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ITestResult
@@ -129,7 +129,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class BarInputValueFormatter
@@ -240,7 +240,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class Bar
@@ -264,7 +264,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestQueryDocument
@@ -300,7 +300,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestQuery
@@ -428,7 +428,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestBuilder
@@ -499,20 +499,20 @@ namespace FooClient
 }
 
 
-// Foo
+// FooClient
 
 // StrawberryShake.CodeGeneration.CSharp.ClientGenerator
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class Foo
+    public partial class FooClient
     {
         private readonly TestQuery _testQuery;
 
-        public Foo(TestQuery testQuery)
+        public FooClient(TestQuery testQuery)
         {
             _testQuery = testQuery
                  ?? throw new global::System.ArgumentNullException(nameof(testQuery));
@@ -529,7 +529,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class EntityIdFactory
@@ -547,18 +547,18 @@ namespace FooClient
 }
 
 
-// FooServiceCollectionExtensions
+// FooClientServiceCollectionExtensions
 
 // StrawberryShake.CodeGeneration.CSharp.DependencyInjectionGenerator
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public static partial class FooServiceCollectionExtensions
+    public static partial class FooClientServiceCollectionExtensions
     {
-        public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddFoo(
+        public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddFooClient(
             this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
             global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
@@ -584,7 +584,7 @@ namespace FooClient
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<Foo>(
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<FooClient>(
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
 
             return services;
@@ -633,7 +633,7 @@ namespace FooClient
                             >(parentServices);
             
                     return new global::StrawberryShake.Transport.Http.HttpConnection(
-                        () => clientFactory.CreateClient("Foo"));
+                        () => clientFactory.CreateClient("FooClient"));
                 });
             
             // register mappers
@@ -687,7 +687,7 @@ namespace FooClient
             
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<TestQuery>(services);
             
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<Foo>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<FooClient>(services);
             
             return services;
         }

@@ -11,16 +11,19 @@ using StrawberryShake.CodeGeneration.Analyzers;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Utilities;
 using Xunit;
+using static StrawberryShake.CodeGeneration.CSharp.CSharpGenerator;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
     public static class GeneratorTestHelper
     {
-        public static IReadOnlyList<IError> AssertError(params string[] sourceTexts)
+        public static IReadOnlyList<IError> AssertError(
+            params string[] fileNames)
         {
-            ClientModel clientModel = CreateClientModel(sourceTexts);
-
-            var result = CSharpGenerator.Generate(clientModel, "Foo", "FooClient");
+            CSharpGeneratorResult result = Generate(
+                fileNames,
+                @namespace: "Foo",
+                clientName: "FooClient");
 
             Assert.True(
                 result.Errors.Any(),
@@ -29,9 +32,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return result.Errors;
         }
 
-        public static void AssertResult(params string[] sourceTexts)
+        public static void AssertResult(params string[] sourceTexts) =>
+            AssertResult(true, sourceTexts);
+
+        public static void AssertResult(bool strictValidation, params string[] sourceTexts)
         {
-            ClientModel clientModel = CreateClientModel(sourceTexts);
+            ClientModel clientModel = CreateClientModel(sourceTexts, strictValidation);
 
             var documents = new StringBuilder();
             var documentNames = new HashSet<string>();
@@ -48,7 +54,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             documents.AppendLine("// ReSharper disable InconsistentNaming");
             documents.AppendLine();
 
-            var result = CSharpGenerator.Generate(
+            CSharpGeneratorResult result = Generate(
                 clientModel,
                 @namespace: "Foo",
                 clientName: "FooClient");
@@ -89,7 +95,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         public static void AssertStarWarsResult(params string[] sourceTexts)
         {
-            var source = new string[sourceTexts.Length];
+            var source = new string[sourceTexts.Length + 2];
 
             source[0] = FileResource.Open("Schema.graphql");
             source[1] = FileResource.Open("Schema.extensions.graphql");
@@ -104,7 +110,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             AssertResult(source);
         }
 
-        private static ClientModel CreateClientModel(params string[] sourceText)
+        private static ClientModel CreateClientModel(string[] sourceText, bool strictValidation)
         {
             var files = sourceText
                 .Select(s => new GraphQLFile(Utf8GraphQLParser.Parse(s)))
@@ -115,7 +121,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             var analyzer = new DocumentAnalyzer();
 
-            analyzer.SetSchema(SchemaHelper.Load(typeSystemDocs));
+            analyzer.SetSchema(SchemaHelper.Load(typeSystemDocs, strictValidation));
 
             foreach (DocumentNode executable in executableDocs.Select(file => file.Document))
             {

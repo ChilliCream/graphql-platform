@@ -1,3 +1,4 @@
+using System.IO;
 using ChilliCream.Testing;
 using Xunit;
 using static StrawberryShake.CodeGeneration.CSharp.GeneratorTestHelper;
@@ -20,10 +21,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             Assert.Collection(
                 AssertError(
-                    FileResource.Open("Query_SyntaxError.graphql"),
-                    FileResource.Open("Schema.extensions.graphql"),
-                    FileResource.Open("Schema.graphql")),
-                error => { });
+                    Path.Combine("__resources__", "Query_SyntaxError.graphql"),
+                    Path.Combine("__resources__", "Schema.extensions.graphql"),
+                    Path.Combine("__resources__", "Schema.graphql")),
+                error =>
+                {
+                    Assert.Equal("SS0001", error.Code);
+                    Assert.Equal(
+                        "Expected a `Name`-token, but found a `EndOfFile`-token.",
+                        error.Message);
+                });
         }
 
         [Fact]
@@ -31,10 +38,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             Assert.Collection(
                 AssertError(
-                    FileResource.Open("Query_SchemaValidationError.graphql"),
-                    FileResource.Open("Schema.extensions.graphql"),
-                    FileResource.Open("Schema.graphql")),
-                error => { });
+                    Path.Combine("__resources__", "Query_SchemaValidationError.graphql"),
+                    Path.Combine("__resources__", "Schema.extensions.graphql"),
+                    Path.Combine("__resources__", "Schema.graphql")),
+                error =>
+                {
+                    Assert.Equal("SS0002", error.Code);
+                    Assert.Equal(
+                        "The field `someNotExistingField` does not exist on the type `Character`.",
+                        error.Message);
+                });
         }
 
         [Fact]

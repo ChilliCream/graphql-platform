@@ -15,7 +15,7 @@
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class DroidEntity
@@ -33,7 +33,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class HumanEntity
@@ -51,7 +51,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroResultFactory
@@ -117,7 +117,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroResultInfo
@@ -160,7 +160,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroResult
@@ -182,7 +182,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_Hero_DroidFromDroidEntityMapper
@@ -204,7 +204,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_Hero_Droid
@@ -231,7 +231,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_Hero_HumanFromHumanEntityMapper
@@ -253,7 +253,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_Hero_Human
@@ -280,7 +280,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetHeroResult
@@ -296,7 +296,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetHero_Hero
@@ -314,7 +314,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetHero_Hero_Droid
@@ -330,7 +330,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetHero_Hero_Human
@@ -346,7 +346,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public enum Episode
@@ -364,7 +364,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class EpisodeSerializer
@@ -404,7 +404,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroQueryDocument
@@ -450,7 +450,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroQuery
@@ -497,7 +497,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroBuilder
@@ -506,7 +506,7 @@ namespace FooClient
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
         private readonly global::StrawberryShake.IOperationResultDataFactory<IGetHeroResult> _resultDataFactory;
-        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::FooClient.Episode> _episodeParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::Foo.Episode> _episodeParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
 
         public GetHeroBuilder(
@@ -521,7 +521,7 @@ namespace FooClient
                  ?? throw new global::System.ArgumentNullException(nameof(extractId));
             _resultDataFactory = resultDataFactory
                  ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
-            _episodeParser = serializerResolver.GetLeafValueParser<global::System.String, global::FooClient.Episode>("Episode")
+            _episodeParser = serializerResolver.GetLeafValueParser<global::System.String, global::Foo.Episode>("Episode")
                  ?? throw new global::System.ArgumentException("No serializer for type `Episode` found.");
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String")
                  ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
@@ -635,20 +635,20 @@ namespace FooClient
 }
 
 
-// Foo
+// FooClient
 
 // StrawberryShake.CodeGeneration.CSharp.ClientGenerator
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class Foo
+    public partial class FooClient
     {
         private readonly GetHeroQuery _getHeroQuery;
 
-        public Foo(GetHeroQuery getHeroQuery)
+        public FooClient(GetHeroQuery getHeroQuery)
         {
             _getHeroQuery = getHeroQuery
                  ?? throw new global::System.ArgumentNullException(nameof(getHeroQuery));
@@ -665,7 +665,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class EntityIdFactory
@@ -703,18 +703,18 @@ namespace FooClient
 }
 
 
-// FooServiceCollectionExtensions
+// FooClientServiceCollectionExtensions
 
 // StrawberryShake.CodeGeneration.CSharp.DependencyInjectionGenerator
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public static partial class FooServiceCollectionExtensions
+    public static partial class FooClientServiceCollectionExtensions
     {
-        public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddFoo(
+        public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddFooClient(
             this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
             global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
@@ -740,7 +740,7 @@ namespace FooClient
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<Foo>(
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<FooClient>(
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
 
             return services;
@@ -789,7 +789,7 @@ namespace FooClient
                             >(parentServices);
             
                     return new global::StrawberryShake.Transport.Http.HttpConnection(
-                        () => clientFactory.CreateClient("Foo"));
+                        () => clientFactory.CreateClient("FooClient"));
                 });
             
             // register mappers
@@ -845,7 +845,7 @@ namespace FooClient
             
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<GetHeroQuery>(services);
             
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<Foo>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<FooClient>(services);
             
             return services;
         }

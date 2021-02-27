@@ -69,7 +69,7 @@ namespace StrawberryShake.CodeGeneration
             this SyntaxException exception,
             string file) =>
             ErrorBuilder.New()
-                .SetMessage(Throwhelper_Generator_SyntaxError)
+                .SetMessage(exception.Message)
                 .SetExtension(FileExtensionKey, file)
                 .SetException(exception)
                 .AddLocation(exception.Line, exception.Column)

@@ -10,6 +10,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         public void Schema_With_Spec_Errors()
         {
             AssertResult(
+                strictValidation: false,
                 @"
                     query getListingsCount {
                         listings {

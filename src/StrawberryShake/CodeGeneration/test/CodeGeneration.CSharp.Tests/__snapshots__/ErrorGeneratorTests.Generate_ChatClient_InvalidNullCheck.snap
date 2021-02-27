@@ -15,12 +15,12 @@
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class PersonEntity
     {
-        public global::FooClient.State.PersonConnectionData? Friends { get; set; }
+        public global::Foo.State.PersonConnectionData? Friends { get; set; }
 
         public global::System.String Name { get; set; } = default!;
 
@@ -37,7 +37,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleResultFactory
@@ -87,7 +87,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleResultInfo
@@ -130,7 +130,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleResult
@@ -152,7 +152,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeople_Me_PersonFromPersonEntityMapper
@@ -176,7 +176,7 @@ namespace FooClient
             return new GetPeople_Me_Person(MapIGetPeople_Me_Friends(entity.Friends));
         }
 
-        private IGetPeople_Me_Friends? MapIGetPeople_Me_Friends(global::FooClient.State.PersonConnectionData data)
+        private IGetPeople_Me_Friends? MapIGetPeople_Me_Friends(global::Foo.State.PersonConnectionData data)
         {
             if (data == default)
             {
@@ -238,7 +238,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeople_Me_Person
@@ -260,7 +260,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeople_Me_Friends_PersonConnection
@@ -282,7 +282,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeople_Me_Friends_Nodes_PersonFromPersonEntityMapper
@@ -305,7 +305,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeople_Me_Friends_Nodes_Person
@@ -336,7 +336,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetPeopleResult
@@ -352,7 +352,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetPeople_Me
@@ -368,7 +368,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetPeople_Me_Person
@@ -384,7 +384,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetPeople_Me_Friends
@@ -400,7 +400,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetPeople_Me_Friends_PersonConnection
@@ -416,7 +416,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetPeople_Me_Friends_Nodes
@@ -436,7 +436,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetPeople_Me_Friends_Nodes_Person
@@ -452,7 +452,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleQueryDocument
@@ -505,7 +505,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleQuery
@@ -552,7 +552,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleBuilder
@@ -642,7 +642,7 @@ namespace FooClient
             throw new global::System.NotSupportedException();
         }
 
-        private global::FooClient.State.PersonConnectionData? DeserializeIGetPeople_Me_Friends(
+        private global::Foo.State.PersonConnectionData? DeserializeIGetPeople_Me_Friends(
             global::System.Text.Json.JsonElement? obj,
             global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
@@ -655,7 +655,7 @@ namespace FooClient
 
             if (typename?.Equals("PersonConnection", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new global::FooClient.State.PersonConnectionData(
+                return new global::Foo.State.PersonConnectionData(
                     typename,
                     nodes: UpdateIGetPeople_Me_Friends_NodesEntityArray(
                         global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "nodes"),
@@ -741,7 +741,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient.State
+namespace Foo.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class PersonConnectionData
@@ -762,20 +762,20 @@ namespace FooClient.State
 }
 
 
-// Foo
+// FooClient
 
 // StrawberryShake.CodeGeneration.CSharp.ClientGenerator
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class Foo
+    public partial class FooClient
     {
         private readonly GetPeopleQuery _getPeopleQuery;
 
-        public Foo(GetPeopleQuery getPeopleQuery)
+        public FooClient(GetPeopleQuery getPeopleQuery)
         {
             _getPeopleQuery = getPeopleQuery
                  ?? throw new global::System.ArgumentNullException(nameof(getPeopleQuery));
@@ -792,7 +792,7 @@ namespace FooClient
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class EntityIdFactory
@@ -820,18 +820,18 @@ namespace FooClient
 }
 
 
-// FooServiceCollectionExtensions
+// FooClientServiceCollectionExtensions
 
 // StrawberryShake.CodeGeneration.CSharp.DependencyInjectionGenerator
 
 #nullable enable
 
-namespace FooClient
+namespace Foo
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public static partial class FooServiceCollectionExtensions
+    public static partial class FooClientServiceCollectionExtensions
     {
-        public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddFoo(
+        public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddFooClient(
             this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
             global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
@@ -857,7 +857,7 @@ namespace FooClient
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<Foo>(
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<FooClient>(
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
 
             return services;
@@ -906,7 +906,7 @@ namespace FooClient
                             >(parentServices);
             
                     return new global::StrawberryShake.Transport.Http.HttpConnection(
-                        () => clientFactory.CreateClient("Foo"));
+                        () => clientFactory.CreateClient("FooClient"));
                 });
             
             // register mappers
@@ -961,7 +961,7 @@ namespace FooClient
             
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<GetPeopleQuery>(services);
             
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<Foo>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<FooClient>(services);
             
             return services;
         }

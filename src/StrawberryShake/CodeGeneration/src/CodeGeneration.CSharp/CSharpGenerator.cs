@@ -12,6 +12,7 @@ using StrawberryShake.CodeGeneration.Analyzers;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Mappers;
 using StrawberryShake.CodeGeneration.Utilities;
+using StrawberryShake.Properties;
 using static HotChocolate.Language.Utf8GraphQLParser;
 using static StrawberryShake.CodeGeneration.Utilities.DocumentHelper;
 
@@ -54,14 +55,18 @@ namespace StrawberryShake.CodeGeneration.CSharp
             if (string.IsNullOrEmpty(clientName))
             {
                 throw new ArgumentException(
-                    $"'{nameof(clientName)}' cannot be null or empty.", 
+                    string.Format(
+                        Resources.CSharpGenerator_Generate_ArgumentCannotBeNull,
+                        nameof(clientName)),
                     nameof(clientName));
             }
 
             if (string.IsNullOrEmpty(@namespace))
             {
                 throw new ArgumentException(
-                    $"'{nameof(@namespace)}' cannot be null or empty.", 
+                    string.Format(
+                        Resources.CSharpGenerator_Generate_ArgumentCannotBeNull,
+                        nameof(@namespace)),
                     nameof(@namespace));
             }
 
@@ -76,8 +81,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             // divide documents into type system document for the schema
             // and executable documents.
-            var typeSystemFiles = files.GetTypeSystemDocuments();
-            var executableFiles = files.GetExecutableDocuments();
+            IReadOnlyList<GraphQLFile> typeSystemFiles = files.GetTypeSystemDocuments();
+            IReadOnlyList<GraphQLFile> executableFiles = files.GetExecutableDocuments();
 
             if (typeSystemFiles.Count == 0 || executableFiles.Count == 0)
             {
@@ -108,11 +113,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 return new(errors);
             }
 
-            // At this point we have a valid schema and know that our documents are executable 
-            // against the schema. 
+            // At this point we have a valid schema and know that our documents are executable
+            // against the schema.
             //
             // In order to generate the client code we will first need to create a client model
-            // which represents the logical parts of the executable documents.            
+            // which represents the logical parts of the executable documents.
             var analyzer = new DocumentAnalyzer();
             analyzer.SetSchema(schema);
 
@@ -128,7 +133,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         }
 
         public static CSharpGeneratorResult Generate(
-            ClientModel clientModel, 
+            ClientModel clientModel,
             string clientName = "GraphQLClient",
             string @namespace = "StrawberryShake.GraphQL")
         {
@@ -140,14 +145,18 @@ namespace StrawberryShake.CodeGeneration.CSharp
             if (string.IsNullOrEmpty(clientName))
             {
                 throw new ArgumentException(
-                    $"'{nameof(clientName)}' cannot be null or empty.", 
+                    string.Format(
+                        Resources.CSharpGenerator_Generate_ArgumentCannotBeNull,
+                        nameof(clientName)),
                     nameof(clientName));
             }
 
             if (string.IsNullOrEmpty(@namespace))
             {
                 throw new ArgumentException(
-                    $"'{nameof(@namespace)}' cannot be null or empty.", 
+                    string.Format(
+                        Resources.CSharpGenerator_Generate_ArgumentCannotBeNull,
+                        nameof(@namespace)),
                     nameof(@namespace));
             }
 
@@ -218,7 +227,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 try
                 {
-                    var document = Parse(File.ReadAllBytes(fileName));
+                    DocumentNode document = Parse(File.ReadAllBytes(fileName));
                     files.Add(new(fileName, document));
                 }
                 catch (SyntaxException syntaxException)
@@ -262,8 +271,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             IDocumentValidator validator = CreateDocumentValidator();
 
-            var document = MergeDocuments(executableFiles);
-            var validationResult = validator.Validate(schema, document);
+            DocumentNode document = MergeDocuments(executableFiles);
+            DocumentValidatorResult validationResult = validator.Validate(schema, document);
 
             if (validationResult.HasErrors)
             {
