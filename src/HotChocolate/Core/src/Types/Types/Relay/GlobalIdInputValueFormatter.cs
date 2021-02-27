@@ -12,7 +12,7 @@ namespace HotChocolate.Types.Relay
 {
     internal class GlobalIdInputValueFormatter : IInputValueFormatter
     {
-        public readonly NameString TypeName;
+        private readonly NameString _typeName;
         private readonly IIdSerializer _idSerializer;
         private readonly bool _validateType;
         private readonly Func<IList> _createList;
@@ -23,7 +23,7 @@ namespace HotChocolate.Types.Relay
             IExtendedType resultType,
             bool validateType)
         {
-            TypeName = typeName;
+            _typeName = typeName;
             _idSerializer = idSerializer;
             _validateType = validateType;
             _createList = CreateListFactory(resultType);
@@ -37,7 +37,7 @@ namespace HotChocolate.Types.Relay
             }
 
             if (runtimeValue is IdValue id &&
-                (!_validateType || TypeName.Equals(id.TypeName)))
+                (!_validateType || _typeName.Equals(id.TypeName)))
             {
                 return id.Value;
             }
@@ -48,7 +48,7 @@ namespace HotChocolate.Types.Relay
                 {
                     id = _idSerializer.Deserialize(s);
 
-                    if (!_validateType || TypeName.Equals(id.TypeName))
+                    if (!_validateType || _typeName.Equals(id.TypeName))
                     {
                         return id.Value;
                     }
@@ -63,7 +63,7 @@ namespace HotChocolate.Types.Relay
 
                 throw new GraphQLException(
                     ErrorBuilder.New()
-                        .SetMessage("The ID `{0}` is not an ID of `{1}`.", s, TypeName)
+                        .SetMessage("The ID `{0}` is not an ID of `{1}`.", s, _typeName)
                         .Build());
             }
 
@@ -73,7 +73,7 @@ namespace HotChocolate.Types.Relay
 
                 foreach (IdValue idv in idEnumerable)
                 {
-                    if (!_validateType || TypeName.Equals(idv.TypeName))
+                    if (!_validateType || _typeName.Equals(idv.TypeName))
                     {
                         list.Add(idv.Value);
                     }
@@ -92,7 +92,7 @@ namespace HotChocolate.Types.Relay
                     {
                         id = _idSerializer.Deserialize(sv);
 
-                        if (!_validateType || TypeName.Equals(id.TypeName))
+                        if (!_validateType || _typeName.Equals(id.TypeName))
                         {
                             list.Add(id.Value);
                         }
