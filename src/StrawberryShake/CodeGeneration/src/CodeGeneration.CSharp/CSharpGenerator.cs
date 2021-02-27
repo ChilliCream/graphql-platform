@@ -129,7 +129,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             ClientModel clientModel = analyzer.Analyze();
 
             // With the client model we finally can create CSharp code.
-            return Generate(clientModel, @namespace, clientName);
+            return Generate(clientModel, clientName: clientName, @namespace: @namespace);
         }
 
         public static CSharpGeneratorResult Generate(
