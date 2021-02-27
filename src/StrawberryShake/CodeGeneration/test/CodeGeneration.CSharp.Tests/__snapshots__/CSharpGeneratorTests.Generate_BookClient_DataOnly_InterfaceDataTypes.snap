@@ -15,7 +15,7 @@
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchSomethingResultFactory
@@ -39,7 +39,7 @@ namespace Foo
             throw new global::System.ArgumentException("SearchSomethingResultInfo expected.");
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<ISearchSomething_Prints?>? MapIPrintDataArray(global::System.Collections.Generic.IReadOnlyList<global::Foo.State.IPrintData?>? list)
+        private global::System.Collections.Generic.IReadOnlyList<ISearchSomething_Prints?>? MapIPrintDataArray(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.IPrintData?>? list)
         {
             if (list == default)
             {
@@ -48,7 +48,7 @@ namespace Foo
 
             var prints = new global::System.Collections.Generic.List<ISearchSomething_Prints?>();
 
-            foreach (global::Foo.State.IPrintData? child in list)
+            foreach (global::Foo.Bar.State.IPrintData? child in list)
             {
                 prints.Add(MapIPrintData(child));
             }
@@ -56,7 +56,7 @@ namespace Foo
             return prints;
         }
 
-        private ISearchSomething_Prints? MapIPrintData(global::Foo.State.IPrintData data)
+        private ISearchSomething_Prints? MapIPrintData(global::Foo.Bar.State.IPrintData data)
         {
             if (data == default)
             {
@@ -65,15 +65,15 @@ namespace Foo
 
             ISearchSomething_Prints returnValue = default!;
 
-            if (data is global::Foo.State.BookData book)
+            if (data is global::Foo.Bar.State.BookData book)
             {
-                returnValue = new global::Foo.SearchSomething_Prints_Book(
+                returnValue = new global::Foo.Bar.SearchSomething_Prints_Book(
                     book.Isbn,
                     book.Title);
             }
-            else if (data is global::Foo.State.MagazineData magazine)
+            else if (data is global::Foo.Bar.State.MagazineData magazine)
             {
-                returnValue = new global::Foo.SearchSomething_Prints_Magazine(
+                returnValue = new global::Foo.Bar.SearchSomething_Prints_Magazine(
                     magazine.Isbn,
                     magazine.CoverImageUrl);
             }
@@ -92,7 +92,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchSomethingResultInfo
@@ -102,7 +102,7 @@ namespace Foo
         private readonly ulong _version;
 
         public SearchSomethingResultInfo(
-            global::System.Collections.Generic.IReadOnlyList<global::Foo.State.IPrintData?>? prints,
+            global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.IPrintData?>? prints,
             global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds,
             ulong version)
         {
@@ -112,7 +112,7 @@ namespace Foo
             _version = version;
         }
 
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.State.IPrintData?>? Prints { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.IPrintData?>? Prints { get; }
 
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
 
@@ -135,7 +135,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchSomethingResult
@@ -157,7 +157,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchSomething_Prints_Book
@@ -184,7 +184,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchSomething_Prints_Magazine
@@ -211,7 +211,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISearchSomethingResult
@@ -227,7 +227,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISearchSomething_Prints
@@ -243,7 +243,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISearchSomething_Prints_Book
@@ -260,7 +260,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISearchSomething_Prints_Magazine
@@ -277,7 +277,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchSomethingQueryDocument
@@ -322,7 +322,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchSomethingQuery
@@ -369,7 +369,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchSomethingBuilder
@@ -427,14 +427,14 @@ namespace Foo
             return (_resultDataFactory.Create(resultInfo), resultInfo);
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<global::Foo.State.IPrintData?>? DeserializeIPrintDataArray(global::System.Text.Json.JsonElement? obj)
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.IPrintData?>? DeserializeIPrintDataArray(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {
                 return null;
             }
 
-            var prints = new global::System.Collections.Generic.List<global::Foo.State.IPrintData?>();
+            var prints = new global::System.Collections.Generic.List<global::Foo.Bar.State.IPrintData?>();
 
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
@@ -444,7 +444,7 @@ namespace Foo
             return prints;
         }
 
-        private global::Foo.State.IPrintData? DeserializeIPrintData(global::System.Text.Json.JsonElement? obj)
+        private global::Foo.Bar.State.IPrintData? DeserializeIPrintData(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {
@@ -455,7 +455,7 @@ namespace Foo
 
             if (typename?.Equals("Book", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new global::Foo.State.BookData(
+                return new global::Foo.Bar.State.BookData(
                     typename,
                     isbn: DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "isbn")),
                     title: DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "title")));
@@ -463,7 +463,7 @@ namespace Foo
 
             if (typename?.Equals("Magazine", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new global::Foo.State.MagazineData(
+                return new global::Foo.Bar.State.MagazineData(
                     typename,
                     isbn: DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "isbn")),
                     coverImageUrl: DeserializeString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "coverImageUrl")));
@@ -501,7 +501,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo.State
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISearchResultData
@@ -517,7 +517,7 @@ namespace Foo.State
 
 #nullable enable
 
-namespace Foo.State
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IPrintData
@@ -533,7 +533,7 @@ namespace Foo.State
 
 #nullable enable
 
-namespace Foo.State
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class BookData
@@ -566,7 +566,7 @@ namespace Foo.State
 
 #nullable enable
 
-namespace Foo.State
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class MagazineData
@@ -598,7 +598,7 @@ namespace Foo.State
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient
@@ -622,7 +622,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class EntityIdFactory
@@ -646,7 +646,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class FooClientServiceCollectionExtensions

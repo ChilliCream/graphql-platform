@@ -22,7 +22,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             CSharpGeneratorResult result = Generate(
                 fileNames,
-                @namespace: "Foo",
+                @namespace: "Foo.Bar",
                 clientName: "FooClient");
 
             Assert.True(
@@ -56,7 +56,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             CSharpGeneratorResult result = Generate(
                 clientModel,
-                @namespace: "Foo",
+                @namespace: "Foo.Bar",
                 clientName: "FooClient");
 
             Assert.False(

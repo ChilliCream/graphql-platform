@@ -15,7 +15,7 @@
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchSomethingResultFactory
@@ -39,7 +39,7 @@ namespace Foo
             throw new global::System.ArgumentException("SearchSomethingResultInfo expected.");
         }
 
-        private ISearchSomething_Search? MapISearchResultData(global::Foo.State.ISearchResultData data)
+        private ISearchSomething_Search? MapISearchResultData(global::Foo.Bar.State.ISearchResultData data)
         {
             if (data == default)
             {
@@ -48,13 +48,13 @@ namespace Foo
 
             ISearchSomething_Search returnValue = default!;
 
-            if (data is global::Foo.State.AuthorData author)
+            if (data is global::Foo.Bar.State.AuthorData author)
             {
-                returnValue = new global::Foo.SearchSomething_Search_Author(author.Name);
+                returnValue = new global::Foo.Bar.SearchSomething_Search_Author(author.Name);
             }
-            else if (data is global::Foo.State.BookData book)
+            else if (data is global::Foo.Bar.State.BookData book)
             {
-                returnValue = new global::Foo.SearchSomething_Search_Book(book.Title);
+                returnValue = new global::Foo.Bar.SearchSomething_Search_Book(book.Title);
             }
             else {
                 throw new global::System.NotSupportedException();
@@ -71,7 +71,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchSomethingResultInfo
@@ -81,7 +81,7 @@ namespace Foo
         private readonly ulong _version;
 
         public SearchSomethingResultInfo(
-            global::Foo.State.ISearchResultData? search,
+            global::Foo.Bar.State.ISearchResultData? search,
             global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds,
             ulong version)
         {
@@ -91,7 +91,7 @@ namespace Foo
             _version = version;
         }
 
-        public global::Foo.State.ISearchResultData? Search { get; }
+        public global::Foo.Bar.State.ISearchResultData? Search { get; }
 
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
 
@@ -114,7 +114,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchSomethingResult
@@ -136,7 +136,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchSomething_Search_Author
@@ -158,7 +158,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchSomething_Search_Book
@@ -180,7 +180,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISearchSomethingResult
@@ -196,7 +196,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISearchSomething_Search
@@ -211,7 +211,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISearchSomething_Search_Author
@@ -228,7 +228,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISearchSomething_Search_Book
@@ -245,7 +245,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchSomethingQueryDocument
@@ -289,7 +289,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchSomethingQuery
@@ -336,7 +336,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchSomethingBuilder
@@ -394,7 +394,7 @@ namespace Foo
             return (_resultDataFactory.Create(resultInfo), resultInfo);
         }
 
-        private global::Foo.State.ISearchResultData? DeserializeISearchResultData(global::System.Text.Json.JsonElement? obj)
+        private global::Foo.Bar.State.ISearchResultData? DeserializeISearchResultData(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {
@@ -405,14 +405,14 @@ namespace Foo
 
             if (typename?.Equals("Author", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new global::Foo.State.AuthorData(
+                return new global::Foo.Bar.State.AuthorData(
                     typename,
                     name: DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "name")));
             }
 
             if (typename?.Equals("Book", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new global::Foo.State.BookData(
+                return new global::Foo.Bar.State.BookData(
                     typename,
                     title: DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "title")));
             }
@@ -439,7 +439,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo.State
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISearchResultData
@@ -455,7 +455,7 @@ namespace Foo.State
 
 #nullable enable
 
-namespace Foo.State
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class AuthorData
@@ -483,7 +483,7 @@ namespace Foo.State
 
 #nullable enable
 
-namespace Foo.State
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IPrintData
@@ -499,7 +499,7 @@ namespace Foo.State
 
 #nullable enable
 
-namespace Foo.State
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class BookData
@@ -528,7 +528,7 @@ namespace Foo.State
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient
@@ -552,7 +552,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class EntityIdFactory
@@ -576,7 +576,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class FooClientServiceCollectionExtensions

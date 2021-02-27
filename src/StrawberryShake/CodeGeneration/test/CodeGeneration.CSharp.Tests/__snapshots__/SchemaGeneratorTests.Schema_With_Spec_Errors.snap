@@ -15,7 +15,7 @@
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetListingsCountResultFactory
@@ -39,7 +39,7 @@ namespace Foo
             throw new global::System.ArgumentException("GetListingsCountResultInfo expected.");
         }
 
-        private IGetListingsCount_Listings MapNonNullableIGetListingsCount_Listings(global::Foo.State.ListingsPayloadData data)
+        private IGetListingsCount_Listings MapNonNullableIGetListingsCount_Listings(global::Foo.Bar.State.ListingsPayloadData data)
         {
             IGetListingsCount_Listings returnValue = default!;
 
@@ -62,7 +62,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetListingsCountResultInfo
@@ -72,7 +72,7 @@ namespace Foo
         private readonly ulong _version;
 
         public GetListingsCountResultInfo(
-            global::Foo.State.ListingsPayloadData listings,
+            global::Foo.Bar.State.ListingsPayloadData listings,
             global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds,
             ulong version)
         {
@@ -82,7 +82,7 @@ namespace Foo
             _version = version;
         }
 
-        public global::Foo.State.ListingsPayloadData Listings { get; }
+        public global::Foo.Bar.State.ListingsPayloadData Listings { get; }
 
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
 
@@ -105,7 +105,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetListingsCountResult
@@ -127,7 +127,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetListingsCount_Listings_ListingsPayload
@@ -149,7 +149,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetListingsCountResult
@@ -165,7 +165,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IListingsPayload
@@ -181,7 +181,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetListingsCount_Listings
@@ -197,7 +197,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetListingsCount_Listings_ListingsPayload
@@ -213,7 +213,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetListingsCountQueryDocument
@@ -256,7 +256,7 @@ fragment ListingsPayload on ListingsPayload {
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetListingsCountQuery
@@ -303,7 +303,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetListingsCountBuilder
@@ -361,7 +361,7 @@ namespace Foo
             return (_resultDataFactory.Create(resultInfo), resultInfo);
         }
 
-        private global::Foo.State.ListingsPayloadData DeserializeNonNullableIGetListingsCount_Listings(global::System.Text.Json.JsonElement? obj)
+        private global::Foo.Bar.State.ListingsPayloadData DeserializeNonNullableIGetListingsCount_Listings(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {
@@ -372,7 +372,7 @@ namespace Foo
 
             if (typename?.Equals("ListingsPayload", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new global::Foo.State.ListingsPayloadData(
+                return new global::Foo.Bar.State.ListingsPayloadData(
                     typename,
                     count: DeserializeNonNullableInt32(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "count")));
             }
@@ -399,7 +399,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo.State
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ListingsPayloadData
@@ -426,7 +426,7 @@ namespace Foo.State
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient
@@ -450,7 +450,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class EntityIdFactory
@@ -474,7 +474,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class FooClientServiceCollectionExtensions

@@ -15,16 +15,16 @@
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchableStoreEntity
     {
         public global::System.String Id { get; set; } = default!;
 
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.State.BookData?>? Books { get; set; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BookData?>? Books { get; set; }
 
-        public global::Foo.State.ISearchResultData? Search { get; set; }
+        public global::Foo.Bar.State.ISearchResultData? Search { get; set; }
     }
 }
 
@@ -35,7 +35,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetStore2ResultFactory
@@ -85,7 +85,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetStore2ResultInfo
@@ -128,7 +128,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetStore2Result
@@ -150,7 +150,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetStore2_SearchableStore_SearchableStoreFromSearchableStoreEntityMapper
@@ -164,7 +164,7 @@ namespace Foo
                 MapISearchResultData(entity.Search));
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<IGetStore2_SearchableStore_Books?>? MapIGetStore2_SearchableStore_BooksArray(global::System.Collections.Generic.IReadOnlyList<global::Foo.State.BookData?>? list)
+        private global::System.Collections.Generic.IReadOnlyList<IGetStore2_SearchableStore_Books?>? MapIGetStore2_SearchableStore_BooksArray(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BookData?>? list)
         {
             if (list == default)
             {
@@ -173,7 +173,7 @@ namespace Foo
 
             var books = new global::System.Collections.Generic.List<IGetStore2_SearchableStore_Books?>();
 
-            foreach (global::Foo.State.BookData? child in list)
+            foreach (global::Foo.Bar.State.BookData? child in list)
             {
                 books.Add(MapIGetStore2_SearchableStore_Books(child));
             }
@@ -181,7 +181,7 @@ namespace Foo
             return books;
         }
 
-        private IGetStore2_SearchableStore_Books? MapIGetStore2_SearchableStore_Books(global::Foo.State.BookData data)
+        private IGetStore2_SearchableStore_Books? MapIGetStore2_SearchableStore_Books(global::Foo.Bar.State.BookData data)
         {
             if (data == default)
             {
@@ -202,7 +202,7 @@ namespace Foo
             return returnValue;
         }
 
-        private IGetStore2_SearchableStore_Search? MapISearchResultData(global::Foo.State.ISearchResultData data)
+        private IGetStore2_SearchableStore_Search? MapISearchResultData(global::Foo.Bar.State.ISearchResultData data)
         {
             if (data == default)
             {
@@ -211,13 +211,13 @@ namespace Foo
 
             IGetStore2_SearchableStore_Search returnValue = default!;
 
-            if (data is global::Foo.State.AuthorData author)
+            if (data is global::Foo.Bar.State.AuthorData author)
             {
-                returnValue = new global::Foo.GetStore2_SearchableStore_Search_Author();
+                returnValue = new global::Foo.Bar.GetStore2_SearchableStore_Search_Author();
             }
-            else if (data is global::Foo.State.BookData book)
+            else if (data is global::Foo.Bar.State.BookData book)
             {
-                returnValue = new global::Foo.GetStore2_SearchableStore_Search_Book(
+                returnValue = new global::Foo.Bar.GetStore2_SearchableStore_Search_Book(
                     book.Title,
                     book.Isbn);
             }
@@ -236,7 +236,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetStore2_SearchableStore_SearchableStore
@@ -267,7 +267,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetStore2_SearchableStore_Books_Book
@@ -294,7 +294,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetStore2_SearchableStore_Search_Author
@@ -313,7 +313,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetStore2_SearchableStore_Search_Book
@@ -340,7 +340,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetStore2Result
@@ -356,7 +356,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetStore2_SearchableStore
@@ -376,7 +376,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetStore2_SearchableStore_SearchableStore
@@ -392,7 +392,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetStore2_SearchableStore_Books
@@ -410,7 +410,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetStore2_SearchableStore_Books_Book
@@ -426,7 +426,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetStore2_SearchableStore_Search
@@ -441,7 +441,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetStore2_SearchableStore_Search_Author
@@ -457,7 +457,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetStore2_SearchableStore_Search_Book
@@ -476,7 +476,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetStore2QueryDocument
@@ -530,7 +530,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetStore2Query
@@ -577,7 +577,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetStore2Builder
@@ -674,14 +674,14 @@ namespace Foo
             return _stringParser.Parse(obj.Value.GetString()!);
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<global::Foo.State.BookData?>? DeserializeIGetStore2_SearchableStore_BooksArray(global::System.Text.Json.JsonElement? obj)
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BookData?>? DeserializeIGetStore2_SearchableStore_BooksArray(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {
                 return null;
             }
 
-            var books = new global::System.Collections.Generic.List<global::Foo.State.BookData?>();
+            var books = new global::System.Collections.Generic.List<global::Foo.Bar.State.BookData?>();
 
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
@@ -691,7 +691,7 @@ namespace Foo
             return books;
         }
 
-        private global::Foo.State.BookData? DeserializeIGetStore2_SearchableStore_Books(global::System.Text.Json.JsonElement? obj)
+        private global::Foo.Bar.State.BookData? DeserializeIGetStore2_SearchableStore_Books(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {
@@ -702,7 +702,7 @@ namespace Foo
 
             if (typename?.Equals("Book", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new global::Foo.State.BookData(
+                return new global::Foo.Bar.State.BookData(
                     typename,
                     isbn: DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "isbn")),
                     title: DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "title")));
@@ -711,7 +711,7 @@ namespace Foo
             throw new global::System.NotSupportedException();
         }
 
-        private global::Foo.State.ISearchResultData? DeserializeISearchResultData(global::System.Text.Json.JsonElement? obj)
+        private global::Foo.Bar.State.ISearchResultData? DeserializeISearchResultData(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {
@@ -722,12 +722,12 @@ namespace Foo
 
             if (typename?.Equals("Author", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new global::Foo.State.AuthorData(typename);
+                return new global::Foo.Bar.State.AuthorData(typename);
             }
 
             if (typename?.Equals("Book", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new global::Foo.State.BookData(
+                return new global::Foo.Bar.State.BookData(
                     typename,
                     title: DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "title")),
                     isbn: DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "isbn")));
@@ -745,7 +745,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo.State
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISearchResultData
@@ -761,7 +761,7 @@ namespace Foo.State
 
 #nullable enable
 
-namespace Foo.State
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IPrintData
@@ -777,7 +777,7 @@ namespace Foo.State
 
 #nullable enable
 
-namespace Foo.State
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class BookData
@@ -810,7 +810,7 @@ namespace Foo.State
 
 #nullable enable
 
-namespace Foo.State
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class AuthorData
@@ -833,7 +833,7 @@ namespace Foo.State
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient
@@ -857,7 +857,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class EntityIdFactory
@@ -891,7 +891,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class FooClientServiceCollectionExtensions
