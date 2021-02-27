@@ -18,8 +18,7 @@ namespace HotChocolate.Types.Relay
             DefinitionBase? definition,
             IDictionary<string, object?> contextData)
         {
-            if (completionContext.Type is InputObjectType inputObjectType &&
-                definition is InputObjectTypeDefinition inputObjectTypeDefinition)
+            if (definition is InputObjectTypeDefinition inputObjectTypeDefinition)
             {
                 foreach (InputFieldDefinition inputFieldDefinition in inputObjectTypeDefinition.Fields)
                 {
@@ -35,7 +34,25 @@ namespace HotChocolate.Types.Relay
                     }
                 }
             }
-            // TODO: Object types that have fields with args...
+            else if (definition is ObjectTypeDefinition objectTypeDefinition)
+            {
+                foreach (ObjectFieldDefinition objectFieldDefinition in objectTypeDefinition.Fields)
+                {
+                    foreach (ArgumentDefinition argumentDefinition in objectFieldDefinition.Arguments)
+                    {
+                        (string NodeTypeName, Type IdRuntimeType)? idInfo =
+                            GetIdInfo(completionContext, argumentDefinition);
+                        if (idInfo != null)
+                        {
+                            InsertFormatter(
+                                completionContext,
+                                argumentDefinition,
+                                idInfo.Value.NodeTypeName,
+                                idInfo.Value.IdRuntimeType);
+                        }
+                    }
+                }
+            }
 
             base.OnBeforeCompleteType(completionContext, definition, contextData);
         }
@@ -102,6 +119,11 @@ namespace HotChocolate.Types.Relay
             }
             else if (definition.Type is ExtendedTypeReference typeReference)
             {
+                if (typeReference.Type.Kind == ExtendedTypeKind.Schema)
+                {
+                    return null;
+                }
+
                 throw new NotImplementedException("TODO: Equivalent for IDAttribute here?");
                 idType = typeReference.Type;
             }
@@ -114,8 +136,11 @@ namespace HotChocolate.Types.Relay
             }
 
             Type idRuntimeType = idType.ElementType?.Source ?? idType.Source;
+            string nodeTypeName = idAttribute?.TypeName.HasValue ?? false
+                ? idAttribute.TypeName
+                : completionContext.Type.Name;
 
-            return (idAttribute.TypeName, idRuntimeType);
+            return (nodeTypeName, idRuntimeType);
         }
 
 
