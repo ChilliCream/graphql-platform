@@ -1,4 +1,17 @@
-﻿// TestResultFactory
+﻿// ReSharper disable BuiltInTypeReferenceStyle
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable UnusedType.Global
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable ConvertToAutoProperty
+// ReSharper disable UnusedMember.Global
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable InconsistentNaming
+
+// TestResultFactory
+
+// StrawberryShake.CodeGeneration.CSharp.ResultDataFactoryGenerator
 
 #nullable enable
 
@@ -30,6 +43,8 @@ namespace Foo
 
 
 // TestResultInfo
+
+// StrawberryShake.CodeGeneration.CSharp.ResultInfoGenerator
 
 #nullable enable
 
@@ -72,6 +87,8 @@ namespace Foo
 
 // TestResult
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
 namespace Foo
@@ -92,6 +109,8 @@ namespace Foo
 
 // ITestResult
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace Foo
@@ -105,6 +124,8 @@ namespace Foo
 
 
 // BarInputValueFormatter
+
+// StrawberryShake.CodeGeneration.CSharp.InputValueFormatterGenerator
 
 #nullable enable
 
@@ -215,6 +236,8 @@ namespace Foo
 
 // Bar
 
+// StrawberryShake.CodeGeneration.CSharp.InputTypeGenerator
+
 #nullable enable
 
 namespace Foo
@@ -236,6 +259,8 @@ namespace Foo
 
 
 // TestQueryDocument
+
+// StrawberryShake.CodeGeneration.CSharp.OperationDocumentGenerator
 
 #nullable enable
 
@@ -270,6 +295,8 @@ namespace Foo
 
 
 // TestQuery
+
+// StrawberryShake.CodeGeneration.CSharp.OperationServiceGenerator
 
 #nullable enable
 
@@ -397,6 +424,8 @@ namespace Foo
 
 // TestBuilder
 
+// StrawberryShake.CodeGeneration.CSharp.JsonResultBuilderGenerator
+
 #nullable enable
 
 namespace Foo
@@ -408,7 +437,7 @@ namespace Foo
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
         private readonly global::StrawberryShake.IOperationResultDataFactory<ITestResult> _resultDataFactory;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
 
         public TestBuilder(
             global::StrawberryShake.IEntityStore entityStore,
@@ -423,7 +452,7 @@ namespace Foo
             _resultDataFactory = resultDataFactory
                  ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String")
-                 ?? throw new global::System.ArgumentNullException(nameof(_stringParser));
+                 ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
         }
 
         public global::StrawberryShake.IOperationResult<ITestResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
@@ -472,6 +501,8 @@ namespace Foo
 
 // FooClient
 
+// StrawberryShake.CodeGeneration.CSharp.ClientGenerator
+
 #nullable enable
 
 namespace Foo
@@ -494,6 +525,8 @@ namespace Foo
 
 // EntityIdFactory
 
+// StrawberryShake.CodeGeneration.CSharp.EntityIdFactoryGenerator
+
 #nullable enable
 
 namespace Foo
@@ -515,6 +548,8 @@ namespace Foo
 
 
 // FooClientServiceCollectionExtensions
+
+// StrawberryShake.CodeGeneration.CSharp.DependencyInjectionGenerator
 
 #nullable enable
 

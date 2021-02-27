@@ -5,19 +5,22 @@ namespace StrawberryShake.CodeGeneration
     public struct ValueParserDescriptor
     {
         public ValueParserDescriptor(
-            string serializedType,
-            string runtimeType,
-            NameString graphQLTypeName)
+            NameString name,
+            RuntimeTypeInfo runtimeType,
+            RuntimeTypeInfo serializedType)
         {
-            SerializedType = serializedType;
+            Name = name;
             RuntimeType = runtimeType;
-            GraphQLTypeName = graphQLTypeName;
+            SerializedType = serializedType;
         }
 
-        public string SerializedType { get; }
+        /// <summary>
+        /// Gets the GraphQL type name.
+        /// </summary>
+        public NameString Name { get; }
 
-        public string RuntimeType { get; }
+        public RuntimeTypeInfo RuntimeType { get; }
 
-        public NameString GraphQLTypeName { get; }
+        public RuntimeTypeInfo SerializedType { get; }
     }
 }

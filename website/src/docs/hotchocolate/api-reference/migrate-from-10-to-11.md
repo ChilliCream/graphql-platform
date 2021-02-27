@@ -666,7 +666,6 @@ downstream schemas.
 ```
 
 ## Batch responses
-
 In v10, responses to batched operations were returned as a JsonArray. In v11 the default is to return MultiPartChunked responses. To switch back to JsonArray, configure the HttpResult serializer as follows:
 
 ```csharp

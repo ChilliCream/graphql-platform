@@ -1,11 +1,10 @@
-using System;
 using System.Linq;
 using System.Text;
 using HotChocolate;
-using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Extensions;
+using StrawberryShake.Serialization;
 using static StrawberryShake.CodeGeneration.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
@@ -36,7 +35,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             DependencyInjectionDescriptor descriptor,
             out string fileName)
         {
-            fileName = ServiceCollectionExtensionsFromClientName(descriptor.Name);
+            fileName = CreateServiceCollectionExtensions(descriptor.Name);
 
             ClassBuilder factory = ClassBuilder
                 .New(fileName)
@@ -48,9 +47,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetPublic()
                 .SetStatic()
                 .SetReturnType(TypeNames.IServiceCollection)
-                .AddParameter(
-                    "services",
-                    x => x.SetThis().SetType(TypeNames.IServiceCollection))
+                .AddParameter("services", x => x.SetThis().SetType(TypeNames.IServiceCollection))
                 .AddParameter(
                     "strategy",
                     x => x.SetType(TypeNames.ExecutionStrategy)
@@ -78,7 +75,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             CodeFileBuilder
                 .New()
-                .SetNamespace(descriptor.Namespace)
+                .SetNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal)
                 .AddType(factory)
                 .Build(writer);
         }
@@ -201,18 +198,19 @@ namespace StrawberryShake.CodeGeneration.CSharp
             codeWriter.WriteComment("register mappers");
             codeWriter.WriteLine();
 
-            foreach (var typeDescriptor in descriptor.TypeDescriptors)
+            foreach (var typeDescriptor in descriptor.TypeDescriptors
+                .OfType<INamedTypeDescriptor>())
             {
                 if (typeDescriptor.Kind == TypeKind.EntityType && !typeDescriptor.IsInterface())
                 {
-                    NamedTypeDescriptor namedTypeDescriptor =
-                        (NamedTypeDescriptor)typeDescriptor.NamedType();
+                    INamedTypeDescriptor namedTypeDescriptor =
+                        (INamedTypeDescriptor)typeDescriptor.NamedType();
                     NameString className = namedTypeDescriptor.ExtractMapperName();
 
                     var interfaceName =
                         TypeNames.IEntityMapper.WithGeneric(
                             namedTypeDescriptor.ExtractTypeName(),
-                            typeDescriptor.Name);
+                            typeDescriptor.RuntimeType.Name);
 
                     AddSingleton(codeWriter, interfaceName, className);
                 }
@@ -227,7 +225,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 AddSingleton(
                     codeWriter,
                     TypeNames.ISerializer,
-                    EnumParserNameFromEnumName(enumType.Name));
+                    CreateEnumParserName(enumType.Name));
             }
 
             foreach (var serializer in _serializers)
@@ -238,14 +236,28 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     serializer);
             }
 
+            RuntimeTypeInfo stringTypeInfo = TypeInfos.From(TypeNames.String);
+            foreach (var scalar in descriptor.TypeDescriptors.OfType<ScalarTypeDescriptor>())
+            {
+                if (scalar.RuntimeType.Equals(stringTypeInfo) &&
+                    scalar.SerializationType.Equals(stringTypeInfo) &&
+                    !BuiltInScalarNames.IsBuiltInScalar(scalar.Name))
+                {
+                    codeWriter.WriteLine(
+                        TypeNames.AddSingleton.WithGeneric(TypeNames.ISerializer) +
+                        $"(services, new {TypeNames.StringSerializer}" +
+                        $"({scalar.Name.AsStringToken()}));");
+                }
+            }
+
             foreach (var inputTypeDescriptor in descriptor.TypeDescriptors
                 .Where(x => x.Kind is TypeKind.InputType))
             {
                 AddSingleton(
                     codeWriter,
                     TypeNames.ISerializer,
-                    InputValueFormatterFromType(
-                        (NamedTypeDescriptor)inputTypeDescriptor.NamedType()));
+                    CreateInputValueFormatter(
+                        (InputObjectTypeDescriptor)inputTypeDescriptor.NamedType()));
             }
 
             RegisterSerializerResolver().Build(codeWriter);
@@ -254,25 +266,30 @@ namespace StrawberryShake.CodeGeneration.CSharp
             codeWriter.WriteComment("register operations");
             foreach (var operation in descriptor.Operations)
             {
+                if (!(operation.ResultTypeReference is InterfaceTypeDescriptor typeDescriptor))
+                {
+                    continue;
+                }
+
                 string connectionKind = operation is SubscriptionOperationDescriptor
                     ? TypeNames.WebSocketConnection
                     : TypeNames.HttpConnection;
                 NameString operationName = operation.OperationName;
                 NameString fullName = operation.Name;
-                NameString operationInterface = operation.ResultTypeReference.Name;
+                NameString operationInterface = typeDescriptor.RuntimeType.Name;
 
-                // The resulttype of the operation is a NamedTypeDescriptor, that is an Interface
-                var resultType = operation.ResultTypeReference as NamedTypeDescriptor
-                                         ?? throw new ArgumentException("ResultTypeReference");
                 // The factories are generated based on the concrete result type, which is the
                 // only implementee of the result type interface.
-                var factoryName = ResultFactoryNameFromTypeName(resultType.ImplementedBy[0].Name);
 
-                var builderName = ResultBuilderNameFromTypeName(operationName);
+                var factoryName =
+                    CreateResultFactoryName(
+                        typeDescriptor.ImplementedBy.First().RuntimeType.Name);
+
+                var builderName = CreateResultBuilderName(operationName);
                 stringBuilder.AppendLine(
                     RegisterOperation(
                         connectionKind,
-                        descriptor.Name,
+                        descriptor.RuntimeType.Name,
                         fullName,
                         operationInterface,
                         factoryName,
@@ -280,7 +297,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
 
             stringBuilder.AppendLine(
-                $"{TypeNames.AddSingleton.WithGeneric(descriptor.Name)}(services);");
+                $"{TypeNames.AddSingleton.WithGeneric(descriptor.RuntimeType.Name)}(services);");
 
             stringBuilder.AppendLine();
             stringBuilder.AppendLine("return services;");

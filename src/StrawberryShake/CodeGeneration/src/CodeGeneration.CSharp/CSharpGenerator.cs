@@ -9,7 +9,9 @@ using HotChocolate.Validation;
 using StrawberryShake.CodeGeneration.Analyzers;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Utilities;
+using SyntaxVisitor = HotChocolate.Language.Visitors.SyntaxVisitor;
 using static StrawberryShake.CodeGeneration.CodeGenerationThrowHelper;
+using HotChocolate.Language.Visitors;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -71,6 +73,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
 
             ISchema schema = SchemaHelper.Load(typeSystemDocs);
+
             IDocumentValidator validator = new ServiceCollection()
                 .AddValidation()
                 .Services
@@ -78,45 +81,40 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .GetRequiredService<IDocumentValidatorFactory>()
                 .CreateValidator();
 
-            // TODO: MST we need to rework this to reflect back on the correct file
-            var merged = new DocumentNode(
-                executableDocs.SelectMany(t => t.document.Definitions).ToList());
-            var validationResult = validator.Validate(
-                schema,
-                merged);
+            var definitions = executableDocs.SelectMany(t => t.document.Definitions).ToList();
+            var merged = new DocumentNode(definitions);
+            var validationResult = validator.Validate(schema, merged);
+            var lookup = new Dictionary<ISyntaxNode, string>();
+
+            foreach (var doc in executableDocs)
+            {
+                IndexSyntaxNodes(doc.document, doc.file, lookup);
+            }
+
             if (validationResult.HasErrors)
             {
                 errors.AddRange(
                     validationResult.Errors.Select(
-                        error => error
-                            .WithCode(CodeGenerationErrorCodes.SchemaValidationError)
-                            .WithExtensions(new Dictionary<string, object?>
+                        error =>
+                        {
+                            var extensions = new Dictionary<string, object?>
                             {
                                 { TitleExtensionKey, "Schema validation error" }
-                            })));
-            }
+                            };
 
-            /*
-            foreach ((string file, DocumentNode document) executableDoc in executableDocs)
-            {
-                var validationResult = validator.Validate(
-                    schema,
-                    executableDoc.document);
-                if (validationResult.HasErrors)
-                {
-                    errors.AddRange(
-                        validationResult.Errors
-                            .Select(
-                                error => error
-                                    .WithCode(CodeGenerationErrorCodes.SchemaValidationError)
-                                    .WithExtensions(new Dictionary<string, object?>
-                                    {
-                                        { FileExtensionKey, executableDoc.file },
-                                        { TitleExtensionKey, "Schema validation error" }
-                                    })));
-                }
+                            // if the error has a syntax node we will try to lookup the
+                            // document and add the filename to the error.
+                            if (error is Error { SyntaxNode: { } node } &&
+                                lookup.TryGetValue(node, out var filename))
+                            {
+                                extensions.Add(FileExtensionKey, filename);
+                            }
+
+                            return error
+                                .WithCode(CodeGenerationErrorCodes.SchemaValidationError)
+                                .WithExtensions(extensions);
+                        }));
             }
-            */
 
             if (errors.Any())
             {
@@ -143,6 +141,27 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     @namespace,
                     clientName).ToList(),
                 errors);
+        }
+
+        private void IndexSyntaxNodes(
+            DocumentNode document,
+            string filename,
+            Dictionary<ISyntaxNode, string> lookup)
+        {
+            SyntaxVisitor.Create(
+                enter: node =>
+                {
+                    lookup.Add(node, filename);
+                    return SyntaxVisitor.Continue;
+                },
+                defaultAction: SyntaxVisitor.Continue,
+                options: new SyntaxVisitorOptions
+                {
+                    VisitArguments = true,
+                    VisitDescriptions = true,
+                    VisitDirectives = true,
+                    VisitNames = true
+                });
         }
     }
 }

@@ -19,6 +19,6 @@ namespace StrawberryShake.CodeGeneration
         }
 
         public override NameString Name =>
-            NamingConventions.MutationServiceNameFromTypeName(OperationName);
+            NamingConventions.CreateMutationServiceName(OperationName);
     }
 }

@@ -49,6 +49,10 @@ namespace StrawberryShake.CodeGeneration
         public const string Int16 = "global::System.Int16";
         public const string Int32 = "global::System.Int32";
         public const string Int64 = "global::System.Int64";
+        public const string UInt16 = "global::System.UInt16";
+        public const string UInt32 = "global::System.UInt32";
+        public const string UInt64 = "global::System.UInt64";
+        public const string Single = "global::System.Single";
         public const string Double = "global::System.Double";
         public const string Decimal = "global::System.Decimal";
         public const string Uri = "global::System.Uri";
@@ -68,7 +72,7 @@ namespace StrawberryShake.CodeGeneration
         public const string ISet = GenericCollectionsNamespace + "ISet";
         public const string IReadOnlySpan = "global::System.ReadOnlySpan";
         public const string DateTimeOffset = "global::System.DateTimeOffset";
-        public const string OrdinalStringComparisson = "global::System.StringComparison.Ordinal";
+        public const string OrdinalStringComparison = "global::System.StringComparison.Ordinal";
         public const string Func = "global::System.Func";
         public const string Task = "global::System.Threading.Tasks.Task";
         public const string IOperationObservable = "global::System.IObservable";

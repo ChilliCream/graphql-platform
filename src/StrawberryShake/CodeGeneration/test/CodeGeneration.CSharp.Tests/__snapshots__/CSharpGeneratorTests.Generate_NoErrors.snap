@@ -1,5 +1,18 @@
-﻿// Code:
+﻿// ReSharper disable BuiltInTypeReferenceStyle
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable UnusedType.Global
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable ConvertToAutoProperty
+// ReSharper disable UnusedMember.Global
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable InconsistentNaming
+
+// Code:
 // DroidEntity
+
+// StrawberryShake.CodeGeneration.CSharp.EntityTypeGenerator
 
 #nullable enable
 
@@ -17,6 +30,8 @@ namespace StrawberryShake.GraphQL
 
 // HumanEntity
 
+// StrawberryShake.CodeGeneration.CSharp.EntityTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -31,61 +46,9 @@ namespace StrawberryShake.GraphQL
 }
 
 
-// Episode
-
-#nullable enable
-
-namespace StrawberryShake.GraphQL
-{
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public enum Episode
-    {
-        NewHope,
-        Empire,
-        Jedi
-    }
-}
-
-
-// EpisodeSerializer
-
-#nullable enable
-
-namespace StrawberryShake.GraphQL
-{
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class EpisodeSerializer
-        : global::StrawberryShake.Serialization.IInputValueFormatter
-        , global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, Episode>
-    {
-        public global::System.String TypeName => "Episode";
-
-        public Episode Parse(global::System.String serializedValue)
-        {
-            return serializedValue switch
-            {
-                "NEW_HOPE" => Episode.NewHope,
-                "EMPIRE" => Episode.Empire,
-                "JEDI" => Episode.Jedi,
-                _ => throw new global::StrawberryShake.GraphQLClientException()
-            };
-        }
-
-        public object Format(global::System.Object? runtimeValue)
-        {
-            return runtimeValue switch
-            {
-                Episode.NewHope => "NEW_HOPE",
-                Episode.Empire => "EMPIRE",
-                Episode.Jedi => "JEDI",
-                _ => throw new global::StrawberryShake.GraphQLClientException()
-            };
-        }
-    }
-}
-
-
 // GetHeroResultFactory
+
+// StrawberryShake.CodeGeneration.CSharp.ResultDataFactoryGenerator
 
 #nullable enable
 
@@ -151,6 +114,8 @@ namespace StrawberryShake.GraphQL
 
 // GetHeroResultInfo
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInfoGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -192,6 +157,8 @@ namespace StrawberryShake.GraphQL
 
 // GetHeroResult
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -212,6 +179,8 @@ namespace StrawberryShake.GraphQL
 
 // GetHero_Hero_DroidFromDroidEntityMapper
 
+// StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -231,6 +200,8 @@ namespace StrawberryShake.GraphQL
 
 
 // GetHero_Hero_Droid
+
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
 
 #nullable enable
 
@@ -257,6 +228,8 @@ namespace StrawberryShake.GraphQL
 
 // GetHero_Hero_HumanFromHumanEntityMapper
 
+// StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -276,6 +249,8 @@ namespace StrawberryShake.GraphQL
 
 
 // GetHero_Hero_Human
+
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
 
 #nullable enable
 
@@ -302,6 +277,8 @@ namespace StrawberryShake.GraphQL
 
 // IGetHeroResult
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -315,6 +292,8 @@ namespace StrawberryShake.GraphQL
 
 
 // IGetHero_Hero
+
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -332,6 +311,8 @@ namespace StrawberryShake.GraphQL
 
 // IGetHero_Hero_Droid
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -346,6 +327,8 @@ namespace StrawberryShake.GraphQL
 
 // IGetHero_Hero_Human
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -358,7 +341,67 @@ namespace StrawberryShake.GraphQL
 }
 
 
+// Episode
+
+// StrawberryShake.CodeGeneration.CSharp.EnumGenerator
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public enum Episode
+    {
+        NewHope,
+        Empire,
+        Jedi
+    }
+}
+
+
+// EpisodeSerializer
+
+// StrawberryShake.CodeGeneration.CSharp.EnumParserGenerator
+
+#nullable enable
+
+namespace StrawberryShake.GraphQL
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class EpisodeSerializer
+        : global::StrawberryShake.Serialization.IInputValueFormatter
+        , global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, Episode>
+    {
+        public global::System.String TypeName => "Episode";
+
+        public Episode Parse(global::System.String serializedValue)
+        {
+            return serializedValue switch
+            {
+                "NEW_HOPE" => Episode.NewHope,
+                "EMPIRE" => Episode.Empire,
+                "JEDI" => Episode.Jedi,
+                _ => throw new global::StrawberryShake.GraphQLClientException()
+            };
+        }
+
+        public object Format(global::System.Object? runtimeValue)
+        {
+            return runtimeValue switch
+            {
+                Episode.NewHope => "NEW_HOPE",
+                Episode.Empire => "EMPIRE",
+                Episode.Jedi => "JEDI",
+                _ => throw new global::StrawberryShake.GraphQLClientException()
+            };
+        }
+    }
+}
+
+
 // GetHeroQueryDocument
+
+// StrawberryShake.CodeGeneration.CSharp.OperationDocumentGenerator
 
 #nullable enable
 
@@ -403,6 +446,8 @@ namespace StrawberryShake.GraphQL
 
 
 // GetHeroQuery
+
+// StrawberryShake.CodeGeneration.CSharp.OperationServiceGenerator
 
 #nullable enable
 
@@ -449,6 +494,8 @@ namespace StrawberryShake.GraphQL
 
 // GetHeroBuilder
 
+// StrawberryShake.CodeGeneration.CSharp.JsonResultBuilderGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -460,8 +507,8 @@ namespace StrawberryShake.GraphQL
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
         private readonly global::StrawberryShake.IOperationResultDataFactory<IGetHeroResult> _resultDataFactory;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, Episode> _episodeParser;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::StrawberryShake.GraphQL.Episode> _episodeParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
 
         public GetHeroBuilder(
             global::StrawberryShake.IEntityStore entityStore,
@@ -475,10 +522,10 @@ namespace StrawberryShake.GraphQL
                  ?? throw new global::System.ArgumentNullException(nameof(extractId));
             _resultDataFactory = resultDataFactory
                  ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
-            _episodeParser = serializerResolver.GetLeafValueParser<global::System.String, Episode>("Episode")
-                 ?? throw new global::System.ArgumentNullException(nameof(_episodeParser));
+            _episodeParser = serializerResolver.GetLeafValueParser<global::System.String, global::StrawberryShake.GraphQL.Episode>("Episode")
+                 ?? throw new global::System.ArgumentException("No serializer for type `Episode` found.");
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String")
-                 ?? throw new global::System.ArgumentNullException(nameof(_stringParser));
+                 ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
         }
 
         public global::StrawberryShake.IOperationResult<IGetHeroResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
@@ -591,6 +638,8 @@ namespace StrawberryShake.GraphQL
 
 // GraphQLClient
 
+// StrawberryShake.CodeGeneration.CSharp.ClientGenerator
+
 #nullable enable
 
 namespace StrawberryShake.GraphQL
@@ -612,6 +661,8 @@ namespace StrawberryShake.GraphQL
 
 
 // EntityIdFactory
+
+// StrawberryShake.CodeGeneration.CSharp.EntityIdFactoryGenerator
 
 #nullable enable
 
@@ -654,6 +705,8 @@ namespace StrawberryShake.GraphQL
 
 
 // GraphQLClientServiceCollectionExtensions
+
+// StrawberryShake.CodeGeneration.CSharp.DependencyInjectionGenerator
 
 #nullable enable
 
