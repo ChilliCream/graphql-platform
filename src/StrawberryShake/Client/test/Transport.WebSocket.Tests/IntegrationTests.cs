@@ -338,7 +338,7 @@ namespace StrawberryShake.Transport.WebSockets
             str.MatchSnapshot();
         }
 
-        [Fact]
+        [Fact(Skip = "This test is flaky")]
         public async Task LoadTest_MessagesReceivedInCorrectOrder()
         {
             // arrange
