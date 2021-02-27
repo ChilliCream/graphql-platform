@@ -84,7 +84,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 }");
         }
 
-        [Fact(Skip = "Pascal: Generator issue with serialized document.")]
+        [Fact]
         public void Generate_StarWarsIntegrationTest()
         {
             AssertStarWarsResult(

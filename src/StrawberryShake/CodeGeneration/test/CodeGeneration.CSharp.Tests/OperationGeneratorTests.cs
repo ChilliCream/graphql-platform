@@ -6,7 +6,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public class OperationGeneratorTests
     {
-
         [Fact]
         public void Operation_With_MultipleOperations()
         {
