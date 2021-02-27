@@ -15,7 +15,7 @@
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ExpenseEntity
@@ -32,7 +32,7 @@ namespace Foo
 
         public PaymentMethod PaymentMethod { get; set; } = default!;
 
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.State.TagData?>? Tags { get; set; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.TagData?>? Tags { get; set; }
     }
 }
 
@@ -43,7 +43,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class AllExpensesResultFactory
@@ -115,7 +115,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class AllExpensesResultInfo
@@ -158,7 +158,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class AllExpensesResult
@@ -180,7 +180,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class AllExpenses_Expense_ExpenseFromExpenseEntityMapper
@@ -198,7 +198,7 @@ namespace Foo
                 MapIAllExpenses_Expense_TagsArray(entity.Tags));
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<IAllExpenses_Expense_Tags?>? MapIAllExpenses_Expense_TagsArray(global::System.Collections.Generic.IReadOnlyList<global::Foo.State.TagData?>? list)
+        private global::System.Collections.Generic.IReadOnlyList<IAllExpenses_Expense_Tags?>? MapIAllExpenses_Expense_TagsArray(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.TagData?>? list)
         {
             if (list == default)
             {
@@ -207,7 +207,7 @@ namespace Foo
 
             var tags = new global::System.Collections.Generic.List<IAllExpenses_Expense_Tags?>();
 
-            foreach (global::Foo.State.TagData? child in list)
+            foreach (global::Foo.Bar.State.TagData? child in list)
             {
                 tags.Add(MapIAllExpenses_Expense_Tags(child));
             }
@@ -215,7 +215,7 @@ namespace Foo
             return tags;
         }
 
-        private IAllExpenses_Expense_Tags? MapIAllExpenses_Expense_Tags(global::Foo.State.TagData data)
+        private IAllExpenses_Expense_Tags? MapIAllExpenses_Expense_Tags(global::Foo.Bar.State.TagData data)
         {
             if (data == default)
             {
@@ -243,7 +243,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class AllExpenses_Expense_Expense
@@ -290,7 +290,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class AllExpenses_Expense_Tags_Tag
@@ -312,7 +312,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IAllExpensesResult
@@ -328,7 +328,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IAllExpenses_Expense
@@ -356,7 +356,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IAllExpenses_Expense_Expense
@@ -372,7 +372,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IAllExpenses_Expense_Tags
@@ -388,7 +388,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IAllExpenses_Expense_Tags_Tag
@@ -404,7 +404,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public enum ExpenseCategory
@@ -435,7 +435,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ExpenseCategorySerializer
@@ -501,7 +501,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public enum PaymentMethod
@@ -521,7 +521,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class PaymentMethodSerializer
@@ -565,7 +565,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class AllExpensesQueryDocument
@@ -616,7 +616,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class AllExpensesQuery
@@ -663,7 +663,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class AllExpensesBuilder
@@ -672,8 +672,8 @@ namespace Foo
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
         private readonly global::StrawberryShake.IOperationResultDataFactory<IAllExpensesResult> _resultDataFactory;
-        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::Foo.ExpenseCategory> _expenseCategoryParser;
-        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::Foo.PaymentMethod> _paymentMethodParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::Foo.Bar.ExpenseCategory> _expenseCategoryParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::Foo.Bar.PaymentMethod> _paymentMethodParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Guid, global::System.Guid> _uuidParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Decimal, global::System.Decimal> _decimalParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.DateTimeOffset> _dateTimeParser;
@@ -691,9 +691,9 @@ namespace Foo
                  ?? throw new global::System.ArgumentNullException(nameof(extractId));
             _resultDataFactory = resultDataFactory
                  ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
-            _expenseCategoryParser = serializerResolver.GetLeafValueParser<global::System.String, global::Foo.ExpenseCategory>("ExpenseCategory")
+            _expenseCategoryParser = serializerResolver.GetLeafValueParser<global::System.String, global::Foo.Bar.ExpenseCategory>("ExpenseCategory")
                  ?? throw new global::System.ArgumentException("No serializer for type `ExpenseCategory` found.");
-            _paymentMethodParser = serializerResolver.GetLeafValueParser<global::System.String, global::Foo.PaymentMethod>("PaymentMethod")
+            _paymentMethodParser = serializerResolver.GetLeafValueParser<global::System.String, global::Foo.Bar.PaymentMethod>("PaymentMethod")
                  ?? throw new global::System.ArgumentException("No serializer for type `PaymentMethod` found.");
             _uuidParser = serializerResolver.GetLeafValueParser<global::System.Guid, global::System.Guid>("Uuid")
                  ?? throw new global::System.ArgumentException("No serializer for type `Uuid` found.");
@@ -850,14 +850,14 @@ namespace Foo
             return _paymentMethodParser.Parse(obj.Value.GetString()!);
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<global::Foo.State.TagData?>? DeserializeIAllExpenses_Expense_TagsArray(global::System.Text.Json.JsonElement? obj)
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.TagData?>? DeserializeIAllExpenses_Expense_TagsArray(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {
                 return null;
             }
 
-            var tags = new global::System.Collections.Generic.List<global::Foo.State.TagData?>();
+            var tags = new global::System.Collections.Generic.List<global::Foo.Bar.State.TagData?>();
 
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
@@ -867,7 +867,7 @@ namespace Foo
             return tags;
         }
 
-        private global::Foo.State.TagData? DeserializeIAllExpenses_Expense_Tags(global::System.Text.Json.JsonElement? obj)
+        private global::Foo.Bar.State.TagData? DeserializeIAllExpenses_Expense_Tags(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {
@@ -878,7 +878,7 @@ namespace Foo
 
             if (typename?.Equals("Tag", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new global::Foo.State.TagData(
+                return new global::Foo.Bar.State.TagData(
                     typename,
                     name: DeserializeString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "name")));
             }
@@ -895,7 +895,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo.State
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TagData
@@ -922,7 +922,7 @@ namespace Foo.State
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient
@@ -946,7 +946,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class EntityIdFactory
@@ -980,7 +980,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class FooClientServiceCollectionExtensions

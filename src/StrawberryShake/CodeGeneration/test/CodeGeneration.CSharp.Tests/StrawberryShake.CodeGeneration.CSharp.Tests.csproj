@@ -58,9 +58,4 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.8.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Generators\EnumParserGeneratorTests\__snapshots__\__mismatch__" />
-    <Folder Include="Generators\__snapshots__\__mismatch__" />
-  </ItemGroup>
-
 </Project>

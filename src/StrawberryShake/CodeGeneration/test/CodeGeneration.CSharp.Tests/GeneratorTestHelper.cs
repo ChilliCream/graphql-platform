@@ -1,25 +1,46 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using ChilliCream.Testing;
+using HotChocolate;
 using HotChocolate.Language;
 using Snapshooter.Xunit;
 using StrawberryShake.CodeGeneration.Analyzers;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Utilities;
 using Xunit;
+using static StrawberryShake.CodeGeneration.CSharp.CSharpGenerator;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
     public static class GeneratorTestHelper
     {
-        public static void AssertResult(params string[] sourceTexts)
+        public static IReadOnlyList<IError> AssertError(
+            params string[] fileNames)
         {
-            ClientModel clientModel = CreateClientModel(sourceTexts);
+            CSharpGeneratorResult result = Generate(
+                fileNames,
+                @namespace: "Foo.Bar",
+                clientName: "FooClient");
+
+            Assert.True(
+                result.Errors.Any(),
+                "It is expected that the result has no generator errors!");
+
+            return result.Errors;
+        }
+
+        public static void AssertResult(params string[] sourceTexts) =>
+            AssertResult(true, sourceTexts);
+
+        public static void AssertResult(bool strictValidation, params string[] sourceTexts)
+        {
+            ClientModel clientModel = CreateClientModel(sourceTexts, strictValidation);
 
             var documents = new StringBuilder();
             var documentNames = new HashSet<string>();
-            var generator = new CSharpGeneratorExecutor();
 
             documents.AppendLine("// ReSharper disable BuiltInTypeReferenceStyle");
             documents.AppendLine("// ReSharper disable RedundantNameQualifier");
@@ -33,7 +54,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
             documents.AppendLine("// ReSharper disable InconsistentNaming");
             documents.AppendLine();
 
-            foreach (CSharpDocument document in generator.Generate(clientModel, "Foo", "FooClient"))
+            CSharpGeneratorResult result = Generate(
+                clientModel,
+                @namespace: "Foo.Bar",
+                clientName: "FooClient");
+
+            Assert.False(
+                result.Errors.Any(),
+                "It is expected that the result has no generator errors!");
+
+            foreach (CSharpDocument document in result.CSharpDocuments)
             {
                 if (!documentNames.Add(document.Name))
                 {
@@ -63,20 +93,37 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
         }
 
-        private static ClientModel CreateClientModel(params string[] sourceText)
+        public static void AssertStarWarsResult(params string[] sourceTexts)
         {
-            var documents = sourceText
-                .Select(sourceText => (string.Empty, Utf8GraphQLParser.Parse(sourceText)))
+            var source = new string[sourceTexts.Length + 2];
+
+            source[0] = FileResource.Open("Schema.graphql");
+            source[1] = FileResource.Open("Schema.extensions.graphql");
+
+            Array.Copy(
+                sourceTexts,
+                sourceIndex: 0,
+                source,
+                destinationIndex: 2,
+                length: sourceTexts.Length);
+
+            AssertResult(source);
+        }
+
+        private static ClientModel CreateClientModel(string[] sourceText, bool strictValidation)
+        {
+            var files = sourceText
+                .Select(s => new GraphQLFile(Utf8GraphQLParser.Parse(s)))
                 .ToList();
 
-            var typeSystemDocs = documents.GetTypeSystemDocuments().ToList();
-            var executableDocs = documents.GetExecutableDocuments().ToList();
+            var typeSystemDocs = files.GetTypeSystemDocuments().ToList();
+            var executableDocs = files.GetExecutableDocuments().ToList();
 
             var analyzer = new DocumentAnalyzer();
 
-            analyzer.SetSchema(SchemaHelper.Load(typeSystemDocs));
+            analyzer.SetSchema(SchemaHelper.Load(typeSystemDocs, strictValidation));
 
-            foreach (DocumentNode executable in executableDocs.Select(doc => doc.document))
+            foreach (DocumentNode executable in executableDocs.Select(file => file.Document))
             {
                 analyzer.AddDocument(executable);
             }

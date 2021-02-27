@@ -1,10 +1,10 @@
-using System;
 using System.Linq;
 using System.Text;
 using HotChocolate;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Extensions;
+using StrawberryShake.Serialization;
 using static StrawberryShake.CodeGeneration.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
@@ -47,9 +47,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetPublic()
                 .SetStatic()
                 .SetReturnType(TypeNames.IServiceCollection)
-                .AddParameter(
-                    "services",
-                    x => x.SetThis().SetType(TypeNames.IServiceCollection))
+                .AddParameter("services", x => x.SetThis().SetType(TypeNames.IServiceCollection))
                 .AddParameter(
                     "strategy",
                     x => x.SetType(TypeNames.ExecutionStrategy)
@@ -236,6 +234,20 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     codeWriter,
                     TypeNames.ISerializer,
                     serializer);
+            }
+
+            RuntimeTypeInfo stringTypeInfo = TypeInfos.From(TypeNames.String);
+            foreach (var scalar in descriptor.TypeDescriptors.OfType<ScalarTypeDescriptor>())
+            {
+                if (scalar.RuntimeType.Equals(stringTypeInfo) &&
+                    scalar.SerializationType.Equals(stringTypeInfo) &&
+                    !BuiltInScalarNames.IsBuiltInScalar(scalar.Name))
+                {
+                    codeWriter.WriteLine(
+                        TypeNames.AddSingleton.WithGeneric(TypeNames.ISerializer) +
+                        $"(services, new {TypeNames.StringSerializer}" +
+                        $"({scalar.Name.AsStringToken()}));");
+                }
             }
 
             foreach (var inputTypeDescriptor in descriptor.TypeDescriptors

@@ -25,7 +25,9 @@ namespace StrawberryShake.Transport.WebSockets.Protocol
         /// </param>
         public GraphQLWebSocketProtocol(ISocketClient socketClient)
         {
-            _socketClient = socketClient ?? throw new ArgumentNullException(nameof(socketClient));
+            _socketClient = socketClient ??
+                throw new ArgumentNullException(nameof(socketClient));
+
             _receiver = new MessagePipeline(socketClient, ProcessAsync);
             _sender = new SynchronizedMessageWriter(socketClient);
         }
@@ -59,9 +61,7 @@ namespace StrawberryShake.Transport.WebSockets.Protocol
             }
 
             await _sender
-                .CommitAsync(
-                    x => x.WriteStopOperationMessage(operationId),
-                    cancellationToken)
+                .CommitAsync(x => x.WriteStopOperationMessage(operationId), cancellationToken)
                 .ConfigureAwait(false);
         }
 
@@ -73,10 +73,13 @@ namespace StrawberryShake.Transport.WebSockets.Protocol
                 throw ThrowHelper.Protocol_CannotInitializeOnClosedSocket();
             }
 
+            object? payload =
+                await _socketClient
+                    .ConnectionInterceptor
+                    .CreateConnectionInitPayload(this, cancellationToken);
+
             await _sender
-                .CommitAsync(
-                    x => x.WriteInitializeMessage(),
-                    cancellationToken)
+                .CommitAsync(x => x.WriteInitializeMessage(payload), cancellationToken)
                 .ConfigureAwait(false);
 
             _receiver.Start();
@@ -91,9 +94,7 @@ namespace StrawberryShake.Transport.WebSockets.Protocol
             }
 
             await _sender
-                .CommitAsync(
-                    x => x.WriteTerminateMessage(),
-                    cancellationToken)
+                .CommitAsync(x => x.WriteTerminateMessage(), cancellationToken)
                 .ConfigureAwait(false);
 
             await _receiver.Stop().ConfigureAwait(false);
@@ -110,34 +111,36 @@ namespace StrawberryShake.Transport.WebSockets.Protocol
 
                 if (message.Id is { } id)
                 {
-                    switch (message.Type)
+                    return message.Type switch
                     {
-                        case GraphQLWebSocketMessageType.Data:
-                            return Notify(
+                        GraphQLWebSocketMessageType.Data =>
+                            Notify(
                                 id,
                                 new DataDocumentOperationMessage<JsonDocument>(message.Payload),
-                                cancellationToken);
+                                cancellationToken),
 
-                        case GraphQLWebSocketMessageType.Complete:
-                            return Notify(
+                        GraphQLWebSocketMessageType.Complete =>
+                            Notify(
                                 id,
                                 CompleteOperationMessage.Default,
-                                cancellationToken);
-                        case GraphQLWebSocketMessageType.Error:
-                            return Notify(
+                                cancellationToken),
+
+                        GraphQLWebSocketMessageType.Error =>
+                            Notify(
                                 id,
                                 ErrorOperationMessage.UnexpectedServerError,
-                                cancellationToken);
-                        case GraphQLWebSocketMessageType.ConnectionError:
-                            return Notify(
+                                cancellationToken),
+
+                        GraphQLWebSocketMessageType.ConnectionError =>
+                            Notify(
                                 id,
                                 ErrorOperationMessage.ConnectionInitializationError,
-                                cancellationToken);
-                        default:
-                            return CloseSocketOnProtocolError(
+                                cancellationToken),
+
+                        _ => CloseSocketOnProtocolError(
                                 "Invalid message type received: " + message.Type,
-                                cancellationToken);
-                    }
+                                cancellationToken)
+                    };
                 }
             }
             catch (Exception ex)
@@ -154,9 +157,8 @@ namespace StrawberryShake.Transport.WebSockets.Protocol
             string message,
             CancellationToken cancellationToken)
         {
-            await _socketClient.CloseAsync(message,
-                    SocketCloseStatus.ProtocolError,
-                    cancellationToken)
+            await _socketClient
+                .CloseAsync(message, SocketCloseStatus.ProtocolError, cancellationToken)
                 .ConfigureAwait(false);
         }
 
