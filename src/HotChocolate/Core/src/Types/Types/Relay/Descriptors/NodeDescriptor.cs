@@ -82,5 +82,9 @@ namespace HotChocolate.Types.Relay.Descriptors
             ResolveNodeWith(Context.TypeInspector.GetNodeResolverMethod(
                 Definition.NodeType ?? type,
                 type)!);
+
+        public IObjectFieldDescriptor ResolveNode(Type type) =>
+            ResolveNodeWith(Context.TypeInspector.GetNodeResolverMethod(
+                Definition.NodeType ?? type)!);
     }
 }
