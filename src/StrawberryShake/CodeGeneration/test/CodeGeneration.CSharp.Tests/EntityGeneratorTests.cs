@@ -1,3 +1,4 @@
+using ChilliCream.Testing;
 using Xunit;
 using static StrawberryShake.CodeGeneration.CSharp.GeneratorTestHelper;
 
@@ -9,45 +10,45 @@ namespace StrawberryShake.CodeGeneration.CSharp
         public void Generate_ChatClient_ConnectionNotAnEntity()
         {
             AssertResult(
-                "ChatPeopleNodes.graphql",
-                "Schema.extensions.graphql",
-                "ChatSchema.graphql");
+                FileResource.Open("ChatPeopleNodes.graphql"),
+                FileResource.Open("Schema.extensions.graphql"),
+                FileResource.Open("ChatSchema.graphql"));
         }
 
         [Fact]
         public void Generate_ChatClient_MapperMapsEntityOnRootCorrectly()
         {
             AssertResult(
-                "ChatSendMessage.graphql",
-                "Schema.extensions.graphql",
-                "ChatSchema.graphql");
+                FileResource.Open("ChatSendMessage.graphql"),
+                FileResource.Open("Schema.extensions.graphql"),
+                FileResource.Open("ChatSchema.graphql"));
         }
 
         [Fact]
         public void Generate_BookClient_DataOnly_UnionDataTypes()
         {
             AssertResult(
-                "BookUnionQuery.graphql",
-                "Schema.extensions.graphql",
-                "BookSchema.graphql");
+                FileResource.Open("BookUnionQuery.graphql"),
+                FileResource.Open("Schema.extensions.graphql"),
+                FileResource.Open("BookSchema.graphql"));
         }
 
         [Fact]
         public void Generate_BookClient_DataOnly_InterfaceDataTypes()
         {
             AssertResult(
-                "BookInterfaceQuery.graphql",
-                "Schema.extensions.graphql",
-                "BookSchema.graphql");
+                FileResource.Open("BookInterfaceQuery.graphql"),
+                FileResource.Open("Schema.extensions.graphql"),
+                FileResource.Open("BookSchema.graphql"));
         }
 
         [Fact]
         public void Generate_BookClient_DataInEntity_UnionDataTypes()
         {
             AssertResult(
-                "BookUnionQueryWithEntity.graphql",
-                "Schema.extensions.graphql",
-                "BookSchema.graphql");
+                FileResource.Open("BookUnionQueryWithEntity.graphql"),
+                FileResource.Open("Schema.extensions.graphql"),
+                FileResource.Open("BookSchema.graphql"));
         }
     }
 }

@@ -54,7 +54,10 @@ namespace StrawberryShake.CodeGeneration.Utilities
                 .Create(
                     enter: node =>
                     {
-                        lookup.Add(node, file.FileName);
+                        if (!lookup.ContainsKey(node))
+                        {
+                            lookup.Add(node, file.FileName);
+                        }
                         return SyntaxVisitor.Continue;
                     },
                     defaultAction: SyntaxVisitor.Continue,

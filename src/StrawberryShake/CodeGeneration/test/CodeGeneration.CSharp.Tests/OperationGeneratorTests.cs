@@ -1,3 +1,4 @@
+using ChilliCream.Testing;
 using Xunit;
 using static StrawberryShake.CodeGeneration.CSharp.GeneratorTestHelper;
 
@@ -38,9 +39,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             // arrange
             AssertResult(
-                "ChatOperations.graphql",
-                "Schema.extensions.graphql",
-                "ChatSchema.graphql");
+                FileResource.Open("ChatOperations.graphql"),
+                FileResource.Open("Schema.extensions.graphql"),
+                FileResource.Open("ChatSchema.graphql"));
         }
     }
 }

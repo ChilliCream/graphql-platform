@@ -20,13 +20,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             ClientModel clientModel = CreateClientModel(sourceTexts);
 
-            var documents = new StringBuilder();
-            var documentNames = new HashSet<string>();
-
             var result = CSharpGenerator.Generate(clientModel, "Foo", "FooClient");
 
             Assert.True(
-                result.Errors.Any(), 
+                result.Errors.Any(),
                 "It is expected that the result has no generator errors!");
 
             return result.Errors;
@@ -51,10 +48,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
             documents.AppendLine("// ReSharper disable InconsistentNaming");
             documents.AppendLine();
 
-            var result = CSharpGenerator.Generate(clientModel, "Foo", "FooClient");
+            var result = CSharpGenerator.Generate(
+                clientModel,
+                @namespace: "Foo",
+                clientName: "FooClient");
 
             Assert.False(
-                result.Errors.Any(), 
+                result.Errors.Any(),
                 "It is expected that the result has no generator errors!");
 
             foreach (CSharpDocument document in result.CSharpDocuments)
@@ -93,12 +93,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             source[0] = FileResource.Open("Schema.graphql");
             source[1] = FileResource.Open("Schema.extensions.graphql");
-            
+
             Array.Copy(
-                sourceTexts, 
-                sourceIndex: 0, 
-                source, 
-                destinationIndex: 2, 
+                sourceTexts,
+                sourceIndex: 0,
+                source,
+                destinationIndex: 2,
                 length: sourceTexts.Length);
 
             AssertResult(source);
@@ -107,7 +107,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private static ClientModel CreateClientModel(params string[] sourceText)
         {
             var files = sourceText
-                .Select(sourceText => new GraphQLFile(Utf8GraphQLParser.Parse(sourceText)))
+                .Select(s => new GraphQLFile(Utf8GraphQLParser.Parse(s)))
                 .ToList();
 
             var typeSystemDocs = files.GetTypeSystemDocuments().ToList();

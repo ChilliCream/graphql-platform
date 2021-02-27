@@ -24,7 +24,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     FileResource.Open("Schema.extensions.graphql"),
                     FileResource.Open("Schema.graphql")),
                 error => { });
-
         }
 
         [Fact]
@@ -42,9 +41,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
         public void Generate_ChatClient_InvalidNullCheck()
         {
             AssertResult(
-                "ChatMeFiendsNodes.graphql",
-                "Schema.extensions.graphql",
-                "ChatSchema.graphql");
+                FileResource.Open("ChatMeFiendsNodes.graphql"),
+                FileResource.Open("Schema.extensions.graphql"),
+                FileResource.Open("ChatSchema.graphql"));
         }
     }
 }
