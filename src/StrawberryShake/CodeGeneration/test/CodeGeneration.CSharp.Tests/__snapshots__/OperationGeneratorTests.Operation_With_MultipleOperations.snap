@@ -15,7 +15,7 @@
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestOperationResultFactory
@@ -48,7 +48,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestOperationResultInfo
@@ -91,7 +91,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestOperationResult
@@ -113,7 +113,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ITestOperationResult
@@ -129,7 +129,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestOperation2ResultFactory
@@ -162,7 +162,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestOperation2ResultInfo
@@ -205,7 +205,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestOperation2Result
@@ -227,7 +227,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ITestOperation2Result
@@ -243,7 +243,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestOperation3ResultFactory
@@ -276,7 +276,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestOperation3ResultInfo
@@ -319,7 +319,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestOperation3Result
@@ -341,7 +341,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ITestOperation3Result
@@ -357,7 +357,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class BarInputValueFormatter
@@ -468,7 +468,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class Bar
@@ -492,7 +492,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestOperationQueryDocument
@@ -522,7 +522,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestOperationQuery
@@ -650,7 +650,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestOperation2QueryDocument
@@ -680,7 +680,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestOperation2Query
@@ -808,7 +808,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestOperation3QueryDocument
@@ -838,7 +838,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestOperation3Query
@@ -966,7 +966,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestOperationBuilder
@@ -1043,7 +1043,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestOperation2Builder
@@ -1120,7 +1120,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestOperation3Builder
@@ -1197,7 +1197,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient
@@ -1234,7 +1234,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class EntityIdFactory
@@ -1258,7 +1258,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class FooClientServiceCollectionExtensions

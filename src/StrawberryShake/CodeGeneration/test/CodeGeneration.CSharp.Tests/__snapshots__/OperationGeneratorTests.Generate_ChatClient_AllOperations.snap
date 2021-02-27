@@ -9,14 +9,13 @@
 // ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
 
-// Code:
 // PersonEntity
 
 // StrawberryShake.CodeGeneration.CSharp.EntityTypeGenerator
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class PersonEntity
@@ -31,7 +30,7 @@ namespace StrawberryShake.GraphQL
 
         public global::System.DateTimeOffset LastSeen { get; set; } = default!;
 
-        public global::StrawberryShake.GraphQL.State.MessageConnectionData? Messages { get; set; }
+        public global::Foo.Bar.State.MessageConnectionData? Messages { get; set; }
     }
 }
 
@@ -42,7 +41,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class MessageEntity
@@ -68,7 +67,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleResultFactory
@@ -97,7 +96,7 @@ namespace StrawberryShake.GraphQL
             throw new global::System.ArgumentException("GetPeopleResultInfo expected.");
         }
 
-        private IGetPeople_People? MapIGetPeople_People(global::StrawberryShake.GraphQL.State.PersonConnectionData data)
+        private IGetPeople_People? MapIGetPeople_People(global::Foo.Bar.State.PersonConnectionData data)
         {
             if (data == default)
             {
@@ -159,7 +158,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleResultInfo
@@ -169,7 +168,7 @@ namespace StrawberryShake.GraphQL
         private readonly ulong _version;
 
         public GetPeopleResultInfo(
-            global::StrawberryShake.GraphQL.State.PersonConnectionData? people,
+            global::Foo.Bar.State.PersonConnectionData? people,
             global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds,
             ulong version)
         {
@@ -179,7 +178,7 @@ namespace StrawberryShake.GraphQL
             _version = version;
         }
 
-        public global::StrawberryShake.GraphQL.State.PersonConnectionData? People { get; }
+        public global::Foo.Bar.State.PersonConnectionData? People { get; }
 
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
 
@@ -202,7 +201,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleResult
@@ -224,7 +223,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeople_People_PersonConnection
@@ -246,7 +245,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeople_People_Nodes_PersonFromPersonEntityMapper
@@ -271,7 +270,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeople_People_Nodes_Person
@@ -310,7 +309,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetPeopleResult
@@ -326,7 +325,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetPeople_People
@@ -342,7 +341,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetPeople_People_PersonConnection
@@ -358,7 +357,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IParticipant
@@ -378,7 +377,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IPerson
@@ -397,7 +396,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetPeople_People_Nodes
@@ -413,7 +412,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetPeople_People_Nodes_Person
@@ -429,7 +428,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetMessagesResultFactory
@@ -479,7 +478,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetMessagesResultInfo
@@ -522,7 +521,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetMessagesResult
@@ -544,7 +543,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetMessages_PersonByEmail_PersonFromPersonEntityMapper
@@ -576,7 +575,7 @@ namespace StrawberryShake.GraphQL
             return new GetMessages_PersonByEmail_Person(MapIGetMessages_PersonByEmail_Messages(entity.Messages));
         }
 
-        private IGetMessages_PersonByEmail_Messages? MapIGetMessages_PersonByEmail_Messages(global::StrawberryShake.GraphQL.State.MessageConnectionData data)
+        private IGetMessages_PersonByEmail_Messages? MapIGetMessages_PersonByEmail_Messages(global::Foo.Bar.State.MessageConnectionData data)
         {
             if (data == default)
             {
@@ -662,7 +661,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetMessages_PersonByEmail_Person
@@ -684,7 +683,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetMessages_PersonByEmail_Messages_MessageConnection
@@ -706,7 +705,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetMessages_PersonByEmail_Messages_Nodes_MessageFromMessageEntityMapper
@@ -773,7 +772,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetMessages_PersonByEmail_Messages_Nodes_Message
@@ -816,7 +815,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper
@@ -839,7 +838,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person
@@ -870,7 +869,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper
@@ -893,7 +892,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetMessages_PersonByEmail_Messages_Nodes_Sender_Person
@@ -924,7 +923,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetMessagesResult
@@ -940,7 +939,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetMessages_PersonByEmail
@@ -956,7 +955,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetMessages_PersonByEmail_Person
@@ -972,7 +971,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetMessages_PersonByEmail_Messages
@@ -988,7 +987,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetMessages_PersonByEmail_Messages_MessageConnection
@@ -1004,7 +1003,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IMessage
@@ -1030,7 +1029,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetMessages_PersonByEmail_Messages_Nodes
@@ -1046,7 +1045,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetMessages_PersonByEmail_Messages_Nodes_Message
@@ -1062,7 +1061,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetMessages_PersonByEmail_Messages_Nodes_Recipient
@@ -1078,7 +1077,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetMessages_PersonByEmail_Messages_Nodes_Recipient_Person
@@ -1094,7 +1093,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetMessages_PersonByEmail_Messages_Nodes_Sender
@@ -1110,7 +1109,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetMessages_PersonByEmail_Messages_Nodes_Sender_Person
@@ -1126,7 +1125,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SendMessageMutResultFactory
@@ -1163,7 +1162,7 @@ namespace StrawberryShake.GraphQL
             throw new global::System.ArgumentException("SendMessageMutResultInfo expected.");
         }
 
-        private ISendMessageMut_SendMessage MapNonNullableISendMessageMut_SendMessage(global::StrawberryShake.GraphQL.State.SendMessagePayloadData data)
+        private ISendMessageMut_SendMessage MapNonNullableISendMessageMut_SendMessage(global::Foo.Bar.State.SendMessagePayloadData data)
         {
             ISendMessageMut_SendMessage returnValue = default!;
 
@@ -1222,7 +1221,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SendMessageMutResultInfo
@@ -1232,7 +1231,7 @@ namespace StrawberryShake.GraphQL
         private readonly ulong _version;
 
         public SendMessageMutResultInfo(
-            global::StrawberryShake.GraphQL.State.SendMessagePayloadData sendMessage,
+            global::Foo.Bar.State.SendMessagePayloadData sendMessage,
             global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds,
             ulong version)
         {
@@ -1242,7 +1241,7 @@ namespace StrawberryShake.GraphQL
             _version = version;
         }
 
-        public global::StrawberryShake.GraphQL.State.SendMessagePayloadData SendMessage { get; }
+        public global::Foo.Bar.State.SendMessagePayloadData SendMessage { get; }
 
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
 
@@ -1265,7 +1264,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SendMessageMutResult
@@ -1287,7 +1286,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SendMessageMut_SendMessage_SendMessagePayload
@@ -1309,7 +1308,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SendMessageMut_SendMessage_Message_MessageFromMessageEntityMapper
@@ -1376,7 +1375,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SendMessageMut_SendMessage_Message_Message
@@ -1419,7 +1418,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SendMessageMut_SendMessage_Message_Recipient_PersonFromPersonEntityMapper
@@ -1442,7 +1441,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SendMessageMut_SendMessage_Message_Recipient_Person
@@ -1473,7 +1472,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SendMessageMut_SendMessage_Message_Sender_PersonFromPersonEntityMapper
@@ -1496,7 +1495,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SendMessageMut_SendMessage_Message_Sender_Person
@@ -1527,7 +1526,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISendMessageMutResult
@@ -1543,7 +1542,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISendMessageMut_SendMessage
@@ -1559,7 +1558,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISendMessageMut_SendMessage_SendMessagePayload
@@ -1575,7 +1574,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISendMessageMut_SendMessage_Message
@@ -1591,7 +1590,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISendMessageMut_SendMessage_Message_Message
@@ -1607,7 +1606,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISendMessageMut_SendMessage_Message_Recipient
@@ -1623,7 +1622,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISendMessageMut_SendMessage_Message_Recipient_Person
@@ -1639,7 +1638,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISendMessageMut_SendMessage_Message_Sender
@@ -1655,7 +1654,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISendMessageMut_SendMessage_Message_Sender_Person
@@ -1671,7 +1670,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ReadMessagesResultFactory
@@ -1721,7 +1720,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ReadMessagesResultInfo
@@ -1764,7 +1763,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ReadMessagesResult
@@ -1786,7 +1785,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ReadMessages_Message_MessageFromMessageEntityMapper
@@ -1853,7 +1852,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ReadMessages_Message_Message
@@ -1896,7 +1895,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ReadMessages_Message_Recipient_PersonFromPersonEntityMapper
@@ -1919,7 +1918,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ReadMessages_Message_Recipient_Person
@@ -1950,7 +1949,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ReadMessages_Message_Sender_PersonFromPersonEntityMapper
@@ -1973,7 +1972,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ReadMessages_Message_Sender_Person
@@ -2004,7 +2003,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IReadMessagesResult
@@ -2020,7 +2019,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IReadMessages_Message
@@ -2036,7 +2035,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IReadMessages_Message_Message
@@ -2052,7 +2051,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IReadMessages_Message_Recipient
@@ -2068,7 +2067,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IReadMessages_Message_Recipient_Person
@@ -2084,7 +2083,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IReadMessages_Message_Sender
@@ -2100,7 +2099,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IReadMessages_Message_Sender_Person
@@ -2116,7 +2115,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public enum Direction
@@ -2133,7 +2132,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class DirectionSerializer
@@ -2171,7 +2170,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleQueryDocument
@@ -2201,7 +2200,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleQuery
@@ -2248,7 +2247,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetMessagesQueryDocument
@@ -2278,7 +2277,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetMessagesQuery
@@ -2346,7 +2345,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SendMessageMutMutationDocument
@@ -2376,7 +2375,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SendMessageMutMutation
@@ -2463,7 +2462,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ReadMessagesSubscriptionDocument
@@ -2493,7 +2492,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ReadMessagesSubscription
@@ -2529,7 +2528,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleBuilder
@@ -2598,7 +2597,7 @@ namespace StrawberryShake.GraphQL
             return (_resultDataFactory.Create(resultInfo), resultInfo);
         }
 
-        private global::StrawberryShake.GraphQL.State.PersonConnectionData? DeserializeIGetPeople_People(
+        private global::Foo.Bar.State.PersonConnectionData? DeserializeIGetPeople_People(
             global::System.Text.Json.JsonElement? obj,
             global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
@@ -2611,7 +2610,7 @@ namespace StrawberryShake.GraphQL
 
             if (typename?.Equals("PersonConnection", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new global::StrawberryShake.GraphQL.State.PersonConnectionData(
+                return new global::Foo.Bar.State.PersonConnectionData(
                     typename,
                     nodes: UpdateIGetPeople_People_NodesEntityArray(
                         global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "nodes"),
@@ -2719,7 +2718,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetMessagesBuilder
@@ -2728,7 +2727,7 @@ namespace StrawberryShake.GraphQL
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
         private readonly global::StrawberryShake.IOperationResultDataFactory<IGetMessagesResult> _resultDataFactory;
-        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::StrawberryShake.GraphQL.Direction> _directionParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::Foo.Bar.Direction> _directionParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _iDParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.DateTimeOffset> _dateTimeParser;
@@ -2746,7 +2745,7 @@ namespace StrawberryShake.GraphQL
                  ?? throw new global::System.ArgumentNullException(nameof(extractId));
             _resultDataFactory = resultDataFactory
                  ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
-            _directionParser = serializerResolver.GetLeafValueParser<global::System.String, global::StrawberryShake.GraphQL.Direction>("Direction")
+            _directionParser = serializerResolver.GetLeafValueParser<global::System.String, global::Foo.Bar.Direction>("Direction")
                  ?? throw new global::System.ArgumentException("No serializer for type `Direction` found.");
             _iDParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("ID")
                  ?? throw new global::System.ArgumentException("No serializer for type `ID` found.");
@@ -2818,7 +2817,7 @@ namespace StrawberryShake.GraphQL
             throw new global::System.NotSupportedException();
         }
 
-        private global::StrawberryShake.GraphQL.State.MessageConnectionData? DeserializeIGetMessages_PersonByEmail_Messages(
+        private global::Foo.Bar.State.MessageConnectionData? DeserializeIGetMessages_PersonByEmail_Messages(
             global::System.Text.Json.JsonElement? obj,
             global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
@@ -2831,7 +2830,7 @@ namespace StrawberryShake.GraphQL
 
             if (typename?.Equals("MessageConnection", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new global::StrawberryShake.GraphQL.State.MessageConnectionData(
+                return new global::Foo.Bar.State.MessageConnectionData(
                     typename,
                     nodes: UpdateIGetMessages_PersonByEmail_Messages_NodesEntityArray(
                         global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "nodes"),
@@ -2996,7 +2995,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SendMessageMutBuilder
@@ -3005,7 +3004,7 @@ namespace StrawberryShake.GraphQL
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
         private readonly global::StrawberryShake.IOperationResultDataFactory<ISendMessageMutResult> _resultDataFactory;
-        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::StrawberryShake.GraphQL.Direction> _directionParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::Foo.Bar.Direction> _directionParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _iDParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.DateTimeOffset> _dateTimeParser;
@@ -3023,7 +3022,7 @@ namespace StrawberryShake.GraphQL
                  ?? throw new global::System.ArgumentNullException(nameof(extractId));
             _resultDataFactory = resultDataFactory
                  ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
-            _directionParser = serializerResolver.GetLeafValueParser<global::System.String, global::StrawberryShake.GraphQL.Direction>("Direction")
+            _directionParser = serializerResolver.GetLeafValueParser<global::System.String, global::Foo.Bar.Direction>("Direction")
                  ?? throw new global::System.ArgumentException("No serializer for type `Direction` found.");
             _iDParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("ID")
                  ?? throw new global::System.ArgumentException("No serializer for type `ID` found.");
@@ -3068,7 +3067,7 @@ namespace StrawberryShake.GraphQL
             return (_resultDataFactory.Create(resultInfo), resultInfo);
         }
 
-        private global::StrawberryShake.GraphQL.State.SendMessagePayloadData DeserializeNonNullableISendMessageMut_SendMessage(
+        private global::Foo.Bar.State.SendMessagePayloadData DeserializeNonNullableISendMessageMut_SendMessage(
             global::System.Text.Json.JsonElement? obj,
             global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
@@ -3081,7 +3080,7 @@ namespace StrawberryShake.GraphQL
 
             if (typename?.Equals("SendMessagePayload", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new global::StrawberryShake.GraphQL.State.SendMessagePayloadData(
+                return new global::Foo.Bar.State.SendMessagePayloadData(
                     typename,
                     message: UpdateNonNullableISendMessageMut_SendMessage_MessageEntity(
                         global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "message"),
@@ -3225,7 +3224,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ReadMessagesBuilder
@@ -3234,7 +3233,7 @@ namespace StrawberryShake.GraphQL
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
         private readonly global::StrawberryShake.IOperationResultDataFactory<IReadMessagesResult> _resultDataFactory;
-        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::StrawberryShake.GraphQL.Direction> _directionParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::Foo.Bar.Direction> _directionParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _iDParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.DateTimeOffset> _dateTimeParser;
@@ -3252,7 +3251,7 @@ namespace StrawberryShake.GraphQL
                  ?? throw new global::System.ArgumentNullException(nameof(extractId));
             _resultDataFactory = resultDataFactory
                  ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
-            _directionParser = serializerResolver.GetLeafValueParser<global::System.String, global::StrawberryShake.GraphQL.Direction>("Direction")
+            _directionParser = serializerResolver.GetLeafValueParser<global::System.String, global::Foo.Bar.Direction>("Direction")
                  ?? throw new global::System.ArgumentException("No serializer for type `Direction` found.");
             _iDParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("ID")
                  ?? throw new global::System.ArgumentException("No serializer for type `ID` found.");
@@ -3432,7 +3431,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL.State
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class PersonConnectionData
@@ -3459,7 +3458,7 @@ namespace StrawberryShake.GraphQL.State
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL.State
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class MessageConnectionData
@@ -3486,7 +3485,7 @@ namespace StrawberryShake.GraphQL.State
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL.State
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SendMessagePayloadData
@@ -3507,23 +3506,23 @@ namespace StrawberryShake.GraphQL.State
 }
 
 
-// GraphQLClient
+// FooClient
 
 // StrawberryShake.CodeGeneration.CSharp.ClientGenerator
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GraphQLClient
+    public partial class FooClient
     {
         private readonly GetPeopleQuery _getPeopleQuery;
         private readonly GetMessagesQuery _getMessagesQuery;
         private readonly SendMessageMutMutation _sendMessageMutMutation;
         private readonly ReadMessagesSubscription _readMessagesSubscription;
 
-        public GraphQLClient(
+        public FooClient(
             GetPeopleQuery getPeopleQuery,
             GetMessagesQuery getMessagesQuery,
             SendMessageMutMutation sendMessageMutMutation,
@@ -3556,7 +3555,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class EntityIdFactory
@@ -3594,18 +3593,18 @@ namespace StrawberryShake.GraphQL
 }
 
 
-// GraphQLClientServiceCollectionExtensions
+// FooClientServiceCollectionExtensions
 
 // StrawberryShake.CodeGeneration.CSharp.DependencyInjectionGenerator
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public static partial class GraphQLClientServiceCollectionExtensions
+    public static partial class FooClientServiceCollectionExtensions
     {
-        public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddGraphQLClient(
+        public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddFooClient(
             this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
             global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
@@ -3643,7 +3642,7 @@ namespace StrawberryShake.GraphQL
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<GraphQLClient>(
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<FooClient>(
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
 
             return services;
@@ -3692,7 +3691,7 @@ namespace StrawberryShake.GraphQL
                             >(parentServices);
             
                     return new global::StrawberryShake.Transport.WebSockets.WebSocketConnection(
-                        () => sessionPool.CreateAsync("GraphQLClient", default));
+                        () => sessionPool.CreateAsync("FooClient", default));
                 });
             
             
@@ -3706,7 +3705,7 @@ namespace StrawberryShake.GraphQL
                             >(parentServices);
             
                     return new global::StrawberryShake.Transport.Http.HttpConnection(
-                        () => clientFactory.CreateClient("GraphQLClient"));
+                        () => clientFactory.CreateClient("FooClient"));
                 });
             
             // register mappers
@@ -3831,7 +3830,7 @@ namespace StrawberryShake.GraphQL
             
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<ReadMessagesSubscription>(services);
             
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<GraphQLClient>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<FooClient>(services);
             
             return services;
         }

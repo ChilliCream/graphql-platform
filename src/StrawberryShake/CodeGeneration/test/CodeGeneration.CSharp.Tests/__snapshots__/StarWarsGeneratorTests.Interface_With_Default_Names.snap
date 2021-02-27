@@ -15,7 +15,7 @@
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class DroidEntity
@@ -33,7 +33,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class HumanEntity
@@ -51,7 +51,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroResultFactory
@@ -117,7 +117,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroResultInfo
@@ -160,7 +160,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroResult
@@ -182,7 +182,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_Hero_DroidFromDroidEntityMapper
@@ -204,7 +204,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_Hero_Droid
@@ -231,7 +231,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_Hero_HumanFromHumanEntityMapper
@@ -253,7 +253,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_Hero_Human
@@ -280,7 +280,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetHeroResult
@@ -296,7 +296,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetHero_Hero
@@ -314,7 +314,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetHero_Hero_Droid
@@ -330,7 +330,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetHero_Hero_Human
@@ -346,7 +346,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public enum Episode
@@ -364,7 +364,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class EpisodeSerializer
@@ -404,7 +404,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroQueryDocument
@@ -434,7 +434,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroQuery
@@ -481,7 +481,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroBuilder
@@ -490,7 +490,7 @@ namespace Foo
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
         private readonly global::StrawberryShake.IOperationResultDataFactory<IGetHeroResult> _resultDataFactory;
-        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::Foo.Episode> _episodeParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::Foo.Bar.Episode> _episodeParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
 
         public GetHeroBuilder(
@@ -505,7 +505,7 @@ namespace Foo
                  ?? throw new global::System.ArgumentNullException(nameof(extractId));
             _resultDataFactory = resultDataFactory
                  ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
-            _episodeParser = serializerResolver.GetLeafValueParser<global::System.String, global::Foo.Episode>("Episode")
+            _episodeParser = serializerResolver.GetLeafValueParser<global::System.String, global::Foo.Bar.Episode>("Episode")
                  ?? throw new global::System.ArgumentException("No serializer for type `Episode` found.");
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String")
                  ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
@@ -625,7 +625,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient
@@ -649,7 +649,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class EntityIdFactory
@@ -693,7 +693,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class FooClientServiceCollectionExtensions

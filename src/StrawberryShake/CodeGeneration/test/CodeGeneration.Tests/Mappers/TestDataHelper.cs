@@ -18,8 +18,11 @@ namespace StrawberryShake.CodeGeneration.Mappers
             string schemaResource)
         {
            ISchema schema = SchemaHelper.Load(
-                (string.Empty, Utf8GraphQLParser.Parse(Open(schemaResource))),
-                (string.Empty, Utf8GraphQLParser.Parse("extend schema @key(fields: \"id\")")));
+                new GraphQLFile[] 
+                {
+                    new(Utf8GraphQLParser.Parse(Open(schemaResource))),
+                    new(Utf8GraphQLParser.Parse("extend schema @key(fields: \"id\")"))
+                });
 
             DocumentNode document = Utf8GraphQLParser.Parse(Open(queryResource));
 
@@ -40,8 +43,11 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     .BuildSchemaAsync();
 
             schema = SchemaHelper.Load(
-                    (string.Empty, schema.ToDocument()),
-                    (string.Empty, Utf8GraphQLParser.Parse("extend schema @key(fields: \"id\")")));
+                new GraphQLFile[] 
+                {
+                    new(schema.ToDocument()),
+                    new(Utf8GraphQLParser.Parse("extend schema @key(fields: \"id\")"))
+                });
 
             DocumentNode document = Utf8GraphQLParser.Parse(query);
 

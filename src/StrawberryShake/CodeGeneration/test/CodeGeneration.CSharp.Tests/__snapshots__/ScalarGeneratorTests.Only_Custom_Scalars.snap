@@ -15,7 +15,7 @@
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPersonResultFactory
@@ -39,7 +39,7 @@ namespace Foo
             throw new global::System.ArgumentException("GetPersonResultInfo expected.");
         }
 
-        private IGetPerson_Person? MapIGetPerson_Person(global::Foo.State.PersonData data)
+        private IGetPerson_Person? MapIGetPerson_Person(global::Foo.Bar.State.PersonData data)
         {
             if (data == default)
             {
@@ -67,7 +67,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPersonResultInfo
@@ -77,7 +77,7 @@ namespace Foo
         private readonly ulong _version;
 
         public GetPersonResultInfo(
-            global::Foo.State.PersonData? person,
+            global::Foo.Bar.State.PersonData? person,
             global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds,
             ulong version)
         {
@@ -87,7 +87,7 @@ namespace Foo
             _version = version;
         }
 
-        public global::Foo.State.PersonData? Person { get; }
+        public global::Foo.Bar.State.PersonData? Person { get; }
 
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
 
@@ -110,7 +110,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPersonResult
@@ -132,7 +132,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPerson_Person_Person
@@ -154,7 +154,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetPersonResult
@@ -170,7 +170,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetPerson_Person
@@ -186,7 +186,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetPerson_Person_Person
@@ -202,7 +202,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPersonQueryDocument
@@ -232,7 +232,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPersonQuery
@@ -279,7 +279,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPersonBuilder
@@ -337,7 +337,7 @@ namespace Foo
             return (_resultDataFactory.Create(resultInfo), resultInfo);
         }
 
-        private global::Foo.State.PersonData? DeserializeIGetPerson_Person(global::System.Text.Json.JsonElement? obj)
+        private global::Foo.Bar.State.PersonData? DeserializeIGetPerson_Person(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {
@@ -348,7 +348,7 @@ namespace Foo
 
             if (typename?.Equals("Person", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new global::Foo.State.PersonData(
+                return new global::Foo.Bar.State.PersonData(
                     typename,
                     email: DeserializeString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "email")));
             }
@@ -375,7 +375,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo.State
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class PersonData
@@ -402,7 +402,7 @@ namespace Foo.State
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient
@@ -426,7 +426,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class EntityIdFactory
@@ -450,7 +450,7 @@ namespace Foo
 
 #nullable enable
 
-namespace Foo
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class FooClientServiceCollectionExtensions
