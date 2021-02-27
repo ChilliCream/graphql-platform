@@ -9,19 +9,18 @@
 // ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
 
-// Code:
 // PersonEntity
 
 // StrawberryShake.CodeGeneration.CSharp.EntityTypeGenerator
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class PersonEntity
     {
-        public global::StrawberryShake.GraphQL.State.PersonConnectionData? Friends { get; set; }
+        public global::Foo.Bar.State.PersonConnectionData? Friends { get; set; }
 
         public global::System.String Name { get; set; } = default!;
 
@@ -38,7 +37,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleResultFactory
@@ -88,7 +87,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleResultInfo
@@ -131,7 +130,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleResult
@@ -153,7 +152,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeople_Me_PersonFromPersonEntityMapper
@@ -177,7 +176,7 @@ namespace StrawberryShake.GraphQL
             return new GetPeople_Me_Person(MapIGetPeople_Me_Friends(entity.Friends));
         }
 
-        private IGetPeople_Me_Friends? MapIGetPeople_Me_Friends(global::StrawberryShake.GraphQL.State.PersonConnectionData data)
+        private IGetPeople_Me_Friends? MapIGetPeople_Me_Friends(global::Foo.Bar.State.PersonConnectionData data)
         {
             if (data == default)
             {
@@ -239,7 +238,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeople_Me_Person
@@ -261,7 +260,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeople_Me_Friends_PersonConnection
@@ -283,7 +282,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeople_Me_Friends_Nodes_PersonFromPersonEntityMapper
@@ -306,7 +305,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeople_Me_Friends_Nodes_Person
@@ -337,7 +336,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetPeopleResult
@@ -353,7 +352,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetPeople_Me
@@ -369,7 +368,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetPeople_Me_Person
@@ -385,7 +384,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetPeople_Me_Friends
@@ -401,7 +400,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetPeople_Me_Friends_PersonConnection
@@ -417,7 +416,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetPeople_Me_Friends_Nodes
@@ -437,7 +436,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetPeople_Me_Friends_Nodes_Person
@@ -453,7 +452,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleQueryDocument
@@ -506,7 +505,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleQuery
@@ -553,7 +552,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleBuilder
@@ -643,7 +642,7 @@ namespace StrawberryShake.GraphQL
             throw new global::System.NotSupportedException();
         }
 
-        private global::StrawberryShake.GraphQL.State.PersonConnectionData? DeserializeIGetPeople_Me_Friends(
+        private global::Foo.Bar.State.PersonConnectionData? DeserializeIGetPeople_Me_Friends(
             global::System.Text.Json.JsonElement? obj,
             global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
@@ -656,7 +655,7 @@ namespace StrawberryShake.GraphQL
 
             if (typename?.Equals("PersonConnection", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new global::StrawberryShake.GraphQL.State.PersonConnectionData(
+                return new global::Foo.Bar.State.PersonConnectionData(
                     typename,
                     nodes: UpdateIGetPeople_Me_Friends_NodesEntityArray(
                         global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "nodes"),
@@ -742,7 +741,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL.State
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class PersonConnectionData
@@ -763,20 +762,20 @@ namespace StrawberryShake.GraphQL.State
 }
 
 
-// GraphQLClient
+// FooClient
 
 // StrawberryShake.CodeGeneration.CSharp.ClientGenerator
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GraphQLClient
+    public partial class FooClient
     {
         private readonly GetPeopleQuery _getPeopleQuery;
 
-        public GraphQLClient(GetPeopleQuery getPeopleQuery)
+        public FooClient(GetPeopleQuery getPeopleQuery)
         {
             _getPeopleQuery = getPeopleQuery
                  ?? throw new global::System.ArgumentNullException(nameof(getPeopleQuery));
@@ -793,7 +792,7 @@ namespace StrawberryShake.GraphQL
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class EntityIdFactory
@@ -821,18 +820,18 @@ namespace StrawberryShake.GraphQL
 }
 
 
-// GraphQLClientServiceCollectionExtensions
+// FooClientServiceCollectionExtensions
 
 // StrawberryShake.CodeGeneration.CSharp.DependencyInjectionGenerator
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public static partial class GraphQLClientServiceCollectionExtensions
+    public static partial class FooClientServiceCollectionExtensions
     {
-        public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddGraphQLClient(
+        public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddFooClient(
             this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
             global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
@@ -858,7 +857,7 @@ namespace StrawberryShake.GraphQL
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<GraphQLClient>(
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<FooClient>(
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
 
             return services;
@@ -907,7 +906,7 @@ namespace StrawberryShake.GraphQL
                             >(parentServices);
             
                     return new global::StrawberryShake.Transport.Http.HttpConnection(
-                        () => clientFactory.CreateClient("GraphQLClient"));
+                        () => clientFactory.CreateClient("FooClient"));
                 });
             
             // register mappers
@@ -962,7 +961,7 @@ namespace StrawberryShake.GraphQL
             
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<GetPeopleQuery>(services);
             
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<GraphQLClient>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<FooClient>(services);
             
             return services;
         }
