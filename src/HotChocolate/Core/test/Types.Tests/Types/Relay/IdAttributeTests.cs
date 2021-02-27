@@ -85,6 +85,46 @@ namespace HotChocolate.Types.Relay
         }
 
         [Fact]
+        public async Task PolyId_On_Objects()
+        {
+            // arrange
+            var idSerializer = new IdSerializer();
+            var someId = "1";
+            var someIntId = 1;
+
+            // act
+            IExecutionResult result =
+                await SchemaBuilder.New()
+                    .AddQueryType<Query>()
+                    .AddType<FooPayload>()
+                    .TryAddTypeInterceptor<PolymorphicGlobalIdsTypeInterceptor>()
+                    .Create()
+                    .MakeExecutable()
+                    .ExecuteAsync(
+                        QueryRequestBuilder.New()
+                            .SetQuery(
+                                @"query foo ($someId: ID! $someIntId: ID!) {
+                                    foo(input: { someId: $someId someIds: [$someIntId] }) {
+                                        someId
+                                        ... on FooPayload {
+                                            someIds
+                                        }
+                                    }
+                                }")
+                            .SetVariableValue("someId", someId)
+                            .SetVariableValue("someIntId", someIntId)
+                            .Create());
+
+            // assert
+            new
+            {
+                result = result.ToJson(),
+                someId,
+                someIntId
+            }.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task Id_On_Objects_InvalidType()
         {
             // arrange

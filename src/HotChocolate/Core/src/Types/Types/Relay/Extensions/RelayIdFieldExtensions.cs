@@ -257,6 +257,10 @@ namespace HotChocolate.Types
         {
             IIdSerializer serializer =
                 completionContext.Services.GetService<IIdSerializer>() ??
+                // TODO: Possible type system memory optimization
+                // would be to singleton this IdSerializer,
+                // e.g. coalesce with ?? (_idSerializer ??= new IdSerializer())
+                // where _idSerializer is static
                 new IdSerializer();
 
             return new GlobalIdInputValueFormatter(

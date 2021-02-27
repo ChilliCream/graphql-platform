@@ -12,7 +12,7 @@ namespace HotChocolate.Types.Relay
 {
     internal class GlobalIdInputValueFormatter : IInputValueFormatter
     {
-        private readonly NameString _typeName;
+        public readonly NameString TypeName;
         private readonly IIdSerializer _idSerializer;
         private readonly bool _validateType;
         private readonly Func<IList> _createList;
@@ -23,7 +23,7 @@ namespace HotChocolate.Types.Relay
             IExtendedType resultType,
             bool validateType)
         {
-            _typeName = typeName;
+            TypeName = typeName;
             _idSerializer = idSerializer;
             _validateType = validateType;
             _createList = CreateListFactory(resultType);
@@ -36,13 +36,19 @@ namespace HotChocolate.Types.Relay
                 return null;
             }
 
+            if (runtimeValue is IdValue id &&
+                (!_validateType || TypeName.Equals(id.TypeName)))
+            {
+                return id.Value;
+            }
+
             if (runtimeValue is string s)
             {
                 try
                 {
-                    IdValue id = _idSerializer.Deserialize(s);
+                    id = _idSerializer.Deserialize(s);
 
-                    if (!_validateType || _typeName.Equals(id.TypeName))
+                    if (!_validateType || TypeName.Equals(id.TypeName))
                     {
                         return id.Value;
                     }
@@ -57,8 +63,23 @@ namespace HotChocolate.Types.Relay
 
                 throw new GraphQLException(
                     ErrorBuilder.New()
-                        .SetMessage("The ID `{0}` is not an ID of `{1}`.", s, _typeName)
+                        .SetMessage("The ID `{0}` is not an ID of `{1}`.", s, TypeName)
                         .Build());
+            }
+
+            if (runtimeValue is IEnumerable<IdValue> idEnumerable)
+            {
+                IList list = _createList();
+
+                foreach (IdValue idv in idEnumerable)
+                {
+                    if (!_validateType || TypeName.Equals(idv.TypeName))
+                    {
+                        list.Add(idv.Value);
+                    }
+                }
+
+                return list;
             }
 
             if (runtimeValue is IEnumerable<string> stringEnumerable)
@@ -69,9 +90,9 @@ namespace HotChocolate.Types.Relay
 
                     foreach (string sv in stringEnumerable)
                     {
-                        IdValue id = _idSerializer.Deserialize(sv);
+                        id = _idSerializer.Deserialize(sv);
 
-                        if (!_validateType || _typeName.Equals(id.TypeName))
+                        if (!_validateType || TypeName.Equals(id.TypeName))
                         {
                             list.Add(id.Value);
                         }
