@@ -140,8 +140,8 @@ namespace HotChocolate.Utilities
                 SchemaErrorBuilder.New()
                     .SetMessage(
                         "The specified node resolver `{0}` does not exist on `{1}`.",
-                        type.FullName ?? type.Name,
-                        nodeResolver)
+                        nodeResolver,
+                        type.FullName ?? type.Name)
                     .Build());
 
         public static SchemaException NodeAttribute_IdFieldNotFound(
@@ -151,8 +151,8 @@ namespace HotChocolate.Utilities
                 SchemaErrorBuilder.New()
                     .SetMessage(
                         "The specified id field `{0}` does not exist on `{1}`.",
-                        type.FullName ?? type.Name,
-                        idField)
+                        idField,
+                        type.FullName ?? type.Name)
                     .Build());
 
 #nullable enable
