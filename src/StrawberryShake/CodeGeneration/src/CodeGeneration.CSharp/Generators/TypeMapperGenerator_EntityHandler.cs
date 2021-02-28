@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
@@ -8,7 +9,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public partial class TypeMapperGenerator
     {
-        private const string EntityIdParamName = "entityId";
+        private const string _entityId = "entityId";
 
         private void AddEntityHandler(
             ClassBuilder classBuilder,
@@ -18,16 +19,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
             HashSet<string> processed,
             bool isNonNullable)
         {
-            method.AddParameter(
-                EntityIdParamName,
-                x => x.SetType(TypeNames.EntityId.MakeNullable(!isNonNullable)));
+            method
+                .AddParameter(_entityId)
+                .SetType(TypeNames.EntityId.MakeNullable(!isNonNullable));
 
             if (!isNonNullable)
             {
-                method.AddCode(
-                    EnsureProperNullability(
-                        EntityIdParamName,
-                        isNonNullable));
+                method.AddCode(EnsureProperNullability(_entityId, isNonNullable));
             }
 
             if (complexTypeDescriptor is InterfaceTypeDescriptor interfaceTypeDescriptor)
@@ -35,9 +33,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 foreach (ObjectTypeDescriptor implementee in interfaceTypeDescriptor.ImplementedBy)
                 {
                     NameString dataMapperName =
-                        CreateEntityMapperName(
-                            implementee.RuntimeType.Name,
-                            implementee.Name);
+                        CreateEntityMapperName(implementee.RuntimeType.Name, implementee.Name);
 
                     if (processed.Add(dataMapperName))
                     {
@@ -70,45 +66,52 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         objectTypeDescriptor.RuntimeType.Name,
                         objectTypeDescriptor.Name));
 
-            var ifCorrectType = IfBuilder.New();
-
-            if (isNonNullable)
-            {
-                ifCorrectType.SetCondition(
-                    $"{EntityIdParamName}.Name.Equals(\"" +
-                    $"{objectTypeDescriptor.Name}\", " +
-                    $"{TypeNames.OrdinalStringComparison})");
-            }
-            else
-            {
-                ifCorrectType.SetCondition(
-                    $"{EntityIdParamName}.Value.Name.Equals(\"" +
-                    $"{objectTypeDescriptor.Name}\", " +
-                    $"{TypeNames.OrdinalStringComparison})");
-            }
-
-            MethodCallBuilder constructorCall = MethodCallBuilder.New()
-                .SetPrefix($"return {dataMapperName}.")
+            MethodCallBuilder constructorCall = MethodCallBuilder
+                .New()
+                .SetReturn()
                 .SetWrapArguments()
-                .SetMethodName(nameof(IEntityMapper<object, object>.Map));
+                .SetMethodName(dataMapperName, nameof(IEntityMapper<object, object>.Map));
 
-            MethodCallBuilder argument = MethodCallBuilder.New()
-                .SetMethodName($"{StoreFieldName}.{nameof(IEntityStore.GetEntity)}")
-                .SetDetermineStatement(false)
+            MethodCallBuilder argument = MethodCallBuilder
+                .Inline()
+                .SetMethodName(StoreFieldName, nameof(IEntityStore.GetEntity))
                 .AddGeneric(CreateEntityTypeName(objectTypeDescriptor.Name))
-                .AddArgument(isNonNullable ? EntityIdParamName : $"{EntityIdParamName}.Value");
+                .AddArgument(isNonNullable ? _entityId : $"{_entityId}.Value");
 
             constructorCall.AddArgument(
-                NullCheckBuilder.New()
+                NullCheckBuilder
+                    .New()
                     .SetDetermineStatement(false)
                     .SetCondition(argument)
-                    .SetCode(ExceptionBuilder
-                        .New(TypeNames.GraphQLClientException)
-                        .SetDetermineStatement(false)));
+                    .SetCode(ExceptionBuilder.Inline(TypeNames.GraphQLClientException)));
 
-            ifCorrectType.AddCode(constructorCall);
 
-            return CodeBlockBuilder.New()
+            IfBuilder ifCorrectType = IfBuilder
+                .New()
+                .AddCode(constructorCall)
+                .SetCondition(
+                    MethodCallBuilder
+                        .Inline()
+                        .SetMethodName(
+                            isNonNullable
+                                ? new[]
+                                {
+                                    _entityId,
+                                    nameof(EntityId.Name),
+                                    nameof(string.Equals)
+                                }
+                                : new[]
+                                {
+                                    _entityId,
+                                    nameof(Nullable<EntityId>.Value),
+                                    nameof(EntityId.Name),
+                                    nameof(string.Equals)
+                                })
+                        .AddArgument(objectTypeDescriptor.Name.AsStringToken())
+                        .AddArgument(TypeNames.OrdinalStringComparison));
+
+            return CodeBlockBuilder
+                .New()
                 .AddEmptyLine()
                 .AddCode(ifCorrectType);
         }

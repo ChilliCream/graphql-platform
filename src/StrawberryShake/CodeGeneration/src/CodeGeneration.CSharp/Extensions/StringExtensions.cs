@@ -1,3 +1,4 @@
+using System.Linq;
 using HotChocolate;
 
 namespace StrawberryShake.CodeGeneration.CSharp
@@ -19,9 +20,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return str + "<" + string.Join(", ", generics) + ">";
         }
 
-        public static string WithGeneric(this RuntimeTypeInfo typeInfo, params string[] generics)
+        public static string WithGeneric(this string str, params RuntimeTypeInfo[] generics)
         {
-            return typeInfo + "<" + string.Join(", ", generics) + ">";
+            return str + "<" + string.Join(", ", generics.Select(x => x.ToString())) + ">";
         }
 
         public static string MakeNullable(this string str, bool isNullable = true)

@@ -10,11 +10,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
             ClientDescriptor descriptor,
             out string fileName)
         {
-            var (classBuilder, constructorBuilder) = CreateClassBuilder();
-
             fileName = descriptor.Name;
-            classBuilder.SetName(fileName);
-            constructorBuilder.SetTypeName(fileName);
+
+            ClassBuilder classBuilder = ClassBuilder
+                .New()
+                .SetName(fileName);
+
+            ConstructorBuilder constructorBuilder = classBuilder
+                .AddConstructor()
+                .SetTypeName(fileName);
 
             foreach (OperationDescriptor operation in descriptor.Operations)
             {
@@ -24,13 +28,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     classBuilder,
                     constructorBuilder);
 
-                classBuilder.AddProperty(
-                    PropertyBuilder
-                        .New()
-                        .SetAccessModifier(AccessModifier.Public)
-                        .SetType(operation.Name)
-                        .SetName(operation.Name)
-                        .AsLambda(GetFieldName(operation.Name)));
+                classBuilder
+                    .AddProperty(operation.Name)
+                    .SetPublic()
+                    .SetType(operation.Name)
+                    .AsLambda(GetFieldName(operation.Name));
             }
 
             CodeFileBuilder

@@ -1,9 +1,6 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Extensions;
-using static StrawberryShake.CodeGeneration.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -19,25 +16,26 @@ namespace StrawberryShake.CodeGeneration.CSharp
             HashSet<string> processed,
             bool isNonNullable)
         {
-            method.AddParameter(
-                _dataParameterName,
-                x => x.SetType(namedTypeDescriptor.ParentRuntimeType!.ToString()));
+            method
+                .AddParameter(_dataParameterName)
+                .SetType(namedTypeDescriptor.ParentRuntimeType!.ToString());
 
             if (!isNonNullable)
             {
                 method.AddCode(EnsureProperNullability(_dataParameterName, isNonNullable));
             }
 
-            var variableName = "returnValue";
-            method.AddCode($"{namedTypeDescriptor.RuntimeType.Name} {variableName} = default!;");
+            const string returnValue = nameof(returnValue);
+
+            method.AddCode($"{namedTypeDescriptor.RuntimeType.Name} {returnValue} = default!;");
             method.AddEmptyLine();
 
             GenerateIfForEachImplementedBy(
                 method,
                 namedTypeDescriptor,
-                o => GenerateDataInterfaceIfClause(o, isNonNullable, variableName));
+                o => GenerateDataInterfaceIfClause(o, isNonNullable, returnValue));
 
-            method.AddCode($"return {variableName};");
+            method.AddCode($"return {returnValue};");
 
             AddRequiredMapMethods(
                 _dataParameterName,
@@ -52,26 +50,28 @@ namespace StrawberryShake.CodeGeneration.CSharp
             bool isNonNullable,
             string variableName)
         {
-            var ifCorrectType = IfBuilder.New();
+            ICode ifCondition = MethodCallBuilder
+                .Inline()
+                .SetMethodName(
+                    _dataParameterName.MakeNullable(!isNonNullable),
+                    "__typename",
+                    nameof(string.Equals))
+                .AddArgument(objectTypeDescriptor.Name.AsStringToken())
+                .AddArgument(TypeNames.OrdinalStringComparison);
 
-            if (isNonNullable)
+            if (!isNonNullable)
             {
-                ifCorrectType.SetCondition(
-                    $"{_dataParameterName}.__typename.Equals(\"" +
-                    $"{objectTypeDescriptor.Name}\", " +
-                    $"{TypeNames.OrdinalStringComparison})");
-            }
-            else
-            {
-                ifCorrectType.SetCondition(
-                    $"{_dataParameterName}?.__typename.Equals(\"" +
-                    $"{objectTypeDescriptor.Name}\", " +
-                    $"{TypeNames.OrdinalStringComparison}) ?? false");
+                ifCondition = NullCheckBuilder
+                    .New()
+                    .SetCondition(ifCondition)
+                    .SetSingleLine()
+                    .SetDetermineStatement(false)
+                    .SetCode("false");
             }
 
-
-            var constructorCall = MethodCallBuilder.New()
-                .SetPrefix($"{variableName} = new ")
+            MethodCallBuilder constructorCall = MethodCallBuilder
+                .Inline()
+                .SetNew()
                 .SetMethodName(objectTypeDescriptor.RuntimeType.Name);
 
             foreach (PropertyDescriptor prop in objectTypeDescriptor.Properties)
@@ -83,13 +83,22 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 }
                 else
                 {
-                    constructorCall.AddArgument(
-                        $"{propAccess} ?? throw new {TypeNames.ArgumentNullException}()");
+                    constructorCall
+                        .AddArgument(
+                            NullCheckBuilder
+                                .Inline()
+                                .SetCondition(propAccess)
+                                .SetCode(ExceptionBuilder.Inline(TypeNames.ArgumentNullException)));
                 }
             }
 
-            ifCorrectType.AddCode(constructorCall);
-            return ifCorrectType;
+            return IfBuilder
+                .New()
+                .SetCondition(ifCondition)
+                .AddCode(AssignmentBuilder
+                    .New()
+                    .SetLefthandSide(variableName)
+                    .SetRighthandSide(constructorCall));
         }
     }
 }
