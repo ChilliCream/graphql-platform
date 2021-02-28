@@ -11,8 +11,7 @@ namespace HotChocolate.Data.Neo4J.Language
         private Where? _where;
         private Return? _return;
         //private readonly string Order;
-        //private readonly string Limit
-        //private readonly string
+        //private readonly string Limit;
 
         public StatementBuilder OptionalMatch(params PatternElement[] elements) =>
             Match(true, elements);
@@ -31,7 +30,7 @@ namespace HotChocolate.Data.Neo4J.Language
             return this;
         }
 
-        public StatementBuilder Return(params Expression[] elements)
+        public StatementBuilder Return(ExpressionList elements)
         {
             _return = new Return(false, elements);
             return this;
@@ -40,9 +39,7 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public string Build()
         {
-            // TODO: Implement cache
-
-            using var visitor = new CypherVisitor();
+            var visitor = new CypherVisitor();
             switch (_isWrite)
             {
                 case false:

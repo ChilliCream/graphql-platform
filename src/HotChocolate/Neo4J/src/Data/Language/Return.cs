@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-
 #nullable enable
 
 namespace HotChocolate.Data.Neo4J.Language
@@ -12,14 +9,14 @@ namespace HotChocolate.Data.Neo4J.Language
     {
         public override ClauseKind Kind => ClauseKind.Return;
         private readonly Distinct? _distinct;
-        private readonly List<Expression> _expressions;
+        private readonly ExpressionList _expressions;
         private readonly OrderBy? _order;
         private readonly Skip? _skip;
         private readonly Limit? _limit;
 
-        public Return(bool distinct, Expression[] expressions, OrderBy? orderBy = null, Skip? skip = null, Limit? limit = null) {
+        public Return(bool distinct, ExpressionList expressions, OrderBy? orderBy = null, Skip? skip = null, Limit? limit = null) {
             _distinct = distinct ? Distinct.Instance : null;
-            _expressions = expressions.ToList();
+            _expressions = expressions;
             _order = orderBy;
             _skip = skip;
             _limit = limit;
@@ -29,7 +26,7 @@ namespace HotChocolate.Data.Neo4J.Language
         {
             cypherVisitor.Enter(this);
             _distinct?.Visit(cypherVisitor);
-            _expressions.ForEach(element => element.Visit(cypherVisitor));
+            _expressions.Visit(cypherVisitor);
             _order?.Visit(cypherVisitor);
             _skip?.Visit(cypherVisitor);
             _limit?.Visit(cypherVisitor);

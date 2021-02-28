@@ -9,27 +9,23 @@ namespace HotChocolate.Data.Neo4J.Language
     public class RelationshipChain : IRelationshipPattern
     {
         public ClauseKind Kind { get; } = ClauseKind.RelationshipChain;
-        public void Visit(CypherVisitor cypherVisitor)
-        {
-            throw new System.NotImplementedException();
-        }
-
         private readonly LinkedList<Relationship> _relationships = new();
 
-        public RelationshipChain() { }
+        private RelationshipChain() { }
 
         public static RelationshipChain Create(Relationship firstElement) =>
             new RelationshipChain().Add(firstElement);
 
-        RelationshipChain Add(Relationship element)
+        private RelationshipChain Add(Relationship element)
         {
+            Ensure.IsNotNull(element, "Elements of a relationship chain must not be null.");
             _relationships.AddLast(element);
             return this;
         }
 
         public RelationshipChain RelationshipTo(Node other, params string[] types)
         {
-            throw new System.NotImplementedException();
+            this._relationships.AddLast(_relationships.RemoveLast().GetRight().RelationshipTo(other, types));
         }
 
         public RelationshipChain RelationshipFrom(Node other, params string[] types)
@@ -43,6 +39,16 @@ namespace HotChocolate.Data.Neo4J.Language
         }
 
         public IExposesRelationships<RelationshipChain> Named(string name)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Condition AsCondition()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void Visit(CypherVisitor cypherVisitor)
         {
             throw new System.NotImplementedException();
         }

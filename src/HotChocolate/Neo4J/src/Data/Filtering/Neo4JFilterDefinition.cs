@@ -1,7 +1,9 @@
+using HotChocolate.Data.Neo4J.Language;
+
 namespace HotChocolate.Data.Neo4J.Filtering
 {
     public class Neo4JFilterDefinition
     {
-        public string __empty { get; set; } = string.Empty;
+        public Where where { get; set; }
     }
 }

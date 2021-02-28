@@ -22,7 +22,7 @@ namespace HotChocolate.Data.Neo4J.Language
             SymbolicName? requiredSymbolicName;
             try
             {
-                requiredSymbolicName = parentContainer.GetSymbolicName();
+                requiredSymbolicName = parentContainer.GetRequiredSymbolicName();
             }
             catch (Exception e)
             {

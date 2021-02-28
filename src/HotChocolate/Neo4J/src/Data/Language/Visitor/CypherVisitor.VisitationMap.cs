@@ -4,7 +4,7 @@ namespace HotChocolate.Data.Neo4J.Language
 {
     public partial class CypherVisitor
     {
-        public void EnterVisitable(Match match)
+        private void EnterVisitable(Match match)
         {
             if (match.IsOptional())
             {
@@ -13,7 +13,7 @@ namespace HotChocolate.Data.Neo4J.Language
             _writer.Write("MATCH ");
         }
 
-        public void LeaveVisitable(Match match)
+        private void LeaveVisitable(Match match)
         {
             _writer.Write(" ");
         }
@@ -163,6 +163,35 @@ namespace HotChocolate.Data.Neo4J.Language
         private void EnterVisitable(Limit limit)
         {
             _writer.Write(" LIMIT ");
+        }
+
+        private void EnterVisitable(RelationshipLength length)
+        {
+            var minimum = length.GetMinimum();
+            var maximum = length.GetMaximum();
+
+            if (length.IsUnbounded()) {
+                _writer.Write("*");
+                return;
+            }
+
+            if (minimum == null && maximum == null) {
+                return;
+            }
+
+            _writer.Write("*");
+            if (minimum != null) {
+                _writer.Write(minimum.ToString());
+            }
+            _writer.Write("..");
+            if (maximum != null) {
+                _writer.Write(maximum.ToString());
+            }
+        }
+
+        private void EnterVisitable(RelationshipTypes types)
+        {
+            _writer.Write(string.Join(Symbol.Pipe, types.GetValues));
         }
     }
 }

@@ -1,13 +1,17 @@
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace HotChocolate.Data.Neo4J.Language
 {
     /// <summary>
     ///
     /// </summary>
-    public partial class CypherVisitor : BaseCypherVisitor, IVisitor, IDisposable
+    public partial class CypherVisitor : IVisitor
     {
+        private readonly Regex LABEL_AND_TYPE_QUOTATION = new (@"`", RegexOptions.Compiled);
+
+        private Queue<IVisitable> _currentVisitedElements = new ();
         /// <summary>
         /// Target for all rendered parts of the cypher statement.
         /// </summary>
@@ -59,11 +63,6 @@ namespace HotChocolate.Data.Neo4J.Language
         //public CypherQuery Query { get; } = new CypherQuery();
         public string Print() => _writer.Print();
 
-        public void Dispose()
-        {
-
-        }
-
         private void EnableSeparator(int level, bool on) {
             if (on) {
                 _separatorOnLevel.Add(level, "");
@@ -74,8 +73,12 @@ namespace HotChocolate.Data.Neo4J.Language
 
         private string SeparatorOnCurrentLevel() => _separatorOnLevel[_currentLevel];
 
-        protected override bool PreEnter(IVisitable visitable)
+        protected bool PreEnter(IVisitable visitable)
         {
+            AliasedExpression lastAliased = _currentAliasedElements.Peek();
+            if (_skipNodeContent || _visitableToAliased.Contains(lastAliased)) {
+                return false;
+            }
             var nextLevel = ++_currentLevel + 1;
             if (visitable is TypedSubtree<Visitable>) {
                 EnableSeparator(nextLevel, true);
@@ -84,13 +87,39 @@ namespace HotChocolate.Data.Neo4J.Language
             return !_skipNodeContent;
         }
 
-        protected override void PostLeave(IVisitable visitable)
+        protected void PostLeave(IVisitable visitable)
         {
+            //SeparatorOnCurrentLevel().ifPresent(ref -> ref.set(", "));
+
             if (visitable is TypedSubtree<Visitable>) {
                 EnableSeparator(_currentLevel + 1, false);
             }
 
+            if (Equals(_currentAliasedElements.Peek(), visitable)) {
+                _currentAliasedElements.Dequeue();
+            }
+
+            if (visitable is MapProjection) {
+                _skipAliasing = false;
+            }
+
+            if (visitable is AliasedExpression aliasedExpression) {
+                _visitableToAliased.Add(aliasedExpression);
+            }
+
             --_currentLevel;
+        }
+
+        public string EscapeName(string unescapedName)
+        {
+            if (unescapedName == null)
+            {
+                return string.Empty;
+            }
+
+            MatchCollection matcher = LABEL_AND_TYPE_QUOTATION.Matches(unescapedName);
+
+            return string.Format("`{0}`", Regex.Replace(unescapedName, LABEL_AND_TYPE_QUOTATION.Matches(unescapedName)));
         }
     }
 }

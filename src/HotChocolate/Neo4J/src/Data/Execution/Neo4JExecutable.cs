@@ -44,6 +44,7 @@ namespace HotChocolate.Data.Neo4J.Execution
 
         public async ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
         {
+            // statement builder => match / where / return
             IResultCursor cursor = await _session.RunAsync(@"
                 MATCH (business:Business)
                 RETURN business { .name, .city, .state, reviews: [(business)<-[:REVIEWS]-(reviews) | reviews {.rating, .text}] }

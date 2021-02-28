@@ -5,7 +5,7 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class Arguments : TypedSubtree<Expression>
     {
-        public override ClauseKind Kind { get; } = ClauseKind.Default;
+        public override ClauseKind Kind { get; } = ClauseKind.Arguments;
         public Arguments(params Expression[] children) : base(children) { }
 
         protected override IVisitable PrepareVisit(Expression child) =>

@@ -6,7 +6,6 @@ namespace HotChocolate.Data.Neo4J.Language
     class RelationshipPatternCondition : Condition
     {
         public override ClauseKind Kind => ClauseKind.RelationshipPatternCondition;
-
         private readonly IRelationshipPattern _pattern;
 
         public RelationshipPatternCondition(IRelationshipPattern pattern)

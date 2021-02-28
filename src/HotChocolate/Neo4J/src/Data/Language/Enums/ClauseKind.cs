@@ -3,7 +3,9 @@ namespace HotChocolate.Data.Neo4J.Language
     public enum ClauseKind
     {
         Default,
+        Arguments,
         Expression,
+        DistinctExpression,
         AliasedExpression,
         Visitable,
         TypedSubtree,
@@ -41,6 +43,9 @@ namespace HotChocolate.Data.Neo4J.Language
         Statement,
 
         Relationship,
+        RelationshipLength,
+        RelationshipTypes,
+        RelationshipDetails,
 
         Match,
         OptionalMatch,

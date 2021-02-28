@@ -18,10 +18,10 @@ namespace HotChocolate.Data.Neo4J.Language
             return expression;
         }
 
-        public static Expression[] CreateSymbolicNames(INamed[] variables) =>
+        public static SymbolicName[] CreateSymbolicNames(INamed[] variables) =>
             Array.ConvertAll(variables, i => i.GetSymbolicName());
 
-        public static Expression[] CreateSymbolicNames(string[] variables) =>
+        public static SymbolicName[] CreateSymbolicNames(string[] variables) =>
             Array.ConvertAll(variables, SymbolicName.Of);
 
     }
