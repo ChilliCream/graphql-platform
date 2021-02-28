@@ -543,6 +543,8 @@ namespace Foo.Bar
                  ?? throw new global::System.ArgumentNullException(nameof(searchSomethingQuery));
         }
 
+        public global::System.String ClientName => FooClient;
+
         public SearchSomethingQuery SearchSomethingQuery => _searchSomethingQuery;
     }
 }

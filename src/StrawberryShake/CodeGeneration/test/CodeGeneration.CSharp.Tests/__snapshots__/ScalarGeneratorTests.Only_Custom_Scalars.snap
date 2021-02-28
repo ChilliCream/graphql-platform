@@ -430,6 +430,8 @@ namespace Foo.Bar
                  ?? throw new global::System.ArgumentNullException(nameof(getPersonQuery));
         }
 
+        public global::System.String ClientName => FooClient;
+
         public GetPersonQuery GetPersonQuery => _getPersonQuery;
     }
 }

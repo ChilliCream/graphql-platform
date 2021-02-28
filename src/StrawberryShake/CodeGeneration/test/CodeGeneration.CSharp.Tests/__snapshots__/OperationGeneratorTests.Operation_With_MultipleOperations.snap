@@ -1264,6 +1264,8 @@ namespace Foo.Bar
                  ?? throw new global::System.ArgumentNullException(nameof(testOperation3Query));
         }
 
+        public global::System.String ClientName => FooClient;
+
         public TestOperationQuery TestOperationQuery => _testOperationQuery;
 
         public TestOperation2Query TestOperation2Query => _testOperation2Query;

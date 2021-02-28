@@ -665,6 +665,8 @@ namespace Foo.Bar
                  ?? throw new global::System.ArgumentNullException(nameof(getHeroQuery));
         }
 
+        public global::System.String ClientName => FooClient;
+
         public GetHeroQuery GetHeroQuery => _getHeroQuery;
     }
 }

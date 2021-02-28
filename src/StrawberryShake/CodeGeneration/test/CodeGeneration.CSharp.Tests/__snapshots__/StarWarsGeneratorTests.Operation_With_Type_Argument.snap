@@ -639,6 +639,8 @@ namespace Foo.Bar
                  ?? throw new global::System.ArgumentNullException(nameof(createReviewMutMutation));
         }
 
+        public global::System.String ClientName => FooClient;
+
         public CreateReviewMutMutation CreateReviewMutMutation => _createReviewMutMutation;
     }
 }
