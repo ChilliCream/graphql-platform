@@ -1,4 +1,5 @@
 using System;
+using System.Text.Json;
 using StrawberryShake.Transport.Http;
 using static StrawberryShake.Transport.WebSockets.Protocol.GraphQLWebSocketMessageTypeSpans;
 
@@ -63,15 +64,26 @@ namespace StrawberryShake.Transport.WebSockets.Protocol
         /// Writes a <see cref="GraphQLWebSocketMessageType.ConnectionInit"/>message to the writer
         /// </summary>
         /// <param name="writer">The writer</param>
-        public static void WriteInitializeMessage(this SocketMessageWriter writer)
+        /// <param name="payload">The payload of the init message</param>
+        public static void WriteInitializeMessage(
+            this SocketMessageWriter writer,
+            object? payload)
         {
             writer.WriteStartObject();
             writer.WriteType(GraphQLWebSocketMessageType.ConnectionInit);
+
+            if (payload is not null)
+            {
+                writer.WriteStartPayload();
+                JsonSerializer.Serialize(writer.Writer, payload);
+            }
+
             writer.WriteEndObject();
         }
 
         /// <summary>
-        /// Writes a <see cref="GraphQLWebSocketMessageType.ConnectionTerminate"/>message to the writer
+        /// Writes a <see cref="GraphQLWebSocketMessageType.ConnectionTerminate"/> message to the
+        /// writer
         /// </summary>
         /// <param name="writer">The writer</param>
         public static void WriteTerminateMessage(this SocketMessageWriter writer)
@@ -103,7 +115,7 @@ namespace StrawberryShake.Transport.WebSockets.Protocol
                 GraphQLWebSocketMessageType.ConnectionTerminate => ConnectionTerminate,
                 GraphQLWebSocketMessageType.Start => Start,
                 GraphQLWebSocketMessageType.Data => Data,
-                GraphQLWebSocketMessageType.Error => GraphQLWebSocketMessageTypeSpans.Error,
+                GraphQLWebSocketMessageType.Error => Error,
                 GraphQLWebSocketMessageType.Complete => Complete,
                 GraphQLWebSocketMessageType.Stop => Stop,
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)

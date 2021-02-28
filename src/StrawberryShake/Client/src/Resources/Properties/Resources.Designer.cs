@@ -194,5 +194,17 @@ namespace StrawberryShake.Properties {
                 return ResourceManager.GetString("ThrowHelper_InputFormatter_InvalidType", resourceCulture);
             }
         }
+        
+        internal static string CSharpGenerator_Generate_ClientNameCannotBeNull {
+            get {
+                return ResourceManager.GetString("CSharpGenerator_Generate_ClientNameCannotBeNull", resourceCulture);
+            }
+        }
+        
+        internal static string CSharpGenerator_Generate_ArgumentCannotBeNull {
+            get {
+                return ResourceManager.GetString("CSharpGenerator_Generate_ArgumentCannotBeNull", resourceCulture);
+            }
+        }
     }
 }

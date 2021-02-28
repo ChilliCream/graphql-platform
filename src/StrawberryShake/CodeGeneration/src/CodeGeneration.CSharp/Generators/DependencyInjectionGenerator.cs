@@ -5,6 +5,7 @@ using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Extensions;
 using StrawberryShake.Transport.WebSockets;
+using StrawberryShake.Serialization;
 using static StrawberryShake.CodeGeneration.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
@@ -257,6 +258,20 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .AddGeneric(TypeNames.ISerializer)
                     .AddGeneric(serializer)
                     .AddArgument(_services);
+            }
+
+            RuntimeTypeInfo stringTypeInfo = TypeInfos.From(TypeNames.String);
+            foreach (var scalar in descriptor.TypeDescriptors.OfType<ScalarTypeDescriptor>())
+            {
+                if (scalar.RuntimeType.Equals(stringTypeInfo) &&
+                    scalar.SerializationType.Equals(stringTypeInfo) &&
+                    !BuiltInScalarNames.IsBuiltInScalar(scalar.Name))
+                {
+                    codeWriter.WriteLine(
+                        TypeNames.AddSingleton.WithGeneric(TypeNames.ISerializer) +
+                        $"(services, new {TypeNames.StringSerializer}" +
+                        $"({scalar.Name.AsStringToken()}));");
+                }
             }
 
             foreach (var inputTypeDescriptor in descriptor.TypeDescriptors

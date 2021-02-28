@@ -5,7 +5,7 @@ namespace StrawberryShake.Serialization
     public class UrlSerializer
         : ScalarSerializer<string, Uri>
     {
-        public UrlSerializer(string typeName = BuiltInTypeNames.Url)
+        public UrlSerializer(string typeName = BuiltInScalarNames.Url)
             : base(typeName)
         {
         }
