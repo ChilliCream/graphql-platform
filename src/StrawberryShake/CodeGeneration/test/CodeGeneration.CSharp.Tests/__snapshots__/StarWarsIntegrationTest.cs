@@ -1,6 +1,8 @@
 ﻿// Code:
 // CreateReviewResultFactory
 
+// StrawberryShake.CodeGeneration.CSharp.ResultDataFactoryGenerator
+
 #nullable enable
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
@@ -46,6 +48,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
 
 // CreateReviewResultInfo
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInfoGenerator
+
 #nullable enable
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
@@ -87,6 +91,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
 
 // CreateReviewResult
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
@@ -106,6 +112,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
 
 
 // CreateReview_CreateReview_Review
+
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
 
 #nullable enable
 
@@ -127,6 +135,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
 
 // ICreateReviewResult
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
@@ -140,6 +150,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
 
 
 // ICreateReview_CreateReview
+
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -155,6 +167,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
 
 // ICreateReview_CreateReview_Review
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
@@ -168,6 +182,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
 
 
 // OnReviewResultFactory
+
+// StrawberryShake.CodeGeneration.CSharp.ResultDataFactoryGenerator
 
 #nullable enable
 
@@ -214,6 +230,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
 
 // OnReviewResultInfo
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInfoGenerator
+
 #nullable enable
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
@@ -255,6 +273,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
 
 // OnReviewResult
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
@@ -274,6 +294,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
 
 
 // OnReview_OnReview_Review
+
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
 
 #nullable enable
 
@@ -295,6 +317,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
 
 // IOnReviewResult
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
@@ -308,6 +332,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
 
 
 // IOnReview_OnReview
+
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -323,6 +349,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
 
 // IOnReview_OnReview_Review
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
@@ -337,6 +365,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
 
 // CreateReviewMutationDocument
 
+// StrawberryShake.CodeGeneration.CSharp.OperationDocumentGenerator
+
 #nullable enable
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
@@ -345,15 +375,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
     public partial class CreateReviewMutationDocument
         : global::StrawberryShake.IDocument
     {
-        private const global::System.String _bodyString =
-            @"mutation CreateReview($stars: Int!) {
-  createReview(episode: EMPIRE, review: { stars: $stars, commentary: ""good"" }) {
-    __typename
-    stars
-  }
-}";
-        private static readonly byte[] _body = global::System.Text.Encoding.UTF8.GetBytes(_bodyString);
-
         private CreateReviewMutationDocument()
         {
         }
@@ -362,17 +383,19 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
 
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Mutation;
 
-        public global::System.ReadOnlySpan<byte> Body => _body;
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new byte[]{ 0x6d, 0x75, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x52, 0x65, 0x76, 0x69, 0x65, 0x77, 0x28, 0x24, 0x73, 0x74, 0x61, 0x72, 0x73, 0x3a, 0x20, 0x49, 0x6e, 0x74, 0x21, 0x29, 0x20, 0x7b, 0x0a, 0x20, 0x20, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x52, 0x65, 0x76, 0x69, 0x65, 0x77, 0x28, 0x65, 0x70, 0x69, 0x73, 0x6f, 0x64, 0x65, 0x3a, 0x20, 0x45, 0x4d, 0x50, 0x49, 0x52, 0x45, 0x2c, 0x20, 0x72, 0x65, 0x76, 0x69, 0x65, 0x77, 0x3a, 0x20, 0x7b, 0x20, 0x73, 0x74, 0x61, 0x72, 0x73, 0x3a, 0x20, 0x24, 0x73, 0x74, 0x61, 0x72, 0x73, 0x2c, 0x20, 0x63, 0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x74, 0x61, 0x72, 0x79, 0x3a, 0x20, 0x22, 0x67, 0x6f, 0x6f, 0x64, 0x22, 0x20, 0x7d, 0x29, 0x20, 0x7b, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x73, 0x74, 0x61, 0x72, 0x73, 0x0a, 0x20, 0x20, 0x7d, 0x0a, 0x7d };
 
         public override string ToString()
         {
-            return _bodyString;
+            return global::System.Text.Encoding.UTF8.GetString(Body);
         }
     }
 }
 
 
 // CreateReviewMutation
+
+// StrawberryShake.CodeGeneration.CSharp.OperationServiceGenerator
 
 #nullable enable
 
@@ -398,7 +421,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
             global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(stars);
-
+            
             return await _operationExecutor
                 .ExecuteAsync(
                     request,
@@ -440,6 +463,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
 
 // OnReviewSubscriptionDocument
 
+// StrawberryShake.CodeGeneration.CSharp.OperationDocumentGenerator
+
 #nullable enable
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
@@ -448,15 +473,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
     public partial class OnReviewSubscriptionDocument
         : global::StrawberryShake.IDocument
     {
-        private const global::System.String _bodyString =
-            @"subscription OnReview {
-  onReview(episode: EMPIRE) {
-    __typename
-    stars
-  }
-}";
-        private static readonly byte[] _body = global::System.Text.Encoding.UTF8.GetBytes(_bodyString);
-
         private OnReviewSubscriptionDocument()
         {
         }
@@ -465,17 +481,19 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
 
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Subscription;
 
-        public global::System.ReadOnlySpan<byte> Body => _body;
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new byte[]{ 0x73, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x4f, 0x6e, 0x52, 0x65, 0x76, 0x69, 0x65, 0x77, 0x20, 0x7b, 0x0a, 0x20, 0x20, 0x6f, 0x6e, 0x52, 0x65, 0x76, 0x69, 0x65, 0x77, 0x28, 0x65, 0x70, 0x69, 0x73, 0x6f, 0x64, 0x65, 0x3a, 0x20, 0x45, 0x4d, 0x50, 0x49, 0x52, 0x45, 0x29, 0x20, 0x7b, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x73, 0x74, 0x61, 0x72, 0x73, 0x0a, 0x20, 0x20, 0x7d, 0x0a, 0x7d };
 
         public override string ToString()
         {
-            return _bodyString;
+            return global::System.Text.Encoding.UTF8.GetString(Body);
         }
     }
 }
 
 
 // OnReviewSubscription
+
+// StrawberryShake.CodeGeneration.CSharp.OperationServiceGenerator
 
 #nullable enable
 
@@ -511,6 +529,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
 
 // CreateReviewBuilder
 
+// StrawberryShake.CodeGeneration.CSharp.JsonResultBuilderGenerator
+
 #nullable enable
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
@@ -522,7 +542,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
         private readonly global::StrawberryShake.IOperationResultDataFactory<ICreateReviewResult> _resultDataFactory;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.Int32, global::System.Int32> _int32Parser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Int32, global::System.Int32> _intParser;
 
         public CreateReviewBuilder(
             global::StrawberryShake.IEntityStore entityStore,
@@ -536,8 +556,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
                  ?? throw new global::System.ArgumentNullException(nameof(extractId));
             _resultDataFactory = resultDataFactory
                  ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
-            _int32Parser = serializerResolver.GetLeafValueParser<global::System.Int32, global::System.Int32>("Int")
-                 ?? throw new global::System.ArgumentNullException(nameof(_int32Parser));
+            _intParser = serializerResolver.GetLeafValueParser<global::System.Int32, global::System.Int32>("Int")
+                 ?? throw new global::System.ArgumentException("No serializer for type `Int` found.");
         }
 
         public global::StrawberryShake.IOperationResult<ICreateReviewResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
@@ -597,13 +617,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
                 throw new global::System.ArgumentNullException();
             }
 
-            return _int32Parser.Parse(obj.Value.GetInt32()!);
+            return _intParser.Parse(obj.Value.GetInt32()!);
         }
     }
 }
 
 
 // OnReviewBuilder
+
+// StrawberryShake.CodeGeneration.CSharp.JsonResultBuilderGenerator
 
 #nullable enable
 
@@ -616,7 +638,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
         private readonly global::StrawberryShake.IOperationResultDataFactory<IOnReviewResult> _resultDataFactory;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.Int32, global::System.Int32> _int32Parser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Int32, global::System.Int32> _intParser;
 
         public OnReviewBuilder(
             global::StrawberryShake.IEntityStore entityStore,
@@ -630,8 +652,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
                  ?? throw new global::System.ArgumentNullException(nameof(extractId));
             _resultDataFactory = resultDataFactory
                  ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
-            _int32Parser = serializerResolver.GetLeafValueParser<global::System.Int32, global::System.Int32>("Int")
-                 ?? throw new global::System.ArgumentNullException(nameof(_int32Parser));
+            _intParser = serializerResolver.GetLeafValueParser<global::System.Int32, global::System.Int32>("Int")
+                 ?? throw new global::System.ArgumentException("No serializer for type `Int` found.");
         }
 
         public global::StrawberryShake.IOperationResult<IOnReviewResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
@@ -691,13 +713,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
                 throw new global::System.ArgumentNullException();
             }
 
-            return _int32Parser.Parse(obj.Value.GetInt32()!);
+            return _intParser.Parse(obj.Value.GetInt32()!);
         }
     }
 }
 
 
 // ReviewData
+
+// StrawberryShake.CodeGeneration.CSharp.DataTypeGenerator
 
 #nullable enable
 
@@ -723,6 +747,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars.State
 
 
 // StarWarsIntegrationClient
+
+// StrawberryShake.CodeGeneration.CSharp.ClientGenerator
 
 #nullable enable
 
@@ -753,6 +779,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
 
 // EntityIdFactory
 
+// StrawberryShake.CodeGeneration.CSharp.EntityIdFactoryGenerator
+
 #nullable enable
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
@@ -763,7 +791,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
         public static global::StrawberryShake.EntityId CreateEntityId(global::System.Text.Json.JsonElement obj)
         {
             global::System.String typeName = obj.GetProperty("__typename").GetString()!;
-
+            
             return typeName switch
             {
                 _ => throw new global::System.NotSupportedException()
@@ -774,6 +802,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
 
 
 // StarWarsIntegrationClientServiceCollectionExtensions
+
+// StrawberryShake.CodeGeneration.CSharp.DependencyInjectionGenerator
 
 #nullable enable
 
@@ -788,7 +818,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
         {
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
-                sp =>
+                sp => 
                 {
                     var serviceCollection = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
 
@@ -823,18 +853,18 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
             global::System.IServiceProvider parentServices,
             global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
-
+            
             if (services is null)
             {
                 throw new global::System.ArgumentNullException(nameof(services));
             }
-
+            
             // register entity id factory
-
+            
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId>>(services, EntityIdFactory.CreateEntityId);
-
+            
             // register stores
-
+            
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<
                 global::StrawberryShake.IEntityStore,
                 global::StrawberryShake.EntityStore>(
@@ -848,9 +878,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
                             >(sp)
                         .Watch()
                         ));
-
+            
             // register connections
-
+            
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
                 sp =>
@@ -859,12 +889,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
                         global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<
                             global::StrawberryShake.Transport.WebSockets.ISessionPool
                             >(parentServices);
-
+            
                     return new global::StrawberryShake.Transport.WebSockets.WebSocketConnection(
                         () => sessionPool.CreateAsync("StarWarsIntegrationClient", default));
                 });
-
-
+            
+            
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
                 sp =>
@@ -873,16 +903,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
                         global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<
                             global::System.Net.Http.IHttpClientFactory
                             >(parentServices);
-
+            
                     return new global::StrawberryShake.Transport.Http.HttpConnection(
                         () => clientFactory.CreateClient("StarWarsIntegrationClient"));
                 });
-
+            
             // register mappers
-
-
+            
+            
             // register serializers
-
+            
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.StringSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.BooleanSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteSerializer>(services);
@@ -906,9 +936,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
                             parentServices),
                         global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(
                             sp))));
-
+            
             // register operations
-
+            
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
                 global::StrawberryShake.IOperationResultDataFactory<ICreateReviewResult>,
                 CreateReviewResultFactory>(
@@ -925,10 +955,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
                         () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, ICreateReviewResult>>(sp),
                         global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
                         strategy));
-
+            
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<CreateReviewMutation>(services);
-
-
+            
+            
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
                 global::StrawberryShake.IOperationResultDataFactory<IOnReviewResult>,
                 OnReviewResultFactory>(
@@ -945,11 +975,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWars
                         () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, IOnReviewResult>>(sp),
                         global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
                         strategy));
-
+            
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<OnReviewSubscription>(services);
-
+            
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<StarWarsIntegrationClient>(services);
-
+            
             return services;
         }
 

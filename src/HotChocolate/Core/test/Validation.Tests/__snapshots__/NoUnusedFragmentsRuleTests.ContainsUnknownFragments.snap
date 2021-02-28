@@ -13,7 +13,81 @@
       "fragment": "Unused1",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragments-Must-Be-Used"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "FragmentDefinition",
+      "VariableDefinitions": [],
+      "TypeCondition": {
+        "Kind": "NamedType",
+        "Location": {
+          "Start": 627,
+          "End": 634,
+          "Line": 22,
+          "Column": 37
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 627,
+            "End": 634,
+            "Line": 22,
+            "Column": 37
+          },
+          "Value": "Human"
+        }
+      },
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 633,
+          "End": 702,
+          "Line": 22,
+          "Column": 43
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": null,
+            "Location": {
+              "Start": 655,
+              "End": 677,
+              "Line": 23,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 655,
+                "End": 677,
+                "Line": 23,
+                "Column": 21
+              },
+              "Value": "name"
+            },
+            "Directives": []
+          }
+        ]
+      },
+      "Location": {
+        "Start": 607,
+        "End": 702,
+        "Line": 22,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 616,
+          "End": 626,
+          "Line": 22,
+          "Column": 26
+        },
+        "Value": "Unused1"
+      },
+      "Directives": []
+    }
   },
   {
     "Message": "The specified fragment `Unused2` is not used within the current document.",
@@ -29,6 +103,80 @@
       "fragment": "Unused2",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragments-Must-Be-Used"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "FragmentDefinition",
+      "VariableDefinitions": [],
+      "TypeCondition": {
+        "Kind": "NamedType",
+        "Location": {
+          "Start": 714,
+          "End": 721,
+          "Line": 25,
+          "Column": 37
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 714,
+            "End": 721,
+            "Line": 25,
+            "Column": 37
+          },
+          "Value": "Human"
+        }
+      },
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 720,
+          "End": 777,
+          "Line": 25,
+          "Column": 43
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": null,
+            "Location": {
+              "Start": 742,
+              "End": 764,
+              "Line": 26,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 742,
+                "End": 764,
+                "Line": 26,
+                "Column": 21
+              },
+              "Value": "name"
+            },
+            "Directives": []
+          }
+        ]
+      },
+      "Location": {
+        "Start": 694,
+        "End": 777,
+        "Line": 25,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 703,
+          "End": 713,
+          "Line": 25,
+          "Column": 26
+        },
+        "Value": "Unused2"
+      },
+      "Directives": []
+    }
   }
 ]
