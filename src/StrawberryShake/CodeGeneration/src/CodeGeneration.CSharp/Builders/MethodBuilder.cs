@@ -14,6 +14,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private string? _name;
         private readonly List<ParameterBuilder> _parameters = new();
         private readonly List<ICode> _lines = new();
+        private bool _isAsync;
 
         public static MethodBuilder New() => new();
 
@@ -26,6 +27,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         public MethodBuilder SetStatic()
         {
             _isStatic = true;
+            return this;
+        }
+
+        public MethodBuilder SetAsync()
+        {
+            _isAsync = true;
             return this;
         }
 
@@ -128,6 +135,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             if (_isOverride)
             {
                 writer.Write("override ");
+            }
+
+            if (_isAsync)
+            {
+                writer.Write("async ");
             }
 
             if (_is)

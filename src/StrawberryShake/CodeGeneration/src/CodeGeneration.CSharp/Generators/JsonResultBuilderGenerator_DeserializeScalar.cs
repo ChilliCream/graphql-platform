@@ -1,6 +1,7 @@
 using System;
 using System.Text.Json;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
+using StrawberryShake.Serialization;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.CSharp
@@ -35,8 +36,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
             };
 
             methodBuilder.AddCode(
-                $"return {GetFieldName(namedType.Name)}Parser.Parse({_objParamName}.Value" +
-                $".{deserializeMethod}()!);");
+                MethodCallBuilder
+                    .New()
+                    .SetReturn()
+                    .SetMethodName(
+                        GetFieldName(namedType.Name) + "Parser",
+                        nameof(ILeafValueParser<object, object>.Parse))
+                    .AddArgument(MethodCallBuilder
+                        .Inline()
+                        .SetMethodName(_obj, nameof(Nullable<JsonElement>.Value), deserializeMethod)
+                        .SetNullForgiving()));
         }
     }
 }

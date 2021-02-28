@@ -10,6 +10,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public class ResultInfoGenerator : ClassBaseGenerator<ITypeDescriptor>
     {
+        private const string _entityIds = nameof(_entityIds);
+        private const string _version = nameof(_version);
+
         protected override bool CanHandle(ITypeDescriptor descriptor)
         {
             return descriptor.Kind == TypeKind.ResultType && !descriptor.IsInterface();
@@ -25,77 +28,79 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 throw new InvalidOperationException(
                     "A result entity mapper can only be generated for complex types");
 
-            var (classBuilder, constructorBuilder) = CreateClassBuilder();
-
             var className = CreateResultInfoName(complexTypeDescriptor.RuntimeType.Name);
             fileName = className;
 
-            classBuilder
+            ClassBuilder classBuilder = ClassBuilder
+                .New()
                 .AddImplements(TypeNames.IOperationResultDataInfo)
                 .SetName(fileName);
 
-            constructorBuilder
-                .SetTypeName(complexTypeDescriptor.RuntimeType.Name)
-                .SetAccessModifier(AccessModifier.Public);
-
+            ConstructorBuilder constructorBuilder = classBuilder
+                .AddConstructor()
+                .SetTypeName(complexTypeDescriptor.RuntimeType.Name);
 
             foreach (var prop in complexTypeDescriptor.Properties)
             {
-                var propTypeBuilder = prop.Type.ToEntityIdBuilder();
+                TypeReferenceBuilder propTypeBuilder = prop.Type.ToEntityIdBuilder();
 
                 // Add Property to class
-                classBuilder.AddProperty(
-                    prop.Name,
-                    x => x.SetType(propTypeBuilder).SetAccessModifier(AccessModifier.Public));
+                classBuilder
+                    .AddProperty(prop.Name)
+                    .SetType(propTypeBuilder)
+                    .SetPublic();
 
                 // Add initialization of property to the constructor
                 var paramName = GetParameterName(prop.Name);
-                ParameterBuilder parameterBuilder = ParameterBuilder.New()
-                    .SetName(paramName)
-                    .SetType(propTypeBuilder);
-
-                constructorBuilder.AddParameter(parameterBuilder);
-                constructorBuilder.AddCode(prop.Name + " = " + paramName + ";");
+                constructorBuilder.AddParameter(paramName).SetType(propTypeBuilder);
+                constructorBuilder.AddCode(
+                    AssignmentBuilder
+                        .New()
+                        .SetLefthandSide(prop.Name)
+                        .SetRighthandSide(paramName));
             }
 
-            classBuilder.AddProperty(
-                "EntityIds",
-                x => x.SetType(TypeNames.IReadOnlyCollection.WithGeneric(TypeNames.EntityId))
-                    .AsLambda("_entityIds"));
+            classBuilder
+                .AddProperty("EntityIds")
+                .SetType(TypeNames.IReadOnlyCollection.WithGeneric(TypeNames.EntityId))
+                .AsLambda(_entityIds);
 
-            classBuilder.AddProperty("Version", x => x.SetType("ulong").AsLambda("_version"));
+            classBuilder
+                .AddProperty("Version")
+                .SetType(TypeNames.UInt64)
+                .AsLambda(_version);
 
             AddConstructorAssignedField(
-                $"{TypeNames.IReadOnlyCollection}<{TypeNames.EntityId}>",
-                "_entityIds",
+                TypeNames.IReadOnlyCollection.WithGeneric(TypeNames.EntityId),
+                _entityIds,
                 classBuilder,
                 constructorBuilder);
 
             AddConstructorAssignedField(
-                "ulong",
-                "_version",
+                TypeNames.UInt64,
+                _version,
                 classBuilder,
                 constructorBuilder,
                 true);
 
 
             // WithVersion
+            const string version = nameof(version);
 
-            classBuilder.AddMethod(
-                "WithVersion",
-                x => x.SetAccessModifier(AccessModifier.Public)
-                    .SetReturnType(TypeNames.IOperationResultDataInfo)
-                    .AddParameter(ParameterBuilder.New()
-                        .SetType("ulong")
-                        .SetName("version"))
-                    .AddCode(MethodCallBuilder.New()
-                        .SetPrefix("return new ")
-                        .SetMethodName(className)
-                        .AddArgumentRange(
-                            complexTypeDescriptor.Properties.Select(x => x.Name.Value))
-                        .AddArgument("_entityIds")
-                        .AddArgument("_version")));
-
+            classBuilder
+                .AddMethod("WithVersion")
+                .SetAccessModifier(AccessModifier.Public)
+                .SetReturnType(TypeNames.IOperationResultDataInfo)
+                .AddParameter(version, x => x.SetType(TypeNames.UInt64))
+                .AddCode(MethodCallBuilder
+                    .New()
+                    .SetReturn()
+                    .SetNew()
+                    .SetMethodName(className)
+                    .AddArgumentRange(
+                        complexTypeDescriptor.Properties.Select(x => x.Name.Value))
+                    .AddArgument(_entityIds)
+                    .AddArgument(version));
 
             CodeFileBuilder
                 .New()
