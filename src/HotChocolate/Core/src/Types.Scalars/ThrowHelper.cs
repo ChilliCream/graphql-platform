@@ -341,24 +341,38 @@ namespace HotChocolate.Types.Scalars
                 type);
         }
 
-        public static SerializationException RegularExpressionType_ParseValue_IsInvalid(IType type)
+        public static SerializationException RegularExpressionType_ParseValue_IsInvalid(
+                            IType type,
+                            string validationPattern,
+                            string name)
         {
             return new SerializationException(
                 ErrorBuilder.New()
-                    .SetMessage(ScalarResources.RegularExpressionType_IsInvalid_ParseValue)
+                    .SetMessage(
+                        string.Format(ScalarResources.RegularExpressionType_IsInvalid_ParseValue,
+                                      validationPattern,
+                                      name))
                     .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
                     .SetExtension("actualType", WellKnownScalarTypes.RegularExpression)
+                    .SetExtension("pattern", validationPattern.Substring(0, 100))
                     .Build(),
                 type);
         }
 
-        public static SerializationException RegularExpressionType_ParseLiteral_IsInvalid(IType type)
+        public static SerializationException RegularExpressionType_ParseLiteral_IsInvalid(
+                            IType type,
+                            string validationPattern,
+                            string name)
         {
             return new SerializationException(
                 ErrorBuilder.New()
-                    .SetMessage(ScalarResources.RegularExpressionType_IsInvalid_ParseLiteral)
+                    .SetMessage(
+                        string.Format(ScalarResources.RegularExpressionType_IsInvalid_ParseLiteral,
+                                      validationPattern,
+                                      name))
                     .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
                     .SetExtension("actualType", WellKnownScalarTypes.RegularExpression)
+                    .SetExtension("pattern", validationPattern.Substring(0,100))
                     .Build(),
                 type);
         }

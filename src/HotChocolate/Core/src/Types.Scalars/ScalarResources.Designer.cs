@@ -638,7 +638,7 @@ namespace HotChocolate.Types.Scalars {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The Regular Expression scalar type represents a String Type following a regular expression pattern/format, as defined
+        ///   Looks up a localized string similar to The Regular Expression scalar type represents textual data, represented as UTF‐8 character sequences following a pattern defined as a regular expression, as defined
         /// here https://en.wikipedia.org/wiki/Regular_expression..
         /// </summary>
         internal static string RegularExpressionType_Description {
@@ -648,7 +648,7 @@ namespace HotChocolate.Types.Scalars {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to RegularExpressionType cannot parse the provided literal. The provided value does not match the regular expression pattern..
+        ///   Looks up a localized string similar to {0}Type cannot parse the provided literal. The provided value does not match the regular expression pattern &quot;{1}&quot;..
         /// </summary>
         internal static string RegularExpressionType_IsInvalid_ParseLiteral {
             get {
@@ -657,7 +657,7 @@ namespace HotChocolate.Types.Scalars {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to RegularExpressionType cannot parse the provided value. The provided value does not match the regular expression pattern..
+        ///   Looks up a localized string similar to {0}Type cannot parse the provided value. The provided value does not match the regular expression pattern  &quot;{1}&quot;..
         /// </summary>
         internal static string RegularExpressionType_IsInvalid_ParseValue {
             get {

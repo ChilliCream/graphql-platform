@@ -5,9 +5,10 @@ using HotChocolate.Language;
 namespace HotChocolate.Types.Scalars
 {
     /// <summary>
-    /// The Regular Expression scalar type represents a String Type following 
-    /// a regular expression pattern/format, as defined
-    /// here https://en.wikipedia.org/wiki/Regular_expression.
+    /// The Regular Expression scalar type represents textual data, represented
+    /// as UTF‐8 character sequences following a pattern defined as a regular
+    /// expression, as detailed here:
+    /// https://en.wikipedia.org/wiki/Regular_expression.
     /// </summary>
     public class RegularExpressionType : StringType
     {
@@ -17,10 +18,15 @@ namespace HotChocolate.Types.Scalars
         /// <summary>
         /// Initializes a new instance of the <see cref="RegularExpressionType"/> class.
         /// </summary>
-        public RegularExpressionType()
-            : this(
-                WellKnownScalarTypes.RegularExpression,
-                ScalarResources.RegularExpressionType_Description)
+        public RegularExpressionType(
+            NameString name,
+            string pattern,
+            string? description = null,
+            BindingBehavior bind = BindingBehavior.Explicit)
+            : this(name,
+                  new Regex(pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase),
+                  description,
+                  bind)
         {
         }
 
@@ -29,14 +35,14 @@ namespace HotChocolate.Types.Scalars
         /// </summary>
         public RegularExpressionType(
             NameString name,
+            Regex regex,
             string? description = null,
-            BindingBehavior bind = BindingBehavior.Explicit,
-            string regEx = "" )
+            BindingBehavior bind = BindingBehavior.Explicit)
             : base(name, description, bind)
         {
             Description = description;
-            _validationPattern = regEx;
-            _validationRegex = new(_validationPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            _validationRegex = regex;
+            _validationPattern = regex.ToString();
         }
 
         /// <inheritdoc />
@@ -56,7 +62,7 @@ namespace HotChocolate.Types.Scalars
         {
             if (!_validationRegex.IsMatch(valueSyntax.Value))
             {
-                throw ThrowHelper.RegularExpressionType_ParseLiteral_IsInvalid(this);
+                throw ThrowHelper.RegularExpressionType_ParseLiteral_IsInvalid(this, _validationPattern, Name);
             }
 
             return base.ParseLiteral(valueSyntax);
@@ -67,7 +73,7 @@ namespace HotChocolate.Types.Scalars
         {
             if (!_validationRegex.IsMatch(runtimeValue))
             {
-                throw ThrowHelper.RegularExpressionType_ParseValue_IsInvalid(this);
+                throw ThrowHelper.RegularExpressionType_ParseValue_IsInvalid(this, _validationPattern, Name);
             }
 
             return base.ParseValue(runtimeValue);
