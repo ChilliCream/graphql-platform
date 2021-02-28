@@ -25,10 +25,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
             classBuilder.SetName(fileName);
             constructorBuilder.SetTypeName(fileName);
 
+            var resultTypeReference =
+                (INamedTypeDescriptor)operationDescriptor.ResultTypeReference.NamedType();
+
             AddConstructorAssignedField(
                 TypeReferenceBuilder.New()
                     .SetName(TypeNames.IOperationExecutor)
-                    .AddGeneric(operationDescriptor.ResultTypeReference.Name),
+                    .AddGeneric(resultTypeReference.RuntimeType.Name),
                 OperationExecutorFieldName,
                 classBuilder,
                 constructorBuilder);
@@ -47,7 +50,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
                 foreach (var property in neededSerializers.Values)
                 {
-                    if (property.Type.GetGraphQlTypeName()?.Value is { } name)
+                    if (property.Type.GetName().Value is { } name)
                     {
                         MethodCallBuilder call = MethodCallBuilder.New()
                             .SetMethodName("serializerResolver." +
@@ -69,7 +72,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
                 foreach (var property in neededSerializers.Values)
                 {
-                    if (property.Type.GetGraphQlTypeName()?.Value is { } name)
+                    if (property.Type.GetName().Value is { } name)
                     {
                         FieldBuilder field = FieldBuilder.New()
                             .SetName(GetFieldName(name) + "Formatter")
@@ -95,7 +98,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 executeMethod = MethodBuilder.New()
                     .SetReturnType(
                         $"async {TypeNames.Task}<{TypeNames.IOperationResult}<" +
-                        $"{operationDescriptor.ResultTypeReference.Name}>>")
+                        $"{resultTypeReference.RuntimeType.Name}>>")
                     .SetAccessModifier(AccessModifier.Public)
                     .SetName(TypeNames.Execute);
             }
@@ -105,7 +108,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetReturnType(
                     $"{TypeNames.IOperationObservable}<" +
                     $"{TypeNames.IOperationResult}<" +
-                    $"{operationDescriptor.ResultTypeReference.Name}>>")
+                    $"{resultTypeReference.RuntimeType.Name}>>")
                 .SetAccessModifier(AccessModifier.Public)
                 .SetName(TypeNames.Watch);
 
@@ -117,7 +120,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 var typeReferenceBuilder = arg.Type.ToBuilder();
 
-                var paramName = arg.Name.WithLowerFirstChar();
+                var paramName = GetParameterName(arg.Name);
                 var paramBuilder = ParameterBuilder.New()
                     .SetName(paramName)
                     .SetType(typeReferenceBuilder);
@@ -192,7 +195,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             foreach (var argument in operationDescriptor.Arguments)
             {
-                classBuilder.AddMethod("Format" + argument.Name.WithCapitalFirstChar())
+                classBuilder.AddMethod("Format" + GetPropertyName(argument.Name))
                     .AddParameter(
                         "value",
                         x => x.SetType(argument.Type.ToBuilder()))
@@ -213,7 +216,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         private MethodBuilder CreateRequestMethod(OperationDescriptor operationDescriptor)
         {
-            string typeName = DocumentTypeNameFromOperationName(operationDescriptor.Name);
+            string typeName = CreateDocumentTypeName(operationDescriptor.Name);
 
             var method = MethodBuilder
                 .New()
@@ -233,13 +236,17 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 {
                     var argumentsDictName = "arguments";
                     method.AddCode(
-                        $"var {argumentsDictName} = new {TypeNames.Dictionary.WithGeneric(TypeNames.String, TypeNames.Object.MakeNullable())}();");
+                        $"var {argumentsDictName} = new " +
+                        TypeNames.Dictionary.WithGeneric(
+                            TypeNames.String,
+                            TypeNames.Object.MakeNullable()) +
+                        "();");
                     requestConstructor.AddArgument(argumentsDictName);
                 }
 
                 first = false;
 
-                var argName = arg.Name.WithLowerFirstChar();
+                var argName = GetParameterName(arg.Name);
 
                 method.AddParameter(
                     ParameterBuilder.New()
@@ -249,7 +256,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 method.AddCode(
                     CodeLineBuilder.New()
                         .SetLine(
-                            $"arguments.Add(\"{arg.Name}\", Format{arg.Name.WithCapitalFirstChar()}({argName}));"));
+                            $"arguments.Add(\"{arg.Name}\", " +
+                            $"Format{GetPropertyName(arg.Name)}({argName}));"));
             }
 
             method.AddEmptyLine();

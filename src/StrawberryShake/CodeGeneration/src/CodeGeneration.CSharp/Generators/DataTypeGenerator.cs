@@ -4,23 +4,19 @@ using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.NamingConventions;
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public class DataTypeGenerator : ClassBaseGenerator<NamedTypeDescriptor>
+    public class DataTypeGenerator : ClassBaseGenerator<DataTypeDescriptor>
     {
-        protected override bool CanHandle(NamedTypeDescriptor descriptor)
-        {
-            return descriptor.IsDataType();
-        }
-
         protected override void Generate(
             CodeWriter writer,
-            NamedTypeDescriptor descriptor,
+            DataTypeDescriptor descriptor,
             out string fileName)
         {
             // Setup class
-            fileName = DataTypeNameFromTypeName(descriptor.Name);
+            fileName = descriptor.RuntimeType.Name;
             AbstractTypeBuilder typeBuilder;
             ConstructorBuilder? constructorBuilder = null;
 
@@ -68,11 +64,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 typeBuilder = classBuilder;
             }
 
-
             // Add Properties to class
             foreach (PropertyDescriptor item in descriptor.Properties)
             {
-                var itemParamName = item.Name.WithLowerFirstChar();
+                var itemParamName = GetParameterName(item.Name);
                 var assignment = AssignmentBuilder
                     .New()
                     .SetLefthandSide(item.Name)
@@ -85,7 +80,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         ParameterBuilder
                             .New()
                             .SetType(paramType)
-                            .SetName(itemParamName))
+                            .SetName(itemParamName)
+                            .SetDefault("null"))
                     .AddCode(assignment);
 
                 switch (item.Type.Kind)
@@ -98,6 +94,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
                     case TypeKind.DataType:
                         typeBuilder.AddProperty(item.Name)
+                            // TODO this looks wrong. We should avoid nameoverride and delete it
                             .SetType(item.Type.ToBuilder(item.Type.Name))
                             .SetAccessModifier(AccessModifier.Public);
                         break;
@@ -106,7 +103,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         typeBuilder.AddProperty(item.Name)
                             .SetType(item.Type.ToBuilder().SetName(TypeNames.EntityId))
                             .SetAccessModifier(AccessModifier.Public);
-                        ;
                         break;
 
                     default:
@@ -116,12 +112,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             foreach (NameString superType in descriptor.Implements)
             {
-                typeBuilder.AddImplements(DataTypeNameFromTypeName(superType));
+                typeBuilder.AddImplements(CreateDataTypeName(superType));
             }
 
             CodeFileBuilder
                 .New()
-                .SetNamespace(descriptor.Namespace)
+                .SetNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal)
                 .AddType(typeBuilder)
                 .Build(writer);
         }

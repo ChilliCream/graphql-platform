@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using System.Linq;
+using HotChocolate;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
-using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.NamingConventions;
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -14,20 +14,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
             ClassBuilder classBuilder,
             ConstructorBuilder constructorBuilder,
             MethodBuilder method,
-            NamedTypeDescriptor namedTypeDescriptor,
+            ComplexTypeDescriptor complexTypeDescriptor,
             HashSet<string> processed,
             bool isNonNullable)
         {
-            var nullabilityAdditive = "?";
-            if (isNonNullable)
-            {
-                nullabilityAdditive = "";
-            }
-
             method.AddParameter(
-                ParameterBuilder.New()
-                    .SetType(TypeNames.EntityId + nullabilityAdditive)
-                    .SetName(EntityIdParamName));
+                EntityIdParamName,
+                x => x.SetType(TypeNames.EntityId.MakeNullable(!isNonNullable)));
 
             if (!isNonNullable)
             {
@@ -37,85 +30,87 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         isNonNullable));
             }
 
-
-            foreach (NamedTypeDescriptor implementee in namedTypeDescriptor.ImplementedBy)
+            if (complexTypeDescriptor is InterfaceTypeDescriptor interfaceTypeDescriptor)
             {
-                var dataMapperName =
-                    EntityMapperNameFromGraphQLTypeName(
-                        implementee.Name,
-                        implementee.GraphQLTypeName);
-                if (processed.Add(dataMapperName))
+                foreach (ObjectTypeDescriptor implementee in interfaceTypeDescriptor.ImplementedBy)
                 {
-                    var dataMapperType =
-                        $"{TypeNames.IEntityMapper}<" +
-                        $"{EntityTypeNameFromGraphQLTypeName(implementee.GraphQLTypeName)}, " +
-                        $"{implementee.Name}>";
+                    NameString dataMapperName =
+                        CreateEntityMapperName(
+                            implementee.RuntimeType.Name,
+                            implementee.Name);
 
-                    AddConstructorAssignedField(
-                        dataMapperType,
-                        dataMapperName.ToFieldName(),
-                        classBuilder,
-                        constructorBuilder);
+                    if (processed.Add(dataMapperName))
+                    {
+                        var dataMapperType =
+                            TypeNames.IEntityMapper.WithGeneric(
+                                CreateEntityTypeName(implementee.Name),
+                                implementee.RuntimeType.Name);
+
+                        AddConstructorAssignedField(
+                            dataMapperType,
+                            GetFieldName(dataMapperName),
+                            classBuilder,
+                            constructorBuilder);
+                    }
+
+                    method.AddCode(GenerateEntityHandlerIfClause(implementee, isNonNullable));
                 }
             }
 
-            var ifChain = InterfaceImplementeeIf(namedTypeDescriptor.ImplementedBy[0]);
+            method.AddCode(ExceptionBuilder.New(TypeNames.NotSupportedException));
+        }
 
-            foreach (NamedTypeDescriptor interfaceImplementee in
-                namedTypeDescriptor.ImplementedBy.Skip(1))
+        private static ICode GenerateEntityHandlerIfClause(
+            ObjectTypeDescriptor objectTypeDescriptor,
+            bool isNonNullable)
+        {
+            var dataMapperName =
+                GetFieldName(
+                    CreateEntityMapperName(
+                        objectTypeDescriptor.RuntimeType.Name,
+                        objectTypeDescriptor.Name));
+
+            var ifCorrectType = IfBuilder.New();
+
+            if (isNonNullable)
             {
-                var singleIf = InterfaceImplementeeIf(interfaceImplementee).SkipIndents();
-                ifChain.AddIfElse(singleIf);
+                ifCorrectType.SetCondition(
+                    $"{EntityIdParamName}.Name.Equals(\"" +
+                    $"{objectTypeDescriptor.Name}\", " +
+                    $"{TypeNames.OrdinalStringComparison})");
+            }
+            else
+            {
+                ifCorrectType.SetCondition(
+                    $"{EntityIdParamName}.Value.Name.Equals(\"" +
+                    $"{objectTypeDescriptor.Name}\", " +
+                    $"{TypeNames.OrdinalStringComparison})");
             }
 
-            ifChain.AddElse(
-                CodeInlineBuilder.New()
-                    .SetText($"throw new {TypeNames.NotSupportedException}();"));
+            MethodCallBuilder constructorCall = MethodCallBuilder.New()
+                .SetPrefix($"return {dataMapperName}.")
+                .SetWrapArguments()
+                .SetMethodName(nameof(IEntityMapper<object, object>.Map));
 
-            method.AddCode(ifChain);
+            MethodCallBuilder argument = MethodCallBuilder.New()
+                .SetMethodName($"{StoreFieldName}.{nameof(IEntityStore.GetEntity)}")
+                .SetDetermineStatement(false)
+                .AddGeneric(CreateEntityTypeName(objectTypeDescriptor.Name))
+                .AddArgument(isNonNullable ? EntityIdParamName : $"{EntityIdParamName}.Value");
 
-            IfBuilder InterfaceImplementeeIf(NamedTypeDescriptor interfaceImplementee)
-            {
-                var dataMapperName =
-                    EntityMapperNameFromGraphQLTypeName(
-                            interfaceImplementee.Name,
-                            interfaceImplementee.GraphQLTypeName)
-                        .ToFieldName();
+            constructorCall.AddArgument(
+                NullCheckBuilder.New()
+                    .SetDetermineStatement(false)
+                    .SetCondition(argument)
+                    .SetCode(ExceptionBuilder
+                        .New(TypeNames.GraphQLClientException)
+                        .SetDetermineStatement(false)));
 
-                var ifCorrectType = IfBuilder.New();
+            ifCorrectType.AddCode(constructorCall);
 
-                if (isNonNullable)
-                {
-                    ifCorrectType.SetCondition(
-                        $"{EntityIdParamName}.Name.Equals(\"" +
-                        $"{interfaceImplementee.GraphQLTypeName}\", {TypeNames.OrdinalStringComparisson})");
-                }
-                else
-                {
-                    ifCorrectType.SetCondition(
-                        $"{EntityIdParamName}?.Name.Equals(\"" +
-                        $"{interfaceImplementee.GraphQLTypeName}\", {TypeNames.OrdinalStringComparisson}) ?? false");
-                }
-
-                var constructorCall = MethodCallBuilder.New()
-                    .SetPrefix($"return {dataMapperName}.")
-                    .SetMethodName("Map");
-
-                if (isNonNullable)
-                {
-                    constructorCall.AddArgument(
-                        $"{_storeFieldName}.GetEntity<{EntityTypeNameFromGraphQLTypeName(interfaceImplementee.GraphQLTypeName)}>({EntityIdParamName})");
-                }
-                else
-                {
-                    constructorCall.AddArgument(
-                        $"{_storeFieldName}.GetEntity<{EntityTypeNameFromGraphQLTypeName(interfaceImplementee.GraphQLTypeName)}>({EntityIdParamName}.Value)");
-                }
-
-                method.AddEmptyLine();
-                ifCorrectType.AddCode(constructorCall);
-                return ifCorrectType;
-            }
+            return CodeBlockBuilder.New()
+                .AddEmptyLine()
+                .AddCode(ifCorrectType);
         }
     }
 }

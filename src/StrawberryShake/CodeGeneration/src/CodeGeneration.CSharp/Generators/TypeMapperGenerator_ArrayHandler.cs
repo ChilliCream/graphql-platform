@@ -1,13 +1,13 @@
 using System.Collections.Generic;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
-using StrawberryShake.CodeGeneration.Extensions;
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
     public partial class TypeMapperGenerator
     {
-        private const string ListParamName = "list";
+        private const string _listParameterName = "list";
 
         private void AddArrayHandler(
             ClassBuilder classBuilder,
@@ -18,14 +18,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
             bool isNonNullable)
         {
             methodBuilder.AddParameter(
-                ParameterBuilder.New()
-                    .SetType(listTypeDescriptor.ToEntityIdBuilder())
-                    .SetName(ListParamName));
-            var listVarName = listTypeDescriptor.Name.WithLowerFirstChar() + "s";
+                _listParameterName,
+                x => x.SetType(listTypeDescriptor.ToEntityIdBuilder()));
+
+            var listVarName = GetParameterName(listTypeDescriptor.Name) + "s";
 
             if (!isNonNullable)
             {
-                methodBuilder.AddCode(EnsureProperNullability(ListParamName, isNonNullable));
+                methodBuilder.AddCode(EnsureProperNullability(_listParameterName, isNonNullable));
             }
 
             methodBuilder.AddCode(
@@ -36,9 +36,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                             .AddCode("new ")
                             .AddCode(TypeNames.List)
                             .AddCode("<")
-                            .AddCode(
-                                listTypeDescriptor.InnerType.ToBuilder()
-                                    .SkipTraliingSpace())
+                            .AddCode(listTypeDescriptor.InnerType.ToBuilder().SkipTrailingSpace())
                             .AddCode(">")
                             .AddCode("()")));
             methodBuilder.AddEmptyLine();
@@ -47,15 +45,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetLoopHeader(
                     CodeBlockBuilder.New()
                         .AddCode(listTypeDescriptor.InnerType.ToEntityIdBuilder())
-                        .AddCode($"child in {ListParamName}"))
+                        .AddCode($"child in {_listParameterName}"))
                 .AddCode(
                     MethodCallBuilder.New()
                         .SetPrefix($"{listVarName}.")
                         .SetMethodName("Add")
-                        .AddArgument(
-                            BuildMapMethodCall(
-                                listTypeDescriptor.InnerType,
-                                "child")));
+                        .AddArgument(BuildMapMethodCall(listTypeDescriptor.InnerType, "child")));
 
             methodBuilder.AddCode(loopbuilder);
             methodBuilder.AddEmptyLine();

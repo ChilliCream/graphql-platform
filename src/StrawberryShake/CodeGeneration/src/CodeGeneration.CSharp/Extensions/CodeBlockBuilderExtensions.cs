@@ -7,7 +7,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     internal static class CodeBlockBuilderExtensions
     {
-        public static CodeBlockBuilder AddLine(this CodeBlockBuilder builder, string code)
+        public static CodeBlockBuilder AddLine(
+            this CodeBlockBuilder builder,
+            string code)
         {
             return builder.AddCode(CodeLineBuilder.From(code));
         }
@@ -41,6 +43,18 @@ namespace StrawberryShake.CodeGeneration.CSharp
             var ifBuilder = IfBuilder.New();
             configure(ifBuilder);
             return builder.AddCode(ifBuilder);
+        }
+
+        public static CodeBlockBuilder If(
+            this CodeBlockBuilder builder,
+            bool condition,
+            Action<CodeBlockBuilder> configure)
+        {
+            if (condition)
+            {
+                configure(builder);
+            }
+            return builder;
         }
 
         public static CodeBlockBuilder ArgumentException(

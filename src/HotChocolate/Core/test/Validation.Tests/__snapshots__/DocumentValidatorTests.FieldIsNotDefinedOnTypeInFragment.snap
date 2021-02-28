@@ -19,7 +19,30 @@
       "responseName": "meowVolume",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": null,
+      "Arguments": [],
+      "SelectionSet": null,
+      "Location": {
+        "Start": 262,
+        "End": 290,
+        "Line": 10,
+        "Column": 21
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 262,
+          "End": 290,
+          "Line": 10,
+          "Column": 21
+        },
+        "Value": "meowVolume"
+      },
+      "Directives": []
+    }
   },
   {
     "Message": "The field `kawVolume` does not exist on the type `Dog`.",
@@ -41,6 +64,38 @@
       "responseName": "barkVolume",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 380,
+          "End": 391,
+          "Line": 14,
+          "Column": 21
+        },
+        "Value": "barkVolume"
+      },
+      "Arguments": [],
+      "SelectionSet": null,
+      "Location": {
+        "Start": 380,
+        "End": 419,
+        "Line": 14,
+        "Column": 21
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 392,
+          "End": 419,
+          "Line": 14,
+          "Column": 33
+        },
+        "Value": "kawVolume"
+      },
+      "Directives": []
+    }
   }
 ]

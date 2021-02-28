@@ -13,6 +13,62 @@
       "operation": "Foo",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Operation-Name-Uniqueness"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "OperationDefinition",
+      "Location": {
+        "Start": 107,
+        "End": 176,
+        "Line": 6,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 113,
+          "End": 118,
+          "Line": 6,
+          "Column": 23
+        },
+        "Value": "Foo"
+      },
+      "Operation": "Query",
+      "VariableDefinitions": [],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 117,
+          "End": 176,
+          "Line": 6,
+          "Column": 27
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": null,
+            "Location": {
+              "Start": 139,
+              "End": 163,
+              "Line": 7,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 139,
+                "End": 163,
+                "Line": 7,
+                "Column": 21
+              },
+              "Value": "anyArg"
+            },
+            "Directives": []
+          }
+        ]
+      }
+    }
   }
 ]

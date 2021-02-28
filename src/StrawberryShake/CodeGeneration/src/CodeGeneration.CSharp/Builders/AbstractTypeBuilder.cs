@@ -5,10 +5,12 @@ using StrawberryShake.Properties;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
-    public abstract class AbstractTypeBuilder: ITypeBuilder
+    public abstract class AbstractTypeBuilder : ITypeBuilder
     {
-        protected List<PropertyBuilder> Properties {get;} = new();
-        protected NameString? Name {get; private set; }
+        protected List<PropertyBuilder> Properties { get; } = new();
+
+        protected NameString? Name { get; private set; }
+        
         protected List<string> Implements { get; } = new();
 
         public abstract void Build(CodeWriter writer);

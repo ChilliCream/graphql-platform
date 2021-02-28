@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
-using StrawberryShake.CodeGeneration.Extensions;
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -13,7 +13,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             ListTypeDescriptor listTypeDescriptor,
             HashSet<string> processed)
         {
-            var listVarName = listTypeDescriptor.Name.WithLowerFirstChar() + "s";
+            var listVarName = GetParameterName(listTypeDescriptor.Name) + "s";
 
             methodBuilder.AddCode(
                 AssignmentBuilder.New()
@@ -24,7 +24,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                             .AddCode(TypeNames.List)
                             .AddCode("<")
                             .AddCode(listTypeDescriptor.InnerType.ToEntityIdBuilder()
-                                .SkipTraliingSpace())
+                                .SkipTrailingSpace())
                             .AddCode(">")
                             .AddCode("()")
                     ));

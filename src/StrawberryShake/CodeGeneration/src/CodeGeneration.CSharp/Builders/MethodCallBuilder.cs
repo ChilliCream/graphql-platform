@@ -117,12 +117,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                     {
                         writer.WriteLine();
                         writer.IncreaseIndent();
+                        writer.WriteIndent();
                     }
                     _arguments[0].Build(writer);
                     if (_wrapArguments)
                     {
                         writer.DecreaseIndent();
-                        writer.WriteIndent();
                         writer.Write(")");
                     }
                     else
@@ -142,11 +142,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                             _arguments[i].Build(writer);
                             if (i == _arguments.Count - 1)
                             {
-                                writer.WriteLine();
-                                writer.DecreaseIndent();
-                                writer.WriteIndent();
                                 writer.Write(")");
-                                writer.IncreaseIndent();
                             }
                             else
                             {

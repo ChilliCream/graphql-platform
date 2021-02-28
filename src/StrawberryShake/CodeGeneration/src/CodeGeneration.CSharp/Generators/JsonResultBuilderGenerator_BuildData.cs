@@ -3,26 +3,26 @@ using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.NamingConventions;
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
     public partial class JsonResultBuilderGenerator
     {
         private void AddBuildDataMethod(
-            NamedTypeDescriptor resultNamedType,
+            InterfaceTypeDescriptor resultNamedType,
             ClassBuilder classBuilder)
         {
             var objParameter = "obj";
+
+            var concreteType =
+                CreateResultInfoName(resultNamedType.ImplementedBy.First().RuntimeType.Name);
+
             var buildDataMethod = MethodBuilder.New()
                 .SetAccessModifier(AccessModifier.Private)
                 .SetName("BuildData")
-                .SetReturnType(
-                    $"({resultNamedType.Name}, " +
-                    $"{ResultInfoNameFromTypeName(resultNamedType.ImplementedBy[0].Name)})")
-                .AddParameter(
-                    ParameterBuilder.New()
-                        .SetType(TypeNames.JsonElement)
-                        .SetName(objParameter));
+                .SetReturnType($"({resultNamedType.RuntimeType.Name}, {concreteType})")
+                .AddParameter(objParameter, x => x.SetType(TypeNames.JsonElement));
 
             var sessionName = "session";
             buildDataMethod.AddCode(
@@ -47,20 +47,19 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     AssignmentBuilder.New()
                         .SetLefthandSide(CodeBlockBuilder.New()
                             .AddCode(property.Type.ToEntityIdBuilder())
-                            .AddCode($"{property.Name.WithLowerFirstChar()}Id"))
+                            .AddCode($"{GetParameterName(property.Name)}Id"))
                         .SetRighthandSide(BuildUpdateMethodCall(property, "")));
             }
 
             var resultInfoConstructor = MethodCallBuilder.New()
-                .SetMethodName(
-                    $"new {ResultInfoNameFromTypeName(resultNamedType.ImplementedBy[0].Name)}")
+                .SetMethodName($"new {concreteType}")
                 .SetDetermineStatement(false);
 
             foreach (PropertyDescriptor property in resultNamedType.Properties)
             {
                 if (property.Type.IsEntityType())
                 {
-                    resultInfoConstructor.AddArgument($"{property.Name.WithLowerFirstChar()}Id");
+                    resultInfoConstructor.AddArgument($"{GetParameterName(property.Name)}Id");
                 }
                 else
                 {

@@ -97,7 +97,46 @@ namespace StrawberryShake.Transport.WebSockets
             await using var writer = new SocketMessageWriter();
 
             // act
-            writer.WriteInitializeMessage();
+            writer.WriteInitializeMessage(null);
+
+            // assert
+            Encoding.UTF8.GetString(writer.Body.Span).MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task WriteInitializeMessage_String_IsMatch()
+        {
+            // arrange
+            await using var writer = new SocketMessageWriter();
+
+            // act
+            writer.WriteInitializeMessage("Payload");
+
+            // assert
+            Encoding.UTF8.GetString(writer.Body.Span).MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task WriteInitializeMessage_Dictionary_IsMatch()
+        {
+            // arrange
+            await using var writer = new SocketMessageWriter();
+
+            // act
+            writer.WriteInitializeMessage(new Dictionary<string, object> { ["Key"] = "Value" });
+
+            // assert
+            Encoding.UTF8.GetString(writer.Body.Span).MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task WriteInitializeMessage_CustomObject_IsMatch()
+        {
+            // arrange
+            await using var writer = new SocketMessageWriter();
+
+            // act
+            writer.WriteInitializeMessage(new CustomPayload());
 
             // assert
             Encoding.UTF8.GetString(writer.Body.Span).MatchSnapshot();
@@ -147,6 +186,11 @@ namespace StrawberryShake.Transport.WebSockets
             public override string ToString() => _bodyString;
 
             public static GetHeroQueryDocument Instance { get; } = new();
+        }
+
+        private class CustomPayload
+        {
+            public string Key { get; set; } = "Value";
         }
     }
 }

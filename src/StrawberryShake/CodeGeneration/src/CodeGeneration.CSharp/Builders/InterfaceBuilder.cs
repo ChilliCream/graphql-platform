@@ -5,7 +5,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public class InterfaceBuilder : AbstractTypeBuilder
     {
-
         public static InterfaceBuilder New() => new();
 
         public new InterfaceBuilder SetName(NameString name)

@@ -13,11 +13,33 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return methodBuilder;
         }
 
+        public static ClassBuilder AddMethod(
+            this ClassBuilder builder,
+            string name,
+            Action<MethodBuilder> configure)
+        {
+            MethodBuilder methodBuilder = MethodBuilder.New().SetName(name);
+            configure(methodBuilder);
+            builder.AddMethod(methodBuilder);
+            return builder;
+        }
+
         public static FieldBuilder AddField(this ClassBuilder builder, string name)
         {
             FieldBuilder fieldBuilder = FieldBuilder.New().SetName(name);
             builder.AddField(fieldBuilder);
             return fieldBuilder;
+        }
+
+        public static ClassBuilder AddProperty(
+            this ClassBuilder builder,
+            string name,
+            Action<PropertyBuilder> configure)
+        {
+            PropertyBuilder propertyBuilder = PropertyBuilder.New().SetName(name);
+            configure(propertyBuilder);
+            builder.AddProperty(propertyBuilder);
+            return builder;
         }
 
         public static PropertyBuilder AddProperty(this ClassBuilder builder, string name)
@@ -32,6 +54,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
             PropertyBuilder propertyBuilder = PropertyBuilder.New().SetName(name);
             builder.AddProperty(propertyBuilder);
             return propertyBuilder;
+        }
+
+        public static ConstructorBuilder AddConstructor(this ClassBuilder builder)
+        {
+            var constructorBuilder = ConstructorBuilder.New();
+            builder.AddConstructor(constructorBuilder);
+            return constructorBuilder;
         }
 
         public static ClassBuilder ForEach<T>(

@@ -4,7 +4,7 @@ namespace StrawberryShake.Serialization
 {
     public class StringSerializer : ScalarSerializer<string>
     {
-        public StringSerializer(string typeName = BuiltInTypeNames.String)
+        public StringSerializer(string typeName = BuiltInScalarNames.String)
             : base(typeName)
         {
         }

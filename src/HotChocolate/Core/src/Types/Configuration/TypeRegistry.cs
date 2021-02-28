@@ -16,6 +16,13 @@ namespace HotChocolate.Configuration
             new(new ExtendedTypeReferenceEqualityComparer());
         private readonly Dictionary<NameString, ITypeReference> _nameRefs = new();
         private readonly List<RegisteredType> _types = new();
+        private readonly ITypeRegistryInterceptor _typeRegistryInterceptor;
+
+        public TypeRegistry(ITypeRegistryInterceptor typeRegistryInterceptor)
+        {
+            _typeRegistryInterceptor = typeRegistryInterceptor ??
+                throw new ArgumentNullException(nameof(typeRegistryInterceptor));
+        }
 
         public int Count => _typeRegister.Count;
 
@@ -143,6 +150,7 @@ namespace HotChocolate.Configuration
             if (addToTypes)
             {
                 _types.Add(registeredType);
+                _typeRegistryInterceptor.OnTypeRegistered(registeredType.DiscoveryContext);
             }
         }
 

@@ -62,11 +62,5 @@ namespace StrawberryShake.CodeGeneration.Properties {
                 return ResourceManager.GetString("Throwhelper_Generator_NoTypeDocumentsFound", resourceCulture);
             }
         }
-        
-        internal static string Throwhelper_Generator_SyntaxError {
-            get {
-                return ResourceManager.GetString("Throwhelper_Generator_SyntaxError", resourceCulture);
-            }
-        }
     }
 }

@@ -22,7 +22,7 @@ namespace StrawberryShake.CodeGeneration
         public const string IConnection = StrawberryshakeNamespace + "IConnection";
         public const string IEntityMapper = StrawberryshakeNamespace + "IEntityMapper";
         public const string IDocument = StrawberryshakeNamespace + "IDocument";
-        public const string IGraphQLClientException = StrawberryshakeNamespace + "GraphQLClientException";
+        public const string GraphQLClientException = StrawberryshakeNamespace + "GraphQLClientException";
 
         public const string OperationKind = StrawberryshakeNamespace + "OperationKind";
         public const string EntityId = StrawberryshakeNamespace + "EntityId";
@@ -49,6 +49,10 @@ namespace StrawberryShake.CodeGeneration
         public const string Int16 = "global::System.Int16";
         public const string Int32 = "global::System.Int32";
         public const string Int64 = "global::System.Int64";
+        public const string UInt16 = "global::System.UInt16";
+        public const string UInt32 = "global::System.UInt32";
+        public const string UInt64 = "global::System.UInt64";
+        public const string Single = "global::System.Single";
         public const string Double = "global::System.Double";
         public const string Decimal = "global::System.Decimal";
         public const string Uri = "global::System.Uri";
@@ -56,8 +60,11 @@ namespace StrawberryShake.CodeGeneration
         public const string Object = "global::System.Object";
         public const string Guid = "global::System.Guid";
         public const string DateTime = "global::System.DateTime";
+        public const string TimeSpan = "global::System.TimeSpan";
         public const string EncodingUtf8 = "global::System.Text.Encoding.UTF8";
         public const string List = GenericCollectionsNamespace + "List";
+        public const string IEnumerable = GenericCollectionsNamespace + "IEnumerable";
+        public const string Concat = "global::System.Linq.Enumerable.Concat";
         public const string IList = GenericCollectionsNamespace + "IList";
         public const string IReadOnlyCollection = GenericCollectionsNamespace + "IReadOnlyCollection";
         public const string IReadOnlyList = GenericCollectionsNamespace + "IReadOnlyList";
@@ -65,7 +72,7 @@ namespace StrawberryShake.CodeGeneration
         public const string ISet = GenericCollectionsNamespace + "ISet";
         public const string IReadOnlySpan = "global::System.ReadOnlySpan";
         public const string DateTimeOffset = "global::System.DateTimeOffset";
-        public const string OrdinalStringComparisson = "global::System.StringComparison.Ordinal";
+        public const string OrdinalStringComparison = "global::System.StringComparison.Ordinal";
         public const string Func = "global::System.Func";
         public const string Task = "global::System.Threading.Tasks.Task";
         public const string IOperationObservable = "global::System.IObservable";
@@ -75,11 +82,15 @@ namespace StrawberryShake.CodeGeneration
         public const string ArgumentException = "global::System.ArgumentException";
 
         public const string IServiceCollection = DependencyInjectionNamepsace + "IServiceCollection";
+        public const string IServiceProvider = "global::System.IServiceProvider";
         public const string ServiceCollection = DependencyInjectionNamepsace + "ServiceCollection";
         public const string GetRequiredService = DependencyInjectionNamepsace +
             "ServiceProviderServiceExtensions.GetRequiredService";
         public const string AddSingleton = DependencyInjectionNamepsace +
             "ServiceCollectionServiceExtensions.AddSingleton";
+        public const string BuildServiceProvider = DependencyInjectionNamepsace +
+            "ServiceCollectionContainerBuilderExtensions.BuildServiceProvider";
+
         public const string IHttpClientFactory = "global::System.Net.Http.IHttpClientFactory";
         public const string TryAddSingleton= DependencyInjectionExtensions + "TryAddSingleton";
         public const string GenericCollectionsNamespace = "global::System.Collections.Generic.";

@@ -18,7 +18,27 @@
       "argument": "if",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Directive",
+      "Location": {
+        "Start": 42,
+        "End": 52,
+        "Line": 3,
+        "Column": 25
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 43,
+          "End": 52,
+          "Line": 3,
+          "Column": 26
+        },
+        "Value": "include"
+      },
+      "Arguments": []
+    }
   },
   {
     "Message": "The argument `if` is required.",
@@ -43,6 +63,26 @@
       "argument": "if",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Directive",
+      "Location": {
+        "Start": 82,
+        "End": 109,
+        "Line": 4,
+        "Column": 30
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 83,
+          "End": 109,
+          "Line": 4,
+          "Column": 31
+        },
+        "Value": "skip"
+      },
+      "Arguments": []
+    }
   }
 ]

@@ -50,7 +50,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public PropertyBuilder SetValue(string value)
+        public PropertyBuilder SetValue(string? value)
         {
             _value = value;
             return this;
@@ -114,7 +114,5 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
             writer.WriteLine();
         }
-
-
     }
 }

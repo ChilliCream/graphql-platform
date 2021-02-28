@@ -13,7 +13,114 @@
       "fragment": "fragA",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-Name-Uniqueness"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "FragmentDefinition",
+      "VariableDefinitions": [],
+      "TypeCondition": {
+        "Kind": "NamedType",
+        "Location": {
+          "Start": 202,
+          "End": 209,
+          "Line": 8,
+          "Column": 35
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 202,
+            "End": 209,
+            "Line": 8,
+            "Column": 35
+          },
+          "Value": "Query"
+        }
+      },
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 208,
+          "End": 317,
+          "Line": 8,
+          "Column": 41
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": {
+              "Kind": "SelectionSet",
+              "Location": {
+                "Start": 234,
+                "End": 304,
+                "Line": 9,
+                "Column": 25
+              },
+              "Selections": [
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": null,
+                  "Location": {
+                    "Start": 260,
+                    "End": 286,
+                    "Line": 10,
+                    "Column": 25
+                  },
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": {
+                      "Start": 260,
+                      "End": 286,
+                      "Line": 10,
+                      "Column": 25
+                    },
+                    "Value": "name"
+                  },
+                  "Directives": []
+                }
+              ]
+            },
+            "Location": {
+              "Start": 230,
+              "End": 304,
+              "Line": 9,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 230,
+                "End": 235,
+                "Line": 9,
+                "Column": 21
+              },
+              "Value": "dog"
+            },
+            "Directives": []
+          }
+        ]
+      },
+      "Location": {
+        "Start": 184,
+        "End": 317,
+        "Line": 8,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 193,
+          "End": 201,
+          "Line": 8,
+          "Column": 26
+        },
+        "Value": "fragA"
+      },
+      "Directives": []
+    }
   },
   {
     "Message": "The specified fragment `fragA` is not used within the current document.",
@@ -29,6 +136,113 @@
       "fragment": "fragA",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragments-Must-Be-Used"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "FragmentDefinition",
+      "VariableDefinitions": [],
+      "TypeCondition": {
+        "Kind": "NamedType",
+        "Location": {
+          "Start": 202,
+          "End": 209,
+          "Line": 8,
+          "Column": 35
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 202,
+            "End": 209,
+            "Line": 8,
+            "Column": 35
+          },
+          "Value": "Query"
+        }
+      },
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 208,
+          "End": 317,
+          "Line": 8,
+          "Column": 41
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": {
+              "Kind": "SelectionSet",
+              "Location": {
+                "Start": 234,
+                "End": 304,
+                "Line": 9,
+                "Column": 25
+              },
+              "Selections": [
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": null,
+                  "Location": {
+                    "Start": 260,
+                    "End": 286,
+                    "Line": 10,
+                    "Column": 25
+                  },
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": {
+                      "Start": 260,
+                      "End": 286,
+                      "Line": 10,
+                      "Column": 25
+                    },
+                    "Value": "name"
+                  },
+                  "Directives": []
+                }
+              ]
+            },
+            "Location": {
+              "Start": 230,
+              "End": 304,
+              "Line": 9,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 230,
+                "End": 235,
+                "Line": 9,
+                "Column": 21
+              },
+              "Value": "dog"
+            },
+            "Directives": []
+          }
+        ]
+      },
+      "Location": {
+        "Start": 184,
+        "End": 317,
+        "Line": 8,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 193,
+          "End": 201,
+          "Line": 8,
+          "Column": 26
+        },
+        "Value": "fragA"
+      },
+      "Directives": []
+    }
   }
 ]

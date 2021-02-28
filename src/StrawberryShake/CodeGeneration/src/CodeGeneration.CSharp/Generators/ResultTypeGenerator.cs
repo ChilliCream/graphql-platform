@@ -1,24 +1,24 @@
+using HotChocolate;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Extensions;
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public class ResultTypeGenerator : CodeGenerator<NamedTypeDescriptor>
+    public class ResultTypeGenerator : CodeGenerator<ObjectTypeDescriptor>
     {
-        protected override bool CanHandle(NamedTypeDescriptor descriptor)
+        protected override bool CanHandle(ObjectTypeDescriptor descriptor)
         {
-            return descriptor.Kind != TypeKind.LeafType &&
-                descriptor.Kind != TypeKind.InputType &&
-                !descriptor.IsInterface();
+            return true;
         }
 
         protected override void Generate(
             CodeWriter writer,
-            NamedTypeDescriptor namedTypeDescriptor,
+            ObjectTypeDescriptor namedTypeDescriptor,
             out string fileName)
         {
-            fileName = namedTypeDescriptor.Name;
+            fileName = namedTypeDescriptor.RuntimeType.Name;
             ClassBuilder classBuilder = ClassBuilder.New()
                 .SetName(fileName);
 
@@ -31,23 +31,21 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 var propTypeBuilder = prop.Type.ToBuilder();
 
                 // Add Property to class
-                var propBuilder = PropertyBuilder
-                    .New()
-                    .SetName(prop.Name)
-                    .SetType(propTypeBuilder)
-                    .SetAccessModifier(AccessModifier.Public);
-                classBuilder.AddProperty(propBuilder);
+                classBuilder.AddProperty(
+                    prop.Name,
+                    x => x
+                        .SetName(prop.Name)
+                        .SetType(propTypeBuilder)
+                        .SetAccessModifier(AccessModifier.Public)
+                        .SetValue(prop.Type.IsNullableType() ? "default!" : null));
 
                 // Add initialization of property to the constructor
-                var paramName = prop.Name.WithLowerFirstChar();
-                ParameterBuilder parameterBuilder = ParameterBuilder.New()
-                    .SetName(paramName)
-                    .SetType(propTypeBuilder);
-                constructorBuilder.AddParameter(parameterBuilder);
+                var paramName = GetParameterName(prop.Name);
+                constructorBuilder.AddParameter(paramName, x => x.SetType(propTypeBuilder));
                 constructorBuilder.AddCode(prop.Name + " = " + paramName + ";");
             }
 
-            foreach (var implement in namedTypeDescriptor.Implements)
+            foreach (NameString implement in namedTypeDescriptor.Implements)
             {
                 classBuilder.AddImplements(implement);
             }
@@ -56,7 +54,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             CodeFileBuilder
                 .New()
-                .SetNamespace(namedTypeDescriptor.Namespace)
+                .SetNamespace(namedTypeDescriptor.RuntimeType.NamespaceWithoutGlobal)
                 .AddType(classBuilder)
                 .Build(writer);
         }

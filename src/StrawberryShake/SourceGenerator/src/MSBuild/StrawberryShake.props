@@ -2,15 +2,12 @@
 
   <PropertyGroup>
     <GraphQLPropertyPageSchema>$(MSBuildThisFileDirectory)GraphQL.xaml</GraphQLPropertyPageSchema>
+    <StrawberryShake_BuildDirectory>$(MSBuildThisFileDirectory)..\analyzers\dotnet\cs</StrawberryShake_BuildDirectory>
   </PropertyGroup>
 
   <ItemDefinitionGroup>
-    <GraphQL>
-      <Generator>MSBuild:Compile</Generator>
-    </GraphQL>
-    <GraphQLConfig>
-      <Generator>MSBuild:Compile</Generator>
-    </GraphQLConfig>
+    <GraphQL />
+    <GraphQLConfig />
   </ItemDefinitionGroup>
 
   <ItemGroup>
@@ -24,6 +21,7 @@
   <ItemGroup>
     <!-- GraphQL Files -->
     <None Remove="**/*.graphql" />
+    <Content Remove="**/*.graphql" />
     <GraphQL Include="**/*.graphql" />
     <Watch Include="**/*.graphql" />
     <AdditionalFiles Include="@(GraphQL)" GraphQL="true" />
@@ -31,10 +29,16 @@
 
     <!-- GraphQL Config Files -->
     <None Remove="**/.graphqlrc.json" />
+    <Content Remove="**/.graphqlrc.json" />
     <GraphQLConfig Include="**/.graphqlrc.json" />
     <Watch Include="**/.graphqlrc.json" />
     <AdditionalFiles Include="@(GraphQLConfig)" GraphQLConfig="true" />
     <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="GraphQLConfig" />
+
+    <!-- Build Options -->
+    <CompilerVisibleProperty Include="StrawberryShake_LogFile" />
+    <CompilerVisibleProperty Include="RootNamespace" />
+    <CompilerVisibleProperty Include="StrawberryShake_BuildDirectory" />
   </ItemGroup>
 
 </Project>

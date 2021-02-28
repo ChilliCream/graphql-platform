@@ -1,19 +1,15 @@
-using System.Collections.Generic;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public class InputTypeGenerator : CodeGenerator<NamedTypeDescriptor>
+    public class InputTypeGenerator : CodeGenerator<InputObjectTypeDescriptor>
     {
-        protected override bool CanHandle(NamedTypeDescriptor descriptor)
-        {
-            return descriptor.Kind == TypeKind.InputType;
-        }
+        protected override bool CanHandle(InputObjectTypeDescriptor descriptor) => true;
 
         protected override void Generate(
             CodeWriter writer,
-            NamedTypeDescriptor namedTypeDescriptor,
+            InputObjectTypeDescriptor namedTypeDescriptor,
             out string fileName)
         {
             fileName = namedTypeDescriptor.Name;
@@ -22,10 +18,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             foreach (var prop in namedTypeDescriptor.Properties)
             {
-                var propTypeBuilder = prop.Type.ToBuilder();
+                TypeReferenceBuilder propTypeBuilder = prop.Type.ToBuilder();
 
                 // Add Property to class
-                var propBuilder = PropertyBuilder
+                PropertyBuilder propBuilder = PropertyBuilder
                     .New()
                     .MakeSettable()
                     .SetName(prop.Name)
@@ -34,14 +30,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 classBuilder.AddProperty(propBuilder);
             }
 
-            foreach (var implement in namedTypeDescriptor.Implements)
-            {
-                classBuilder.AddImplements(implement);
-            }
-
             CodeFileBuilder
                 .New()
-                .SetNamespace(namedTypeDescriptor.Namespace)
+                .SetNamespace(namedTypeDescriptor.RuntimeType.NamespaceWithoutGlobal)
                 .AddType(classBuilder)
                 .Build(writer);
         }

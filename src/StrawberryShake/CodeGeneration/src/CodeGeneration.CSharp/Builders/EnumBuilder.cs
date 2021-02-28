@@ -17,6 +17,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
+        public EnumBuilder SetUnderlyingType(RuntimeTypeInfo? value)
+        {
+            _underlyingType = value?.ToString();
+            return this;
+        }
+
         public EnumBuilder SetUnderlyingType(string? value)
         {
             _underlyingType = value;
@@ -46,6 +52,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             {
                 writer.WriteIndentedLine($"public enum {_name} : {_underlyingType}");
             }
+
             writer.WriteIndentedLine("{");
 
             using (writer.IncreaseIndent())

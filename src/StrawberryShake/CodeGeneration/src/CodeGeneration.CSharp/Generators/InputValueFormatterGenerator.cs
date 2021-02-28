@@ -1,38 +1,34 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Text;
 using HotChocolate;
-using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Extensions;
 using StrawberryShake.Serialization;
+using IInputValueFormatter = StrawberryShake.Serialization.IInputValueFormatter;
 using static StrawberryShake.CodeGeneration.NamingConventions;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
-using IInputValueFormatter = StrawberryShake.Serialization.IInputValueFormatter;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public class InputValueFormatterGenerator : CodeGenerator<NamedTypeDescriptor>
+    public class InputValueFormatterGenerator : CodeGenerator<InputObjectTypeDescriptor>
     {
         private static readonly string _keyValuePair =
             TypeNames.KeyValuePair.WithGeneric(
                 TypeNames.String,
                 TypeNames.Object.MakeNullable());
 
-        protected override bool CanHandle(NamedTypeDescriptor descriptor)
+        protected override bool CanHandle(InputObjectTypeDescriptor descriptor)
         {
-            return descriptor.Kind == TypeKind.InputType;
+            return true;
         }
 
         protected override void Generate(
             CodeWriter writer,
-            NamedTypeDescriptor namedTypeDescriptor,
+            InputObjectTypeDescriptor namedTypeDescriptor,
             out string fileName)
         {
-            fileName = InputValueFormatterFromType(namedTypeDescriptor);
+            fileName = CreateInputValueFormatter(namedTypeDescriptor);
 
             NameString typeName = namedTypeDescriptor.Name;
             ClassBuilder classBuilder = ClassBuilder.New()
@@ -54,7 +50,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             foreach (var property in neededSerializers.Values)
             {
-                if (property.Type.GetGraphQlTypeName()?.Value is { } name)
+                if (property.Type.GetName().Value is { } name)
                 {
                     MethodCallBuilder call = MethodCallBuilder.New()
                         .SetMethodName("serializerResolver." +
@@ -76,7 +72,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             foreach (var property in neededSerializers.Values)
             {
-                if (property.Type.GetGraphQlTypeName()?.Value is { } name)
+                if (property.Type.GetName().Value is { } name)
                 {
                     FieldBuilder field = FieldBuilder.New()
                         .SetName(GetFieldName(name) + "Formatter")
@@ -123,7 +119,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                 .SetPrefix("new ")
                                 .SetDetermineStatement(false)
                                 .SetMethodName(_keyValuePair)
-                                .AddArgument(property.Name.WithLowerFirstChar().AsStringToken())
+                                .AddArgument(GetParameterName(property.Name).AsStringToken())
                                 .AddArgument(MethodCallBuilder.New()
                                     .SetMethodName($"Format{property.Name}")
                                     .SetDetermineStatement(false)
@@ -142,7 +138,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             CodeFileBuilder
                 .New()
-                .SetNamespace(namedTypeDescriptor.Namespace)
+                .SetNamespace(namedTypeDescriptor.RuntimeType.NamespaceWithoutGlobal)
                 .AddType(classBuilder)
                 .Build(writer);
         }
@@ -154,20 +150,34 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             switch (typeDescriptor)
             {
-                case NamedTypeDescriptor descriptor:
-                    var type = descriptor.GetGraphQlTypeName()?.Value + "Formatter";
+                case INamedTypeDescriptor descriptor:
+                    var type = descriptor.GetName().Value + "Formatter";
                     var serializerName = GetFieldName(type);
                     var methodCall = $"{serializerName}.Format({variableName})";
                     return assignment == "return"
                         ? CodeLineBuilder.From("return " + methodCall + ";")
                         : CodeLineBuilder.From($"{assignment}.Add({methodCall});");
                 case NonNullTypeDescriptor descriptor:
-                    return GenerateSerializer(descriptor.InnerType(), variableName, assignment);
+                    return CodeBlockBuilder.New()
+                        .AddIf(x =>
+                            x.SetCondition($"{variableName} == default")
+                                .AddCode(
+                                    assignment == "return"
+                                        ? CodeLineBuilder.From("return null;")
+                                        : CodeBlockBuilder.New()
+                                            .AddLine($"{assignment}.Add(null);")
+                                            .AddLine("continue;")))
+                        .AddEmptyLine()
+                        .AddCode(GenerateSerializer(descriptor.InnerType(),
+                            variableName,
+                            assignment));
                 case ListTypeDescriptor descriptor:
                     return CodeBlockBuilder.New()
                         .AddCode(
                             CodeLineBuilder.From(
-                                $"var {variableName}_list = new {TypeNames.List.WithGeneric(TypeNames.Object.MakeNullable())}();"))
+                                $"var {variableName}_list = new " +
+                                $"{TypeNames.List.WithGeneric(TypeNames.Object.MakeNullable())}" +
+                                "();"))
                         .AddEmptyLine()
                         .AddCode(
                             ForEachBuilder.New()

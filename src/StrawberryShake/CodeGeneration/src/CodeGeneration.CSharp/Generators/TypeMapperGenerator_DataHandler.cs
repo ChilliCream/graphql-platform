@@ -3,106 +3,93 @@ using System.Collections.Generic;
 using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Extensions;
+using static StrawberryShake.CodeGeneration.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
     public partial class TypeMapperGenerator
     {
-        private const string DataParamName = "data";
+        private const string _dataParameterName = "data";
 
         private void AddDataHandler(
             ClassBuilder classBuilder,
             ConstructorBuilder constructorBuilder,
             MethodBuilder method,
-            NamedTypeDescriptor namedTypeDescriptor,
+            ComplexTypeDescriptor namedTypeDescriptor,
             HashSet<string> processed,
             bool isNonNullable)
         {
             method.AddParameter(
-                ParameterBuilder.New()
-                    .SetType(NamingConventions.DataTypeNameFromTypeName(namedTypeDescriptor.Name))
-                    .SetName(DataParamName));
+                _dataParameterName,
+                x => x.SetType(namedTypeDescriptor.ParentRuntimeType!.ToString()));
 
             if (!isNonNullable)
             {
-                method.AddCode(
-                    EnsureProperNullability(
-                        DataParamName,
-                        isNonNullable));
+                method.AddCode(EnsureProperNullability(_dataParameterName, isNonNullable));
             }
 
             var variableName = "returnValue";
-            method.AddCode($"{namedTypeDescriptor.Name} {variableName} = default!;");
+            method.AddCode($"{namedTypeDescriptor.RuntimeType.Name} {variableName} = default!;");
             method.AddEmptyLine();
 
-            if (namedTypeDescriptor.ImplementedBy.Any())
-            {
-                var ifChain = InterfaceImplementeeIf(namedTypeDescriptor.ImplementedBy[0]);
-
-                foreach (NamedTypeDescriptor interfaceImplementee in
-                    namedTypeDescriptor.ImplementedBy.Skip(1))
-                {
-                    var singleIf = InterfaceImplementeeIf(interfaceImplementee).SkipIndents();
-                    ifChain.AddIfElse(singleIf);
-                }
-
-                ifChain.AddElse(
-                    CodeInlineBuilder.New()
-                        .SetText($"throw new {TypeNames.NotSupportedException}();"));
-
-                method.AddCode(ifChain);
-            }
-
-            IfBuilder InterfaceImplementeeIf(NamedTypeDescriptor interfaceImplementee)
-            {
-                var ifCorrectType = IfBuilder.New();
-
-                if (isNonNullable)
-                {
-                    ifCorrectType.SetCondition(
-                        $"{DataParamName}.__typename.Equals(\"" +
-                        $"{interfaceImplementee.GraphQLTypeName}\", {TypeNames.OrdinalStringComparisson})");
-                }
-                else
-                {
-                    ifCorrectType.SetCondition(
-                        $"{DataParamName}?.__typename.Equals(\"" +
-                        $"{interfaceImplementee.GraphQLTypeName}\", {TypeNames.OrdinalStringComparisson}) ?? false");
-                }
-
-
-                var constructorCall = MethodCallBuilder.New()
-                    .SetPrefix($"{variableName} = new ")
-                    .SetMethodName(interfaceImplementee.Name);
-
-                foreach (PropertyDescriptor prop in interfaceImplementee.Properties)
-                {
-                    var propAccess = $"{DataParamName}.{prop.Name}";
-                    if (prop.Type.IsEntityType())
-                    {
-                        constructorCall.AddArgument(
-                            BuildMapMethodCall(
-                                DataParamName,
-                                prop));
-                    }
-                    else
-                    {
-                        constructorCall.AddArgument(propAccess);
-                    }
-                }
-
-                ifCorrectType.AddCode(constructorCall);
-                return ifCorrectType;
-            }
+            GenerateIfForEachImplementedBy(
+                method,
+                namedTypeDescriptor,
+                o => GenerateDataInterfaceIfClause(o, isNonNullable, variableName));
 
             method.AddCode($"return {variableName};");
 
             AddRequiredMapMethods(
-                DataParamName,
+                _dataParameterName,
                 namedTypeDescriptor,
                 classBuilder,
                 constructorBuilder,
                 processed);
+        }
+
+        private IfBuilder GenerateDataInterfaceIfClause(
+            ObjectTypeDescriptor objectTypeDescriptor,
+            bool isNonNullable,
+            string variableName)
+        {
+            var ifCorrectType = IfBuilder.New();
+
+            if (isNonNullable)
+            {
+                ifCorrectType.SetCondition(
+                    $"{_dataParameterName}.__typename.Equals(\"" +
+                    $"{objectTypeDescriptor.Name}\", " +
+                    $"{TypeNames.OrdinalStringComparison})");
+            }
+            else
+            {
+                ifCorrectType.SetCondition(
+                    $"{_dataParameterName}?.__typename.Equals(\"" +
+                    $"{objectTypeDescriptor.Name}\", " +
+                    $"{TypeNames.OrdinalStringComparison}) ?? false");
+            }
+
+
+            var constructorCall = MethodCallBuilder.New()
+                .SetPrefix($"{variableName} = new ")
+                .SetMethodName(objectTypeDescriptor.RuntimeType.Name);
+
+            foreach (PropertyDescriptor prop in objectTypeDescriptor.Properties)
+            {
+                var propAccess = $"{_dataParameterName}.{prop.Name}";
+                if (prop.Type.IsEntityType())
+                {
+                    constructorCall.AddArgument(BuildMapMethodCall(_dataParameterName, prop, true));
+                }
+                else
+                {
+                    constructorCall.AddArgument(
+                        $"{propAccess} ?? throw new {TypeNames.ArgumentNullException}()");
+                }
+            }
+
+            ifCorrectType.AddCode(constructorCall);
+            return ifCorrectType;
         }
     }
 }

@@ -1,9 +1,10 @@
 using System;
-using System.Threading.Tasks;
+using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.NamingConventions;
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -19,53 +20,36 @@ namespace StrawberryShake.CodeGeneration.CSharp
             ITypeDescriptor typeDescriptor,
             out string fileName)
         {
-            NamedTypeDescriptor namedTypeDescriptor = typeDescriptor switch
-            {
-                NamedTypeDescriptor nullableNamedType => nullableNamedType,
-                NonNullTypeDescriptor {InnerType: NamedTypeDescriptor namedType} => namedType,
-                _ => throw new ArgumentException(nameof(typeDescriptor))
-            };
+            ComplexTypeDescriptor complexTypeDescriptor =
+                typeDescriptor as ComplexTypeDescriptor ??
+                throw new InvalidOperationException(
+                    "A result entity mapper can only be generated for complex types");
 
             var (classBuilder, constructorBuilder) = CreateClassBuilder();
 
-            fileName = ResultInfoNameFromTypeName(namedTypeDescriptor.Name);
+            var className = CreateResultInfoName(complexTypeDescriptor.RuntimeType.Name);
+            fileName = className;
 
             classBuilder
                 .AddImplements(TypeNames.IOperationResultDataInfo)
                 .SetName(fileName);
 
             constructorBuilder
-                .SetTypeName(namedTypeDescriptor.Name)
+                .SetTypeName(complexTypeDescriptor.RuntimeType.Name)
                 .SetAccessModifier(AccessModifier.Public);
 
-            var constructorCaller = MethodCallBuilder.New()
-                .SetPrefix("return new ")
-                .SetMethodName(fileName);
 
-            var withVersion = MethodBuilder.New()
-                .SetAccessModifier(AccessModifier.Public)
-                .SetReturnType(TypeNames.IOperationResultDataInfo)
-                .SetName($"WithVersion")
-                .AddParameter(ParameterBuilder.New()
-                    .SetType("ulong")
-                    .SetName("version"));
-
-            foreach (var prop in namedTypeDescriptor.Properties)
+            foreach (var prop in complexTypeDescriptor.Properties)
             {
                 var propTypeBuilder = prop.Type.ToEntityIdBuilder();
 
                 // Add Property to class
-                var propBuilder = PropertyBuilder
-                    .New()
-                    .SetName(prop.Name)
-                    .SetType(propTypeBuilder)
-                    .SetAccessModifier(AccessModifier.Public);
-
-                classBuilder.AddProperty(propBuilder);
-                constructorCaller.AddArgument(prop.Name);
+                classBuilder.AddProperty(
+                    prop.Name,
+                    x => x.SetType(propTypeBuilder).SetAccessModifier(AccessModifier.Public));
 
                 // Add initialization of property to the constructor
-                var paramName = prop.Name.WithLowerFirstChar();
+                var paramName = GetParameterName(prop.Name);
                 ParameterBuilder parameterBuilder = ParameterBuilder.New()
                     .SetName(paramName)
                     .SetType(propTypeBuilder);
@@ -74,22 +58,18 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 constructorBuilder.AddCode(prop.Name + " = " + paramName + ";");
             }
 
-            classBuilder.AddProperty(PropertyBuilder.New()
-                .SetName($"EntityIds")
-                .SetType($"{TypeNames.IReadOnlyCollection}<{TypeNames.EntityId}>")
-                .AsLambda("_entityIds"));
+            classBuilder.AddProperty(
+                "EntityIds",
+                x => x.SetType(TypeNames.IReadOnlyCollection.WithGeneric(TypeNames.EntityId))
+                    .AsLambda("_entityIds"));
 
-            classBuilder.AddProperty(PropertyBuilder.New()
-                .SetName("Version")
-                .SetType("ulong")
-                .AsLambda("_version"));
+            classBuilder.AddProperty("Version", x => x.SetType("ulong").AsLambda("_version"));
 
             AddConstructorAssignedField(
                 $"{TypeNames.IReadOnlyCollection}<{TypeNames.EntityId}>",
                 "_entityIds",
                 classBuilder,
                 constructorBuilder);
-            constructorCaller.AddArgument("_entityIds");
 
             AddConstructorAssignedField(
                 "ulong",
@@ -97,14 +77,29 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 classBuilder,
                 constructorBuilder,
                 true);
-            constructorCaller.AddArgument("_version");
 
-            withVersion.AddCode(constructorCaller);
-            classBuilder.AddMethod(withVersion);
+
+            // WithVersion
+
+            classBuilder.AddMethod(
+                "WithVersion",
+                x => x.SetAccessModifier(AccessModifier.Public)
+                    .SetReturnType(TypeNames.IOperationResultDataInfo)
+                    .AddParameter(ParameterBuilder.New()
+                        .SetType("ulong")
+                        .SetName("version"))
+                    .AddCode(MethodCallBuilder.New()
+                        .SetPrefix("return new ")
+                        .SetMethodName(className)
+                        .AddArgumentRange(
+                            complexTypeDescriptor.Properties.Select(x => x.Name.Value))
+                        .AddArgument("_entityIds")
+                        .AddArgument("_version")));
+
 
             CodeFileBuilder
                 .New()
-                .SetNamespace(namedTypeDescriptor.Namespace)
+                .SetNamespace(complexTypeDescriptor.RuntimeType.NamespaceWithoutGlobal)
                 .AddType(classBuilder)
                 .Build(writer);
         }
