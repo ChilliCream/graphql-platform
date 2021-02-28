@@ -1,50 +1,40 @@
-using System;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types.Scalars
 {
     /// <summary>
-    /// The Regular Expression scalar type represents textual data, represented
-    /// as UTF‐8 character sequences following a pattern defined as a regular
-    /// expression, as detailed here:
-    /// https://en.wikipedia.org/wiki/Regular_expression.
+    /// The `IPv4` scalar type represents a valid a IPv4 address as defined
+    /// here https://en.wikipedia.org/wiki/IPv4.
     /// </summary>
-    public class RegularExpressionType : StringType
+    public class IPv4TypeBackup : StringType
     {
-        private readonly string _validationPattern;
-        private readonly Regex _validationRegex; 
+        private static readonly string _validationPattern =
+            ScalarResources.IPv4Type_ValidationPattern;
+
+        private static readonly Regex _validationRegex =
+            new(_validationPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RegularExpressionType"/> class.
+        /// Initializes a new instance of the <see cref="IPv4Type"/> class.
         /// </summary>
-        public RegularExpressionType(
-            NameString name,
-            string pattern,
-            string? description = null,
-            RegexOptions regexOptions =
-                RegexOptions.Compiled,
-            BindingBehavior bind = BindingBehavior.Explicit)
-            : this(name,
-                  new Regex(pattern, regexOptions),
-                  description,
-                  bind)
+        public IPv4TypeBackup()
+            : this(
+                WellKnownScalarTypes.IPv4,
+                ScalarResources.IPv4Type_Description)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RegularExpressionType"/> class.
+        /// Initializes a new instance of the <see cref="IPv4Type"/> class.
         /// </summary>
-        public RegularExpressionType(
+        public IPv4TypeBackup(
             NameString name,
-            Regex regex,
             string? description = null,
             BindingBehavior bind = BindingBehavior.Explicit)
             : base(name, description, bind)
         {
             Description = description;
-            _validationRegex = regex;
-            _validationPattern = regex.ToString();
         }
 
         /// <inheritdoc />
@@ -64,7 +54,7 @@ namespace HotChocolate.Types.Scalars
         {
             if (!_validationRegex.IsMatch(valueSyntax.Value))
             {
-                throw ThrowHelper.RegularExpressionType_ParseLiteral_IsInvalid(this, _validationPattern, Name);
+                throw ThrowHelper.IPv4Type_ParseLiteral_IsInvalid(this);
             }
 
             return base.ParseLiteral(valueSyntax);
@@ -75,7 +65,7 @@ namespace HotChocolate.Types.Scalars
         {
             if (!_validationRegex.IsMatch(runtimeValue))
             {
-                throw ThrowHelper.RegularExpressionType_ParseValue_IsInvalid(this, _validationPattern, Name);
+                throw ThrowHelper.IPv4Type_ParseValue_IsInvalid(this);
             }
 
             return base.ParseValue(runtimeValue);
