@@ -527,6 +527,8 @@ namespace Foo.Bar
                  ?? throw new global::System.ArgumentNullException(nameof(testQuery));
         }
 
+        public global::System.String ClientName => "FooClient";
+
         public TestQuery TestQuery => _testQuery;
     }
 }

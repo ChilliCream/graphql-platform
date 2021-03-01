@@ -860,6 +860,8 @@ namespace Foo.Bar
                  ?? throw new global::System.ArgumentNullException(nameof(getStore2Query));
         }
 
+        public global::System.String ClientName => "FooClient";
+
         public GetStore2Query GetStore2Query => _getStore2Query;
     }
 }
