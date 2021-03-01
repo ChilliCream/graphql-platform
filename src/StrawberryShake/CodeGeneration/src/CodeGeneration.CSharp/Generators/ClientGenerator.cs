@@ -21,6 +21,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .AddConstructor()
                 .SetTypeName(fileName);
 
+            classBuilder
+                .AddProperty("ClientName")
+                .SetPublic()
+                .SetType(TypeNames.String)
+                .AsLambda(descriptor.Name.Value.AsStringToken());
+
             foreach (OperationDescriptor operation in descriptor.Operations)
             {
                 AddConstructorAssignedField(
