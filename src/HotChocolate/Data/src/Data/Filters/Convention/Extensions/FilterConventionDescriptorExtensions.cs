@@ -78,32 +78,34 @@ namespace HotChocolate.Data
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            void BindComparableAndNullable<T>() => descriptor
-                .BindRuntimeType<T, ComparableOperationFilterInputType<T>>()
-                .BindRuntimeType<T?, ComparableOperationFilterInputType<T?>>();
-
-            descriptor
+            return descriptor
                 .BindRuntimeType<string, StringOperationFilterInputType>()
                 .BindRuntimeType<bool, BooleanOperationFilterInputType>()
-                .BindRuntimeType<bool?, BooleanOperationFilterInputType>();
+                .BindRuntimeType<bool?, BooleanOperationFilterInputType>()
+                .BindComparableType<byte>()
+                .BindComparableType<short>()
+                .BindComparableType<int>()
+                .BindComparableType<long>()
+                .BindComparableType<float>()
+                .BindComparableType<double>()
+                .BindComparableType<decimal>()
+                .BindComparableType<sbyte>()
+                .BindComparableType<ushort>()
+                .BindComparableType<uint>()
+                .BindComparableType<ulong>()
+                .BindComparableType<Guid>()
+                .BindComparableType<DateTime>()
+                .BindComparableType<DateTimeOffset>()
+                .BindComparableType<TimeSpan>();
+        }
 
-            BindComparableAndNullable<byte>();
-            BindComparableAndNullable<short>();
-            BindComparableAndNullable<int>();
-            BindComparableAndNullable<long>();
-            BindComparableAndNullable<float>();
-            BindComparableAndNullable<double>();
-            BindComparableAndNullable<decimal>();
-            BindComparableAndNullable<sbyte>();
-            BindComparableAndNullable<ushort>();
-            BindComparableAndNullable<uint>();
-            BindComparableAndNullable<ulong>();
-            BindComparableAndNullable<Guid>();
-            BindComparableAndNullable<DateTime>();
-            BindComparableAndNullable<DateTimeOffset>();
-            BindComparableAndNullable<TimeSpan>();
-
-            return descriptor;
+        private static IFilterConventionDescriptor BindComparableType<T>(
+            this IFilterConventionDescriptor descriptor)
+            where T : struct
+        {
+            return descriptor
+                .BindRuntimeType<T, ComparableOperationFilterInputType<T>>()
+                .BindRuntimeType<T?, ComparableOperationFilterInputType<T?>>();
         }
     }
 }
