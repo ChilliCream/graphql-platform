@@ -30,15 +30,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
             foreach (OperationDescriptor operation in descriptor.Operations)
             {
                 AddConstructorAssignedField(
-                    operation.Name,
+                    operation.RuntimeType.ToString(),
                     GetFieldName(operation.Name),
                     classBuilder,
                     constructorBuilder);
 
                 classBuilder
-                    .AddProperty(operation.Name)
+                    .AddProperty(GetPropertyName(operation.Name))
                     .SetPublic()
-                    .SetType(operation.Name)
+                    .SetType(operation.RuntimeType.ToString())
                     .AsLambda(GetFieldName(operation.Name));
             }
 

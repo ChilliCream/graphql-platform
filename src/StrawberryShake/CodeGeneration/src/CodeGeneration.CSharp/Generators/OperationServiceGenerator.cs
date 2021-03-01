@@ -29,7 +29,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             OperationDescriptor operationDescriptor,
             out string fileName)
         {
-            fileName = operationDescriptor.Name;
+            fileName = operationDescriptor.RuntimeType.Name;
 
             ClassBuilder classBuilder = ClassBuilder
                 .New()
@@ -39,7 +39,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         .SetSummary(
                             string.Format(
                                 CodeGenerationResources.OperationServiceDescriptor_Description,
-                                operationDescriptor.OperationName))
+                                operationDescriptor.Name))
                         .AddCode(operationDescriptor.BodyString))
                 .SetName(fileName);
 
@@ -70,7 +70,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             CodeFileBuilder
                 .New()
-                .SetNamespace(operationDescriptor.Namespace)
+                .SetNamespace(operationDescriptor.RuntimeType.NamespaceWithoutGlobal)
                 .AddType(classBuilder)
                 .Build(writer);
         }
@@ -138,8 +138,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 else
                 {
                     throw new InvalidOperationException(
-                        $"Serializer for property {operationDescriptor.Name}.{property.Name} " +
-                        "could not be created. GraphQLTypeName was empty");
+                        $"Serializer for property {operationDescriptor.RuntimeType.Name}." +
+                        $"{property.Name} could not be created. GraphQLTypeName was empty");
                 }
             }
         }
@@ -249,7 +249,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         private MethodBuilder CreateRequestMethod(OperationDescriptor operationDescriptor)
         {
-            string typeName = CreateDocumentTypeName(operationDescriptor.Name);
+            string typeName = CreateDocumentTypeName(operationDescriptor.RuntimeType.Name);
 
             MethodBuilder method = MethodBuilder
                 .New()
@@ -261,7 +261,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetReturn()
                 .SetNew()
                 .SetMethodName(TypeNames.OperationRequest)
-                .AddArgument(operationDescriptor.OperationName.AsStringToken())
+                .AddArgument(operationDescriptor.Name.AsStringToken())
                 .AddArgument($"{typeName}.Instance");
 
             if (operationDescriptor.Arguments.Count > 0)

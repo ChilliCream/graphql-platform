@@ -10,34 +10,32 @@ namespace StrawberryShake.CodeGeneration
     public abstract class OperationDescriptor : ICodeDescriptor
     {
         public OperationDescriptor(
-            NameString operationName,
+            NameString name,
+            RuntimeTypeInfo runtimeType,
             ITypeDescriptor resultTypeReference,
-            string @namespace,
             IReadOnlyList<PropertyDescriptor> arguments,
             string bodyString)
         {
-            OperationName = operationName;
+            Name = name;
+            RuntimeType = runtimeType;
             ResultTypeReference = resultTypeReference;
             Arguments = arguments;
             BodyString = bodyString;
-            Namespace = @namespace;
         }
 
         /// <summary>
-        /// The name of the operation
+        /// Gets the operation name.
         /// </summary>
-        public abstract NameString Name { get; }
+        public NameString Name { get; }
 
-        public string Namespace { get; }
+        public RuntimeTypeInfo RuntimeType { get; }
 
         /// <summary>
-        /// The type the operation returns
+        /// Gets the type the operation returns
         /// </summary>
         public ITypeDescriptor ResultTypeReference { get; }
 
         public string BodyString { get; }
-
-        public  NameString OperationName { get; }
 
         /// <summary>
         /// The arguments the operation takes.
