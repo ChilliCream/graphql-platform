@@ -344,6 +344,18 @@ namespace Foo.Bar
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Represents the operation service of the CreateReviewMut GraphQL operation
+    /// <code>
+    /// mutation CreateReviewMut($episode: Episode!, $review: ReviewInput!) {
+    ///   createReview(episode: $episode, review: $review) {
+    ///     __typename
+    ///     stars
+    ///     commentary
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class CreateReviewMutMutationDocument
         : global::StrawberryShake.IDocument
@@ -374,6 +386,18 @@ namespace Foo.Bar
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Represents the operation service of the CreateReviewMut GraphQL operation
+    /// <code>
+    /// mutation CreateReviewMut($episode: Episode!, $review: ReviewInput!) {
+    ///   createReview(episode: $episode, review: $review) {
+    ///     __typename
+    ///     stars
+    ///     commentary
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class CreateReviewMutMutation
     {
@@ -628,6 +652,9 @@ namespace Foo.Bar.State
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Represents the FooClient GraphQL client
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient
     {

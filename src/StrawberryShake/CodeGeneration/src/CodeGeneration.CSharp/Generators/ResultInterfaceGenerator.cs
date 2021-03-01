@@ -20,12 +20,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             InterfaceBuilder interfaceBuilder = InterfaceBuilder
                 .New()
+                .SetComment(descriptor.Description)
                 .SetName(fileName);
 
             foreach (var prop in descriptor.Properties)
             {
                 interfaceBuilder
                     .AddProperty(prop.Name)
+                    .SetComment(prop.Description)
                     .SetType(prop.Type.ToBuilder())
                     .SetPublic();
             }

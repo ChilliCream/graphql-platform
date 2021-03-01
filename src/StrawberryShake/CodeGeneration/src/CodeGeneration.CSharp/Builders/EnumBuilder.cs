@@ -5,9 +5,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public class EnumBuilder : ITypeBuilder
     {
-        private readonly List<(string, long?)> _elements = new();
+        private readonly List<(string, long?, XmlCommentBuilder?)> _elements = new();
         private string? _name;
         private string? _underlyingType;
+        private XmlCommentBuilder? _xmlComment;
 
         public static EnumBuilder New() => new();
 
@@ -29,9 +30,24 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public EnumBuilder AddElement(string name, long? value = null)
+        public EnumBuilder AddElement(string name, long? value = null, string? documentation = null)
         {
-            _elements.Add((name, value));
+            _elements.Add((
+                name,
+                value,
+                documentation is null
+                    ? null
+                    : XmlCommentBuilder.New().SetSummary(documentation)));
+            return this;
+        }
+
+        public EnumBuilder SetComment(string? xmlComment)
+        {
+            if (xmlComment is not null)
+            {
+                _xmlComment = XmlCommentBuilder.New().SetSummary(xmlComment);
+            }
+
             return this;
         }
 
@@ -41,6 +57,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             {
                 throw new ArgumentNullException(nameof(writer));
             }
+
+            _xmlComment?.Build(writer);
 
             writer.WriteGeneratedAttribute();
 
@@ -59,6 +77,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             {
                 for (var i = 0; i < _elements.Count; i++)
                 {
+                    _elements[i].Item3?.Build(writer);
+
                     writer.WriteIndent();
                     writer.Write(_elements[i].Item1);
 

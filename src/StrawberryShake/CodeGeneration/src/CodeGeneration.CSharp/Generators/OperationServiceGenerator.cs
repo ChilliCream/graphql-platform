@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Extensions;
+using StrawberryShake.CodeGeneration.Properties;
 using StrawberryShake.Serialization;
 using static StrawberryShake.CodeGeneration.CSharp.InputValueFormatterGenerator;
 using static StrawberryShake.CodeGeneration.NamingConventions;
@@ -32,6 +33,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             ClassBuilder classBuilder = ClassBuilder
                 .New()
+                .SetComment(
+                    XmlCommentBuilder
+                        .New()
+                        .SetSummary(
+                            string.Format(
+                                CodeGenerationResources.OperationServiceDescriptor_Description,
+                                operationDescriptor.OperationName))
+                        .AddCode(operationDescriptor.BodyString))
                 .SetName(fileName);
 
             ConstructorBuilder constructorBuilder = classBuilder

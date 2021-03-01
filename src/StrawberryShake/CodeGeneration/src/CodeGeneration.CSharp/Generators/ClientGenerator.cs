@@ -14,7 +14,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             ClassBuilder classBuilder = ClassBuilder
                 .New()
-                .SetName(fileName);
+                .SetName(fileName)
+                .SetComment(descriptor.Documentation);
 
             ConstructorBuilder constructorBuilder = classBuilder
                 .AddConstructor()

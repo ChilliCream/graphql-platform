@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using HotChocolate;
+using StrawberryShake.CodeGeneration.Properties;
 
 namespace StrawberryShake.CodeGeneration
 {

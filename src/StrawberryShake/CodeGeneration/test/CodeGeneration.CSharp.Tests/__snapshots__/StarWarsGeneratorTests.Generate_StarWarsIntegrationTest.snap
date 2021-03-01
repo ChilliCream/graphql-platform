@@ -385,6 +385,17 @@ namespace Foo.Bar
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Represents the operation service of the CreateReview GraphQL operation
+    /// <code>
+    /// mutation CreateReview($stars: Int!) {
+    ///   createReview(episode: EMPIRE, review: { stars: $stars, commentary: "good" }) {
+    ///     __typename
+    ///     stars
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class CreateReviewMutationDocument
         : global::StrawberryShake.IDocument
@@ -415,6 +426,17 @@ namespace Foo.Bar
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Represents the operation service of the CreateReview GraphQL operation
+    /// <code>
+    /// mutation CreateReview($stars: Int!) {
+    ///   createReview(episode: EMPIRE, review: { stars: $stars, commentary: "good" }) {
+    ///     __typename
+    ///     stars
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class CreateReviewMutation
     {
@@ -488,6 +510,17 @@ namespace Foo.Bar
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Represents the operation service of the OnReview GraphQL operation
+    /// <code>
+    /// subscription OnReview {
+    ///   onReview(episode: EMPIRE) {
+    ///     __typename
+    ///     stars
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnReviewSubscriptionDocument
         : global::StrawberryShake.IDocument
@@ -518,6 +551,17 @@ namespace Foo.Bar
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Represents the operation service of the OnReview GraphQL operation
+    /// <code>
+    /// subscription OnReview {
+    ///   onReview(episode: EMPIRE) {
+    ///     __typename
+    ///     stars
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnReviewSubscription
     {
@@ -797,6 +841,9 @@ namespace Foo.Bar.State
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Represents the FooClient GraphQL client
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient
     {

@@ -247,6 +247,22 @@ namespace Foo.Bar
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Represents the operation service of the SearchSomething GraphQL operation
+    /// <code>
+    /// query SearchSomething {
+    ///   search {
+    ///     __typename
+    ///     ... on Author {
+    ///       name
+    ///     }
+    ///     ... on Book {
+    ///       title
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchSomethingQueryDocument
         : global::StrawberryShake.IDocument
@@ -277,6 +293,22 @@ namespace Foo.Bar
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Represents the operation service of the SearchSomething GraphQL operation
+    /// <code>
+    /// query SearchSomething {
+    ///   search {
+    ///     __typename
+    ///     ... on Author {
+    ///       name
+    ///     }
+    ///     ... on Book {
+    ///       title
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchSomethingQuery
     {
@@ -532,6 +564,9 @@ namespace Foo.Bar.State
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Represents the FooClient GraphQL client
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient
     {

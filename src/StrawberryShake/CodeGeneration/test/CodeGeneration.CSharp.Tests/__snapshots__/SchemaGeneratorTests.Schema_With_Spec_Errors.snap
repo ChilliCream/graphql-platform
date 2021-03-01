@@ -84,6 +84,10 @@ namespace Foo.Bar
             _version = version;
         }
 
+        /// <summary>
+        /// Vyhledávání mezi inzeráty
+        /// 
+        /// </summary>
         public global::Foo.Bar.State.ListingsPayloadData Listings { get; }
 
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
@@ -109,6 +113,9 @@ namespace Foo.Bar
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Root type pro read operace nemovizor API.
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetListingsCountResult
         : IGetListingsCountResult
@@ -118,6 +125,10 @@ namespace Foo.Bar
             Listings = listings;
         }
 
+        /// <summary>
+        /// Vyhledávání mezi inzeráty
+        /// 
+        /// </summary>
         public IGetListingsCount_Listings Listings { get; }
     }
 }
@@ -153,9 +164,16 @@ namespace Foo.Bar
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Root type pro read operace nemovizor API.
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetListingsCountResult
     {
+        /// <summary>
+        /// Vyhledávání mezi inzeráty
+        /// 
+        /// </summary>
         public IGetListingsCount_Listings Listings { get; }
     }
 }
@@ -217,6 +235,21 @@ namespace Foo.Bar
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Represents the operation service of the GetListingsCount GraphQL operation
+    /// <code>
+    /// query GetListingsCount {
+    ///   listings {
+    ///     __typename
+    ///     ... ListingsPayload
+    ///   }
+    /// }
+    /// 
+    /// fragment ListingsPayload on ListingsPayload {
+    ///   count
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetListingsCountQueryDocument
         : global::StrawberryShake.IDocument
@@ -247,6 +280,21 @@ namespace Foo.Bar
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Represents the operation service of the GetListingsCount GraphQL operation
+    /// <code>
+    /// query GetListingsCount {
+    ///   listings {
+    ///     __typename
+    ///     ... ListingsPayload
+    ///   }
+    /// }
+    /// 
+    /// fragment ListingsPayload on ListingsPayload {
+    ///   count
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetListingsCountQuery
     {
@@ -430,6 +478,9 @@ namespace Foo.Bar.State
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Represents the FooClient GraphQL client
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient
     {
