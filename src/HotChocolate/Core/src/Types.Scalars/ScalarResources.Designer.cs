@@ -459,12 +459,6 @@ namespace HotChocolate.Types.Scalars {
             }
         }
         
-        internal static string IPv4Type_ValidationPattern {
-            get {
-                return ResourceManager.GetString("IPv4Type_ValidationPattern", resourceCulture);
-            }
-        }
-        
         internal static string RegularExpressionType_IsInvalid_ParseLiteral {
             get {
                 return ResourceManager.GetString("RegularExpressionType_IsInvalid_ParseLiteral", resourceCulture);
