@@ -379,7 +379,7 @@ namespace HotChocolate.Types.Scalars
                     .SetExtension("actualType", WellKnownScalarTypes.RegularExpression)
                     .SetExtension("pattern",
                         validationPattern.Length > 100
-                            ? "Expression too long"
+                            ? "Pattern too long"
                             : validationPattern)
                     .Build(),
                 type);
@@ -401,7 +401,7 @@ namespace HotChocolate.Types.Scalars
                     .SetExtension("actualType", WellKnownScalarTypes.RegularExpression)
                     .SetExtension("pattern",
                         validationPattern.Length > 100
-                            ? "Expression too long"
+                            ? "Pattern too long"
                             : validationPattern)
                     .Build(),
                 type);
