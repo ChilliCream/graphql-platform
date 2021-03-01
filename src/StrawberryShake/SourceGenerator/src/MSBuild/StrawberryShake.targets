@@ -8,7 +8,7 @@
     <StrawberryShake_DesignTimeBuild Condition="$(IsOmniSharp)">false</StrawberryShake_DesignTimeBuild>
   </PropertyGroup>
 
-  <Import Project="$(MSBuildThisFileDirectory)\VSCode.targets" Condition="'$(IsOmniSharp)' == 'true'" />
+  <Import Project="$(MSBuildThisFileDirectory)VSCode.targets" Condition="'$(IsOmniSharp)' == 'true'" />
 
   <!--Design Time Code Generation Hook.-->
   <Target Name="GraphQLCompile" />
