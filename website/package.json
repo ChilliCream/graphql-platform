@@ -58,7 +58,7 @@
     "react-instantsearch-dom": "^6.9.0",
     "react-redux": "^7.2.1",
     "react-responsive-carousel": "^3.2.11",
-    "react-share": "^4.2.1",
+    "react-share": "^4.4.0",
     "styled-components": "^5.2.0"
   },
   "devDependencies": {
