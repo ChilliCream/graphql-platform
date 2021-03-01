@@ -18,11 +18,15 @@ namespace StrawberryShake.CodeGeneration
         /// </param>
         /// <param name="operationTypes">
         /// The operation types of this entity
-        /// The operation types of this entity 
-         public EntityTypeDescriptor(
+        /// </param>
+        /// <param name="documentation">
+        /// The documentation of this entity
+        /// </param>
+        public EntityTypeDescriptor(
             NameString name,
             string @namespace,
-            IReadOnlyList<ComplexTypeDescriptor> operationTypes)
+            IReadOnlyList<ComplexTypeDescriptor> operationTypes,
+            string? documentation)
         {
             var allProperties = new Dictionary<string, PropertyDescriptor>();
 
@@ -40,6 +44,7 @@ namespace StrawberryShake.CodeGeneration
             Properties = allProperties;
             RuntimeType = new(CreateEntityTypeName(name), @namespace);
             Name = name;
+            Documentation = documentation;
         }
 
         /// <summary>
@@ -51,6 +56,11 @@ namespace StrawberryShake.CodeGeneration
         /// Gets the entity name.
         /// </summary>
         public RuntimeTypeInfo RuntimeType { get; }
+
+        /// <summary>
+        /// The documentation of this type
+        /// </summary>
+        public string? Documentation { get; }
 
         /// <summary>
         /// Gets the properties of this entity.

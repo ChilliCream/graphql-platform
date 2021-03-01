@@ -571,6 +571,29 @@ namespace Foo.Bar
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Represents the operation service of the AllExpenses GraphQL operation
+    /// <code>
+    /// query AllExpenses {
+    ///   expense {
+    ///     __typename
+    ///     id
+    ///     amount
+    ///     date
+    ///     description
+    ///     category
+    ///     paymentMethod
+    ///     tags {
+    ///       __typename
+    ///       name
+    ///     }
+    ///     ... on Expense {
+    ///       id
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class AllExpensesQueryDocument
         : global::StrawberryShake.IDocument
@@ -601,6 +624,29 @@ namespace Foo.Bar
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Represents the operation service of the AllExpenses GraphQL operation
+    /// <code>
+    /// query AllExpenses {
+    ///   expense {
+    ///     __typename
+    ///     id
+    ///     amount
+    ///     date
+    ///     description
+    ///     category
+    ///     paymentMethod
+    ///     tags {
+    ///       __typename
+    ///       name
+    ///     }
+    ///     ... on Expense {
+    ///       id
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class AllExpensesQuery
     {
@@ -942,6 +988,9 @@ namespace Foo.Bar.State
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Represents the FooClient GraphQL client
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient
     {
@@ -952,6 +1001,8 @@ namespace Foo.Bar
             _allExpensesQuery = allExpensesQuery
                  ?? throw new global::System.ArgumentNullException(nameof(allExpensesQuery));
         }
+
+        public global::System.String ClientName => "FooClient";
 
         public AllExpensesQuery AllExpensesQuery => _allExpensesQuery;
     }
@@ -1004,7 +1055,7 @@ namespace Foo.Bar
 
 #nullable enable
 
-namespace Foo.Bar
+namespace Microsoft.Extensions.DependencyInjection
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class FooClientServiceCollectionExtensions
@@ -1030,12 +1081,12 @@ namespace Foo.Bar
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<AllExpensesQuery>(
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<Foo.Bar.AllExpensesQuery>(
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<FooClient>(
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.FooClient>(
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
 
             return services;
@@ -1052,7 +1103,7 @@ namespace Foo.Bar
             }
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId>>(
                 services,
-                EntityIdFactory.CreateEntityId);
+                global::Foo.Bar.EntityIdFactory.CreateEntityId);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IEntityStore, global::StrawberryShake.EntityStore>(services);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IOperationStore>(
                 services,
@@ -1064,13 +1115,13 @@ namespace Foo.Bar
                 sp => 
                 {
                     var clientFactory = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Net.Http.IHttpClientFactory>(parentServices);
-                    return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("FooClient"));
+                    return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("global::Foo.Bar.FooClient"));
                 });
 
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<ExpenseEntity, AllExpenses_Expense_Expense>, AllExpenses_Expense_ExpenseFromExpenseEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.ExpenseEntity, global::Foo.Bar.AllExpenses_Expense_Expense>, global::Foo.Bar.AllExpenses_Expense_ExpenseFromExpenseEntityMapper>(services);
 
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, ExpenseCategorySerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, PaymentMethodSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::Foo.Bar.ExpenseCategorySerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::Foo.Bar.PaymentMethodSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.StringSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.BooleanSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteSerializer>(services);
@@ -1095,17 +1146,17 @@ namespace Foo.Bar
                         global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(
                             sp))));
 
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<IAllExpensesResult>, AllExpensesResultFactory>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, IAllExpensesResult>, AllExpensesBuilder>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<IAllExpensesResult>>(
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<Foo.Bar.IAllExpensesResult>, Foo.Bar.AllExpensesResultFactory>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, Foo.Bar.IAllExpensesResult>, Foo.Bar.AllExpensesBuilder>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<Foo.Bar.IAllExpensesResult>>(
                 services,
-                sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, IAllExpensesResult>(
+                sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, Foo.Bar.IAllExpensesResult>(
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.Http.HttpConnection>(sp),
-                    () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, IAllExpensesResult>>(sp),
+                    () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, Foo.Bar.IAllExpensesResult>>(sp),
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
                     strategy));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<AllExpensesQuery>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<FooClient>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<Foo.Bar.AllExpensesQuery>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.FooClient>(services);
             return services;
         }
 

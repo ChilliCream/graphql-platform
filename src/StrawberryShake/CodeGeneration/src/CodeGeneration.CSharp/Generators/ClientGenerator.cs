@@ -14,11 +14,18 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             ClassBuilder classBuilder = ClassBuilder
                 .New()
-                .SetName(fileName);
+                .SetName(fileName)
+                .SetComment(descriptor.Documentation);
 
             ConstructorBuilder constructorBuilder = classBuilder
                 .AddConstructor()
                 .SetTypeName(fileName);
+
+            classBuilder
+                .AddProperty("ClientName")
+                .SetPublic()
+                .SetType(TypeNames.String)
+                .AsLambda(descriptor.Name.Value.AsStringToken());
 
             foreach (OperationDescriptor operation in descriptor.Operations)
             {

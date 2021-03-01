@@ -179,7 +179,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                         mostAbstractTypeModel = mostAbstractTypeModel.Implements[0];
                     }
 
-                    parentRuntimeTypeName = 
+                    parentRuntimeTypeName =
                         mostAbstractTypeModel.Type.IsAbstractType()
                             ? GetInterfaceName(mostAbstractTypeModel.Type.Name)
                             : mostAbstractTypeModel.Type.Name;
@@ -267,6 +267,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     runtimeTypeInfo,
                     implementedBy,
                     implements,
+                    outputType.Description,
                     parentRuntimeType));
         }
 
@@ -297,6 +298,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     typeKind,
                     runtimeTypeInfo,
                     implements,
+                    outputType.Description,
                     parentRuntimeType));
         }
 
@@ -358,7 +360,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
                             field.Name,
                             BuildFieldType(
                                 field.Type,
-                                fieldType)));
+                                fieldType),
+                            field.Description));
                 }
 
                 typeDescriptorModel.Descriptor.CompleteProperties(properties);
@@ -383,8 +386,10 @@ namespace StrawberryShake.CodeGeneration.Mappers
                             ? null
                             : TypeInfos.From(enumTypeModel.UnderlyingType),
                         enumTypeModel.Values
-                            .Select(t => new EnumValueDescriptor(t.Name, t.Value.Name))
-                            .ToList());
+                            .Select(
+                                t => new EnumValueDescriptor(t.Name, t.Value.Name, t.Description))
+                            .ToList(),
+                        enumTypeModel.Description);
 
                     leafTypeDescriptors.Add(leafType.Name, descriptor);
                 }

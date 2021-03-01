@@ -17,13 +17,25 @@
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Type person
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class PersonEntity
     {
+        /// <summary>
+        /// Field name
+        /// </summary>
         public global::System.String Name { get; set; } = default!;
 
+        /// <summary>
+        /// Field email
+        /// </summary>
         public global::System.String Email { get; set; } = default!;
 
+        /// <summary>
+        /// Field isOnline
+        /// </summary>
         public global::System.Boolean IsOnline { get; set; } = default!;
     }
 }
@@ -150,6 +162,9 @@ namespace Foo.Bar
             _version = version;
         }
 
+        /// <summary>
+        /// Gets access to all the people known to this service.
+        /// </summary>
         public global::Foo.Bar.State.PersonConnectionData? People { get; }
 
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
@@ -175,6 +190,9 @@ namespace Foo.Bar
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Type Query
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleResult
         : IGetPeopleResult
@@ -184,6 +202,9 @@ namespace Foo.Bar
             People = people;
         }
 
+        /// <summary>
+        /// Gets access to all the people known to this service.
+        /// </summary>
         public IGetPeople_People? People { get; } = default!;
     }
 }
@@ -197,6 +218,9 @@ namespace Foo.Bar
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// A connection to a list of items.
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeople_People_PersonConnection
         : IGetPeople_People_PersonConnection
@@ -206,6 +230,9 @@ namespace Foo.Bar
             Nodes = nodes;
         }
 
+        /// <summary>
+        /// A flattened list of the nodes.
+        /// </summary>
         public global::System.Collections.Generic.IReadOnlyList<IGetPeople_People_Nodes?>? Nodes { get; } = default!;
     }
 }
@@ -242,6 +269,9 @@ namespace Foo.Bar
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Type person
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeople_People_Nodes_Person
         : IGetPeople_People_Nodes_Person
@@ -256,10 +286,19 @@ namespace Foo.Bar
             IsOnline = isOnline;
         }
 
+        /// <summary>
+        /// Field name
+        /// </summary>
         public global::System.String Name { get; }
 
+        /// <summary>
+        /// Field email
+        /// </summary>
         public global::System.String Email { get; }
 
+        /// <summary>
+        /// Field isOnline
+        /// </summary>
         public global::System.Boolean IsOnline { get; }
     }
 }
@@ -273,9 +312,15 @@ namespace Foo.Bar
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Type Query
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetPeopleResult
     {
+        /// <summary>
+        /// Gets access to all the people known to this service.
+        /// </summary>
         public IGetPeople_People? People { get; }
     }
 }
@@ -289,9 +334,15 @@ namespace Foo.Bar
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// A connection to a list of items.
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetPeople_People
     {
+        /// <summary>
+        /// A flattened list of the nodes.
+        /// </summary>
         public global::System.Collections.Generic.IReadOnlyList<IGetPeople_People_Nodes?>? Nodes { get; }
     }
 }
@@ -305,6 +356,9 @@ namespace Foo.Bar
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// A connection to a list of items.
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetPeople_People_PersonConnection
         : IGetPeople_People
@@ -321,13 +375,25 @@ namespace Foo.Bar
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Type person
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetPeople_People_Nodes
     {
+        /// <summary>
+        /// Field name
+        /// </summary>
         public global::System.String Name { get; }
 
+        /// <summary>
+        /// Field email
+        /// </summary>
         public global::System.String Email { get; }
 
+        /// <summary>
+        /// Field isOnline
+        /// </summary>
         public global::System.Boolean IsOnline { get; }
     }
 }
@@ -341,6 +407,9 @@ namespace Foo.Bar
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Type person
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetPeople_People_Nodes_Person
         : IGetPeople_People_Nodes
@@ -357,6 +426,25 @@ namespace Foo.Bar
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Represents the operation service of the GetPeople GraphQL operation
+    /// <code>
+    /// query GetPeople {
+    ///   people(order_by: { name: ASC }) {
+    ///     __typename
+    ///     nodes {
+    ///       __typename
+    ///       name
+    ///       email
+    ///       isOnline
+    ///       ... on Person {
+    ///         id
+    ///       }
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleQueryDocument
         : global::StrawberryShake.IDocument
@@ -387,6 +475,25 @@ namespace Foo.Bar
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Represents the operation service of the GetPeople GraphQL operation
+    /// <code>
+    /// query GetPeople {
+    ///   people(order_by: { name: ASC }) {
+    ///     __typename
+    ///     nodes {
+    ///       __typename
+    ///       name
+    ///       email
+    ///       isOnline
+    ///       ... on Person {
+    ///         id
+    ///       }
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleQuery
     {
@@ -618,6 +725,9 @@ namespace Foo.Bar
 
 namespace Foo.Bar.State
 {
+    /// <summary>
+    /// A connection to a list of items.
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class PersonConnectionData
     {
@@ -632,6 +742,9 @@ namespace Foo.Bar.State
 
         public global::System.String __typename { get; }
 
+        /// <summary>
+        /// A flattened list of the nodes.
+        /// </summary>
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Nodes { get; }
     }
 }
@@ -645,6 +758,9 @@ namespace Foo.Bar.State
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Represents the FooClient GraphQL client
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient
     {
@@ -655,6 +771,8 @@ namespace Foo.Bar
             _getPeopleQuery = getPeopleQuery
                  ?? throw new global::System.ArgumentNullException(nameof(getPeopleQuery));
         }
+
+        public global::System.String ClientName => "FooClient";
 
         public GetPeopleQuery GetPeopleQuery => _getPeopleQuery;
     }
@@ -707,7 +825,7 @@ namespace Foo.Bar
 
 #nullable enable
 
-namespace Foo.Bar
+namespace Microsoft.Extensions.DependencyInjection
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class FooClientServiceCollectionExtensions
@@ -733,12 +851,12 @@ namespace Foo.Bar
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<GetPeopleQuery>(
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<Foo.Bar.GetPeopleQuery>(
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<FooClient>(
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.FooClient>(
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
 
             return services;
@@ -755,7 +873,7 @@ namespace Foo.Bar
             }
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId>>(
                 services,
-                EntityIdFactory.CreateEntityId);
+                global::Foo.Bar.EntityIdFactory.CreateEntityId);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IEntityStore, global::StrawberryShake.EntityStore>(services);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IOperationStore>(
                 services,
@@ -767,10 +885,10 @@ namespace Foo.Bar
                 sp => 
                 {
                     var clientFactory = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Net.Http.IHttpClientFactory>(parentServices);
-                    return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("FooClient"));
+                    return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("global::Foo.Bar.FooClient"));
                 });
 
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<PersonEntity, GetPeople_People_Nodes_Person>, GetPeople_People_Nodes_PersonFromPersonEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.PersonEntity, global::Foo.Bar.GetPeople_People_Nodes_Person>, global::Foo.Bar.GetPeople_People_Nodes_PersonFromPersonEntityMapper>(services);
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.StringSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.BooleanSerializer>(services);
@@ -796,17 +914,17 @@ namespace Foo.Bar
                         global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(
                             sp))));
 
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<IGetPeopleResult>, GetPeopleResultFactory>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, IGetPeopleResult>, GetPeopleBuilder>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<IGetPeopleResult>>(
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<Foo.Bar.IGetPeopleResult>, Foo.Bar.GetPeopleResultFactory>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, Foo.Bar.IGetPeopleResult>, Foo.Bar.GetPeopleBuilder>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<Foo.Bar.IGetPeopleResult>>(
                 services,
-                sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, IGetPeopleResult>(
+                sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, Foo.Bar.IGetPeopleResult>(
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.Http.HttpConnection>(sp),
-                    () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, IGetPeopleResult>>(sp),
+                    () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, Foo.Bar.IGetPeopleResult>>(sp),
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
                     strategy));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<GetPeopleQuery>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<FooClient>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<Foo.Bar.GetPeopleQuery>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.FooClient>(services);
             return services;
         }
 

@@ -26,6 +26,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 typeBuilder = InterfaceBuilder
                     .New()
+                    .SetComment(descriptor.Documentation)
                     .SetName(fileName);
 
                 typeBuilder
@@ -36,6 +37,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 ClassBuilder classBuilder = ClassBuilder
                     .New()
+                    .SetComment(descriptor.Documentation)
                     .SetName(fileName);
 
                 typeBuilder = classBuilder;
@@ -76,6 +78,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
                 typeBuilder
                     .AddProperty(property.Name)
+                    .SetComment(property.Description)
                     .SetType(propertyType)
                     .SetPublic();
 
