@@ -494,6 +494,14 @@ namespace Foo.Bar
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Represents the operation service of the TestOperation GraphQL operation
+    /// <code>
+    /// query TestOperation($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
+    ///   foo(single: $single, list: $list, nestedList: $nestedList)
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestOperationQueryDocument
         : global::StrawberryShake.IDocument
@@ -524,6 +532,14 @@ namespace Foo.Bar
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Represents the operation service of the TestOperation GraphQL operation
+    /// <code>
+    /// query TestOperation($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
+    ///   foo(single: $single, list: $list, nestedList: $nestedList)
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestOperationQuery
     {
@@ -661,6 +677,14 @@ namespace Foo.Bar
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Represents the operation service of the TestOperation2 GraphQL operation
+    /// <code>
+    /// query TestOperation2($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
+    ///   foo(single: $single, list: $list, nestedList: $nestedList)
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestOperation2QueryDocument
         : global::StrawberryShake.IDocument
@@ -691,6 +715,14 @@ namespace Foo.Bar
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Represents the operation service of the TestOperation2 GraphQL operation
+    /// <code>
+    /// query TestOperation2($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
+    ///   foo(single: $single, list: $list, nestedList: $nestedList)
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestOperation2Query
     {
@@ -828,6 +860,14 @@ namespace Foo.Bar
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Represents the operation service of the TestOperation3 GraphQL operation
+    /// <code>
+    /// query TestOperation3($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
+    ///   foo(single: $single, list: $list, nestedList: $nestedList)
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestOperation3QueryDocument
         : global::StrawberryShake.IDocument
@@ -858,6 +898,14 @@ namespace Foo.Bar
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Represents the operation service of the TestOperation3 GraphQL operation
+    /// <code>
+    /// query TestOperation3($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
+    ///   foo(single: $single, list: $list, nestedList: $nestedList)
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestOperation3Query
     {
@@ -1244,6 +1292,9 @@ namespace Foo.Bar
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Represents the FooClient GraphQL client
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient
     {

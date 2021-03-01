@@ -17,6 +17,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             ClassBuilder classBuilder = ClassBuilder
                 .New()
+                .SetComment(descriptor.Documentation)
                 .SetName(fileName);
 
             // Add Properties to class
@@ -24,6 +25,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 classBuilder
                     .AddProperty(item.Value.Name)
+                    .SetComment(item.Value.Description)
                     .SetType(item.Value.Type.ToEntityIdBuilder())
                     .MakeSettable()
                     .SetPublic()

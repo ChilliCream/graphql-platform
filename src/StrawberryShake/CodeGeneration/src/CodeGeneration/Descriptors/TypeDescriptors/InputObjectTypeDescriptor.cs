@@ -8,10 +8,12 @@ namespace StrawberryShake.CodeGeneration
     {
         public InputObjectTypeDescriptor(
             NameString name,
-            RuntimeTypeInfo runtimeType)
+            RuntimeTypeInfo runtimeType,
+            string? documentation)
         {
             Name = name;
             RuntimeType = runtimeType;
+            Documentation = documentation;
         }
 
         /// <summary>
@@ -28,6 +30,11 @@ namespace StrawberryShake.CodeGeneration
         /// Gets the .NET runtime type of the GraphQL type.
         /// </summary>
         public RuntimeTypeInfo RuntimeType { get; }
+
+        /// <summary>
+        /// The documentation of this type
+        /// </summary>
+        public string? Documentation { get; }
 
         /// <summary>
         /// The properties that result from the requested fields of the operation this ResultType is

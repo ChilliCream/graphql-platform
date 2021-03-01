@@ -482,6 +482,32 @@ namespace Foo.Bar
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Represents the operation service of the GetStore2 GraphQL operation
+    /// <code>
+    /// query GetStore2 {
+    ///   searchableStore {
+    ///     __typename
+    ///     id
+    ///     books {
+    ///       __typename
+    ///       isbn
+    ///       title
+    ///     }
+    ///     search {
+    ///       __typename
+    ///       ... on Book {
+    ///         title
+    ///         isbn
+    ///       }
+    ///     }
+    ///     ... on SearchableStore {
+    ///       id
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetStore2QueryDocument
         : global::StrawberryShake.IDocument
@@ -512,6 +538,32 @@ namespace Foo.Bar
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Represents the operation service of the GetStore2 GraphQL operation
+    /// <code>
+    /// query GetStore2 {
+    ///   searchableStore {
+    ///     __typename
+    ///     id
+    ///     books {
+    ///       __typename
+    ///       isbn
+    ///       title
+    ///     }
+    ///     search {
+    ///       __typename
+    ///       ... on Book {
+    ///         title
+    ///         isbn
+    ///       }
+    ///     }
+    ///     ... on SearchableStore {
+    ///       id
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetStore2Query
     {
@@ -849,6 +901,9 @@ namespace Foo.Bar.State
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Represents the FooClient GraphQL client
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient
     {

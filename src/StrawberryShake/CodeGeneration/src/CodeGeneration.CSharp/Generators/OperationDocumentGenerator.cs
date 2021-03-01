@@ -1,6 +1,7 @@
 using System;
 using System.Text;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
+using StrawberryShake.CodeGeneration.Properties;
 using static StrawberryShake.CodeGeneration.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
@@ -25,8 +26,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             ClassBuilder classBuilder = ClassBuilder
                 .New()
+                .SetName(fileName)
                 .AddImplements(TypeNames.IDocument)
-                .SetName(fileName);
+                .SetComment(
+                    XmlCommentBuilder
+                        .New()
+                        .SetSummary(
+                            string.Format(
+                                CodeGenerationResources.OperationServiceDescriptor_Description,
+                                descriptor.OperationName))
+                        .AddCode(descriptor.BodyString));
 
             classBuilder
                 .AddConstructor()

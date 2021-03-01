@@ -571,6 +571,29 @@ namespace Foo.Bar
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Represents the operation service of the AllExpenses GraphQL operation
+    /// <code>
+    /// query AllExpenses {
+    ///   expense {
+    ///     __typename
+    ///     id
+    ///     amount
+    ///     date
+    ///     description
+    ///     category
+    ///     paymentMethod
+    ///     tags {
+    ///       __typename
+    ///       name
+    ///     }
+    ///     ... on Expense {
+    ///       id
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class AllExpensesQueryDocument
         : global::StrawberryShake.IDocument
@@ -601,6 +624,29 @@ namespace Foo.Bar
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Represents the operation service of the AllExpenses GraphQL operation
+    /// <code>
+    /// query AllExpenses {
+    ///   expense {
+    ///     __typename
+    ///     id
+    ///     amount
+    ///     date
+    ///     description
+    ///     category
+    ///     paymentMethod
+    ///     tags {
+    ///       __typename
+    ///       name
+    ///     }
+    ///     ... on Expense {
+    ///       id
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class AllExpensesQuery
     {
@@ -942,6 +988,9 @@ namespace Foo.Bar.State
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Represents the FooClient GraphQL client
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient
     {

@@ -466,6 +466,9 @@ namespace Foo.Bar
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// A connection to a list of items.
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_Hero_Friends_CharacterConnection
         : IGetHero_Hero_Friends_CharacterConnection
@@ -475,6 +478,9 @@ namespace Foo.Bar
             Nodes = nodes;
         }
 
+        /// <summary>
+        /// A flattened list of the nodes.
+        /// </summary>
         public global::System.Collections.Generic.IReadOnlyList<IGetHero_Hero_Friends_Nodes?>? Nodes { get; } = default!;
     }
 }
@@ -726,9 +732,15 @@ namespace Foo.Bar
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// A connection to a list of items.
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetHero_Hero_Friends
     {
+        /// <summary>
+        /// A flattened list of the nodes.
+        /// </summary>
         public global::System.Collections.Generic.IReadOnlyList<IGetHero_Hero_Friends_Nodes?>? Nodes { get; }
     }
 }
@@ -742,6 +754,9 @@ namespace Foo.Bar
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// A connection to a list of items.
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetHero_Hero_Friends_CharacterConnection
         : IGetHero_Hero_Friends
@@ -806,6 +821,50 @@ namespace Foo.Bar
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Represents the operation service of the GetHero GraphQL operation
+    /// <code>
+    /// query GetHero {
+    ///   hero(episode: NEW_HOPE) {
+    ///     __typename
+    ///     ... Hero
+    ///     ... on Droid {
+    ///       id
+    ///     }
+    ///     ... on Human {
+    ///       id
+    ///     }
+    ///   }
+    /// }
+    /// 
+    /// fragment Hero on Character {
+    ///   name
+    ///   ... Human
+    ///   ... Droid
+    ///   friends {
+    ///     __typename
+    ///     nodes {
+    ///       __typename
+    ///       name
+    ///       ... on Droid {
+    ///         id
+    ///       }
+    ///       ... on Human {
+    ///         id
+    ///       }
+    ///     }
+    ///   }
+    /// }
+    /// 
+    /// fragment Human on Human {
+    ///   homePlanet
+    /// }
+    /// 
+    /// fragment Droid on Droid {
+    ///   primaryFunction
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroQueryDocument
         : global::StrawberryShake.IDocument
@@ -836,6 +895,50 @@ namespace Foo.Bar
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Represents the operation service of the GetHero GraphQL operation
+    /// <code>
+    /// query GetHero {
+    ///   hero(episode: NEW_HOPE) {
+    ///     __typename
+    ///     ... Hero
+    ///     ... on Droid {
+    ///       id
+    ///     }
+    ///     ... on Human {
+    ///       id
+    ///     }
+    ///   }
+    /// }
+    /// 
+    /// fragment Hero on Character {
+    ///   name
+    ///   ... Human
+    ///   ... Droid
+    ///   friends {
+    ///     __typename
+    ///     nodes {
+    ///       __typename
+    ///       name
+    ///       ... on Droid {
+    ///         id
+    ///       }
+    ///       ... on Human {
+    ///         id
+    ///       }
+    ///     }
+    ///   }
+    /// }
+    /// 
+    /// fragment Human on Human {
+    ///   homePlanet
+    /// }
+    /// 
+    /// fragment Droid on Droid {
+    ///   primaryFunction
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroQuery
     {
@@ -1130,6 +1233,9 @@ namespace Foo.Bar
 
 namespace Foo.Bar.State
 {
+    /// <summary>
+    /// A connection to a list of items.
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class CharacterConnectionData
     {
@@ -1144,6 +1250,9 @@ namespace Foo.Bar.State
 
         public global::System.String __typename { get; }
 
+        /// <summary>
+        /// A flattened list of the nodes.
+        /// </summary>
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Nodes { get; }
     }
 }
@@ -1157,6 +1266,9 @@ namespace Foo.Bar.State
 
 namespace Foo.Bar
 {
+    /// <summary>
+    /// Represents the FooClient GraphQL client
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient
     {

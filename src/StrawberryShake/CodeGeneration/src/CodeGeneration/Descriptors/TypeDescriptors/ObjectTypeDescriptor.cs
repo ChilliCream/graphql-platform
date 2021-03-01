@@ -10,9 +10,10 @@ namespace StrawberryShake.CodeGeneration
             TypeKind typeKind,
             RuntimeTypeInfo runtimeType,
             IReadOnlyList<NameString> implements,
+            string? description,
             RuntimeTypeInfo? parentRuntimeType = null,
             IReadOnlyList<PropertyDescriptor>? properties = null)
-            : base(name, typeKind, runtimeType, implements, parentRuntimeType)
+            : base(name, typeKind, runtimeType, implements, description, parentRuntimeType)
         {
             if (properties is not null)
             {
