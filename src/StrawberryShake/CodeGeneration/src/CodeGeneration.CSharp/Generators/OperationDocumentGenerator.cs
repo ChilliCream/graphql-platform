@@ -1,6 +1,7 @@
 using System;
 using System.Text;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
+using StrawberryShake.CodeGeneration.Properties;
 using static StrawberryShake.CodeGeneration.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
@@ -23,15 +24,22 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 _ => throw new ArgumentOutOfRangeException(nameof(descriptor))
             };
 
-            var classBuilder = ClassBuilder.New();
+            ClassBuilder classBuilder = ClassBuilder
+                .New()
+                .SetName(fileName)
+                .AddImplements(TypeNames.IDocument)
+                .SetComment(
+                    XmlCommentBuilder
+                        .New()
+                        .SetSummary(
+                            string.Format(
+                                CodeGenerationResources.OperationServiceDescriptor_Description,
+                                descriptor.OperationName))
+                        .AddCode(descriptor.BodyString));
 
             classBuilder
                 .AddConstructor()
-                .SetAccessModifier(AccessModifier.Private);
-
-            classBuilder
-                .AddImplements(TypeNames.IDocument)
-                .SetName(fileName);
+                .SetPrivate();
 
             classBuilder
                 .AddProperty("Instance")
@@ -51,12 +59,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             classBuilder
                 .AddMethod("ToString")
-                .SetAccessModifier(AccessModifier.Public)
+                .SetPublic()
                 .SetOverride()
-                .SetReturnType("string")
-                .AddCode(MethodCallBuilder.New()
-                    .SetPrefix("return ")
-                    .SetMethodName($"{TypeNames.EncodingUtf8}.GetString")
+                .SetReturnType(TypeNames.String)
+                .AddCode(MethodCallBuilder
+                    .New()
+                    .SetReturn()
+                    .SetMethodName(TypeNames.EncodingUtf8, nameof(Encoding.UTF8.GetString))
                     .AddArgument("Body"));
 
             CodeFileBuilder
@@ -70,7 +79,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             var builder = new StringBuilder();
             var bytes = Encoding.UTF8.GetBytes(value);
-            builder.Append("new byte[]{ ");
+            builder.Append($"new {TypeNames.Byte}[]{{ ");
 
             for (var i = 0; i < bytes.Length; i++)
             {

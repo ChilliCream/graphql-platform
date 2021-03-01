@@ -14,5 +14,15 @@ namespace StrawberryShake.Transport.Http
 
             return null;
         }
+
+        public static JsonElement? GetPropertyOrNull(JsonElement? jsonElement, string key)
+        {
+            if (jsonElement.HasValue)
+            {
+                return GetPropertyOrNull(jsonElement.Value, key);
+            }
+
+            return null;
+        }
     }
 }

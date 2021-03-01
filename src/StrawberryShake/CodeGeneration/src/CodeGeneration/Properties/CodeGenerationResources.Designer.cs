@@ -62,5 +62,23 @@ namespace StrawberryShake.CodeGeneration.Properties {
                 return ResourceManager.GetString("Throwhelper_Generator_NoTypeDocumentsFound", resourceCulture);
             }
         }
+        
+        internal static string Throwhelper_Generator_SyntaxError {
+            get {
+                return ResourceManager.GetString("Throwhelper_Generator_SyntaxError", resourceCulture);
+            }
+        }
+        
+        internal static string OperationServiceDescriptor_Description {
+            get {
+                return ResourceManager.GetString("OperationServiceDescriptor_Description", resourceCulture);
+            }
+        }
+        
+        internal static string ClientDescriptor_Description {
+            get {
+                return ResourceManager.GetString("ClientDescriptor_Description", resourceCulture);
+            }
+        }
     }
 }

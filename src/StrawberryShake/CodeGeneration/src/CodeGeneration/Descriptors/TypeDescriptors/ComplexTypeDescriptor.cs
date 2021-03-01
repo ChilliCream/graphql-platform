@@ -11,12 +11,14 @@ namespace StrawberryShake.CodeGeneration
             TypeKind typeKind,
             RuntimeTypeInfo runtimeType,
             IReadOnlyList<NameString> implements,
+            string? description,
             RuntimeTypeInfo? parentRuntimeType = null)
         {
             Name = name;
             Kind = typeKind;
             RuntimeType = runtimeType;
             Implements = implements;
+            Description = description;
             ParentRuntimeType = parentRuntimeType;
         }
 
@@ -34,6 +36,11 @@ namespace StrawberryShake.CodeGeneration
         /// Gets the .NET runtime type of the GraphQL type.
         /// </summary>
         public RuntimeTypeInfo RuntimeType { get; }
+
+        /// <summary>
+        /// The documentation of this type
+        /// </summary>
+        public string? Description { get; }
 
         /// <summary>
         /// The properties that result from the requested fields of the operation this ResultType is

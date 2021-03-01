@@ -24,7 +24,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
                         return new PropertyDescriptor(
                             arg.Name,
-                            Rewrite(arg.Type, namedTypeDescriptor));
+                            Rewrite(arg.Type, namedTypeDescriptor),
+                            null);
                     })
                     .ToList();
 
