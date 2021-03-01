@@ -7,11 +7,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
     {
         public static global::StrawberryShake.EntityId CreateEntityId(global::System.Text.Json.JsonElement obj)
         {
-            global::System.String typeName = obj.GetProperty("__typename").GetString()!;
-            
+            global::System.String typeName = obj
+                .GetProperty("__typename")
+                .GetString()!;
+
             return typeName switch
             {
-                "Person" => CreatePersonEntityId(obj, typeName),
+                "Person" => CreatePersonEntityId(
+                    obj,
+                    typeName),
                 _ => throw new global::System.NotSupportedException()
             };
         }
@@ -22,7 +26,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
         {
             return new global::StrawberryShake.EntityId(
                 type,
-                obj.GetProperty("id").GetString()!);
+                obj
+                    .GetProperty("id")
+                    .GetString()!);
         }
     }
 }

@@ -6,8 +6,12 @@
   </PropertyGroup>
 
   <ItemDefinitionGroup>
-    <GraphQL />
-    <GraphQLConfig />
+    <GraphQL>
+      <Generator>MSBuild:Compile</Generator>
+    </GraphQL>
+    <GraphQLConfig>
+      <Generator>MSBuild:Compile</Generator>
+    </GraphQLConfig>
   </ItemDefinitionGroup>
 
   <ItemGroup>

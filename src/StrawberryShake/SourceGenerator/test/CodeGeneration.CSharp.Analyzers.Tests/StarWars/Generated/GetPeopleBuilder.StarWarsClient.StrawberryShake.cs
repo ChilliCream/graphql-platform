@@ -9,9 +9,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
         private readonly global::StrawberryShake.IOperationResultDataFactory<IGetPeopleResult> _resultDataFactory;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.DateTimeOffset> _dateTimeOffsetParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.DateTimeOffset> _dateTimeParser;
 
         public GetPeopleBuilder(
             global::StrawberryShake.IEntityStore entityStore,
@@ -26,11 +26,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
             _resultDataFactory = resultDataFactory
                  ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String")
-                 ?? throw new global::System.ArgumentNullException(nameof(_stringParser));
+                 ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
             _booleanParser = serializerResolver.GetLeafValueParser<global::System.Boolean, global::System.Boolean>("Boolean")
-                 ?? throw new global::System.ArgumentNullException(nameof(_booleanParser));
-            _dateTimeOffsetParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.DateTimeOffset>("DateTime")
-                 ?? throw new global::System.ArgumentNullException(nameof(_dateTimeOffsetParser));
+                 ?? throw new global::System.ArgumentException("No serializer for type `Boolean` found.");
+            _dateTimeParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.DateTimeOffset>("DateTime")
+                 ?? throw new global::System.ArgumentException("No serializer for type `DateTime` found.");
         }
 
         public global::StrawberryShake.IOperationResult<IGetPeopleResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
@@ -58,12 +58,17 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
 
             var resultInfo = new GetPeopleResultInfo(
                 DeserializeIGetPeople_People(
-                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj, "people"),
+                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                        obj,
+                        "people"),
                     entityIds),
                 entityIds,
                 session.Version);
 
-            return (_resultDataFactory.Create(resultInfo), resultInfo);
+            return (
+                _resultDataFactory.Create(resultInfo),
+                resultInfo
+            );
         }
 
         private global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.PersonConnectionData? DeserializeIGetPeople_People(
@@ -75,14 +80,18 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
                 return null;
             }
 
-            var typename = obj.Value.GetProperty("__typename").GetString();
+            var typename = obj.Value
+                .GetProperty("__typename")
+                .GetString();
 
             if (typename?.Equals("PersonConnection", global::System.StringComparison.Ordinal) ?? false)
             {
                 return new global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.PersonConnectionData(
                     typename,
                     nodes: UpdateIGetPeople_People_NodesEntityArray(
-                        global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "nodes"),
+                        global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                            obj,
+                            "nodes"),
                         entityIds));
             }
 
@@ -98,16 +107,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
                 return null;
             }
 
-            var iGetPeople_People_Nodess = new global::System.Collections.Generic.List<global::StrawberryShake.EntityId?>();
+            var persons = new global::System.Collections.Generic.List<global::StrawberryShake.EntityId?>();
 
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
-                iGetPeople_People_Nodess.Add(UpdateIGetPeople_People_NodesEntity(
+                persons.Add(UpdateIGetPeople_People_NodesEntity(
                     child,
                     entityIds));
             }
 
-            return iGetPeople_People_Nodess;
+            return persons;
         }
 
         private global::StrawberryShake.EntityId? UpdateIGetPeople_People_NodesEntity(
@@ -123,13 +132,27 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
             entityIds.Add(entityId);
 
 
-            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
+            if (entityId.Name.Equals(
+                    "Person",
+                    global::System.StringComparison.Ordinal))
             {
                 PersonEntity entity = _entityStore.GetOrCreate<PersonEntity>(entityId);
-                entity.Name = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "name"));
-                entity.Email = DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "email"));
-                entity.IsOnline = DeserializeNonNullableBoolean(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "isOnline"));
-                entity.LastSeen = DeserializeNonNullableDateTimeOffset(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "lastSeen"));
+                entity.Name = DeserializeNonNullableString(
+                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                        obj,
+                        "name"));
+                entity.Email = DeserializeNonNullableString(
+                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                        obj,
+                        "email"));
+                entity.IsOnline = DeserializeNonNullableBoolean(
+                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                        obj,
+                        "isOnline"));
+                entity.LastSeen = DeserializeNonNullableDateTimeOffset(
+                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                        obj,
+                        "lastSeen"));
 
                 return entityId;
             }
@@ -164,7 +187,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
                 throw new global::System.ArgumentNullException();
             }
 
-            return _dateTimeOffsetParser.Parse(obj.Value.GetString()!);
+            return _dateTimeParser.Parse(obj.Value.GetString()!);
         }
     }
 }

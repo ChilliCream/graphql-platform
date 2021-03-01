@@ -38,7 +38,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
 
             IGetPeople_People returnValue = default!;
 
-            if (data?.__typename.Equals("PersonConnection", global::System.StringComparison.Ordinal) ?? false)
+            if (data?.__typename.Equals(
+                    "PersonConnection",
+                    global::System.StringComparison.Ordinal) ?? false)
             {
                 returnValue = new GetPeople_People_PersonConnection(MapIGetPeople_People_NodesArray(data.Nodes));
             }
@@ -55,14 +57,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
                 return null;
             }
 
-            var iGetPeople_People_Nodess = new global::System.Collections.Generic.List<IGetPeople_People_Nodes?>();
+            var persons = new global::System.Collections.Generic.List<IGetPeople_People_Nodes?>();
 
             foreach (global::StrawberryShake.EntityId? child in list)
             {
-                iGetPeople_People_Nodess.Add(MapIGetPeople_People_Nodes(child));
+                persons.Add(MapIGetPeople_People_Nodes(child));
             }
 
-            return iGetPeople_People_Nodess;
+            return persons;
         }
 
         private IGetPeople_People_Nodes? MapIGetPeople_People_Nodes(global::StrawberryShake.EntityId? entityId)
@@ -73,7 +75,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
             }
 
 
-            if (entityId.Value.Name.Equals("Person", global::System.StringComparison.Ordinal))
+            if (entityId.Value.Name.Equals(
+                    "Person",
+                    global::System.StringComparison.Ordinal))
             {
                 return _getPeople_People_Nodes_PersonFromPersonEntityMapper.Map(
                     _entityStore.GetEntity<PersonEntity>(entityId.Value)
