@@ -313,6 +313,12 @@
   <data name="PostalCodeType_ValidationPattern_LU" xml:space="preserve">
     <value>(^\d{4}$)</value>
   </data>
+  <data name="RegularExpressionType_IsInvalid_ParseLiteral" xml:space="preserve">
+    <value>{0}Type cannot parse the provided literal. The provided value does not match the regular expression pattern "{1}".</value>
+  </data>
+  <data name="RegularExpressionType_IsInvalid_ParseValue" xml:space="preserve">
+    <value>{0}Type cannot parse the provided value. The provided value does not match the regular expression pattern "{1}".</value>
+  </data>
   <data name="UnsignedIntType_Description" xml:space="preserve">
     <value>The UnsignedInt scalar type represents a unsigned 32-bit numeric non-fractional value greater than or equal to 0.</value>
   </data>
@@ -330,11 +336,5 @@
   </data>
   <data name="IPv4Type_IsInvalid_ParseValue" xml:space="preserve">
     <value>IPv4Type cannot parse the provided value. The provided value is not a valid IPv4 address.</value>
-  </data>
-  <data name="RegularExpressionType_IsInvalid_ParseLiteral" xml:space="preserve">
-    <value>{0}Type cannot parse the provided literal. The provided value does not match the regular expression pattern "{1}".</value>
-  </data>
-  <data name="RegularExpressionType_IsInvalid_ParseValue" xml:space="preserve">
-    <value>{0}Type cannot parse the provided value. The provided value does not match the regular expression pattern "{1}".</value>
   </data>
 </root>
