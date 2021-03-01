@@ -103,6 +103,6 @@
     <value>The response was in a invalid format</value>
   </data>
   <data name="InMemoryClient_ExecuteAsync_NoExecutorFound" xml:space="preserve">
-    <value>There was no executor configure for client {0}</value>
+    <value>There was no executor configured for client {0}</value>
   </data>
 </root>

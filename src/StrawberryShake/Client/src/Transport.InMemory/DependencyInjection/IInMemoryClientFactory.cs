@@ -21,10 +21,9 @@ namespace StrawberryShake.Transport.InMemory
         /// <remarks>
         /// <para>
         /// Each call to <see cref="CreateClientAsync"/> is guaranteed to return
-        /// a new <see cref="IInMemoryClient"/>
-        /// instance. Callers may cache the returned <see cref="IInMemoryClient"/>
-        /// instance indefinitely or surround  its use in a <langword>using</langword>
-        /// block to dispose it when desired.
+        /// a new <see cref="IInMemoryClient"/> instance. Callers may cache the returned
+        /// <see cref="IInMemoryClient"/> instance indefinitely or surround its use in a
+        /// <langword>using</langword> block to dispose it when desired.
         /// </para>
         /// <para>
         /// Callers are also free to mutate the returned <see cref="IInMemoryClient"/>
