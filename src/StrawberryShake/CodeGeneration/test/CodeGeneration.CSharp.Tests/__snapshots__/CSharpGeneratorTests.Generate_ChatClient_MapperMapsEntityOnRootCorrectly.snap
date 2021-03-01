@@ -1956,7 +1956,7 @@ namespace Foo.Bar
                  ?? throw new global::System.ArgumentNullException(nameof(writeMessageMutation));
         }
 
-        public global::System.String ClientName => FooClient;
+        public global::System.String ClientName => "FooClient";
 
         public GetPeopleQuery GetPeopleQuery => _getPeopleQuery;
 

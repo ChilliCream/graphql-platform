@@ -790,7 +790,7 @@ namespace Foo.Bar
                  ?? throw new global::System.ArgumentNullException(nameof(getPeopleQuery));
         }
 
-        public global::System.String ClientName => FooClient;
+        public global::System.String ClientName => "FooClient";
 
         public GetPeopleQuery GetPeopleQuery => _getPeopleQuery;
     }

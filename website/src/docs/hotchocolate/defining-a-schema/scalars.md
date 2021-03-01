@@ -379,20 +379,28 @@ The EmailAddress scalar type represents a email address, represented as UTF-8 ch
 scalar EmailAddress
 ```
 
-## HexColorCode
+## HexColor
 ```sdl
 """
-The HexColorCode scalar type represents a valid hex color code.
+The HexColor scalar type represents a valid HEX color code.
 """
-scalar HexColorCode
+scalar HexColor
 ```
 
-## HslColorCode
+## Hsl
 ```sdl
 """
-The `HslColorCode` scalar type represents a valid a CSS HSL color as defined here https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors.
+The `Hsl` scalar type represents a valid a CSS HSL color as defined here https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors.
 """
-scalar HslColorCode
+scalar Hsl
+```
+
+## Hsla
+```sdl
+"""
+The `Hsla` scalar type represents a valid a CSS HSLA color as defined here https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors.
+"""
+scalar Hsla
 ```
 
 ## NegativeFloat

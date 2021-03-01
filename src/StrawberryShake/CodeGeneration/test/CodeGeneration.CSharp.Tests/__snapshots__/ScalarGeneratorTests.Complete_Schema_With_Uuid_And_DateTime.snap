@@ -953,7 +953,7 @@ namespace Foo.Bar
                  ?? throw new global::System.ArgumentNullException(nameof(allExpensesQuery));
         }
 
-        public global::System.String ClientName => FooClient;
+        public global::System.String ClientName => "FooClient";
 
         public AllExpensesQuery AllExpensesQuery => _allExpensesQuery;
     }

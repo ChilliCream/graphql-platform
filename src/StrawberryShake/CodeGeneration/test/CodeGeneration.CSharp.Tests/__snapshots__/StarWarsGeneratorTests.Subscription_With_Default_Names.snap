@@ -444,7 +444,7 @@ namespace Foo.Bar
                  ?? throw new global::System.ArgumentNullException(nameof(onReviewSubSubscription));
         }
 
-        public global::System.String ClientName => FooClient;
+        public global::System.String ClientName => "FooClient";
 
         public OnReviewSubSubscription OnReviewSubSubscription => _onReviewSubSubscription;
     }

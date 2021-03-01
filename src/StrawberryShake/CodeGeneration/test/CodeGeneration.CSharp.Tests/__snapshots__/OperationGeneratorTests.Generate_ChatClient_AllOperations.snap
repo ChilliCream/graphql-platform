@@ -3763,7 +3763,7 @@ namespace Foo.Bar
                  ?? throw new global::System.ArgumentNullException(nameof(readMessagesSubscription));
         }
 
-        public global::System.String ClientName => FooClient;
+        public global::System.String ClientName => "FooClient";
 
         public GetPeopleQuery GetPeopleQuery => _getPeopleQuery;
 
