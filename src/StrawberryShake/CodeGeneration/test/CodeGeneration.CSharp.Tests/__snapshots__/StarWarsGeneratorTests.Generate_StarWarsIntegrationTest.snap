@@ -813,6 +813,8 @@ namespace Foo.Bar
                  ?? throw new global::System.ArgumentNullException(nameof(onReviewSubscription));
         }
 
+        public global::System.String ClientName => "FooClient";
+
         public CreateReviewMutation CreateReviewMutation => _createReviewMutation;
 
         public OnReviewSubscription OnReviewSubscription => _onReviewSubscription;

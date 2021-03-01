@@ -441,6 +441,8 @@ namespace Foo.Bar
                  ?? throw new global::System.ArgumentNullException(nameof(getListingsCountQuery));
         }
 
+        public global::System.String ClientName => "FooClient";
+
         public GetListingsCountQuery GetListingsCountQuery => _getListingsCountQuery;
     }
 }
