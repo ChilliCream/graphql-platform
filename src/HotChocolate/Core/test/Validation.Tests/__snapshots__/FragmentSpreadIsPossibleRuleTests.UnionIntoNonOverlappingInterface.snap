@@ -23,6 +23,80 @@
       "fragment": "humanOrAlienFragment",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-spread-is-possible"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "FragmentDefinition",
+      "VariableDefinitions": [],
+      "TypeCondition": {
+        "Kind": "NamedType",
+        "Location": {
+          "Start": 341,
+          "End": 355,
+          "Line": 11,
+          "Column": 50
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 341,
+            "End": 355,
+            "Line": 11,
+            "Column": 50
+          },
+          "Value": "HumanOrAlien"
+        }
+      },
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 354,
+          "End": 381,
+          "Line": 11,
+          "Column": 63
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": null,
+            "Location": {
+              "Start": 356,
+              "End": 368,
+              "Line": 11,
+              "Column": 65
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 356,
+                "End": 368,
+                "Line": 11,
+                "Column": 65
+              },
+              "Value": "__typename"
+            },
+            "Directives": []
+          }
+        ]
+      },
+      "Location": {
+        "Start": 308,
+        "End": 381,
+        "Line": 11,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 317,
+          "End": 340,
+          "Line": 11,
+          "Column": 26
+        },
+        "Value": "humanOrAlienFragment"
+      },
+      "Directives": []
+    }
   }
 ]

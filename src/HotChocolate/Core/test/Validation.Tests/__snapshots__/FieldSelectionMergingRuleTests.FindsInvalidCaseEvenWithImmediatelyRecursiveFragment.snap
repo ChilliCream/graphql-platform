@@ -24,6 +24,38 @@
       "responseNameB": "fido",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selection-Merging"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 340,
+          "End": 345,
+          "Line": 11,
+          "Column": 21
+        },
+        "Value": "fido"
+      },
+      "Arguments": [],
+      "SelectionSet": null,
+      "Location": {
+        "Start": 340,
+        "End": 372,
+        "Line": 11,
+        "Column": 21
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 346,
+          "End": 372,
+          "Line": 11,
+          "Column": 27
+        },
+        "Value": "nickname"
+      },
+      "Directives": []
+    }
   }
 ]

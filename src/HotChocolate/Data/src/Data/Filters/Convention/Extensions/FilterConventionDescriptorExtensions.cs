@@ -1,14 +1,30 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Data.Filters;
 
 namespace HotChocolate.Data
 {
     public static class FilterConventionDescriptorExtensions
     {
+        /// <summary>
+        /// Initializes the default configuration for <see cref="IQueryable"/> and
+        /// <see cref="IEnumerable{T}"/> on the convention
+        /// </summary>
+        /// <param name="descriptor">The descriptor where the handlers are registered</param>
+        /// <returns>The descriptor that was passed in as a parameter</returns>
         public static IFilterConventionDescriptor AddDefaults(
             this IFilterConventionDescriptor descriptor) =>
             descriptor.AddDefaultOperations().BindDefaultTypes().UseQueryableProvider();
 
+        /// <summary>
+        /// Adds default operations to the descriptor
+        /// </summary>
+        /// <param name="descriptor">The descriptor where the handlers are registered</param>
+        /// <returns>The descriptor that was passed in as a parameter</returns>
+        /// <exception cref="ArgumentNullException">
+        /// Throws in case the argument <paramref name="descriptor"/> is null
+        /// </exception>
         public static IFilterConventionDescriptor AddDefaultOperations(
             this IFilterConventionDescriptor descriptor)
         {
@@ -46,6 +62,14 @@ namespace HotChocolate.Data
             return descriptor;
         }
 
+        /// <summary>
+        /// Binds common runtime types to the according <see cref="FilterInputType"/>
+        /// </summary>
+        /// <param name="descriptor">The descriptor where the handlers are registered</param>
+        /// <returns>The descriptor that was passed in as a parameter</returns>
+        /// <exception cref="ArgumentNullException">
+        /// Throws in case the argument <paramref name="descriptor"/> is null
+        /// </exception>
         public static IFilterConventionDescriptor BindDefaultTypes(
             this IFilterConventionDescriptor descriptor)
         {
