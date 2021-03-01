@@ -1,9 +1,21 @@
-﻿// Code:
+﻿// ReSharper disable BuiltInTypeReferenceStyle
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable UnusedType.Global
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable ConvertToAutoProperty
+// ReSharper disable UnusedMember.Global
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable InconsistentNaming
+
 // SearchSomethingResultFactory
+
+// StrawberryShake.CodeGeneration.CSharp.ResultDataFactoryGenerator
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchSomethingResultFactory
@@ -21,30 +33,30 @@ namespace StrawberryShake.GraphQL
         {
             if (dataInfo is SearchSomethingResultInfo info)
             {
-                return new SearchSomethingResult(MapPrintArray(info.Prints));
+                return new SearchSomethingResult(MapIPrintDataArray(info.Prints));
             }
 
             throw new global::System.ArgumentException("SearchSomethingResultInfo expected.");
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<ISearchSomething_Prints?>? MapPrintArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.GraphQL.State.IPrintData?>? list)
+        private global::System.Collections.Generic.IReadOnlyList<ISearchSomething_Prints?>? MapIPrintDataArray(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.IPrintData?>? list)
         {
             if (list == default)
             {
                 return null;
             }
 
-            var iSearchSomething_Printss = new global::System.Collections.Generic.List<ISearchSomething_Prints?>();
+            var prints = new global::System.Collections.Generic.List<ISearchSomething_Prints?>();
 
-            foreach (global::StrawberryShake.GraphQL.State.IPrintData? child in list)
+            foreach (global::Foo.Bar.State.IPrintData? child in list)
             {
-                iSearchSomething_Printss.Add(MapPrint(child));
+                prints.Add(MapIPrintData(child));
             }
 
-            return iSearchSomething_Printss;
+            return prints;
         }
 
-        private ISearchSomething_Prints? MapPrint(global::StrawberryShake.GraphQL.State.IPrintData data)
+        private ISearchSomething_Prints? MapIPrintData(global::Foo.Bar.State.IPrintData data)
         {
             if (data == default)
             {
@@ -53,15 +65,15 @@ namespace StrawberryShake.GraphQL
 
             ISearchSomething_Prints returnValue = default!;
 
-            if (data is StrawberryShake.GraphQL.State.BookData book)
+            if (data is global::Foo.Bar.State.BookData book)
             {
-                returnValue = new SearchSomething_Prints_Book(
+                returnValue = new global::Foo.Bar.SearchSomething_Prints_Book(
                     book.Isbn,
                     book.Title);
             }
-            else if (data is StrawberryShake.GraphQL.State.MagazineData magazine)
+            else if (data is global::Foo.Bar.State.MagazineData magazine)
             {
-                returnValue = new SearchSomething_Prints_Magazine(
+                returnValue = new global::Foo.Bar.SearchSomething_Prints_Magazine(
                     magazine.Isbn,
                     magazine.CoverImageUrl);
             }
@@ -76,21 +88,23 @@ namespace StrawberryShake.GraphQL
 
 // SearchSomethingResultInfo
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInfoGenerator
+
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchSomethingResultInfo
         : global::StrawberryShake.IOperationResultDataInfo
     {
         private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
-        private readonly ulong _version;
+        private readonly global::System.UInt64 _version;
 
         public SearchSomethingResultInfo(
-            global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.GraphQL.State.IPrintData?>? prints,
+            global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.IPrintData?>? prints,
             global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds,
-            ulong version)
+            global::System.UInt64 version)
         {
             Prints = prints;
             _entityIds = entityIds
@@ -98,18 +112,18 @@ namespace StrawberryShake.GraphQL
             _version = version;
         }
 
-        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.GraphQL.State.IPrintData?>? Prints { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.IPrintData?>? Prints { get; }
 
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
 
-        public ulong Version => _version;
+        public global::System.UInt64 Version => _version;
 
-        public global::StrawberryShake.IOperationResultDataInfo WithVersion(ulong version)
+        public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new SearchSomethingResultInfo(
                 Prints,
                 _entityIds,
-                _version);
+                version);
         }
     }
 }
@@ -117,9 +131,11 @@ namespace StrawberryShake.GraphQL
 
 // SearchSomethingResult
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchSomethingResult
@@ -137,9 +153,11 @@ namespace StrawberryShake.GraphQL
 
 // SearchSomething_Prints_Book
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchSomething_Prints_Book
@@ -162,9 +180,11 @@ namespace StrawberryShake.GraphQL
 
 // SearchSomething_Prints_Magazine
 
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchSomething_Prints_Magazine
@@ -187,9 +207,11 @@ namespace StrawberryShake.GraphQL
 
 // ISearchSomethingResult
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISearchSomethingResult
@@ -201,9 +223,11 @@ namespace StrawberryShake.GraphQL
 
 // ISearchSomething_Prints
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISearchSomething_Prints
@@ -215,9 +239,11 @@ namespace StrawberryShake.GraphQL
 
 // ISearchSomething_Prints_Book
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISearchSomething_Prints_Book
@@ -230,9 +256,11 @@ namespace StrawberryShake.GraphQL
 
 // ISearchSomething_Prints_Magazine
 
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISearchSomething_Prints_Magazine
@@ -245,29 +273,33 @@ namespace StrawberryShake.GraphQL
 
 // SearchSomethingQueryDocument
 
+// StrawberryShake.CodeGeneration.CSharp.OperationDocumentGenerator
+
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
+    /// <summary>
+    /// Represents the operation service of the SearchSomething GraphQL operation
+    /// <code>
+    /// query SearchSomething {
+    ///   prints {
+    ///     __typename
+    ///     isbn
+    ///     ... on Book {
+    ///       title
+    ///     }
+    ///     ... on Magazine {
+    ///       coverImageUrl
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchSomethingQueryDocument
         : global::StrawberryShake.IDocument
     {
-        private const global::System.String _bodyString = 
-            @"query SearchSomething {
-  prints {
-    __typename
-    isbn
-    ... on Book {
-      title
-    }
-    ... on Magazine {
-      coverImageUrl
-    }
-  }
-}";
-        private static readonly byte[] _body = global::System.Text.Encoding.UTF8.GetBytes(_bodyString);
-
         private SearchSomethingQueryDocument()
         {
         }
@@ -276,11 +308,11 @@ namespace StrawberryShake.GraphQL
 
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
 
-        public global::System.ReadOnlySpan<byte> Body => _body;
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{ 0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x53, 0x6f, 0x6d, 0x65, 0x74, 0x68, 0x69, 0x6e, 0x67, 0x20, 0x7b, 0x0a, 0x20, 0x20, 0x70, 0x72, 0x69, 0x6e, 0x74, 0x73, 0x20, 0x7b, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x69, 0x73, 0x62, 0x6e, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x42, 0x6f, 0x6f, 0x6b, 0x20, 0x7b, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x7d, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x4d, 0x61, 0x67, 0x61, 0x7a, 0x69, 0x6e, 0x65, 0x20, 0x7b, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x63, 0x6f, 0x76, 0x65, 0x72, 0x49, 0x6d, 0x61, 0x67, 0x65, 0x55, 0x72, 0x6c, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x7d, 0x0a, 0x20, 0x20, 0x7d, 0x0a, 0x7d };
 
-        public override string ToString()
+        public override global::System.String ToString()
         {
-            return _bodyString;
+            return global::System.Text.Encoding.UTF8.GetString(Body);
         }
     }
 }
@@ -288,10 +320,29 @@ namespace StrawberryShake.GraphQL
 
 // SearchSomethingQuery
 
+// StrawberryShake.CodeGeneration.CSharp.OperationServiceGenerator
+
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
+    /// <summary>
+    /// Represents the operation service of the SearchSomething GraphQL operation
+    /// <code>
+    /// query SearchSomething {
+    ///   prints {
+    ///     __typename
+    ///     isbn
+    ///     ... on Book {
+    ///       title
+    ///     }
+    ///     ... on Magazine {
+    ///       coverImageUrl
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchSomethingQuery
     {
@@ -306,7 +357,7 @@ namespace StrawberryShake.GraphQL
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ISearchSomethingResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest();
-            
+
             return await _operationExecutor
                 .ExecuteAsync(
                     request,
@@ -317,7 +368,9 @@ namespace StrawberryShake.GraphQL
         public global::System.IObservable<global::StrawberryShake.IOperationResult<ISearchSomethingResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null)
         {
             var request = CreateRequest();
-            return _operationExecutor.Watch(request, strategy);
+            return _operationExecutor.Watch(
+                request,
+                strategy);
         }
 
         private global::StrawberryShake.OperationRequest CreateRequest()
@@ -333,9 +386,11 @@ namespace StrawberryShake.GraphQL
 
 // SearchSomethingBuilder
 
+// StrawberryShake.CodeGeneration.CSharp.JsonResultBuilderGenerator
+
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchSomethingBuilder
@@ -344,7 +399,7 @@ namespace StrawberryShake.GraphQL
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
         private readonly global::StrawberryShake.IOperationResultDataFactory<ISearchSomethingResult> _resultDataFactory;
-        private global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
 
         public SearchSomethingBuilder(
             global::StrawberryShake.IEntityStore entityStore,
@@ -359,7 +414,7 @@ namespace StrawberryShake.GraphQL
             _resultDataFactory = resultDataFactory
                  ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String")
-                 ?? throw new global::System.ArgumentNullException(nameof(_stringParser));
+                 ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
         }
 
         public global::StrawberryShake.IOperationResult<ISearchSomethingResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
@@ -386,53 +441,73 @@ namespace StrawberryShake.GraphQL
 
 
             var resultInfo = new SearchSomethingResultInfo(
-                DeserializePrintArray(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj, "prints")),
+                DeserializeIPrintDataArray(
+                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                        obj,
+                        "prints")),
                 entityIds,
                 session.Version);
 
-            return (_resultDataFactory.Create(resultInfo), resultInfo);
+            return (
+                _resultDataFactory.Create(resultInfo),
+                resultInfo
+            );
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.GraphQL.State.IPrintData?>? DeserializePrintArray(global::System.Text.Json.JsonElement? obj)
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.IPrintData?>? DeserializeIPrintDataArray(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {
                 return null;
             }
 
-            var iSearchSomething_Printss = new global::System.Collections.Generic.List<global::StrawberryShake.GraphQL.State.IPrintData?>();
+            var prints = new global::System.Collections.Generic.List<global::Foo.Bar.State.IPrintData?>();
 
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
-                iSearchSomething_Printss.Add(DeserializePrint(child));
+                prints.Add(DeserializeIPrintData(child));
             }
 
-            return iSearchSomething_Printss;
+            return prints;
         }
 
-        private global::StrawberryShake.GraphQL.State.IPrintData? DeserializePrint(global::System.Text.Json.JsonElement? obj)
+        private global::Foo.Bar.State.IPrintData? DeserializeIPrintData(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {
                 return null;
             }
 
-            var typename = obj.Value.GetProperty("__typename").GetString();
+            var typename = obj.Value
+                .GetProperty("__typename")
+                .GetString();
 
             if (typename?.Equals("Book", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new global::StrawberryShake.GraphQL.State.BookData(
+                return new global::Foo.Bar.State.BookData(
                     typename,
-                    isbn: DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "isbn")),
-                    title: DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "title")));
+                    isbn: DeserializeNonNullableString(
+                        global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                            obj,
+                            "isbn")),
+                    title: DeserializeNonNullableString(
+                        global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                            obj,
+                            "title")));
             }
 
             if (typename?.Equals("Magazine", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new global::StrawberryShake.GraphQL.State.MagazineData(
+                return new global::Foo.Bar.State.MagazineData(
                     typename,
-                    isbn: DeserializeNonNullableString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "isbn")),
-                    coverImageUrl: DeserializeString(global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(obj.Value, "coverImageUrl")));
+                    isbn: DeserializeNonNullableString(
+                        global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                            obj,
+                            "isbn")),
+                    coverImageUrl: DeserializeString(
+                        global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                            obj,
+                            "coverImageUrl")));
             }
 
             throw new global::System.NotSupportedException();
@@ -463,9 +538,11 @@ namespace StrawberryShake.GraphQL
 
 // ISearchResultData
 
+// StrawberryShake.CodeGeneration.CSharp.DataTypeGenerator
+
 #nullable enable
 
-namespace StrawberryShake.GraphQL.State
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISearchResultData
@@ -477,9 +554,11 @@ namespace StrawberryShake.GraphQL.State
 
 // IPrintData
 
+// StrawberryShake.CodeGeneration.CSharp.DataTypeGenerator
+
 #nullable enable
 
-namespace StrawberryShake.GraphQL.State
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IPrintData
@@ -491,9 +570,11 @@ namespace StrawberryShake.GraphQL.State
 
 // BookData
 
+// StrawberryShake.CodeGeneration.CSharp.DataTypeGenerator
+
 #nullable enable
 
-namespace StrawberryShake.GraphQL.State
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class BookData
@@ -522,9 +603,11 @@ namespace StrawberryShake.GraphQL.State
 
 // MagazineData
 
+// StrawberryShake.CodeGeneration.CSharp.DataTypeGenerator
+
 #nullable enable
 
-namespace StrawberryShake.GraphQL.State
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class MagazineData
@@ -550,22 +633,29 @@ namespace StrawberryShake.GraphQL.State
 }
 
 
-// GraphQLClient
+// FooClient
+
+// StrawberryShake.CodeGeneration.CSharp.ClientGenerator
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
+    /// <summary>
+    /// Represents the FooClient GraphQL client
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GraphQLClient
+    public partial class FooClient
     {
         private readonly SearchSomethingQuery _searchSomethingQuery;
 
-        public GraphQLClient(SearchSomethingQuery searchSomethingQuery)
+        public FooClient(SearchSomethingQuery searchSomethingQuery)
         {
             _searchSomethingQuery = searchSomethingQuery
                  ?? throw new global::System.ArgumentNullException(nameof(searchSomethingQuery));
         }
+
+        public global::System.String ClientName => "FooClient";
 
         public SearchSomethingQuery SearchSomethingQuery => _searchSomethingQuery;
     }
@@ -574,17 +664,21 @@ namespace StrawberryShake.GraphQL
 
 // EntityIdFactory
 
+// StrawberryShake.CodeGeneration.CSharp.EntityIdFactoryGenerator
+
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class EntityIdFactory
     {
         public static global::StrawberryShake.EntityId CreateEntityId(global::System.Text.Json.JsonElement obj)
         {
-            global::System.String typeName = obj.GetProperty("__typename").GetString()!;
-            
+            global::System.String typeName = obj
+                .GetProperty("__typename")
+                .GetString()!;
+
             return typeName switch
             {
                 _ => throw new global::System.NotSupportedException()
@@ -594,16 +688,18 @@ namespace StrawberryShake.GraphQL
 }
 
 
-// GraphQLClientServiceCollectionExtensions
+// FooClientServiceCollectionExtensions
+
+// StrawberryShake.CodeGeneration.CSharp.DependencyInjectionGenerator
 
 #nullable enable
 
-namespace StrawberryShake.GraphQL
+namespace Microsoft.Extensions.DependencyInjection
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public static partial class GraphQLClientServiceCollectionExtensions
+    public static partial class FooClientServiceCollectionExtensions
     {
-        public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddGraphQLClient(
+        public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddFooClient(
             this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
             global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
@@ -624,12 +720,12 @@ namespace StrawberryShake.GraphQL
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<SearchSomethingQuery>(
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<Foo.Bar.SearchSomethingQuery>(
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<GraphQLClient>(
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.FooClient>(
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
 
             return services;
@@ -640,52 +736,28 @@ namespace StrawberryShake.GraphQL
             global::System.IServiceProvider parentServices,
             global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
-            
             if (services is null)
             {
                 throw new global::System.ArgumentNullException(nameof(services));
             }
-            
-            // register entity id factory
-            
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId>>(services, EntityIdFactory.CreateEntityId);
-            
-            // register stores
-            
-            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<
-                global::StrawberryShake.IEntityStore,
-                global::StrawberryShake.EntityStore>(
-                    services);
-            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<
-                global::StrawberryShake.IOperationStore>(
-                    services,
-                    sp => new global::StrawberryShake.OperationStore(
-                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<
-                            global::StrawberryShake.IEntityStore
-                            >(sp)
-                        .Watch()
-                        ));
-            
-            // register connections
-            
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId>>(
+                services,
+                global::Foo.Bar.EntityIdFactory.CreateEntityId);
+            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IEntityStore, global::StrawberryShake.EntityStore>(services);
+            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IOperationStore>(
+                services,
+                sp => new global::StrawberryShake.OperationStore(
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(sp)
+                    .Watch()));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
-                sp =>
+                sp => 
                 {
-                    var clientFactory =
-                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<
-                            global::System.Net.Http.IHttpClientFactory
-                            >(parentServices);
-            
-                    return new global::StrawberryShake.Transport.Http.HttpConnection(
-                        () => clientFactory.CreateClient("GraphQLClient"));
+                    var clientFactory = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Net.Http.IHttpClientFactory>(parentServices);
+                    return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("global::Foo.Bar.FooClient"));
                 });
-            
-            // register mappers
-            
-            
-            // register serializers
-            
+
+
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.StringSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.BooleanSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteSerializer>(services);
@@ -709,30 +781,18 @@ namespace StrawberryShake.GraphQL
                             parentServices),
                         global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(
                             sp))));
-            
-            // register operations
-            
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
-                global::StrawberryShake.IOperationResultDataFactory<ISearchSomethingResult>,
-                SearchSomethingResultFactory>(
-                    services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
-                global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, ISearchSomethingResult>,
-                SearchSomethingBuilder>(
-                    services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<
-                global::StrawberryShake.IOperationExecutor<ISearchSomethingResult>>(
-                    services,
-                    sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, ISearchSomethingResult>(
-                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.Http.HttpConnection>(sp),
-                        () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, ISearchSomethingResult>>(sp),
-                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
-                        strategy));
-            
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<SearchSomethingQuery>(services);
-            
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<GraphQLClient>(services);
-            
+
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<Foo.Bar.ISearchSomethingResult>, Foo.Bar.SearchSomethingResultFactory>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, Foo.Bar.ISearchSomethingResult>, Foo.Bar.SearchSomethingBuilder>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<Foo.Bar.ISearchSomethingResult>>(
+                services,
+                sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, Foo.Bar.ISearchSomethingResult>(
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.Http.HttpConnection>(sp),
+                    () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, Foo.Bar.ISearchSomethingResult>>(sp),
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
+                    strategy));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<Foo.Bar.SearchSomethingQuery>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.FooClient>(services);
             return services;
         }
 

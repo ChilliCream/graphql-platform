@@ -1,0 +1,1190 @@
+﻿// ReSharper disable BuiltInTypeReferenceStyle
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable UnusedType.Global
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable ConvertToAutoProperty
+// ReSharper disable UnusedMember.Global
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable InconsistentNaming
+
+// ExpenseEntity
+
+// StrawberryShake.CodeGeneration.CSharp.EntityTypeGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class ExpenseEntity
+    {
+        public global::System.Guid Id { get; set; } = default!;
+
+        public global::System.Decimal Amount { get; set; } = default!;
+
+        public global::System.DateTimeOffset Date { get; set; } = default!;
+
+        public global::System.String? Description { get; set; }
+
+        public ExpenseCategory Category { get; set; } = default!;
+
+        public PaymentMethod PaymentMethod { get; set; } = default!;
+
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.TagData?>? Tags { get; set; }
+    }
+}
+
+
+// AllExpensesResultFactory
+
+// StrawberryShake.CodeGeneration.CSharp.ResultDataFactoryGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class AllExpensesResultFactory
+        : global::StrawberryShake.IOperationResultDataFactory<AllExpensesResult>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityMapper<ExpenseEntity, AllExpenses_Expense_Expense> _allExpenses_Expense_ExpenseFromExpenseEntityMapper;
+
+        public AllExpensesResultFactory(
+            global::StrawberryShake.IEntityStore entityStore,
+            global::StrawberryShake.IEntityMapper<ExpenseEntity, AllExpenses_Expense_Expense> allExpenses_Expense_ExpenseFromExpenseEntityMapper)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _allExpenses_Expense_ExpenseFromExpenseEntityMapper = allExpenses_Expense_ExpenseFromExpenseEntityMapper
+                 ?? throw new global::System.ArgumentNullException(nameof(allExpenses_Expense_ExpenseFromExpenseEntityMapper));
+        }
+
+        public AllExpensesResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo)
+        {
+            if (dataInfo is AllExpensesResultInfo info)
+            {
+                return new AllExpensesResult(MapIAllExpenses_ExpenseArray(info.Expense));
+            }
+
+            throw new global::System.ArgumentException("AllExpensesResultInfo expected.");
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<IAllExpenses_Expense?>? MapIAllExpenses_ExpenseArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
+        {
+            if (list == default)
+            {
+                return null;
+            }
+
+            var expenses = new global::System.Collections.Generic.List<IAllExpenses_Expense?>();
+
+            foreach (global::StrawberryShake.EntityId? child in list)
+            {
+                expenses.Add(MapIAllExpenses_Expense(child));
+            }
+
+            return expenses;
+        }
+
+        private IAllExpenses_Expense? MapIAllExpenses_Expense(global::StrawberryShake.EntityId? entityId)
+        {
+            if (entityId == default)
+            {
+                return null;
+            }
+
+
+            if (entityId.Value.Name.Equals(
+                    "Expense",
+                    global::System.StringComparison.Ordinal))
+            {
+                return _allExpenses_Expense_ExpenseFromExpenseEntityMapper.Map(
+                    _entityStore.GetEntity<ExpenseEntity>(entityId.Value)
+                        ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+            throw new global::System.NotSupportedException();
+        }
+    }
+}
+
+
+// AllExpensesResultInfo
+
+// StrawberryShake.CodeGeneration.CSharp.ResultInfoGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class AllExpensesResultInfo
+        : global::StrawberryShake.IOperationResultDataInfo
+    {
+        private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
+        private readonly global::System.UInt64 _version;
+
+        public AllExpensesResultInfo(
+            global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? expense,
+            global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds,
+            global::System.UInt64 version)
+        {
+            Expense = expense;
+            _entityIds = entityIds
+                 ?? throw new global::System.ArgumentNullException(nameof(entityIds));
+            _version = version;
+        }
+
+        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Expense { get; }
+
+        public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
+
+        public global::System.UInt64 Version => _version;
+
+        public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
+        {
+            return new AllExpensesResultInfo(
+                Expense,
+                _entityIds,
+                version);
+        }
+    }
+}
+
+
+// AllExpensesResult
+
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class AllExpensesResult
+        : IAllExpensesResult
+    {
+        public AllExpensesResult(global::System.Collections.Generic.IReadOnlyList<IAllExpenses_Expense?>? expense)
+        {
+            Expense = expense;
+        }
+
+        public global::System.Collections.Generic.IReadOnlyList<IAllExpenses_Expense?>? Expense { get; } = default!;
+    }
+}
+
+
+// AllExpenses_Expense_ExpenseFromExpenseEntityMapper
+
+// StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class AllExpenses_Expense_ExpenseFromExpenseEntityMapper
+        : global::StrawberryShake.IEntityMapper<ExpenseEntity, AllExpenses_Expense_Expense>
+    {
+        public AllExpenses_Expense_Expense Map(ExpenseEntity entity)
+        {
+            return new AllExpenses_Expense_Expense(
+                entity.Id,
+                entity.Amount,
+                entity.Date,
+                entity.Description,
+                entity.Category,
+                entity.PaymentMethod,
+                MapIAllExpenses_Expense_TagsArray(entity.Tags));
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<IAllExpenses_Expense_Tags?>? MapIAllExpenses_Expense_TagsArray(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.TagData?>? list)
+        {
+            if (list == default)
+            {
+                return null;
+            }
+
+            var tags = new global::System.Collections.Generic.List<IAllExpenses_Expense_Tags?>();
+
+            foreach (global::Foo.Bar.State.TagData? child in list)
+            {
+                tags.Add(MapIAllExpenses_Expense_Tags(child));
+            }
+
+            return tags;
+        }
+
+        private IAllExpenses_Expense_Tags? MapIAllExpenses_Expense_Tags(global::Foo.Bar.State.TagData data)
+        {
+            if (data == default)
+            {
+                return null;
+            }
+
+            IAllExpenses_Expense_Tags returnValue = default!;
+
+            if (data?.__typename.Equals(
+                    "Tag",
+                    global::System.StringComparison.Ordinal) ?? false)
+            {
+                returnValue = new AllExpenses_Expense_Tags_Tag(data.Name ?? throw new global::System.ArgumentNullException());
+            }
+            else {
+                throw new global::System.NotSupportedException();
+            }
+            return returnValue;
+        }
+    }
+}
+
+
+// AllExpenses_Expense_Expense
+
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class AllExpenses_Expense_Expense
+        : IAllExpenses_Expense_Expense
+    {
+        public AllExpenses_Expense_Expense(
+            global::System.Guid id,
+            global::System.Decimal amount,
+            global::System.DateTimeOffset date,
+            global::System.String? description,
+            ExpenseCategory category,
+            PaymentMethod paymentMethod,
+            global::System.Collections.Generic.IReadOnlyList<IAllExpenses_Expense_Tags?>? tags)
+        {
+            Id = id;
+            Amount = amount;
+            Date = date;
+            Description = description;
+            Category = category;
+            PaymentMethod = paymentMethod;
+            Tags = tags;
+        }
+
+        public global::System.Guid Id { get; }
+
+        public global::System.Decimal Amount { get; }
+
+        public global::System.DateTimeOffset Date { get; }
+
+        public global::System.String? Description { get; } = default!;
+
+        public ExpenseCategory Category { get; }
+
+        public PaymentMethod PaymentMethod { get; }
+
+        public global::System.Collections.Generic.IReadOnlyList<IAllExpenses_Expense_Tags?>? Tags { get; } = default!;
+    }
+}
+
+
+// AllExpenses_Expense_Tags_Tag
+
+// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class AllExpenses_Expense_Tags_Tag
+        : IAllExpenses_Expense_Tags_Tag
+    {
+        public AllExpenses_Expense_Tags_Tag(global::System.String? name)
+        {
+            Name = name;
+        }
+
+        public global::System.String? Name { get; } = default!;
+    }
+}
+
+
+// IAllExpensesResult
+
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IAllExpensesResult
+    {
+        public global::System.Collections.Generic.IReadOnlyList<IAllExpenses_Expense?>? Expense { get; }
+    }
+}
+
+
+// IAllExpenses_Expense
+
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IAllExpenses_Expense
+    {
+        public global::System.Guid Id { get; }
+
+        public global::System.Decimal Amount { get; }
+
+        public global::System.DateTimeOffset Date { get; }
+
+        public global::System.String? Description { get; }
+
+        public ExpenseCategory Category { get; }
+
+        public PaymentMethod PaymentMethod { get; }
+
+        public global::System.Collections.Generic.IReadOnlyList<IAllExpenses_Expense_Tags?>? Tags { get; }
+    }
+}
+
+
+// IAllExpenses_Expense_Expense
+
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IAllExpenses_Expense_Expense
+        : IAllExpenses_Expense
+    {
+    }
+}
+
+
+// IAllExpenses_Expense_Tags
+
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IAllExpenses_Expense_Tags
+    {
+        public global::System.String? Name { get; }
+    }
+}
+
+
+// IAllExpenses_Expense_Tags_Tag
+
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IAllExpenses_Expense_Tags_Tag
+        : IAllExpenses_Expense_Tags
+    {
+    }
+}
+
+
+// ExpenseCategory
+
+// StrawberryShake.CodeGeneration.CSharp.EnumGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public enum ExpenseCategory
+    {
+        UnknownExpenseCategory,
+        Rent,
+        Food,
+        Bills,
+        Utilities,
+        Transportation,
+        Insurance,
+        Shopping,
+        Entertainment,
+        Healthcare,
+        Housing,
+        Tax,
+        Clothing,
+        Education,
+        Miscellaneous,
+        PersonalCare
+    }
+}
+
+
+// ExpenseCategorySerializer
+
+// StrawberryShake.CodeGeneration.CSharp.EnumParserGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class ExpenseCategorySerializer
+        : global::StrawberryShake.Serialization.IInputValueFormatter
+        , global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, ExpenseCategory>
+    {
+        public global::System.String TypeName => "ExpenseCategory";
+
+        public ExpenseCategory Parse(global::System.String serializedValue)
+        {
+            return serializedValue switch
+            {
+                "UNKNOWN_EXPENSE_CATEGORY" => ExpenseCategory.UnknownExpenseCategory,
+                "RENT" => ExpenseCategory.Rent,
+                "FOOD" => ExpenseCategory.Food,
+                "BILLS" => ExpenseCategory.Bills,
+                "UTILITIES" => ExpenseCategory.Utilities,
+                "TRANSPORTATION" => ExpenseCategory.Transportation,
+                "INSURANCE" => ExpenseCategory.Insurance,
+                "SHOPPING" => ExpenseCategory.Shopping,
+                "ENTERTAINMENT" => ExpenseCategory.Entertainment,
+                "HEALTHCARE" => ExpenseCategory.Healthcare,
+                "HOUSING" => ExpenseCategory.Housing,
+                "TAX" => ExpenseCategory.Tax,
+                "CLOTHING" => ExpenseCategory.Clothing,
+                "EDUCATION" => ExpenseCategory.Education,
+                "MISCELLANEOUS" => ExpenseCategory.Miscellaneous,
+                "PERSONAL_CARE" => ExpenseCategory.PersonalCare,
+                _ => throw new global::StrawberryShake.GraphQLClientException()
+            };
+        }
+
+        public global::System.Object Format(global::System.Object? runtimeValue)
+        {
+            return runtimeValue switch
+            {
+                ExpenseCategory.UnknownExpenseCategory => "UNKNOWN_EXPENSE_CATEGORY",
+                ExpenseCategory.Rent => "RENT",
+                ExpenseCategory.Food => "FOOD",
+                ExpenseCategory.Bills => "BILLS",
+                ExpenseCategory.Utilities => "UTILITIES",
+                ExpenseCategory.Transportation => "TRANSPORTATION",
+                ExpenseCategory.Insurance => "INSURANCE",
+                ExpenseCategory.Shopping => "SHOPPING",
+                ExpenseCategory.Entertainment => "ENTERTAINMENT",
+                ExpenseCategory.Healthcare => "HEALTHCARE",
+                ExpenseCategory.Housing => "HOUSING",
+                ExpenseCategory.Tax => "TAX",
+                ExpenseCategory.Clothing => "CLOTHING",
+                ExpenseCategory.Education => "EDUCATION",
+                ExpenseCategory.Miscellaneous => "MISCELLANEOUS",
+                ExpenseCategory.PersonalCare => "PERSONAL_CARE",
+                _ => throw new global::StrawberryShake.GraphQLClientException()
+            };
+        }
+    }
+}
+
+
+// PaymentMethod
+
+// StrawberryShake.CodeGeneration.CSharp.EnumGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public enum PaymentMethod
+    {
+        UnknownPaymentMethod,
+        Cash,
+        DebitCard,
+        CreditCard,
+        PayPal
+    }
+}
+
+
+// PaymentMethodSerializer
+
+// StrawberryShake.CodeGeneration.CSharp.EnumParserGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class PaymentMethodSerializer
+        : global::StrawberryShake.Serialization.IInputValueFormatter
+        , global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, PaymentMethod>
+    {
+        public global::System.String TypeName => "PaymentMethod";
+
+        public PaymentMethod Parse(global::System.String serializedValue)
+        {
+            return serializedValue switch
+            {
+                "UNKNOWN_PAYMENT_METHOD" => PaymentMethod.UnknownPaymentMethod,
+                "CASH" => PaymentMethod.Cash,
+                "DEBIT_CARD" => PaymentMethod.DebitCard,
+                "CREDIT_CARD" => PaymentMethod.CreditCard,
+                "PAY_PAL" => PaymentMethod.PayPal,
+                _ => throw new global::StrawberryShake.GraphQLClientException()
+            };
+        }
+
+        public global::System.Object Format(global::System.Object? runtimeValue)
+        {
+            return runtimeValue switch
+            {
+                PaymentMethod.UnknownPaymentMethod => "UNKNOWN_PAYMENT_METHOD",
+                PaymentMethod.Cash => "CASH",
+                PaymentMethod.DebitCard => "DEBIT_CARD",
+                PaymentMethod.CreditCard => "CREDIT_CARD",
+                PaymentMethod.PayPal => "PAY_PAL",
+                _ => throw new global::StrawberryShake.GraphQLClientException()
+            };
+        }
+    }
+}
+
+
+// AllExpensesQueryDocument
+
+// StrawberryShake.CodeGeneration.CSharp.OperationDocumentGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    /// <summary>
+    /// Represents the operation service of the AllExpenses GraphQL operation
+    /// <code>
+    /// query AllExpenses {
+    ///   expense {
+    ///     __typename
+    ///     id
+    ///     amount
+    ///     date
+    ///     description
+    ///     category
+    ///     paymentMethod
+    ///     tags {
+    ///       __typename
+    ///       name
+    ///     }
+    ///     ... on Expense {
+    ///       id
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class AllExpensesQueryDocument
+        : global::StrawberryShake.IDocument
+    {
+        private AllExpensesQueryDocument()
+        {
+        }
+
+        public static AllExpensesQueryDocument Instance { get; } = new AllExpensesQueryDocument();
+
+        public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
+
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{ 0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x41, 0x6c, 0x6c, 0x45, 0x78, 0x70, 0x65, 0x6e, 0x73, 0x65, 0x73, 0x20, 0x7b, 0x0a, 0x20, 0x20, 0x65, 0x78, 0x70, 0x65, 0x6e, 0x73, 0x65, 0x20, 0x7b, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x69, 0x64, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x61, 0x6d, 0x6f, 0x75, 0x6e, 0x74, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x64, 0x61, 0x74, 0x65, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x63, 0x61, 0x74, 0x65, 0x67, 0x6f, 0x72, 0x79, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x70, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x4d, 0x65, 0x74, 0x68, 0x6f, 0x64, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x74, 0x61, 0x67, 0x73, 0x20, 0x7b, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x7d, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x45, 0x78, 0x70, 0x65, 0x6e, 0x73, 0x65, 0x20, 0x7b, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x69, 0x64, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x7d, 0x0a, 0x20, 0x20, 0x7d, 0x0a, 0x7d };
+
+        public override global::System.String ToString()
+        {
+            return global::System.Text.Encoding.UTF8.GetString(Body);
+        }
+    }
+}
+
+
+// AllExpensesQuery
+
+// StrawberryShake.CodeGeneration.CSharp.OperationServiceGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    /// <summary>
+    /// Represents the operation service of the AllExpenses GraphQL operation
+    /// <code>
+    /// query AllExpenses {
+    ///   expense {
+    ///     __typename
+    ///     id
+    ///     amount
+    ///     date
+    ///     description
+    ///     category
+    ///     paymentMethod
+    ///     tags {
+    ///       __typename
+    ///       name
+    ///     }
+    ///     ... on Expense {
+    ///       id
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class AllExpensesQuery
+    {
+        private readonly global::StrawberryShake.IOperationExecutor<IAllExpensesResult> _operationExecutor;
+
+        public AllExpensesQuery(global::StrawberryShake.IOperationExecutor<IAllExpensesResult> operationExecutor)
+        {
+            _operationExecutor = operationExecutor
+                 ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
+        }
+
+        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IAllExpensesResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default)
+        {
+            var request = CreateRequest();
+
+            return await _operationExecutor
+                .ExecuteAsync(
+                    request,
+                    cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        public global::System.IObservable<global::StrawberryShake.IOperationResult<IAllExpensesResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null)
+        {
+            var request = CreateRequest();
+            return _operationExecutor.Watch(
+                request,
+                strategy);
+        }
+
+        private global::StrawberryShake.OperationRequest CreateRequest()
+        {
+
+            return new global::StrawberryShake.OperationRequest(
+                "AllExpenses",
+                AllExpensesQueryDocument.Instance);
+        }
+    }
+}
+
+
+// AllExpensesBuilder
+
+// StrawberryShake.CodeGeneration.CSharp.JsonResultBuilderGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class AllExpensesBuilder
+        : global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, IAllExpensesResult>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
+        private readonly global::StrawberryShake.IOperationResultDataFactory<IAllExpensesResult> _resultDataFactory;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::Foo.Bar.ExpenseCategory> _expenseCategoryParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::Foo.Bar.PaymentMethod> _paymentMethodParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Guid, global::System.Guid> _uuidParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Decimal, global::System.Decimal> _decimalParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.DateTimeOffset> _dateTimeParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
+
+        public AllExpensesBuilder(
+            global::StrawberryShake.IEntityStore entityStore,
+            global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> extractId,
+            global::StrawberryShake.IOperationResultDataFactory<IAllExpensesResult> resultDataFactory,
+            global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _extractId = extractId
+                 ?? throw new global::System.ArgumentNullException(nameof(extractId));
+            _resultDataFactory = resultDataFactory
+                 ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
+            _expenseCategoryParser = serializerResolver.GetLeafValueParser<global::System.String, global::Foo.Bar.ExpenseCategory>("ExpenseCategory")
+                 ?? throw new global::System.ArgumentException("No serializer for type `ExpenseCategory` found.");
+            _paymentMethodParser = serializerResolver.GetLeafValueParser<global::System.String, global::Foo.Bar.PaymentMethod>("PaymentMethod")
+                 ?? throw new global::System.ArgumentException("No serializer for type `PaymentMethod` found.");
+            _uuidParser = serializerResolver.GetLeafValueParser<global::System.Guid, global::System.Guid>("Uuid")
+                 ?? throw new global::System.ArgumentException("No serializer for type `Uuid` found.");
+            _decimalParser = serializerResolver.GetLeafValueParser<global::System.Decimal, global::System.Decimal>("Decimal")
+                 ?? throw new global::System.ArgumentException("No serializer for type `Decimal` found.");
+            _dateTimeParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.DateTimeOffset>("DateTime")
+                 ?? throw new global::System.ArgumentException("No serializer for type `DateTime` found.");
+            _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String")
+                 ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
+        }
+
+        public global::StrawberryShake.IOperationResult<IAllExpensesResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
+        {
+            (IAllExpensesResult Result, AllExpensesResultInfo Info)? data = null;
+
+            if (response.Body is not null
+                && response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement obj))
+            {
+                data = BuildData(obj);
+            }
+
+            return new global::StrawberryShake.OperationResult<IAllExpensesResult>(
+                data?.Result,
+                data?.Info,
+                _resultDataFactory,
+                null);
+        }
+
+        private (IAllExpensesResult, AllExpensesResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
+        {
+            using global::StrawberryShake.IEntityUpdateSession session = _entityStore.BeginUpdate();
+            var entityIds = new global::System.Collections.Generic.HashSet<global::StrawberryShake.EntityId>();
+
+            global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? expenseId = UpdateIAllExpenses_ExpenseEntityArray(
+                global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                    obj,
+                    "expense"),
+                entityIds);
+
+            var resultInfo = new AllExpensesResultInfo(
+                expenseId,
+                entityIds,
+                session.Version);
+
+            return (
+                _resultDataFactory.Create(resultInfo),
+                resultInfo
+            );
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? UpdateIAllExpenses_ExpenseEntityArray(
+            global::System.Text.Json.JsonElement? obj,
+            global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        {
+            if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            var expenses = new global::System.Collections.Generic.List<global::StrawberryShake.EntityId?>();
+
+            foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
+            {
+                expenses.Add(UpdateIAllExpenses_ExpenseEntity(
+                    child,
+                    entityIds));
+            }
+
+            return expenses;
+        }
+
+        private global::StrawberryShake.EntityId? UpdateIAllExpenses_ExpenseEntity(
+            global::System.Text.Json.JsonElement? obj,
+            global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        {
+            if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            global::StrawberryShake.EntityId entityId = _extractId(obj.Value);
+            entityIds.Add(entityId);
+
+
+            if (entityId.Name.Equals(
+                    "Expense",
+                    global::System.StringComparison.Ordinal))
+            {
+                ExpenseEntity entity = _entityStore.GetOrCreate<ExpenseEntity>(entityId);
+                entity.Id = DeserializeNonNullableGuid(
+                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                        obj,
+                        "id"));
+                entity.Amount = DeserializeNonNullableDecimal(
+                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                        obj,
+                        "amount"));
+                entity.Date = DeserializeNonNullableDateTimeOffset(
+                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                        obj,
+                        "date"));
+                entity.Description = DeserializeString(
+                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                        obj,
+                        "description"));
+                entity.Category = DeserializeNonNullableExpenseCategory(
+                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                        obj,
+                        "category"));
+                entity.PaymentMethod = DeserializeNonNullablePaymentMethod(
+                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                        obj,
+                        "paymentMethod"));
+                entity.Tags = DeserializeIAllExpenses_Expense_TagsArray(
+                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                        obj,
+                        "tags"));
+
+                return entityId;
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::System.Guid DeserializeNonNullableGuid(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            return _uuidParser.Parse(obj.Value.GetGuid()!);
+        }
+
+        private global::System.Decimal DeserializeNonNullableDecimal(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            return _decimalParser.Parse(obj.Value.GetDecimal()!);
+        }
+
+        private global::System.DateTimeOffset DeserializeNonNullableDateTimeOffset(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            return _dateTimeParser.Parse(obj.Value.GetString()!);
+        }
+
+        private global::System.String? DeserializeString(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            return _stringParser.Parse(obj.Value.GetString()!);
+        }
+
+        private ExpenseCategory DeserializeNonNullableExpenseCategory(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            return _expenseCategoryParser.Parse(obj.Value.GetString()!);
+        }
+
+        private PaymentMethod DeserializeNonNullablePaymentMethod(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            return _paymentMethodParser.Parse(obj.Value.GetString()!);
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.TagData?>? DeserializeIAllExpenses_Expense_TagsArray(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            var tags = new global::System.Collections.Generic.List<global::Foo.Bar.State.TagData?>();
+
+            foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
+            {
+                tags.Add(DeserializeIAllExpenses_Expense_Tags(child));
+            }
+
+            return tags;
+        }
+
+        private global::Foo.Bar.State.TagData? DeserializeIAllExpenses_Expense_Tags(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            var typename = obj.Value
+                .GetProperty("__typename")
+                .GetString();
+
+            if (typename?.Equals("Tag", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::Foo.Bar.State.TagData(
+                    typename,
+                    name: DeserializeString(
+                        global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                            obj,
+                            "name")));
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+    }
+}
+
+
+// TagData
+
+// StrawberryShake.CodeGeneration.CSharp.DataTypeGenerator
+
+#nullable enable
+
+namespace Foo.Bar.State
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class TagData
+    {
+        public TagData(
+            global::System.String typename,
+            global::System.String? name = null)
+        {
+            __typename = typename
+                 ?? throw new global::System.ArgumentNullException(nameof(typename));
+            Name = name;
+        }
+
+        public global::System.String __typename { get; }
+
+        public global::System.String? Name { get; }
+    }
+}
+
+
+// FooClient
+
+// StrawberryShake.CodeGeneration.CSharp.ClientGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    /// <summary>
+    /// Represents the FooClient GraphQL client
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FooClient
+    {
+        private readonly AllExpensesQuery _allExpensesQuery;
+
+        public FooClient(AllExpensesQuery allExpensesQuery)
+        {
+            _allExpensesQuery = allExpensesQuery
+                 ?? throw new global::System.ArgumentNullException(nameof(allExpensesQuery));
+        }
+
+        public global::System.String ClientName => "FooClient";
+
+        public AllExpensesQuery AllExpensesQuery => _allExpensesQuery;
+    }
+}
+
+
+// EntityIdFactory
+
+// StrawberryShake.CodeGeneration.CSharp.EntityIdFactoryGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public static partial class EntityIdFactory
+    {
+        public static global::StrawberryShake.EntityId CreateEntityId(global::System.Text.Json.JsonElement obj)
+        {
+            global::System.String typeName = obj
+                .GetProperty("__typename")
+                .GetString()!;
+
+            return typeName switch
+            {
+                "Expense" => CreateExpenseEntityId(
+                    obj,
+                    typeName),
+                _ => throw new global::System.NotSupportedException()
+            };
+        }
+
+        private static global::StrawberryShake.EntityId CreateExpenseEntityId(
+            global::System.Text.Json.JsonElement obj,
+            global::System.String type)
+        {
+            return new global::StrawberryShake.EntityId(
+                type,
+                obj
+                    .GetProperty("id")
+                    .GetGuid()!);
+        }
+    }
+}
+
+
+// FooClientServiceCollectionExtensions
+
+// StrawberryShake.CodeGeneration.CSharp.DependencyInjectionGenerator
+
+#nullable enable
+
+namespace Microsoft.Extensions.DependencyInjection
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public static partial class FooClientServiceCollectionExtensions
+    {
+        public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddFooClient(
+            this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
+            global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
+        {
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
+                services,
+                sp => 
+                {
+                    var serviceCollection = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
+
+                    ConfigureClient(
+                        serviceCollection,
+                        sp,
+                        strategy);
+
+                    return new ClientServiceProvider(
+                        global::Microsoft.Extensions.DependencyInjection.ServiceCollectionContainerBuilderExtensions.BuildServiceProvider(serviceCollection));
+                });
+
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<Foo.Bar.AllExpensesQuery>(
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.FooClient>(
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+
+            return services;
+        }
+
+        private static global::Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureClient(
+            global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
+            global::System.IServiceProvider parentServices,
+            global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
+        {
+            if (services is null)
+            {
+                throw new global::System.ArgumentNullException(nameof(services));
+            }
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId>>(
+                services,
+                global::Foo.Bar.EntityIdFactory.CreateEntityId);
+            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IEntityStore, global::StrawberryShake.EntityStore>(services);
+            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IOperationStore>(
+                services,
+                sp => new global::StrawberryShake.OperationStore(
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(sp)
+                    .Watch()));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
+                services,
+                sp => 
+                {
+                    var clientFactory = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Net.Http.IHttpClientFactory>(parentServices);
+                    return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("global::Foo.Bar.FooClient"));
+                });
+
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.ExpenseEntity, global::Foo.Bar.AllExpenses_Expense_Expense>, global::Foo.Bar.AllExpenses_Expense_ExpenseFromExpenseEntityMapper>(services);
+
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::Foo.Bar.ExpenseCategorySerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::Foo.Bar.PaymentMethodSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.StringSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.BooleanSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ShortSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IntSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LongSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.FloatSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DecimalSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UrlSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UuidSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IdSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateTimeSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializerResolver>(
+                services,
+                sp => new global::StrawberryShake.Serialization.SerializerResolver(
+                    global::System.Linq.Enumerable.Concat(
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(
+                            parentServices),
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(
+                            sp))));
+
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<Foo.Bar.IAllExpensesResult>, Foo.Bar.AllExpensesResultFactory>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, Foo.Bar.IAllExpensesResult>, Foo.Bar.AllExpensesBuilder>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<Foo.Bar.IAllExpensesResult>>(
+                services,
+                sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, Foo.Bar.IAllExpensesResult>(
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.Http.HttpConnection>(sp),
+                    () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, Foo.Bar.IAllExpensesResult>>(sp),
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
+                    strategy));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<Foo.Bar.AllExpensesQuery>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.FooClient>(services);
+            return services;
+        }
+
+        private class ClientServiceProvider
+            : System.IServiceProvider
+            , System.IDisposable
+        {
+            private readonly System.IServiceProvider _provider;
+
+            public ClientServiceProvider(System.IServiceProvider provider)
+            {
+                _provider = provider;
+            }
+
+            public object? GetService(System.Type serviceType)
+            {
+                return _provider.GetService(serviceType);
+            }
+
+            public void Dispose()
+            {
+                if (_provider is System.IDisposable d)
+                {
+                    d.Dispose();
+                }
+            }
+        }
+    }
+}
+
+

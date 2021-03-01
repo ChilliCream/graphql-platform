@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Addtional HotChocolate scalars  (HotChocolate.Types.Scalars)
+    - PhoneNumber (#2995)
+    - EmailAddress (#2989)
+    - NegativeFloat (#2996)
+    - NonPositiveFloat (#3024)
+    - NonNegativeFloat (#3015)
+    - PositiveInt (#2929)
+    - NegativeInt (#2940)
+    - NonNegativeInt (#3020)
+    - NonEmptyString (#2940)
+
 ### Fixed
 
 - Fixed issue where the PagingHelper introduced a self-reference which cause type system initialization issues.

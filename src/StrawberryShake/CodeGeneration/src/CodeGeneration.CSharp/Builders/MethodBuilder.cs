@@ -8,11 +8,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private AccessModifier _accessModifier = AccessModifier.Private;
         private Inheritance _inheritance = Inheritance.None;
         private bool _isStatic;
+        private bool _isOverride;
         private bool _is;
         private TypeReferenceBuilder _returnType = TypeReferenceBuilder.New().SetName("void");
         private string? _name;
         private readonly List<ParameterBuilder> _parameters = new();
         private readonly List<ICode> _lines = new();
+        private bool _isAsync;
 
         public static MethodBuilder New() => new();
 
@@ -25,6 +27,18 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         public MethodBuilder SetStatic()
         {
             _isStatic = true;
+            return this;
+        }
+
+        public MethodBuilder SetAsync()
+        {
+            _isAsync = true;
+            return this;
+        }
+
+        public MethodBuilder SetOverride()
+        {
+            _isOverride = true;
             return this;
         }
 
@@ -116,6 +130,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             if (_isStatic)
             {
                 writer.Write("static ");
+            }
+
+            if (_isOverride)
+            {
+                writer.Write("override ");
+            }
+
+            if (_isAsync)
+            {
+                writer.Write("async ");
             }
 
             if (_is)
