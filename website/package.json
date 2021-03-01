@@ -72,7 +72,7 @@
     "@types/styled-components": "^5.1.7",
     "babel-plugin-styled-components": "^1.12.0",
     "gh-pages": "^3.1.0",
-    "husky": "^4.3.8",
+    "husky": "^5.1.2",
     "prettier": "^2.2.1",
     "pretty-quick": "^3.0.2",
     "typescript": "^4.1.3",
