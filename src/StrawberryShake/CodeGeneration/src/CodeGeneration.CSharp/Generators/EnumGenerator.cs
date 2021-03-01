@@ -10,11 +10,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
             out string fileName)
         {
             fileName = descriptor.Name;
-            EnumBuilder enumBuilder =
-                EnumBuilder
-                    .New()
-                    .SetName(descriptor.RuntimeType.Name)
-                    .SetUnderlyingType(descriptor.UnderlyingType);
+
+            EnumBuilder enumBuilder = EnumBuilder
+                .New()
+                .SetName(descriptor.RuntimeType.Name)
+                .SetUnderlyingType(descriptor.UnderlyingType);
 
             foreach (EnumValueDescriptor element in descriptor.Values)
             {

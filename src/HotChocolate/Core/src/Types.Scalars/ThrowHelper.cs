@@ -13,46 +13,68 @@ namespace HotChocolate.Types.Scalars
                 type);
         }
 
-        public static SerializationException HexColorCodeType_ParseValue_IsInvalid(IType type)
+        public static SerializationException HexColorType_ParseValue_IsInvalid(IType type)
         {
             return new SerializationException(
                 ErrorBuilder.New()
-                    .SetMessage(ScalarResources.HexColorCodeType_IsInvalid_ParseValue)
+                    .SetMessage(ScalarResources.HexColorType_IsInvalid_ParseValue)
                     .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                    .SetExtension("actualType", WellKnownScalarTypes.HexColorCode)
+                    .SetExtension("actualType", WellKnownScalarTypes.HexColor)
                     .Build(),
                 type);
         }
 
-        public static SerializationException HexColorCodeType_ParseLiteral_IsInvalid(IType type)
+        public static SerializationException HexColorType_ParseLiteral_IsInvalid(IType type)
         {
             return new SerializationException(
                 ErrorBuilder.New()
-                    .SetMessage(ScalarResources.HexColorCodeType_IsInvalid_ParseLiteral)
+                    .SetMessage(ScalarResources.HexColorType_IsInvalid_ParseLiteral)
                     .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
-                    .SetExtension("actualType", WellKnownScalarTypes.HexColorCode)
+                    .SetExtension("actualType", WellKnownScalarTypes.HexColor)
                     .Build(),
                 type);
         }
 
-        public static SerializationException HslColorCodeType_ParseValue_IsInvalid(IType type)
+        public static SerializationException HslType_ParseValue_IsInvalid(IType type)
         {
             return new SerializationException(
                 ErrorBuilder.New()
-                    .SetMessage(ScalarResources.HslColorCodeType_IsInvalid_ParseValue)
+                    .SetMessage(ScalarResources.HslType_IsInvalid_ParseValue)
                     .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                    .SetExtension("actualType", WellKnownScalarTypes.HslColorCode)
+                    .SetExtension("actualType", WellKnownScalarTypes.Hsl)
                     .Build(),
                 type);
         }
 
-        public static SerializationException HslColorCodeType_ParseLiteral_IsInvalid(IType type)
+        public static SerializationException HslType_ParseLiteral_IsInvalid(IType type)
         {
             return new SerializationException(
                 ErrorBuilder.New()
-                    .SetMessage(ScalarResources.HslColorCodeType_IsInvalid_ParseLiteral)
+                    .SetMessage(ScalarResources.HslType_IsInvalid_ParseLiteral)
                     .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
-                    .SetExtension("actualType", WellKnownScalarTypes.HslColorCode)
+                    .SetExtension("actualType", WellKnownScalarTypes.Hsl)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException HslaType_ParseValue_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.HslaType_IsInvalid_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.Hsla)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException HslaType_ParseLiteral_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.HslaType_IsInvalid_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.Hsla)
                     .Build(),
                 type);
         }
@@ -342,37 +364,45 @@ namespace HotChocolate.Types.Scalars
         }
 
         public static SerializationException RegularExpressionType_ParseValue_IsInvalid(
-                            IType type,
-                            string validationPattern,
-                            string name)
+            IType type,
+            string validationPattern,
+            string name)
         {
             return new SerializationException(
                 ErrorBuilder.New()
                     .SetMessage(
-                        string.Format(ScalarResources.RegularExpressionType_IsInvalid_ParseValue,
-                                      validationPattern,
-                                      name))
+                        string.Format(
+                            ScalarResources.RegularExpressionType_IsInvalid_ParseValue,
+                            validationPattern,
+                            name))
                     .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
                     .SetExtension("actualType", WellKnownScalarTypes.RegularExpression)
-                    .SetExtension("pattern", validationPattern.Substring(0, 100))
+                    .SetExtension("pattern",
+                        validationPattern.Length > 100
+                            ? "Expression too long"
+                            : validationPattern)
                     .Build(),
                 type);
         }
 
         public static SerializationException RegularExpressionType_ParseLiteral_IsInvalid(
-                            IType type,
-                            string validationPattern,
-                            string name)
+            IType type,
+            string validationPattern,
+            string name)
         {
             return new SerializationException(
                 ErrorBuilder.New()
                     .SetMessage(
-                        string.Format(ScalarResources.RegularExpressionType_IsInvalid_ParseLiteral,
-                                      validationPattern,
-                                      name))
+                        string.Format(
+                            ScalarResources.RegularExpressionType_IsInvalid_ParseLiteral,
+                            validationPattern,
+                            name))
                     .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
                     .SetExtension("actualType", WellKnownScalarTypes.RegularExpression)
-                    .SetExtension("pattern", validationPattern.Substring(0,100))
+                    .SetExtension("pattern",
+                        validationPattern.Length > 100
+                            ? "Expression too long"
+                            : validationPattern)
                     .Build(),
                 type);
         }

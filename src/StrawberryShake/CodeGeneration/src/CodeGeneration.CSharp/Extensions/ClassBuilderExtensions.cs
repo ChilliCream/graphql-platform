@@ -6,11 +6,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     internal static class ClassBuilderExtensions
     {
-        // TODO Remove!
-        [Obsolete]
-        public static MethodBuilder AddMethod(this ClassBuilder builder, string name)
+        public static MethodBuilder AddMethod(this ClassBuilder builder, string? name = null)
         {
-            MethodBuilder methodBuilder = MethodBuilder.New().SetName(name);
+            MethodBuilder methodBuilder = MethodBuilder.New();
+
+            if (name is not null)
+            {
+                methodBuilder.SetName(name);
+            }
+
             builder.AddMethod(methodBuilder);
             return methodBuilder;
         }
@@ -26,9 +30,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return builder;
         }
 
-        public static FieldBuilder AddField(this ClassBuilder builder, string name)
+        public static FieldBuilder AddField(this ClassBuilder builder, string? name = null)
         {
-            FieldBuilder fieldBuilder = FieldBuilder.New().SetName(name);
+            FieldBuilder fieldBuilder = FieldBuilder.New();
+
+            if (name is not null)
+            {
+                fieldBuilder.SetName(name);
+            }
+
             builder.AddField(fieldBuilder);
             return fieldBuilder;
         }
@@ -44,8 +54,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return builder;
         }
 
-        // TODO Remove!
-        [Obsolete]
         public static PropertyBuilder AddProperty(this ClassBuilder builder, string name)
         {
             PropertyBuilder propertyBuilder = PropertyBuilder.New().SetName(name);
@@ -58,6 +66,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
             PropertyBuilder propertyBuilder = PropertyBuilder.New().SetName(name);
             builder.AddProperty(propertyBuilder);
             return propertyBuilder;
+        }
+
+        public static ConstructorBuilder AddConstructor(this ClassBuilder builder)
+        {
+            var constructorBuilder = ConstructorBuilder.New();
+            builder.AddConstructor(constructorBuilder);
+            return constructorBuilder;
         }
 
         public static ClassBuilder ForEach<T>(

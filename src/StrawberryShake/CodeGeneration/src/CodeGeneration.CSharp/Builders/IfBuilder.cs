@@ -32,6 +32,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
+        public IfBuilder SetCondition(ICode condition)
+        {
+            _condition = ConditionBuilder.New().Set(condition);
+            return this;
+        }
+
         public IfBuilder AddCode(string code, bool addIf = true)
         {
             if (addIf)
@@ -114,11 +120,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 using (writer.IncreaseIndent())
                 {
                     writer.WriteLine();
-                    writer.WriteIndent();
                     _elseCode.Build(writer);
                 }
 
-                writer.WriteLine();
                 writer.WriteIndent();
                 writer.WriteLine("}");
             }
