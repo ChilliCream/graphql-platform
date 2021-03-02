@@ -206,5 +206,17 @@ namespace StrawberryShake.Properties {
                 return ResourceManager.GetString("CSharpGenerator_Generate_ArgumentCannotBeNull", resourceCulture);
             }
         }
+        
+        internal static string InMemoryConnection_InvalidResponseFormat {
+            get {
+                return ResourceManager.GetString("InMemoryConnection_InvalidResponseFormat", resourceCulture);
+            }
+        }
+        
+        internal static string InMemoryClient_ExecuteAsync_NoExecutorFound {
+            get {
+                return ResourceManager.GetString("InMemoryClient_ExecuteAsync_NoExecutorFound", resourceCulture);
+            }
+        }
     }
 }
