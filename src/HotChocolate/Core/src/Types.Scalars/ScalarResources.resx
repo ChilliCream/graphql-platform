@@ -149,7 +149,7 @@
     <value>(^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3}|[A-Fa-f0-9]{8})$)</value>
   </data>
   <data name="HslType_Description" xml:space="preserve">
-    <value>The Hsl scalar type represents a a valid a CSS HSL color defined here https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors.</value>
+    <value>The Hsl scalar type represents a a valid a CSS HSL color defined in https://www.w3.org/TR/css-color-3/#hsl-color.</value>
   </data>
   <data name="HslType_IsInvalid_ParseLiteral" xml:space="preserve">
     <value>HslType cannot parse the provided literal. The provided value is not a valid CSS HSL color code.</value>
@@ -161,7 +161,7 @@
     <value>(^(?:hsla?)\((?:\d+%?(?:deg|rad|grad|turn)?(?:,|\s)+){2,3}[\s\/]*[\d\.]+%?\))</value>
   </data>
   <data name="HslaType_Description" xml:space="preserve">
-    <value>The Hsla scalar type represents a a valid a CSS HSLA color as defined here https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors.</value>
+    <value>The Hsla scalar type represents a a valid a CSS HSLA color as defined in https://www.w3.org/TR/css-color-3/#hsla-color.</value>
   </data>
   <data name="HslaType_IsInvalid_ParseLiteral" xml:space="preserve">
     <value>HslaType cannot parse the provided literal. The provided value is not a valid CSS HSLA color code.</value>
@@ -233,13 +233,13 @@
     <value>NonNegativeFloatType cannot parse the provided value. The provided value was not greater than or equal to 0.</value>
   </data>
   <data name="PhoneNumberType_Description" xml:space="preserve">
-    <value>The PhoneNumber scalar type represents a value that conforms to the standard E.164 format as specified in: https://en.wikipedia.org/wiki/E.164.</value>
+    <value>The PhoneNumber scalar type represents a value that conforms to the standard E.164 format.</value>
   </data>
   <data name="PhoneNumberType_IsInvalid_ParseLiteral" xml:space="preserve">
-    <value>PhoneNumberType cannot parse the provided literal. The provided value does not meet the standard E.164 format as specified in: https://en.wikipedia.org/wiki/E.164.</value>
+    <value>PhoneNumberType cannot parse the provided literal. The provided value does not meet the standard E.164 format.</value>
   </data>
   <data name="PhoneNumberType_IsInvalid_ParseValue" xml:space="preserve">
-    <value>PhoneNumberType cannot parse the provided value. The provided value does not meet the standard E.164 format as specified in: https://en.wikipedia.org/wiki/E.164.</value>
+    <value>PhoneNumberType cannot parse the provided value. The provided value does not meet the standard E.164 format.</value>
   </data>
   <data name="PhoneNumber_ValidationPattern" xml:space="preserve">
     <value>(^\+[1-9]\d{1,14}$)</value>
@@ -314,10 +314,10 @@
     <value>(^\d{4}$)</value>
   </data>
   <data name="RegularExpressionType_IsInvalid_ParseLiteral" xml:space="preserve">
-    <value>{0}Type cannot parse the provided literal. The provided value does not match the regular expression pattern "{1}".</value>
+    <value>{0}Type cannot parse the provided literal. The provided value does not match the regular expression pattern.</value>
   </data>
   <data name="RegularExpressionType_IsInvalid_ParseValue" xml:space="preserve">
-    <value>{0}Type cannot parse the provided value. The provided value does not match the regular expression pattern "{1}".</value>
+    <value>{0}Type cannot parse the provided value. The provided value does not match the regular expression pattern.</value>
   </data>
   <data name="UnsignedIntType_Description" xml:space="preserve">
     <value>The UnsignedInt scalar type represents a unsigned 32-bit numeric non-fractional value greater than or equal to 0.</value>
@@ -329,7 +329,7 @@
     <value>UnsignedIntType cannot parse the provided value. The provided value is not greater than or equal to 0.</value>
   </data>
   <data name="IPv4Type_Description" xml:space="preserve">
-    <value>The IPv4 scalar type represents a valid a IPv4 address as defined here https://en.wikipedia.org/wiki/IPv4.</value>
+    <value>The IPv4 scalar type represents a valid a IPv4 address as defined in RFC791</value>
   </data>
   <data name="IPv4Type_IsInvalid_ParseLiteral" xml:space="preserve">
     <value>IPv4Type cannot parse the provided literal. The provided value is not a valid IPv4 address.</value>

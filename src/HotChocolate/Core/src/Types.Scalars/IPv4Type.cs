@@ -1,4 +1,6 @@
+using System;
 using System.Text.RegularExpressions;
+using HotChocolate.Language;
 
 namespace HotChocolate.Types.Scalars
 {
@@ -23,6 +25,16 @@ namespace HotChocolate.Types.Scalars
                 ScalarResources.IPv4Type_Description,
                 RegexOptions.Compiled | RegexOptions.IgnoreCase)
         {
+        }
+
+        protected override Exception CreateParseLiteralError(StringValueNode valueSyntax)
+        {
+            return ThrowHelper.IPv4Type_ParseLiteral_IsInvalid(this);
+        }
+
+        protected override Exception CreateParseValueError(string runtimeValue)
+        {
+            return ThrowHelper.IPv4Type_ParseValue_IsInvalid(this);
         }
     }
 }

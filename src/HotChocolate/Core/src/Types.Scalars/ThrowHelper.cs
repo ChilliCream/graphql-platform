@@ -365,7 +365,6 @@ namespace HotChocolate.Types.Scalars
 
         public static SerializationException RegularExpressionType_ParseValue_IsInvalid(
             IType type,
-            string validationPattern,
             string name)
         {
             return new SerializationException(
@@ -373,21 +372,15 @@ namespace HotChocolate.Types.Scalars
                     .SetMessage(
                         string.Format(
                             ScalarResources.RegularExpressionType_IsInvalid_ParseValue,
-                            validationPattern,
                             name))
                     .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
                     .SetExtension("actualType", WellKnownScalarTypes.RegularExpression)
-                    .SetExtension("pattern",
-                        validationPattern.Length > 100
-                            ? "Pattern too long"
-                            : validationPattern)
                     .Build(),
                 type);
         }
 
         public static SerializationException RegularExpressionType_ParseLiteral_IsInvalid(
             IType type,
-            string validationPattern,
             string name)
         {
             return new SerializationException(
@@ -395,14 +388,9 @@ namespace HotChocolate.Types.Scalars
                     .SetMessage(
                         string.Format(
                             ScalarResources.RegularExpressionType_IsInvalid_ParseLiteral,
-                            validationPattern,
                             name))
                     .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
                     .SetExtension("actualType", WellKnownScalarTypes.RegularExpression)
-                    .SetExtension("pattern",
-                        validationPattern.Length > 100
-                            ? "Pattern too long"
-                            : validationPattern)
                     .Build(),
                 type);
         }

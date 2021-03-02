@@ -1,3 +1,4 @@
+using System;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
 
@@ -10,7 +11,6 @@ namespace HotChocolate.Types.Scalars
     /// </summary>
     public class RegularExpressionType : StringType
     {
-        private readonly string _validationPattern;
         private readonly Regex _validationRegex;
 
         /// <summary>
@@ -42,7 +42,6 @@ namespace HotChocolate.Types.Scalars
         {
             Description = description;
             _validationRegex = regex;
-            _validationPattern = regex.ToString();
         }
 
         /// <inheritdoc />
@@ -62,8 +61,7 @@ namespace HotChocolate.Types.Scalars
         {
             if (!_validationRegex.IsMatch(valueSyntax.Value))
             {
-                throw ThrowHelper
-                    .RegularExpressionType_ParseLiteral_IsInvalid(this, _validationPattern, Name);
+                throw CreateParseLiteralError(valueSyntax);
             }
 
             return base.ParseLiteral(valueSyntax);
@@ -74,8 +72,7 @@ namespace HotChocolate.Types.Scalars
         {
             if (!_validationRegex.IsMatch(runtimeValue))
             {
-                throw ThrowHelper
-                    .RegularExpressionType_ParseValue_IsInvalid(this, _validationPattern, Name);
+                throw CreateParseValueError(runtimeValue);
             }
 
             return base.ParseValue(runtimeValue);
@@ -119,6 +116,36 @@ namespace HotChocolate.Types.Scalars
 
             runtimeValue = null;
             return false;
+        }
+
+        /// <summary>
+        /// Creates the exception that will be thrown when <see cref="ParseLiteral"/> encountered an
+        /// invalid pattern
+        /// </summary>
+        /// <param name="valueSyntax">
+        /// The value syntax that should be parsed
+        /// </param>
+        /// <returns>
+        /// The created exception that should be thrown
+        /// </returns>
+        protected virtual Exception CreateParseLiteralError(StringValueNode valueSyntax)
+        {
+            return ThrowHelper.RegularExpressionType_ParseLiteral_IsInvalid(this, Name);
+        }
+
+        /// <summary>
+        /// Creates the exception that will be thrown when <see cref="ParseValue"/> encountered an
+        /// invalid pattern
+        /// </summary>
+        /// <param name="runtimeValue">
+        /// The runtimeValue that should be parsed
+        /// </param>
+        /// <returns>
+        /// The created exception that should be thrown
+        /// </returns>
+        protected virtual Exception CreateParseValueError(string runtimeValue)
+        {
+            return ThrowHelper.RegularExpressionType_ParseValue_IsInvalid(this, Name);
         }
     }
 }
