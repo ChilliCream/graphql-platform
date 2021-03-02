@@ -218,8 +218,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             if (hasQueries || hasMutations)
             {
-                body.AddCode(
-                    RegisterHttpConnection($"{rootNamespace}.{descriptor.Name}"));
+                body.AddCode(RegisterHttpConnection(descriptor.Name));
             }
 
             body.AddEmptyLine();

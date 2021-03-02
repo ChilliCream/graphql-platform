@@ -24,6 +24,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             classBuilder
                 .AddProperty("ClientName")
                 .SetPublic()
+                .SetStatic()
                 .SetType(TypeNames.String)
                 .AsLambda(descriptor.Name.Value.AsStringToken());
 

@@ -1002,7 +1002,7 @@ namespace Foo.Bar
                  ?? throw new global::System.ArgumentNullException(nameof(allExpenses));
         }
 
-        public global::System.String ClientName => "FooClient";
+        public static global::System.String ClientName => "FooClient";
 
         public global::Foo.Bar.AllExpensesQuery AllExpenses => _allExpenses;
     }
@@ -1115,7 +1115,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 sp => 
                 {
                     var clientFactory = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Net.Http.IHttpClientFactory>(parentServices);
-                    return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("global::Foo.Bar.FooClient"));
+                    return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("FooClient"));
                 });
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.ExpenseEntity, global::Foo.Bar.AllExpenses_Expense_Expense>, global::Foo.Bar.AllExpenses_Expense_ExpenseFromExpenseEntityMapper>(services);
