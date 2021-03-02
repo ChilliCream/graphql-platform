@@ -14,24 +14,32 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             ClassBuilder classBuilder = ClassBuilder
                 .New()
-                .SetName(fileName);
+                .SetName(fileName)
+                .SetComment(descriptor.Documentation);
 
             ConstructorBuilder constructorBuilder = classBuilder
                 .AddConstructor()
                 .SetTypeName(fileName);
 
+            classBuilder
+                .AddProperty("ClientName")
+                .SetPublic()
+                .SetStatic()
+                .SetType(TypeNames.String)
+                .AsLambda(descriptor.Name.Value.AsStringToken());
+
             foreach (OperationDescriptor operation in descriptor.Operations)
             {
                 AddConstructorAssignedField(
-                    operation.Name,
+                    operation.RuntimeType.ToString(),
                     GetFieldName(operation.Name),
                     classBuilder,
                     constructorBuilder);
 
                 classBuilder
-                    .AddProperty(operation.Name)
+                    .AddProperty(GetPropertyName(operation.Name))
                     .SetPublic()
-                    .SetType(operation.Name)
+                    .SetType(operation.RuntimeType.ToString())
                     .AsLambda(GetFieldName(operation.Name));
             }
 

@@ -38,7 +38,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             ClassBuilder classBuilder = ClassBuilder
                 .New()
                 .SetName(fileName)
-                .AddImplements(TypeNames.IInputValueFormatter);
+                .AddImplements(TypeNames.IInputObjectFormatter);
 
             var neededSerializers = namedTypeDescriptor
                 .Properties

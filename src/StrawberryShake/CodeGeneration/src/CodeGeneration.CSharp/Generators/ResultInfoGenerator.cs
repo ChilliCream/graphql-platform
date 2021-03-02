@@ -47,6 +47,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 // Add Property to class
                 classBuilder
                     .AddProperty(prop.Name)
+                    .SetComment(prop.Description)
                     .SetType(propTypeBuilder)
                     .SetPublic();
 

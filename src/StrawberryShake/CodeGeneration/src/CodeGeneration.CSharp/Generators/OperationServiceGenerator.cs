@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Extensions;
+using StrawberryShake.CodeGeneration.Properties;
 using StrawberryShake.Serialization;
 using static StrawberryShake.CodeGeneration.CSharp.InputValueFormatterGenerator;
 using static StrawberryShake.CodeGeneration.NamingConventions;
@@ -28,10 +29,18 @@ namespace StrawberryShake.CodeGeneration.CSharp
             OperationDescriptor operationDescriptor,
             out string fileName)
         {
-            fileName = operationDescriptor.Name;
+            fileName = operationDescriptor.RuntimeType.Name;
 
             ClassBuilder classBuilder = ClassBuilder
                 .New()
+                .SetComment(
+                    XmlCommentBuilder
+                        .New()
+                        .SetSummary(
+                            string.Format(
+                                CodeGenerationResources.OperationServiceDescriptor_Description,
+                                operationDescriptor.Name))
+                        .AddCode(operationDescriptor.BodyString))
                 .SetName(fileName);
 
             ConstructorBuilder constructorBuilder = classBuilder
@@ -61,7 +70,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             CodeFileBuilder
                 .New()
-                .SetNamespace(operationDescriptor.Namespace)
+                .SetNamespace(operationDescriptor.RuntimeType.NamespaceWithoutGlobal)
                 .AddType(classBuilder)
                 .Build(writer);
         }
@@ -129,8 +138,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 else
                 {
                     throw new InvalidOperationException(
-                        $"Serializer for property {operationDescriptor.Name}.{property.Name} " +
-                        "could not be created. GraphQLTypeName was empty");
+                        $"Serializer for property {operationDescriptor.RuntimeType.Name}." +
+                        $"{property.Name} could not be created. GraphQLTypeName was empty");
                 }
             }
         }
@@ -240,7 +249,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         private MethodBuilder CreateRequestMethod(OperationDescriptor operationDescriptor)
         {
-            string typeName = CreateDocumentTypeName(operationDescriptor.Name);
+            string typeName = CreateDocumentTypeName(operationDescriptor.RuntimeType.Name);
 
             MethodBuilder method = MethodBuilder
                 .New()
@@ -252,7 +261,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetReturn()
                 .SetNew()
                 .SetMethodName(TypeNames.OperationRequest)
-                .AddArgument(operationDescriptor.OperationName.AsStringToken())
+                .AddArgument(operationDescriptor.Name.AsStringToken())
                 .AddArgument($"{typeName}.Instance");
 
             if (operationDescriptor.Arguments.Count > 0)

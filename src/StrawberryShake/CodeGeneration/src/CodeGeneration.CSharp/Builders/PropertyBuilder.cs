@@ -9,6 +9,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private string? _lambdaResolver;
         private TypeReferenceBuilder? _type;
         private string? _name;
+        private XmlCommentBuilder? _xmlComment;
         private string? _value;
         private bool _isStatic;
 
@@ -35,6 +36,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         public PropertyBuilder SetType(string value)
         {
             _type = TypeReferenceBuilder.New().SetName(value);
+            return this;
+        }
+
+        public PropertyBuilder SetComment(string? xmlComment)
+        {
+            if (xmlComment is not null)
+            {
+                _xmlComment = XmlCommentBuilder.New().SetSummary(xmlComment);
+            }
+
             return this;
         }
 
@@ -76,6 +87,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
             string modifier = _accessModifier.ToString().ToLowerInvariant();
 
+            _xmlComment?.Build(writer);
+
             writer.WriteIndent();
             writer.Write(modifier);
             writer.WriteSpace();
@@ -84,6 +97,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 writer.Write("static");
                 writer.WriteSpace();
             }
+
             _type.Build(writer);
             writer.Write(_name);
 

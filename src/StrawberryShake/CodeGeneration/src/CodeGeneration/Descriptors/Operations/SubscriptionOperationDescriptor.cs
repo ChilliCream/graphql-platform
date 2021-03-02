@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using HotChocolate;
+using static StrawberryShake.CodeGeneration.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration
 {
@@ -9,16 +10,18 @@ namespace StrawberryShake.CodeGeneration
     public class SubscriptionOperationDescriptor : OperationDescriptor
     {
         public SubscriptionOperationDescriptor(
-            NameString operationName,
-            ITypeDescriptor resultTypeReference,
+            NameString name,
             string @namespace,
+            ITypeDescriptor resultTypeReference,
             IReadOnlyList<PropertyDescriptor> arguments,
             string bodyString)
-            : base(operationName, resultTypeReference, @namespace, arguments, bodyString)
+            : base(
+                name,
+                new RuntimeTypeInfo(CreateSubscriptionServiceName(name), @namespace),
+                resultTypeReference,
+                arguments,
+                bodyString)
         {
         }
-
-        public override NameString Name =>
-            NamingConventions.CreateSubscriptionServiceName(OperationName);
     }
 }

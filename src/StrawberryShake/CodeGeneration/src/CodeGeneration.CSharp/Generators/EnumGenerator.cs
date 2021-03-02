@@ -13,12 +13,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             EnumBuilder enumBuilder = EnumBuilder
                 .New()
+                .SetComment(descriptor.Documentation)
                 .SetName(descriptor.RuntimeType.Name)
                 .SetUnderlyingType(descriptor.UnderlyingType);
 
             foreach (EnumValueDescriptor element in descriptor.Values)
             {
-                enumBuilder.AddElement(element.RuntimeValue, element.Value);
+                enumBuilder.AddElement(element.RuntimeValue, element.Value, element.Documentation);
             }
 
             CodeFileBuilder
