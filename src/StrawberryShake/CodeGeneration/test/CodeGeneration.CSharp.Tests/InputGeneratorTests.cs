@@ -1,3 +1,4 @@
+using ChilliCream.Testing;
 using Xunit;
 using static StrawberryShake.CodeGeneration.CSharp.GeneratorTestHelper;
 
@@ -50,6 +51,21 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     ""Field nestedMatrix""
                     nestedMatrix: [[Bar]]
                 }",
+                "extend schema @key(fields: \"id\")");
+        }
+
+        [Fact]
+        public void Input_Type_Fields_Are_Inspected_For_LeafTypes()
+        {
+            AssertResult(
+                @"mutation ChangeHomePlanet($input: ChangeHomePlanetInput!) {
+                    changeHomePlanet(input: $input) {
+                        human {
+                            homePlanet
+                        }
+                    }
+                }",
+                FileResource.Open("StarWarsSchema_ChangeHomePlanet.graphql"),
                 "extend schema @key(fields: \"id\")");
         }
     }
