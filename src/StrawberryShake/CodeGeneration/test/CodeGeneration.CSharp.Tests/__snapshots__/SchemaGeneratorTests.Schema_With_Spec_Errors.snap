@@ -86,7 +86,6 @@ namespace Foo.Bar
 
         /// <summary>
         /// Vyhledávání mezi inzeráty
-        /// 
         /// </summary>
         public global::Foo.Bar.State.ListingsPayloadData Listings { get; }
 
@@ -127,7 +126,6 @@ namespace Foo.Bar
 
         /// <summary>
         /// Vyhledávání mezi inzeráty
-        /// 
         /// </summary>
         public IGetListingsCount_Listings Listings { get; }
     }
@@ -172,7 +170,6 @@ namespace Foo.Bar
     {
         /// <summary>
         /// Vyhledávání mezi inzeráty
-        /// 
         /// </summary>
         public IGetListingsCount_Listings Listings { get; }
     }
