@@ -5,7 +5,7 @@ namespace HotChocolate.Types.Scalars
 {
     /// <summary>
     /// The `PhoneNumber` scalar type scalar type represents a value that conforms to the standard
-    /// E.164 format as specified in: https://en.wikipedia.org/wiki/E.164.
+    /// E.164 format. <a href="https://en.wikipedia.org/wiki/E.164">See More</a>.
     /// </summary>
     public class PhoneNumberType : StringType
     {
@@ -55,7 +55,7 @@ namespace HotChocolate.Types.Scalars
         /// <inheritdoc />
         protected override string ParseLiteral(StringValueNode valueSyntax)
         {
-            if(!_validationRegex.IsMatch(valueSyntax.Value))
+            if (!_validationRegex.IsMatch(valueSyntax.Value))
             {
                 throw ThrowHelper.PhoneNumber_ParseLiteral_IsInvalid(this);
             }
@@ -66,7 +66,7 @@ namespace HotChocolate.Types.Scalars
         /// <inheritdoc />
         protected override StringValueNode ParseValue(string runtimeValue)
         {
-            if(!_validationRegex.IsMatch(runtimeValue))
+            if (!_validationRegex.IsMatch(runtimeValue))
             {
                 throw ThrowHelper.PhoneNumber_ParseValue_IsInvalid(this);
             }
@@ -83,8 +83,8 @@ namespace HotChocolate.Types.Scalars
                 return true;
             }
 
-            if(runtimeValue is string s &&
-               _validationRegex.IsMatch(s))
+            if (runtimeValue is string s &&
+                _validationRegex.IsMatch(s))
             {
                 resultValue = s;
                 return true;
@@ -103,8 +103,8 @@ namespace HotChocolate.Types.Scalars
                 return true;
             }
 
-            if(resultValue is string s &&
-               _validationRegex.IsMatch(s))
+            if (resultValue is string s &&
+                _validationRegex.IsMatch(s))
             {
                 runtimeValue = s;
                 return true;

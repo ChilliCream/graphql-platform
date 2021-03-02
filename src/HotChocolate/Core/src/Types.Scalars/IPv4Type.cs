@@ -5,8 +5,8 @@ using HotChocolate.Language;
 namespace HotChocolate.Types.Scalars
 {
     /// <summary>
-    /// The `IPv4` scalar type represents a valid a IPv4 address as defined here
-    /// https://en.wikipedia.org/wiki/IPv4.
+    /// The `IPv4` scalar type represents a valid a IPv4 address as defined in
+    /// <a href="https://tools.ietf.org/html/rfc791">RFC791</a>
     /// </summary>
     public class IPv4Type : RegularExpressionType
     {

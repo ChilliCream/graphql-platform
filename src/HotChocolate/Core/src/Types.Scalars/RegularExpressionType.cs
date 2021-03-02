@@ -6,8 +6,7 @@ namespace HotChocolate.Types.Scalars
 {
     /// <summary>
     /// The Regular Expression scalar type represents textual data, represented as UTF‐8 character
-    /// sequences following a pattern defined as a regular expression, as detailed here:
-    /// https://en.wikipedia.org/wiki/Regular_expression.
+    /// sequences following a pattern defined as a <see cref="Regex"/>
     /// </summary>
     public class RegularExpressionType : StringType
     {
