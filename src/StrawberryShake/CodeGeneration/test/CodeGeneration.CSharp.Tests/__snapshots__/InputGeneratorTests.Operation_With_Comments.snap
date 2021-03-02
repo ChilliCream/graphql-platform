@@ -133,7 +133,7 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class BarInputValueFormatter
-        : global::StrawberryShake.Serialization.IInputValueFormatter
+        : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter = default!;
         private global::StrawberryShake.Serialization.IInputValueFormatter _barFormatter = default!;
