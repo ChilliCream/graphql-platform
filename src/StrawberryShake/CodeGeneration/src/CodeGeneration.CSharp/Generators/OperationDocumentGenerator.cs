@@ -13,7 +13,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             OperationDescriptor descriptor,
             out string fileName)
         {
-            var documentName = CreateDocumentTypeName(descriptor.Name);
+            var documentName = CreateDocumentTypeName(descriptor.RuntimeType.Name);
             fileName = documentName;
 
             string operationKind = descriptor switch
@@ -34,7 +34,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         .SetSummary(
                             string.Format(
                                 CodeGenerationResources.OperationServiceDescriptor_Description,
-                                descriptor.OperationName))
+                                descriptor.Name))
                         .AddCode(descriptor.BodyString));
 
             classBuilder
@@ -70,7 +70,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             CodeFileBuilder
                 .New()
-                .SetNamespace(descriptor.Namespace)
+                .SetNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal)
                 .AddType(classBuilder)
                 .Build(writer);
         }

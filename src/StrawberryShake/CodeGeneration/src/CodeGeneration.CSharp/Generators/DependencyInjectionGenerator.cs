@@ -134,7 +134,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     descriptor.Operations,
                     (builder, operation) =>
                         builder.AddCode(ForwardSingletonToClientServiceProvider(
-                            $"{operation.Namespace}.{operation.Name}")))
+                            operation.RuntimeType.ToString())))
                 .AddEmptyLine()
                 .AddCode(ForwardSingletonToClientServiceProvider(
                     $"{descriptor.RuntimeType.Namespace}.{descriptor.Name}"))
@@ -218,8 +218,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             if (hasQueries || hasMutations)
             {
-                body.AddCode(
-                    RegisterHttpConnection($"{rootNamespace}.{descriptor.Name}"));
+                body.AddCode(RegisterHttpConnection(descriptor.Name));
             }
 
             body.AddEmptyLine();
@@ -314,10 +313,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 string connectionKind = operation is SubscriptionOperationDescriptor
                     ? TypeNames.WebSocketConnection
                     : TypeNames.HttpConnection;
-                string operationName = operation.OperationName;
-                string fullName = $"{operation.Namespace}.{operation.Name}";
-                string operationInterface =
-                    $"{operation.Namespace}.{typeDescriptor.RuntimeType.Name}";
+                string operationName = operation.Name;
+                string fullName = operation.RuntimeType.ToString();
+                string operationInterface = typeDescriptor.RuntimeType.ToString();
 
                 // The factories are generated based on the concrete result type, which is the
                 // only implementee of the result type interface.
@@ -332,8 +330,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         connectionKind,
                         fullName,
                         operationInterface,
-                        $"{operation.Namespace}.{factoryName}",
-                        $"{operation.Namespace}.{builderName}"));
+                        $"{operation.RuntimeType.Namespace}.{factoryName}",
+                        $"{operation.RuntimeType.Namespace}.{builderName}"));
             }
 
             body.AddCode(

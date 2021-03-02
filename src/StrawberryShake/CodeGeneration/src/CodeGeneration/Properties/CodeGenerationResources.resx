@@ -33,9 +33,6 @@
   <data name="OperationServiceDescriptor_Description" xml:space="preserve">
     <value>Represents the operation service of the {0} GraphQL operation</value>
   </data>
-  <data name="OperationServiceDescriptor_Description" xml:space="preserve">
-    <value>Represents the document of the {0} GraphQL operation</value>
-  </data>
   <data name="ClientDescriptor_Description" xml:space="preserve">
     <value>Represents the {0} GraphQL client</value>
   </data>
