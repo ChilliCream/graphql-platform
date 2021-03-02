@@ -8,7 +8,7 @@ namespace HotChocolate.Types.Scalars
     /// The `IPv4` scalar type represents a valid a IPv4 address as defined in
     /// <a href="https://tools.ietf.org/html/rfc791">RFC791</a>
     /// </summary>
-    public class IPv4Type : RegularExpressionType
+    public class IPv4Type : RegexType
     {
         private const string _validationPattern =
             "(^(?:(?:(?:0?0?[0-9]|0?[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\\.){3}(?:0?0?" +

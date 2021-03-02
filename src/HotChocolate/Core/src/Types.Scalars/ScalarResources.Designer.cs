@@ -423,15 +423,15 @@ namespace HotChocolate.Types.Scalars {
             }
         }
         
-        internal static string RegularExpressionType_IsInvalid_ParseLiteral {
+        internal static string RegexType_IsInvalid_ParseLiteral {
             get {
-                return ResourceManager.GetString("RegularExpressionType_IsInvalid_ParseLiteral", resourceCulture);
+                return ResourceManager.GetString("RegexType_IsInvalid_ParseLiteral", resourceCulture);
             }
         }
         
-        internal static string RegularExpressionType_IsInvalid_ParseValue {
+        internal static string RegexType_IsInvalid_ParseValue {
             get {
-                return ResourceManager.GetString("RegularExpressionType_IsInvalid_ParseValue", resourceCulture);
+                return ResourceManager.GetString("RegexType_IsInvalid_ParseValue", resourceCulture);
             }
         }
         

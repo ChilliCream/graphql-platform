@@ -363,7 +363,7 @@ namespace HotChocolate.Types.Scalars
                 type);
         }
 
-        public static SerializationException RegularExpressionType_ParseValue_IsInvalid(
+        public static SerializationException RegexType_ParseValue_IsInvalid(
             IType type,
             string name)
         {
@@ -371,15 +371,14 @@ namespace HotChocolate.Types.Scalars
                 ErrorBuilder.New()
                     .SetMessage(
                         string.Format(
-                            ScalarResources.RegularExpressionType_IsInvalid_ParseValue,
+                            ScalarResources.RegexType_IsInvalid_ParseValue,
                             name))
                     .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                    .SetExtension("actualType", WellKnownScalarTypes.RegularExpression)
                     .Build(),
                 type);
         }
 
-        public static SerializationException RegularExpressionType_ParseLiteral_IsInvalid(
+        public static SerializationException RegexType_ParseLiteral_IsInvalid(
             IType type,
             string name)
         {
@@ -387,10 +386,9 @@ namespace HotChocolate.Types.Scalars
                 ErrorBuilder.New()
                     .SetMessage(
                         string.Format(
-                            ScalarResources.RegularExpressionType_IsInvalid_ParseLiteral,
+                            ScalarResources.RegexType_IsInvalid_ParseLiteral,
                             name))
                     .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
-                    .SetExtension("actualType", WellKnownScalarTypes.RegularExpression)
                     .Build(),
                 type);
         }

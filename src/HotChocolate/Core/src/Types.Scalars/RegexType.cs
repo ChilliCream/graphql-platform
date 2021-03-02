@@ -8,14 +8,16 @@ namespace HotChocolate.Types.Scalars
     /// The Regular Expression scalar type represents textual data, represented as UTF‐8 character
     /// sequences following a pattern defined as a <see cref="Regex"/>
     /// </summary>
-    public class RegularExpressionType : StringType
+    public class RegexType : StringType
     {
+        private const int _defaultRegexTimeoutInMs = 100;
+
         private readonly Regex _validationRegex;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RegularExpressionType"/> class.
+        /// Initializes a new instance of the <see cref="RegexType"/> class.
         /// </summary>
-        public RegularExpressionType(
+        public RegexType(
             NameString name,
             string pattern,
             string? description = null,
@@ -23,16 +25,19 @@ namespace HotChocolate.Types.Scalars
             BindingBehavior bind = BindingBehavior.Explicit)
             : this(
                 name,
-                new Regex(pattern, regexOptions),
+                new Regex(
+                    pattern,
+                    regexOptions,
+                    TimeSpan.FromMilliseconds(_defaultRegexTimeoutInMs)),
                 description,
                 bind)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RegularExpressionType"/> class.
+        /// Initializes a new instance of the <see cref="RegexType"/> class.
         /// </summary>
-        public RegularExpressionType(
+        public RegexType(
             NameString name,
             Regex regex,
             string? description = null,
@@ -129,7 +134,7 @@ namespace HotChocolate.Types.Scalars
         /// </returns>
         protected virtual Exception CreateParseLiteralError(StringValueNode valueSyntax)
         {
-            return ThrowHelper.RegularExpressionType_ParseLiteral_IsInvalid(this, Name);
+            return ThrowHelper.RegexType_ParseLiteral_IsInvalid(this, Name);
         }
 
         /// <summary>
@@ -144,7 +149,7 @@ namespace HotChocolate.Types.Scalars
         /// </returns>
         protected virtual Exception CreateParseValueError(string runtimeValue)
         {
-            return ThrowHelper.RegularExpressionType_ParseValue_IsInvalid(this, Name);
+            return ThrowHelper.RegexType_ParseValue_IsInvalid(this, Name);
         }
     }
 }

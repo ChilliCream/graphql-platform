@@ -313,10 +313,10 @@
   <data name="PostalCodeType_ValidationPattern_LU" xml:space="preserve">
     <value>(^\d{4}$)</value>
   </data>
-  <data name="RegularExpressionType_IsInvalid_ParseLiteral" xml:space="preserve">
+  <data name="RegexType_IsInvalid_ParseLiteral" xml:space="preserve">
     <value>{0}Type cannot parse the provided literal. The provided value does not match the regular expression pattern.</value>
   </data>
-  <data name="RegularExpressionType_IsInvalid_ParseValue" xml:space="preserve">
+  <data name="RegexType_IsInvalid_ParseValue" xml:space="preserve">
     <value>{0}Type cannot parse the provided value. The provided value does not match the regular expression pattern.</value>
   </data>
   <data name="UnsignedIntType_Description" xml:space="preserve">
