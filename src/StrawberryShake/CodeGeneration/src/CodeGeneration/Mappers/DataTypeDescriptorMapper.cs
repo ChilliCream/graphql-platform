@@ -41,7 +41,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
                 if (!dataTypeInfos.TryGetValue(dataType.Name, out var dataTypeInfo))
                 {
-                    dataTypeInfo = new DataTypeInfo(dataType.Name);
+                    dataTypeInfo = new DataTypeInfo(dataType.Name, dataType.Description);
                     dataTypeInfo.AbstractTypeParentName.AddRange(
                         abstractTypes.Select(abstractType => abstractType.Name.Value));
                     dataTypeInfos.Add(dataType.Name, dataTypeInfo);
@@ -67,6 +67,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                             context.StateNamespace,
                             Array.Empty<ComplexTypeDescriptor>(),
                             Array.Empty<string>(),
+                            dataTypeInfo.Description,
                             true);
                     }
                 }
@@ -78,20 +79,24 @@ namespace StrawberryShake.CodeGeneration.Mappers
                         .Select(name => context.Types.Single(t => t.RuntimeType.Name.Equals(name)))
                         .OfType<ComplexTypeDescriptor>()
                         .ToList(),
-                    implements);
+                    implements,
+                    dataTypeInfo.Description);
             }
         }
 
         private class DataTypeInfo
         {
-            public DataTypeInfo(NameString name)
+            public DataTypeInfo(NameString name, string? description)
             {
                 Name = name;
                 Components = new HashSet<NameString>();
                 AbstractTypeParentName = new List<string>();
+                Description = description;
             }
 
             public NameString Name { get; }
+
+            public string? Description { get; }
 
             public HashSet<NameString> Components { get; }
 

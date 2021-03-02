@@ -25,7 +25,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
                         inputType,
                         new InputObjectTypeDescriptor(
                             inputType.Type.Name,
-                            new (inputType.Name, context.Namespace)));
+                            new (inputType.Name, context.Namespace),
+                            inputType.Description));
 
                     typeDescriptors.Add(inputType.Name, descriptorModel);
                 }
@@ -61,7 +62,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
                             field.Name,
                             BuildFieldType(
                                 field.Type,
-                                fieldType)));
+                                fieldType),
+                            field.Description));
                 }
 
                 typeDescriptorModel.Descriptor.CompleteProperties(properties);

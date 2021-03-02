@@ -24,7 +24,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
                         return new PropertyDescriptor(
                             arg.Name,
-                            Rewrite(arg.Type, namedTypeDescriptor));
+                            Rewrite(arg.Type, namedTypeDescriptor),
+                            null);
                     })
                     .ToList();
 
@@ -37,8 +38,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
                             modelOperation.Name,
                             new QueryOperationDescriptor(
                                 modelOperation.Name,
-                                context.Types.Single(t => t.RuntimeType.Name.Equals(resultTypeName)),
                                 context.Namespace,
+                                context.Types.Single(t => t.RuntimeType.Name.Equals(resultTypeName)),
                                 arguments,
                                 modelOperation.Document.ToString()));
                         break;
@@ -48,8 +49,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
                             modelOperation.Name,
                             new MutationOperationDescriptor(
                                 modelOperation.Name,
-                                context.Types.Single(t => t.RuntimeType.Name.Equals(resultTypeName)),
                                 context.Namespace,
+                                context.Types.Single(t => t.RuntimeType.Name.Equals(resultTypeName)),
                                 arguments,
                                 modelOperation.Document.ToString()));
                         break;
@@ -59,8 +60,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
                             modelOperation.Name,
                             new SubscriptionOperationDescriptor(
                                 modelOperation.Name,
-                                context.Types.Single(t => t.RuntimeType.Name.Equals(resultTypeName)),
                                 context.Namespace,
+                                context.Types.Single(t => t.RuntimeType.Name.Equals(resultTypeName)),
                                 arguments,
                                 modelOperation.Document.ToString()));
                         break;

@@ -16,6 +16,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             ClassBuilder classBuilder = ClassBuilder
                 .New()
+                .SetComment(namedTypeDescriptor.Documentation)
                 .SetName(fileName);
 
             foreach (var prop in namedTypeDescriptor.Properties)
@@ -23,6 +24,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 classBuilder
                     .AddProperty(prop.Name)
                     .SetPublic()
+                    .SetComment(prop.Description)
                     .MakeSettable()
                     .SetType(prop.Type.ToBuilder());
             }

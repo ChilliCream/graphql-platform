@@ -21,6 +21,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             fileName = descriptor.RuntimeType.Name;
             ClassBuilder classBuilder = ClassBuilder
                 .New()
+                .SetComment(descriptor.Description)
                 .SetName(fileName);
 
             ConstructorBuilder constructorBuilder = classBuilder
@@ -34,6 +35,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 // Add Property to class
                 classBuilder
                     .AddProperty(prop.Name)
+                    .SetComment(prop.Description)
                     .SetName(prop.Name)
                     .SetType(propTypeBuilder)
                     .SetPublic()
