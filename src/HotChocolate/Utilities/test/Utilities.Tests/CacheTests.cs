@@ -8,9 +8,7 @@ namespace HotChocolate.Utilities
         public void Fill_Cache_Up()
         {
             // arrange
-            string removedValue = null;
             var cache = new Cache<string>(10);
-            cache.RemovedEntry += (s, e) => { removedValue = e.Value; };
             for (var i = 0; i < 9; i++)
             {
                 cache.GetOrCreate(i.ToString(), () => i.ToString());
@@ -21,7 +19,6 @@ namespace HotChocolate.Utilities
 
             // assert
             Assert.Equal("10", value);
-            Assert.Null(removedValue);
             Assert.Equal(10, cache.Size);
             Assert.Equal(10, cache.Usage);
         }
@@ -30,9 +27,7 @@ namespace HotChocolate.Utilities
         public void Add_More_Items_To_The_Cache_Than_We_Have_Space()
         {
             // arrange
-            string removedValue = null;
             var cache = new Cache<string>(10);
-            cache.RemovedEntry += (s, e) => { removedValue = e.Value; };
             for (var i = 0; i < 10; i++)
             {
                 cache.GetOrCreate(i.ToString(), () => i.ToString());
@@ -43,7 +38,6 @@ namespace HotChocolate.Utilities
 
             // assert
             Assert.Equal("10", value);
-            Assert.Equal("0", removedValue);
             Assert.Equal(10, cache.Size);
             Assert.Equal(10, cache.Usage);
         }
