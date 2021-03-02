@@ -16,6 +16,9 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
         /// <summary>
         /// Initializes a new instance of <see cref="ClientModel" />.
         /// </summary>
+        /// <param name="schema">
+        /// The GraphQL schema.
+        /// </param>
         /// <param name="operations">
         /// The operations that the client has defined.
         /// </param>
