@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
@@ -46,22 +47,21 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
         private void WriteCommentLines(CodeWriter writer, string str)
         {
-            foreach (var line in ReadLines(str))
+            using var reader = new StringReader(str);
+            var line = reader.ReadLine();
+            do
             {
-                writer.WriteIndent();
-                writer.Write("/// ");
-                writer.Write(line);
-                writer.WriteLine();
-            }
-        }
-
-        private IEnumerable<string> ReadLines(string str)
-        {
-            return str.Split(new[]
+                if (line is not null)
                 {
-                    Environment.NewLine
-                },
-                StringSplitOptions.None);
+                    writer.WriteIndent();
+                    writer.Write("/// ");
+                    writer.Write(line);
+                    writer.WriteLine();
+                }
+
+                line = reader.ReadLine();
+            }
+            while (line is not null);
         }
     }
 }
