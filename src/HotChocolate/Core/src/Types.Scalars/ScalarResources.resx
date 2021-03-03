@@ -125,7 +125,7 @@
     </value>
   </resheader>
   <data name="EmailAddressType_Description" xml:space="preserve">
-    <value>The EmailAddress scalar type represents a email address, represented as UTF-8 character sequences. The scalar follows the specification defined in RFC 5322</value>
+    <value>The EmailAddress scalar type constitutes a valid email address, represented as a UTF-8 character sequence. The scalar follows the specification defined by the HTML Spec https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address.</value>
   </data>
   <data name="EmailAddressType_IsInvalid_ParseLiteral" xml:space="preserve">
     <value>EmailAddressType cannot parse the provided literal. The provided value does not meet the RFC 5322 specification.</value>

@@ -5,15 +5,11 @@ using HotChocolate.Language;
 namespace HotChocolate.Types.Scalars
 {
     /// <summary>
-    /// The `EmailAddress` scalar type represents a email address, represented as UTF-8 character
-    /// sequences. The scalar follows the specification defined in RFC 5322.
+    /// The `EmailAddress` scalar type constitutes a valid email address, represented as a UTF-8 character sequence.
+    /// The scalar follows the specification defined by the HTML Spec https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address.
     /// </summary>
     public class EmailAddressType : RegexType
     {
-        /// <summary>
-        /// Well established regex for email validation
-        /// Source : https://emailregex.com/
-        /// </summary>
         private static readonly string _validationPattern =
             "^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$";
 
