@@ -25,8 +25,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .AddProperty(prop.Name)
                     .SetPublic()
                     .SetComment(prop.Description)
+                    .SetType(prop.Type.ToBuilder())
                     .MakeSettable()
-                    .SetType(prop.Type.ToBuilder());
+                    .SetValue("default!");
             }
 
             CodeFileBuilder

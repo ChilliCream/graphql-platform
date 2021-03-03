@@ -473,15 +473,15 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class Bar
     {
-        public global::System.String? Str { get; set; }
+        public global::System.String? Str { get; set; } = default!;
 
-        public global::System.String StrNonNullable { get; set; }
+        public global::System.String StrNonNullable { get; set; } = default!;
 
-        public Bar? Nested { get; set; }
+        public Bar? Nested { get; set; } = default!;
 
-        public global::System.Collections.Generic.IReadOnlyList<Bar> NestedList { get; set; }
+        public global::System.Collections.Generic.IReadOnlyList<Bar> NestedList { get; set; } = default!;
 
-        public global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<Bar?>?>? NestedMatrix { get; set; }
+        public global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<Bar?>?>? NestedMatrix { get; set; } = default!;
     }
 }
 

@@ -397,9 +397,9 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ChangeHomePlanetInput
     {
-        public global::System.Int32 Id { get; set; }
+        public global::System.Int32 Id { get; set; } = default!;
 
-        public global::System.String HomePlanet { get; set; }
+        public global::System.String HomePlanet { get; set; } = default!;
     }
 }
 

@@ -271,9 +271,9 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ReviewInput
     {
-        public global::System.Int32 Stars { get; set; }
+        public global::System.Int32 Stars { get; set; } = default!;
 
-        public global::System.String? Commentary { get; set; }
+        public global::System.String? Commentary { get; set; } = default!;
     }
 }
 
