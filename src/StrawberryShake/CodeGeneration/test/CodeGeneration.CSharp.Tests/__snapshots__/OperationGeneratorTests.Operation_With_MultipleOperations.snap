@@ -1073,7 +1073,7 @@ namespace Foo.Bar
             (ITestOperationResult Result, TestOperationResultInfo Info)? data = null;
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
 
-            if (response.Body is not null)
+            if (response.Body != null)
             {
                 if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement))
                 {
@@ -1163,7 +1163,7 @@ namespace Foo.Bar
             (ITestOperation2Result Result, TestOperation2ResultInfo Info)? data = null;
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
 
-            if (response.Body is not null)
+            if (response.Body != null)
             {
                 if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement))
                 {
@@ -1253,7 +1253,7 @@ namespace Foo.Bar
             (ITestOperation3Result Result, TestOperation3ResultInfo Info)? data = null;
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
 
-            if (response.Body is not null)
+            if (response.Body != null)
             {
                 if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement))
                 {

@@ -530,7 +530,7 @@ namespace Foo.Bar
             (ICreateReviewMutResult Result, CreateReviewMutResultInfo Info)? data = null;
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
 
-            if (response.Body is not null)
+            if (response.Body != null)
             {
                 if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement))
                 {
