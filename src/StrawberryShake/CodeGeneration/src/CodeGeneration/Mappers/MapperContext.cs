@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate;
+using HotChocolate.Language;
 
 namespace StrawberryShake.CodeGeneration.Mappers
 {
@@ -16,16 +17,22 @@ namespace StrawberryShake.CodeGeneration.Mappers
         private EntityIdFactoryDescriptor? _entityIdFactory;
         private DependencyInjectionDescriptor? _dependencyInjectionDescriptor;
 
-        public MapperContext(string @namespace, string clientName)
+        public MapperContext(
+            string @namespace,
+            string clientName,
+            IDocumentHashProvider hashProvider)
         {
             Namespace = @namespace;
             ClientName = clientName;
+            HashProvider = hashProvider;
         }
 
         public string ClientName { get; }
 
         public string Namespace { get; }
         public string StateNamespace => Namespace + ".State";
+
+        public IDocumentHashProvider HashProvider { get; }
 
         public IReadOnlyList<INamedTypeDescriptor> Types => _types;
 

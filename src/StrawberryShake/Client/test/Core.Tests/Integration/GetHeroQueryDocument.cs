@@ -33,6 +33,8 @@ namespace StrawberryShake.Integration
 
         public ReadOnlySpan<byte> Body => _body;
 
+        public DocumentHash Hash { get; } = new("MD5", "ABC");
+
         public override string ToString() => _bodyString;
     }
 }

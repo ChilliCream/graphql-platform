@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using HotChocolate;
+using HotChocolate.Language;
 
 namespace StrawberryShake.CodeGeneration.Mappers
 {
@@ -19,6 +20,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
         /// </summary>
         /// <value></value>
         string StateNamespace { get; }
+
+        IDocumentHashProvider HashProvider { get; }
 
         IReadOnlyList<INamedTypeDescriptor> Types { get; }
 

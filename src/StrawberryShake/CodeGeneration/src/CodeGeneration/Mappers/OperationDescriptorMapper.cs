@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Text;
 using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -31,6 +32,10 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
                 var resultTypeName = CreateResultRootTypeName(modelOperation.ResultType.Name);
 
+                string bodyString = modelOperation.Document.ToString(false);
+                byte[] body = Encoding.UTF8.GetBytes(bodyString);
+                string hash = context.HashProvider.ComputeHash(body);
+
                 switch (modelOperation.OperationType)
                 {
                     case OperationType.Query:
@@ -41,7 +46,10 @@ namespace StrawberryShake.CodeGeneration.Mappers
                                 context.Namespace,
                                 context.Types.Single(t => t.RuntimeType.Name.Equals(resultTypeName)),
                                 arguments,
-                                modelOperation.Document.ToString()));
+                                body,
+                                bodyString,
+                                context.HashProvider.Name,
+                                hash));
                         break;
 
                     case OperationType.Mutation:
@@ -52,7 +60,10 @@ namespace StrawberryShake.CodeGeneration.Mappers
                                 context.Namespace,
                                 context.Types.Single(t => t.RuntimeType.Name.Equals(resultTypeName)),
                                 arguments,
-                                modelOperation.Document.ToString()));
+                                body,
+                                bodyString,
+                                context.HashProvider.Name,
+                                hash));
                         break;
 
                     case OperationType.Subscription:
@@ -63,7 +74,10 @@ namespace StrawberryShake.CodeGeneration.Mappers
                                 context.Namespace,
                                 context.Types.Single(t => t.RuntimeType.Name.Equals(resultTypeName)),
                                 arguments,
-                                modelOperation.Document.ToString()));
+                                body,
+                                bodyString,
+                                context.HashProvider.Name,
+                                hash));
                         break;
 
                     default:

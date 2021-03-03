@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
+using HotChocolate.Language;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Extensions;
 using Xunit;
@@ -21,7 +22,10 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 }");
 
             // act
-            var context = new MapperContext("Foo.Bar", "FooClient");
+            var context = new MapperContext(
+                "Foo.Bar",
+                "FooClient",
+                new Sha1DocumentHashProvider());
             TypeDescriptorMapper.Map(clientModel, context);
 
             // assert
@@ -92,7 +96,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                         property =>
                         {
                             Assert.Equal("Hero", property.Name);
-                            Assert.Equal("IGetHero_Hero", 
+                            Assert.Equal("IGetHero_Hero",
                                 Assert.IsType<InterfaceTypeDescriptor>(property.Type)
                                     .RuntimeType.Name);
                             Assert.True(property.Type.IsNullableType());
@@ -108,7 +112,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                         property =>
                         {
                             Assert.Equal("Hero", property.Name);
-                            Assert.Equal("IGetHero_Hero", 
+                            Assert.Equal("IGetHero_Hero",
                                 Assert.IsType<InterfaceTypeDescriptor>(property.Type)
                                     .RuntimeType.Name);
                             Assert.True(property.Type.IsNullableType());

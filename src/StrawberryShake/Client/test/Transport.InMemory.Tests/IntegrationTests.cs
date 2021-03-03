@@ -221,6 +221,8 @@ namespace StrawberryShake.Transport.InMemory
             public OperationKind Kind => OperationKind.Query;
 
             public ReadOnlySpan<byte> Body => _query;
+
+            public DocumentHash Hash { get; } = new("MD5", "ABC");
         }
 
         public class StubInterceptor : IInMemoryRequestInterceptor

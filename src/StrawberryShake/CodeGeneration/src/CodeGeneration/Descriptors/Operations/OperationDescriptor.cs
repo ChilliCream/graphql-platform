@@ -9,18 +9,24 @@ namespace StrawberryShake.CodeGeneration
     /// </summary>
     public abstract class OperationDescriptor : ICodeDescriptor
     {
-        public OperationDescriptor(
+        protected OperationDescriptor(
             NameString name,
             RuntimeTypeInfo runtimeType,
             ITypeDescriptor resultTypeReference,
             IReadOnlyList<PropertyDescriptor> arguments,
-            string bodyString)
+            byte[] body,
+            string bodyString,
+            string hashAlgorithm,
+            string hashValue)
         {
             Name = name;
             RuntimeType = runtimeType;
             ResultTypeReference = resultTypeReference;
             Arguments = arguments;
+            Body = body;
             BodyString = bodyString;
+            HashAlgorithm = hashAlgorithm;
+            HashValue = hashValue;
         }
 
         /// <summary>
@@ -35,7 +41,25 @@ namespace StrawberryShake.CodeGeneration
         /// </summary>
         public ITypeDescriptor ResultTypeReference { get; }
 
+        /// <summary>
+        /// Gets the GraphQL Document.
+        /// </summary>
+        public byte[] Body { get;  }
+
+        /// <summary>
+        /// Gets the GraphQL Document as string.
+        /// </summary>
         public string BodyString { get; }
+
+        /// <summary>
+        /// Gets the document hash algorithm.
+        /// </summary>
+        public string HashAlgorithm { get; }
+
+        /// <summary>
+        /// Gets the document hash value.
+        /// </summary>
+        public string HashValue { get; }
 
         /// <summary>
         /// The arguments the operation takes.

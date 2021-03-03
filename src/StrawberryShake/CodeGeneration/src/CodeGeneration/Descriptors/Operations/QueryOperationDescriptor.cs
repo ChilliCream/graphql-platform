@@ -14,13 +14,19 @@ namespace StrawberryShake.CodeGeneration
             string @namespace,
             ITypeDescriptor resultTypeReference,
             IReadOnlyList<PropertyDescriptor> arguments,
-            string bodyString)
+            byte[] body,
+            string bodyString,
+            string hashAlgorithm,
+            string hashValue)
             : base(
                 name,
                 new RuntimeTypeInfo(CreateQueryServiceName(name), @namespace),
                 resultTypeReference,
                 arguments,
-                bodyString)
+                body,
+                bodyString,
+                hashAlgorithm,
+                hashValue)
         {
         }
     }

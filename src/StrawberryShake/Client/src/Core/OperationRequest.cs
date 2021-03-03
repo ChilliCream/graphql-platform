@@ -94,6 +94,12 @@ namespace StrawberryShake
         public IReadOnlyDictionary<string, object?>? GetExtensionsOrNull() =>
             _extensions;
 
+        /// <summary>
+        /// Gets the request context data values or null.
+        /// </summary>
+        public IReadOnlyDictionary<string, object?>? GetContextDataOrNull() =>
+            _contextData;
+
         public bool Equals(OperationRequest? other)
         {
             if (ReferenceEquals(null, other))
