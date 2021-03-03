@@ -8,7 +8,7 @@ namespace HotChocolate.Data.Neo4J.Language
     /// recognized by visitors.
     /// </summary>
     /// <typeparam name="T">The children's type</typeparam>
-    public abstract class TypedSubtree<T> : Visitable where T: Visitable
+    public abstract class TypedSubtree<T> : Visitable where T: IVisitable
     {
         /// <summary>
         /// The content of this typed subtree.

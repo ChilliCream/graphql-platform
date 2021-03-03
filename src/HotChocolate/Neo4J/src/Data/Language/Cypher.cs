@@ -12,15 +12,25 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public static class Cypher
     {
-        public static Node Node(string primaryLabel)
-        {
-            return Language.Node.Create(primaryLabel);
-        }
-
-        public static Node Node(string primaryLabel, string[] additionalLabels)
+        /// <summary>
+        /// Create a new Node representation with at least one label, the "primary" label. This is required. All other labels
+        /// are optional.
+        /// </summary>
+        /// <param name="primaryLabel">The primary label this node is identified by.</param>
+        /// <param name="additionalLabels">Additional labels</param>
+        /// <returns>A new node representation</returns>
+        public static Node Node(string primaryLabel, params string[] additionalLabels)
         {
             return Language.Node.Create(primaryLabel, additionalLabels);
         }
+
+        public static Node Node(string primaryLabel, MapExpression properties, params string[] additionalLabels)
+        {
+            return Language.Node.Create(primaryLabel, properties, additionalLabels);
+        }
+
+        public static Node AnyNode() => Language.Node.Create();
+
         public static Expression LiteralOf<T>(T literal)
         {
             return literal switch
@@ -35,13 +45,17 @@ namespace HotChocolate.Data.Neo4J.Language
             };
         }
 
-        public static StatementBuilder Match(params PatternElement[] pattern) {
+        public static MapExpression MapOf(params object[] keysAndValues) =>
+            MapExpression.Create(keysAndValues);
+
+        public static StatementBuilder Match(params IPatternElement[] pattern) {
             return Statement.Builder().Match(pattern);
         }
 
-        /*public static StatementBuilder Return(params PatternElement[] pattern) {
-            return Statement.Builder().Return(pattern);
-        */
+        public static StatementBuilder Create(params IPatternElement[] patternElements)
+        {
+            return Statement.Builder().Create(patternElements);
+        }
 
         public static SymbolicName Name(string value) => SymbolicName.Of(value);
         public static Property Property(Expression expression, string name) => Language.Property.Create(expression, name);
@@ -49,6 +63,6 @@ namespace HotChocolate.Data.Neo4J.Language
         public static Literal<string> Null() => NullLiteral.Instance;
         public static Literal<bool> LiteralTrue() => BooleanLiteral.True;
         public static Literal<bool> LiteralFalse() => BooleanLiteral.False;
-        public static Literal<string> Asterik() => Asterisk.Instance;
+        public static Asterisk Asterisk => Asterisk.Instance;
     }
 }

@@ -70,7 +70,7 @@
 
         public static Condition Not(Condition condition) => condition.Not();
 
-        public static Condition Not(PatternElement patternElement) => new ExcludePattern(patternElement);
+        public static Condition Not(IPatternElement patternElement) => new ExcludePattern(patternElement);
 
         public static Condition StartsWith(Expression lhs, Expression rhs) =>
             Comparison.Create(lhs, Operator.StartsWith, rhs);

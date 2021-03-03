@@ -19,7 +19,7 @@ namespace HotChocolate.Data.Neo4J.Language
             _unbounded = true;
         }
 
-        public RelationshipLength(int minimum, int maximum)
+        public RelationshipLength(int? minimum, int? maximum)
         {
             _minimum = minimum;
             _maximum = maximum;

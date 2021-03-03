@@ -12,7 +12,7 @@ namespace HotChocolate.Data.Neo4J.Language
         public override ClauseKind Kind => ClauseKind.SymbolicName;
         private readonly string _value;
 
-        public SymbolicName(string value)
+        private SymbolicName(string value)
         {
             _value = value;
         }
@@ -28,10 +28,15 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public static SymbolicName Unresolved() => new (null);
 
+        /// <summary>
+        /// Creates a new symbolic name by concatenating {@code otherValue} to this names value.
+        /// </summary>
+        /// <param name="otherValue"></param>
+        /// <returns></returns>
         public SymbolicName Concat(string otherValue)
         {
             Ensure.IsNotNull(otherValue, "Value to concat must not be null.");
-            return string.IsNullOrEmpty(otherValue) ? this : Of(_value + otherValue);
+            return otherValue == string.Empty ? this : Of(_value + otherValue);
         }
 
         public Condition AsCondition() => new ExpressionCondition(this);

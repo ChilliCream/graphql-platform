@@ -75,10 +75,10 @@ namespace HotChocolate.Data.Neo4J.Language
 
         protected bool PreEnter(IVisitable visitable)
         {
-            AliasedExpression lastAliased = _currentAliasedElements.Peek();
-            if (_skipNodeContent || _visitableToAliased.Contains(lastAliased)) {
-                return false;
-            }
+            // AliasedExpression lastAliased = _currentAliasedElements.Peek();
+            // if (_skipNodeContent || _visitableToAliased.Contains(lastAliased)) {
+            //     return false;
+            // }
             var nextLevel = ++_currentLevel + 1;
             if (visitable is TypedSubtree<Visitable>) {
                 EnableSeparator(nextLevel, true);
@@ -95,31 +95,31 @@ namespace HotChocolate.Data.Neo4J.Language
                 EnableSeparator(_currentLevel + 1, false);
             }
 
-            if (Equals(_currentAliasedElements.Peek(), visitable)) {
-                _currentAliasedElements.Dequeue();
-            }
-
-            if (visitable is MapProjection) {
-                _skipAliasing = false;
-            }
-
-            if (visitable is AliasedExpression aliasedExpression) {
-                _visitableToAliased.Add(aliasedExpression);
-            }
+            // if (Equals(_currentAliasedElements.Peek(), visitable)) {
+            //     _currentAliasedElements.Dequeue();
+            // }
+            //
+            // if (visitable is MapProjection) {
+            //     _skipAliasing = false;
+            // }
+            //
+            // if (visitable is AliasedExpression aliasedExpression) {
+            //     _visitableToAliased.Add(aliasedExpression);
+            // }
 
             --_currentLevel;
         }
 
-        public string EscapeName(string unescapedName)
-        {
-            if (unescapedName == null)
-            {
-                return string.Empty;
-            }
-
-            MatchCollection matcher = LABEL_AND_TYPE_QUOTATION.Matches(unescapedName);
-
-            return string.Format("`{0}`", Regex.Replace(unescapedName, LABEL_AND_TYPE_QUOTATION.Matches(unescapedName)));
-        }
+        // public string EscapeName(string unescapedName)
+        // {
+        //     if (unescapedName == null)
+        //     {
+        //         return string.Empty;
+        //     }
+        //
+        //     MatchCollection matcher = LABEL_AND_TYPE_QUOTATION.Matches(unescapedName);
+        //
+        //     //return string.Format("`{0}`", Regex.Replace(unescapedName, LABEL_AND_TYPE_QUOTATION.Matches(unescapedName)));
+        // }
     }
 }

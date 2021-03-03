@@ -3,6 +3,7 @@ using System.Collections;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Data.Neo4J.Filtering;
+using HotChocolate.Data.Neo4J.Language;
 using HotChocolate.Data.Neo4J.Projections;
 using HotChocolate.Data.Neo4J.Sorting;
 using Neo4j.Driver;
@@ -44,11 +45,16 @@ namespace HotChocolate.Data.Neo4J.Execution
 
         public async ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
         {
+            Node node = Cypher.Node("Business").Named("b");
+            StatementBuilder statement = Cypher.Match(node).Return(node);
+
             // statement builder => match / where / return
-            IResultCursor cursor = await _session.RunAsync(@"
-                MATCH (business:Business)
-                RETURN business { .name, .city, .state, reviews: [(business)<-[:REVIEWS]-(reviews) | reviews {.rating, .text}] }
-            ").ConfigureAwait(false);
+            // IResultCursor cursor = await _session.RunAsync(@"
+            //     MATCH (business:Business)
+            //     RETURN business { .name, .city, .state, reviews: [(business)<-[:REVIEWS]-(reviews) | reviews {.rating, .text}] }
+            // ").ConfigureAwait(false);
+
+            IResultCursor cursor = await _session.RunAsync(statement.Build());
 
             return await cursor.MapAsync<T>().ConfigureAwait(false);
         }

@@ -6,14 +6,17 @@ namespace HotChocolate.Data.Neo4J.Language
     {
         public void Leave(IVisitable visitable)
         {
-            if (!Equals(_currentVisitedElements.Peek(), visitable)) return;
-            PostLeave(visitable);
-            _currentVisitedElements.Dequeue();
+            //if (!Equals(_currentVisitedElements.Peek(), visitable)) return;
+            //PostLeave(visitable);
+            //_currentVisitedElements.Dequeue();
 
             switch (visitable.Kind)
             {
                 case ClauseKind.Match:
                     LeaveVisitable((Match)visitable);
+                    break;
+                case ClauseKind.Where:
+                    LeaveVisitable((Where)visitable);
                     break;
                 case ClauseKind.Create:
                     LeaveVisitable((Create)visitable);
@@ -33,9 +36,11 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.PatternComprehension:
                     LeaveVisitable((PatternComprehension)visitable);
                     break;
-                case ClauseKind.Expression:
+                case ClauseKind.RelationshipDetails:
+                    LeaveVisitable((RelationshipDetails)visitable);
                     break;
                 case ClauseKind.AliasedExpression:
+                case ClauseKind.Expression:
                     break;
                 case ClauseKind.Visitable:
                     break;
@@ -90,7 +95,6 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.With:
                     break;
                 case ClauseKind.Unwind:
-                case ClauseKind.Where:
                 case ClauseKind.YieldItems:
                 case ClauseKind.Exists:
                 case ClauseKind.Distinct:
@@ -114,6 +118,9 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.Statement:
                 case ClauseKind.RelationshipLength:
                     break;
+                case ClauseKind.RelationshipTypes:
+                    break;
+
                 default:
                     throw new ArgumentOutOfRangeException();
             }

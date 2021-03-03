@@ -9,11 +9,11 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </para>
     /// <para>See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/Pattern.html">Pattern</a>.</para>
     /// </summary>
-    public class Pattern : TypedSubtree<PatternElement>
+    public class Pattern : TypedSubtree<IPatternElement>
     {
-        public override ClauseKind Kind => ClauseKind.Pattern;
+        public override ClauseKind Kind { get; } = ClauseKind.Pattern;
+        public Pattern(List<IPatternElement> patternElements) : base(patternElements) { }
+        public Pattern(params IPatternElement[] patternElements) : base(patternElements) { }
 
-        public Pattern(List<PatternElement> patternElements) : base(patternElements) { }
-        public Pattern(params PatternElement[] patternElements) : base(patternElements) { }
     }
 }

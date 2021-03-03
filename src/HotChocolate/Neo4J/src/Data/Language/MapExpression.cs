@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 
 namespace HotChocolate.Data.Neo4J.Language
 {
@@ -40,29 +39,5 @@ namespace HotChocolate.Data.Neo4J.Language
 
         protected override IVisitable PrepareVisit(Expression child) =>
             Expressions.NameOrExpression(child);
-
-        /*public override void Visit(CypherVisitor visitor)
-        {
-            var singleExpression = _children.Any() && !_children.Skip(1).Any();
-            var hasManyExpressions = _children.Any() && _children.Skip(1).Any();
-
-            visitor.Enter(this);
-            if(singleExpression)
-                _children.First().Visit(visitor);
-            else if (hasManyExpressions)
-            {
-                foreach (Expression expression in _children)
-                {
-                    if (_children.IndexOf(expression) == _children.Count - 1)
-                    {
-                        expression.Visit(visitor);
-                        break;
-                    }
-                    expression.Visit(visitor);
-                    KeyValueSeparator.Instance.Visit(visitor);
-                }
-            }
-            visitor.Leave(this);
-        }*/
     }
 }

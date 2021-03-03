@@ -79,14 +79,19 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.PatternComprehension:
                     EnterVisitable((PatternComprehension)visitable);
                     break;
-                case ClauseKind.RelationshipLength:
-                    EnterVisitable((RelationshipLength)visitable);
+                case ClauseKind.AliasedExpression:
+                    EnterVisitable((AliasedExpression)visitable);
+                    break;
+                case ClauseKind.RelationshipDetails:
+                    EnterVisitable((RelationshipDetails)visitable);
                     break;
                 case ClauseKind.RelationshipTypes:
                     EnterVisitable((RelationshipTypes)visitable);
                     break;
+                case ClauseKind.RelationshipLength:
+                    EnterVisitable((RelationshipLength)visitable);
+                    break;
                 case ClauseKind.Expression:
-                case ClauseKind.AliasedExpression:
                 case ClauseKind.Visitable:
                 case ClauseKind.TypedSubtree:
                 case ClauseKind.Pattern:
@@ -122,6 +127,7 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.RelationshipPatternCondition:
                 case ClauseKind.Statement:
                     break;
+
                 default:
                     throw new ArgumentOutOfRangeException();
             }

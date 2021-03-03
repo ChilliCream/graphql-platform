@@ -18,54 +18,59 @@ namespace HotChocolate.Data.Neo4J.Language
             _writer.Write(" ");
         }
 
-        public void EnterVisitable(Where where)
+        private void EnterVisitable(Where where)
         {
             _writer.Write("WHERE ");
         }
 
-        public void EnterVisitable(Exists exists)
-        {
-            _writer.Write(" EXISTS ");
-        }
-
-        public void EnterVisitable(Create create)
-        {
-            _writer.Write("CREATE ");
-        }
-
-        public void LeaveVisitable(Create create)
+        private void LeaveVisitable(Where where)
         {
             _writer.Write(" ");
         }
 
-        public void EnterVisitable(Node node)
+        private void EnterVisitable(Exists exists)
+        {
+            _writer.Write(" EXISTS ");
+        }
+
+        private void EnterVisitable(Create create)
+        {
+            _writer.Write("CREATE ");
+        }
+
+        private void LeaveVisitable(Create create)
+        {
+            _writer.Write(" ");
+        }
+
+        private void EnterVisitable(Node node)
         {
             _writer.Write("(");
         }
 
-        public void LeaveVisitable(Node node)
+        private void LeaveVisitable(Node node)
         {
             _writer.Write(")");
         }
 
-        public void EnterVisitable(SymbolicName symbolicName)
+        private void EnterVisitable(SymbolicName symbolicName)
         {
             _writer.Write(symbolicName.GetValue());
         }
 
-        public void EnterVisitable(NodeLabel nodeLabel)
+        private void EnterVisitable(NodeLabel nodeLabel)
         {
             _writer.Write(Symbol.Colon);
             _writer.Write(nodeLabel.GetValue());
         }
 
-        public void EnterVisitable(PropertyLookup propertyLookup)
+        private void EnterVisitable(PropertyLookup propertyLookup)
         {
             _writer.Write(".");
             _writer.Write(propertyLookup.GetPropertyKeyName());
         }
 
-        public void EnterVisitable(Operator op)
+        private void EnterVisitable(Operator op)
         {
             Operator.Type type = op.GetType();
             if (type == Operator.Type.Label) {
@@ -85,7 +90,7 @@ namespace HotChocolate.Data.Neo4J.Language
             _writer.Write(" ");
         }
 
-        public void EnterVisitable(MapExpression map)
+        private void EnterVisitable(MapExpression map)
         {
             _writer.Write("{");
         }
@@ -117,7 +122,7 @@ namespace HotChocolate.Data.Neo4J.Language
         }
 
 
-        public void EnterVisitable(ILiteral literal)
+        private void EnterVisitable(ILiteral literal)
         {
             _writer.Write(literal.AsString());
         }
@@ -141,6 +146,7 @@ namespace HotChocolate.Data.Neo4J.Language
         {
             _writer.Write(")");
         }
+
         private void EnterVisitable(Return @return)
         {
             _writer.Write("RETURN ");
@@ -165,6 +171,43 @@ namespace HotChocolate.Data.Neo4J.Language
             _writer.Write(" LIMIT ");
         }
 
+        private void EnterVisitable(AliasedExpression aliased)
+        {
+            _writer.Write(" AS ");
+            _writer.Write(aliased.GetAlias());
+        }
+
+        private void EnterVisitable(RelationshipDetails details)
+        {
+            RelationshipDirection direction = details.GetDirection();
+
+            _writer.Write(direction.GetLeftSymbol());
+            if (details.HasContent())
+            {
+                _writer.Write("[");
+            }
+        }
+
+        private void LeaveVisitable(RelationshipDetails details)
+        {
+            RelationshipDirection direction = details.GetDirection();
+
+            if (details.HasContent())
+            {
+                _writer.Write("]");
+            }
+            _writer.Write(direction.GetRightSymbol());
+        }
+
+        private void EnterVisitable(RelationshipTypes types)
+        {
+            _writer.Write(
+                types.GetValues()
+                    .Aggregate(string.Empty,
+                        (partialPhrase, word) => $"{partialPhrase}{Symbol.Pipe}:{word}")
+                    .TrimStart(Symbol.Pipe.ToCharArray()));
+        }
+
         private void EnterVisitable(RelationshipLength length)
         {
             var minimum = length.GetMinimum();
@@ -187,11 +230,6 @@ namespace HotChocolate.Data.Neo4J.Language
             if (maximum != null) {
                 _writer.Write(maximum.ToString());
             }
-        }
-
-        private void EnterVisitable(RelationshipTypes types)
-        {
-            _writer.Write(string.Join(Symbol.Pipe, types.GetValues));
         }
     }
 }

@@ -17,6 +17,6 @@ namespace HotChocolate.Data.Neo4J.Language
         /// <summary>
         /// The list of types. The types are not escaped and must be escaped prior to rendering.
         /// </summary>
-        public List<string> GetValues => _values;
+        public List<string> GetValues() => _values;
     }
 }

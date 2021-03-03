@@ -1,1 +1,0 @@
-﻿MATCH (b:Bike)(u:User)(o:U) RETURN bu
