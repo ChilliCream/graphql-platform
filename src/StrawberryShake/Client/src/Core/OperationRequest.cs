@@ -88,6 +88,12 @@ namespace StrawberryShake
             }
         }
 
+        /// <summary>
+        /// Gets the request extension values or null.
+        /// </summary>
+        public IReadOnlyDictionary<string, object?>? GetExtensionsOrNull() =>
+            _extensions;
+
         public bool Equals(OperationRequest? other)
         {
             if (ReferenceEquals(null, other))

@@ -47,6 +47,53 @@ namespace StrawberryShake.Json
             Encoding.UTF8.GetString(stream.ToArray()).MatchSnapshot();
         }
 
+        [Fact]
+        public void Serialize_Request_With_Extensions()
+        {
+            // arrange
+            var operationRequest = new OperationRequest(
+                "abc",
+                new Document());
+            operationRequest.Extensions.Add(nameof(String), "def");
+            operationRequest.Extensions.Add("null", null);
+
+            operationRequest.Extensions.Add(nameof(Byte), (byte)123);
+            operationRequest.Extensions.Add(nameof(Int16), (short)123);
+            operationRequest.Extensions.Add(nameof(UInt16), (ushort)123);
+            operationRequest.Extensions.Add(nameof(Int32), 123);
+            operationRequest.Extensions.Add(nameof(UInt32), (uint)123);
+            operationRequest.Extensions.Add(nameof(Int64), (long)123);
+            operationRequest.Extensions.Add(nameof(UInt64), (ulong)123);
+
+            operationRequest.Extensions.Add(nameof(Single), (float)123.123);
+            operationRequest.Extensions.Add(nameof(Double), 123.123);
+            operationRequest.Extensions.Add(nameof(Decimal), (decimal)123.123);
+
+            operationRequest.Extensions.Add(nameof(Uri), new Uri("http://local"));
+
+            operationRequest.Extensions.Add("ol",
+                new List<object>
+                {
+                    new KeyValuePair<string, object?>[]
+                    {
+                        new("s", "def"),
+                    }
+                });
+            operationRequest.Extensions.Add("sl", new List<string> { "a", "b", "c" });
+            operationRequest.Extensions.Add("il", new[] { 1, 2, 3 });
+            operationRequest.Extensions.Add("tuple", ("a", "b"));
+
+            // act
+            using var stream = new MemoryStream();
+            using var jsonWriter = new Utf8JsonWriter(stream, new() { Indented = true });
+            var serializer = new JsonOperationRequestSerializer();
+            serializer.Serialize(operationRequest, jsonWriter);
+            jsonWriter.Flush();
+
+            // assert
+            Encoding.UTF8.GetString(stream.ToArray()).MatchSnapshot();
+        }
+
         private class Document : IDocument
         {
             public OperationKind Kind => OperationKind.Query;

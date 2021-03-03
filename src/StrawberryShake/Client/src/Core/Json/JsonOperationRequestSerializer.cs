@@ -52,10 +52,10 @@ namespace StrawberryShake.Json
 
         private static void WriteExtensions(OperationRequest request, Utf8JsonWriter writer)
         {
-            if (request.Extensions.Count > 0)
+            if (request.GetExtensionsOrNull() is { Count: > 0 } extensions)
             {
                 writer.WritePropertyName("extensions");
-                WriteDictionary(request.Extensions, writer);
+                WriteDictionary(extensions, writer);
             }
         }
 

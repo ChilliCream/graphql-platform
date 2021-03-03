@@ -261,6 +261,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         $"({resultNamedType.RuntimeType.Name} Result, {concreteResultType} " +
                         "Info)? data")
                     .SetRighthandSide("null"));
+            buildMethod.AddCode(
+                AssignmentBuilder
+                    .New()
+                    .SetLefthandSide(
+                        TypeNames.IReadOnlyList
+                            .WithGeneric(TypeNames.IClientError)
+                            .MakeNullable() + " errors")
+                    .SetRighthandSide("null"));
 
             buildMethod.AddEmptyLine();
             buildMethod.AddCode(
@@ -269,10 +277,25 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetCondition(
                         ConditionBuilder
                             .New()
-                            .Set("response.Body is not null")
-                            .And("response.Body.RootElement.TryGetProperty(\"data\"," +
-                                $" out {TypeNames.JsonElement} obj)"))
-                    .AddCode("data = BuildData(obj);"));
+                            .Set("response.Body is not null"))
+                    .AddCode(
+                        IfBuilder
+                            .New()
+                            .SetCondition(
+                                ConditionBuilder
+                                    .New()
+                                    .Set("response.Body.RootElement.TryGetProperty(\"data\"," +
+                                         $" out {TypeNames.JsonElement} dataElement)"))
+                            .AddCode("data = BuildData(dataElement);"))
+                    .AddCode(
+                        IfBuilder
+                            .New()
+                            .SetCondition(
+                                ConditionBuilder
+                                    .New()
+                                    .Set("response.Body.RootElement.TryGetProperty(\"errors\"," +
+                                         $" out {TypeNames.JsonElement} errorsElement)"))
+                            .AddCode($"errors = {TypeNames.ParseError}(errorsElement);")));
 
             buildMethod.AddEmptyLine();
             buildMethod.AddCode(
@@ -285,7 +308,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .AddArgument("data?.Result")
                     .AddArgument("data?.Info")
                     .AddArgument(_resultDataFactory)
-                    .AddArgument("null"));
+                    .AddArgument("errors"));
         }
 
         private MethodCallBuilder BuildUpdateMethodCall(PropertyDescriptor property)

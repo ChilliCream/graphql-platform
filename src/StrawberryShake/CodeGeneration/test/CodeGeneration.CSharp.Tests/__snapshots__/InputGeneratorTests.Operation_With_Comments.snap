@@ -495,18 +495,25 @@ namespace Foo.Bar
         public global::StrawberryShake.IOperationResult<ITestResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
         {
             (ITestResult Result, TestResultInfo Info)? data = null;
+            global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
 
-            if (response.Body is not null
-                && response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement obj))
+            if (response.Body is not null)
             {
-                data = BuildData(obj);
+                if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement))
+                {
+                    data = BuildData(dataElement);
+                }
+                if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
+                {
+                    errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                }
             }
 
             return new global::StrawberryShake.OperationResult<ITestResult>(
                 data?.Result,
                 data?.Info,
                 _resultDataFactory,
-                null);
+                errors);
         }
 
         private (ITestResult, TestResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
@@ -517,7 +524,7 @@ namespace Foo.Bar
 
             var resultInfo = new TestResultInfo(
                 DeserializeString(
-                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
                         "foo")),
                 entityIds,
