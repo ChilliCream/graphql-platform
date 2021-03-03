@@ -4,7 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.Json;
 
-namespace StrawberryShake.Transport.Http
+namespace StrawberryShake.Json
 {
     public class JsonOperationRequestSerializer
     {
@@ -52,10 +52,10 @@ namespace StrawberryShake.Transport.Http
 
         private static void WriteExtensions(OperationRequest request, Utf8JsonWriter writer)
         {
-            if (request.Extensions.Count > 0)
+            if (request.GetExtensionsOrNull() is { Count: > 0 } extensions)
             {
                 writer.WritePropertyName("extensions");
-                WriteDictionary(request.Extensions, writer);
+                WriteDictionary(extensions, writer);
             }
         }
 

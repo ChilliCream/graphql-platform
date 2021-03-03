@@ -1764,18 +1764,25 @@ namespace Foo.Bar
         public global::StrawberryShake.IOperationResult<IGetPeopleResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
         {
             (IGetPeopleResult Result, GetPeopleResultInfo Info)? data = null;
+            global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
 
-            if (response.Body is not null
-                && response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement obj))
+            if (response.Body is not null)
             {
-                data = BuildData(obj);
+                if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement))
+                {
+                    data = BuildData(dataElement);
+                }
+                if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
+                {
+                    errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                }
             }
 
             return new global::StrawberryShake.OperationResult<IGetPeopleResult>(
                 data?.Result,
                 data?.Info,
                 _resultDataFactory,
-                null);
+                errors);
         }
 
         private (IGetPeopleResult, GetPeopleResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
@@ -1786,7 +1793,7 @@ namespace Foo.Bar
 
             var resultInfo = new GetPeopleResultInfo(
                 DeserializeIGetPeople_People(
-                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
                         "people"),
                     entityIds),
@@ -1817,7 +1824,7 @@ namespace Foo.Bar
                 return new global::Foo.Bar.State.PersonConnectionData(
                     typename,
                     nodes: UpdateIGetPeople_People_NodesEntityArray(
-                        global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                        global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                             obj,
                             "nodes"),
                         entityIds));
@@ -1866,11 +1873,11 @@ namespace Foo.Bar
             {
                 PersonEntity entity = _entityStore.GetOrCreate<PersonEntity>(entityId);
                 entity.Name = DeserializeNonNullableString(
-                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
                         "name"));
                 entity.Messages = DeserializeIGetPeople_People_Nodes_Messages(
-                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
                         "messages"),
                     entityIds);
@@ -1909,7 +1916,7 @@ namespace Foo.Bar
                 return new global::Foo.Bar.State.MessageConnectionData(
                     typename,
                     nodes: UpdateIGetPeople_People_Nodes_Messages_NodesEntityArray(
-                        global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                        global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                             obj,
                             "nodes"),
                         entityIds));
@@ -1958,12 +1965,12 @@ namespace Foo.Bar
             {
                 MessageEntity entity = _entityStore.GetOrCreate<MessageEntity>(entityId);
                 entity.Sender = UpdateNonNullableIGetPeople_People_Nodes_Messages_Nodes_SenderEntity(
-                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
                         "sender"),
                     entityIds);
                 entity.Text = DeserializeNonNullableString(
-                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
                         "text"));
 
@@ -1992,7 +1999,7 @@ namespace Foo.Bar
             {
                 PersonEntity entity = _entityStore.GetOrCreate<PersonEntity>(entityId);
                 entity.Name = DeserializeNonNullableString(
-                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
                         "name"));
 
@@ -2041,18 +2048,25 @@ namespace Foo.Bar
         public global::StrawberryShake.IOperationResult<IWriteMessageResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
         {
             (IWriteMessageResult Result, WriteMessageResultInfo Info)? data = null;
+            global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
 
-            if (response.Body is not null
-                && response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement obj))
+            if (response.Body is not null)
             {
-                data = BuildData(obj);
+                if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement))
+                {
+                    data = BuildData(dataElement);
+                }
+                if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
+                {
+                    errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                }
             }
 
             return new global::StrawberryShake.OperationResult<IWriteMessageResult>(
                 data?.Result,
                 data?.Info,
                 _resultDataFactory,
-                null);
+                errors);
         }
 
         private (IWriteMessageResult, WriteMessageResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
@@ -2063,7 +2077,7 @@ namespace Foo.Bar
 
             var resultInfo = new WriteMessageResultInfo(
                 DeserializeNonNullableIWriteMessage_SendMessage(
-                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
                         "sendMessage"),
                     entityIds),
@@ -2094,7 +2108,7 @@ namespace Foo.Bar
                 return new global::Foo.Bar.State.SendMessagePayloadData(
                     typename,
                     message: UpdateNonNullableIWriteMessage_SendMessage_MessageEntity(
-                        global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                        global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                             obj,
                             "message"),
                         entityIds));
@@ -2122,12 +2136,12 @@ namespace Foo.Bar
             {
                 MessageEntity entity = _entityStore.GetOrCreate<MessageEntity>(entityId);
                 entity.Sender = UpdateNonNullableIGetPeople_People_Nodes_Messages_Nodes_SenderEntity(
-                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
                         "sender"),
                     entityIds);
                 entity.Text = DeserializeNonNullableString(
-                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
                         "text"));
 
@@ -2156,7 +2170,7 @@ namespace Foo.Bar
             {
                 PersonEntity entity = _entityStore.GetOrCreate<PersonEntity>(entityId);
                 entity.Name = DeserializeNonNullableString(
-                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
                         "name"));
 

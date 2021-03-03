@@ -1,4 +1,4 @@
-namespace StrawberryShake.Transport.WebSockets.Protocol
+namespace StrawberryShake.Transport.WebSockets.Protocols
 {
     /// <summary>
     /// Factory for <see cref="GraphQLWebSocketProtocol"/>

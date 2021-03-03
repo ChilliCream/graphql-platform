@@ -3,14 +3,12 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualBasic;
 using Moq;
 using Snapshooter.Xunit;
 using StrawberryShake.Transport.WebSockets.Messages;
-using StrawberryShake.Transport.WebSockets.Protocol;
 using Xunit;
 
-namespace StrawberryShake.Transport.WebSockets
+namespace StrawberryShake.Transport.WebSockets.Protocols
 {
     public class GraphQlWsProtocolTests
     {
@@ -38,7 +36,7 @@ namespace StrawberryShake.Transport.WebSockets
 
             // act
             Exception? exception =
-                Record.Exception(() => new GraphQLWebSocketProtocol(socketClient));
+                Record.Exception((Action) (() => new GraphQLWebSocketProtocol(socketClient)));
 
             // assert
             Assert.IsType<ArgumentNullException>(exception);

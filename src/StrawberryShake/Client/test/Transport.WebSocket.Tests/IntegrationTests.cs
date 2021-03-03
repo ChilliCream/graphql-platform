@@ -12,10 +12,9 @@ using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.AspNetCore.Subscriptions.Messages;
 using HotChocolate.AspNetCore.Utilities;
-using HotChocolate.Execution;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
-using StrawberryShake.Transport.WebSockets.Protocol;
+using StrawberryShake.Transport.WebSockets.Protocols;
 using Xunit;
 
 namespace StrawberryShake.Transport.WebSockets

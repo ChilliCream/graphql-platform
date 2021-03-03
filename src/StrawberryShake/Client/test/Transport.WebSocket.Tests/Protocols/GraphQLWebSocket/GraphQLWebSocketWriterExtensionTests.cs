@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using Snapshooter.Xunit;
-using StrawberryShake.Transport.WebSockets.Protocol;
 using Xunit;
 
-namespace StrawberryShake.Transport.WebSockets
+namespace StrawberryShake.Transport.WebSockets.Protocols
 {
     public class GraphQlWsSocketWriterExtensionTests
     {
