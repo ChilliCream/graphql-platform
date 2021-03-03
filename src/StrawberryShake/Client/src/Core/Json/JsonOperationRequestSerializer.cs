@@ -4,7 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.Json;
 
-namespace StrawberryShake.Transport.Http
+namespace StrawberryShake.Json
 {
     public class JsonOperationRequestSerializer
     {

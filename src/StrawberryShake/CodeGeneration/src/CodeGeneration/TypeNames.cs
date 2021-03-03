@@ -34,7 +34,7 @@ namespace StrawberryShake.CodeGeneration
         public const string Response = StrawberryshakeNamespace + "Response";
         public const string OperationRequest = StrawberryshakeNamespace + "OperationRequest";
         public const string ExecutionStrategy = StrawberryshakeNamespace + "ExecutionStrategy";
-        public const string GetPropertyOrNull = StrawberryshakeNamespace + "Transport.Http.JsonElementExtensions.GetPropertyOrNull";
+        public const string GetPropertyOrNull = StrawberryshakeNamespace + "Json.JsonElementExtensions.GetPropertyOrNull";
         public const string HttpConnection= StrawberryshakeNamespace + "Transport.Http.HttpConnection";
         public const string WebSocketConnection= StrawberryshakeNamespace + "Transport.WebSockets.WebSocketConnection";
         public const string ISessionPool= StrawberryshakeNamespace + "Transport.WebSockets.ISessionPool";
