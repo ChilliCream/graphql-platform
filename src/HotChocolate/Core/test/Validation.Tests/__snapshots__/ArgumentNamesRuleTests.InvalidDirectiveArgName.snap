@@ -22,7 +22,36 @@
       "argument": "unless",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Argument",
+      "Location": {
+        "Start": 248,
+        "End": 262,
+        "Line": 9,
+        "Column": 65
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 248,
+          "End": 255,
+          "Line": 9,
+          "Column": 65
+        },
+        "Value": "unless"
+      },
+      "Value": {
+        "Kind": "BooleanValue",
+        "Location": {
+          "Start": 256,
+          "End": 262,
+          "Line": 9,
+          "Column": 73
+        },
+        "Value": false
+      }
+    }
   },
   {
     "Message": "The argument `if` is required.",
@@ -47,6 +76,56 @@
       "argument": "if",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Directive",
+      "Location": {
+        "Start": 239,
+        "End": 280,
+        "Line": 9,
+        "Column": 56
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 240,
+          "End": 248,
+          "Line": 9,
+          "Column": 57
+        },
+        "Value": "include"
+      },
+      "Arguments": [
+        {
+          "Kind": "Argument",
+          "Location": {
+            "Start": 248,
+            "End": 262,
+            "Line": 9,
+            "Column": 65
+          },
+          "Name": {
+            "Kind": "Name",
+            "Location": {
+              "Start": 248,
+              "End": 255,
+              "Line": 9,
+              "Column": 65
+            },
+            "Value": "unless"
+          },
+          "Value": {
+            "Kind": "BooleanValue",
+            "Location": {
+              "Start": 256,
+              "End": 262,
+              "Line": 9,
+              "Column": 73
+            },
+            "Value": false
+          }
+        }
+      ]
+    }
   }
 ]

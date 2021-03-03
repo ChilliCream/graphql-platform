@@ -8,7 +8,7 @@ using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
-    public sealed class DateType : ScalarType<DateTime, StringValueNode>
+    public class DateType : ScalarType<DateTime, StringValueNode>
     {
         private const string _dateFormat = "yyyy-MM-dd";
 

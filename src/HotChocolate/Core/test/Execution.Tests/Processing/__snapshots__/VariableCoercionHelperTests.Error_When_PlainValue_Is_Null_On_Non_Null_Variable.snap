@@ -8,6 +8,7 @@
       "code": "HC0018",
       "variable": "abc"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": null
   }
 ]

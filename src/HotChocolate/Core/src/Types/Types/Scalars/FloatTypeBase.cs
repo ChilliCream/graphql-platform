@@ -53,6 +53,22 @@ namespace HotChocolate.Types
             return false;
         }
 
+        /// <inheritdoc />
+        public sealed override bool IsInstanceOfType(object? runtimeValue)
+        {
+            if (runtimeValue is null)
+            {
+                return true;
+            }
+
+            if (runtimeValue is TRuntimeType t)
+            {
+                return IsInstanceOfType(t);
+            }
+
+            return false;
+        }
+
         protected virtual bool IsInstanceOfType(IFloatValueLiteral valueSyntax)
         {
             return IsInstanceOfType(ParseLiteral(valueSyntax));

@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualBasic;
+using Moq;
 using Snapshooter.Xunit;
 using StrawberryShake.Transport.WebSockets.Messages;
 using StrawberryShake.Transport.WebSockets.Protocol;
@@ -36,7 +37,8 @@ namespace StrawberryShake.Transport.WebSockets
             ISocketClient socketClient = null!;
 
             // act
-            Exception? exception = Record.Exception(() => new GraphQLWebSocketProtocol(socketClient));
+            Exception? exception =
+                Record.Exception(() => new GraphQLWebSocketProtocol(socketClient));
 
             // assert
             Assert.IsType<ArgumentNullException>(exception);
@@ -62,6 +64,34 @@ namespace StrawberryShake.Transport.WebSockets
         {
             // arrange
             var socketClient = new SocketClientStub { IsClosed = false };
+            var protocol = new GraphQLWebSocketProtocol(socketClient);
+
+            // act
+            await protocol.InitializeAsync(CancellationToken.None);
+            await protocol.DisposeAsync();
+
+            // assert
+            Assert.Single(socketClient.SentMessages).MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task InitializeAsync_SocketIsOpen_SendConnectionInitPayload()
+        {
+            // arrange
+            var connectionInterceptorMock = new Mock<ISocketConnectionInterceptor>();
+            connectionInterceptorMock
+                .Setup(x => x
+                    .CreateConnectionInitPayload(
+                        It.IsAny<ISocketProtocol>(),
+                        It.IsAny<CancellationToken>()))
+                .ReturnsAsync("Payload");
+
+            var socketClient = new SocketClientStub
+            {
+                IsClosed = false,
+                ConnectionInterceptor = connectionInterceptorMock.Object
+            };
+
             var protocol = new GraphQLWebSocketProtocol(socketClient);
 
             // act

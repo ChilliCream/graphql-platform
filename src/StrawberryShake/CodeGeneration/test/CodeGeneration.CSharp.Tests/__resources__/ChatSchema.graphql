@@ -4,41 +4,91 @@ schema {
   subscription: Subscription
 }
 
+"Type Query"
 type Query {
   "Gets the currently logged in user."
   me: Person!
   "Gets access to all the people known to this service."
-  people(after: String before: String first: Int last: Int order_by: PersonSort where: PersonFilter): PersonConnection
-  personByEmail(email: String!): Person!
-  personById(id: ID!): Person!
+  people(
+    "Arg after"
+    after: String
+    "Arg before"
+    before: String
+    "Arg first"
+    first: Int
+    "Arg last"
+    last: Int
+    "Arg order_by"
+    order_by: PersonSort
+    "Arg where"
+    where: PersonFilter): PersonConnection
+  "Field personByEmail"
+  personByEmail(
+    "Arg email"
+    email: String!): Person!
+
+  "Arg person by id"
+  personById(
+    "Arg id"
+    id: ID!): Person!
 }
 
+"Type Mutation"
 type Mutation {
-  createUser(input: CreateUserInput!): CreateUserPayload!
-  inviteFriend(input: InviteFriendInput!): InviteFriendPayload!
-  login(input: LoginInput!): LoginPayload!
-  sendMessage(input: SendMessageInput!): SendMessagePayload!
-  typing(input: TypingInput!): TypingPayload!
+  "Field createUser"
+  createUser(
+    "arg input"
+    input: CreateUserInput!): CreateUserPayload!
+  "Field inviteFriend"
+  inviteFriend(
+    "arg input"
+    input: InviteFriendInput!): InviteFriendPayload!
+  "Field login"
+  login(
+    "arg input"
+    input: LoginInput!): LoginPayload!
+  "Field sendMessage"
+  sendMessage(
+    "arg input"
+    input: SendMessageInput!): SendMessagePayload!
+  "Field typing"
+  typing(
+    "arg input"
+    input: TypingInput!): TypingPayload!
 }
 
+"Type SubscriptionType"
 type Subscription {
+  "field onMessageReceived"
   onMessageReceived: Message!
+  "field onLine"
   onOnline: Person!
+  "field onTypeing"
   onTyping: Person!
 }
 
 "The multiplier path scalar represents a valid GraphQL multiplier path string."
 scalar MultiplierPath
 
+"Type person"
 type Person {
+  "Field addFriendId"
   addFriendId(id: ID!): Person!
+  "Field email"
   email: String!
+  "Field friends"
   friends(after: String before: String first: Int last: Int order_by: PersonSort where: PersonFilter): PersonConnection
+  "Field id"
   id: ID!
+  "Field imageUri"
   imageUri: Url
+  "Field isOnline"
   isOnline: Boolean!
+  "Field lastSeen"
   lastSeen: DateTime!
+  "Field messages"
   messages(after: String before: String first: Int last: Int order_by: MessageSort where: MessageFilter): MessageConnection
+  "Field name"
   name: String!
 }
 
@@ -122,12 +172,19 @@ type MessageConnection {
   totalCount: Int!
 }
 
+"Type message"
 type Message {
+  "Field direction"
   direction: Direction!
+  "Field id"
   id: ID!
+  "Fiejld recipient"
   recipient: Person!
+  "Field sender"
   sender: Person!
+  "Field sent"
   sent: DateTime!
+  "Field text"
   text: String!
 }
 
@@ -261,10 +318,15 @@ type LoginPayload {
   token: String!
 }
 
+"Type SendMessagePayload"
 type SendMessagePayload {
+  "Field clientMuationId"
   clientMutationId: String
+  "Field message"
   message: Message!
+  "Field recipient"
   recipient: Person!
+  "Field sender"
   sender: Person!
 }
 
@@ -276,8 +338,11 @@ input SendMessageInput {
   text: String!
 }
 
+"enum Direction"
 enum Direction {
+  "enum value Incoming"
   INCOMING
+  "enum value Outgoung"
   OUTGOING
 }
 
