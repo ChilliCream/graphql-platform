@@ -11,7 +11,7 @@ namespace HotChocolate.Types
     /// http://facebook.github.io/graphql/June2018/#sec-Boolean
     /// </summary>
     [SpecScalar]
-    public sealed class BooleanType : ScalarType<bool, BooleanValueNode>
+    public class BooleanType : ScalarType<bool, BooleanValueNode>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="BooleanType"/> class.

@@ -12,6 +12,70 @@
     "Extensions": {
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Executable-Definitions"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "ObjectTypeExtension",
+      "Interfaces": [],
+      "Fields": [
+        {
+          "Kind": "FieldDefinition",
+          "Description": null,
+          "Arguments": [],
+          "Type": {
+            "Kind": "NamedType",
+            "Location": {
+              "Start": 223,
+              "End": 247,
+              "Line": 10,
+              "Column": 28
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 223,
+                "End": 247,
+                "Line": 10,
+                "Column": 28
+              },
+              "Value": "String"
+            }
+          },
+          "Location": {
+            "Start": 216,
+            "End": 247,
+            "Line": 10,
+            "Column": 21
+          },
+          "Name": {
+            "Kind": "Name",
+            "Location": {
+              "Start": 216,
+              "End": 222,
+              "Line": 10,
+              "Column": 21
+            },
+            "Value": "color"
+          },
+          "Directives": []
+        }
+      ],
+      "Location": {
+        "Start": 178,
+        "End": 260,
+        "Line": 9,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 190,
+          "End": 195,
+          "Line": 9,
+          "Column": 29
+        },
+        "Value": "Dog"
+      },
+      "Directives": []
+    }
   }
 ]

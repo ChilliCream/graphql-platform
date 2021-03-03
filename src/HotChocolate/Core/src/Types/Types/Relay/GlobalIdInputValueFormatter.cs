@@ -36,6 +36,14 @@ namespace HotChocolate.Types.Relay
                 return null;
             }
 
+            if (runtimeValue is IdValue v)
+            {
+                if (!_validateType || _typeName.Equals(v.TypeName))
+                {
+                    return v.Value;
+                }
+            }
+
             if (runtimeValue is string s)
             {
                 try

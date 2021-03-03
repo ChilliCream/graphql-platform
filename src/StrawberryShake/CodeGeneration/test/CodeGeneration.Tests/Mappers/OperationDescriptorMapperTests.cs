@@ -46,15 +46,15 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 context.Operations.OrderBy(t => t.Name),
                 operation =>
                 {
-                    Assert.Equal("CreateReviewMutation", operation.Name);
+                    Assert.Equal("CreateReview", operation.Name);
                 },
                 operation =>
                 {
-                    Assert.Equal("GetHeroQuery", operation.Name);
+                    Assert.Equal("GetHero", operation.Name);
                 },
                 operation =>
                 {
-                    Assert.Equal("OnReviewSubscription", operation.Name);
+                    Assert.Equal("OnReview", operation.Name);
                 });
         }
     }

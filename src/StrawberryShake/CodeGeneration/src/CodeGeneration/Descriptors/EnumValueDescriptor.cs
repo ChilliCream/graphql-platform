@@ -5,17 +5,22 @@ namespace StrawberryShake.CodeGeneration
     public class EnumValueDescriptor : ICodeDescriptor
     {
         public EnumValueDescriptor(
+            string runtimeValue,
             string name,
-            string graphQLName,
+            string? documentation,
             long? value = null)
         {
+            RuntimeValue = runtimeValue;
             Name = name;
-            GraphQLName = graphQLName;
+            Documentation = documentation;
             Value = value;
         }
 
-        public NameString Name { get; }
-        public  NameString GraphQLName { get; }
+        public NameString RuntimeValue { get; }
+
+        public  NameString Name { get; }
+
+        public string? Documentation { get; }
 
         public long? Value { get; }
     }
