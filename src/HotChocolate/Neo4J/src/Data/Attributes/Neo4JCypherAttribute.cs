@@ -4,12 +4,12 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Data.Neo4J
 {
-    public class CypherAttribute
+    public class Neo4JCypherAttribute
         : ObjectFieldDescriptorAttribute
     {
         private readonly string _statement;
 
-        public CypherAttribute(string statement)
+        public Neo4JCypherAttribute(string statement)
         {
             _statement = statement;
         }
@@ -22,7 +22,7 @@ namespace HotChocolate.Data.Neo4J
             descriptor
                 .Extend()
                 .OnBeforeCreate(x =>
-                    x.ContextData.Add(nameof(CypherAttribute), _statement));
+                    x.ContextData.Add(nameof(Neo4JCypherAttribute), _statement));
         }
     }
 }
