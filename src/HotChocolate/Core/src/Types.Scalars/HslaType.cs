@@ -5,7 +5,7 @@ namespace HotChocolate.Types.Scalars
 {
     /// <summary>
     /// The `HSLA` scalar type represents a valid a CSS HSLA color as defined
-    /// here https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors.
+    /// in <a href="https://www.w3.org/TR/css-color-3/#hsla-color">W3 HSLA Color</a>
     /// </summary>
     public class HslaType : HslType
     {

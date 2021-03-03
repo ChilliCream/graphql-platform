@@ -362,5 +362,35 @@ namespace HotChocolate.Types.Scalars
                     .Build(),
                 type);
         }
+
+        public static SerializationException RegexType_ParseValue_IsInvalid(
+            IType type,
+            string name)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(
+                        string.Format(
+                            ScalarResources.RegexType_IsInvalid_ParseValue,
+                            name))
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException RegexType_ParseLiteral_IsInvalid(
+            IType type,
+            string name)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(
+                        string.Format(
+                            ScalarResources.RegexType_IsInvalid_ParseLiteral,
+                            name))
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .Build(),
+                type);
+        }
     }
 }

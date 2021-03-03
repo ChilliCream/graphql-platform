@@ -423,6 +423,18 @@ namespace HotChocolate.Types.Scalars {
             }
         }
         
+        internal static string RegexType_IsInvalid_ParseLiteral {
+            get {
+                return ResourceManager.GetString("RegexType_IsInvalid_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        internal static string RegexType_IsInvalid_ParseValue {
+            get {
+                return ResourceManager.GetString("RegexType_IsInvalid_ParseValue", resourceCulture);
+            }
+        }
+        
         internal static string UnsignedIntType_Description {
             get {
                 return ResourceManager.GetString("UnsignedIntType_Description", resourceCulture);
@@ -456,12 +468,6 @@ namespace HotChocolate.Types.Scalars {
         internal static string IPv4Type_IsInvalid_ParseValue {
             get {
                 return ResourceManager.GetString("IPv4Type_IsInvalid_ParseValue", resourceCulture);
-            }
-        }
-        
-        internal static string IPv4Type_ValidationPattern {
-            get {
-                return ResourceManager.GetString("IPv4Type_ValidationPattern", resourceCulture);
             }
         }
     }

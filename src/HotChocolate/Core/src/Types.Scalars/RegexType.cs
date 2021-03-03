@@ -1,41 +1,51 @@
+using System;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types.Scalars
 {
     /// <summary>
-    /// The `EmailAddress` scalar type represents a email address, represented as UTF-8 character
-    /// sequences. The scalar follows the specification defined in RFC 5322.
+    /// The Regular Expression scalar type represents textual data, represented as UTF‐8 character
+    /// sequences following a pattern defined as a <see cref="Regex"/>
     /// </summary>
-    public class EmailAddressType : StringType
+    public class RegexType : StringType
     {
+        private const int _defaultRegexTimeoutInMs = 100;
+
+        private readonly Regex _validationRegex;
+
         /// <summary>
-        /// Well established regex for email validation
-        /// Source : https://emailregex.com/
+        /// Initializes a new instance of the <see cref="RegexType"/> class.
         /// </summary>
-        private static readonly string _validationPattern =
-            ScalarResources.EmailAddressType_ValidationPattern;
-
-        private static readonly Regex _validationRegex =
-            new(_validationPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-        public EmailAddressType()
+        public RegexType(
+            NameString name,
+            string pattern,
+            string? description = null,
+            RegexOptions regexOptions = RegexOptions.Compiled,
+            BindingBehavior bind = BindingBehavior.Explicit)
             : this(
-                WellKnownScalarTypes.EmailAddress,
-                ScalarResources.EmailAddressType_Description)
+                name,
+                new Regex(
+                    pattern,
+                    regexOptions,
+                    TimeSpan.FromMilliseconds(_defaultRegexTimeoutInMs)),
+                description,
+                bind)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="EmailAddressType"/> class.
+        /// Initializes a new instance of the <see cref="RegexType"/> class.
         /// </summary>
-        public EmailAddressType(
+        public RegexType(
             NameString name,
+            Regex regex,
             string? description = null,
             BindingBehavior bind = BindingBehavior.Explicit)
             : base(name, description, bind)
         {
             Description = description;
+            _validationRegex = regex;
         }
 
         /// <inheritdoc />
@@ -55,7 +65,7 @@ namespace HotChocolate.Types.Scalars
         {
             if (!_validationRegex.IsMatch(valueSyntax.Value))
             {
-                throw ThrowHelper.EmailAddressType_ParseLiteral_IsInvalid(this);
+                throw CreateParseLiteralError(valueSyntax);
             }
 
             return base.ParseLiteral(valueSyntax);
@@ -66,7 +76,7 @@ namespace HotChocolate.Types.Scalars
         {
             if (!_validationRegex.IsMatch(runtimeValue))
             {
-                throw ThrowHelper.EmailAddressType_ParseValue_IsInvalid(this);
+                throw CreateParseValueError(runtimeValue);
             }
 
             return base.ParseValue(runtimeValue);
@@ -110,6 +120,36 @@ namespace HotChocolate.Types.Scalars
 
             runtimeValue = null;
             return false;
+        }
+
+        /// <summary>
+        /// Creates the exception that will be thrown when <see cref="ParseLiteral"/> encountered an
+        /// invalid pattern
+        /// </summary>
+        /// <param name="valueSyntax">
+        /// The value syntax that should be parsed
+        /// </param>
+        /// <returns>
+        /// The created exception that should be thrown
+        /// </returns>
+        protected virtual Exception CreateParseLiteralError(StringValueNode valueSyntax)
+        {
+            return ThrowHelper.RegexType_ParseLiteral_IsInvalid(this, Name);
+        }
+
+        /// <summary>
+        /// Creates the exception that will be thrown when <see cref="ParseValue"/> encountered an
+        /// invalid pattern
+        /// </summary>
+        /// <param name="runtimeValue">
+        /// The runtimeValue that should be parsed
+        /// </param>
+        /// <returns>
+        /// The created exception that should be thrown
+        /// </returns>
+        protected virtual Exception CreateParseValueError(string runtimeValue)
+        {
+            return ThrowHelper.RegexType_ParseValue_IsInvalid(this, Name);
         }
     }
 }
