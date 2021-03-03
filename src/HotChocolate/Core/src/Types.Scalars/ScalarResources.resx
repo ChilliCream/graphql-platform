@@ -225,4 +225,13 @@
   <data name="PostalCode_ValidationPattern_LU" xml:space="preserve">
     <value>(^\d{4}$)</value>
   </data>
+  <data name="MacAddressType_Description" xml:space="preserve">
+    <value>The MacAddress scalar type represents a valid a Mac address defined in IEEE 802 48-bit / RFC7042</value>
+  </data>
+  <data name="MacAddressType_IsInvalid_ParseLiteral" xml:space="preserve">
+    <value>MacAddress cannot parse the provided literal. The provided value is not a valid MAC address.</value>
+  </data>
+  <data name="MacAddressType_IsInvalid_ParseValue" xml:space="preserve">
+    <value>MacAddress cannot parse the provided value. The provided value is not a valid MAC address.</value>
+  </data>
 </root>
