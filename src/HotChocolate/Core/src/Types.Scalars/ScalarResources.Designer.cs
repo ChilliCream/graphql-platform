@@ -63,12 +63,6 @@ namespace HotChocolate.Types.Scalars {
             }
         }
         
-        internal static string EmailAddressType_ValidationPattern {
-            get {
-                return ResourceManager.GetString("EmailAddressType_ValidationPattern", resourceCulture);
-            }
-        }
-        
         internal static string HexColorType_Description {
             get {
                 return ResourceManager.GetString("HexColorType_Description", resourceCulture);
@@ -84,12 +78,6 @@ namespace HotChocolate.Types.Scalars {
         internal static string HexColorType_IsInvalid_ParseValue {
             get {
                 return ResourceManager.GetString("HexColorType_IsInvalid_ParseValue", resourceCulture);
-            }
-        }
-        
-        internal static string HexColorType_ValidationPattern {
-            get {
-                return ResourceManager.GetString("HexColorType_ValidationPattern", resourceCulture);
             }
         }
         
