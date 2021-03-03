@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Text.Json;
 using static StrawberryShake.Properties.Resources;
 
@@ -10,7 +9,7 @@ namespace StrawberryShake.Json
     {
         public static IReadOnlyList<IClientError>? ParseErrors(JsonElement result)
         {
-            if (result.GetPropertyOrNull("errors") is {ValueKind: JsonValueKind.Array} errors)
+            if (result.GetPropertyOrNull("errors") is { ValueKind: JsonValueKind.Array } errors)
             {
                 var array = new IClientError[errors.GetArrayLength()];
                 var i = 0;
@@ -77,7 +76,7 @@ namespace StrawberryShake.Json
 
         private static IReadOnlyList<Location>? ParseLocations(this JsonElement error)
         {
-            if (error.GetPropertyOrNull("path") is {ValueKind: JsonValueKind.Array} locations)
+            if (error.GetPropertyOrNull("locations") is {ValueKind: JsonValueKind.Array} locations)
             {
                 var array = new Location[locations.GetArrayLength()];
                 var i = 0;
