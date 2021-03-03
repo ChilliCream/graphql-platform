@@ -244,7 +244,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
                 if (fieldMap.Count > 0)
                 {
-                    foreach (var fieldName in fieldMap.Keys)
+                    foreach (var fieldName in fieldMap.Keys.ToArray())
                     {
                         // if we already have implemented this field in a lower level
                         // interface we will just skip it and remove it from the map.

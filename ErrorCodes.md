@@ -1,6 +1,6 @@
 | Code   | Category          | Description                                                                                                |
 | ------ | ----------------- | ---------------------------------------------------------------------------------------------------------- |
-| HC0001 | Scalars           | The runtime type is not supported by the scalars ParseValue method.                                        |
+| HC0001 | Scalars           | The runtime type is not supported by the scalars ParseValue method or has an invalid value.                |
 | HC0002 | Scalars           | Either the syntax node is invalid when parsing the literal or the syntax node value has an invalid format. |
 | HC0003 | Apollo Federation | The key attribute is used on the type level without specifying the fieldset.                               |
 | HC0004 | Apollo Federation | The provides attribute is used and the fieldset is set to `null` or `string.Empty`.                        |
@@ -27,3 +27,5 @@
 | HC0025 | Data              | No paging provider for the source was found                                                                |
 | HC0026 | Data              | The requested field does not support null values                                                           |
 | HC0028 | Data              | Type does not contain a valid node field. Only `items` and `nodes` are supported                           |
+| HC0029 | Spatial           | The coordinate reference system is not supported by this server                                            |
+| HC0030 | Spatial           | Coordinates with M values cannot be reprojected                                                            |

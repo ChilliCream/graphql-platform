@@ -20,7 +20,6 @@ namespace StrawberryShake
             store.Set(request, result.Object);
             var success = store.TryGet(request, out IOperationResult<string>? retrieved);
 
-
             // assert
             Assert.True(success);
             Assert.Same(result.Object, retrieved);
@@ -62,6 +61,32 @@ namespace StrawberryShake
             // assert
             store.Set(request, result.Object);
             Assert.Same(result.Object, observer.LastResult);
+        }
+
+        [Fact]
+        public void Watch_For_Updates_With_SystemReactive()
+        {
+            // arrange
+            var entityChangeObserver = new MockEntityChangeObservable();
+            var document = new Mock<IDocument>();
+            var result = new Mock<IOperationResult<string>>();
+            var store = new OperationStore(entityChangeObserver);
+            var request = new OperationRequest("abc", document.Object);
+            IOperationResult<string>? lastResult = null;
+
+
+            // act
+            using IDisposable session =
+                System.ObservableExtensions.Subscribe(
+                    store.Watch<string>(request),
+                    r =>
+                    {
+                        lastResult = r;
+                    });
+
+            // assert
+            store.Set(request, result.Object);
+            Assert.Same(result.Object, lastResult);
         }
 
         [Fact]

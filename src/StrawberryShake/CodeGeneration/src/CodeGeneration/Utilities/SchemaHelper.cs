@@ -6,29 +6,55 @@ using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers;
+using static StrawberryShake.CodeGeneration.Utilities.DocumentHelper;
 
 namespace StrawberryShake.CodeGeneration.Utilities
 {
     public static class SchemaHelper
     {
-        public static ISchema Load(params (string, DocumentNode)[] documents)
+        private static readonly HashSet<string> _knownScalars = new()
         {
-            return Load((IEnumerable<(string, DocumentNode)>)documents);
-        }
+            ScalarNames.String,
+            ScalarNames.ID,
+            ScalarNames.Boolean,
+            ScalarNames.Byte,
+            ScalarNames.Short,
+            ScalarNames.Int,
+            ScalarNames.Long,
+            ScalarNames.Float,
+            ScalarNames.Decimal,
+            ScalarNames.Url,
+            ScalarNames.Uuid,
+            ScalarNames.DateTime,
+            ScalarNames.Date,
+            ScalarNames.MultiplierPath,
+            ScalarNames.Name,
+            ScalarNames.ByteArray,
+            ScalarNames.Any,
+            ScalarNames.TimeSpan
+        };
 
-        public static ISchema Load(IEnumerable<(string, DocumentNode)> documents)
+        public static ISchema Load(
+            IEnumerable<GraphQLFile> files,
+            bool strictValidation = true)
         {
-            if (documents is null)
+            if (files is null)
             {
-                throw new ArgumentNullException(nameof(documents));
+                throw new ArgumentNullException(nameof(files));
             }
 
-            ISchemaBuilder builder = SchemaBuilder.New();
+            var lookup = new Dictionary<ISyntaxNode, string>();
+            IndexSyntaxNodes(files, lookup);
+
+            var builder = SchemaBuilder.New();
+
+            builder.ModifyOptions(o => o.StrictValidation = strictValidation);
+
             var leafTypes = new Dictionary<NameString, LeafTypeInfo>();
             var globalEntityPatterns = new List<SelectionSetNode>();
             var typeEntityPatterns = new Dictionary<NameString, SelectionSetNode>();
 
-            foreach (DocumentNode document in documents.Select(doc => doc.Item2))
+            foreach (DocumentNode document in files.Select(f => f.Document))
             {
                 if (document.Definitions.Any(t => t is ITypeSystemExtensionNode))
                 {
@@ -52,6 +78,16 @@ namespace StrawberryShake.CodeGeneration.Utilities
                 }
                 else
                 {
+                    foreach (var scalar in document.Definitions.OfType<ScalarTypeDefinitionNode>())
+                    {
+                        if (!_knownScalars.Contains(scalar.Name.Value))
+                        {
+                            builder.AddType(new AnyType(
+                                scalar.Name.Value,
+                                scalar.Description?.Value));
+                        }
+                    }
+
                     builder.AddDocument(document);
                 }
             }
@@ -173,6 +209,7 @@ namespace StrawberryShake.CodeGeneration.Utilities
             TryAddLeafType(leafTypes, "Guid", TypeNames.Guid, TypeNames.Guid);
             TryAddLeafType(leafTypes, ScalarNames.DateTime, TypeNames.DateTimeOffset);
             TryAddLeafType(leafTypes, ScalarNames.Date, TypeNames.DateTime);
+            TryAddLeafType(leafTypes, ScalarNames.TimeSpan, TypeNames.TimeSpan);
             TryAddLeafType(leafTypes, ScalarNames.ByteArray, TypeNames.ByteArray);
         }
 

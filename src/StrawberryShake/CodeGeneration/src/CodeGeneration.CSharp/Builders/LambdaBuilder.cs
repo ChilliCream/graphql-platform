@@ -54,6 +54,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 writer.Write(')');
             }
 
+            if (_arguments.Count == 0)
+            {
+                writer.Write("()");
+            }
+
             writer.Write(" => ");
 
             if (_block)

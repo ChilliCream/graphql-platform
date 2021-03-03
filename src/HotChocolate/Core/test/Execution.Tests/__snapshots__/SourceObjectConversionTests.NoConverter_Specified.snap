@@ -32,13 +32,36 @@
         "Data": null,
         "InnerException": null,
         "HelpURL": null,
-        "StackTraceString": "   at HotChocolate.Execution.Processing.MiddlewareContext.Source[T]() in /Users/michaelstaib/local/hc/src/HotChocolate/Core/src/Execution/Processing/MiddlewareContext.State.cs:line 54\n   at HotChocolate.Execution.Processing.MiddlewareContext.Parent[T]() in /Users/michaelstaib/local/hc/src/HotChocolate/Core/src/Execution/Processing/MiddlewareContext.State.cs:line 58\n   at lambda_method2928(Closure , IResolverContext )\n   at HotChocolate.Types.FieldMiddlewareCompiler.<>c__DisplayClass3_0.<<CreateResolverMiddleware>b__0>d.MoveNext() in /Users/michaelstaib/local/hc/src/HotChocolate/Core/src/Types/Types/Helpers/FieldMiddlewareCompiler.cs:line 73\n--- End of stack trace from previous location ---\n   at HotChocolate.Execution.Processing.ResolverTask.ExecuteResolverPipelineAsync() in /Users/michaelstaib/local/hc/src/HotChocolate/Core/src/Execution/Processing/ResolverTask.cs:line 65\n   at HotChocolate.Execution.Processing.ResolverTask.TryExecuteAsync() in /Users/michaelstaib/local/hc/src/HotChocolate/Core/src/Execution/Processing/ResolverTask.cs:line 51",
+        "StackTraceString": "   at HotChocolate.Execution.Processing.MiddlewareContext.Source[T]() in /Users/michaelstaib/local/hc-1/src/HotChocolate/Core/src/Execution/Processing/MiddlewareContext.State.cs:line 54\n   at HotChocolate.Execution.Processing.MiddlewareContext.Parent[T]() in /Users/michaelstaib/local/hc-1/src/HotChocolate/Core/src/Execution/Processing/MiddlewareContext.State.cs:line 58\n   at lambda_method4076(Closure , IResolverContext )\n   at HotChocolate.Types.FieldMiddlewareCompiler.<>c__DisplayClass3_0.<<CreateResolverMiddleware>b__0>d.MoveNext() in /Users/michaelstaib/local/hc-1/src/HotChocolate/Core/src/Types/Types/Helpers/FieldMiddlewareCompiler.cs:line 73\n--- End of stack trace from previous location ---\n   at HotChocolate.Execution.Processing.ResolverTask.ExecuteResolverPipelineAsync(CancellationToken cancellationToken) in /Users/michaelstaib/local/hc-1/src/HotChocolate/Core/src/Execution/Processing/ResolverTask.cs:line 91\n   at HotChocolate.Execution.Processing.ResolverTask.TryExecuteAsync(CancellationToken cancellationToken) in /Users/michaelstaib/local/hc-1/src/HotChocolate/Core/src/Execution/Processing/ResolverTask.cs:line 73",
         "RemoteStackTraceString": null,
         "RemoteStackIndex": 0,
         "ExceptionMethod": null,
         "HResult": -2147467262,
         "Source": "HotChocolate.Execution",
         "WatsonBuckets": null
+      },
+      "SyntaxNode": {
+        "Kind": "Field",
+        "Alias": null,
+        "Arguments": [],
+        "SelectionSet": null,
+        "Location": {
+          "Start": 8,
+          "End": 13,
+          "Line": 1,
+          "Column": 9
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 8,
+            "End": 13,
+            "Line": 1,
+            "Column": 9
+          },
+          "Value": "qux"
+        },
+        "Directives": []
       }
     }
   ],
