@@ -5,7 +5,7 @@ using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
-    public sealed class ShortType : IntegerTypeBase<short>
+    public class ShortType : IntegerTypeBase<short>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ShortType"/> class.

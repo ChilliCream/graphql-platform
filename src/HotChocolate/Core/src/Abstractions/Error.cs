@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Execution;
+using HotChocolate.Language;
 using HotChocolate.Properties;
 
 #nullable enable
@@ -17,7 +18,8 @@ namespace HotChocolate
             Path? path = null,
             IReadOnlyList<Location>? locations = null,
             IReadOnlyDictionary<string, object?>? extensions = null,
-            Exception? exception = null)
+            Exception? exception = null,
+            ISyntaxNode? syntaxNode = null)
         {
             if (string.IsNullOrEmpty(message))
             {
@@ -32,6 +34,7 @@ namespace HotChocolate
             Locations = locations;
             Extensions = extensions;
             Exception = exception;
+            SyntaxNode = syntaxNode;
 
             if (code is not null && Extensions is null)
             {
@@ -50,6 +53,8 @@ namespace HotChocolate
         public IReadOnlyDictionary<string, object?>? Extensions { get; }
 
         public Exception? Exception { get; }
+
+        public ISyntaxNode? SyntaxNode { get; }
 
         public IError WithMessage(string message)
         {

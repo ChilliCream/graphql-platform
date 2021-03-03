@@ -6,26 +6,26 @@ namespace StrawberryShake.CodeGeneration
         : ICodeDescriptor
     {
         public ResultFromEntityTypeMapperDescriptor(
-            NamedTypeDescriptor entityNamedType,
-            NamedTypeDescriptor resultNamedType)
+            INamedTypeDescriptor entityNamedType,
+            INamedTypeDescriptor resultNamedType)
         {
             EntityNamedType = entityNamedType;
             ResultNamedType = resultNamedType;
         }
 
         public NameString Name =>
-            NamingConventions.EntityMapperNameFromGraphQLTypeName(
-                ResultNamedType.Name,
-                ResultNamedType.GraphQLTypeName);
+            NamingConventions.CreateEntityMapperName(
+                ResultNamedType.RuntimeType.Name,
+                ResultNamedType.Name);
 
         /// <summary>
         /// The EntityType from which the target type shall be created
         /// </summary>
-        public NamedTypeDescriptor EntityNamedType { get; }
+        public INamedTypeDescriptor EntityNamedType { get; }
 
         /// <summary>
         /// The target Result type, which is the return type of the mapper
         /// </summary>
-        public NamedTypeDescriptor ResultNamedType { get; }
+        public INamedTypeDescriptor ResultNamedType { get; }
     }
 }

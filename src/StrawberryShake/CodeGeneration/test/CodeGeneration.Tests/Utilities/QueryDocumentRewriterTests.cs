@@ -24,8 +24,11 @@ namespace StrawberryShake.CodeGeneration.Utilities
 
             schema =
                 SchemaHelper.Load(
-                    (string.Empty, schema.ToDocument()),
-                    (string.Empty, Utf8GraphQLParser.Parse("extend schema @key(fields: \"id\")")));
+                    new GraphQLFile[] 
+                    {
+                        new(schema.ToDocument()),
+                        new(Utf8GraphQLParser.Parse("extend schema @key(fields: \"id\")"))
+                    });
 
             var document =
                 Utf8GraphQLParser.Parse(@"

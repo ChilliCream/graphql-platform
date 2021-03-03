@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using HotChocolate;
+using StrawberryShake.CodeGeneration.Properties;
 
 namespace StrawberryShake.CodeGeneration
 {
@@ -13,21 +14,31 @@ namespace StrawberryShake.CodeGeneration
             string @namespace,
             List<OperationDescriptor> operations)
         {
-            Name = name;
+            RuntimeType = new(name, @namespace);
             Operations = operations;
-            Namespace = @namespace;
+            Documentation =
+                string.Format(CodeGenerationResources.ClientDescriptor_Description, Name);
         }
+
+        /// <summary>
+        /// Gets the client name
+        /// </summary>
+        /// <value></value>
+        public NameString Name => RuntimeType.Name;
 
         /// <summary>
         /// The name of the client
         /// </summary>
-        public NameString Name { get; }
-
-        public string Namespace { get; }
+        public RuntimeTypeInfo RuntimeType { get; }
 
         /// <summary>
         /// The operations that are contained in this client class
         /// </summary>
         public List<OperationDescriptor> Operations { get; }
+
+        /// <summary>
+        /// The documentation for this client
+        /// </summary>
+        public string Documentation { get; }
     }
 }

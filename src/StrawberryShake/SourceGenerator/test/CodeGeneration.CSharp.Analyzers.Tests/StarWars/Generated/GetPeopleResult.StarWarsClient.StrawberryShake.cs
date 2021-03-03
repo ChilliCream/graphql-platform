@@ -1,4 +1,6 @@
-﻿#nullable enable
+﻿// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+
+#nullable enable
 
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
 {

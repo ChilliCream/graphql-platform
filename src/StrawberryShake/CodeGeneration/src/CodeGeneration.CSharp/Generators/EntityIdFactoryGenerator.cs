@@ -1,11 +1,16 @@
 using System.Linq;
-using System.Text;
+using System.Text.Json;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
     public class EntityIdFactoryGenerator : CodeGenerator<EntityIdFactoryDescriptor>
     {
+        private const string _obj = "obj";
+        private const string _type = "type";
+        private const string _typeName = "typeName";
+        private const string __typename = "__typename";
+
         protected override void Generate(
             CodeWriter writer,
             EntityIdFactoryDescriptor descriptor,
@@ -13,115 +18,108 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             fileName = descriptor.Name;
 
-            var factory = ClassBuilder
+            ClassBuilder classBuilder = ClassBuilder
                 .New()
                 .SetStatic()
                 .SetAccessModifier(AccessModifier.Public)
                 .SetName(fileName);
 
-            var obj = ParameterBuilder
-                .New()
-                .SetName("obj")
-                .SetType(TypeNames.JsonElement);
-
-            var type = ParameterBuilder
-                .New()
-                .SetName("type")
-                .SetType(TypeNames.String);
-
-            var createEntityId = MethodBuilder
-                .New()
+            classBuilder
+                .AddMethod("CreateEntityId")
                 .SetStatic()
                 .SetAccessModifier(AccessModifier.Public)
-                .SetName("CreateEntityId")
                 .SetReturnType(TypeNames.EntityId)
-                .AddParameter(obj)
+                .AddParameter(_obj, x => x.SetType(TypeNames.JsonElement))
                 .AddCode(CreateEntityIdBody(descriptor));
-            factory.AddMethod(createEntityId);
 
             foreach (var entity in descriptor.Entities)
             {
-                var createSpecificEntityId = MethodBuilder
-                    .New()
-                    .SetStatic()
+                classBuilder
+                    .AddMethod($"Create{entity.Name}EntityId")
                     .SetAccessModifier(AccessModifier.Private)
-                    .SetName($"Create{entity.Name}EntityId")
+                    .SetStatic()
                     .SetReturnType(TypeNames.EntityId)
-                    .AddParameter(obj)
-                    .AddParameter(type)
+                    .AddParameter(_obj, x => x.SetType(TypeNames.JsonElement))
+                    .AddParameter(_type, x => x.SetType(TypeNames.String))
                     .AddCode(CreateSpecificEntityIdBody(entity));
-                factory.AddMethod(createSpecificEntityId);
             }
 
             CodeFileBuilder
                 .New()
                 .SetNamespace(descriptor.Namespace)
-                .AddType(factory)
+                .AddType(classBuilder)
                 .Build(writer);
         }
 
         private ICode CreateEntityIdBody(EntityIdFactoryDescriptor descriptor)
         {
-            var sourceText = new StringBuilder();
+            AssignmentBuilder typeNameAssigment =
+                AssignmentBuilder
+                    .New()
+                    .SetLefthandSide($"{TypeNames.String} {_typeName}")
+                    .SetRighthandSide(
+                        MethodCallBuilder
+                            .Inline()
+                            .SetMethodName(_obj, nameof(JsonElement.GetProperty))
+                            .AddArgument(__typename.AsStringToken())
+                            .Chain(x => x
+                                .SetMethodName(nameof(JsonElement.GetString))
+                                .SetNullForgiving()));
 
-            sourceText.AppendLine(
-                $"{TypeNames.String} typeName = obj.GetProperty(\"__typename\").GetString()!;");
-            sourceText.AppendLine();
-
-            sourceText.AppendLine("return typeName switch");
-            sourceText.AppendLine("{");
+            SwitchExpressionBuilder typeNameSwitch =
+                SwitchExpressionBuilder
+                    .New()
+                    .SetReturn()
+                    .SetExpression(_typeName)
+                    .SetDefaultCase(ExceptionBuilder.Inline(TypeNames.NotSupportedException));
 
             foreach (var entity in descriptor.Entities)
             {
-                sourceText.AppendLine(
-                    $"    \"{entity.Name}\" => Create{entity.Name}EntityId(obj, typeName),");
+                typeNameSwitch.AddCase(
+                    entity.Name.AsStringToken(),
+                    MethodCallBuilder
+                        .Inline()
+                        .SetMethodName($"Create{entity.Name}EntityId")
+                        .AddArgument(_obj)
+                        .AddArgument(_typeName));
             }
 
-            sourceText.AppendLine($"    _ => throw new {TypeNames.NotSupportedException}()");
-            sourceText.AppendLine("};");
-
-            return CodeBlockBuilder.From(sourceText);
+            return CodeBlockBuilder
+                .New()
+                .AddCode(typeNameAssigment)
+                .AddEmptyLine()
+                .AddCode(typeNameSwitch);
         }
 
         private ICode CreateSpecificEntityIdBody(EntityIdDescriptor entity)
         {
-            var sourceText = new StringBuilder();
-
-            sourceText.AppendLine($"return new {TypeNames.EntityId}(");
-            sourceText.AppendLine("    type,");
-
+            ICode value;
             if (entity.Fields.Count == 1)
             {
-                var field = entity.Fields[0];
-
-                sourceText.AppendLine(
-                    $"    obj.GetProperty(\"{field.Name}\").{GetSerializerMethod(field)}()!);");
-
-                return CodeBlockBuilder.From(sourceText);
+                value = CreateEntityIdProperty(entity.Fields[0]);
             }
-
-            sourceText.Append("    (");
-
-            var next = false;
-
-            foreach (var field in entity.Fields)
+            else
             {
-                if (next)
-                {
-                    sourceText.AppendLine(",");
-                    sourceText.Append("    ");
-                }
-
-                next = true;
-
-                sourceText.Append(
-                    $"obj.GetProperty(\"{field.Name}\").{GetSerializerMethod(field)}()!");
+                value = TupleBuilder
+                    .New()
+                    .AddMemberRange(entity.Fields.Select(CreateEntityIdProperty));
             }
 
-            sourceText.AppendLine("));");
-
-            return CodeBlockBuilder.From(sourceText);
+            return MethodCallBuilder
+                .New()
+                .SetReturn()
+                .SetNew()
+                .SetMethodName(TypeNames.EntityId)
+                .AddArgument(_type)
+                .AddArgument(value);
         }
+
+        private static ICode CreateEntityIdProperty(EntityIdDescriptor field) =>
+            MethodCallBuilder
+                .Inline()
+                .SetMethodName(_obj, nameof(JsonElement.GetProperty))
+                .AddArgument(field.Name.AsStringToken())
+                .Chain(x => x.SetMethodName(GetSerializerMethod(field)).SetNullForgiving());
 
         private static string GetSerializerMethod(EntityIdDescriptor field) =>
             $"Get{field.TypeName.Split('.').Last()}";

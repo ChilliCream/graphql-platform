@@ -9,7 +9,7 @@ namespace StrawberryShake.CodeGeneration.Utilities
     {
         public static string GetInterfaceName(string typeName)
         {
-            return 'I' + GetPropertyName(typeName);
+            return 'I' + GetClassName(typeName);
         }
 
         public static string GetClassName(params string[] s)
@@ -39,6 +39,8 @@ namespace StrawberryShake.CodeGeneration.Utilities
 
             return builder.ToString();
         }
+
+        public static string GetMethodName(string fieldName) => GetPropertyName(fieldName);
 
         public static string GetPropertyName(string fieldName)
         {
@@ -109,8 +111,10 @@ namespace StrawberryShake.CodeGeneration.Utilities
                 }
                 else if (parameterName[i] == '_')
                 {
-                    if (i + 1 < parameterName.Length
-                        && char.IsLetter(parameterName[i + 1]))
+                    value.Append(char.ToLower(parameterName[i], CultureInfo.InvariantCulture));
+
+                    if (i + 1 < parameterName.Length && 
+                        char.IsLetter(parameterName[i + 1]))
                     {
                         value.Append(first
                             ? char.ToLower(parameterName[++i], CultureInfo.InvariantCulture)

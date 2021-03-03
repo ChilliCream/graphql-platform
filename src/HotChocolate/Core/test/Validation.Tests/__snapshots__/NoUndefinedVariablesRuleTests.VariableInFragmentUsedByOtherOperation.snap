@@ -12,7 +12,111 @@
     "Extensions": {
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variables-Used"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "OperationDefinition",
+      "Location": {
+        "Start": 18,
+        "End": 127,
+        "Line": 2,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 24,
+          "End": 28,
+          "Line": 2,
+          "Column": 23
+        },
+        "Value": "Foo"
+      },
+      "Operation": "Query",
+      "VariableDefinitions": [
+        {
+          "Kind": "VariableDefinition",
+          "Location": {
+            "Start": 28,
+            "End": 39,
+            "Line": 2,
+            "Column": 27
+          },
+          "Variable": {
+            "Kind": "Variable",
+            "Location": {
+              "Start": 28,
+              "End": 31,
+              "Line": 2,
+              "Column": 27
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 29,
+                "End": 31,
+                "Line": 2,
+                "Column": 28
+              },
+              "Value": "b"
+            },
+            "Value": "b"
+          },
+          "Type": {
+            "Kind": "NamedType",
+            "Location": {
+              "Start": 32,
+              "End": 39,
+              "Line": 2,
+              "Column": 31
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 32,
+                "End": 39,
+                "Line": 2,
+                "Column": 31
+              },
+              "Value": "String"
+            }
+          },
+          "DefaultValue": null,
+          "Directives": []
+        }
+      ],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 40,
+          "End": 127,
+          "Line": 2,
+          "Column": 39
+        },
+        "Selections": [
+          {
+            "Kind": "FragmentSpread",
+            "Location": {
+              "Start": 62,
+              "End": 88,
+              "Line": 3,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 65,
+                "End": 88,
+                "Line": 3,
+                "Column": 24
+              },
+              "Value": "FragA"
+            },
+            "Directives": []
+          }
+        ]
+      }
+    }
   },
   {
     "Message": "The following variables were not declared: a.",
@@ -27,7 +131,111 @@
     "Extensions": {
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variable-Uses-Defined"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "OperationDefinition",
+      "Location": {
+        "Start": 18,
+        "End": 127,
+        "Line": 2,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 24,
+          "End": 28,
+          "Line": 2,
+          "Column": 23
+        },
+        "Value": "Foo"
+      },
+      "Operation": "Query",
+      "VariableDefinitions": [
+        {
+          "Kind": "VariableDefinition",
+          "Location": {
+            "Start": 28,
+            "End": 39,
+            "Line": 2,
+            "Column": 27
+          },
+          "Variable": {
+            "Kind": "Variable",
+            "Location": {
+              "Start": 28,
+              "End": 31,
+              "Line": 2,
+              "Column": 27
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 29,
+                "End": 31,
+                "Line": 2,
+                "Column": 28
+              },
+              "Value": "b"
+            },
+            "Value": "b"
+          },
+          "Type": {
+            "Kind": "NamedType",
+            "Location": {
+              "Start": 32,
+              "End": 39,
+              "Line": 2,
+              "Column": 31
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 32,
+                "End": 39,
+                "Line": 2,
+                "Column": 31
+              },
+              "Value": "String"
+            }
+          },
+          "DefaultValue": null,
+          "Directives": []
+        }
+      ],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 40,
+          "End": 127,
+          "Line": 2,
+          "Column": 39
+        },
+        "Selections": [
+          {
+            "Kind": "FragmentSpread",
+            "Location": {
+              "Start": 62,
+              "End": 88,
+              "Line": 3,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 65,
+                "End": 88,
+                "Line": 3,
+                "Column": 24
+              },
+              "Value": "FragA"
+            },
+            "Directives": []
+          }
+        ]
+      }
+    }
   },
   {
     "Message": "The following variables were not used: a.",
@@ -42,7 +250,111 @@
     "Extensions": {
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variables-Used"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "OperationDefinition",
+      "Location": {
+        "Start": 122,
+        "End": 234,
+        "Line": 6,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 128,
+          "End": 132,
+          "Line": 6,
+          "Column": 23
+        },
+        "Value": "Bar"
+      },
+      "Operation": "Query",
+      "VariableDefinitions": [
+        {
+          "Kind": "VariableDefinition",
+          "Location": {
+            "Start": 132,
+            "End": 143,
+            "Line": 6,
+            "Column": 27
+          },
+          "Variable": {
+            "Kind": "Variable",
+            "Location": {
+              "Start": 132,
+              "End": 135,
+              "Line": 6,
+              "Column": 27
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 133,
+                "End": 135,
+                "Line": 6,
+                "Column": 28
+              },
+              "Value": "a"
+            },
+            "Value": "a"
+          },
+          "Type": {
+            "Kind": "NamedType",
+            "Location": {
+              "Start": 136,
+              "End": 143,
+              "Line": 6,
+              "Column": 31
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 136,
+                "End": 143,
+                "Line": 6,
+                "Column": 31
+              },
+              "Value": "String"
+            }
+          },
+          "DefaultValue": null,
+          "Directives": []
+        }
+      ],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 144,
+          "End": 234,
+          "Line": 6,
+          "Column": 39
+        },
+        "Selections": [
+          {
+            "Kind": "FragmentSpread",
+            "Location": {
+              "Start": 166,
+              "End": 192,
+              "Line": 7,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 169,
+                "End": 192,
+                "Line": 7,
+                "Column": 24
+              },
+              "Value": "FragB"
+            },
+            "Directives": []
+          }
+        ]
+      }
+    }
   },
   {
     "Message": "The following variables were not declared: b.",
@@ -57,6 +369,110 @@
     "Extensions": {
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variable-Uses-Defined"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "OperationDefinition",
+      "Location": {
+        "Start": 122,
+        "End": 234,
+        "Line": 6,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 128,
+          "End": 132,
+          "Line": 6,
+          "Column": 23
+        },
+        "Value": "Bar"
+      },
+      "Operation": "Query",
+      "VariableDefinitions": [
+        {
+          "Kind": "VariableDefinition",
+          "Location": {
+            "Start": 132,
+            "End": 143,
+            "Line": 6,
+            "Column": 27
+          },
+          "Variable": {
+            "Kind": "Variable",
+            "Location": {
+              "Start": 132,
+              "End": 135,
+              "Line": 6,
+              "Column": 27
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 133,
+                "End": 135,
+                "Line": 6,
+                "Column": 28
+              },
+              "Value": "a"
+            },
+            "Value": "a"
+          },
+          "Type": {
+            "Kind": "NamedType",
+            "Location": {
+              "Start": 136,
+              "End": 143,
+              "Line": 6,
+              "Column": 31
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 136,
+                "End": 143,
+                "Line": 6,
+                "Column": 31
+              },
+              "Value": "String"
+            }
+          },
+          "DefaultValue": null,
+          "Directives": []
+        }
+      ],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 144,
+          "End": 234,
+          "Line": 6,
+          "Column": 39
+        },
+        "Selections": [
+          {
+            "Kind": "FragmentSpread",
+            "Location": {
+              "Start": 166,
+              "End": 192,
+              "Line": 7,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 169,
+                "End": 192,
+                "Line": 7,
+                "Column": 24
+              },
+              "Value": "FragB"
+            },
+            "Directives": []
+          }
+        ]
+      }
+    }
   }
 ]
