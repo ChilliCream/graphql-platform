@@ -43,14 +43,20 @@ namespace StrawberryShake.Transport.Http
 
         private static void WriteVariables(OperationRequest request, Utf8JsonWriter writer)
         {
-            writer.WritePropertyName("variables");
-            WriteDictionary(request.Variables, writer);
+            if (request.Variables.Count > 0)
+            {
+                writer.WritePropertyName("variables");
+                WriteDictionary(request.Variables, writer);
+            }
         }
 
         private static void WriteExtensions(OperationRequest request, Utf8JsonWriter writer)
         {
-            writer.WritePropertyName("extensions");
-            WriteDictionary(request.Extensions, writer);
+            if (request.Extensions.Count > 0)
+            {
+                writer.WritePropertyName("extensions");
+                WriteDictionary(request.Extensions, writer);
+            }
         }
 
         private static void WriteValue(object? value, Utf8JsonWriter writer)
@@ -63,7 +69,7 @@ namespace StrawberryShake.Transport.Http
 
             switch (value)
             {
-                case IReadOnlyDictionary<string, object?> dict:
+                case IEnumerable<KeyValuePair<string, object?>> dict:
                     WriteDictionary(dict, writer);
                     break;
 

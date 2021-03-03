@@ -15,7 +15,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             context.ReportDiagnostic(
                 Diagnostic.Create(
                     new DiagnosticDescriptor(
-                        id: CodeGenerationErrorCodes.NoTypeDocumentsFound,
+                        id: "SS0004",
                         title: "Dependency Missing",
                         messageFormat: $"The package reference `{packageName}` is missing.\r\n`dotnet add package {packageName}`",
                         category: _category,

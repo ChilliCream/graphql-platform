@@ -6,14 +6,14 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.AspNetCore.Subscriptions.Messages;
 using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.Types;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using StrawberryShake.Transport.WebSockets.Protocol;
 using Xunit;
@@ -338,7 +338,7 @@ namespace StrawberryShake.Transport.WebSockets
             str.MatchSnapshot();
         }
 
-        [Fact]
+        [Fact(Skip = "This test is flaky")]
         public async Task LoadTest_MessagesReceivedInCorrectOrder()
         {
             // arrange

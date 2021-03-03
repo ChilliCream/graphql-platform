@@ -1,4 +1,4 @@
-using HotChocolate;
+using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Extensions;
@@ -15,46 +15,47 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         protected override void Generate(
             CodeWriter writer,
-            ObjectTypeDescriptor namedTypeDescriptor,
+            ObjectTypeDescriptor descriptor,
             out string fileName)
         {
-            fileName = namedTypeDescriptor.RuntimeType.Name;
-            ClassBuilder classBuilder = ClassBuilder.New()
+            fileName = descriptor.RuntimeType.Name;
+            ClassBuilder classBuilder = ClassBuilder
+                .New()
+                .SetComment(descriptor.Description)
                 .SetName(fileName);
 
-            ConstructorBuilder constructorBuilder = ConstructorBuilder.New()
-                .SetTypeName(fileName)
-                .SetAccessModifier(AccessModifier.Public);
+            ConstructorBuilder constructorBuilder = classBuilder
+                .AddConstructor()
+                .SetTypeName(fileName);
 
-            foreach (var prop in namedTypeDescriptor.Properties)
+            foreach (var prop in descriptor.Properties)
             {
-                var propTypeBuilder = prop.Type.ToBuilder();
+                TypeReferenceBuilder propTypeBuilder = prop.Type.ToBuilder();
 
                 // Add Property to class
-                classBuilder.AddProperty(
-                    prop.Name,
-                    x => x
-                        .SetName(prop.Name)
-                        .SetType(propTypeBuilder)
-                        .SetAccessModifier(AccessModifier.Public)
-                        .SetValue(prop.Type.IsNullableType() ? "default!" : null));
+                classBuilder
+                    .AddProperty(prop.Name)
+                    .SetComment(prop.Description)
+                    .SetName(prop.Name)
+                    .SetType(propTypeBuilder)
+                    .SetPublic()
+                    .SetValue(prop.Type.IsNullableType() ? "default!" : null);
 
                 // Add initialization of property to the constructor
                 var paramName = GetParameterName(prop.Name);
-                constructorBuilder.AddParameter(paramName, x => x.SetType(propTypeBuilder));
-                constructorBuilder.AddCode(prop.Name + " = " + paramName + ";");
+                constructorBuilder
+                    .AddParameter(paramName, x => x.SetType(propTypeBuilder))
+                    .AddCode(AssignmentBuilder
+                        .New()
+                        .SetLefthandSide(prop.Name)
+                        .SetRighthandSide(paramName));
             }
 
-            foreach (NameString implement in namedTypeDescriptor.Implements)
-            {
-                classBuilder.AddImplements(implement);
-            }
-
-            classBuilder.AddConstructor(constructorBuilder);
+            classBuilder.AddImplementsRange(descriptor.Implements.Select(x => x.Value));
 
             CodeFileBuilder
                 .New()
-                .SetNamespace(namedTypeDescriptor.RuntimeType.NamespaceWithoutGlobal)
+                .SetNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal)
                 .AddType(classBuilder)
                 .Build(writer);
         }

@@ -340,6 +340,24 @@ namespace HotChocolate
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public async Task SchemaBuilder_AnyType()
+        {
+            // arrange
+            string sourceText = "type Query { hello: Any }";
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(sourceText)
+                .BindComplexType<Query>()
+                .Create();
+
+            // assert
+            IRequestExecutor executor = schema.MakeExecutable();
+            IExecutionResult result = await executor.ExecuteAsync("{ hello }");
+            result.ToJson().MatchSnapshot();
+        }
+
         public class Query
         {
             public string Hello() => "World";

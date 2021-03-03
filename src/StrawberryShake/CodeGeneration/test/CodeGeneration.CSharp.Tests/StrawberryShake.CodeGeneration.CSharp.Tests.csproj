@@ -50,17 +50,15 @@
     <None Update="__resources__\QueryWithSubscription.graphql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="__resources__\StarWarsSchema_ChangeHomePlanet.graphql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <!--For Visual Studio for Mac Test Explorer we need this reference here-->
   <ItemGroup>
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.8.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Generators\EnumParserGeneratorTests\__snapshots__\__mismatch__" />
-    <Folder Include="Generators\__snapshots__\__mismatch__" />
   </ItemGroup>
 
 </Project>

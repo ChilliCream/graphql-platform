@@ -7,7 +7,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public partial class TypeMapperGenerator
     {
-        private const string _listParameterName = "list";
+        private const string _list = "list";
+        private const string _child = "child";
 
         private void AddArrayHandler(
             ClassBuilder classBuilder,
@@ -17,22 +18,24 @@ namespace StrawberryShake.CodeGeneration.CSharp
             HashSet<string> processed,
             bool isNonNullable)
         {
-            methodBuilder.AddParameter(
-                _listParameterName,
-                x => x.SetType(listTypeDescriptor.ToEntityIdBuilder()));
+            methodBuilder
+                .AddParameter(_list)
+                .SetType(listTypeDescriptor.ToEntityIdBuilder());
 
             var listVarName = GetParameterName(listTypeDescriptor.Name) + "s";
 
             if (!isNonNullable)
             {
-                methodBuilder.AddCode(EnsureProperNullability(_listParameterName, isNonNullable));
+                methodBuilder.AddCode(EnsureProperNullability(_list, isNonNullable));
             }
 
             methodBuilder.AddCode(
-                AssignmentBuilder.New()
+                AssignmentBuilder
+                    .New()
                     .SetLefthandSide($"var {listVarName}")
                     .SetRighthandSide(
-                        CodeBlockBuilder.New()
+                        CodeBlockBuilder
+                            .New()
                             .AddCode("new ")
                             .AddCode(TypeNames.List)
                             .AddCode("<")
@@ -41,20 +44,26 @@ namespace StrawberryShake.CodeGeneration.CSharp
                             .AddCode("()")));
             methodBuilder.AddEmptyLine();
 
-            var loopbuilder = ForEachBuilder.New()
+            ForEachBuilder forEachBuilder = ForEachBuilder
+                .New()
                 .SetLoopHeader(
-                    CodeBlockBuilder.New()
+                    CodeBlockBuilder
+                        .New()
                         .AddCode(listTypeDescriptor.InnerType.ToEntityIdBuilder())
-                        .AddCode($"child in {_listParameterName}"))
+                        .AddCode($"{_child} in {_list}"))
                 .AddCode(
-                    MethodCallBuilder.New()
-                        .SetPrefix($"{listVarName}.")
-                        .SetMethodName("Add")
-                        .AddArgument(BuildMapMethodCall(listTypeDescriptor.InnerType, "child")));
+                    MethodCallBuilder
+                        .New()
+                        .SetMethodName(listVarName, nameof(List<object>.Add))
+                        .AddArgument(MethodCallBuilder
+                            .Inline()
+                            .SetMethodName(MapMethodNameFromTypeName(listTypeDescriptor.InnerType))
+                            .AddArgument(_child)));
 
-            methodBuilder.AddCode(loopbuilder);
-            methodBuilder.AddEmptyLine();
-            methodBuilder.AddCode($"return {listVarName};");
+            methodBuilder
+                .AddCode(forEachBuilder)
+                .AddEmptyLine()
+                .AddCode($"return {listVarName};");
 
             AddMapMethod(
                 listVarName,

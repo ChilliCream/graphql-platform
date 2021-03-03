@@ -13,8 +13,6 @@ namespace HotChocolate.Utilities
         private readonly ConcurrentDictionary<string, CacheEntry> _cache = new();
         private LinkedListNode<string>? _first;
 
-        public event EventHandler<CacheEntryEventArgs<TValue>>? RemovedEntry;
-
         public Cache(int size)
         {
             Size = size < _minimumSize ? _minimumSize : size;
@@ -99,7 +97,6 @@ namespace HotChocolate.Utilities
                 if (rank is { } && _cache.TryRemove(rank.Value, out CacheEntry? entry))
                 {
                     _ranking.Remove(rank);
-                    RemovedEntry?.Invoke(this, new CacheEntryEventArgs<TValue>(entry.Key, entry.Value));
                 }
             }
         }

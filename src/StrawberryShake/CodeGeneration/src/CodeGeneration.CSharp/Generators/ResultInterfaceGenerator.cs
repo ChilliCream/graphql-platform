@@ -1,7 +1,6 @@
-using HotChocolate;
+using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
-using StrawberryShake.CodeGeneration.Extensions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -18,20 +17,22 @@ namespace StrawberryShake.CodeGeneration.CSharp
             out string fileName)
         {
             fileName = descriptor.RuntimeType.Name;
-            InterfaceBuilder interfaceBuilder =
-                InterfaceBuilder.New().SetName(fileName);
+
+            InterfaceBuilder interfaceBuilder = InterfaceBuilder
+                .New()
+                .SetComment(descriptor.Description)
+                .SetName(fileName);
 
             foreach (var prop in descriptor.Properties)
             {
-                interfaceBuilder.AddProperty(
-                    prop.Name,
-                    x => x.SetType(prop.Type.ToBuilder()).SetAccessModifier(AccessModifier.Public));
+                interfaceBuilder
+                    .AddProperty(prop.Name)
+                    .SetComment(prop.Description)
+                    .SetType(prop.Type.ToBuilder())
+                    .SetPublic();
             }
 
-            foreach (NameString implement in descriptor.Implements)
-            {
-                interfaceBuilder.AddImplements(implement);
-            }
+            interfaceBuilder.AddImplementsRange(descriptor.Implements.Select(x => x.Value));
 
             CodeFileBuilder
                 .New()
