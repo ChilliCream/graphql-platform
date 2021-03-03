@@ -18,14 +18,15 @@ namespace StrawberryShake.Json
                 {
                     try
                     {
-                        array[i++] = ParseError(error);
+                        array[i] = ParseError(error);
                     }
                     catch (Exception ex)
                     {
-                        array[i++] = new ClientError(
+                        array[i] = new ClientError(
                             JsonErrorParser_ParseErrors_Error,
                             exception: ex);
                     }
+                    i++;
                 }
 
                 return array;
@@ -62,7 +63,7 @@ namespace StrawberryShake.Json
                 {
                     array[i++] = element.ValueKind switch
                     {
-                        JsonValueKind.String => element.GetString(),
+                        JsonValueKind.String => element.GetString()!,
                         JsonValueKind.Number => element.GetInt32(),
                         _ => "NOT_SUPPORTED_VALUE"
                     };
@@ -98,7 +99,7 @@ namespace StrawberryShake.Json
         {
             if (error.GetPropertyOrNull("extensions") is { ValueKind: JsonValueKind.Object } ext)
             {
-                return (IReadOnlyDictionary<string, object?>)ParseValue(ext);
+                return (IReadOnlyDictionary<string, object?>?)ParseValue(ext);
             }
 
             return null;
@@ -141,7 +142,7 @@ namespace StrawberryShake.Json
                     return dict;
 
                 case JsonValueKind.Array:
-                    var array = new object[element.GetArrayLength()];
+                    var array = new object?[element.GetArrayLength()];
                     var i = 0;
 
                     foreach (JsonElement item in element.EnumerateArray())
