@@ -277,7 +277,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetCondition(
                         ConditionBuilder
                             .New()
-                            .Set("response.Body is not null"))
+                            .Set("response.Body != null"))
                     .AddCode(
                         IfBuilder
                             .New()

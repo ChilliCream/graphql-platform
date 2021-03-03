@@ -3292,17 +3292,17 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SendMessageInput
     {
-        public global::System.String? ClientMutationId { get; set; }
+        public global::System.String? ClientMutationId { get; set; } = default!;
 
         /// <summary>
         /// The email of the person to which a message shall be send.
         /// </summary>
-        public global::System.String RecipientEmail { get; set; }
+        public global::System.String RecipientEmail { get; set; } = default!;
 
         /// <summary>
         /// The message text.
         /// </summary>
-        public global::System.String Text { get; set; }
+        public global::System.String Text { get; set; } = default!;
     }
 }
 
@@ -4308,7 +4308,7 @@ namespace Foo.Bar
             (IGetPeopleResult Result, GetPeopleResultInfo Info)? data = null;
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
 
-            if (response.Body is not null)
+            if (response.Body != null)
             {
                 if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement))
                 {
@@ -4534,7 +4534,7 @@ namespace Foo.Bar
             (IGetMessagesResult Result, GetMessagesResultInfo Info)? data = null;
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
 
-            if (response.Body is not null)
+            if (response.Body != null)
             {
                 if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement))
                 {
@@ -4871,7 +4871,7 @@ namespace Foo.Bar
             (ISendMessageInputResult Result, SendMessageInput_1ResultInfo Info)? data = null;
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
 
-            if (response.Body is not null)
+            if (response.Body != null)
             {
                 if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement))
                 {
@@ -5156,7 +5156,7 @@ namespace Foo.Bar
             (ISendMessageMutResult Result, SendMessageMutResultInfo Info)? data = null;
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
 
-            if (response.Body is not null)
+            if (response.Body != null)
             {
                 if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement))
                 {
@@ -5441,7 +5441,7 @@ namespace Foo.Bar
             (IReadMessagesResult Result, ReadMessagesResultInfo Info)? data = null;
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
 
-            if (response.Body is not null)
+            if (response.Body != null)
             {
                 if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement))
                 {

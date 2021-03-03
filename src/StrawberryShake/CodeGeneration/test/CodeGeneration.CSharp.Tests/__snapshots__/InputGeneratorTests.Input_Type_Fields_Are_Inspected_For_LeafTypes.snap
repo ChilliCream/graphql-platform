@@ -397,9 +397,9 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ChangeHomePlanetInput
     {
-        public global::System.Int32 Id { get; set; }
+        public global::System.Int32 Id { get; set; } = default!;
 
-        public global::System.String HomePlanet { get; set; }
+        public global::System.String HomePlanet { get; set; } = default!;
     }
 }
 
@@ -582,7 +582,7 @@ namespace Foo.Bar
             (IChangeHomePlanetResult Result, ChangeHomePlanetResultInfo Info)? data = null;
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
 
-            if (response.Body is not null)
+            if (response.Body != null)
             {
                 if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement))
                 {
