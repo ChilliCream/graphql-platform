@@ -6,6 +6,7 @@ using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers;
+using static StrawberryShake.CodeGeneration.Utilities.DocumentHelper;
 
 namespace StrawberryShake.CodeGeneration.Utilities
 {
@@ -33,25 +34,27 @@ namespace StrawberryShake.CodeGeneration.Utilities
             ScalarNames.TimeSpan
         };
 
-        public static ISchema Load(params (string, DocumentNode)[] documents)
+        public static ISchema Load(
+            IEnumerable<GraphQLFile> files,
+            bool strictValidation = true)
         {
-            return Load((IEnumerable<(string, DocumentNode)>)documents);
-        }
-
-        public static ISchema Load(IEnumerable<(string, DocumentNode)> documents)
-        {
-            if (documents is null)
+            if (files is null)
             {
-                throw new ArgumentNullException(nameof(documents));
+                throw new ArgumentNullException(nameof(files));
             }
 
-            ISchemaBuilder builder = SchemaBuilder.New();
+            var lookup = new Dictionary<ISyntaxNode, string>();
+            IndexSyntaxNodes(files, lookup);
+
+            var builder = SchemaBuilder.New();
+
+            builder.ModifyOptions(o => o.StrictValidation = strictValidation);
 
             var leafTypes = new Dictionary<NameString, LeafTypeInfo>();
             var globalEntityPatterns = new List<SelectionSetNode>();
             var typeEntityPatterns = new Dictionary<NameString, SelectionSetNode>();
 
-            foreach (DocumentNode document in documents.Select(doc => doc.Item2))
+            foreach (DocumentNode document in files.Select(f => f.Document))
             {
                 if (document.Definitions.Any(t => t is ITypeSystemExtensionNode))
                 {

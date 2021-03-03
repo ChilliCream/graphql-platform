@@ -1,0 +1,313 @@
+schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
+
+type Query {
+  "Retrieve a hero by a particular Star Wars episode.\n\n\n**Returns:**\nThe character."
+  hero("The episode to look up by." episode: Episode!): Character!
+  "Gets all character.\n\n\n**Returns:**\nThe character."
+  characters(first: Int after: String last: Int before: String where: ICharacterFilterInput order: [ICharacterSortInput!]): CharacterConnection
+  "Gets a character by it`s id.\n\n\n**Returns:**\nThe character."
+  character("The ids of the human to retrieve." ids: [Int!]!): [Character!]!
+  search(text: String!): [SearchResult!]!
+  reviews(first: Int after: String last: Int before: String episode: Episode! where: ReviewFilterInput order: [ReviewSortInput!]): ReviewConnection
+}
+
+type Mutation {
+  changeHomePlanet(input: ChangeHomePlanetInput!): ChangeHomePlanetPayload!
+  "Creates a review for a given Star Wars episode."
+  createReview(input: CreateReviewInput!): CreateReviewPayload!
+}
+
+type Subscription {
+  onReview(episode: Episode!): Review!
+}
+
+"A character in the Star Wars universe."
+interface Character {
+  "The ids of the character's friends."
+  friends(first: Int after: String last: Int before: String): CharacterConnection
+  "The unique identifier for the character."
+  id: Int!
+  "The name of the character."
+  name: String!
+  "The episodes the character appears in."
+  appearsIn: [Episode!]!
+  "The height of the character."
+  height(unit: Unit = METERS): Float!
+}
+
+"A connection to a list of items."
+type CharacterConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [CharacterEdge!]
+  "A flattened list of the nodes."
+  nodes: [Character!]
+}
+
+"Different units of measurement."
+enum Unit {
+  FOOT
+  METERS
+}
+
+"Information about pagination in a connection."
+type PageInfo {
+  "Indicates whether more edges exist following the set defined by the clients arguments."
+  hasNextPage: Boolean!
+  "Indicates whether more edges exist prior the set defined by the clients arguments."
+  hasPreviousPage: Boolean!
+  "When paginating backwards, the cursor to continue."
+  startCursor: String
+  "When paginating forwards, the cursor to continue."
+  endCursor: String
+}
+
+"An edge in a connection."
+type CharacterEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: Character!
+}
+
+"A human character in the Star Wars universe."
+type Human implements Character {
+  "The unique identifier for the character."
+  id: Int!
+  "The name of the character."
+  name: String!
+  "The ids of the character's friends."
+  friends(first: Int after: String last: Int before: String): CharacterConnection
+  "The episodes the character appears in."
+  appearsIn: [Episode!]!
+  "The planet the character is originally from."
+  homePlanet: String
+  "The height of the character."
+  height(unit: Unit = METERS): Float!
+}
+
+"A droid in the Star Wars universe."
+type Droid implements Character {
+  "The unique identifier for the character."
+  id: Int!
+  "The name of the character."
+  name: String!
+  "The ids of the character's friends."
+  friends(first: Int after: String last: Int before: String): CharacterConnection
+  "The episodes the character appears in."
+  appearsIn: [Episode!]!
+  "The droid's primary function."
+  primaryFunction: String!
+  "The height of the character."
+  height(unit: Unit = METERS): Float!
+}
+
+"A starship in the Star Wars universe."
+type Starship {
+  "The Id of the starship."
+  id: Int!
+  "The name of the starship."
+  name: String!
+  "The length of the starship."
+  length(unit: Unit = METERS): Float!
+}
+
+"The Star Wars episodes."
+enum Episode {
+  "Star Wars Episode IV: A New Hope"
+  NEW_HOPE
+  "Star Wars Episode V: Empire Strikes Back"
+  EMPIRE
+  "Star Wars Episode VI: Return of the Jedi"
+  JEDI
+}
+
+"A character in the Star Wars universe."
+input ICharacterFilterInput {
+  and: [ICharacterFilterInput!]
+  or: [ICharacterFilterInput!]
+  "The unique identifier for the character."
+  id: ComparableInt32OperationFilterInput
+  "The name of the character."
+  name: StringOperationFilterInput
+  "The ids of the character's friends."
+  friends: ListComparableInt32OperationFilterInput
+  "The episodes the character appears in."
+  appearsIn: ListEpisodeOperationFilterInput
+  "The height of the character."
+  height: ComparableDoubleOperationFilterInput
+}
+
+"A character in the Star Wars universe."
+input ICharacterSortInput {
+  "The unique identifier for the character."
+  id: SortEnumType
+  "The name of the character."
+  name: SortEnumType
+  "The height of the character."
+  height: SortEnumType
+}
+
+"A review of a particular movie."
+type Review {
+  id: Uuid!
+  "The number of stars given for this review."
+  stars: Int!
+  "An explanation for the rating."
+  commentary: String!
+}
+
+"A review of a particular movie."
+input ReviewFilterInput {
+  and: [ReviewFilterInput!]
+  or: [ReviewFilterInput!]
+  id: ComparableGuidOperationFilterInput
+  "The number of stars given for this review."
+  stars: ComparableInt32OperationFilterInput
+  "An explanation for the rating."
+  commentary: StringOperationFilterInput
+}
+
+"A review of a particular movie."
+input ReviewSortInput {
+  id: SortEnumType
+  "The number of stars given for this review."
+  stars: SortEnumType
+  "An explanation for the rating."
+  commentary: SortEnumType
+}
+
+"A connection to a list of items."
+type ReviewConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [ReviewEdge!]
+  "A flattened list of the nodes."
+  nodes: [Review!]
+}
+
+input ComparableInt32OperationFilterInput {
+  eq: Int
+  neq: Int
+  in: [Int!]
+  nin: [Int!]
+  gt: Int
+  ngt: Int
+  gte: Int
+  ngte: Int
+  lt: Int
+  nlt: Int
+  lte: Int
+  nlte: Int
+}
+
+input StringOperationFilterInput {
+  and: [StringOperationFilterInput!]
+  or: [StringOperationFilterInput!]
+  eq: String
+  neq: String
+  contains: String
+  ncontains: String
+  in: [String]
+  nin: [String]
+  startsWith: String
+  nstartsWith: String
+  endsWith: String
+  nendsWith: String
+}
+
+input ListComparableInt32OperationFilterInput {
+  all: ComparableInt32OperationFilterInput
+  none: ComparableInt32OperationFilterInput
+  some: ComparableInt32OperationFilterInput
+  any: Boolean
+}
+
+input ListEpisodeOperationFilterInput {
+  all: EpisodeOperationFilterInput
+  none: EpisodeOperationFilterInput
+  some: EpisodeOperationFilterInput
+  any: Boolean
+}
+
+input ComparableDoubleOperationFilterInput {
+  eq: Float
+  neq: Float
+  in: [Float!]
+  nin: [Float!]
+  gt: Float
+  ngt: Float
+  gte: Float
+  ngte: Float
+  lt: Float
+  nlt: Float
+  lte: Float
+  nlte: Float
+}
+
+enum SortEnumType {
+  ASC
+  DESC
+}
+
+input ComparableGuidOperationFilterInput {
+  eq: Uuid
+  neq: Uuid
+  in: [Uuid!]
+  nin: [Uuid!]
+  gt: Uuid
+  ngt: Uuid
+  gte: Uuid
+  ngte: Uuid
+  lt: Uuid
+  nlt: Uuid
+  lte: Uuid
+  nlte: Uuid
+}
+
+"An edge in a connection."
+type ReviewEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: Review!
+}
+
+input EpisodeOperationFilterInput {
+  eq: Episode
+  neq: Episode
+  in: [Episode!]
+  nin: [Episode!]
+}
+
+scalar Uuid
+
+input CreateReviewInput {
+  episode: Episode!
+  "The number of stars given for this review."
+  stars: Int!
+  "An explanation for the rating."
+  commentary: String!
+}
+
+type CreateReviewPayload {
+  episode: Episode!
+  review: Review!
+}
+
+input ChangeHomePlanetInput {
+  id: Int!
+  homePlanet: String!
+}
+
+type ChangeHomePlanetPayload {
+  human: Human!
+}
+
+union SearchResult = Human | Droid | Starship

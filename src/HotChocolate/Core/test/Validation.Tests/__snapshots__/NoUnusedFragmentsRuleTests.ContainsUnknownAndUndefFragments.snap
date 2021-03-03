@@ -17,7 +17,27 @@
       "fragment": "bar",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-spread-target-defined"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "FragmentSpread",
+      "Location": {
+        "Start": 83,
+        "End": 111,
+        "Line": 4,
+        "Column": 21
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 86,
+          "End": 111,
+          "Line": 4,
+          "Column": 24
+        },
+        "Value": "bar"
+      },
+      "Directives": []
+    }
   },
   {
     "Message": "The specified fragment `foo` is not used within the current document.",
@@ -33,6 +53,80 @@
       "fragment": "foo",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragments-Must-Be-Used"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "FragmentDefinition",
+      "VariableDefinitions": [],
+      "TypeCondition": {
+        "Kind": "NamedType",
+        "Location": {
+          "Start": 162,
+          "End": 169,
+          "Line": 7,
+          "Column": 33
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 162,
+            "End": 169,
+            "Line": 7,
+            "Column": 33
+          },
+          "Value": "Human"
+        }
+      },
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 168,
+          "End": 225,
+          "Line": 7,
+          "Column": 39
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": null,
+            "Location": {
+              "Start": 190,
+              "End": 212,
+              "Line": 8,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 190,
+                "End": 212,
+                "Line": 8,
+                "Column": 21
+              },
+              "Value": "name"
+            },
+            "Directives": []
+          }
+        ]
+      },
+      "Location": {
+        "Start": 146,
+        "End": 225,
+        "Line": 7,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 155,
+          "End": 161,
+          "Line": 7,
+          "Column": 26
+        },
+        "Value": "foo"
+      },
+      "Directives": []
+    }
   }
 ]

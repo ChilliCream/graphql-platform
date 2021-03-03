@@ -11,7 +11,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
 {
-    public sealed class AnyType : ScalarType
+    public class AnyType : ScalarType
     {
         private readonly ObjectValueToDictionaryConverter _objectValueToDictConverter = new();
         private ObjectToDictionaryConverter _objectToDictConverter = default!;

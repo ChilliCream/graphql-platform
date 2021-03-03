@@ -29,6 +29,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                         inputField.Description,
                         inputField,
                         inputField.Type));
+
+                    context.RegisterType(inputField.Type.NamedType());
                 }
 
                 rename = inputObjectType.Directives.SingleOrDefault<RenameDirective>();

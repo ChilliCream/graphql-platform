@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="StrawberryShake.CodeGeneration.CSharp" Version="11.1.0-local.58" PrivateAssets="all" GeneratePathProperty="true" />
+    <PackageReference Include="StrawberryShake.CodeGeneration.CSharp" Version="11.1.0-local.110" PrivateAssets="all" GeneratePathProperty="true" />
     <PackageReference Include="DotNet.Glob" Version="3.1.2" PrivateAssets="all" GeneratePathProperty="true" />
   </ItemGroup>
 
@@ -29,6 +29,7 @@
     <None Include="$(MSBuildThisFileDirectory)..\MSBuild\GraphQL.xaml" Pack="true" PackagePath="build/GraphQL.xaml" Visible="false" />
     <None Include="$(MSBuildThisFileDirectory)..\MSBuild\StrawberryShake.props" Pack="true" PackagePath="build/StrawberryShake.CodeGeneration.CSharp.Analyzers.props" Visible="false" />
     <None Include="$(MSBuildThisFileDirectory)..\MSBuild\StrawberryShake.targets" Pack="true" PackagePath="build/StrawberryShake.CodeGeneration.CSharp.Analyzers.targets" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\VSCode.targets" Pack="true" PackagePath="build/VSCode.targets" Visible="false" />
   </ItemGroup>
 
 </Project>

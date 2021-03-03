@@ -1,68 +1,61 @@
+using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Extensions;
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public class ResultTypeGenerator : CodeGenerator<NamedTypeDescriptor>
+    public class ResultTypeGenerator : CodeGenerator<ObjectTypeDescriptor>
     {
-        protected override bool CanHandle(NamedTypeDescriptor descriptor)
+        protected override bool CanHandle(ObjectTypeDescriptor descriptor)
         {
-            return descriptor.Kind != TypeKind.LeafType &&
-                descriptor.Kind != TypeKind.InputType &&
-                !descriptor.IsInterface();
+            return true;
         }
 
         protected override void Generate(
             CodeWriter writer,
-            NamedTypeDescriptor namedTypeDescriptor,
+            ObjectTypeDescriptor descriptor,
             out string fileName)
         {
-            fileName = namedTypeDescriptor.Name;
-            ClassBuilder classBuilder = ClassBuilder.New()
+            fileName = descriptor.RuntimeType.Name;
+            ClassBuilder classBuilder = ClassBuilder
+                .New()
+                .SetComment(descriptor.Description)
                 .SetName(fileName);
 
-            ConstructorBuilder constructorBuilder = ConstructorBuilder.New()
-                .SetTypeName(fileName)
-                .SetAccessModifier(AccessModifier.Public);
+            ConstructorBuilder constructorBuilder = classBuilder
+                .AddConstructor()
+                .SetTypeName(fileName);
 
-            foreach (var prop in namedTypeDescriptor.Properties)
+            foreach (var prop in descriptor.Properties)
             {
-                var propTypeBuilder = prop.Type.ToBuilder();
+                TypeReferenceBuilder propTypeBuilder = prop.Type.ToBuilder();
 
                 // Add Property to class
-                var propBuilder = PropertyBuilder
-                    .New()
+                classBuilder
+                    .AddProperty(prop.Name)
+                    .SetComment(prop.Description)
                     .SetName(prop.Name)
                     .SetType(propTypeBuilder)
-                    .SetAccessModifier(AccessModifier.Public);
-
-                if (prop.Type.IsNullableType())
-                {
-                    propBuilder.SetValue("default!");
-                }
-
-                classBuilder.AddProperty(propBuilder);
+                    .SetPublic()
+                    .SetValue(prop.Type.IsNullableType() ? "default!" : null);
 
                 // Add initialization of property to the constructor
-                var paramName = prop.Name.WithLowerFirstChar();
-                ParameterBuilder parameterBuilder = ParameterBuilder.New()
-                    .SetName(paramName)
-                    .SetType(propTypeBuilder);
-                constructorBuilder.AddParameter(parameterBuilder);
-                constructorBuilder.AddCode(prop.Name + " = " + paramName + ";");
+                var paramName = GetParameterName(prop.Name);
+                constructorBuilder
+                    .AddParameter(paramName, x => x.SetType(propTypeBuilder))
+                    .AddCode(AssignmentBuilder
+                        .New()
+                        .SetLefthandSide(prop.Name)
+                        .SetRighthandSide(paramName));
             }
 
-            foreach (var implement in namedTypeDescriptor.Implements)
-            {
-                classBuilder.AddImplements(implement);
-            }
-
-            classBuilder.AddConstructor(constructorBuilder);
+            classBuilder.AddImplementsRange(descriptor.Implements.Select(x => x.Value));
 
             CodeFileBuilder
                 .New()
-                .SetNamespace(namedTypeDescriptor.Namespace)
+                .SetNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal)
                 .AddType(classBuilder)
                 .Build(writer);
         }

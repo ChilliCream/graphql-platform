@@ -1,13 +1,18 @@
 using System;
+using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.NamingConventions;
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
     public class ResultInfoGenerator : ClassBaseGenerator<ITypeDescriptor>
     {
+        private const string _entityIds = nameof(_entityIds);
+        private const string _version = nameof(_version);
+
         protected override bool CanHandle(ITypeDescriptor descriptor)
         {
             return descriptor.Kind == TypeKind.ResultType && !descriptor.IsInterface();
@@ -18,92 +23,89 @@ namespace StrawberryShake.CodeGeneration.CSharp
             ITypeDescriptor typeDescriptor,
             out string fileName)
         {
-            NamedTypeDescriptor namedTypeDescriptor = typeDescriptor switch
-            {
-                NamedTypeDescriptor nullableNamedType => nullableNamedType,
-                NonNullTypeDescriptor {InnerType: NamedTypeDescriptor namedType} => namedType,
-                _ => throw new ArgumentException(nameof(typeDescriptor))
-            };
+            ComplexTypeDescriptor complexTypeDescriptor =
+                typeDescriptor as ComplexTypeDescriptor ??
+                throw new InvalidOperationException(
+                    "A result entity mapper can only be generated for complex types");
 
-            var (classBuilder, constructorBuilder) = CreateClassBuilder();
+            var className = CreateResultInfoName(complexTypeDescriptor.RuntimeType.Name);
+            fileName = className;
 
-            fileName = ResultInfoNameFromTypeName(namedTypeDescriptor.Name);
-
-            classBuilder
+            ClassBuilder classBuilder = ClassBuilder
+                .New()
                 .AddImplements(TypeNames.IOperationResultDataInfo)
                 .SetName(fileName);
 
-            constructorBuilder
-                .SetTypeName(namedTypeDescriptor.Name)
-                .SetAccessModifier(AccessModifier.Public);
+            ConstructorBuilder constructorBuilder = classBuilder
+                .AddConstructor()
+                .SetTypeName(complexTypeDescriptor.RuntimeType.Name);
 
-            var constructorCaller = MethodCallBuilder.New()
-                .SetPrefix("return new ")
-                .SetMethodName(fileName);
-
-            var withVersion = MethodBuilder.New()
-                .SetAccessModifier(AccessModifier.Public)
-                .SetReturnType(TypeNames.IOperationResultDataInfo)
-                .SetName($"WithVersion")
-                .AddParameter(ParameterBuilder.New()
-                    .SetType("ulong")
-                    .SetName("version"));
-
-            foreach (var prop in namedTypeDescriptor.Properties)
+            foreach (var prop in complexTypeDescriptor.Properties)
             {
-                var propTypeBuilder = prop.Type.ToEntityIdBuilder();
+                TypeReferenceBuilder propTypeBuilder = prop.Type.ToEntityIdBuilder();
 
                 // Add Property to class
-                var propBuilder = PropertyBuilder
-                    .New()
-                    .SetName(prop.Name)
+                classBuilder
+                    .AddProperty(prop.Name)
+                    .SetComment(prop.Description)
                     .SetType(propTypeBuilder)
-                    .SetAccessModifier(AccessModifier.Public);
-
-                classBuilder.AddProperty(propBuilder);
-                constructorCaller.AddArgument(prop.Name);
+                    .SetPublic();
 
                 // Add initialization of property to the constructor
-                var paramName = prop.Name.WithLowerFirstChar();
-                ParameterBuilder parameterBuilder = ParameterBuilder.New()
-                    .SetName(paramName)
-                    .SetType(propTypeBuilder);
-
-                constructorBuilder.AddParameter(parameterBuilder);
-                constructorBuilder.AddCode(prop.Name + " = " + paramName + ";");
+                var paramName = GetParameterName(prop.Name);
+                constructorBuilder.AddParameter(paramName).SetType(propTypeBuilder);
+                constructorBuilder.AddCode(
+                    AssignmentBuilder
+                        .New()
+                        .SetLefthandSide(prop.Name)
+                        .SetRighthandSide(paramName));
             }
 
-            classBuilder.AddProperty(PropertyBuilder.New()
-                .SetName($"EntityIds")
-                .SetType($"{TypeNames.IReadOnlyCollection}<{TypeNames.EntityId}>")
-                .AsLambda("_entityIds"));
+            classBuilder
+                .AddProperty("EntityIds")
+                .SetType(TypeNames.IReadOnlyCollection.WithGeneric(TypeNames.EntityId))
+                .AsLambda(_entityIds);
 
-            classBuilder.AddProperty(PropertyBuilder.New()
-                .SetName("Version")
-                .SetType("ulong")
-                .AsLambda("_version"));
+            classBuilder
+                .AddProperty("Version")
+                .SetType(TypeNames.UInt64)
+                .AsLambda(_version);
 
             AddConstructorAssignedField(
-                $"{TypeNames.IReadOnlyCollection}<{TypeNames.EntityId}>",
-                "_entityIds",
+                TypeNames.IReadOnlyCollection.WithGeneric(TypeNames.EntityId),
+                _entityIds,
                 classBuilder,
                 constructorBuilder);
-            constructorCaller.AddArgument("_entityIds");
 
             AddConstructorAssignedField(
-                "ulong",
-                "_version",
+                TypeNames.UInt64,
+                _version,
                 classBuilder,
                 constructorBuilder,
                 true);
-            constructorCaller.AddArgument("_version");
 
-            withVersion.AddCode(constructorCaller);
-            classBuilder.AddMethod(withVersion);
+
+            // WithVersion
+            const string version = nameof(version);
+
+            classBuilder
+                .AddMethod("WithVersion")
+                .SetAccessModifier(AccessModifier.Public)
+                .SetReturnType(TypeNames.IOperationResultDataInfo)
+                .AddParameter(version, x => x.SetType(TypeNames.UInt64))
+                .AddCode(MethodCallBuilder
+                    .New()
+                    .SetReturn()
+                    .SetNew()
+                    .SetMethodName(className)
+                    .AddArgumentRange(
+                        complexTypeDescriptor.Properties.Select(x => x.Name.Value))
+                    .AddArgument(_entityIds)
+                    .AddArgument(version));
 
             CodeFileBuilder
                 .New()
-                .SetNamespace(namedTypeDescriptor.Namespace)
+                .SetNamespace(complexTypeDescriptor.RuntimeType.NamespaceWithoutGlobal)
                 .AddType(classBuilder)
                 .Build(writer);
         }

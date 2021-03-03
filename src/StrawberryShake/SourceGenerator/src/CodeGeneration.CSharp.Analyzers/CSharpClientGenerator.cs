@@ -169,11 +169,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
             try
             {
-                var name = context.Settings.Name;
-                var @namespace = context.GetNamespace();
-                var documents = context.GetDocuments();
-
-                result = new CSharpGenerator().Generate(documents, name, @namespace);
+                result = CSharpGenerator.Generate(
+                    context.GetDocuments(),
+                    clientName: context.Settings.Name,
+                    @namespace: context.GetNamespace(),
+                    strictSchemaValidation: context.Settings.StrictSchemaValidation);
                 return true;
             }
             catch (GraphQLException ex)
@@ -266,7 +266,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                         ErrorBuilder.New()
                             .SetMessage(ex.Message)
                             .SetException(ex)
-                            .SetExtension(CodeGenerationThrowHelper.FileExtensionKey, configLocation)
+                            .SetExtension(ErrorHelper.FileExtensionKey, configLocation)
                             .AddLocation(new HotChocolate.Location(1, 1))
                             .Build());
                 }

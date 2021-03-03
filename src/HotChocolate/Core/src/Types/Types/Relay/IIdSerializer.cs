@@ -1,7 +1,3 @@
-#if !NETSTANDARD2_0
-using System;
-#endif
-
 #nullable enable
 
 namespace HotChocolate.Types.Relay

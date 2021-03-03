@@ -2,15 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate;
+using static StrawberryShake.CodeGeneration.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration
 {
-    public class DataTypeDescriptor: ICodeDescriptor
+    public class DataTypeDescriptor : ICodeDescriptor
     {
         /// <summary>
         /// Describes the DataType
         /// </summary>
-        /// <param name="graphQLTypeName">
+        /// <param name="name">
         ///
         /// </param>
         /// <param name="namespace">
@@ -19,11 +20,14 @@ namespace StrawberryShake.CodeGeneration
         /// <param name="operationTypes">
         /// The types that are subsets of the DataType represented by this descriptor.
         /// </param>
+        /// <param name="implements"></param>
+        /// <param name="isInterface"></param>
         public DataTypeDescriptor(
-            NameString graphQLTypeName,
+            NameString name,
             string @namespace,
-            IReadOnlyList<NamedTypeDescriptor> operationTypes,
+            IReadOnlyList<ComplexTypeDescriptor> operationTypes,
             IReadOnlyList<string> implements,
+            string? documentation,
             bool isInterface = false)
         {
             var allProperties = new Dictionary<string, PropertyDescriptor>();
@@ -39,8 +43,8 @@ namespace StrawberryShake.CodeGeneration
                             namedTypeReferenceDescriptor.Name,
                             new PropertyDescriptor(
                                 namedTypeReferenceDescriptor.Name,
-                                nonNull.InnerType)
-                            );
+                                nonNull.InnerType,
+                                namedTypeReferenceDescriptor.Description));
                     }
                     else
                     {
@@ -52,29 +56,32 @@ namespace StrawberryShake.CodeGeneration
             }
 
             Properties = allProperties.Select(pair => pair.Value).ToList();
-            Name = NamingConventions.DataTypeNameFromTypeName(graphQLTypeName);
-            GraphQLTypeName = graphQLTypeName;
-            Namespace = @namespace;
+            Name = name;
+            RuntimeType = new(NamingConventions.CreateDataTypeName(name), @namespace);
             Implements = implements;
             IsInterface = isInterface;
+            Documentation = documentation;
         }
-
-        public bool IsInterface { get; set; }
-
-        /// <summary>
-        /// Gets the entity name.
-        /// </summary>
-        public NameString Name { get; }
 
         /// <summary>
         /// Gets the GraphQL type name which this entity represents.
         /// </summary>
-        public NameString GraphQLTypeName { get; }
+        public NameString Name { get; }
 
         /// <summary>
-        /// Gets the namespace of the generated code file.
+        /// Gets the entity name.
         /// </summary>
-        public string Namespace { get; }
+        public RuntimeTypeInfo RuntimeType { get; }
+
+        /// <summary>
+        /// Defines if this data type descriptor reptresents an interface.
+        /// </summary>
+        public bool IsInterface { get; }
+
+        /// <summary>
+        /// The documentation of this type
+        /// </summary>
+        public string? Documentation { get; }
 
         /// <summary>
         /// Gets the properties of this entity.

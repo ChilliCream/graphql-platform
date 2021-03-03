@@ -1,121 +1,107 @@
 using System;
+using System.Linq;
 using HotChocolate;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
-using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.NamingConventions;
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
     public class DataTypeGenerator : ClassBaseGenerator<DataTypeDescriptor>
     {
+        private const string __typename = "__typename";
+        private const string _typename = "typename";
+
         protected override void Generate(
             CodeWriter writer,
             DataTypeDescriptor descriptor,
             out string fileName)
         {
-            // Setup class
-            fileName = descriptor.Name;
+            fileName = descriptor.RuntimeType.Name;
             AbstractTypeBuilder typeBuilder;
             ConstructorBuilder? constructorBuilder = null;
 
-            var typenamePropName = "__typename";
             if (descriptor.IsInterface)
             {
-                typeBuilder = new InterfaceBuilder()
+                typeBuilder = InterfaceBuilder
+                    .New()
+                    .SetComment(descriptor.Documentation)
                     .SetName(fileName);
 
-                typeBuilder.AddProperty(PropertyBuilder.New()
-                    .SetName(typenamePropName)
-                    .SetType(TypeNames.String));
+                typeBuilder
+                    .AddProperty(__typename)
+                    .SetType(TypeNames.String);
             }
             else
             {
-                var (classBuilder, constructorBuilder2) = CreateClassBuilder();
-                constructorBuilder2
-                    .SetTypeName(fileName)
-                    .SetAccessModifier(AccessModifier.Public);
-
-                constructorBuilder = constructorBuilder2;
-
-                classBuilder.AddProperty(
-                    PropertyBuilder
-                        .New()
-                        .SetAccessModifier(AccessModifier.Public)
-                        .SetName(typenamePropName)
-                        .SetType(TypeNames.String));
-
-                var paramName = "typename";
-                var assignment = AssignmentBuilder
+                ClassBuilder classBuilder = ClassBuilder
                     .New()
-                    .SetLefthandSide(typenamePropName)
-                    .SetRighthandSide(paramName)
-                    .AssertNonNull();
+                    .SetComment(descriptor.Documentation)
+                    .SetName(fileName);
 
-                constructorBuilder.AddParameter(
-                        ParameterBuilder
-                            .New()
-                            .SetType(TypeNames.String)
-                            .SetName(paramName))
-                    .AddCode(assignment);
-
-                classBuilder.SetName(fileName);
                 typeBuilder = classBuilder;
+
+                classBuilder
+                    .AddProperty(__typename)
+                    .SetPublic()
+                    .SetType(TypeNames.String);
+
+                constructorBuilder = classBuilder
+                    .AddConstructor()
+                    .SetTypeName(fileName);
+
+                constructorBuilder
+                    .AddParameter(_typename)
+                    .SetType(TypeNames.String)
+                    .SetName(_typename);
+
+                constructorBuilder
+                    .AddCode(
+                        AssignmentBuilder
+                            .New()
+                            .SetLefthandSide(__typename)
+                            .SetRighthandSide(_typename)
+                            .AssertNonNull());
             }
 
             // Add Properties to class
-            foreach (PropertyDescriptor item in descriptor.Properties)
+            foreach (PropertyDescriptor property in descriptor.Properties)
             {
-                var itemParamName = item.Name.WithLowerFirstChar();
-                var assignment = AssignmentBuilder
-                    .New()
-                    .SetLefthandSide(item.Name)
-                    .SetRighthandSide(itemParamName);
-
-                var paramType = item.Type.IsEntityType()
-                    ? item.Type.ToEntityIdBuilder()
-                    : item.Type.ToBuilder();
-                constructorBuilder?.AddParameter(
-                        ParameterBuilder
-                            .New()
-                            .SetType(paramType)
-                            .SetName(itemParamName)
-                            .SetDefault("null"))
-                    .AddCode(assignment);
-
-                switch (item.Type.Kind)
+                TypeReferenceBuilder propertyType = property.Type.Kind switch
                 {
-                    case TypeKind.LeafType:
-                        typeBuilder.AddProperty(item.Name)
-                            .SetType(item.Type.ToBuilder())
-                            .SetAccessModifier(AccessModifier.Public);
-                        break;
+                    TypeKind.LeafType => property.Type.ToBuilder(),
+                    TypeKind.DataType => property.Type.ToBuilder(property.Type.Name),
+                    TypeKind.EntityType => property.Type.ToEntityIdBuilder(),
+                    _ => throw new ArgumentOutOfRangeException()
+                };
 
-                    case TypeKind.DataType:
-                        typeBuilder.AddProperty(item.Name)
-                            .SetType(item.Type.ToBuilder(item.Type.Name))
-                            .SetAccessModifier(AccessModifier.Public);
-                        break;
+                typeBuilder
+                    .AddProperty(property.Name)
+                    .SetComment(property.Description)
+                    .SetType(propertyType)
+                    .SetPublic();
 
-                    case TypeKind.EntityType:
-                        typeBuilder.AddProperty(item.Name)
-                            .SetType(item.Type.ToBuilder().SetName(TypeNames.EntityId))
-                            .SetAccessModifier(AccessModifier.Public);
-                        break;
+                var parameterName = GetParameterName(property.Name);
 
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
+                constructorBuilder?
+                    .AddParameter(parameterName)
+                    .SetType(propertyType)
+                    .SetDefault("null");
+
+                constructorBuilder?
+                    .AddCode(AssignmentBuilder
+                        .New()
+                        .SetLefthandSide(property.Name)
+                        .SetRighthandSide(parameterName));
             }
 
-            foreach (NameString superType in descriptor.Implements)
-            {
-                typeBuilder.AddImplements(DataTypeNameFromTypeName(superType));
-            }
+            // implement interfaces
+            typeBuilder.AddImplementsRange(descriptor.Implements.Select(CreateDataTypeName));
 
             CodeFileBuilder
                 .New()
-                .SetNamespace(descriptor.Namespace)
+                .SetNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal)
                 .AddType(typeBuilder)
                 .Build(writer);
         }
