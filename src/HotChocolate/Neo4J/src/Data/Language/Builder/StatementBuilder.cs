@@ -7,18 +7,28 @@ namespace HotChocolate.Data.Neo4J.Language
     public class StatementBuilder
     {
         private bool _isWrite = false;
+        private Create? _create;
         private Match? _match;
         private Where? _where;
         private Return? _return;
+
         //private readonly string Order;
         //private readonly string Limit;
 
-        public StatementBuilder OptionalMatch(params PatternElement[] elements) =>
+        public StatementBuilder Create(params IPatternElement[] elements)
+        {
+            _isWrite = true;
+            _create = new Create(new Pattern(elements.ToList()));
+            return this;
+        }
+
+        public StatementBuilder OptionalMatch(params IPatternElement[] elements) =>
             Match(true, elements);
-        public StatementBuilder Match(params PatternElement[] elements) =>
+
+        public StatementBuilder Match(params IPatternElement[] elements) =>
             Match(false, elements);
 
-        private StatementBuilder Match(bool optional, params PatternElement[] elements)
+        private StatementBuilder Match(bool optional, params IPatternElement[] elements)
         {
             _match = new Match(optional, new Pattern(elements.ToList()), null);
             return this;
@@ -26,16 +36,21 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public StatementBuilder Return(params INamed[] elements)
         {
-            _return = new Return(false, Expressions.CreateSymbolicNames(elements));
+            _return = new Return(false, new ExpressionList(Expressions.CreateSymbolicNames(elements)));
             return this;
         }
 
-        public StatementBuilder Return(ExpressionList elements)
+        public StatementBuilder Return(params Expression[] expressions)
         {
-            _return = new Return(false, elements);
+            _return = new Return(false, new ExpressionList(expressions));
             return this;
         }
 
+        public StatementBuilder Where(Condition condition)
+        {
+            _where = new Where(condition);
+            return this;
+        }
 
         public string Build()
         {
@@ -48,15 +63,11 @@ namespace HotChocolate.Data.Neo4J.Language
                     _return?.Visit(visitor);
                     break;
                 default:
-                    // TODO: Write Implementation
+                    _create?.Visit(visitor);
+                    _return?.Visit(visitor);
                     break;
             }
             return visitor.Print();
-        }
-
-        public IStatementBuilder GetDefaultBuilder()
-        {
-            throw new System.NotImplementedException();
         }
     }
 }
