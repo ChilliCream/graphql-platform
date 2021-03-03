@@ -2,9 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Neo4j.Driver;
 using HotChocolate.Data.Neo4J;
-using Neo4jDemo.Schema;
 
 namespace Neo4jDemo
 {

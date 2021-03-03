@@ -14,10 +14,10 @@ namespace Neo4jDemo.Models
         [GraphQLNonNullType]
         public string State { get; set; }
 
-        [Neo4JRelationship("REVIEWS", RelationshipDirection.Incoming)]
+        //[Neo4JRelationship("REVIEWS", RelationshipDirection.)]
         public List<Review> Reviews { get; set; }
 
-        [Cypher(@"MATCH (this)<-[:REVIEWS]-(r:Review) RETURN avg(r.stars)")]
+        [Neo4JCypher(@"MATCH (this)<-[:REVIEWS]-(r:Review) RETURN avg(r.stars)")]
         public double AverageRating { get; set; }
     }
 }
