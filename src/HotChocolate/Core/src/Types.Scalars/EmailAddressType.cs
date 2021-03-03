@@ -14,15 +14,15 @@ namespace HotChocolate.Types.Scalars
         /// Source : https://emailregex.com/
         /// </summary>
         private static readonly string _validationPattern =
-            ScalarResources.EmailAddress_ValidationPattern;
+            ScalarResources.EmailAddressType_ValidationPattern;
 
         private static readonly Regex _validationRegex =
-            new( _validationPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            new(_validationPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         public EmailAddressType()
             : this(
                 WellKnownScalarTypes.EmailAddress,
-                ScalarResources.EmailAddress_Description)
+                ScalarResources.EmailAddressType_Description)
         {
         }
 
@@ -53,7 +53,7 @@ namespace HotChocolate.Types.Scalars
         /// <inheritdoc />
         protected override string ParseLiteral(StringValueNode valueSyntax)
         {
-            if(!_validationRegex.IsMatch(valueSyntax.Value))
+            if (!_validationRegex.IsMatch(valueSyntax.Value))
             {
                 throw ThrowHelper.EmailAddressType_ParseLiteral_IsInvalid(this);
             }
@@ -64,7 +64,7 @@ namespace HotChocolate.Types.Scalars
         /// <inheritdoc />
         protected override StringValueNode ParseValue(string runtimeValue)
         {
-            if(!_validationRegex.IsMatch(runtimeValue))
+            if (!_validationRegex.IsMatch(runtimeValue))
             {
                 throw ThrowHelper.EmailAddressType_ParseValue_IsInvalid(this);
             }
@@ -81,8 +81,8 @@ namespace HotChocolate.Types.Scalars
                 return true;
             }
 
-            if(runtimeValue is string s &&
-               _validationRegex.IsMatch(s))
+            if (runtimeValue is string s &&
+                _validationRegex.IsMatch(s))
             {
                 resultValue = s;
                 return true;
@@ -101,8 +101,8 @@ namespace HotChocolate.Types.Scalars
                 return true;
             }
 
-            if(resultValue is string s &&
-               _validationRegex.IsMatch(s))
+            if (resultValue is string s &&
+                _validationRegex.IsMatch(s))
             {
                 runtimeValue = s;
                 return true;

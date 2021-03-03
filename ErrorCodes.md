@@ -27,3 +27,5 @@
 | HC0025 | Data              | No paging provider for the source was found                                                                |
 | HC0026 | Data              | The requested field does not support null values                                                           |
 | HC0028 | Data              | Type does not contain a valid node field. Only `items` and `nodes` are supported                           |
+| HC0029 | Spatial           | The coordinate reference system is not supported by this server                                            |
+| HC0030 | Spatial           | Coordinates with M values cannot be reprojected                                                            |

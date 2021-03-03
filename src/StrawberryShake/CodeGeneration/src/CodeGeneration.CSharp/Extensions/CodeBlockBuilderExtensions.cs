@@ -7,7 +7,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     internal static class CodeBlockBuilderExtensions
     {
-        public static CodeBlockBuilder AddLine(this CodeBlockBuilder builder, string code)
+        public static CodeBlockBuilder AddLine(
+            this CodeBlockBuilder builder,
+            string code)
         {
             return builder.AddCode(CodeLineBuilder.From(code));
         }
@@ -16,9 +18,29 @@ namespace StrawberryShake.CodeGeneration.CSharp
             this CodeBlockBuilder builder,
             Action<MethodCallBuilder> configure)
         {
-            var methodCallBuilder = new MethodCallBuilder();
+            var methodCallBuilder = MethodCallBuilder.New();
             configure(methodCallBuilder);
             return builder.AddCode(methodCallBuilder);
+        }
+
+        public static MethodCallBuilder AddMethodCall(this CodeBlockBuilder builder)
+        {
+            var methodCallBuilder = MethodCallBuilder.New();
+            builder.AddCode(methodCallBuilder);
+            return methodCallBuilder;
+        }
+
+        public static AssignmentBuilder AddAssigment(
+            this CodeBlockBuilder builder,
+            string assignedTo)
+        {
+            AssignmentBuilder assignmentBuilder = AssignmentBuilder
+                .New()
+                .SetLefthandSide(assignedTo);
+
+            builder.AddCode(assignmentBuilder);
+
+            return assignmentBuilder;
         }
 
         public static CodeBlockBuilder ForEach<T>(
@@ -41,6 +63,19 @@ namespace StrawberryShake.CodeGeneration.CSharp
             var ifBuilder = IfBuilder.New();
             configure(ifBuilder);
             return builder.AddCode(ifBuilder);
+        }
+
+        public static CodeBlockBuilder If(
+            this CodeBlockBuilder builder,
+            bool condition,
+            Action<CodeBlockBuilder> configure)
+        {
+            if (condition)
+            {
+                configure(builder);
+            }
+
+            return builder;
         }
 
         public static CodeBlockBuilder ArgumentException(

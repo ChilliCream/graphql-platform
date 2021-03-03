@@ -371,98 +371,25 @@ services
   .AddType<NonEmptyStringType>()
 ```
 
-## NegativeInt
-```sdl
-"""
-The NegativeIntType scalar type represents a signed 32-bit numeric non-fractional with a maximum of -1.
-"""
-scalar NegativeInt
-```
 
-## PositiveInt
-```sdl
-"""
-The PositiveInt scalar type represents a signed 32‐bit numeric non‐fractional value of at least the value 1.
-"""
-scalar PositiveInt
-```
+**Available Scalars:**
 
-## NonEmptyString
-```sdl
-"""
-The NonNullString scalar type represents non empty textual data, represented as UTF‐8 character sequences with at least one character
-"""
-scalar NonEmptyString
-```
-
-## EmailAddress
-```sdl
-"""
-The EmailAddress scalar type represents a email address, represented as UTF-8 character sequences that follows the specification defined in RFC 5322
-"""
-scalar EmailAddress
-```
-
-## PhoneNumber
-```sdl
-"""
-The PhoneNumber scalar type represents a value that conforms to the standard E.164 format as specified in: https://en.wikipedia.org/wiki/E.164.
-"""
-scalar PhoneNumber
-```
-
-## NegativeFloat
-```sdl
-"""
-The NegativeFloat scalar type represents a double‐precision fractional value less than 0
-"""
-scalar NegativeFloat
-```
-
-## NonNegativeInt
-```sdl
-"""
-The NonNegativeIntType scalar type represents a unsigned 32-bit numeric non-fractional value greater than or equal to 0.
-"""
-scalar NonNegativeInt
-```
-
-## NonPositiveFloat
-```sdl
-"""
-The NonPositiveFloat scalar type represents a double‐precision fractional value less than or equal to 0.
-"""
-scalar NonPositiveFloat
-```
-
-## NonPositiveInt
-```sdl
-"""
-The NonPositiveInt scalar type represents a signed 32-bit numeric non-fractional value less than or equal to 0.
-"""
-scalar NonPositiveInt
-```
-
-## NonNegativeFloat
-```sdl
-"""
-The NonNegativeFloat scalar type represents a double‐precision fractional value greater than or equal to 0.
-"""
-scalar NonNegativeFloat
-```
-
-## PostalCode
-```sdl
-"""
-The PostalCode scalar type represents a valid postal code.
-"""
-scalar PostalCode
-```
-
-## UnsignedInt
-```sdl
-"""
-The UnsignedInt scalar type represents a unsigned 32‐bit numeric non‐fractional value greater than or equal to 0.
-"""
-scalar UnsignedInt
-```
+| Type             | Description                                                                                                                                            |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| EmailAddress     | The `EmailAddress` scalar type represents a email address, represented as UTF-8 character sequences that follows the specification defined in RFC 5322 |
+| HexColor         | The `HexColor` scalar type represents a valid HEX color code.                                                                                          |
+| Hsl              | The `Hsl` scalar type represents a valid a CSS HSL color as defined here https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors.      |
+| Hsla             | The `Hsla` scalar type represents a valid a CSS HSLA color as defined here https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors.    |
+| NegativeFloat    | The `NegativeFloat` scalar type represents a double‐precision fractional value less than 0                                                             |
+| NegativeInt      | The `NegativeIntType` scalar type represents a signed 32-bit numeric non-fractional with a maximum of -1.                                              |
+| NonEmptyString   | The `NonNullString` scalar type represents non empty textual data, represented as UTF‐8 character sequences with at least one character                |
+| NonNegativeFloat | The `NonNegativeFloat` scalar type represents a double‐precision fractional value greater than or equal to 0.                                          |
+| NonNegativeInt   | The `NonNegativeIntType` scalar type represents a unsigned 32-bit numeric non-fractional value greater than or equal to 0.                             |
+| NonPositiveFloat | The `NonPositiveFloat` scalar type represents a double‐precision fractional value less than or equal to 0.                                             |
+| NonPositiveInt   | The `NonPositiveInt` scalar type represents a signed 32-bit numeric non-fractional value less than or equal to 0.                                      |
+| PhoneNumber      | The `PhoneNumber` scalar type represents a value that conforms to the standard E.164 format as specified in: https://en.wikipedia.org/wiki/E.164.      |
+| PositiveInt      | The `PositiveInt` scalar type represents a signed 32‐bit numeric non‐fractional value of at least the value 1.                                         |
+| PostalCode       | The `PostalCode` scalar type represents a valid postal code.                                                                                           |
+| UnsignedInt      | The `UnsignedInt` scalar type represents a unsigned 32‐bit numeric non‐fractional value greater than or equal to 0.                                    |
+| IPv4             | The `IPv4` scalar type represents a valid a IPv4 address as defined here https://en.wikipedia.org/wiki/IPv4.                                           |
+| MaxAddress       | The `MacAddress` scalartype represents a valid field whose value is a IEEE 802 48-bit https://tools.ietf.org/html/rfc7042#page-19                      |

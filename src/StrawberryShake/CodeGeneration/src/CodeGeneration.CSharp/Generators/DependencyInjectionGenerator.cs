@@ -1,18 +1,26 @@
-using System;
 using System.Linq;
-using System.Text;
+using System.Net.Http;
 using HotChocolate;
-using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Extensions;
+using StrawberryShake.Transport.WebSockets;
+using StrawberryShake.Serialization;
 using static StrawberryShake.CodeGeneration.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
     public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDescriptor>
     {
-        private static string[] _serializers = new[]
+        private const string _sessionPool = "sessionPool";
+        private const string _services = "services";
+        private const string _strategy = "strategy";
+        private const string _parentServices = "parentServices";
+        private const string _clientFactory = "clientFactory";
+        private const string _serviceCollection = "serviceCollection";
+        private const string _sp = "sp";
+
+        private static readonly string[] _serializers =
         {
             TypeNames.StringSerializer,
             TypeNames.BooleanSerializer,
@@ -31,17 +39,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
             TypeNames.TimeSpanSerializer
         };
 
-        private static string[] _websocketProtocols = new[]
-        {
-            TypeNames.GraphQLWebSocketProtocolFactory
-        };
-
         protected override void Generate(
             CodeWriter writer,
             DependencyInjectionDescriptor descriptor,
             out string fileName)
         {
-            fileName = ServiceCollectionExtensionsFromClientName(descriptor.Name);
+            fileName = CreateServiceCollectionExtensions(descriptor.Name);
 
             ClassBuilder factory = ClassBuilder
                 .New(fileName)
@@ -54,10 +57,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetStatic()
                 .SetReturnType(TypeNames.IServiceCollection)
                 .AddParameter(
-                    "services",
+                    _services,
                     x => x.SetThis().SetType(TypeNames.IServiceCollection))
                 .AddParameter(
-                    "strategy",
+                    _strategy,
                     x => x.SetType(TypeNames.ExecutionStrategy)
                         .SetDefault(
                             TypeNames.ExecutionStrategy + "." +
@@ -69,11 +72,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetPrivate()
                 .SetStatic()
                 .SetReturnType(TypeNames.IServiceCollection)
+                .AddParameter(_services, x => x.SetType(TypeNames.IServiceCollection))
+                .AddParameter(_parentServices, x => x.SetType(TypeNames.IServiceProvider))
                 .AddParameter(
-                    "services",
-                    x => x.SetType(TypeNames.IServiceCollection))
-                .AddParameter(
-                    "strategy",
+                    _strategy,
                     x => x.SetType(TypeNames.ExecutionStrategy)
                         .SetDefault(
                             TypeNames.ExecutionStrategy + "." +
@@ -84,57 +86,119 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             CodeFileBuilder
                 .New()
-                .SetNamespace(descriptor.Namespace)
+                .SetNamespace(TypeNames.DependencyInjectionNamespace)
                 .AddType(factory)
                 .Build(writer);
         }
 
         private static ICode GenerateMethodBody(DependencyInjectionDescriptor descriptor) =>
-            CodeBlockBuilder.New()
-                .AddLine($"var serviceCollection = new {TypeNames.ServiceCollection}();")
-                .AddEmptyLine()
-                .AddMethodCall(x => x.SetMethodName("ConfigureClient")
-                    .AddArgument("serviceCollection")
-                    .AddArgument("strategy"))
-                .AddEmptyLine()
+            CodeBlockBuilder
+                .New()
                 .AddMethodCall(x =>
                     x.SetMethodName(TypeNames.AddSingleton)
-                        .AddArgument("services")
-                        .AddArgument(LambdaBuilder.New()
-                            .AddArgument("sp")
-                            .SetCode("new ClientServiceProvider(sp)")))
+                        .AddArgument(_services)
+                        .AddArgument(LambdaBuilder
+                            .New()
+                            .SetBlock(true)
+                            .AddArgument(_sp)
+                            .SetCode(
+                                CodeBlockBuilder
+                                    .New()
+                                    .AddCode(
+                                        AssignmentBuilder
+                                            .New()
+                                            .SetLefthandSide($"var {_serviceCollection}")
+                                            .SetRighthandSide(
+                                                MethodCallBuilder
+                                                    .Inline()
+                                                    .SetNew()
+                                                    .SetMethodName(TypeNames.ServiceCollection)))
+                                    .AddEmptyLine()
+                                    .AddMethodCall(x => x.SetMethodName("ConfigureClient")
+                                        .AddArgument(_serviceCollection)
+                                        .AddArgument(_sp)
+                                        .AddArgument(_strategy))
+                                    .AddEmptyLine()
+                                    .AddCode(MethodCallBuilder
+                                        .New()
+                                        .SetReturn()
+                                        .SetNew()
+                                        .SetMethodName("ClientServiceProvider")
+                                        .SetWrapArguments()
+                                        .AddArgument(MethodCallBuilder
+                                            .Inline()
+                                            .SetMethodName(TypeNames.BuildServiceProvider)
+                                            .AddArgument(_serviceCollection))))))
                 .AddEmptyLine()
                 .ForEach(
                     descriptor.Operations,
                     (builder, operation) =>
-                        builder.AddCode(ForwardSingletonToClientServiceProvider(operation.Name)))
+                        builder.AddCode(ForwardSingletonToClientServiceProvider(
+                            operation.RuntimeType.ToString())))
                 .AddEmptyLine()
-                .AddCode(ForwardSingletonToClientServiceProvider(descriptor.Name))
+                .AddCode(ForwardSingletonToClientServiceProvider(
+                    $"{descriptor.RuntimeType.Namespace}.{descriptor.Name}"))
                 .AddEmptyLine()
-                .AddLine("return services;");
+                .AddLine($"return {_services};");
 
-        private static ICode ForwardSingletonToClientServiceProvider(string generic)
-        {
-            return MethodCallBuilder.New()
+        private static ICode RegisterSerializerResolver() =>
+            MethodCallBuilder
+                .New()
                 .SetMethodName(TypeNames.AddSingleton)
-                .AddArgument("services")
-                .AddArgument(LambdaBuilder.New()
-                    .AddArgument("sp")
-                    .SetCode(MethodCallBuilder.New()
+                .AddGeneric(TypeNames.ISerializerResolver)
+                .AddArgument(_services)
+                .AddArgument(LambdaBuilder
+                    .New()
+                    .AddArgument(_sp)
+                    .SetCode(
+                        MethodCallBuilder
+                            .Inline()
+                            .SetNew()
+                            .SetMethodName(TypeNames.SerializerResolver)
+                            .SetWrapArguments()
+                            .AddArgument(MethodCallBuilder
+                                .Inline()
+                                .SetMethodName(TypeNames.Concat)
+                                .AddArgument(
+                                    MethodCallBuilder
+                                        .Inline()
+                                        .SetMethodName(TypeNames.GetRequiredService)
+                                        .SetWrapArguments()
+                                        .AddGeneric(
+                                            TypeNames.IEnumerable.WithGeneric(
+                                                TypeNames.ISerializer))
+                                        .AddArgument(_parentServices))
+                                .AddArgument(MethodCallBuilder
+                                    .Inline()
+                                    .SetMethodName(TypeNames.GetRequiredService)
+                                    .SetWrapArguments()
+                                    .AddGeneric(
+                                        TypeNames.IEnumerable.WithGeneric(TypeNames.ISerializer))
+                                    .AddArgument(_sp)))));
+
+        private static ICode ForwardSingletonToClientServiceProvider(string generic) =>
+            MethodCallBuilder
+                .New()
+                .SetMethodName(TypeNames.AddSingleton)
+                .AddArgument(_services)
+                .AddArgument(LambdaBuilder
+                    .New()
+                    .AddArgument(_sp)
+                    .SetCode(MethodCallBuilder
+                        .Inline()
                         .SetMethodName(TypeNames.GetRequiredService)
-                        .SetDetermineStatement(false)
                         .SetWrapArguments()
-                        .AddArgument(CodeLineBuilder.New()
-                            .SetLine(MethodCallBuilder.New()
-                                .SetMethodName(TypeNames.GetRequiredService)
-                                .SetDetermineStatement(false)
-                                .AddGeneric("ClientServiceProvider")
-                                .AddArgument("sp")))
+                        .AddArgument(MethodCallBuilder
+                            .Inline()
+                            .SetMethodName(TypeNames.GetRequiredService)
+                            .AddGeneric("ClientServiceProvider")
+                            .AddArgument(_sp))
                         .AddGeneric(generic)));
-        }
 
         private ICode GenerateInternalMethodBody(DependencyInjectionDescriptor descriptor)
         {
+            var rootNamespace = descriptor.RuntimeType.Namespace;
+
             bool hasSubscriptions =
                 descriptor.Operations.OfType<SubscriptionOperationDescriptor>().Any();
             bool hasQueries =
@@ -142,217 +206,329 @@ namespace StrawberryShake.CodeGeneration.CSharp
             bool hasMutations =
                 descriptor.Operations.OfType<MutationOperationDescriptor>().Any();
 
-            var stringBuilder = new StringBuilder();
-            var codeWriter = new CodeWriter(stringBuilder);
+            var body = CodeBlockBuilder
+                .New()
+                .AddCode(CreateBaseCode(descriptor.RuntimeType.Namespace));
 
-            stringBuilder.AppendLine(_staticCode);
-
-            codeWriter.WriteComment("register connections");
             if (hasSubscriptions)
             {
-                stringBuilder.AppendLine(RegisterWebSocketConnection(descriptor.Name));
+                body.AddCode(
+                    RegisterWebSocketConnection($"{rootNamespace}.{descriptor.Name}"));
             }
 
             if (hasQueries || hasMutations)
             {
-                stringBuilder.AppendLine(RegisterHttpConnection(descriptor.Name));
+                body.AddCode(RegisterHttpConnection(descriptor.Name));
             }
 
-            codeWriter.WriteComment("register mappers");
-            codeWriter.WriteLine();
+            body.AddEmptyLine();
 
-            foreach (var typeDescriptor in descriptor.TypeDescriptors)
+            foreach (var typeDescriptor in descriptor.TypeDescriptors
+                .OfType<INamedTypeDescriptor>())
             {
                 if (typeDescriptor.Kind == TypeKind.EntityType && !typeDescriptor.IsInterface())
                 {
-                    NamedTypeDescriptor namedTypeDescriptor =
-                        (NamedTypeDescriptor)typeDescriptor.NamedType();
+                    INamedTypeDescriptor namedTypeDescriptor =
+                        (INamedTypeDescriptor)typeDescriptor.NamedType();
                     NameString className = namedTypeDescriptor.ExtractMapperName();
 
                     var interfaceName =
                         TypeNames.IEntityMapper.WithGeneric(
-                            namedTypeDescriptor.ExtractTypeName(),
-                            typeDescriptor.Name);
+                            $"{rootNamespace}.{namedTypeDescriptor.ExtractTypeName()}",
+                            $"{rootNamespace}.{typeDescriptor.RuntimeType.Name}"
+                        );
 
-                    AddSingleton(codeWriter, interfaceName, className);
+                    body.AddMethodCall()
+                        .SetMethodName(TypeNames.AddSingleton)
+                        .AddGeneric(interfaceName)
+                        .AddGeneric($"{rootNamespace}.{className}")
+                        .AddArgument(_services);
                 }
             }
 
-            codeWriter.WriteLine();
-            codeWriter.WriteComment("register serializers");
-            codeWriter.WriteLine();
+            body.AddEmptyLine();
 
             foreach (var enumType in descriptor.EnumTypeDescriptor)
             {
-                AddSingleton(
-                    codeWriter,
-                    TypeNames.ISerializer,
-                    EnumParserNameFromEnumName(enumType.Name));
+                body.AddMethodCall()
+                    .SetMethodName(TypeNames.AddSingleton)
+                    .AddGeneric(TypeNames.ISerializer)
+                    .AddGeneric(CreateEnumParserName($"{rootNamespace}.{enumType.Name}"))
+                    .AddArgument(_services);
             }
 
             foreach (var serializer in _serializers)
             {
-                AddSingleton(
-                    codeWriter,
-                    TypeNames.ISerializer,
-                    serializer);
+                body.AddMethodCall()
+                    .SetMethodName(TypeNames.AddSingleton)
+                    .AddGeneric(TypeNames.ISerializer)
+                    .AddGeneric(serializer)
+                    .AddArgument(_services);
+            }
+
+            RuntimeTypeInfo stringTypeInfo = TypeInfos.From(TypeNames.String);
+            foreach (var scalar in descriptor.TypeDescriptors.OfType<ScalarTypeDescriptor>())
+            {
+                if (scalar.RuntimeType.Equals(stringTypeInfo) &&
+                    scalar.SerializationType.Equals(stringTypeInfo) &&
+                    !BuiltInScalarNames.IsBuiltInScalar(scalar.Name))
+                {
+                    body.AddMethodCall()
+                        .SetMethodName(TypeNames.AddSingleton)
+                        .AddGeneric(TypeNames.ISerializer)
+                        .AddArgument(_services)
+                        .AddArgument(MethodCallBuilder
+                            .Inline()
+                            .SetNew()
+                            .SetMethodName(TypeNames.StringSerializer)
+                            .AddArgument(scalar.Name.AsStringToken()));
+                }
             }
 
             foreach (var inputTypeDescriptor in descriptor.TypeDescriptors
                 .Where(x => x.Kind is TypeKind.InputType))
             {
-                AddSingleton(
-                    codeWriter,
-                    TypeNames.ISerializer,
-                    InputValueFormatterFromType(
-                        (NamedTypeDescriptor)inputTypeDescriptor.NamedType()));
+                var formatter =
+                    CreateInputValueFormatter(
+                        (InputObjectTypeDescriptor)inputTypeDescriptor.NamedType());
+
+                body.AddMethodCall()
+                    .SetMethodName(TypeNames.AddSingleton)
+                    .AddGeneric(TypeNames.ISerializer)
+                    .AddGeneric($"{rootNamespace}.{formatter}")
+                    .AddArgument(_services);
             }
 
-            AddSingleton(codeWriter,
-                TypeNames.ISerializerResolver,
-                TypeNames.SerializerResolver);
+            body.AddCode(RegisterSerializerResolver());
 
-            codeWriter.WriteLine();
-            codeWriter.WriteComment("register operations");
+            body.AddEmptyLine();
+
             foreach (var operation in descriptor.Operations)
             {
+                if (!(operation.ResultTypeReference is InterfaceTypeDescriptor typeDescriptor))
+                {
+                    continue;
+                }
+
                 string connectionKind = operation is SubscriptionOperationDescriptor
                     ? TypeNames.WebSocketConnection
                     : TypeNames.HttpConnection;
-                NameString operationName = operation.OperationName;
-                NameString fullName = operation.Name;
-                NameString operationInterface = operation.ResultTypeReference.Name;
-                var factory = ResultFactoryNameFromTypeName(operationName);
-                var resultBuilder = ResultBuilderNameFromTypeName(operationName);
-                stringBuilder.AppendLine(
+                string operationName = operation.Name;
+                string fullName = operation.RuntimeType.ToString();
+                string operationInterface = typeDescriptor.RuntimeType.ToString();
+
+                // The factories are generated based on the concrete result type, which is the
+                // only implementee of the result type interface.
+
+                var factoryName =
+                    CreateResultFactoryName(
+                        typeDescriptor.ImplementedBy.First().RuntimeType.Name);
+
+                var builderName = CreateResultBuilderName(operationName);
+                body.AddCode(
                     RegisterOperation(
                         connectionKind,
-                        descriptor.Name,
                         fullName,
                         operationInterface,
-                        factory,
-                        resultBuilder));
+                        $"{operation.RuntimeType.Namespace}.{factoryName}",
+                        $"{operation.RuntimeType.Namespace}.{builderName}"));
             }
 
-            stringBuilder.AppendLine(
-                $"{TypeNames.AddSingleton.WithGeneric(descriptor.Name)}(services);");
+            body.AddCode(
+                MethodCallBuilder
+                    .New()
+                    .SetMethodName(TypeNames.AddSingleton)
+                    .AddGeneric(descriptor.RuntimeType.ToString())
+                    .AddArgument(_services));
 
-            if (hasSubscriptions)
-            {
-                codeWriter.WriteLine();
-                codeWriter.WriteComment("register websocket protocols");
+            body.AddLine($"return {_services};");
 
-                foreach (var protocol in _websocketProtocols)
-                {
-                    AddProtocol(codeWriter, protocol);
-                }
-            }
-
-            stringBuilder.AppendLine();
-            stringBuilder.AppendLine("return services;");
-
-            return CodeBlockBuilder.From(stringBuilder);
+            return body;
         }
 
-        private void AddSingleton(
-            CodeWriter writer,
-            string @interface,
-            string type)
-        {
-            writer.WriteLine(TypeNames.AddSingleton.WithGeneric(@interface, type) +
-                "(services);");
-        }
-
-        private void AddProtocol(
-            CodeWriter writer,
-            string protocol)
-        {
-            writer.WriteLine(TypeNames.AddProtocol.WithGeneric(protocol) + "(services);");
-        }
-
-        private static string RegisterOperation(
+        private static ICode RegisterOperation(
             string connectionKind,
-            string clientName,
             string fullName,
             string operationInterface,
             string factory,
-            string resultBuilder) => $@"
-{TypeNames.AddSingleton}<
-    {TypeNames.IOperationResultDataFactory.WithGeneric(operationInterface)},
-    {factory}>(
-        services);
-{TypeNames.AddSingleton}<
-    {TypeNames.IOperationResultBuilder.WithGeneric(TypeNames.JsonDocument, operationInterface)},
-    {resultBuilder}>(
-        services);
-{TypeNames.AddSingleton}<
-    {TypeNames.IOperationExecutor.WithGeneric(operationInterface)}>(
-        services,
-        sp => new {TypeNames.OperationExecutor.WithGeneric(TypeNames.JsonDocument, operationInterface)}(
-            {TypeNames.GetRequiredService.WithGeneric(connectionKind)}(sp),
-            () => {TypeNames.GetRequiredService.WithGeneric(TypeNames.IOperationResultBuilder.WithGeneric(TypeNames.JsonDocument, operationInterface))}(sp),
-            {TypeNames.GetRequiredService.WithGeneric(TypeNames.IOperationStore)}(sp),
-            strategy));
+            string resultBuilder)
+        {
+            return CodeBlockBuilder
+                .New()
+                .AddCode(
+                    MethodCallBuilder
+                        .New()
+                        .SetMethodName(TypeNames.AddSingleton)
+                        .AddGeneric(
+                            TypeNames.IOperationResultDataFactory.WithGeneric(operationInterface))
+                        .AddGeneric(factory)
+                        .AddArgument(_services))
+                .AddCode(MethodCallBuilder
+                    .New()
+                    .SetMethodName(TypeNames.AddSingleton)
+                    .AddGeneric(
+                        TypeNames.IOperationResultBuilder
+                            .WithGeneric(TypeNames.JsonDocument, operationInterface))
+                    .AddGeneric(resultBuilder)
+                    .AddArgument(_services))
+                .AddCode(
+                    MethodCallBuilder
+                        .New()
+                        .SetMethodName(TypeNames.AddSingleton)
+                        .AddGeneric(TypeNames.IOperationExecutor.WithGeneric(operationInterface))
+                        .AddArgument(_services)
+                        .AddArgument(LambdaBuilder
+                            .New()
+                            .AddArgument(_sp)
+                            .SetCode(MethodCallBuilder
+                                .Inline()
+                                .SetNew()
+                                .SetMethodName(TypeNames.OperationExecutor)
+                                .AddGeneric(TypeNames.JsonDocument)
+                                .AddGeneric(operationInterface)
+                                .AddArgument(
+                                    MethodCallBuilder
+                                        .Inline()
+                                        .SetMethodName(TypeNames.GetRequiredService)
+                                        .AddGeneric(connectionKind)
+                                        .AddArgument(_sp))
+                                .AddArgument(
+                                    LambdaBuilder
+                                        .New()
+                                        .SetCode(
+                                            MethodCallBuilder
+                                                .Inline()
+                                                .SetMethodName(
+                                                    TypeNames.GetRequiredService)
+                                                .AddGeneric(
+                                                    TypeNames.IOperationResultBuilder.WithGeneric(
+                                                        TypeNames.JsonDocument,
+                                                        operationInterface))
+                                                .AddArgument(_sp)))
+                                .AddArgument(
+                                    MethodCallBuilder
+                                        .Inline()
+                                        .SetMethodName(TypeNames.GetRequiredService)
+                                        .AddGeneric(TypeNames.IOperationStore)
+                                        .AddArgument(_sp))
+                                .AddArgument(_strategy))))
+                .AddCode(MethodCallBuilder
+                    .New()
+                    .SetMethodName(TypeNames.AddSingleton)
+                    .AddGeneric(fullName)
+                    .AddArgument(_services));
+        }
 
-{TypeNames.AddSingleton.WithGeneric(fullName)}(services);
-";
+        private static ICode RegisterHttpConnection(string clientName) =>
+            MethodCallBuilder
+                .New()
+                .SetMethodName(TypeNames.AddSingleton)
+                .AddArgument(_services)
+                .AddArgument(LambdaBuilder
+                    .New()
+                    .AddArgument(_sp)
+                    .SetBlock(true)
+                    .SetCode(CodeBlockBuilder
+                        .New()
+                        .AddCode(AssignmentBuilder
+                            .New()
+                            .SetLefthandSide($"var {_clientFactory}")
+                            .SetRighthandSide(MethodCallBuilder
+                                .Inline()
+                                .SetMethodName(TypeNames.GetRequiredService)
+                                .AddGeneric(TypeNames.IHttpClientFactory)
+                                .AddArgument(_parentServices)))
+                        .AddCode(MethodCallBuilder
+                            .New()
+                            .SetReturn()
+                            .SetNew()
+                            .SetMethodName(TypeNames.HttpConnection)
+                            .AddArgument(LambdaBuilder
+                                .New()
+                                .SetCode(MethodCallBuilder
+                                    .Inline()
+                                    .SetMethodName(
+                                        _clientFactory,
+                                        nameof(IHttpClientFactory.CreateClient))
+                                    .AddArgument(clientName.AsStringToken()))))));
 
-        private static string RegisterHttpConnection(string clientName) => $@"
-{TypeNames.AddSingleton}(
-    services,
-    sp =>
-    {{
-        var clientFactory =
-            {TypeNames.GetRequiredService}<
-                {TypeNames.IHttpClientFactory}
-                >(sp);
 
-        return new {TypeNames.HttpConnection}(
-            () => clientFactory.CreateClient(""{clientName}""));
-    }});
-";
+        private static ICode RegisterWebSocketConnection(string clientName) =>
+            MethodCallBuilder
+                .New()
+                .SetMethodName(TypeNames.AddSingleton)
+                .AddArgument(_services)
+                .AddArgument(LambdaBuilder
+                    .New()
+                    .AddArgument(_sp)
+                    .SetBlock(true)
+                    .SetCode(CodeBlockBuilder
+                        .New()
+                        .AddCode(AssignmentBuilder
+                            .New()
+                            .SetLefthandSide($"var {_sessionPool}")
+                            .SetRighthandSide(MethodCallBuilder
+                                .Inline()
+                                .SetMethodName(TypeNames.GetRequiredService)
+                                .AddGeneric(TypeNames.ISessionPool)
+                                .AddArgument(_parentServices)))
+                        .AddCode(MethodCallBuilder
+                            .New()
+                            .SetReturn()
+                            .SetNew()
+                            .SetMethodName(TypeNames.WebSocketConnection)
+                            .AddArgument(LambdaBuilder
+                                .New()
+                                .SetCode(MethodCallBuilder
+                                    .Inline()
+                                    .SetMethodName(
+                                        _sessionPool,
+                                        nameof(ISessionPool.CreateAsync))
+                                    .AddArgument(clientName.AsStringToken())
+                                    .AddArgument("default"))))));
 
-        private static string RegisterWebSocketConnection(string clientName) => $@"
-{TypeNames.AddSingleton}(
-    services,
-    sp =>
-    {{
-        var sessionPool =
-            {TypeNames.GetRequiredService}<
-                {TypeNames.ISessionPool}
-                >(sp);
+        private static ICode CreateBaseCode(string @namespace) =>
+            CodeBlockBuilder
+                .New()
+                .AddCode(IfBuilder
+                    .New()
+                    .SetCondition($"{_services} is null")
+                    .AddCode(ExceptionBuilder
+                        .New(TypeNames.ArgumentNullException)
+                        .AddArgument($"nameof({_services})")))
+                .AddCode(MethodCallBuilder
+                    .New()
+                    .SetMethodName(TypeNames.AddSingleton)
+                    .AddGeneric(TypeNames.Func.WithGeneric(
+                        TypeNames.JsonElement,
+                        TypeNames.EntityId))
+                    .AddArgument(_services)
+                    .AddArgument($"{@namespace}.EntityIdFactory.CreateEntityId"))
+                .AddCode(MethodCallBuilder
+                    .New()
+                    .SetMethodName(TypeNames.TryAddSingleton)
+                    .AddGeneric(TypeNames.IEntityStore)
+                    .AddGeneric(TypeNames.EntityStore)
+                    .AddArgument(_services))
+                .AddCode(MethodCallBuilder
+                    .New()
+                    .SetMethodName(TypeNames.TryAddSingleton)
+                    .AddGeneric(TypeNames.IOperationStore)
+                    .AddArgument(_services)
+                    .AddArgument(LambdaBuilder
+                        .New()
+                        .AddArgument(_sp)
+                        .SetCode(MethodCallBuilder
+                            .Inline()
+                            .SetNew()
+                            .SetMethodName(TypeNames.OperationStore)
+                            .AddArgument(MethodCallBuilder
+                                .Inline()
+                                .SetMethodName(TypeNames.GetRequiredService)
+                                .AddGeneric(TypeNames.IEntityStore)
+                                .AddArgument(_sp)
+                                .Chain(x => x.SetMethodName(nameof(OperationStore.Watch)))))));
 
-        return new {TypeNames.WebSocketConnection}(
-            () => sessionPool.CreateAsync(""{clientName}"", default));
-    }});
-";
-
-        private static string _staticCode = $@"
-if (services is null)
-{{
-    throw new {TypeNames.ArgumentNullException}(nameof(services));
-}}
-
-// register entity id factory
-
-{TypeNames.AddSingleton.WithGeneric(TypeNames.Func.WithGeneric(TypeNames.JsonElement, TypeNames.EntityId))}(services, EntityIdFactory.CreateEntityId);
-
-// register stores
-
-{TypeNames.TryAddSingleton}<
-    {TypeNames.IEntityStore},
-    {TypeNames.EntityStore}>(
-        services);
-{TypeNames.TryAddSingleton}<
-    {TypeNames.IOperationStore}>(
-        services,
-        sp => new {TypeNames.OperationStore}(
-            {TypeNames.GetRequiredService}<
-                {TypeNames.IEntityStore}
-                >(sp)
-            .Watch()
-            ));
-";
         private static string _clientServiceProvider = @"
         private class ClientServiceProvider
             : System.IServiceProvider

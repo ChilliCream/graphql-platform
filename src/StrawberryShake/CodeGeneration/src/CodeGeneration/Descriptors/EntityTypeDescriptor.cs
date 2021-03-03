@@ -1,27 +1,32 @@
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate;
+using static StrawberryShake.CodeGeneration.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration
 {
     public class EntityTypeDescriptor : ICodeDescriptor
     {
         /// <summary>
-        ///
+        /// Create a new instance of <see cref="EntityTypeDescriptor" />
         /// </summary>
-        /// <param name="graphQLTypeName">
-        ///
+        /// <param name="name">
+        /// The name of the GraphQL type
         /// </param>
         /// <param name="namespace">
-        ///
+        /// The namespace of the runtime type
         /// </param>
         /// <param name="operationTypes">
-        /// The types that are subsets of the EntityType represented by this descriptor.
+        /// The operation types of this entity
+        /// </param>
+        /// <param name="documentation">
+        /// The documentation of this entity
         /// </param>
         public EntityTypeDescriptor(
-            NameString graphQLTypeName,
+            NameString name,
             string @namespace,
-            IReadOnlyList<NamedTypeDescriptor> operationTypes)
+            IReadOnlyList<ComplexTypeDescriptor> operationTypes,
+            string? documentation)
         {
             var allProperties = new Dictionary<string, PropertyDescriptor>();
 
@@ -37,25 +42,25 @@ namespace StrawberryShake.CodeGeneration
             }
 
             Properties = allProperties;
-            Name = graphQLTypeName + "Entity";
-            GraphQLTypeName = graphQLTypeName;
-            Namespace = @namespace;
+            RuntimeType = new(CreateEntityTypeName(name), @namespace);
+            Name = name;
+            Documentation = documentation;
         }
-
-        /// <summary>
-        /// Gets the entity name.
-        /// </summary>
-        public NameString Name { get; }
 
         /// <summary>
         /// Gets the GraphQL type name which this entity represents.
         /// </summary>
-        public NameString GraphQLTypeName { get; }
+        public NameString Name { get; }
 
         /// <summary>
-        /// Gets the namespace of the generated code file.
+        /// Gets the entity name.
         /// </summary>
-        public string Namespace { get; }
+        public RuntimeTypeInfo RuntimeType { get; }
+
+        /// <summary>
+        /// The documentation of this type
+        /// </summary>
+        public string? Documentation { get; }
 
         /// <summary>
         /// Gets the properties of this entity.

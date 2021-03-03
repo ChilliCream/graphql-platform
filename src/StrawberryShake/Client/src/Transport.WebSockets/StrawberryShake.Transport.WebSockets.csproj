@@ -17,7 +17,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Core\StrawberryShake.Core.csproj" />
     <ProjectReference Include="..\Resources\StrawberryShake.Resources.csproj" />
-    <ProjectReference Include="..\Transport.Http\StrawberryShake.Transport.Http.csproj" />
   </ItemGroup>
 
 </Project>

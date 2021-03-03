@@ -19,6 +19,38 @@
       "locationType": "[Boolean!]",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "ListValue",
+      "Location": {
+        "Start": 110,
+        "End": 128,
+        "Line": 4,
+        "Column": 49
+      },
+      "Items": [
+        {
+          "Kind": "BooleanValue",
+          "Location": {
+            "Start": 112,
+            "End": 124,
+            "Line": 4,
+            "Column": 51
+          },
+          "Value": true
+        },
+        {
+          "Kind": "StringValue",
+          "Location": {
+            "Start": 118,
+            "End": 127,
+            "Line": 4,
+            "Column": 57
+          },
+          "Value": "false",
+          "Block": false
+        }
+      ]
+    }
   }
 ]

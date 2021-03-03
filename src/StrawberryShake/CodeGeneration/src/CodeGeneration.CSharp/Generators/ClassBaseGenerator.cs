@@ -4,7 +4,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public abstract class ClassBaseGenerator<T> : CodeGenerator<T> where T : ICodeDescriptor
     {
-        protected (ClassBuilder, ConstructorBuilder) CreateClassBuilder(bool addConstructorToClass = true)
+        protected (ClassBuilder, ConstructorBuilder) CreateClassBuilder(
+            bool addConstructorToClass = true)
         {
             var classBuilder = ClassBuilder.New();
             var constructorBuilder = ConstructorBuilder.New();
@@ -12,6 +13,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 classBuilder.AddConstructor(constructorBuilder);
             }
+
             return (classBuilder, constructorBuilder);
         }
 
@@ -20,32 +22,28 @@ namespace StrawberryShake.CodeGeneration.CSharp
             string fieldName,
             ClassBuilder classBuilder,
             ConstructorBuilder constructorBuilder,
-            bool skiplNullCheck = false)
+            bool skipNullCheck = false)
         {
             var paramName = fieldName.TrimStart('_');
 
-            classBuilder.AddField(
-                FieldBuilder
-                    .New()
-                    .SetReadOnly()
-                    .SetName(fieldName)
-                    .SetType(type));
+            classBuilder.AddField()
+                .SetReadOnly()
+                .SetName(fieldName)
+                .SetType(type);
 
-            var assignment = AssignmentBuilder
+            AssignmentBuilder assignment = AssignmentBuilder
                 .New()
                 .SetLefthandSide(fieldName)
                 .SetRighthandSide(paramName);
-            if (!skiplNullCheck)
+
+            if (!skipNullCheck)
             {
                 assignment.AssertNonNull();
             }
 
-            constructorBuilder.AddParameter(
-                    ParameterBuilder
-                        .New()
-                        .SetType(type)
-                        .SetName(paramName))
-                .AddCode(assignment);
+            constructorBuilder
+                .AddCode(assignment)
+                .AddParameter(paramName, b => b.SetType(type));
         }
 
         protected void AddConstructorAssignedField(
@@ -53,14 +51,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
             string fieldName,
             ClassBuilder classBuilder,
             ConstructorBuilder constructorBuilder,
-            bool skiplNullCheck = false)
+            bool skipNullCheck = false)
         {
             AddConstructorAssignedField(
                 TypeReferenceBuilder.New().SetName(typename),
                 fieldName,
                 classBuilder,
                 constructorBuilder,
-                skiplNullCheck);
+                skipNullCheck);
         }
     }
 }

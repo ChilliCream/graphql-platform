@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
@@ -53,6 +52,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             if (_arguments.Count > 1)
             {
                 writer.Write(')');
+            }
+
+            if (_arguments.Count == 0)
+            {
+                writer.Write("()");
             }
 
             writer.Write(" => ");

@@ -1,5 +1,4 @@
 using System;
-using System.Buffers.Text;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
@@ -88,6 +87,12 @@ namespace StrawberryShake
                 return _contextData ??= new();
             }
         }
+
+        /// <summary>
+        /// Gets the request extension values or null.
+        /// </summary>
+        public IReadOnlyDictionary<string, object?>? GetExtensionsOrNull() =>
+            _extensions;
 
         public bool Equals(OperationRequest? other)
         {

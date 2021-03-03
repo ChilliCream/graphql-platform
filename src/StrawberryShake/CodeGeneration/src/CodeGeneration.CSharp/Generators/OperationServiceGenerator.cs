@@ -1,9 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Extensions;
+using StrawberryShake.CodeGeneration.Properties;
 using StrawberryShake.Serialization;
+using static StrawberryShake.CodeGeneration.CSharp.InputValueFormatterGenerator;
 using static StrawberryShake.CodeGeneration.NamingConventions;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
@@ -11,251 +15,295 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
     {
-        private const string OperationExecutorFieldName = "_operationExecutor";
-        private const string CreateRequestMethodName = "CreateRequest";
+        private const string _variables = "variables";
+        private const string _operationExecutor = "_operationExecutor";
+        private const string _createRequest = "CreateRequest";
+        private const string _strategy = "strategy";
+        private const string _serializerResolver = "serializerResolver";
+        private const string _request = "request";
+        private const string _value = "value";
+        private const string _cancellationToken = "cancellationToken";
 
         protected override void Generate(
             CodeWriter writer,
             OperationDescriptor operationDescriptor,
             out string fileName)
         {
-            var (classBuilder, constructorBuilder) = CreateClassBuilder();
+            fileName = operationDescriptor.RuntimeType.Name;
 
-            fileName = operationDescriptor.Name;
-            classBuilder.SetName(fileName);
-            constructorBuilder.SetTypeName(fileName);
+            ClassBuilder classBuilder = ClassBuilder
+                .New()
+                .SetComment(
+                    XmlCommentBuilder
+                        .New()
+                        .SetSummary(
+                            string.Format(
+                                CodeGenerationResources.OperationServiceDescriptor_Description,
+                                operationDescriptor.Name))
+                        .AddCode(operationDescriptor.BodyString))
+                .SetName(fileName);
+
+            ConstructorBuilder constructorBuilder = classBuilder
+                .AddConstructor()
+                .SetTypeName(fileName);
+
+            var runtimeTypeName =
+                operationDescriptor.ResultTypeReference.GetRuntimeType().Name;
 
             AddConstructorAssignedField(
-                TypeReferenceBuilder.New()
-                    .SetName(TypeNames.IOperationExecutor)
-                    .AddGeneric(operationDescriptor.ResultTypeReference.Name),
-                OperationExecutorFieldName,
+                TypeNames.IOperationExecutor.WithGeneric(runtimeTypeName),
+                _operationExecutor,
                 classBuilder,
                 constructorBuilder);
 
-            var neededSerializers = operationDescriptor.Arguments
-                .ToLookup(x => x.Type.Name)
-                .Select(x => x.First())
-                .ToDictionary(x => x.Type.Name);
+            AddInjectedSerializers(operationDescriptor, constructorBuilder, classBuilder);
 
-            if (neededSerializers.Any())
-            {
-                constructorBuilder
-                    .AddParameter(
-                        "serializerResolver",
-                        x => x.SetType(TypeNames.ISerializerResolver));
-
-                foreach (var property in neededSerializers.Values)
-                {
-                    if (property.Type.GetGraphQlTypeName()?.Value is { } name)
-                    {
-                        MethodCallBuilder call = MethodCallBuilder.New()
-                            .SetMethodName("serializerResolver." +
-                                nameof(ISerializerResolver.GetInputValueFormatter))
-                            .AddArgument(name.AsStringToken() ?? "")
-                            .SetPrefix($"{GetFieldName(name)}Formatter = ");
-
-                        constructorBuilder.AddCode(call);
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException(
-                            $"Serialized for property {operationDescriptor.Name}.{property.Name} " +
-                            $"could not be created. GraphQLTypeName was empty");
-                    }
-                }
-
-                // Serializer Methods
-
-                foreach (var property in neededSerializers.Values)
-                {
-                    if (property.Type.GetGraphQlTypeName()?.Value is { } name)
-                    {
-                        FieldBuilder field = FieldBuilder.New()
-                            .SetName(GetFieldName(name) + "Formatter")
-                            .SetAccessModifier(AccessModifier.Private)
-                            .SetType(TypeNames.IInputValueFormatter)
-                            .SetReadOnly();
-
-                        classBuilder.AddField(field);
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException(
-                            $"Serializer for property {operationDescriptor.Name}.{property.Name} " +
-                            $"could not be created. GraphQLTypeName was empty");
-                    }
-                }
-            }
-
-            //
-            MethodBuilder? executeMethod = null;
             if (operationDescriptor is not SubscriptionOperationDescriptor)
             {
-                executeMethod = MethodBuilder.New()
-                    .SetReturnType(
-                        $"async {TypeNames.Task}<{TypeNames.IOperationResult}<" +
-                        $"{operationDescriptor.ResultTypeReference.Name}>>")
-                    .SetAccessModifier(AccessModifier.Public)
-                    .SetName(TypeNames.Execute);
+                classBuilder.AddMethod(CreateExecuteMethod(operationDescriptor, runtimeTypeName));
             }
 
-            var strategyVariableName = "strategy";
-            var watchMethod = MethodBuilder.New()
-                .SetReturnType(
-                    $"{TypeNames.IOperationObservable}<" +
-                    $"{TypeNames.IOperationResult}<" +
-                    $"{operationDescriptor.ResultTypeReference.Name}>>")
-                .SetAccessModifier(AccessModifier.Public)
-                .SetName(TypeNames.Watch);
-
-            var createRequestMethodCall = MethodCallBuilder.New()
-                .SetMethodName(CreateRequestMethodName)
-                .SetDetermineStatement(false);
-
-            foreach (var arg in operationDescriptor.Arguments)
-            {
-                var typeReferenceBuilder = arg.Type.ToBuilder();
-
-                var paramName = arg.Name.WithLowerFirstChar();
-                var paramBuilder = ParameterBuilder.New()
-                    .SetName(paramName)
-                    .SetType(typeReferenceBuilder);
-
-                createRequestMethodCall.AddArgument(paramName);
-                executeMethod?.AddParameter(paramBuilder);
-                watchMethod.AddParameter(paramBuilder);
-            }
-
-            var requestVariableName = "request";
-            var cancellationTokenVariableName = "cancellationToken";
-
-            executeMethod?.AddParameter(
-                ParameterBuilder.New()
-                    .SetType(TypeNames.CancellationToken)
-                    .SetName(cancellationTokenVariableName)
-                    .SetDefault());
-
-            var requestBuilder = CodeBlockBuilder.New();
-            requestBuilder
-                .AddCode(
-                    AssignmentBuilder.New()
-                        .SetLefthandSide($"var {requestVariableName}")
-                        .SetRighthandSide(createRequestMethodCall));
-
-            executeMethod?.AddCode(requestBuilder);
-            watchMethod?.AddCode(requestBuilder);
-            watchMethod?.AddCode(
-                $"return {OperationExecutorFieldName}" +
-                $".Watch({requestVariableName}, {strategyVariableName});");
-
-            executeMethod?.AddCode(
-                CodeLineBuilder.New()
-                    .SetLine(string.Empty));
-
-            executeMethod?.AddCode(
-                MethodCallBuilder.New()
-                    .SetPrefix("return await " + OperationExecutorFieldName)
-                    .AddChainedCode(
-                        MethodCallBuilder.New()
-                            .SetDetermineStatement(false)
-                            .SetMethodName("ExecuteAsync")
-                            .AddArgument(requestVariableName)
-                            .AddArgument(cancellationTokenVariableName))
-                    .AddChainedCode(
-                        MethodCallBuilder.New()
-                            .SetDetermineStatement(false)
-                            .SetMethodName("ConfigureAwait")
-                            .AddArgument("false")));
-
-            if (executeMethod is not null)
-            {
-                classBuilder.AddMethod(executeMethod);
-            }
-
-            if (watchMethod is not null)
-            {
-                watchMethod.AddParameter(
-                    ParameterBuilder.New()
-                        .SetName(strategyVariableName)
-                        .SetType(
-                            TypeReferenceBuilder.New()
-                                .SetIsNullable(true)
-                                .SetName(TypeNames.ExecutionStrategy))
-                        .SetDefault("null"));
-                classBuilder.AddMethod(watchMethod);
-            }
-
+            classBuilder.AddMethod(CreateWatchMethod(operationDescriptor, runtimeTypeName));
             classBuilder.AddMethod(CreateRequestMethod(operationDescriptor));
 
-            // Serializer Methods
-
-            foreach (var argument in operationDescriptor.Arguments)
-            {
-                classBuilder.AddMethod("Format" + argument.Name.WithCapitalFirstChar())
-                    .AddParameter(
-                        "value",
-                        x => x.SetType(argument.Type.ToBuilder()))
-                    .SetReturnType(TypeNames.Object.MakeNullable())
-                    .SetPrivate()
-                    .AddCode(
-                        InputValueFormatterGenerator.GenerateSerializer(
-                            argument.Type,
-                            "value"));
-            }
+            AddFormatMethods(operationDescriptor, classBuilder);
 
             CodeFileBuilder
                 .New()
-                .SetNamespace(operationDescriptor.Namespace)
+                .SetNamespace(operationDescriptor.RuntimeType.NamespaceWithoutGlobal)
                 .AddType(classBuilder)
                 .Build(writer);
         }
 
-        private MethodBuilder CreateRequestMethod(OperationDescriptor operationDescriptor)
+        private static void AddFormatMethods(
+            OperationDescriptor operationDescriptor,
+            ClassBuilder classBuilder)
         {
-            string typeName = DocumentTypeNameFromOperationName(operationDescriptor.Name);
-
-            var method = MethodBuilder
-                .New()
-                .SetName(CreateRequestMethodName)
-                .SetReturnType(TypeNames.OperationRequest);
-
-            var requestConstructor = MethodCallBuilder.New()
-                .SetPrefix("return ")
-                .SetMethodName($"new {TypeNames.OperationRequest}")
-                .AddArgument($"\"{operationDescriptor.OperationName}\"")
-                .AddArgument($"{typeName}.Instance");
-
-            var first = true;
-            foreach (var arg in operationDescriptor.Arguments)
+            foreach (var argument in operationDescriptor.Arguments)
             {
-                if (first)
-                {
-                    var argumentsDictName = "arguments";
-                    method.AddCode(
-                        $"var {argumentsDictName} = new {TypeNames.Dictionary.WithGeneric(TypeNames.String, TypeNames.Object.MakeNullable())}();");
-                    requestConstructor.AddArgument(argumentsDictName);
-                }
+                classBuilder
+                    .AddMethod()
+                    .SetPrivate()
+                    .SetReturnType(TypeNames.Object.MakeNullable())
+                    .SetName("Format" + GetPropertyName(argument.Name))
+                    .AddParameter(_value, x => x.SetType(argument.Type.ToBuilder()))
+                    .AddCode(GenerateSerializer(argument.Type, _value));
+            }
+        }
 
-                first = false;
+        private static void AddInjectedSerializers(
+            OperationDescriptor operationDescriptor,
+            ConstructorBuilder constructorBuilder,
+            ClassBuilder classBuilder)
+        {
+            var neededSerializers = operationDescriptor
+                .Arguments
+                .GroupBy(x => x.Type.Name)
+                .ToDictionary(x => x.Key, x => x.First());
 
-                var argName = arg.Name.WithLowerFirstChar();
-
-                method.AddParameter(
-                    ParameterBuilder.New()
-                        .SetName(argName)
-                        .SetType(arg.Type.ToBuilder()));
-
-                method.AddCode(
-                    CodeLineBuilder.New()
-                        .SetLine(
-                            $"arguments.Add(\"{arg.Name}\", Format{arg.Name.WithCapitalFirstChar()}({argName}));"));
+            if (!neededSerializers.Any())
+            {
+                return;
             }
 
-            method.AddEmptyLine();
-            method.AddCode(requestConstructor);
+            constructorBuilder
+                .AddParameter(_serializerResolver)
+                .SetType(TypeNames.ISerializerResolver);
 
-            return method;
+            foreach (var property in neededSerializers.Values)
+            {
+                if (property.Type.GetName().Value is { } name)
+                {
+                    var fieldName = $"{GetFieldName(name)}Formatter";
+                    constructorBuilder
+                        .AddCode(
+                            AssignmentBuilder
+                                .New()
+                                .SetLefthandSide(fieldName)
+                                .SetRighthandSide(
+                                    MethodCallBuilder
+                                        .Inline()
+                                        .SetMethodName(
+                                            _serializerResolver,
+                                            nameof(ISerializerResolver.GetInputValueFormatter))
+                                        .AddArgument(name.AsStringToken())));
+
+                    classBuilder
+                        .AddField()
+                        .SetName(fieldName)
+                        .SetAccessModifier(AccessModifier.Private)
+                        .SetType(TypeNames.IInputValueFormatter)
+                        .SetReadOnly();
+                }
+                else
+                {
+                    throw new InvalidOperationException(
+                        $"Serializer for property {operationDescriptor.RuntimeType.Name}." +
+                        $"{property.Name} could not be created. GraphQLTypeName was empty");
+                }
+            }
+        }
+
+        private MethodCallBuilder CreateRequestMethodCall(OperationDescriptor operationDescriptor)
+        {
+            MethodCallBuilder createRequestMethodCall = MethodCallBuilder
+                .Inline()
+                .SetMethodName(_createRequest);
+
+            foreach (var arg in operationDescriptor.Arguments)
+            {
+                createRequestMethodCall.AddArgument(GetParameterName(arg.Name));
+            }
+
+            return createRequestMethodCall;
+        }
+
+        private MethodBuilder CreateWatchMethod(
+            OperationDescriptor operationDescriptor,
+            string runtimeTypeName)
+        {
+            MethodBuilder watchMethod =
+                MethodBuilder
+                    .New()
+                    .SetPublic()
+                    .SetReturnType(
+                        TypeNames.IOperationObservable
+                            .WithGeneric(TypeNames.IOperationResult.WithGeneric(runtimeTypeName)))
+                    .SetName(TypeNames.Watch);
+
+            foreach (var arg in operationDescriptor.Arguments)
+            {
+                watchMethod
+                    .AddParameter()
+                    .SetName(GetParameterName(arg.Name))
+                    .SetType(arg.Type.ToBuilder());
+            }
+
+            watchMethod.AddParameter()
+                .SetName(_strategy)
+                .SetType(TypeNames.ExecutionStrategy.MakeNullable())
+                .SetDefault("null");
+
+            return watchMethod
+                .AddCode(
+                    AssignmentBuilder
+                        .New()
+                        .SetLefthandSide($"var {_request}")
+                        .SetRighthandSide(CreateRequestMethodCall(operationDescriptor)))
+                .AddCode(
+                    MethodCallBuilder
+                        .New()
+                        .SetReturn()
+                        .SetMethodName(_operationExecutor, nameof(IOperationExecutor<object>.Watch))
+                        .AddArgument(_request)
+                        .AddArgument(_strategy));
+        }
+
+        private MethodBuilder CreateExecuteMethod(
+            OperationDescriptor operationDescriptor,
+            string runtimeTypeName)
+        {
+            MethodBuilder executeMethod = MethodBuilder
+                .New()
+                .SetPublic()
+                .SetAsync()
+                .SetReturnType(
+                    TypeNames.Task.WithGeneric(
+                        TypeNames.IOperationResult.WithGeneric(runtimeTypeName)))
+                .SetName(TypeNames.Execute);
+
+            foreach (var arg in operationDescriptor.Arguments)
+            {
+                executeMethod
+                    .AddParameter()
+                    .SetName(GetParameterName(arg.Name))
+                    .SetType(arg.Type.ToBuilder());
+            }
+
+            executeMethod
+                .AddParameter(_cancellationToken)
+                .SetType(TypeNames.CancellationToken)
+                .SetDefault();
+
+            return executeMethod
+                .AddCode(
+                    AssignmentBuilder
+                        .New()
+                        .SetLefthandSide($"var {_request}")
+                        .SetRighthandSide(CreateRequestMethodCall(operationDescriptor)))
+                .AddEmptyLine()
+                .AddCode(
+                    MethodCallBuilder
+                        .New()
+                        .SetReturn()
+                        .SetAwait()
+                        .SetMethodName(
+                            _operationExecutor,
+                            nameof(IOperationExecutor<object>.ExecuteAsync))
+                        .AddArgument(_request)
+                        .AddArgument(_cancellationToken)
+                        .Chain(x => x
+                            .SetMethodName(nameof(Task.ConfigureAwait))
+                            .AddArgument("false")));
+        }
+
+        private MethodBuilder CreateRequestMethod(OperationDescriptor operationDescriptor)
+        {
+            string typeName = CreateDocumentTypeName(operationDescriptor.RuntimeType.Name);
+
+            MethodBuilder method = MethodBuilder
+                .New()
+                .SetName(_createRequest)
+                .SetReturnType(TypeNames.OperationRequest);
+
+            MethodCallBuilder newOperationRequest = MethodCallBuilder
+                .New()
+                .SetReturn()
+                .SetNew()
+                .SetMethodName(TypeNames.OperationRequest)
+                .AddArgument(operationDescriptor.Name.AsStringToken())
+                .AddArgument($"{typeName}.Instance");
+
+            if (operationDescriptor.Arguments.Count > 0)
+            {
+                method
+                    .AddCode(
+                        AssignmentBuilder
+                            .New()
+                            .SetLefthandSide($"var {_variables}")
+                            .SetRighthandSide(
+                                MethodCallBuilder
+                                    .Inline()
+                                    .SetNew()
+                                    .SetMethodName(TypeNames.Dictionary)
+                                    .AddGeneric(TypeNames.String)
+                                    .AddGeneric(TypeNames.Object.MakeNullable())))
+                    .AddEmptyLine();
+
+                foreach (var arg in operationDescriptor.Arguments)
+                {
+                    var argName = GetParameterName(arg.Name);
+
+                    method.AddParameter(argName, x => x.SetType(arg.Type.ToBuilder()));
+
+                    method.AddCode(
+                        MethodCallBuilder
+                            .New()
+                            .SetMethodName(_variables, nameof(Dictionary<object, object>.Add))
+                            .AddArgument(arg.Name.AsStringToken())
+                            .AddArgument(
+                                MethodCallBuilder
+                                    .Inline()
+                                    .SetMethodName($"Format{GetPropertyName(arg.Name)}")
+                                    .AddArgument(argName)));
+                }
+
+                newOperationRequest.AddArgument(_variables);
+            }
+
+            return method
+                .AddEmptyLine()
+                .AddCode(newOperationRequest);
         }
     }
 }

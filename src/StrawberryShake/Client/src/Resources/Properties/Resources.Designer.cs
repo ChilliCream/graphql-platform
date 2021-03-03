@@ -194,5 +194,53 @@ namespace StrawberryShake.Properties {
                 return ResourceManager.GetString("ThrowHelper_InputFormatter_InvalidType", resourceCulture);
             }
         }
+        
+        internal static string CSharpGenerator_Generate_ClientNameCannotBeNull {
+            get {
+                return ResourceManager.GetString("CSharpGenerator_Generate_ClientNameCannotBeNull", resourceCulture);
+            }
+        }
+        
+        internal static string CSharpGenerator_Generate_ArgumentCannotBeNull {
+            get {
+                return ResourceManager.GetString("CSharpGenerator_Generate_ArgumentCannotBeNull", resourceCulture);
+            }
+        }
+        
+        internal static string InMemoryConnection_InvalidResponseFormat {
+            get {
+                return ResourceManager.GetString("InMemoryConnection_InvalidResponseFormat", resourceCulture);
+            }
+        }
+        
+        internal static string InMemoryClient_ExecuteAsync_NoExecutorFound {
+            get {
+                return ResourceManager.GetString("InMemoryClient_ExecuteAsync_NoExecutorFound", resourceCulture);
+            }
+        }
+        
+        internal static string JsonErrorParser_ParseError_MessageCannotBeNull {
+            get {
+                return ResourceManager.GetString("JsonErrorParser_ParseError_MessageCannotBeNull", resourceCulture);
+            }
+        }
+        
+        internal static string Location_Location_Line_OutOfRange {
+            get {
+                return ResourceManager.GetString("Location_Location_Line_OutOfRange", resourceCulture);
+            }
+        }
+        
+        internal static string Location_Location_Column_OutOfRange {
+            get {
+                return ResourceManager.GetString("Location_Location_Column_OutOfRange", resourceCulture);
+            }
+        }
+        
+        internal static string JsonErrorParser_ParseErrors_Error {
+            get {
+                return ResourceManager.GetString("JsonErrorParser_ParseErrors_Error", resourceCulture);
+            }
+        }
     }
 }
