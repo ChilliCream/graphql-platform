@@ -45,10 +45,11 @@ partial class Build : NukeBuild
         .Consumes(Cover)
         .Executes(() =>
         {
-            if (!InvokedTargets.Contains(Cover))
-            {
-                DotNetBuildSonarSolution(AllSolutionFile);
-            }
+            DotNetBuildSonarSolution(AllSolutionFile);
+
+            DotNetRestore(c => c
+                .SetProjectFile(AllSolutionFile)
+                .SetProcessWorkingDirectory(RootDirectory));
 
             Logger.Info("Creating Sonar analysis for version: {0} ...", GitVersion.SemVer);
             SonarScannerBegin(SonarBeginFullSettings);

@@ -22,8 +22,6 @@ namespace StrawberryShake.CodeGeneration.Utilities
             Array.Empty<ArgumentNode>(),
             null);
 
-        private OperationDefinitionNode? _operation;
-
         protected override OperationDefinitionNode RewriteOperationDefinition(
             OperationDefinitionNode node,
             Context context)

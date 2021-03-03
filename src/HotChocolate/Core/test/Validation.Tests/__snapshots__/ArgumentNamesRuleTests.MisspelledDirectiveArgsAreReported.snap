@@ -18,7 +18,36 @@
       "argument": "iff",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Argument",
+      "Location": {
+        "Start": 49,
+        "End": 59,
+        "Line": 3,
+        "Column": 31
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 49,
+          "End": 53,
+          "Line": 3,
+          "Column": 31
+        },
+        "Value": "iff"
+      },
+      "Value": {
+        "Kind": "BooleanValue",
+        "Location": {
+          "Start": 54,
+          "End": 59,
+          "Line": 3,
+          "Column": 36
+        },
+        "Value": true
+      }
+    }
   },
   {
     "Message": "The argument `if` is required.",
@@ -39,6 +68,56 @@
       "argument": "if",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Directive",
+      "Location": {
+        "Start": 43,
+        "End": 77,
+        "Line": 3,
+        "Column": 25
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 44,
+          "End": 49,
+          "Line": 3,
+          "Column": 26
+        },
+        "Value": "skip"
+      },
+      "Arguments": [
+        {
+          "Kind": "Argument",
+          "Location": {
+            "Start": 49,
+            "End": 59,
+            "Line": 3,
+            "Column": 31
+          },
+          "Name": {
+            "Kind": "Name",
+            "Location": {
+              "Start": 49,
+              "End": 53,
+              "Line": 3,
+              "Column": 31
+            },
+            "Value": "iff"
+          },
+          "Value": {
+            "Kind": "BooleanValue",
+            "Location": {
+              "Start": 54,
+              "End": 59,
+              "Line": 3,
+              "Column": 36
+            },
+            "Value": true
+          }
+        }
+      ]
+    }
   }
 ]

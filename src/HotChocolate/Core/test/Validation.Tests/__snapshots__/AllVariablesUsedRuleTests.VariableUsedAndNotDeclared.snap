@@ -12,6 +12,135 @@
     "Extensions": {
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variable-Uses-Defined"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "OperationDefinition",
+      "Location": {
+        "Start": 17,
+        "End": 192,
+        "Line": 2,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 23,
+          "End": 58,
+          "Line": 2,
+          "Column": 23
+        },
+        "Value": "variableIsDefined"
+      },
+      "Operation": "Query",
+      "VariableDefinitions": [],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 57,
+          "End": 192,
+          "Line": 3,
+          "Column": 17
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": {
+              "Kind": "SelectionSet",
+              "Location": {
+                "Start": 83,
+                "End": 192,
+                "Line": 4,
+                "Column": 25
+              },
+              "Selections": [
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [
+                    {
+                      "Kind": "Argument",
+                      "Location": {
+                        "Start": 124,
+                        "End": 152,
+                        "Line": 5,
+                        "Column": 40
+                      },
+                      "Name": {
+                        "Kind": "Name",
+                        "Location": {
+                          "Start": 124,
+                          "End": 137,
+                          "Line": 5,
+                          "Column": 40
+                        },
+                        "Value": "atOtherHomes"
+                      },
+                      "Value": {
+                        "Kind": "Variable",
+                        "Location": {
+                          "Start": 138,
+                          "End": 152,
+                          "Line": 5,
+                          "Column": 54
+                        },
+                        "Name": {
+                          "Kind": "Name",
+                          "Location": {
+                            "Start": 139,
+                            "End": 152,
+                            "Line": 5,
+                            "Column": 55
+                          },
+                          "Value": "atOtherHomes"
+                        },
+                        "Value": "atOtherHomes"
+                      }
+                    }
+                  ],
+                  "SelectionSet": null,
+                  "Location": {
+                    "Start": 109,
+                    "End": 174,
+                    "Line": 5,
+                    "Column": 25
+                  },
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": {
+                      "Start": 109,
+                      "End": 124,
+                      "Line": 5,
+                      "Column": 25
+                    },
+                    "Value": "isHouseTrained"
+                  },
+                  "Directives": []
+                }
+              ]
+            },
+            "Location": {
+              "Start": 79,
+              "End": 192,
+              "Line": 4,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 79,
+                "End": 84,
+                "Line": 4,
+                "Column": 21
+              },
+              "Value": "dog"
+            },
+            "Directives": []
+          }
+        ]
+      }
+    }
   }
 ]

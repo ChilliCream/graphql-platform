@@ -2,7 +2,7 @@ namespace StrawberryShake.Serialization
 {
     public class ShortSerializer : ScalarSerializer<short>
     {
-        public ShortSerializer(string typeName = BuiltInTypeNames.Short)
+        public ShortSerializer(string typeName = BuiltInScalarNames.Short)
             : base(typeName)
         {
         }

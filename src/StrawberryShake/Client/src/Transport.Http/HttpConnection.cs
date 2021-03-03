@@ -50,7 +50,7 @@ namespace StrawberryShake.Transport.Http
                         .ReadAsStreamAsync()
                         .ConfigureAwait(false);
                 #endif
-                
+
                 body = await JsonDocument
                     .ParseAsync(stream, cancellationToken: cancellationToken)
                     .ConfigureAwait(false);
