@@ -11,8 +11,8 @@ namespace HotChocolate.Types.Scalars
     public class MacAddressType : RegexType
     {
         private const string _validationPattern =
-            @"(^(?:[0-9A-Fa-f]{2}([:-]?)[0-9A-Fa-f]{2})(?:(?:\1|\.)(?:[0-9A-Fa-f]{2}([:-]?" +
-            ")[0-9A-Fa-f]{2})){2}$)";
+            @"^(?:[0-9A-Fa-f]{2}([:-]?)[0-9A-Fa-f]{2})(?:(?:\1|\.)(?:[0-9A-Fa-f]{2}([:-]?" +
+            ")[0-9A-Fa-f]{2})){2}$";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MacAddressType"/> class.
