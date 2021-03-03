@@ -19,6 +19,35 @@
       "argument": "y",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Argument",
+      "Location": {
+        "Start": 97,
+        "End": 105,
+        "Line": 4,
+        "Column": 45
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 97,
+          "End": 99,
+          "Line": 4,
+          "Column": 45
+        },
+        "Value": "y"
+      },
+      "Value": {
+        "Kind": "NullValue",
+        "Location": {
+          "Start": 100,
+          "End": 105,
+          "Line": 4,
+          "Column": 48
+        },
+        "Value": null
+      }
+    }
   }
 ]

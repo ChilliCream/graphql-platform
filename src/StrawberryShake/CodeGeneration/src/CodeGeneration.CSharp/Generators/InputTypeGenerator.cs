@@ -3,44 +3,35 @@ using StrawberryShake.CodeGeneration.CSharp.Extensions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public class InputTypeGenerator : CodeGenerator<NamedTypeDescriptor>
+    public class InputTypeGenerator : CodeGenerator<InputObjectTypeDescriptor>
     {
-        protected override bool CanHandle(NamedTypeDescriptor descriptor)
-        {
-            return descriptor.Kind == TypeKind.InputType;
-        }
+        protected override bool CanHandle(InputObjectTypeDescriptor descriptor) => true;
 
         protected override void Generate(
             CodeWriter writer,
-            NamedTypeDescriptor namedTypeDescriptor,
+            InputObjectTypeDescriptor namedTypeDescriptor,
             out string fileName)
         {
             fileName = namedTypeDescriptor.Name;
-            ClassBuilder classBuilder = ClassBuilder.New()
+
+            ClassBuilder classBuilder = ClassBuilder
+                .New()
+                .SetComment(namedTypeDescriptor.Documentation)
                 .SetName(fileName);
 
             foreach (var prop in namedTypeDescriptor.Properties)
             {
-                var propTypeBuilder = prop.Type.ToBuilder();
-
-                // Add Property to class
-                var propBuilder = PropertyBuilder
-                    .New()
+                classBuilder
+                    .AddProperty(prop.Name)
+                    .SetPublic()
+                    .SetComment(prop.Description)
                     .MakeSettable()
-                    .SetName(prop.Name)
-                    .SetType(propTypeBuilder)
-                    .SetAccessModifier(AccessModifier.Public);
-                classBuilder.AddProperty(propBuilder);
-            }
-
-            foreach (var implement in namedTypeDescriptor.Implements)
-            {
-                classBuilder.AddImplements(implement);
+                    .SetType(prop.Type.ToBuilder());
             }
 
             CodeFileBuilder
                 .New()
-                .SetNamespace(namedTypeDescriptor.Namespace)
+                .SetNamespace(namedTypeDescriptor.RuntimeType.NamespaceWithoutGlobal)
                 .AddType(classBuilder)
                 .Build(writer);
         }

@@ -1,4 +1,6 @@
-﻿#nullable enable
+﻿// StrawberryShake.CodeGeneration.CSharp.OperationServiceGenerator
+
+#nullable enable
 
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
 {
@@ -16,7 +18,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetPeopleResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest();
-            
+
             return await _operationExecutor
                 .ExecuteAsync(
                     request,
@@ -27,7 +29,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
         public global::System.IObservable<global::StrawberryShake.IOperationResult<IGetPeopleResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null)
         {
             var request = CreateRequest();
-            return _operationExecutor.Watch(request, strategy);
+            return _operationExecutor.Watch(
+                request,
+                strategy);
         }
 
         private global::StrawberryShake.OperationRequest CreateRequest()

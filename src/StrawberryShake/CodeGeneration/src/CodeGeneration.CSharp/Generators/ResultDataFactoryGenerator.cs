@@ -8,7 +8,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public class ResultDataFactoryGenerator : TypeMapperGenerator
     {
-        const string StoreParamName = "_entityStore";
+        private const string _entityStore = "_entityStore";
+        private const string _dataInfo = "dataInfo";
+        private const string _info = "info";
 
         protected override bool CanHandle(ITypeDescriptor descriptor)
         {
@@ -20,60 +22,66 @@ namespace StrawberryShake.CodeGeneration.CSharp
             ITypeDescriptor typeDescriptor,
             out string fileName)
         {
-            NamedTypeDescriptor descriptor =
-                typeDescriptor as NamedTypeDescriptor ??
-                throw new InvalidOperationException();
+            ComplexTypeDescriptor descriptor =
+                typeDescriptor as ComplexTypeDescriptor ??
+                throw new InvalidOperationException(
+                    "A result data factory can only be generated for complex types");
 
-            var (classBuilder, constructorBuilder) = CreateClassBuilder();
+            fileName = CreateResultFactoryName(descriptor.RuntimeType.Name);
 
-            fileName = ResultFactoryNameFromTypeName(descriptor.Name);
-            classBuilder
-                .SetName(fileName)
-                .AddImplements($"{TypeNames.IOperationResultDataFactory}<{descriptor.Name}>");
+            ClassBuilder classBuilder =
+                ClassBuilder
+                    .New()
+                    .SetName(fileName)
+                    .AddImplements(
+                        TypeNames.IOperationResultDataFactory
+                            .WithGeneric(descriptor.RuntimeType.Name));
 
-            constructorBuilder
-                .SetTypeName(descriptor.Name)
-                .SetAccessModifier(AccessModifier.Public);
+            ConstructorBuilder constructorBuilder = classBuilder
+                .AddConstructor()
+                .SetTypeName(descriptor.Name);
 
             AddConstructorAssignedField(
                 TypeNames.IEntityStore,
-                StoreParamName,
+                _entityStore,
                 classBuilder,
                 constructorBuilder);
 
-            var createMethod = MethodBuilder.New()
-                .SetAccessModifier(AccessModifier.Public)
-                .SetName("Create")
-                .SetReturnType(descriptor.Name)
-                .AddParameter("dataInfo", b => b.SetType(TypeNames.IOperationResultDataInfo));
-
-            var returnStatement = MethodCallBuilder.New()
-                .SetPrefix("return new ")
-                .SetMethodName(descriptor.Name);
-
-            var ifHasCorrectType = IfBuilder.New()
-                .SetCondition($"dataInfo is {ResultInfoNameFromTypeName(descriptor.Name)} info");
+            MethodCallBuilder returnStatement = MethodCallBuilder
+                .New()
+                .SetReturn()
+                .SetNew()
+                .SetMethodName(descriptor.RuntimeType.Name);
 
             foreach (PropertyDescriptor property in descriptor.Properties)
             {
-                returnStatement.AddArgument(
-                    BuildMapMethodCall(
-                        "info",
-                        property));
+                returnStatement
+                    .AddArgument(BuildMapMethodCall(_info, property));
             }
 
-            ifHasCorrectType.AddCode(returnStatement);
-            createMethod.AddCode(ifHasCorrectType);
-            createMethod.AddEmptyLine();
-            createMethod.AddCode(
-                $"throw new {TypeNames.ArgumentException}(\"" +
-                $"{ResultInfoNameFromTypeName(descriptor.Name)} expected.\");");
+            IfBuilder ifHasCorrectType = IfBuilder
+                .New()
+                .SetCondition(
+                    $"{_dataInfo} is {CreateResultInfoName(descriptor.RuntimeType.Name)} {_info}")
+                .AddCode(returnStatement);
 
-            classBuilder.AddMethod(createMethod);
+            classBuilder
+                .AddMethod("Create")
+                .SetAccessModifier(AccessModifier.Public)
+                .SetReturnType(descriptor.RuntimeType.Name)
+                .AddParameter(_dataInfo, b => b.SetType(TypeNames.IOperationResultDataInfo))
+                .AddCode(ifHasCorrectType)
+                .AddEmptyLine()
+                .AddCode(
+                    ExceptionBuilder
+                        .New(TypeNames.ArgumentException)
+                        .AddArgument(
+                            $"\"{CreateResultInfoName(descriptor.RuntimeType.Name)} expected.\""));
 
             var processed = new HashSet<string>();
+
             AddRequiredMapMethods(
-                "info",
+                _info,
                 descriptor,
                 classBuilder,
                 constructorBuilder,
@@ -82,27 +90,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             CodeFileBuilder
                 .New()
-                .SetNamespace(descriptor.Namespace)
+                .SetNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal)
                 .AddType(classBuilder)
                 .Build(writer);
-        }
-
-        private MethodCallBuilder GetMappingCall(
-            NamedTypeDescriptor namedTypeDescriptor,
-            string idName)
-        {
-            return MethodCallBuilder.New()
-                .SetMethodName(
-                    EntityMapperNameFromGraphQLTypeName(
-                            namedTypeDescriptor.Name,
-                            namedTypeDescriptor.GraphQLTypeName
-                            ?? throw new ArgumentNullException("GraphQLTypeName"))
-                        .ToFieldName() + ".Map")
-                .SetDetermineStatement(false)
-                .AddArgument(
-                    $"{StoreParamName}.GetEntity<" +
-                    $"{EntityTypeNameFromGraphQLTypeName(namedTypeDescriptor.GraphQLTypeName)}>" +
-                    $"({idName}) ?? throw new {TypeNames.ArgumentNullException}()");
         }
     }
 }

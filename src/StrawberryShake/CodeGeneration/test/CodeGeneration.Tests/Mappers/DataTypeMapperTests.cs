@@ -1,12 +1,9 @@
-using System;
 using System.Linq;
 using System.Threading.Tasks;
-using HotChocolate.Language;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
-using StrawberryShake.CodeGeneration.Utilities;
+using StrawberryShake.CodeGeneration.Extensions;
 using Xunit;
 using static StrawberryShake.CodeGeneration.Mappers.TestDataHelper;
-using static ChilliCream.Testing.FileResource;
 
 namespace StrawberryShake.CodeGeneration.Mappers
 {
@@ -51,15 +48,15 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
             // assert
             Assert.Collection(
-                context.DataTypes.OrderBy(t => t.Name),
+                context.DataTypes.OrderBy(t => t.RuntimeType.ToString()),
                 type =>
                 {
                     Assert.Equal(
                         "CharacterConnectionData",
-                        type.Name);
+                        type.RuntimeType.Name);
                     Assert.Equal(
                         "Foo.Bar.State",
-                        type.Namespace);
+                        type.RuntimeType.NamespaceWithoutGlobal);
 
                     Assert.Collection(
                         type.Properties,
@@ -70,7 +67,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                                 property.Name);
                             Assert.Equal(
                                 "IGetHeroNodes_Hero_Friends_Nodes",
-                                property.Type.Name);
+                                property.Type.GetRuntimeType().Name);
                         },
                         property =>
                         {
@@ -79,17 +76,17 @@ namespace StrawberryShake.CodeGeneration.Mappers
                                 property.Name);
                             Assert.Equal(
                                 "IGetHeroEdges_Hero_Friends_Edges",
-                                property.Type.Name);
+                                property.Type.GetRuntimeType().Name);
                         });
                 },
                 type =>
                 {
                     Assert.Equal(
                         "CharacterEdgeData",
-                        type.Name);
+                        type.RuntimeType.Name);
                     Assert.Equal(
                         "Foo.Bar.State",
-                        type.Namespace);
+                        type.RuntimeType.NamespaceWithoutGlobal);
 
                     Assert.Collection(
                         type.Properties,
@@ -100,13 +97,13 @@ namespace StrawberryShake.CodeGeneration.Mappers
                                 property.Name);
                             Assert.Equal(
                                 "String",
-                                property.Type.Name);
+                                property.Type.GetRuntimeType().Name);
                         });
                 });
         }
 
         [Fact]
-        public async Task MapDataTypeDescriptors_DataUnionType()
+        public void MapDataTypeDescriptors_DataUnionType()
         {
             // arrange
             var clientModel = CreateClientModelAsync("union.query3.graphql", "union.schema.graphql");
@@ -128,15 +125,15 @@ namespace StrawberryShake.CodeGeneration.Mappers
             // assert
 
             Assert.Collection(
-                context.DataTypes.OrderBy(t => t.Name),
+                context.DataTypes.OrderBy(t => t.RuntimeType.ToString()),
                 type =>
                 {
                     Assert.Equal(
                         "AuthorData",
-                        type.Name);
+                        type.RuntimeType.Name);
                     Assert.Equal(
                         "Foo.Bar.State",
-                        type.Namespace);
+                        type.RuntimeType.NamespaceWithoutGlobal);
 
                     Assert.Collection(
                         type.Properties.OrderBy(p => p.Name),
@@ -157,10 +154,10 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 {
                     Assert.Equal(
                         "BookData",
-                        type.Name);
+                        type.RuntimeType.Name);
                     Assert.Equal(
                         "Foo.Bar.State",
-                        type.Namespace);
+                        type.RuntimeType.NamespaceWithoutGlobal);
 
                     Assert.Collection(
                         type.Properties.OrderBy(p => p.Name),
@@ -181,10 +178,10 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 {
                     Assert.Equal(
                         "ISearchResultData",
-                        type.Name);
+                        type.RuntimeType.Name);
                     Assert.Equal(
                         "Foo.Bar.State",
-                        type.Namespace);
+                        type.RuntimeType.NamespaceWithoutGlobal);
 
                     Assert.Empty(type.Properties);
                 });
@@ -192,10 +189,12 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
 
         [Fact]
-        public async Task MapDataTypeDescriptors_DataInterfaceType()
+        public void MapDataTypeDescriptors_DataInterfaceType()
         {
             // arrange
-            var clientModel = CreateClientModelAsync("interface.query.graphql", "interface.schema.graphql");
+            var clientModel = CreateClientModelAsync(
+                "interface.query.graphql",
+                "interface.schema.graphql");
 
             // act
             var context = new MapperContext(
@@ -213,15 +212,15 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
             // assert
             Assert.Collection(
-                context.DataTypes.OrderBy(t => t.Name),
+                context.DataTypes.OrderBy(t => t.RuntimeType.ToString()),
                 type =>
                 {
                     Assert.Equal(
                         "BookData",
-                        type.Name);
+                        type.RuntimeType.Name);
                     Assert.Equal(
                         "Foo.Bar.State",
-                        type.Namespace);
+                        type.RuntimeType.NamespaceWithoutGlobal);
 
                     Assert.Collection(
                         type.Properties.OrderBy(p => p.Name),
@@ -242,10 +241,10 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 {
                     Assert.Equal(
                         "IPrintData",
-                        type.Name);
+                        type.RuntimeType.Name);
                     Assert.Equal(
                         "Foo.Bar.State",
-                        type.Namespace);
+                        type.RuntimeType.NamespaceWithoutGlobal);
 
                     Assert.Empty(type.Properties);
                 },
@@ -253,10 +252,10 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 {
                     Assert.Equal(
                         "ISearchResultData",
-                        type.Name);
+                        type.RuntimeType.Name);
                     Assert.Equal(
                         "Foo.Bar.State",
-                        type.Namespace);
+                        type.RuntimeType.NamespaceWithoutGlobal);
 
                     Assert.Empty(type.Properties);
                 },
@@ -264,10 +263,10 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 {
                     Assert.Equal(
                         "MagazineData",
-                        type.Name);
+                        type.RuntimeType.Name);
                     Assert.Equal(
                         "Foo.Bar.State",
-                        type.Namespace);
+                        type.RuntimeType.NamespaceWithoutGlobal);
 
                     Assert.Collection(
                         type.Properties.OrderBy(p => p.Name),
