@@ -391,4 +391,4 @@ services
 | PostalCode       | The `PostalCode` scalar type represents a valid postal code.                                                                                           |
 | UnsignedInt      | The `UnsignedInt` scalar type represents a unsigned 32‐bit numeric non‐fractional value greater than or equal to 0.                                    |
 | IPv4             | The `IPv4` scalar type represents a valid a IPv4 address as defined here https://en.wikipedia.org/wiki/IPv4.                                           |
-| MaxAddress       | The `MacAddress` scalartype represents a valid field whose value is a IEEE 802 48-bit https://tools.ietf.org/html/rfc7042#page-19                      |
+| MacAddress       | The `MacAddress` scalartype represents a valid field whose value is a IEEE 802 48-bit https://tools.ietf.org/html/rfc7042#page-19                      |
