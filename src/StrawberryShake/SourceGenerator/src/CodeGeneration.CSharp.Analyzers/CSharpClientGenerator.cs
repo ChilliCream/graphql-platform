@@ -8,12 +8,12 @@ using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using HotChocolate;
+using HotChocolate.Language;
 using HotChocolate.Utilities;
-using Newtonsoft.Json;
+using StrawberryShake.CodeGeneration.Descriptors.Operations;
 using IOPath = System.IO.Path;
 using static StrawberryShake.CodeGeneration.CSharp.Analyzers.DiagnosticErrorHelper;
-using HotChocolate.Language;
-using StrawberryShake.CodeGeneration.Descriptors.Operations;
+using System.Text.Json;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 {
@@ -303,7 +303,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 try
                 {
                     string json = File.ReadAllText(configLocation);
-                    var config = JsonConvert.DeserializeObject<GraphQLConfig>(json);
+                    var config = JsonSerializer.Deserialize<GraphQLConfig>(
+                        json, 
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     config.Location = configLocation;
                     list.Add(config);
                 }

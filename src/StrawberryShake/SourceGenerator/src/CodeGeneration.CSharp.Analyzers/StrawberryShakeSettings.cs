@@ -16,6 +16,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
         public string? HashAlgorithm { get; set; }
 
-        public RequestStrategy RequestStrategy { get; } = RequestStrategy.Default;
+        public RequestStrategy RequestStrategy { get; set; } = RequestStrategy.Default;
     }
 }
