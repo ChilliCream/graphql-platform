@@ -21,17 +21,4 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
         public List<StrawberryShakeTransportSettings>? TransportProfiles { get; set; }
     }
-
-    public class StrawberryShakeTransportSettings
-    {
-        public string Name { get; set; }
-
-        public TransportType Default { get; set; }
-
-        public TransportType Query { get; set; }
-
-        public TransportType Mutation { get; set; }
-
-        public TransportType Subscription { get; set; }
-    }
 }

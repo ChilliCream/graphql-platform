@@ -216,6 +216,25 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     }
                 };
 
+                if (context.Settings.TransportProfiles?
+                    .Where(t => !string.IsNullOrEmpty(t.Name))
+                    .ToList() is { Count: > 0 } profiles)
+                {
+                    var names = new HashSet<string>();
+                    settings.TransportProfiles.Clear();
+
+                    foreach (var profile in profiles)
+                    {
+                        settings.TransportProfiles.Add(
+                            new CSharpGeneratorTransportProfile(
+                                profile.Name,
+                                profile.Default,
+                                profile.Query,
+                                profile.Mutation,
+                                profile.Subscription));
+                    }
+                }
+
                 string? persistedQueryDirectory = context.GetPersistedQueryDirectory();
 
                 context.Log.SetGeneratorSettings(settings);
