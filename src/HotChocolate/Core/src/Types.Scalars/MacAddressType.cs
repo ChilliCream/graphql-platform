@@ -5,8 +5,9 @@ using HotChocolate.Language;
 namespace HotChocolate.Types.Scalars
 {
     /// <summary>
-    /// The `Mac` scalar type represents a valid field whose value is a IEEE 802 48-bit
-    /// <a href="https://tools.ietf.org/html/rfc7042#page-19">rfc7042</a>
+    /// The `MacAddess` scalar type represents a IEEE 802 48-bit Mac address, represented as UTF-8 character
+    /// sequences. The scalar follows the specification defined in  
+    /// <a href="https://tools.ietf.org/html/rfc7042#page-19">RFC7042</a>
     /// </summary>
     public class MacAddressType : RegexType
     {
