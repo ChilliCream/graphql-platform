@@ -2,24 +2,6 @@
 title: "Unions and Interfaces"
 ---
 
-<<<<<<< HEAD
-Similar to most type systems, GraphQL knows abstract types. There are two kinds of abstract types:
-[Interfaces](https://graphql.org/learn/schema/#interfaces) and [Unions](https://graphql.org/learn/schema/#unions)
-
-# Interfaces
-
-An interface type can be used for abstract types that share fields.
-
-```sdl
-interface Message {
-  sendBy: User!
-  createdAt: DateTime!
-}
-```
-
-An object type or interface type that _implements_ an interface, does have to declare all the fields that are declared on the interface.
-
-=======
 import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
 Similar to most type systems, GraphQL knows abstract types. There are two kinds of abstract types:
@@ -38,7 +20,6 @@ interface Message {
 
 An object type or interface type that _implements_ an interface, does have to declare all the fields that are declared on the interface.
 
->>>>>>> develop
 ```sdl
 type TextMessage implements Message {
   sendBy: User!
@@ -62,11 +43,7 @@ type VideoMessage implements MediaMessage {
 
 A type can also implement multiple interfaces.
 
-<<<<<<< HEAD
-```
-=======
 ```sdl
->>>>>>> develop
 type VideoMessage implements Message & HasMediaType {
   sendBy: User!
   createdAt: DateTime!
@@ -130,13 +107,6 @@ HotChocolate tries to infer interfaces from the .Net types.
 When a resolver returns an interface, you just have to register the implementation on the schema builder.
 HotChocolate will register the types as implementations of the interface.
 
-<<<<<<< HEAD
-### Annotation Based
-In the annotation based approach, you most likely do not need to worry about interfaces at all.
-
-```csharp
-public class Query 
-=======
 <ExampleTabs>
 <ExampleTabs.Annotation>
 
@@ -144,28 +114,19 @@ In the annotation based approach, you most likely do not need to worry about int
 
 ```csharp
 public class Query
->>>>>>> develop
 {
   public IMessage[] GetMessages([Service]IMessageRepo repo) => repo.GetMessages();
 }
 
 [GraphQLName("Message")]
-<<<<<<< HEAD
-public interface IMessage 
-=======
 public interface IMessage
->>>>>>> develop
 {
   User SendBy { get; }
 
   DateTime CreatedAt { get; }
 }
 
-<<<<<<< HEAD
-public class TextMessage : IMessage 
-=======
 public class TextMessage : IMessage
->>>>>>> develop
 {
   public User SendBy { get; set; }
 
@@ -177,10 +138,6 @@ public class TextMessage : IMessage
 ```
 
 _Configure Services_
-<<<<<<< HEAD
-=======
-
->>>>>>> develop
 ```csharp
   public void ConfigureServices(IServiceCollection services)
   {
@@ -195,20 +152,12 @@ _Configure Services_
   }
 ```
 
-<<<<<<< HEAD
-You can also use classes as definitions for interfaces. 
-=======
 You can also use classes as definitions for interfaces.
->>>>>>> develop
 To mark a base class as an interface definition you can use `[InterfaceType]`.
 
 ```csharp
 [InterfaceType]
-<<<<<<< HEAD
-public abstract class Message 
-=======
 public abstract class Message
->>>>>>> develop
 {
   public User SendBy { get; set; }
 
@@ -216,14 +165,9 @@ public abstract class Message
 }
 ```
 
-<<<<<<< HEAD
-
-**Code First**
-=======
 </ExampleTabs.Annotation>
 <ExampleTabs.Code>
 
->>>>>>> develop
 HotChocolate provides a fluent configuration API for interfaces that is very similar to the `ObjectType` interface.
 
 ```csharp
@@ -251,10 +195,6 @@ public class MediaMessageType : InterfaceType<IMediaMessage>
 ```
 
 In a `ObjectType` you can declare what interface this object type implements.
-<<<<<<< HEAD
-=======
-
->>>>>>> develop
 ```csharp
 public class VideoMessageType : ObjectType<VideoMessage>
 {
@@ -265,16 +205,11 @@ public class VideoMessageType : ObjectType<VideoMessage>
 }
 ```
 
-<<<<<<< HEAD
-**Schema First**
-In schema first interfaces can be declared directly in SDL:
-=======
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
 In schema first interfaces can be declared directly in SDL:
 
->>>>>>> develop
 ```csharp
 public void ConfigureServices(IServiceCollection services)
 {
@@ -318,26 +253,17 @@ public void ConfigureServices(IServiceCollection services)
         }
         ")
         .AddResolver(
-<<<<<<< HEAD
-            "Query", 
-            "messages", 
-=======
             "Query",
             "messages",
->>>>>>> develop
             (context, token) => context.Service<IMessageRepo>().GetMessages());
 }
 ```
 
-<<<<<<< HEAD
-# Unions
-=======
 </ExampleTabs.Schema>
 </ExampleTabs>
 
 # Unions
 
->>>>>>> develop
 Unions are very similar to interfaces. The difference is that members of an unions do not have fields in common.
 Unions are useful if you have completely disjunct structured types.
 
@@ -356,50 +282,11 @@ union GroupMember = User | Group
 
 ## Querying Unions
 
-<<<<<<< HEAD
-Union types do not have fields in common.   
-=======
 Union types do not have fields in common.  
->>>>>>> develop
 You have to use [Inline Fragments 📄](https://spec.graphql.org/June2018/#sec-Inline-Fragments) to query for fields of a specific implementation.
 
 ```graphql
 {
-<<<<<<< HEAD
-    accessControl {
-        __typename
-        ... on Group {
-          id
-        }
-        ... on User {
-          userName 
-        }
-    } 
-}
-```
-```json
-{
-    "accessControl": [
-        {
-          "__typename": "Group",
-          "id": "R3JvdXA6MQ=="
-        },
-        {
-          "__typename": "User",
-          "userName": "SpicyChicken404"
-        },
-        {
-          "__typename": "User",
-          "userName": "CookingMaster86"
-        }
-    ]
-}
-```
-
-## Interface Definition
-
-### Annotation Based
-=======
   accessControl {
     __typename
     ... on Group {
@@ -436,17 +323,12 @@ You have to use [Inline Fragments 📄](https://spec.graphql.org/June2018/#sec-I
 <ExampleTabs>
 <ExampleTabs.Annotation>
 
->>>>>>> develop
 In the annotation based approach, HotChocolate tries to infer union types from the .Net types.
 You can manage the membership of union types with a marker interface.
 
 ```csharp
 [UnionType("GroupMember")]
-<<<<<<< HEAD
-public interface IGroupMember 
-=======
 public interface IGroupMember
->>>>>>> develop
 {
 }
 
@@ -458,30 +340,18 @@ public class Group : IGroupMember
   public IGroupMember[] Members { get; set; }
 }
 
-<<<<<<< HEAD
-public class User : IGroupMember 
-=======
 public class User : IGroupMember
->>>>>>> develop
 {
   public string UserName { get; set; }
 }
 
-<<<<<<< HEAD
-public class Query 
-=======
 public class Query
->>>>>>> develop
 {
   public IGroupMember[] GetAccessControl([Service]IAccessRepo repo) => repo.GetItems();
 }
 ```
 
 _Configure Services_
-<<<<<<< HEAD
-=======
-
->>>>>>> develop
 ```csharp
   public void ConfigureServices(IServiceCollection services)
   {
@@ -490,24 +360,16 @@ _Configure Services_
           .AddGraphQLServer()
           // HotChocolate will pick up IGroupMember as a UnionType<IGroupMember>
           .AddQueryType<Query>()
-<<<<<<< HEAD
-          // HotChocolate knows that User and Group implement IGroupMember and will add it to the 
-=======
           // HotChocolate knows that User and Group implement IGroupMember and will add it to the
->>>>>>> develop
           // list of possible types of the UnionType
           .AddType<Group>()
           .AddType<User>()
   }
 ```
 
-<<<<<<< HEAD
-**Code First**
-=======
 </ExampleTabs.Annotation>
 <ExampleTabs.Code>
 
->>>>>>> develop
 HotChocolate provides a fluent configuration API for union types that is very similar to the `ObjectType` interface.
 
 ```csharp
@@ -526,16 +388,11 @@ public class GroupMemberType : UnionType
 }
 ```
 
-<<<<<<< HEAD
-**Schema First**
-In schema first unions can be declared directly in SDL:
-=======
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
 In schema first unions can be declared directly in SDL:
 
->>>>>>> develop
 ```csharp
 public void ConfigureServices(IServiceCollection services)
 {
@@ -559,12 +416,6 @@ public void ConfigureServices(IServiceCollection services)
         union GroupMember = User | Group
         ")
         .AddResolver(
-<<<<<<< HEAD
-            "Query", 
-            "accessControl", 
-            (context, token) => context.Service<IAccessRepo>().GetItems());
-}
-=======
             "Query",
             "accessControl",
             (context, token) => context.Service<IAccessRepo>().GetItems());
@@ -573,4 +424,3 @@ public void ConfigureServices(IServiceCollection services)
 
 </ExampleTabs.Schema>
 </ExampleTabs>
->>>>>>> develop
