@@ -33,7 +33,7 @@ dotnet add package StrawberryShake.CodeGeneration.CSharp.Analyzers
 
  - If you want to use subscriptions, you will need to install `StrawberryShake.Transport.WebSockets`. Other protocols (like SignalR) will be added in a later vesion.
 ```bash
-dotnet add StrawberryShake.Transport.WebSockets
+dotnet add package StrawberryShake.Transport.WebSockets
 ```
 
 ## Step 3: Add a client to your project using the CLI tools
