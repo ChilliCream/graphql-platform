@@ -13,6 +13,17 @@ namespace HotChocolate.Types.Scalars
                 type);
         }
 
+        public static SerializationException EmailAddressType_ParseValue_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.EmailAddressType_IsInvalid_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.EmailAddress)
+                    .Build(),
+                type);
+        }
+
         public static SerializationException HexColorType_ParseValue_IsInvalid(IType type)
         {
             return new SerializationException(
@@ -79,13 +90,24 @@ namespace HotChocolate.Types.Scalars
                 type);
         }
 
-        public static SerializationException EmailAddressType_ParseValue_IsInvalid(IType type)
+        public static SerializationException IsbnType_ParseValue_IsInvalid(IType type)
         {
             return new SerializationException(
                 ErrorBuilder.New()
-                    .SetMessage(ScalarResources.EmailAddressType_IsInvalid_ParseValue)
+                    .SetMessage(ScalarResources.IsbnType_IsInvalid_ParseValue)
                     .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                    .SetExtension("actualType", WellKnownScalarTypes.EmailAddress)
+                    .SetExtension("actualType", WellKnownScalarTypes.Isbn)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException IsbnType_ParseLiteral_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.IsbnType_IsInvalid_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.Isbn)
                     .Build(),
                 type);
         }

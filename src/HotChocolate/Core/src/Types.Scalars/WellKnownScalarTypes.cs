@@ -6,6 +6,7 @@ namespace HotChocolate.Types
         public const string HexColor = nameof(HexColor);
         public const string Hsl = nameof(Hsl);
         public const string Hsla = nameof(Hsla);
+        public const string Isbn = nameof(Isbn);
         public const string IPv4 = nameof(IPv4);
         public const string NegativeFloat = nameof(NegativeFloat);
         public const string NegativeInt = nameof(NegativeInt);
