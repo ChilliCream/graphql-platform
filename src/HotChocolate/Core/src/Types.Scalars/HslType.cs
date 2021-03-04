@@ -26,12 +26,12 @@ namespace HotChocolate.Types.Scalars
 
         protected override Exception CreateParseLiteralError(StringValueNode valueSyntax)
         {
-            return ThrowHelper.HslaType_ParseLiteral_IsInvalid(this);
+            return ThrowHelper.HslType_ParseLiteral_IsInvalid(this);
         }
 
         protected override Exception CreateParseValueError(string runtimeValue)
         {
-            return ThrowHelper.HslaType_ParseValue_IsInvalid(this);
+            return ThrowHelper.HslType_ParseValue_IsInvalid(this);
         }
     }
 }
