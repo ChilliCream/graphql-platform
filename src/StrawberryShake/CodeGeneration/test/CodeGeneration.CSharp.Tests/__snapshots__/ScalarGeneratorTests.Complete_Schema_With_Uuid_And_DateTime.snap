@@ -11,7 +11,7 @@
 
 // ExpenseEntity
 
-// StrawberryShake.CodeGeneration.CSharp.EntityTypeGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
 
 #nullable enable
 
@@ -39,7 +39,7 @@ namespace Foo.Bar
 
 // AllExpensesResultFactory
 
-// StrawberryShake.CodeGeneration.CSharp.ResultDataFactoryGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
 
 #nullable enable
 
@@ -113,7 +113,7 @@ namespace Foo.Bar
 
 // AllExpensesResultInfo
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInfoGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
 
 #nullable enable
 
@@ -156,7 +156,7 @@ namespace Foo.Bar
 
 // AllExpensesResult
 
-// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
 
 #nullable enable
 
@@ -178,7 +178,7 @@ namespace Foo.Bar
 
 // AllExpenses_Expense_ExpenseFromExpenseEntityMapper
 
-// StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
 
 #nullable enable
 
@@ -243,7 +243,7 @@ namespace Foo.Bar
 
 // AllExpenses_Expense_Expense
 
-// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
 
 #nullable enable
 
@@ -290,7 +290,7 @@ namespace Foo.Bar
 
 // AllExpenses_Expense_Tags_Tag
 
-// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
 
 #nullable enable
 
@@ -312,7 +312,7 @@ namespace Foo.Bar
 
 // IAllExpensesResult
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -328,7 +328,7 @@ namespace Foo.Bar
 
 // IAllExpenses_Expense
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -356,7 +356,7 @@ namespace Foo.Bar
 
 // IAllExpenses_Expense_Expense
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -372,7 +372,7 @@ namespace Foo.Bar
 
 // IAllExpenses_Expense_Tags
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -388,7 +388,7 @@ namespace Foo.Bar
 
 // IAllExpenses_Expense_Tags_Tag
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -404,7 +404,7 @@ namespace Foo.Bar
 
 // ExpenseCategory
 
-// StrawberryShake.CodeGeneration.CSharp.EnumGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.EnumGenerator
 
 #nullable enable
 
@@ -435,7 +435,7 @@ namespace Foo.Bar
 
 // ExpenseCategorySerializer
 
-// StrawberryShake.CodeGeneration.CSharp.EnumParserGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.EnumParserGenerator
 
 #nullable enable
 
@@ -501,7 +501,7 @@ namespace Foo.Bar
 
 // PaymentMethod
 
-// StrawberryShake.CodeGeneration.CSharp.EnumGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.EnumGenerator
 
 #nullable enable
 
@@ -521,7 +521,7 @@ namespace Foo.Bar
 
 // PaymentMethodSerializer
 
-// StrawberryShake.CodeGeneration.CSharp.EnumParserGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.EnumParserGenerator
 
 #nullable enable
 
@@ -565,7 +565,7 @@ namespace Foo.Bar
 
 // AllExpensesQueryDocument
 
-// StrawberryShake.CodeGeneration.CSharp.OperationDocumentGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
 
 #nullable enable
 
@@ -574,7 +574,24 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the AllExpenses GraphQL operation
     /// <code>
-    /// query AllExpenses { expense { __typename id amount date description category paymentMethod tags { __typename name } ... on Expense { id } } }
+    /// query AllExpenses {
+    ///   expense {
+    ///     __typename
+    ///     id
+    ///     amount
+    ///     date
+    ///     description
+    ///     category
+    ///     paymentMethod
+    ///     tags {
+    ///       __typename
+    ///       name
+    ///     }
+    ///     ... on Expense {
+    ///       id
+    ///     }
+    ///   }
+    /// }
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
@@ -591,6 +608,8 @@ namespace Foo.Bar
 
         public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{ 0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x41, 0x6c, 0x6c, 0x45, 0x78, 0x70, 0x65, 0x6e, 0x73, 0x65, 0x73, 0x20, 0x7b, 0x20, 0x65, 0x78, 0x70, 0x65, 0x6e, 0x73, 0x65, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x69, 0x64, 0x20, 0x61, 0x6d, 0x6f, 0x75, 0x6e, 0x74, 0x20, 0x64, 0x61, 0x74, 0x65, 0x20, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x63, 0x61, 0x74, 0x65, 0x67, 0x6f, 0x72, 0x79, 0x20, 0x70, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x4d, 0x65, 0x74, 0x68, 0x6f, 0x64, 0x20, 0x74, 0x61, 0x67, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x7d, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x45, 0x78, 0x70, 0x65, 0x6e, 0x73, 0x65, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d };
 
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "2c6c9362bd54e9b97f02c5b99f7ac6c1fab8169b");
+
         public override global::System.String ToString()
         {
             return global::System.Text.Encoding.UTF8.GetString(Body);
@@ -601,7 +620,7 @@ namespace Foo.Bar
 
 // AllExpensesQuery
 
-// StrawberryShake.CodeGeneration.CSharp.OperationServiceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
 
 #nullable enable
 
@@ -610,7 +629,24 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the AllExpenses GraphQL operation
     /// <code>
-    /// query AllExpenses { expense { __typename id amount date description category paymentMethod tags { __typename name } ... on Expense { id } } }
+    /// query AllExpenses {
+    ///   expense {
+    ///     __typename
+    ///     id
+    ///     amount
+    ///     date
+    ///     description
+    ///     category
+    ///     paymentMethod
+    ///     tags {
+    ///       __typename
+    ///       name
+    ///     }
+    ///     ... on Expense {
+    ///       id
+    ///     }
+    ///   }
+    /// }
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
@@ -647,8 +683,10 @@ namespace Foo.Bar
         {
 
             return new global::StrawberryShake.OperationRequest(
-                "AllExpenses",
-                AllExpensesQueryDocument.Instance);
+                id: AllExpensesQueryDocument.Instance.Hash.Value,
+                name: "AllExpenses",
+                document: AllExpensesQueryDocument.Instance,
+                strategy: global::StrawberryShake.RequestStrategy.Default);
         }
     }
 }
@@ -656,7 +694,7 @@ namespace Foo.Bar
 
 // AllExpensesBuilder
 
-// StrawberryShake.CodeGeneration.CSharp.JsonResultBuilderGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
 
 #nullable enable
 
@@ -928,7 +966,7 @@ namespace Foo.Bar
 
 // TagData
 
-// StrawberryShake.CodeGeneration.CSharp.DataTypeGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
 
 #nullable enable
 
@@ -955,7 +993,7 @@ namespace Foo.Bar.State
 
 // FooClient
 
-// StrawberryShake.CodeGeneration.CSharp.ClientGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
 
 #nullable enable
 
@@ -984,7 +1022,7 @@ namespace Foo.Bar
 
 // EntityIdFactory
 
-// StrawberryShake.CodeGeneration.CSharp.EntityIdFactoryGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator
 
 #nullable enable
 
@@ -1024,7 +1062,7 @@ namespace Foo.Bar
 
 // FooClientServiceCollectionExtensions
 
-// StrawberryShake.CodeGeneration.CSharp.DependencyInjectionGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.DependencyInjectionGenerator
 
 #nullable enable
 

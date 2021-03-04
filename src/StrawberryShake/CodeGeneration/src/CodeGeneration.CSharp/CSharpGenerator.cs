@@ -12,6 +12,7 @@ using StrawberryShake.CodeGeneration.Analyzers;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.CSharp.Generators;
 using StrawberryShake.CodeGeneration.Descriptors;
+using StrawberryShake.CodeGeneration.Descriptors.Operations;
 using StrawberryShake.CodeGeneration.Mappers;
 using StrawberryShake.CodeGeneration.Utilities;
 using StrawberryShake.Properties;
@@ -187,7 +188,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             // Last we execute all our generators with the descriptiptors.
             var code = new StringBuilder();
-            var documents = new List<CSharpDocument>();
+            var documents = new List<SourceDocument>();
 
             foreach (var descriptor in context.GetAllDescriptors())
             {
@@ -200,10 +201,22 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 }
             }
 
+            if (settings.RequestStrategy == RequestStrategy.PersistedQuery)
+            {
+                foreach (var operation in context.Operations)
+                {
+                    documents.Add(new SourceDocument(
+                        operation.Name,
+                        Encoding.UTF8.GetString(operation.Body),
+                        SourceDocumentKind.GraphQL,
+                        operation.HashValue));
+                }
+            }
+
             return new(documents);
         }
 
-        private static CSharpDocument WriteDocument(
+        private static SourceDocument WriteDocument(
             ICodeGenerator generator,
             ICodeDescriptor descriptor,
             StringBuilder code)
@@ -220,7 +233,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             generator.Generate(writer, descriptor, out string fileName);
 
             writer.Flush();
-            return new(fileName, code.ToString());
+            return new(fileName, code.ToString(), SourceDocumentKind.CSharp);
         }
 
         private static bool TryParseDocuments(

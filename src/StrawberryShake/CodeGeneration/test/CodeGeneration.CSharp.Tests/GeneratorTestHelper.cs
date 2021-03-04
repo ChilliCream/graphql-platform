@@ -76,24 +76,49 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 new CSharpGeneratorSettings
                 {
                     Namespace = settings.Namespace ?? "Foo.Bar",
-                    ClientName = settings.ClientName ?? "FooClient"
+                    ClientName = settings.ClientName ?? "FooClient",
+                    StrictSchemaValidation = settings.StrictValidation,
+                    RequestStrategy = settings.RequestStrategy
                 });
 
             Assert.False(
                 result.Errors.Any(),
                 "It is expected that the result has no generator errors!");
 
-            foreach (CSharpDocument document in result.CSharpDocuments)
+            foreach (var document in result.Documents)
             {
                 if (!documentNames.Add(document.Name))
                 {
                     Assert.True(false, $"Document name duplicated {document.Name}");
                 }
 
-                documents.AppendLine("// " + document.Name);
-                documents.AppendLine();
-                documents.AppendLine(document.SourceText);
-                documents.AppendLine();
+                if (document.Kind == SourceDocumentKind.CSharp)
+                {
+                    documents.AppendLine("// " + document.Name);
+                    documents.AppendLine();
+                    documents.AppendLine(document.SourceText);
+                    documents.AppendLine();
+                }
+                else if (document.Kind == SourceDocumentKind.GraphQL)
+                {
+                    documents.AppendLine("// " + document.Name);
+                    documents.AppendLine("// " + document.Hash);
+                    documents.AppendLine();
+
+                    using var reader = new StringReader(document.SourceText);
+                    string? line;
+
+                    do
+                    {
+                        line = reader.ReadLine();
+                        if (line is not null)
+                        {
+                            documents.AppendLine("// " + line);
+                        }
+                    } while (line is not null);
+
+                    documents.AppendLine();
+                }
             }
 
             if (settings.SnapshotFile is not null)

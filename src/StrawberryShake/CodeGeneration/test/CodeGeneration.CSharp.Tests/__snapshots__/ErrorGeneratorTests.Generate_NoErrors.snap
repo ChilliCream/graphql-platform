@@ -11,7 +11,7 @@
 
 // DroidEntity
 
-// StrawberryShake.CodeGeneration.CSharp.EntityTypeGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
 
 #nullable enable
 
@@ -29,7 +29,7 @@ namespace Foo.Bar
 
 // HumanEntity
 
-// StrawberryShake.CodeGeneration.CSharp.EntityTypeGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
 
 #nullable enable
 
@@ -47,7 +47,7 @@ namespace Foo.Bar
 
 // GetHeroResultFactory
 
-// StrawberryShake.CodeGeneration.CSharp.ResultDataFactoryGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
 
 #nullable enable
 
@@ -117,7 +117,7 @@ namespace Foo.Bar
 
 // GetHeroResultInfo
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInfoGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
 
 #nullable enable
 
@@ -160,7 +160,7 @@ namespace Foo.Bar
 
 // GetHeroResult
 
-// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
 
 #nullable enable
 
@@ -182,7 +182,7 @@ namespace Foo.Bar
 
 // GetHero_Hero_DroidFromDroidEntityMapper
 
-// StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
 
 #nullable enable
 
@@ -204,7 +204,7 @@ namespace Foo.Bar
 
 // GetHero_Hero_Droid
 
-// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
 
 #nullable enable
 
@@ -231,7 +231,7 @@ namespace Foo.Bar
 
 // GetHero_Hero_HumanFromHumanEntityMapper
 
-// StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
 
 #nullable enable
 
@@ -253,7 +253,7 @@ namespace Foo.Bar
 
 // GetHero_Hero_Human
 
-// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
 
 #nullable enable
 
@@ -280,7 +280,7 @@ namespace Foo.Bar
 
 // IGetHeroResult
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -296,7 +296,7 @@ namespace Foo.Bar
 
 // IGetHero_Hero
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -314,7 +314,7 @@ namespace Foo.Bar
 
 // IGetHero_Hero_Droid
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -330,7 +330,7 @@ namespace Foo.Bar
 
 // IGetHero_Hero_Human
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -346,7 +346,7 @@ namespace Foo.Bar
 
 // Episode
 
-// StrawberryShake.CodeGeneration.CSharp.EnumGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.EnumGenerator
 
 #nullable enable
 
@@ -364,7 +364,7 @@ namespace Foo.Bar
 
 // EpisodeSerializer
 
-// StrawberryShake.CodeGeneration.CSharp.EnumParserGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.EnumParserGenerator
 
 #nullable enable
 
@@ -404,7 +404,7 @@ namespace Foo.Bar
 
 // GetHeroQueryDocument
 
-// StrawberryShake.CodeGeneration.CSharp.OperationDocumentGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
 
 #nullable enable
 
@@ -413,7 +413,19 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetHero GraphQL operation
     /// <code>
-    /// query GetHero { hero(episode: NEW_HOPE) { __typename name appearsIn ... on Droid { id } ... on Human { id } } }
+    /// query GetHero {
+    ///   hero(episode: NEW_HOPE) {
+    ///     __typename
+    ///     name
+    ///     appearsIn
+    ///     ... on Droid {
+    ///       id
+    ///     }
+    ///     ... on Human {
+    ///       id
+    ///     }
+    ///   }
+    /// }
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
@@ -430,6 +442,8 @@ namespace Foo.Bar
 
         public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{ 0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x47, 0x65, 0x74, 0x48, 0x65, 0x72, 0x6f, 0x20, 0x7b, 0x20, 0x68, 0x65, 0x72, 0x6f, 0x28, 0x65, 0x70, 0x69, 0x73, 0x6f, 0x64, 0x65, 0x3a, 0x20, 0x4e, 0x45, 0x57, 0x5f, 0x48, 0x4f, 0x50, 0x45, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x61, 0x70, 0x70, 0x65, 0x61, 0x72, 0x73, 0x49, 0x6e, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x44, 0x72, 0x6f, 0x69, 0x64, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x48, 0x75, 0x6d, 0x61, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d };
 
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "a0ab93285495bb156c6c436ef4b49a3922666647");
+
         public override global::System.String ToString()
         {
             return global::System.Text.Encoding.UTF8.GetString(Body);
@@ -440,7 +454,7 @@ namespace Foo.Bar
 
 // GetHeroQuery
 
-// StrawberryShake.CodeGeneration.CSharp.OperationServiceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
 
 #nullable enable
 
@@ -449,7 +463,19 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetHero GraphQL operation
     /// <code>
-    /// query GetHero { hero(episode: NEW_HOPE) { __typename name appearsIn ... on Droid { id } ... on Human { id } } }
+    /// query GetHero {
+    ///   hero(episode: NEW_HOPE) {
+    ///     __typename
+    ///     name
+    ///     appearsIn
+    ///     ... on Droid {
+    ///       id
+    ///     }
+    ///     ... on Human {
+    ///       id
+    ///     }
+    ///   }
+    /// }
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
@@ -486,8 +512,10 @@ namespace Foo.Bar
         {
 
             return new global::StrawberryShake.OperationRequest(
-                "GetHero",
-                GetHeroQueryDocument.Instance);
+                id: GetHeroQueryDocument.Instance.Hash.Value,
+                name: "GetHero",
+                document: GetHeroQueryDocument.Instance,
+                strategy: global::StrawberryShake.RequestStrategy.Default);
         }
     }
 }
@@ -495,7 +523,7 @@ namespace Foo.Bar
 
 // GetHeroBuilder
 
-// StrawberryShake.CodeGeneration.CSharp.JsonResultBuilderGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
 
 #nullable enable
 
@@ -667,7 +695,7 @@ namespace Foo.Bar
 
 // FooClient
 
-// StrawberryShake.CodeGeneration.CSharp.ClientGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
 
 #nullable enable
 
@@ -696,7 +724,7 @@ namespace Foo.Bar
 
 // EntityIdFactory
 
-// StrawberryShake.CodeGeneration.CSharp.EntityIdFactoryGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator
 
 #nullable enable
 
@@ -750,7 +778,7 @@ namespace Foo.Bar
 
 // FooClientServiceCollectionExtensions
 
-// StrawberryShake.CodeGeneration.CSharp.DependencyInjectionGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.DependencyInjectionGenerator
 
 #nullable enable
 

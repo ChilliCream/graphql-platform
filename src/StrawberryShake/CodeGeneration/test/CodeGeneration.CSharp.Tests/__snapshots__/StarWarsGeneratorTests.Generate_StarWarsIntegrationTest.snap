@@ -11,7 +11,7 @@
 
 // CreateReviewResultFactory
 
-// StrawberryShake.CodeGeneration.CSharp.ResultDataFactoryGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
 
 #nullable enable
 
@@ -60,7 +60,7 @@ namespace Foo.Bar
 
 // CreateReviewResultInfo
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInfoGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
 
 #nullable enable
 
@@ -103,7 +103,7 @@ namespace Foo.Bar
 
 // CreateReviewResult
 
-// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
 
 #nullable enable
 
@@ -125,7 +125,7 @@ namespace Foo.Bar
 
 // CreateReview_CreateReview_Review
 
-// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
 
 #nullable enable
 
@@ -147,7 +147,7 @@ namespace Foo.Bar
 
 // ICreateReviewResult
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -163,7 +163,7 @@ namespace Foo.Bar
 
 // ICreateReview_CreateReview
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -179,7 +179,7 @@ namespace Foo.Bar
 
 // ICreateReview_CreateReview_Review
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -195,7 +195,7 @@ namespace Foo.Bar
 
 // OnReviewResultFactory
 
-// StrawberryShake.CodeGeneration.CSharp.ResultDataFactoryGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
 
 #nullable enable
 
@@ -244,7 +244,7 @@ namespace Foo.Bar
 
 // OnReviewResultInfo
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInfoGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
 
 #nullable enable
 
@@ -287,7 +287,7 @@ namespace Foo.Bar
 
 // OnReviewResult
 
-// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
 
 #nullable enable
 
@@ -309,7 +309,7 @@ namespace Foo.Bar
 
 // OnReview_OnReview_Review
 
-// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
 
 #nullable enable
 
@@ -331,7 +331,7 @@ namespace Foo.Bar
 
 // IOnReviewResult
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -347,7 +347,7 @@ namespace Foo.Bar
 
 // IOnReview_OnReview
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -363,7 +363,7 @@ namespace Foo.Bar
 
 // IOnReview_OnReview_Review
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -379,7 +379,7 @@ namespace Foo.Bar
 
 // CreateReviewMutationDocument
 
-// StrawberryShake.CodeGeneration.CSharp.OperationDocumentGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
 
 #nullable enable
 
@@ -388,7 +388,12 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the CreateReview GraphQL operation
     /// <code>
-    /// mutation CreateReview($stars: Int!) { createReview(episode: EMPIRE, review: { stars: $stars, commentary: "good" }) { __typename stars } }
+    /// mutation CreateReview($stars: Int!) {
+    ///   createReview(episode: EMPIRE, review: { stars: $stars, commentary: "good" }) {
+    ///     __typename
+    ///     stars
+    ///   }
+    /// }
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
@@ -405,6 +410,8 @@ namespace Foo.Bar
 
         public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{ 0x6d, 0x75, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x52, 0x65, 0x76, 0x69, 0x65, 0x77, 0x28, 0x24, 0x73, 0x74, 0x61, 0x72, 0x73, 0x3a, 0x20, 0x49, 0x6e, 0x74, 0x21, 0x29, 0x20, 0x7b, 0x20, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x52, 0x65, 0x76, 0x69, 0x65, 0x77, 0x28, 0x65, 0x70, 0x69, 0x73, 0x6f, 0x64, 0x65, 0x3a, 0x20, 0x45, 0x4d, 0x50, 0x49, 0x52, 0x45, 0x2c, 0x20, 0x72, 0x65, 0x76, 0x69, 0x65, 0x77, 0x3a, 0x20, 0x7b, 0x20, 0x73, 0x74, 0x61, 0x72, 0x73, 0x3a, 0x20, 0x24, 0x73, 0x74, 0x61, 0x72, 0x73, 0x2c, 0x20, 0x63, 0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x74, 0x61, 0x72, 0x79, 0x3a, 0x20, 0x22, 0x67, 0x6f, 0x6f, 0x64, 0x22, 0x20, 0x7d, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x73, 0x74, 0x61, 0x72, 0x73, 0x20, 0x7d, 0x20, 0x7d };
 
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "409320ca8b7539016115e55a6bbeceeae0184bdf");
+
         public override global::System.String ToString()
         {
             return global::System.Text.Encoding.UTF8.GetString(Body);
@@ -415,7 +422,7 @@ namespace Foo.Bar
 
 // CreateReviewMutation
 
-// StrawberryShake.CodeGeneration.CSharp.OperationServiceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
 
 #nullable enable
 
@@ -424,7 +431,12 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the CreateReview GraphQL operation
     /// <code>
-    /// mutation CreateReview($stars: Int!) { createReview(episode: EMPIRE, review: { stars: $stars, commentary: "good" }) { __typename stars } }
+    /// mutation CreateReview($stars: Int!) {
+    ///   createReview(episode: EMPIRE, review: { stars: $stars, commentary: "good" }) {
+    ///     __typename
+    ///     stars
+    ///   }
+    /// }
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
@@ -474,9 +486,11 @@ namespace Foo.Bar
                 FormatStars(stars));
 
             return new global::StrawberryShake.OperationRequest(
-                "CreateReview",
-                CreateReviewMutationDocument.Instance,
-                variables);
+                id: CreateReviewMutationDocument.Instance.Hash.Value,
+                name: "CreateReview",
+                document: CreateReviewMutationDocument.Instance,
+                strategy: global::StrawberryShake.RequestStrategy.Default,
+                variables:variables);
         }
 
         private global::System.Object? FormatStars(global::System.Int32 value)
@@ -494,7 +508,7 @@ namespace Foo.Bar
 
 // OnReviewSubscriptionDocument
 
-// StrawberryShake.CodeGeneration.CSharp.OperationDocumentGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
 
 #nullable enable
 
@@ -503,7 +517,12 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the OnReview GraphQL operation
     /// <code>
-    /// subscription OnReview { onReview(episode: EMPIRE) { __typename stars } }
+    /// subscription OnReview {
+    ///   onReview(episode: EMPIRE) {
+    ///     __typename
+    ///     stars
+    ///   }
+    /// }
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
@@ -520,6 +539,8 @@ namespace Foo.Bar
 
         public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{ 0x73, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x4f, 0x6e, 0x52, 0x65, 0x76, 0x69, 0x65, 0x77, 0x20, 0x7b, 0x20, 0x6f, 0x6e, 0x52, 0x65, 0x76, 0x69, 0x65, 0x77, 0x28, 0x65, 0x70, 0x69, 0x73, 0x6f, 0x64, 0x65, 0x3a, 0x20, 0x45, 0x4d, 0x50, 0x49, 0x52, 0x45, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x73, 0x74, 0x61, 0x72, 0x73, 0x20, 0x7d, 0x20, 0x7d };
 
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "57bd8aa0a7a43840c2b938fb5b484014327cf406");
+
         public override global::System.String ToString()
         {
             return global::System.Text.Encoding.UTF8.GetString(Body);
@@ -530,7 +551,7 @@ namespace Foo.Bar
 
 // OnReviewSubscription
 
-// StrawberryShake.CodeGeneration.CSharp.OperationServiceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
 
 #nullable enable
 
@@ -539,7 +560,12 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the OnReview GraphQL operation
     /// <code>
-    /// subscription OnReview { onReview(episode: EMPIRE) { __typename stars } }
+    /// subscription OnReview {
+    ///   onReview(episode: EMPIRE) {
+    ///     __typename
+    ///     stars
+    ///   }
+    /// }
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
@@ -565,8 +591,10 @@ namespace Foo.Bar
         {
 
             return new global::StrawberryShake.OperationRequest(
-                "OnReview",
-                OnReviewSubscriptionDocument.Instance);
+                id: OnReviewSubscriptionDocument.Instance.Hash.Value,
+                name: "OnReview",
+                document: OnReviewSubscriptionDocument.Instance,
+                strategy: global::StrawberryShake.RequestStrategy.Default);
         }
     }
 }
@@ -574,7 +602,7 @@ namespace Foo.Bar
 
 // CreateReviewBuilder
 
-// StrawberryShake.CodeGeneration.CSharp.JsonResultBuilderGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
 
 #nullable enable
 
@@ -688,7 +716,7 @@ namespace Foo.Bar
 
 // OnReviewBuilder
 
-// StrawberryShake.CodeGeneration.CSharp.JsonResultBuilderGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
 
 #nullable enable
 
@@ -802,7 +830,7 @@ namespace Foo.Bar
 
 // ReviewData
 
-// StrawberryShake.CodeGeneration.CSharp.DataTypeGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
 
 #nullable enable
 
@@ -829,7 +857,7 @@ namespace Foo.Bar.State
 
 // FooClient
 
-// StrawberryShake.CodeGeneration.CSharp.ClientGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
 
 #nullable enable
 
@@ -865,7 +893,7 @@ namespace Foo.Bar
 
 // EntityIdFactory
 
-// StrawberryShake.CodeGeneration.CSharp.EntityIdFactoryGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator
 
 #nullable enable
 
@@ -891,7 +919,7 @@ namespace Foo.Bar
 
 // FooClientServiceCollectionExtensions
 
-// StrawberryShake.CodeGeneration.CSharp.DependencyInjectionGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.DependencyInjectionGenerator
 
 #nullable enable
 

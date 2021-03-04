@@ -300,7 +300,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                                     .AddArgument(argName)));
                 }
 
-                newOperationRequest.AddArgument(_variables);
+                newOperationRequest.AddArgument("variables:" + _variables);
             }
 
             return method

@@ -11,7 +11,7 @@
 
 // SearchableStoreEntity
 
-// StrawberryShake.CodeGeneration.CSharp.EntityTypeGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
 
 #nullable enable
 
@@ -31,7 +31,7 @@ namespace Foo.Bar
 
 // GetStore2ResultFactory
 
-// StrawberryShake.CodeGeneration.CSharp.ResultDataFactoryGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
 
 #nullable enable
 
@@ -83,7 +83,7 @@ namespace Foo.Bar
 
 // GetStore2ResultInfo
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInfoGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
 
 #nullable enable
 
@@ -126,7 +126,7 @@ namespace Foo.Bar
 
 // GetStore2Result
 
-// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
 
 #nullable enable
 
@@ -148,7 +148,7 @@ namespace Foo.Bar
 
 // GetStore2_SearchableStore_SearchableStoreFromSearchableStoreEntityMapper
 
-// StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
 
 #nullable enable
 
@@ -236,7 +236,7 @@ namespace Foo.Bar
 
 // GetStore2_SearchableStore_SearchableStore
 
-// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
 
 #nullable enable
 
@@ -267,7 +267,7 @@ namespace Foo.Bar
 
 // GetStore2_SearchableStore_Books_Book
 
-// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
 
 #nullable enable
 
@@ -294,7 +294,7 @@ namespace Foo.Bar
 
 // GetStore2_SearchableStore_Search_Author
 
-// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
 
 #nullable enable
 
@@ -313,7 +313,7 @@ namespace Foo.Bar
 
 // GetStore2_SearchableStore_Search_Book
 
-// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
 
 #nullable enable
 
@@ -340,7 +340,7 @@ namespace Foo.Bar
 
 // IGetStore2Result
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -356,7 +356,7 @@ namespace Foo.Bar
 
 // IGetStore2_SearchableStore
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -376,7 +376,7 @@ namespace Foo.Bar
 
 // IGetStore2_SearchableStore_SearchableStore
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -392,7 +392,7 @@ namespace Foo.Bar
 
 // IGetStore2_SearchableStore_Books
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -410,7 +410,7 @@ namespace Foo.Bar
 
 // IGetStore2_SearchableStore_Books_Book
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -426,7 +426,7 @@ namespace Foo.Bar
 
 // IGetStore2_SearchableStore_Search
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -441,7 +441,7 @@ namespace Foo.Bar
 
 // IGetStore2_SearchableStore_Search_Author
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -457,7 +457,7 @@ namespace Foo.Bar
 
 // IGetStore2_SearchableStore_Search_Book
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -476,7 +476,7 @@ namespace Foo.Bar
 
 // GetStore2QueryDocument
 
-// StrawberryShake.CodeGeneration.CSharp.OperationDocumentGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
 
 #nullable enable
 
@@ -485,7 +485,27 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetStore2 GraphQL operation
     /// <code>
-    /// query GetStore2 { searchableStore { __typename id books { __typename isbn title } search { __typename ... on Book { title isbn } } ... on SearchableStore { id } } }
+    /// query GetStore2 {
+    ///   searchableStore {
+    ///     __typename
+    ///     id
+    ///     books {
+    ///       __typename
+    ///       isbn
+    ///       title
+    ///     }
+    ///     search {
+    ///       __typename
+    ///       ... on Book {
+    ///         title
+    ///         isbn
+    ///       }
+    ///     }
+    ///     ... on SearchableStore {
+    ///       id
+    ///     }
+    ///   }
+    /// }
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
@@ -502,6 +522,8 @@ namespace Foo.Bar
 
         public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{ 0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x47, 0x65, 0x74, 0x53, 0x74, 0x6f, 0x72, 0x65, 0x32, 0x20, 0x7b, 0x20, 0x73, 0x65, 0x61, 0x72, 0x63, 0x68, 0x61, 0x62, 0x6c, 0x65, 0x53, 0x74, 0x6f, 0x72, 0x65, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x69, 0x64, 0x20, 0x62, 0x6f, 0x6f, 0x6b, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x69, 0x73, 0x62, 0x6e, 0x20, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x20, 0x7d, 0x20, 0x73, 0x65, 0x61, 0x72, 0x63, 0x68, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x42, 0x6f, 0x6f, 0x6b, 0x20, 0x7b, 0x20, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x20, 0x69, 0x73, 0x62, 0x6e, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x61, 0x62, 0x6c, 0x65, 0x53, 0x74, 0x6f, 0x72, 0x65, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d };
 
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "3319c32a6efc271a924c607e95150aabe701c260");
+
         public override global::System.String ToString()
         {
             return global::System.Text.Encoding.UTF8.GetString(Body);
@@ -512,7 +534,7 @@ namespace Foo.Bar
 
 // GetStore2Query
 
-// StrawberryShake.CodeGeneration.CSharp.OperationServiceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
 
 #nullable enable
 
@@ -521,7 +543,27 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetStore2 GraphQL operation
     /// <code>
-    /// query GetStore2 { searchableStore { __typename id books { __typename isbn title } search { __typename ... on Book { title isbn } } ... on SearchableStore { id } } }
+    /// query GetStore2 {
+    ///   searchableStore {
+    ///     __typename
+    ///     id
+    ///     books {
+    ///       __typename
+    ///       isbn
+    ///       title
+    ///     }
+    ///     search {
+    ///       __typename
+    ///       ... on Book {
+    ///         title
+    ///         isbn
+    ///       }
+    ///     }
+    ///     ... on SearchableStore {
+    ///       id
+    ///     }
+    ///   }
+    /// }
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
@@ -558,8 +600,10 @@ namespace Foo.Bar
         {
 
             return new global::StrawberryShake.OperationRequest(
-                "GetStore2",
-                GetStore2QueryDocument.Instance);
+                id: GetStore2QueryDocument.Instance.Hash.Value,
+                name: "GetStore2",
+                document: GetStore2QueryDocument.Instance,
+                strategy: global::StrawberryShake.RequestStrategy.Default);
         }
     }
 }
@@ -567,7 +611,7 @@ namespace Foo.Bar
 
 // GetStore2Builder
 
-// StrawberryShake.CodeGeneration.CSharp.JsonResultBuilderGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
 
 #nullable enable
 
@@ -774,7 +818,7 @@ namespace Foo.Bar
 
 // ISearchResultData
 
-// StrawberryShake.CodeGeneration.CSharp.DataTypeGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
 
 #nullable enable
 
@@ -790,7 +834,7 @@ namespace Foo.Bar.State
 
 // IPrintData
 
-// StrawberryShake.CodeGeneration.CSharp.DataTypeGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
 
 #nullable enable
 
@@ -806,7 +850,7 @@ namespace Foo.Bar.State
 
 // BookData
 
-// StrawberryShake.CodeGeneration.CSharp.DataTypeGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
 
 #nullable enable
 
@@ -839,7 +883,7 @@ namespace Foo.Bar.State
 
 // AuthorData
 
-// StrawberryShake.CodeGeneration.CSharp.DataTypeGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
 
 #nullable enable
 
@@ -862,7 +906,7 @@ namespace Foo.Bar.State
 
 // FooClient
 
-// StrawberryShake.CodeGeneration.CSharp.ClientGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
 
 #nullable enable
 
@@ -891,7 +935,7 @@ namespace Foo.Bar
 
 // EntityIdFactory
 
-// StrawberryShake.CodeGeneration.CSharp.EntityIdFactoryGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator
 
 #nullable enable
 
@@ -931,7 +975,7 @@ namespace Foo.Bar
 
 // FooClientServiceCollectionExtensions
 
-// StrawberryShake.CodeGeneration.CSharp.DependencyInjectionGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.DependencyInjectionGenerator
 
 #nullable enable
 
