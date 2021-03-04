@@ -346,6 +346,6 @@
     <value>MacAddressType cannot parse the provided literal. The provided value is not a valid MAC address.</value>
   </data>
   <data name="MacAddressType_IsInvalid_ParseValue" xml:space="preserve">
-    <value>MacAddress cannot parse the provided value. The provided value is not a valid MAC address.</value>
+    <value>MacAddressType cannot parse the provided value. The provided value is not a valid MAC address.</value>
   </data>
 </root>
