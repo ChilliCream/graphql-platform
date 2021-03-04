@@ -13,7 +13,7 @@ using HotChocolate.Utilities;
 using StrawberryShake.CodeGeneration.Descriptors.Operations;
 using IOPath = System.IO.Path;
 using static StrawberryShake.CodeGeneration.CSharp.Analyzers.DiagnosticErrorHelper;
-using System.Text.Json;
+using Newtonsoft.Json;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 {
@@ -116,6 +116,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 if (context.Settings.RequestStrategy == RequestStrategy.PersistedQuery &&
                     persistedQueryDirectory is not null)
                 {
+                    if (!Directory.Exists(persistedQueryDirectory))
+                    {
+                        Directory.CreateDirectory(persistedQueryDirectory);
+                    }
+
                     foreach (SourceDocument document in
                         result.Documents.Where(t => t.Kind == SourceDocumentKind.GraphQL))
                     {
@@ -156,7 +161,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
         {
             string documentName = document.Hash + ".graphql";
             string fileName = IOPath.Combine(persistedQueryDirectory, documentName);
+
             context.Log.WriteDocument(documentName);
+
             WriteFile(fileName, document.SourceText);
         }
 
@@ -303,9 +310,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 try
                 {
                     string json = File.ReadAllText(configLocation);
-                    var config = JsonSerializer.Deserialize<GraphQLConfig>(
-                        json, 
-                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var config = JsonConvert.DeserializeObject<GraphQLConfig>(json);
                     config.Location = configLocation;
                     list.Add(config);
                 }
