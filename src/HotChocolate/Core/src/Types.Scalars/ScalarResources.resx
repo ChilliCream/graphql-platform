@@ -151,9 +151,6 @@
   <data name="HslType_IsInvalid_ParseValue" xml:space="preserve">
     <value>HslType cannot parse the provided value. The provided value is not a valid CSS HSL color code.</value>
   </data>
-  <data name="HslType_ValidationPattern" xml:space="preserve">
-    <value>(^(?:hsla?)\((?:\d+%?(?:deg|rad|grad|turn)?(?:,|\s)+){2,3}[\s\/]*[\d\.]+%?\))</value>
-  </data>
   <data name="HslaType_Description" xml:space="preserve">
     <value>The Hsla scalar type represents a a valid a CSS HSLA color as defined in https://www.w3.org/TR/css-color-3/#hsla-color.</value>
   </data>
@@ -234,9 +231,6 @@
   </data>
   <data name="PhoneNumberType_IsInvalid_ParseValue" xml:space="preserve">
     <value>PhoneNumberType cannot parse the provided value. The provided value does not meet the standard E.164 format.</value>
-  </data>
-  <data name="PhoneNumber_ValidationPattern" xml:space="preserve">
-    <value>(^\+[1-9]\d{1,14}$)</value>
   </data>
   <data name="PositiveIntType_Description" xml:space="preserve">
     <value>The PositiveInt scalar type represents a signed 32-bit numeric non-fractional value of at least the value 1.</value>

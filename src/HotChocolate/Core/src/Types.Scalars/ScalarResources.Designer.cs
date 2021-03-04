@@ -99,12 +99,6 @@ namespace HotChocolate.Types.Scalars {
             }
         }
         
-        internal static string HslType_ValidationPattern {
-            get {
-                return ResourceManager.GetString("HslType_ValidationPattern", resourceCulture);
-            }
-        }
-        
         internal static string HslaType_Description {
             get {
                 return ResourceManager.GetString("HslaType_Description", resourceCulture);
@@ -264,12 +258,6 @@ namespace HotChocolate.Types.Scalars {
         internal static string PhoneNumberType_IsInvalid_ParseValue {
             get {
                 return ResourceManager.GetString("PhoneNumberType_IsInvalid_ParseValue", resourceCulture);
-            }
-        }
-        
-        internal static string PhoneNumber_ValidationPattern {
-            get {
-                return ResourceManager.GetString("PhoneNumber_ValidationPattern", resourceCulture);
             }
         }
         
