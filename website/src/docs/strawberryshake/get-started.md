@@ -23,7 +23,7 @@ dotnet tool install StrawberryShake.Tools --version 11.1.0-preview.58 --local
 Currently, Strawberry Shake only supports graphql via http (other protocols will be added in a later version), so to get the project running you need the following Nugets:
  - `StrawberryShake.Transport.Http`, which contains everyhing that is needed for GraphQL via HTTP.
 ```bash
-dotnet add StrawberryShake.Transport.Http
+dotnet add package StrawberryShake.Transport.Http
 ```
  
  - `StrawberryShake.CodeGeneration.CSharp.Analyzers`, which contains the source generator that will generate the clients code from your graphql documents.
