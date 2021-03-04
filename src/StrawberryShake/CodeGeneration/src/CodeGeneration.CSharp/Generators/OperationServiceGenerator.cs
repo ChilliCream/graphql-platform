@@ -264,8 +264,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .AddArgument($"document: {typeName}.Instance")
                 .AddArgument($"strategy: {TypeNames.RequestStrategy}.{descriptor.Strategy}");
 
-
-
             if (descriptor.Arguments.Count > 0)
             {
                 method

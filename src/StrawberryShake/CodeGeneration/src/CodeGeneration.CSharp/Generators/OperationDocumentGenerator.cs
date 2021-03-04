@@ -54,10 +54,20 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .SetType(TypeNames.OperationKind)
                 .AsLambda($"{TypeNames.OperationKind}.{operationKind}");
 
-            classBuilder
-                .AddProperty("Body")
-                .SetType(TypeNames.IReadOnlySpan.WithGeneric(TypeNames.Byte))
-                .AsLambda(GetByteArray(descriptor.Body));
+            if (descriptor.Strategy == RequestStrategy.PersistedQuery)
+            {
+                classBuilder
+                    .AddProperty("Body")
+                    .SetType(TypeNames.IReadOnlySpan.WithGeneric(TypeNames.Byte))
+                    .AsLambda($"new {TypeNames.Byte}[0]");
+            }
+            else
+            {
+                classBuilder
+                    .AddProperty("Body")
+                    .SetType(TypeNames.IReadOnlySpan.WithGeneric(TypeNames.Byte))
+                    .AsLambda(GetByteArray(descriptor.Body));
+            }
 
             classBuilder
                 .AddProperty("Hash")
