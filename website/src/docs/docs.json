@@ -408,11 +408,11 @@
   {
     "path": "strawberryshake",
     "title": "Strawberry Shake",
-    "description": "The only GraphQL client you will every need in the .net ecosystem.",
+    "description": "The only GraphQL client you will every need in the .NET ecosystem.",
     "versions": [
       {
         "path": "",
-        "title": "v1 (preview)",
+        "title": "v11 (latest)",
         "items": [
           {
             "path": "index",
@@ -421,6 +421,18 @@
           {
             "path": "get-started",
             "title": "Get Started"
+          },
+          {
+            "path": "state-management",
+            "title": "State Management"
+          },
+          {
+            "path": "persisted-queries",
+            "title": "Persisted Queries"
+          },
+          {
+            "path": "configuration",
+            "title": "Configuration"
           }
         ]
       }
