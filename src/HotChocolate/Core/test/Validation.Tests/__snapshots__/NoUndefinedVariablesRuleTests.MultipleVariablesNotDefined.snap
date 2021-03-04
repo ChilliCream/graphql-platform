@@ -12,6 +12,231 @@
     "Extensions": {
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variable-Uses-Defined"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "OperationDefinition",
+      "Location": {
+        "Start": 17,
+        "End": 118,
+        "Line": 2,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 23,
+          "End": 27,
+          "Line": 2,
+          "Column": 23
+        },
+        "Value": "Foo"
+      },
+      "Operation": "Query",
+      "VariableDefinitions": [
+        {
+          "Kind": "VariableDefinition",
+          "Location": {
+            "Start": 27,
+            "End": 38,
+            "Line": 2,
+            "Column": 27
+          },
+          "Variable": {
+            "Kind": "Variable",
+            "Location": {
+              "Start": 27,
+              "End": 30,
+              "Line": 2,
+              "Column": 27
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 28,
+                "End": 30,
+                "Line": 2,
+                "Column": 28
+              },
+              "Value": "b"
+            },
+            "Value": "b"
+          },
+          "Type": {
+            "Kind": "NamedType",
+            "Location": {
+              "Start": 31,
+              "End": 38,
+              "Line": 2,
+              "Column": 31
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 31,
+                "End": 38,
+                "Line": 2,
+                "Column": 31
+              },
+              "Value": "String"
+            }
+          },
+          "DefaultValue": null,
+          "Directives": []
+        }
+      ],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 39,
+          "End": 118,
+          "Line": 2,
+          "Column": 39
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [
+              {
+                "Kind": "Argument",
+                "Location": {
+                  "Start": 67,
+                  "End": 75,
+                  "Line": 3,
+                  "Column": 27
+                },
+                "Name": {
+                  "Kind": "Name",
+                  "Location": {
+                    "Start": 67,
+                    "End": 69,
+                    "Line": 3,
+                    "Column": 27
+                  },
+                  "Value": "a"
+                },
+                "Value": {
+                  "Kind": "Variable",
+                  "Location": {
+                    "Start": 70,
+                    "End": 75,
+                    "Line": 3,
+                    "Column": 30
+                  },
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": {
+                      "Start": 71,
+                      "End": 75,
+                      "Line": 3,
+                      "Column": 31
+                    },
+                    "Value": "a"
+                  },
+                  "Value": "a"
+                }
+              },
+              {
+                "Kind": "Argument",
+                "Location": {
+                  "Start": 74,
+                  "End": 82,
+                  "Line": 3,
+                  "Column": 34
+                },
+                "Name": {
+                  "Kind": "Name",
+                  "Location": {
+                    "Start": 74,
+                    "End": 76,
+                    "Line": 3,
+                    "Column": 34
+                  },
+                  "Value": "b"
+                },
+                "Value": {
+                  "Kind": "Variable",
+                  "Location": {
+                    "Start": 77,
+                    "End": 82,
+                    "Line": 3,
+                    "Column": 37
+                  },
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": {
+                      "Start": 78,
+                      "End": 82,
+                      "Line": 3,
+                      "Column": 38
+                    },
+                    "Value": "b"
+                  },
+                  "Value": "b"
+                }
+              },
+              {
+                "Kind": "Argument",
+                "Location": {
+                  "Start": 81,
+                  "End": 87,
+                  "Line": 3,
+                  "Column": 41
+                },
+                "Name": {
+                  "Kind": "Name",
+                  "Location": {
+                    "Start": 81,
+                    "End": 83,
+                    "Line": 3,
+                    "Column": 41
+                  },
+                  "Value": "c"
+                },
+                "Value": {
+                  "Kind": "Variable",
+                  "Location": {
+                    "Start": 84,
+                    "End": 87,
+                    "Line": 3,
+                    "Column": 44
+                  },
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": {
+                      "Start": 85,
+                      "End": 87,
+                      "Line": 3,
+                      "Column": 45
+                    },
+                    "Value": "c"
+                  },
+                  "Value": "c"
+                }
+              }
+            ],
+            "SelectionSet": null,
+            "Location": {
+              "Start": 61,
+              "End": 105,
+              "Line": 3,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 61,
+                "End": 67,
+                "Line": 3,
+                "Column": 21
+              },
+              "Value": "field"
+            },
+            "Directives": []
+          }
+        ]
+      }
+    }
   }
 ]

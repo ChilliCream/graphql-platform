@@ -1,13 +1,15 @@
 using System.Collections.Generic;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
-using StrawberryShake.CodeGeneration.Extensions;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public partial class TypeMapperGenerator
     {
-        private const string ListParamName = "list";
+        private const string _list = "list";
+        private const string _child = "child";
 
         private void AddArrayHandler(
             ClassBuilder classBuilder,
@@ -17,49 +19,52 @@ namespace StrawberryShake.CodeGeneration.CSharp
             HashSet<string> processed,
             bool isNonNullable)
         {
-            methodBuilder.AddParameter(
-                ParameterBuilder.New()
-                    .SetType(listTypeDescriptor.ToEntityIdBuilder())
-                    .SetName(ListParamName));
-            var listVarName = listTypeDescriptor.Name.WithLowerFirstChar() + "s";
+            methodBuilder
+                .AddParameter(_list)
+                .SetType(listTypeDescriptor.ToEntityIdBuilder());
+
+            var listVarName = GetParameterName(listTypeDescriptor.Name) + "s";
 
             if (!isNonNullable)
             {
-                methodBuilder.AddCode(EnsureProperNullability(ListParamName, isNonNullable));
+                methodBuilder.AddCode(EnsureProperNullability(_list, isNonNullable));
             }
 
             methodBuilder.AddCode(
-                AssignmentBuilder.New()
+                AssignmentBuilder
+                    .New()
                     .SetLefthandSide($"var {listVarName}")
                     .SetRighthandSide(
-                        CodeBlockBuilder.New()
+                        CodeBlockBuilder
+                            .New()
                             .AddCode("new ")
                             .AddCode(TypeNames.List)
                             .AddCode("<")
-                            .AddCode(
-                                listTypeDescriptor.InnerType.ToBuilder()
-                                    .SkipTrailingSpace())
+                            .AddCode(listTypeDescriptor.InnerType.ToBuilder().SkipTrailingSpace())
                             .AddCode(">")
                             .AddCode("()")));
             methodBuilder.AddEmptyLine();
 
-            var loopbuilder = ForEachBuilder.New()
+            ForEachBuilder forEachBuilder = ForEachBuilder
+                .New()
                 .SetLoopHeader(
-                    CodeBlockBuilder.New()
+                    CodeBlockBuilder
+                        .New()
                         .AddCode(listTypeDescriptor.InnerType.ToEntityIdBuilder())
-                        .AddCode($"child in {ListParamName}"))
+                        .AddCode($"{_child} in {_list}"))
                 .AddCode(
-                    MethodCallBuilder.New()
-                        .SetPrefix($"{listVarName}.")
-                        .SetMethodName("Add")
-                        .AddArgument(
-                            BuildMapMethodCall(
-                                listTypeDescriptor.InnerType,
-                                "child")));
+                    MethodCallBuilder
+                        .New()
+                        .SetMethodName(listVarName, nameof(List<object>.Add))
+                        .AddArgument(MethodCallBuilder
+                            .Inline()
+                            .SetMethodName(MapMethodNameFromTypeName(listTypeDescriptor.InnerType))
+                            .AddArgument(_child)));
 
-            methodBuilder.AddCode(loopbuilder);
-            methodBuilder.AddEmptyLine();
-            methodBuilder.AddCode($"return {listVarName};");
+            methodBuilder
+                .AddCode(forEachBuilder)
+                .AddEmptyLine()
+                .AddCode($"return {listVarName};");
 
             AddMapMethod(
                 listVarName,

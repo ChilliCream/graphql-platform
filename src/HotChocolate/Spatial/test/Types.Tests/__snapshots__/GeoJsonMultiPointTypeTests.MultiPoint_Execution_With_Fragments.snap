@@ -21,7 +21,139 @@
         "typeCondition": "MultiPoint",
         "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-Spread-Type-Existence"
       },
-      "Exception": null
+      "Exception": null,
+      "SyntaxNode": {
+        "Kind": "InlineFragment",
+        "Location": {
+          "Start": 9,
+          "End": 57,
+          "Line": 1,
+          "Column": 10
+        },
+        "TypeCondition": {
+          "Kind": "NamedType",
+          "Location": {
+            "Start": 16,
+            "End": 28,
+            "Line": 1,
+            "Column": 17
+          },
+          "Name": {
+            "Kind": "Name",
+            "Location": {
+              "Start": 16,
+              "End": 28,
+              "Line": 1,
+              "Column": 17
+            },
+            "Value": "MultiPoint"
+          }
+        },
+        "Directives": [],
+        "SelectionSet": {
+          "Kind": "SelectionSet",
+          "Location": {
+            "Start": 27,
+            "End": 57,
+            "Line": 1,
+            "Column": 28
+          },
+          "Selections": [
+            {
+              "Kind": "Field",
+              "Alias": null,
+              "Arguments": [],
+              "SelectionSet": null,
+              "Location": {
+                "Start": 29,
+                "End": 45,
+                "Line": 1,
+                "Column": 30
+              },
+              "Name": {
+                "Kind": "Name",
+                "Location": {
+                  "Start": 29,
+                  "End": 45,
+                  "Line": 1,
+                  "Column": 30
+                },
+                "Value": "type"
+              },
+              "Directives": []
+            },
+            {
+              "Kind": "Field",
+              "Alias": null,
+              "Arguments": [],
+              "SelectionSet": null,
+              "Location": {
+                "Start": 34,
+                "End": 50,
+                "Line": 1,
+                "Column": 35
+              },
+              "Name": {
+                "Kind": "Name",
+                "Location": {
+                  "Start": 34,
+                  "End": 50,
+                  "Line": 1,
+                  "Column": 35
+                },
+                "Value": "coordinates"
+              },
+              "Directives": []
+            },
+            {
+              "Kind": "Field",
+              "Alias": null,
+              "Arguments": [],
+              "SelectionSet": null,
+              "Location": {
+                "Start": 46,
+                "End": 54,
+                "Line": 1,
+                "Column": 47
+              },
+              "Name": {
+                "Kind": "Name",
+                "Location": {
+                  "Start": 46,
+                  "End": 54,
+                  "Line": 1,
+                  "Column": 47
+                },
+                "Value": "bbox"
+              },
+              "Directives": []
+            },
+            {
+              "Kind": "Field",
+              "Alias": null,
+              "Arguments": [],
+              "SelectionSet": null,
+              "Location": {
+                "Start": 51,
+                "End": 56,
+                "Line": 1,
+                "Column": 52
+              },
+              "Name": {
+                "Kind": "Name",
+                "Location": {
+                  "Start": 51,
+                  "End": 56,
+                  "Line": 1,
+                  "Column": 52
+                },
+                "Value": "crs"
+              },
+              "Directives": []
+            }
+          ]
+        }
+      }
     }
   ],
   "Extensions": null,

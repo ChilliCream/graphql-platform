@@ -12,6 +12,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private bool _isSealed;
         private bool _isAbstract;
         private string? _name;
+        private XmlCommentBuilder? _xmlComment;
         private readonly List<FieldBuilder> _fields = new();
         private readonly List<ConstructorBuilder> _constructors = new();
         private readonly List<MethodBuilder> _methods = new();
@@ -43,6 +44,26 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         public new ClassBuilder AddImplements(string value)
         {
             base.AddImplements(value);
+            return this;
+        }
+
+        public ClassBuilder SetComment(string? xmlComment)
+        {
+            if (xmlComment is not null)
+            {
+                _xmlComment = XmlCommentBuilder.New().SetSummary(xmlComment);
+            }
+
+            return this;
+        }
+
+        public ClassBuilder SetComment(XmlCommentBuilder? xmlComment)
+        {
+            if (xmlComment is not null)
+            {
+                _xmlComment = xmlComment;
+            }
+
             return this;
         }
 
@@ -137,6 +158,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             {
                 throw new ArgumentNullException(nameof(writer));
             }
+
+            _xmlComment?.Build(writer);
 
             writer.WriteGeneratedAttribute();
 

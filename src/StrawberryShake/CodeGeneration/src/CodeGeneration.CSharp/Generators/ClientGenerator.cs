@@ -1,7 +1,9 @@
 using StrawberryShake.CodeGeneration.CSharp.Builders;
-using StrawberryShake.CodeGeneration.Extensions;
+using StrawberryShake.CodeGeneration.Descriptors;
+using StrawberryShake.CodeGeneration.Descriptors.Operations;
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public class ClientGenerator : ClassBaseGenerator<ClientDescriptor>
     {
@@ -10,32 +12,42 @@ namespace StrawberryShake.CodeGeneration.CSharp
             ClientDescriptor descriptor,
             out string fileName)
         {
-            var (classBuilder, constructorBuilder) = CreateClassBuilder();
-
             fileName = descriptor.Name;
-            classBuilder.SetName(fileName);
-            constructorBuilder.SetTypeName(fileName);
+
+            ClassBuilder classBuilder = ClassBuilder
+                .New()
+                .SetName(fileName)
+                .SetComment(descriptor.Documentation);
+
+            ConstructorBuilder constructorBuilder = classBuilder
+                .AddConstructor()
+                .SetTypeName(fileName);
+
+            classBuilder
+                .AddProperty("ClientName")
+                .SetPublic()
+                .SetStatic()
+                .SetType(TypeNames.String)
+                .AsLambda(descriptor.Name.Value.AsStringToken());
 
             foreach (OperationDescriptor operation in descriptor.Operations)
             {
                 AddConstructorAssignedField(
-                    operation.Name,
-                    operation.Name.ToFieldName(),
+                    operation.RuntimeType.ToString(),
+                    GetFieldName(operation.Name),
                     classBuilder,
                     constructorBuilder);
 
-                classBuilder.AddProperty(
-                    PropertyBuilder
-                        .New()
-                        .SetAccessModifier(AccessModifier.Public)
-                        .SetType(operation.Name)
-                        .SetName(operation.Name)
-                        .AsLambda(operation.Name.ToFieldName()));
+                classBuilder
+                    .AddProperty(GetPropertyName(operation.Name))
+                    .SetPublic()
+                    .SetType(operation.RuntimeType.ToString())
+                    .AsLambda(GetFieldName(operation.Name));
             }
 
             CodeFileBuilder
                 .New()
-                .SetNamespace(descriptor.Namespace)
+                .SetNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal)
                 .AddType(classBuilder)
                 .Build(writer);
         }

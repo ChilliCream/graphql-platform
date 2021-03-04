@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis;
 using DotNet.Globbing;
 using HotChocolate;
 using IOPath = System.IO.Path;
-using static StrawberryShake.CodeGeneration.CodeGenerationThrowHelper;
+using static StrawberryShake.CodeGeneration.ErrorHelper;
 using static StrawberryShake.CodeGeneration.CSharp.Analyzers.SourceGeneratorErrorCodes;
 using static StrawberryShake.CodeGeneration.CSharp.Analyzers.DiagnosticErrorHelper;
 
@@ -109,6 +109,19 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
             throw new GraphQLException(
                 $"Specify a namespace for the client `{Settings.Name}`.");
+        }
+
+        public string? GetPersistedQueryDirectory()
+        {
+            if (Execution.AnalyzerConfigOptions.GlobalOptions.TryGetValue(
+                "build_property.StrawberryShake_PersistedQueryDirectory",
+                out string? value) &&
+                !string.IsNullOrEmpty(value))
+            {
+                return value;
+            }
+
+            return null;
         }
     }
 }

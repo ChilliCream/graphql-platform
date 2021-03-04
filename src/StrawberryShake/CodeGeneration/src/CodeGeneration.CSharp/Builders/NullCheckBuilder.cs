@@ -7,6 +7,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private ICode? _condition;
         private ICode? _code;
         private bool _determineStatement = true;
+        private bool _singleLine;
 
         public NullCheckBuilder SetCondition(ICode condition)
         {
@@ -38,6 +39,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
+        public NullCheckBuilder SetSingleLine(bool value = true)
+        {
+            _singleLine = value;
+            return this;
+        }
+
         public void Build(CodeWriter writer)
         {
             if (_condition is null)
@@ -51,11 +58,23 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             }
 
             _condition.Build(writer);
-            writer.WriteLine();
+
+            if (!_singleLine)
+            {
+                writer.WriteLine();
+            }
 
             using (writer.IncreaseIndent())
             {
-                writer.WriteIndent();
+                if (!_singleLine)
+                {
+                    writer.WriteIndent();
+                }
+                else
+                {
+                    writer.Write(" ");
+                }
+
                 writer.Write("?? ");
                 _code.Build(writer);
             }
@@ -68,5 +87,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         }
 
         public static NullCheckBuilder New() => new();
+
+        public static NullCheckBuilder Inline() => New()
+            .SetDetermineStatement(false)
+            .SetSingleLine();
     }
 }

@@ -24,6 +24,29 @@
       "responseNameB": "scalar",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selection-Merging"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": null,
+      "Arguments": [],
+      "SelectionSet": null,
+      "Location": {
+        "Start": 232,
+        "End": 264,
+        "Line": 8,
+        "Column": 29
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 232,
+          "End": 264,
+          "Line": 8,
+          "Column": 29
+        },
+        "Value": "scalar"
+      },
+      "Directives": []
+    }
   }
 ]

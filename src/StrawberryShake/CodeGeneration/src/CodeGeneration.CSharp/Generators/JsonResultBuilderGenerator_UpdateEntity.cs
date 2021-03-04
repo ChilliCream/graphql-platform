@@ -1,106 +1,113 @@
 using System.Collections.Generic;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
-using static StrawberryShake.CodeGeneration.NamingConventions;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
+using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public partial class JsonResultBuilderGenerator
     {
+        private const string _entityId = "entityId";
+        private const string _entity = "entity";
+
         private void AddUpdateEntityMethod(
             ClassBuilder classBuilder,
             MethodBuilder methodBuilder,
-            NamedTypeDescriptor namedTypeDescriptor,
+            INamedTypeDescriptor namedTypeDescriptor,
             HashSet<string> processed)
         {
-            var entityIdVarName = "entityId";
             methodBuilder.AddCode(
-                AssignmentBuilder.New()
-                    .SetLefthandSide(
-                        CodeBlockBuilder.New()
-                            .AddCode(TypeNames.EntityId)
-                            .AddCode($" {entityIdVarName}"))
-                    .SetRighthandSide($"{_extractIdFieldName}({_objParamName}.Value)"));
+                AssignmentBuilder
+                    .New()
+                    .SetLefthandSide($"{TypeNames.EntityId} {_entityId}")
+                    .SetRighthandSide(
+                        MethodCallBuilder
+                            .Inline()
+                            .SetMethodName(_extractId)
+                            .AddArgument($"{_obj}.Value")));
 
-            methodBuilder.AddCode($"{_entityIdsParam}.Add({entityIdVarName});");
+            methodBuilder.AddCode(
+                MethodCallBuilder
+                    .New()
+                    .SetMethodName(_entityIds, nameof(List<object>.Add))
+                    .AddArgument(_entityId));
+
             methodBuilder.AddEmptyLine();
 
-            var entityVarName = "entity";
-
-            if (namedTypeDescriptor.IsInterface)
+            if (namedTypeDescriptor is InterfaceTypeDescriptor interfaceTypeDescriptor)
             {
                 // If the type is an interface
-                foreach (NamedTypeDescriptor concreteType in namedTypeDescriptor.ImplementedBy)
+                foreach (ObjectTypeDescriptor concreteType in interfaceTypeDescriptor.ImplementedBy)
                 {
-                    methodBuilder.AddEmptyLine();
-                    var ifStatement = IfBuilder.New()
+                    IfBuilder ifStatement = IfBuilder
+                        .New()
                         .SetCondition(
-                            $"entityId.Name.Equals(\"{concreteType.GraphQLTypeName}\", " +
-                            $"{TypeNames.OrdinalStringComparisson})");
+                            MethodCallBuilder
+                                .Inline()
+                                .SetMethodName(_entityId, "Name", nameof(string.Equals))
+                                .AddArgument(concreteType.Name.AsStringToken())
+                                .AddArgument(TypeNames.OrdinalStringComparison));
 
-                    var entityTypeName =
-                        EntityTypeNameFromGraphQLTypeName(concreteType.GraphQLTypeName);
+                    var entityTypeName = CreateEntityTypeName(concreteType.Name);
 
                     WriteEntityLoader(
                         ifStatement,
-                        entityTypeName,
-                        entityVarName,
-                        entityIdVarName);
+                        entityTypeName);
 
                     WritePropertyAssignments(
                         ifStatement,
-                        concreteType.Properties,
-                        entityVarName);
+                        concreteType.Properties);
 
-                    ifStatement.AddEmptyLine();
-                    ifStatement.AddCode($"return {entityIdVarName};");
-                    methodBuilder.AddCode(ifStatement);
+                    ifStatement
+                        .AddEmptyLine()
+                        .AddCode($"return {_entityId};");
+
+                    methodBuilder
+                        .AddEmptyLine()
+                        .AddCode(ifStatement);
                 }
 
                 methodBuilder.AddEmptyLine();
-                methodBuilder.AddCode($"throw new {TypeNames.NotSupportedException}();");
+                methodBuilder.AddCode(ExceptionBuilder.New(TypeNames.NotSupportedException));
             }
-            else
+            else if (namedTypeDescriptor is ComplexTypeDescriptor complexTypeDescriptor)
             {
-                WriteEntityLoader(
-                    methodBuilder,
-                    EntityTypeNameFromGraphQLTypeName(namedTypeDescriptor.GraphQLTypeName),
-                    entityVarName,
-                    entityIdVarName);
-
-                WritePropertyAssignments(
-                    methodBuilder,
-                    namedTypeDescriptor.Properties,
-                    entityVarName);
+                WriteEntityLoader(methodBuilder, CreateEntityTypeName(namedTypeDescriptor.Name));
+                WritePropertyAssignments(methodBuilder, complexTypeDescriptor.Properties);
 
                 methodBuilder.AddEmptyLine();
-                methodBuilder.AddCode($"return {entityIdVarName};");
+                methodBuilder.AddCode($"return {_entityId};");
             }
 
-            AddRequiredDeserializeMethods(
-                namedTypeDescriptor,
-                classBuilder,
-                processed);
+            AddRequiredDeserializeMethods(namedTypeDescriptor, classBuilder, processed);
         }
 
         private void WriteEntityLoader<T>(
             ICodeContainer<T> codeContainer,
-            string entityTypeName,
-            string entityVarName,
-            string entityIdVarName)
+            string entityTypeName)
         {
             codeContainer.AddCode(
-                $"{entityTypeName} {entityVarName} = {_entityStoreFieldName}" +
-                $".GetOrCreate<{entityTypeName}>({entityIdVarName});");
+                AssignmentBuilder
+                    .New()
+                    .SetLefthandSide($"{entityTypeName} {_entity}")
+                    .SetRighthandSide(
+                        MethodCallBuilder
+                            .Inline()
+                            .SetMethodName(_entityStore, "GetOrCreate")
+                            .AddGeneric(entityTypeName)
+                            .AddArgument(_entityId)));
         }
 
-        private void WritePropertyAssignments<T>(ICodeContainer<T> codeContainer,
-            IReadOnlyList<PropertyDescriptor> properties, string entityVarName)
+        private void WritePropertyAssignments<T>(
+            ICodeContainer<T> codeContainer,
+            IReadOnlyList<PropertyDescriptor> properties)
         {
             foreach (PropertyDescriptor property in properties)
             {
                 codeContainer.AddCode(
-                    AssignmentBuilder.New()
-                        .SetLefthandSide($"{entityVarName}.{property.Name}")
+                    AssignmentBuilder
+                        .New()
+                        .SetLefthandSide($"{_entity}.{property.Name}")
                         .SetRighthandSide(BuildUpdateMethodCall(property)));
             }
         }

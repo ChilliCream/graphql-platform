@@ -29,8 +29,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             _conditions.Add(
                 CodeBlockBuilder.New()
                     .AddCode(CodeInlineBuilder.New().SetText("&& "))
-                    .AddCode(condition)
-            );
+                    .AddCode(condition));
             return this;
         }
 
@@ -51,11 +50,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 return;
             }
 
-            WriteCondition(writer, _conditions[0]);
-
-            for (var i = 1; i < _conditions.Count; i++)
+            using (writer.IncreaseIndent())
             {
-                using (writer.IncreaseIndent())
+                WriteCondition(writer, _conditions[0]);
+                for (var i = 1; i < _conditions.Count; i++)
                 {
                     CodeLineBuilder.New().Build(writer);
                     writer.WriteIndent();

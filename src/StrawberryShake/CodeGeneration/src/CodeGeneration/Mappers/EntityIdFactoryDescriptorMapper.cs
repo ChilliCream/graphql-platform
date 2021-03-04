@@ -1,15 +1,14 @@
 using System.Collections.Generic;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
+using StrawberryShake.CodeGeneration.Descriptors;
 using StrawberryShake.CodeGeneration.Extensions;
 
 namespace StrawberryShake.CodeGeneration.Mappers
 {
     public static class EntityIdFactoryDescriptorMapper
     {
-        public static void Map(
-            ClientModel model,
-            IMapperContext context)
+        public static void Map(ClientModel model, IMapperContext context)
         {
             var entities = new List<EntityIdDescriptor>();
 

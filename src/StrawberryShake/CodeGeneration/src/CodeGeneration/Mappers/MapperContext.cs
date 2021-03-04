@@ -1,25 +1,35 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate;
+using HotChocolate.Language;
+using StrawberryShake.CodeGeneration.Descriptors;
+using StrawberryShake.CodeGeneration.Descriptors.Operations;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
 namespace StrawberryShake.CodeGeneration.Mappers
 {
     public class MapperContext : IMapperContext
     {
-        private readonly Dictionary<NameString, NamedTypeDescriptor> _types = new();
-        private readonly Dictionary<NameString, EntityTypeDescriptor> _entityTypes = new();
-        private readonly Dictionary<NameString, DataTypeDescriptor> _dataTypes = new();
-        private readonly Dictionary<NameString, EnumDescriptor> _enums = new();
+        private readonly List<INamedTypeDescriptor> _types = new();
+        private readonly List<EntityTypeDescriptor> _entityTypes = new();
+        private readonly List<DataTypeDescriptor> _dataTypes = new();
+        private readonly Dictionary<NameString, EnumTypeDescriptor> _enums = new();
         private readonly Dictionary<NameString, OperationDescriptor> _operations = new();
         private readonly Dictionary<NameString, ResultBuilderDescriptor> _resultBuilder = new();
         private ClientDescriptor? _client;
         private EntityIdFactoryDescriptor? _entityIdFactory;
         private DependencyInjectionDescriptor? _dependencyInjectionDescriptor;
 
-        public MapperContext(string ns, string clientName)
+        public MapperContext(
+            string @namespace,
+            string clientName,
+            IDocumentHashProvider hashProvider,
+            RequestStrategy requestStrategy)
         {
-            Namespace = ns;
+            Namespace = @namespace;
             ClientName = clientName;
+            HashProvider = hashProvider;
+            RequestStrategy = requestStrategy;
         }
 
         public string ClientName { get; }
@@ -27,12 +37,15 @@ namespace StrawberryShake.CodeGeneration.Mappers
         public string Namespace { get; }
         public string StateNamespace => Namespace + ".State";
 
-        public IReadOnlyCollection<NamedTypeDescriptor> Types => _types.Values;
+        public RequestStrategy RequestStrategy { get; }
 
-        public IReadOnlyCollection<EntityTypeDescriptor> EntityTypes => _entityTypes.Values;
-        public IReadOnlyCollection<DataTypeDescriptor> DataTypes => _dataTypes.Values;
+        public IDocumentHashProvider HashProvider { get; }
 
-        public IReadOnlyCollection<EnumDescriptor> EnumTypes => _enums.Values;
+        public IReadOnlyList<INamedTypeDescriptor> Types => _types;
+
+        public IReadOnlyCollection<DataTypeDescriptor> DataTypes => _dataTypes;
+
+        public IReadOnlyCollection<EntityTypeDescriptor> EntityTypes => _entityTypes;
 
         public IReadOnlyCollection<OperationDescriptor> Operations => _operations.Values;
 
@@ -52,11 +65,6 @@ namespace StrawberryShake.CodeGeneration.Mappers
             foreach (var entityTypeDescriptor in EntityTypes)
             {
                 yield return entityTypeDescriptor;
-            }
-
-            foreach (var enumTypeDescriptor in EnumTypes)
-            {
-                yield return enumTypeDescriptor;
             }
 
             foreach (var type in Types)
@@ -86,32 +94,37 @@ namespace StrawberryShake.CodeGeneration.Mappers
             yield return DependencyInjection;
         }
 
-        public void Register(NameString codeTypeName, NamedTypeDescriptor typeDescriptor)
+        public void Register(IEnumerable<INamedTypeDescriptor> typeDescriptors)
         {
-            _types.Add(
-                codeTypeName.EnsureNotEmpty(nameof(codeTypeName)),
-                typeDescriptor ?? throw new ArgumentNullException(nameof(typeDescriptor)));
+            if (_types.Count > 0)
+            {
+                throw new InvalidOperationException(
+                    "The types have already been registered.");
+            }
+
+            _types.AddRange(typeDescriptors);
         }
 
-        public void Register(NameString codeTypeName, EntityTypeDescriptor entityTypeDescriptor)
+        public void Register(IEnumerable<DataTypeDescriptor> dataTypeDescriptors)
         {
-            _entityTypes.Add(
-                codeTypeName,
-                entityTypeDescriptor);
+            if (_dataTypes.Count > 0)
+            {
+                throw new InvalidOperationException(
+                    "The data types have already been registered.");
+            }
+
+            _dataTypes.AddRange(dataTypeDescriptors);
         }
 
-        public void Register(NameString codeTypeName, DataTypeDescriptor entityTypeDescriptor)
+        public void Register(IEnumerable<EntityTypeDescriptor> entityTypeDescriptor)
         {
-            _dataTypes.Add(
-                codeTypeName,
-                entityTypeDescriptor);
-        }
+            if (_entityTypes.Count > 0)
+            {
+                throw new InvalidOperationException(
+                    "The entity types have already been registered.");
+            }
 
-        public void Register(NameString codeTypeName, EnumDescriptor enumTypeDescriptor)
-        {
-            _enums.Add(
-                codeTypeName.EnsureNotEmpty(nameof(codeTypeName)),
-                enumTypeDescriptor ?? throw new ArgumentNullException(nameof(enumTypeDescriptor)));
+            _entityTypes.AddRange(entityTypeDescriptor);
         }
 
         public void Register(NameString operationName, OperationDescriptor operationDescriptor)
