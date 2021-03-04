@@ -13,21 +13,21 @@ namespace StrawberryShake.CodeGeneration.CSharp
             out string fileName)
         {
             fileName = namedTypeDescriptor.Name;
-            ClassBuilder classBuilder = ClassBuilder.New()
+
+            ClassBuilder classBuilder = ClassBuilder
+                .New()
+                .SetComment(namedTypeDescriptor.Documentation)
                 .SetName(fileName);
 
             foreach (var prop in namedTypeDescriptor.Properties)
             {
-                TypeReferenceBuilder propTypeBuilder = prop.Type.ToBuilder();
-
-                // Add Property to class
-                PropertyBuilder propBuilder = PropertyBuilder
-                    .New()
+                classBuilder
+                    .AddProperty(prop.Name)
+                    .SetPublic()
+                    .SetComment(prop.Description)
+                    .SetType(prop.Type.ToBuilder())
                     .MakeSettable()
-                    .SetName(prop.Name)
-                    .SetType(propTypeBuilder)
-                    .SetAccessModifier(AccessModifier.Public);
-                classBuilder.AddProperty(propBuilder);
+                    .SetValue("default!");
             }
 
             CodeFileBuilder

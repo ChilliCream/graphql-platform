@@ -8,7 +8,7 @@ namespace StrawberryShake.Serialization
     {
         private const string _dateFormat = "yyyy-MM-dd";
 
-        public DateSerializer(string typeName = BuiltInTypeNames.Date)
+        public DateSerializer(string typeName = BuiltInScalarNames.Date)
             : base(typeName)
         {
         }

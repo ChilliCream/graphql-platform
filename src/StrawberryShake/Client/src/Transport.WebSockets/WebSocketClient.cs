@@ -18,12 +18,12 @@ namespace StrawberryShake.Transport.WebSockets
     {
         private readonly IReadOnlyList<ISocketProtocolFactory> _protocolFactories;
         private readonly ClientWebSocket _socket;
+        private readonly string _name;
 
         private const int _maxMessageSize = 1024 * 4;
 
         private ISocketProtocol? _activeProtocol;
         private bool _disposed;
-        private readonly string _name;
 
         /// <summary>
         /// Creates a new instance of <see cref="WebSocketClient"/>
@@ -47,6 +47,10 @@ namespace StrawberryShake.Transport.WebSockets
 
         /// <inheritdoc />
         public Uri? Uri { get; set; }
+
+        /// <inheritdoc />
+        public ISocketConnectionInterceptor ConnectionInterceptor { get; set; } =
+            DefaultSocketConnectionInterceptor.Instance;
 
         /// <inheritdoc />
         public string Name => _name;
