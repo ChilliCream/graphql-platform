@@ -61,7 +61,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
                 id: GetPeopleQueryDocument.Instance.Hash.Value,
                 name: "GetPeople",
                 document: GetPeopleQueryDocument.Instance,
-                strategy: global::StrawberryShake.RequestStrategy.PersistedQuery);
+                strategy: global::StrawberryShake.RequestStrategy.Default);
         }
     }
 }
