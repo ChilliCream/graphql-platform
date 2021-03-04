@@ -340,7 +340,7 @@
     <value>IPv4Type cannot parse the provided value. The provided value is not a valid IPv4 address.</value>
   </data>
     <data name="MacAddressType_Description" xml:space="preserve">
-    <value>The MacAddress scalar type represents a valid a Mac address defined in IEEE 802 48-bit / RFC7042</value>
+    <value>The `MacAddess` scalar type represents a IEEE 802 48-bit Mac address, represented as UTF-8 character sequences. The scalar follows the specification defined in RFC7042</value>
   </data>
   <data name="MacAddressType_IsInvalid_ParseLiteral" xml:space="preserve">
     <value>MacAddressType cannot parse the provided literal. The provided value is not a valid MAC address.</value>
