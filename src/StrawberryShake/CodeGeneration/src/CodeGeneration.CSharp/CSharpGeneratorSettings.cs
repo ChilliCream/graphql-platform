@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using HotChocolate.Language;
 using RequestStrategyGen = StrawberryShake.CodeGeneration.Descriptors.Operations.RequestStrategy;
 
@@ -16,5 +17,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         public IDocumentHashProvider HashProvider { get; set; } =
             new Sha1DocumentHashProvider(HashFormat.Hex);
+
+        public List<CSharpGeneratorTransportProfile> TransportProfiles { get; } =
+            new()
+            {
+                new CSharpGeneratorTransportProfile(
+                    "Default",
+                    TransportType.Http,
+                    subscription: TransportType.WebSocket)
+            };
     }
 }

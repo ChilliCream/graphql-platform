@@ -10,10 +10,17 @@
       "requestStrategy": "PersistedQuery",
       "hashAlgorithm": "md5",
       "protocols": [
-        { "transport": "HTTP", "format": "JSON" },
-        { "transport": "WebSocket", "format": "JSON" },
-        { "transport": "SignalR", "format": "JSON" },
-        { "transport": "gRPC", "format": "Proto" }
+        {
+          "profile": "Default",
+          "transport": "HTTP",
+          "streamTransport": "WebSocket"
+        },
+        {
+          "profile": "Default",
+          "default": "HTTP",
+          "query": "WebSocket",
+          "subscription": "WebSocket"
+        }
       ]
     }
   }
