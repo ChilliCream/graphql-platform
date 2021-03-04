@@ -1,6 +1,7 @@
 using System.Linq;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
-using static StrawberryShake.CodeGeneration.NamingConventions;
+using StrawberryShake.CodeGeneration.Descriptors;
+using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.Mappers
 {

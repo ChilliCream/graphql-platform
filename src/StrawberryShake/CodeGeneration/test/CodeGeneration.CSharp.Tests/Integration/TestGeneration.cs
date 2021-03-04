@@ -14,5 +14,20 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration
                         name
                     }
                 }");
+
+        [Fact]
+        public void StarWarsGetFriends() =>
+            AssertStarWarsResult(
+                CreateIntegrationTest(),
+                @"query GetHero {
+                    hero(episode: NEW_HOPE) {
+                        name
+                        friends {
+                            nodes {
+                                name
+                            }
+                        }
+                    }
+                }");
     }
 }

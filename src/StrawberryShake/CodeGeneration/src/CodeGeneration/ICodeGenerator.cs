@@ -1,3 +1,5 @@
+using StrawberryShake.CodeGeneration.Descriptors;
+
 namespace StrawberryShake.CodeGeneration
 {
     public interface ICodeGenerator

@@ -1,6 +1,7 @@
 using HotChocolate;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
-namespace StrawberryShake.CodeGeneration
+namespace StrawberryShake.CodeGeneration.Descriptors
 {
     public static class NamingConventions
     {

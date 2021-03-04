@@ -1,4 +1,4 @@
-﻿// StrawberryShake.CodeGeneration.CSharp.ResultInfoGenerator
+﻿// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
 
 #nullable enable
 
@@ -22,6 +22,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
             _version = version;
         }
 
+        /// <summary>
+        /// Gets access to all the people known to this service.
+        /// </summary>
         public global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.PersonConnectionData? People { get; }
 
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;

@@ -1,10 +1,9 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate;
-using static StrawberryShake.CodeGeneration.NamingConventions;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
-namespace StrawberryShake.CodeGeneration
+namespace StrawberryShake.CodeGeneration.Descriptors
 {
     public class DataTypeDescriptor : ICodeDescriptor
     {

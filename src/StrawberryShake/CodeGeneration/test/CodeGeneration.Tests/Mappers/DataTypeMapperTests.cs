@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
+using HotChocolate.Language;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Extensions;
 using Xunit;
@@ -38,7 +39,9 @@ namespace StrawberryShake.CodeGeneration.Mappers
             // act
             var context = new MapperContext(
                 "Foo.Bar",
-                "FooClient");
+                "FooClient",
+                new Sha1DocumentHashProvider(),
+                Descriptors.Operations.RequestStrategy.Default);
             TypeDescriptorMapper.Map(
                 clientModel,
                 context);
@@ -111,7 +114,9 @@ namespace StrawberryShake.CodeGeneration.Mappers
             // act
             var context = new MapperContext(
                 "Foo.Bar",
-                "FooClient");
+                "FooClient",
+                new Sha1DocumentHashProvider(),
+                Descriptors.Operations.RequestStrategy.Default);
             TypeDescriptorMapper.Map(
                 clientModel,
                 context);
@@ -199,7 +204,9 @@ namespace StrawberryShake.CodeGeneration.Mappers
             // act
             var context = new MapperContext(
                 "Foo.Bar",
-                "FooClient");
+                "FooClient",
+                new Sha1DocumentHashProvider(),
+                Descriptors.Operations.RequestStrategy.Default);
             TypeDescriptorMapper.Map(
                 clientModel,
                 context);

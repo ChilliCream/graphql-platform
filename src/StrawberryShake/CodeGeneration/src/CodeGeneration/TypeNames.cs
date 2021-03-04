@@ -24,6 +24,8 @@ namespace StrawberryShake.CodeGeneration
         public const string IDocument = StrawberryshakeNamespace + "IDocument";
         public const string GraphQLClientException = StrawberryshakeNamespace + "GraphQLClientException";
         public const string IClientError = StrawberryshakeNamespace + "IClientError";
+        public const string DocumentHash = StrawberryshakeNamespace + "DocumentHash";
+        public const string RequestStrategy = StrawberryshakeNamespace + "RequestStrategy";
 
         public const string OperationKind = StrawberryshakeNamespace + "OperationKind";
         public const string EntityId = StrawberryshakeNamespace + "EntityId";

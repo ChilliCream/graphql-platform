@@ -4,7 +4,7 @@ using static StrawberryShake.CodeGeneration.CSharp.GeneratorTestHelper;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public class CSharpGeneratorTests
+    public class EntityGeneratorTests
     {
         [Fact]
         public void Generate_ChatClient_ConnectionNotAnEntity()

@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using HotChocolate;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
-namespace StrawberryShake.CodeGeneration
+namespace StrawberryShake.CodeGeneration.Descriptors
 {
     /// <summary>
     /// Contains the information that are needed to generate a resultBuilder

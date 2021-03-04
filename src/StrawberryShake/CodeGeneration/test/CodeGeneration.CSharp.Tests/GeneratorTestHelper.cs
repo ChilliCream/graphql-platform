@@ -14,9 +14,8 @@ using StrawberryShake.CodeGeneration.Analyzers;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Utilities;
 using Xunit;
-using static StrawberryShake.CodeGeneration.CSharp.CSharpGenerator;
-using Path = HotChocolate.Path;
 using Snapshot = Snapshooter.Xunit.Snapshot;
+using static StrawberryShake.CodeGeneration.CSharp.CSharpGenerator;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -27,8 +26,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             CSharpGeneratorResult result = Generate(
                 fileNames,
-                @namespace: "Foo.Bar",
-                clientName: "FooClient");
+                new CSharpGeneratorSettings
+                {
+                    Namespace = "Foo.Bar",
+                    ClientName = "FooClient"
+                });
 
             Assert.True(
                 result.Errors.Any(),
@@ -71,24 +73,52 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             CSharpGeneratorResult result = Generate(
                 clientModel,
-                @namespace: settings.Namespace ?? "Foo.Bar",
-                clientName: settings.ClientName ?? "FooClient");
+                new CSharpGeneratorSettings
+                {
+                    Namespace = settings.Namespace ?? "Foo.Bar",
+                    ClientName = settings.ClientName ?? "FooClient",
+                    StrictSchemaValidation = settings.StrictValidation,
+                    RequestStrategy = settings.RequestStrategy
+                });
 
             Assert.False(
                 result.Errors.Any(),
                 "It is expected that the result has no generator errors!");
 
-            foreach (CSharpDocument document in result.CSharpDocuments)
+            foreach (var document in result.Documents)
             {
                 if (!documentNames.Add(document.Name))
                 {
                     Assert.True(false, $"Document name duplicated {document.Name}");
                 }
 
-                documents.AppendLine("// " + document.Name);
-                documents.AppendLine();
-                documents.AppendLine(document.SourceText);
-                documents.AppendLine();
+                if (document.Kind == SourceDocumentKind.CSharp)
+                {
+                    documents.AppendLine("// " + document.Name);
+                    documents.AppendLine();
+                    documents.AppendLine(document.SourceText);
+                    documents.AppendLine();
+                }
+                else if (document.Kind == SourceDocumentKind.GraphQL)
+                {
+                    documents.AppendLine("// " + document.Name);
+                    documents.AppendLine("// " + document.Hash);
+                    documents.AppendLine();
+
+                    using var reader = new StringReader(document.SourceText);
+                    string? line;
+
+                    do
+                    {
+                        line = reader.ReadLine();
+                        if (line is not null)
+                        {
+                            documents.AppendLine("// " + line);
+                        }
+                    } while (line is not null);
+
+                    documents.AppendLine();
+                }
             }
 
             if (settings.SnapshotFile is not null)
@@ -144,7 +174,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
             AssertResult(settings, source);
         }
 
-        public static AssertSettings CreateIntegrationTest([CallerMemberName] string? testName = null)
+        public static AssertSettings CreateIntegrationTest(
+            Descriptors.Operations.RequestStrategy requestStrategy =
+                Descriptors.Operations.RequestStrategy.Default,
+            [CallerMemberName] string? testName = null)
         {
             SnapshotFullName snapshotFullName = Snapshot.FullName();
             string testFile = System.IO.Path.Combine(
@@ -168,7 +201,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 StrictValidation = true,
                 SnapshotFile = System.IO.Path.Combine(
                     snapshotFullName.FolderPath,
-                    testName + "Test.Client.cs")
+                    testName + "Test.Client.cs"),
+                RequestStrategy = requestStrategy
             };
         }
 
@@ -202,6 +236,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
             public bool StrictValidation { get; set; }
 
             public string? SnapshotFile { get; set; }
+
+            public Descriptors.Operations.RequestStrategy RequestStrategy { get; set; } =
+                Descriptors.Operations.RequestStrategy.Default;
         }
     }
 }

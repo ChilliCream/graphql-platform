@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Execution;
+using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace StrawberryShake.Transport.InMemory
@@ -56,11 +57,21 @@ namespace StrawberryShake.Transport.InMemory
                 throw ThrowHelper.InMemoryClient_NoExecutorConfigured(_name);
             }
 
-            IQueryRequestBuilder requestBuilder = QueryRequestBuilder
-                .New()
-                .SetOperation(request.Name)
-                .SetQuery(request.Document.Print())
-                .SetVariableValues(request.Variables);
+            var requestBuilder = new QueryRequestBuilder();
+
+            if (request.Id is null)
+            {
+                requestBuilder.SetQuery(Utf8GraphQLParser.Parse(request.Document.Body));
+            }
+            else
+            {
+                requestBuilder.SetQueryId(request.Id);
+            }
+
+            requestBuilder.SetOperation(request.Name);
+            requestBuilder.SetVariableValues(request.Variables);
+            requestBuilder.SetExtensions(request.GetExtensionsOrNull());
+            requestBuilder.SetProperties(request.GetContextDataOrNull());
 
             IServiceProvider applicationService = Executor.Services.GetApplicationServices();
             foreach (var interceptor in RequestInterceptors)
