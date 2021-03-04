@@ -371,7 +371,6 @@ services
   .AddType<NonEmptyStringType>()
 ```
 
-
 **Available Scalars:**
 
 | Type             | Description                                                                                                                                            |
