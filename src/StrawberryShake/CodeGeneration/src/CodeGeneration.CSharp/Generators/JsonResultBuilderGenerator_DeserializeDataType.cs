@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
-using static StrawberryShake.CodeGeneration.NamingConventions;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
+using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public partial class JsonResultBuilderGenerator
     {
@@ -53,7 +54,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         .Inline()
                         .SetMethodName(
                             _obj,
-                            nameof(Nullable<EntityId>.Value),
+                            "Value",
                             nameof(JsonElement.GetProperty))
                         .AddArgument(__typename.AsStringToken())
                         .Chain(x => x.SetMethodName(nameof(JsonElement.GetString)))));

@@ -1,10 +1,12 @@
 using System;
+using System.Security.Cryptography;
 using System.Text;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
+using StrawberryShake.CodeGeneration.Descriptors.Operations;
 using StrawberryShake.CodeGeneration.Properties;
-using static StrawberryShake.CodeGeneration.NamingConventions;
+using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public class OperationDocumentGenerator : ClassBaseGenerator<OperationDescriptor>
     {
@@ -55,7 +57,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
             classBuilder
                 .AddProperty("Body")
                 .SetType(TypeNames.IReadOnlySpan.WithGeneric(TypeNames.Byte))
-                .AsLambda(GetByteArray(descriptor.BodyString));
+                .AsLambda(GetByteArray(descriptor.Body));
+
+            classBuilder
+                .AddProperty("Hash")
+                .SetType(TypeNames.DocumentHash)
+                .SetValue(
+                    $@"new {TypeNames.DocumentHash}(" +
+                    $@"""{descriptor.HashAlgorithm}"", " +
+                    $@"""{descriptor.HashValue}"")");
 
             classBuilder
                 .AddMethod("ToString")
@@ -75,10 +85,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .Build(writer);
         }
 
-        private static string GetByteArray(string value)
+        private static string GetByteArray(byte[] bytes)
         {
             var builder = new StringBuilder();
-            var bytes = Encoding.UTF8.GetBytes(value);
             builder.Append($"new {TypeNames.Byte}[]{{ ");
 
             for (var i = 0; i < bytes.Length; i++)

@@ -11,7 +11,7 @@
 
 // TestResultFactory
 
-// StrawberryShake.CodeGeneration.CSharp.ResultDataFactoryGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
 
 #nullable enable
 
@@ -44,7 +44,7 @@ namespace Foo.Bar
 
 // TestResultInfo
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInfoGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
 
 #nullable enable
 
@@ -87,7 +87,7 @@ namespace Foo.Bar
 
 // TestResult
 
-// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
 
 #nullable enable
 
@@ -109,7 +109,7 @@ namespace Foo.Bar
 
 // ITestResult
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -125,7 +125,7 @@ namespace Foo.Bar
 
 // BarInputValueFormatter
 
-// StrawberryShake.CodeGeneration.CSharp.InputValueFormatterGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
 
 #nullable enable
 
@@ -236,7 +236,7 @@ namespace Foo.Bar
 
 // Bar
 
-// StrawberryShake.CodeGeneration.CSharp.InputTypeGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
 
 #nullable enable
 
@@ -260,7 +260,7 @@ namespace Foo.Bar
 
 // TestQueryDocument
 
-// StrawberryShake.CodeGeneration.CSharp.OperationDocumentGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
 
 #nullable enable
 
@@ -286,7 +286,9 @@ namespace Foo.Bar
 
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
 
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{ 0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x54, 0x65, 0x73, 0x74, 0x28, 0x24, 0x73, 0x69, 0x6e, 0x67, 0x6c, 0x65, 0x3a, 0x20, 0x42, 0x61, 0x72, 0x21, 0x2c, 0x20, 0x24, 0x6c, 0x69, 0x73, 0x74, 0x3a, 0x20, 0x5b, 0x42, 0x61, 0x72, 0x21, 0x5d, 0x21, 0x2c, 0x20, 0x24, 0x6e, 0x65, 0x73, 0x74, 0x65, 0x64, 0x4c, 0x69, 0x73, 0x74, 0x3a, 0x20, 0x5b, 0x5b, 0x42, 0x61, 0x72, 0x21, 0x5d, 0x5d, 0x29, 0x20, 0x7b, 0x0a, 0x20, 0x20, 0x66, 0x6f, 0x6f, 0x28, 0x73, 0x69, 0x6e, 0x67, 0x6c, 0x65, 0x3a, 0x20, 0x24, 0x73, 0x69, 0x6e, 0x67, 0x6c, 0x65, 0x2c, 0x20, 0x6c, 0x69, 0x73, 0x74, 0x3a, 0x20, 0x24, 0x6c, 0x69, 0x73, 0x74, 0x2c, 0x20, 0x6e, 0x65, 0x73, 0x74, 0x65, 0x64, 0x4c, 0x69, 0x73, 0x74, 0x3a, 0x20, 0x24, 0x6e, 0x65, 0x73, 0x74, 0x65, 0x64, 0x4c, 0x69, 0x73, 0x74, 0x29, 0x0a, 0x7d };
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{ 0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x54, 0x65, 0x73, 0x74, 0x28, 0x24, 0x73, 0x69, 0x6e, 0x67, 0x6c, 0x65, 0x3a, 0x20, 0x42, 0x61, 0x72, 0x21, 0x2c, 0x20, 0x24, 0x6c, 0x69, 0x73, 0x74, 0x3a, 0x20, 0x5b, 0x42, 0x61, 0x72, 0x21, 0x5d, 0x21, 0x2c, 0x20, 0x24, 0x6e, 0x65, 0x73, 0x74, 0x65, 0x64, 0x4c, 0x69, 0x73, 0x74, 0x3a, 0x20, 0x5b, 0x5b, 0x42, 0x61, 0x72, 0x21, 0x5d, 0x5d, 0x29, 0x20, 0x7b, 0x20, 0x66, 0x6f, 0x6f, 0x28, 0x73, 0x69, 0x6e, 0x67, 0x6c, 0x65, 0x3a, 0x20, 0x24, 0x73, 0x69, 0x6e, 0x67, 0x6c, 0x65, 0x2c, 0x20, 0x6c, 0x69, 0x73, 0x74, 0x3a, 0x20, 0x24, 0x6c, 0x69, 0x73, 0x74, 0x2c, 0x20, 0x6e, 0x65, 0x73, 0x74, 0x65, 0x64, 0x4c, 0x69, 0x73, 0x74, 0x3a, 0x20, 0x24, 0x6e, 0x65, 0x73, 0x74, 0x65, 0x64, 0x4c, 0x69, 0x73, 0x74, 0x29, 0x20, 0x7d };
+
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "dbfdc9d76b5dee9c878b782cdb27dc4b2c339cdd");
 
         public override global::System.String ToString()
         {
@@ -298,7 +300,7 @@ namespace Foo.Bar
 
 // TestQuery
 
-// StrawberryShake.CodeGeneration.CSharp.OperationServiceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
 
 #nullable enable
 
@@ -378,9 +380,11 @@ namespace Foo.Bar
                 FormatNestedList(nestedList));
 
             return new global::StrawberryShake.OperationRequest(
-                "Test",
-                TestQueryDocument.Instance,
-                variables);
+                id: TestQueryDocument.Instance.Hash.Value,
+                name: "Test",
+                document: TestQueryDocument.Instance,
+                strategy: global::StrawberryShake.RequestStrategy.Default,
+                variables:variables);
         }
 
         private global::System.Object? FormatSingle(Bar value)
@@ -443,7 +447,7 @@ namespace Foo.Bar
 
 // TestBuilder
 
-// StrawberryShake.CodeGeneration.CSharp.JsonResultBuilderGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
 
 #nullable enable
 
@@ -533,7 +537,7 @@ namespace Foo.Bar
 
 // FooClient
 
-// StrawberryShake.CodeGeneration.CSharp.ClientGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
 
 #nullable enable
 
@@ -562,7 +566,7 @@ namespace Foo.Bar
 
 // EntityIdFactory
 
-// StrawberryShake.CodeGeneration.CSharp.EntityIdFactoryGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator
 
 #nullable enable
 
@@ -588,7 +592,7 @@ namespace Foo.Bar
 
 // FooClientServiceCollectionExtensions
 
-// StrawberryShake.CodeGeneration.CSharp.DependencyInjectionGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.DependencyInjectionGenerator
 
 #nullable enable
 

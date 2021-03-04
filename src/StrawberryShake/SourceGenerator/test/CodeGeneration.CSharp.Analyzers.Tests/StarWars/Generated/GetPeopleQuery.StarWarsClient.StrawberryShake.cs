@@ -1,9 +1,29 @@
-﻿// StrawberryShake.CodeGeneration.CSharp.OperationServiceGenerator
+﻿// StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
 
 #nullable enable
 
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
 {
+    /// <summary>
+    /// Represents the operation service of the GetPeople GraphQL operation
+    /// <code>
+    /// query GetPeople {
+    ///   people(order_by: { name: ASC }) {
+    ///     __typename
+    ///     nodes {
+    ///       __typename
+    ///       name
+    ///       email
+    ///       isOnline
+    ///       lastSeen
+    ///       ... on Person {
+    ///         id
+    ///       }
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleQuery
     {
@@ -38,8 +58,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
         {
 
             return new global::StrawberryShake.OperationRequest(
-                "GetPeople",
-                GetPeopleQueryDocument.Instance);
+                id: GetPeopleQueryDocument.Instance.Hash.Value,
+                name: "GetPeople",
+                document: GetPeopleQueryDocument.Instance,
+                strategy: global::StrawberryShake.RequestStrategy.Default);
         }
     }
 }

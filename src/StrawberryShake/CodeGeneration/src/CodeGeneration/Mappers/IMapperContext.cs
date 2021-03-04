@@ -1,5 +1,9 @@
 using System.Collections.Generic;
 using HotChocolate;
+using HotChocolate.Language;
+using StrawberryShake.CodeGeneration.Descriptors;
+using StrawberryShake.CodeGeneration.Descriptors.Operations;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
 namespace StrawberryShake.CodeGeneration.Mappers
 {
@@ -19,6 +23,16 @@ namespace StrawberryShake.CodeGeneration.Mappers
         /// </summary>
         /// <value></value>
         string StateNamespace { get; }
+
+        /// <summary>
+        /// Gets the client request strategy.
+        /// </summary>
+        RequestStrategy RequestStrategy { get; }
+
+        /// <summary>
+        /// Gets the hash provider that is used to hash queries.
+        /// </summary>
+        IDocumentHashProvider HashProvider { get; }
 
         IReadOnlyList<INamedTypeDescriptor> Types { get; }
 

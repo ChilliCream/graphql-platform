@@ -3,12 +3,13 @@ using System.Net.Http;
 using HotChocolate;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
+using StrawberryShake.CodeGeneration.Descriptors;
+using StrawberryShake.CodeGeneration.Descriptors.Operations;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
-using StrawberryShake.Transport.WebSockets;
-using StrawberryShake.Serialization;
-using static StrawberryShake.CodeGeneration.NamingConventions;
+using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDescriptor>
     {
@@ -64,7 +65,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     x => x.SetType(TypeNames.ExecutionStrategy)
                         .SetDefault(
                             TypeNames.ExecutionStrategy + "." +
-                            nameof(ExecutionStrategy.NetworkOnly)))
+                            "NetworkOnly"))
                 .AddCode(GenerateMethodBody(descriptor));
 
             factory
@@ -79,7 +80,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     x => x.SetType(TypeNames.ExecutionStrategy)
                         .SetDefault(
                             TypeNames.ExecutionStrategy + "." +
-                            nameof(ExecutionStrategy.NetworkOnly)))
+                            "NetworkOnly"))
                 .AddCode(GenerateInternalMethodBody(descriptor));
 
             factory.AddClass(_clientServiceProvider);
@@ -481,9 +482,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                 .New()
                                 .SetCode(MethodCallBuilder
                                     .Inline()
-                                    .SetMethodName(
-                                        _sessionPool,
-                                        nameof(ISessionPool.CreateAsync))
+                                    .SetMethodName(_sessionPool, "CreateAsync")
                                     .AddArgument(clientName.AsStringToken())
                                     .AddArgument("default"))))));
 
@@ -527,7 +526,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                 .SetMethodName(TypeNames.GetRequiredService)
                                 .AddGeneric(TypeNames.IEntityStore)
                                 .AddArgument(_sp)
-                                .Chain(x => x.SetMethodName(nameof(OperationStore.Watch)))))));
+                                .Chain(x => x.SetMethodName("Watch"))))));
 
         private static string _clientServiceProvider = @"
         private class ClientServiceProvider
