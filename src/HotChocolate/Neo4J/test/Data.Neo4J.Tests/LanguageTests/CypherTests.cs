@@ -177,11 +177,35 @@ namespace HotChocolate.Data.Neo4J.Language
         public class ReadingAndReturnWithProjections
         {
             [Fact]
-            public void NodeWithSingleFieldProjection()
+            public void NodeWithSingleFieldsProjection()
             {
                 StatementBuilder statement = Cypher
                     .Match(_userNode)
-                    .Return(_userNode.Project("email"));
+                    .Return(_userNode.Project("name"));
+                statement.Build().MatchSnapshot();
+            }
+
+            [Fact]
+            public void NodeWithTwoFieldsProjection()
+            {
+                StatementBuilder statement = Cypher
+                    .Match(_userNode)
+                    .Return(_userNode.Project("name", "email"));
+                statement.Build().MatchSnapshot();
+            }
+
+            [Fact]
+            public void NodeWithTwoFieldsAndRelationshipProjection()
+            {
+                StatementBuilder statement = Cypher
+                    .Match(_userNode)
+                    .Return(_userNode.Project(
+                        "name",
+                        "email",
+                        "owns",
+                        new PatternComprehension(
+                            _userNode.RelationshipTo(_bikeNode, "OWNS"),new Where(_bikeNode.Property("age").IsEqualTo(Cypher.LiteralOf(12))),_bikeNode.Project("age"))
+                        ));
                 statement.Build().MatchSnapshot();
             }
         }

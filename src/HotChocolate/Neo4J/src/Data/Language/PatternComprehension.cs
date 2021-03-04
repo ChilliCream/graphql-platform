@@ -1,3 +1,5 @@
+#nullable enable
+
 namespace HotChocolate.Data.Neo4J.Language
 {
     /// <summary>
@@ -9,10 +11,10 @@ namespace HotChocolate.Data.Neo4J.Language
         public override ClauseKind Kind { get; } = ClauseKind.PatternComprehension;
 
         private readonly IPatternElement _patternElement;
-        private readonly Where _where;
-        private readonly Expression _expression;
+        private readonly Where? _where;
+        private readonly Expression? _expression;
 
-        public PatternComprehension(IPatternElement patternElement, Where where, Expression expression)
+        public PatternComprehension(IPatternElement patternElement, Where? where, Expression? expression)
         {
             _patternElement = patternElement;
             _where = where;
@@ -25,7 +27,7 @@ namespace HotChocolate.Data.Neo4J.Language
             _patternElement.Visit(cypherVisitor);
             _where?.Visit(cypherVisitor);
             Operator.Pipe.Visit(cypherVisitor);
-            _expression.Visit(cypherVisitor);
+            _expression?.Visit(cypherVisitor);
             cypherVisitor.Leave(this);
         }
     }

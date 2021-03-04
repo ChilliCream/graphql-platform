@@ -20,7 +20,7 @@ namespace HotChocolate.Data.Neo4J.Language
 
         private void EnterVisitable(Where where)
         {
-            _writer.Write("WHERE ");
+            _writer.Write(" WHERE ");
         }
 
         private void LeaveVisitable(Where where)
@@ -109,11 +109,6 @@ namespace HotChocolate.Data.Neo4J.Language
         {
             _writer.Write(map.GetKey());
             _writer.Write(": ");
-        }
-
-        private void EnterVisitable(KeyValueSeparator map)
-        {
-            _writer.Write(", ");
         }
 
         private void LeaveVisitable(MapExpression map)
@@ -240,6 +235,16 @@ namespace HotChocolate.Data.Neo4J.Language
             if (maximum != null) {
                 _writer.Write(maximum.ToString());
             }
+        }
+
+        private void EnterVisitable(ListExpression expression)
+        {
+            _writer.Write("[");
+        }
+
+        private void LeaveVisitable(ListExpression expression)
+        {
+            _writer.Write("[");
         }
     }
 }

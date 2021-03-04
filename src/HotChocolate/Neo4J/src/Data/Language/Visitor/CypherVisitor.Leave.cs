@@ -42,59 +42,35 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.PropertyLookup:
                     LeaveVisitable((PropertyLookup)visitable);
                     break;
+                case ClauseKind.ListExpression:
+                    LeaveVisitable((ListExpression)visitable);
+                    break;
                 case ClauseKind.AliasedExpression:
                 case ClauseKind.Expression:
-                    break;
                 case ClauseKind.Visitable:
-                    break;
                 case ClauseKind.TypedSubtree:
-                    break;
                 case ClauseKind.Pattern:
-                    break;
                 case ClauseKind.ExcludePattern:
-                    break;
                 case ClauseKind.Operator:
-                    break;
                 case ClauseKind.StatementPrefix:
-                    break;
                 case ClauseKind.Comparison:
-                    break;
                 case ClauseKind.KeyValueMapEntry:
-                    break;
                 case ClauseKind.MapProjection:
-                    break;
                 case ClauseKind.Properties:
-                    break;
-                case ClauseKind.KeyValueSeparator:
-                    break;
                 case ClauseKind.Property:
-                    break;
                 case ClauseKind.SortItem:
-                    break;
                 case ClauseKind.Literal:
-                    break;
                 case ClauseKind.BooleanLiteral:
-                    break;
                 case ClauseKind.StringLiteral:
-                    break;
                 case ClauseKind.ExpressionList:
-                    break;
                 case ClauseKind.SymbolicName:
-                    break;
                 case ClauseKind.NodeLabel:
-                    break;
                 case ClauseKind.NodeLabels:
-                    break;
                 case ClauseKind.Operation:
-                    break;
                 case ClauseKind.Relationship:
-                    break;
                 case ClauseKind.OptionalMatch:
-                    break;
                 case ClauseKind.Return:
-                    break;
                 case ClauseKind.With:
-                    break;
                 case ClauseKind.Unwind:
                 case ClauseKind.YieldItems:
                 case ClauseKind.Exists:
@@ -118,10 +94,10 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.RelationshipPatternCondition:
                 case ClauseKind.Statement:
                 case ClauseKind.RelationshipLength:
-                    break;
                 case ClauseKind.RelationshipTypes:
+                case ClauseKind.ExpressionCondition:
+                case ClauseKind.HasLabelCondition:
                     break;
-
                 default:
                     throw new ArgumentOutOfRangeException();
             }

@@ -1,0 +1,1 @@
+﻿MATCH (u:User) RETURN u{.name.emailowns: [(u:User)-[:OWNS]->(b:Bike) WHERE b = 12  | b{.age}]}

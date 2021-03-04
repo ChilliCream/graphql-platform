@@ -21,7 +21,7 @@ namespace HotChocolate.Data.Neo4J.Language
             _expression = expression;
         }
 
-        public static MapProjection Create(SymbolicName? name, params object[] content) =>
+        public static MapProjection Create(SymbolicName name, params object[] content) =>
             new(name, MapExpression.WithEntries(CreateNewContent(content)));
 
         private static object? ContentAt(object[] content, int i)
@@ -44,36 +44,29 @@ namespace HotChocolate.Data.Neo4J.Language
 
             string? lastKey = null;
             Expression? lastExpression = null;
-            int i = 0;
+            var i = 0;
             while (i < content.Length)
             {
-                object? next;
-                if (i + 1 >= content.Length)
-                    next = null;
-                else
-                    next = ContentAt(content, i + 1);
-
+                object? next = i + 1 >= content.Length ? null : ContentAt(content, i + 1);
                 object? current = ContentAt(content, i);
 
-                if (current is string)
+                switch (current)
                 {
-                    if (next is Expression)
-                    {
-                        lastKey = (string)current;
-                        lastExpression = (Expression)next;
+                    case string s when next is Expression expression:
+                        lastKey = s;
+                        lastExpression = expression;
                         i += 2;
-                    }
-                    else
-                    {
+                        break;
+                    case string s:
                         lastKey = null;
-                        lastExpression = PropertyLookup.ForName((string)current);
-                    }
-                }
-                else if (current is Expression)
-                {
-                    lastKey = null;
-                    lastExpression = (Expression)current;
-                    i += 1;
+                        lastExpression = PropertyLookup.ForName(s);
+                        i += 1;
+                        break;
+                    case Expression expression:
+                        lastKey = null;
+                        lastExpression = expression;
+                        i += 1;
+                        break;
                 }
 
                 if (lastExpression is Asterisk)
@@ -87,31 +80,31 @@ namespace HotChocolate.Data.Neo4J.Language
                     newContent.Add(new KeyValueMapEntry(lastKey, lastExpression));
                     knownKeys.Add(lastKey);
                 }
-                else if (lastExpression is SymbolicName || lastExpression is PropertyLookup)
+                else switch (lastExpression)
                 {
-                    newContent.Add(lastExpression);
-                }
-                else if (lastExpression is Property)
-                {
-                    List<PropertyLookup> names = ((Property)lastExpression).GetNames();
-                    if (names.Count > 1)
+                    case SymbolicName:
+                    case PropertyLookup:
+                        newContent.Add(lastExpression);
+                        break;
+                    case Property property:
                     {
-                        throw new InvalidOperationException("Cannot project nested properties");
+                        List<PropertyLookup> names = property.GetNames();
+                        if (names.Count > 1)
+                        {
+                            throw new InvalidOperationException("Cannot project nested properties");
+                        }
+                        newContent.AddRange(names);
+                        break;
                     }
-                    newContent.AddRange(names);
-                }
-                else if (lastExpression is AliasedExpression)
-                {
-                    AliasedExpression aliasedExpression = (AliasedExpression)lastExpression;
-                    newContent.Add(new KeyValueMapEntry(aliasedExpression.GetAlias(), aliasedExpression));
-                }
-                else if (lastExpression == null)
-                {
-                    throw new InvalidOperationException("Could not determine an expression from the given content!");
-                }
-                else
-                {
-                    throw new InvalidOperationException(lastExpression + " of type " + " cannot be used with an implicit name as map entry.");
+                    case AliasedExpression expression:
+                    {
+                        newContent.Add(new KeyValueMapEntry(expression.GetAlias(), expression));
+                        break;
+                    }
+                    case null:
+                        throw new InvalidOperationException("Could not determine an expression from the given content!");
+                    default:
+                        throw new InvalidOperationException(lastExpression + " of type " + " cannot be used with an implicit name as map entry.");
                 }
                 lastKey = null;
                 lastExpression = null;

@@ -21,7 +21,7 @@ namespace HotChocolate.Data.Neo4J.Language
         private readonly List<NodeLabel>? _labels;
         private readonly Properties? _properties;
         public SymbolicName? GetSymbolicName() => _symbolicName;
-        public SymbolicName? GetRequiredSymbolicName() => _symbolicName;
+        public SymbolicName GetRequiredSymbolicName() => _symbolicName;
 
         private Node(string? primaryLabel, Properties? properties, params string[]? additionalLabels)
         {
@@ -98,7 +98,7 @@ namespace HotChocolate.Data.Neo4J.Language
             Project(entries.ToArray());
 
         public MapProjection Project(params object[] entries) =>
-            MapProjection.Create(GetRequiredSymbolicName(), entries);
+            GetRequiredSymbolicName().Project(entries);
 
         public static Node Create(string primaryLabel)
         {

@@ -55,9 +55,6 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.NestedExpression:
                     EnterVisitable((NestedExpression)visitable);
                     break;
-                case ClauseKind.KeyValueSeparator:
-                    EnterVisitable((KeyValueSeparator)visitable);
-                    break;
                 case ClauseKind.Return:
                     EnterVisitable((Return)visitable);
                     break;
@@ -90,6 +87,9 @@ namespace HotChocolate.Data.Neo4J.Language
                     break;
                 case ClauseKind.RelationshipLength:
                     EnterVisitable((RelationshipLength)visitable);
+                    break;
+                case ClauseKind.ListExpression:
+                    EnterVisitable((ListExpression)visitable);
                     break;
                 case ClauseKind.Expression:
                 case ClauseKind.Visitable:
@@ -126,8 +126,10 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.RelationshipChain:
                 case ClauseKind.RelationshipPatternCondition:
                 case ClauseKind.Statement:
-                    break;
+                case ClauseKind.ExpressionCondition:
+                case ClauseKind.HasLabelCondition:
 
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
