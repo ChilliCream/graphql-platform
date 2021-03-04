@@ -271,9 +271,9 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ReviewInput
     {
-        public global::System.Int32 Stars { get; set; }
+        public global::System.Int32 Stars { get; set; } = default!;
 
-        public global::System.String? Commentary { get; set; }
+        public global::System.String? Commentary { get; set; } = default!;
     }
 }
 
@@ -528,18 +528,25 @@ namespace Foo.Bar
         public global::StrawberryShake.IOperationResult<ICreateReviewMutResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
         {
             (ICreateReviewMutResult Result, CreateReviewMutResultInfo Info)? data = null;
+            global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
 
-            if (response.Body is not null
-                && response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement obj))
+            if (response.Body != null)
             {
-                data = BuildData(obj);
+                if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement))
+                {
+                    data = BuildData(dataElement);
+                }
+                if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
+                {
+                    errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                }
             }
 
             return new global::StrawberryShake.OperationResult<ICreateReviewMutResult>(
                 data?.Result,
                 data?.Info,
                 _resultDataFactory,
-                null);
+                errors);
         }
 
         private (ICreateReviewMutResult, CreateReviewMutResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
@@ -550,7 +557,7 @@ namespace Foo.Bar
 
             var resultInfo = new CreateReviewMutResultInfo(
                 DeserializeNonNullableICreateReviewMut_CreateReview(
-                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
                         "createReview")),
                 entityIds,
@@ -578,11 +585,11 @@ namespace Foo.Bar
                 return new global::Foo.Bar.State.ReviewData(
                     typename,
                     stars: DeserializeNonNullableInt32(
-                        global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                        global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                             obj,
                             "stars")),
                     commentary: DeserializeString(
-                        global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                        global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                             obj,
                             "commentary")));
             }

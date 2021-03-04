@@ -1,17 +1,22 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using ChilliCream.Testing;
 using HotChocolate;
 using HotChocolate.Language;
+using Snapshooter;
 using Snapshooter.Xunit;
 using StrawberryShake.CodeGeneration.Analyzers;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Utilities;
 using Xunit;
 using static StrawberryShake.CodeGeneration.CSharp.CSharpGenerator;
+using Path = HotChocolate.Path;
+using Snapshot = Snapshooter.Xunit.Snapshot;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -32,12 +37,22 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return result.Errors;
         }
 
-        public static void AssertResult(params string[] sourceTexts) =>
+        public static void AssertResult(
+            params string[] sourceTexts) =>
             AssertResult(true, sourceTexts);
 
-        public static void AssertResult(bool strictValidation, params string[] sourceTexts)
+        public static void AssertResult(
+            bool strictValidation,
+            params string[] sourceTexts) =>
+            AssertResult(
+                new AssertSettings { StrictValidation = strictValidation },
+                sourceTexts);
+
+        public static void AssertResult(
+            AssertSettings settings,
+            params string[] sourceTexts)
         {
-            ClientModel clientModel = CreateClientModel(sourceTexts, strictValidation);
+            ClientModel clientModel = CreateClientModel(sourceTexts, settings.StrictValidation);
 
             var documents = new StringBuilder();
             var documentNames = new HashSet<string>();
@@ -56,8 +71,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             CSharpGeneratorResult result = Generate(
                 clientModel,
-                @namespace: "Foo.Bar",
-                clientName: "FooClient");
+                @namespace: settings.Namespace ?? "Foo.Bar",
+                clientName: settings.ClientName ?? "FooClient");
 
             Assert.False(
                 result.Errors.Any(),
@@ -76,7 +91,17 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 documents.AppendLine();
             }
 
-            documents.ToString().MatchSnapshot();
+            if (settings.SnapshotFile is not null)
+            {
+                documents.ToString().MatchSnapshot(
+                    new SnapshotFullName(
+                        settings.SnapshotFile,
+                        Snapshot.FullName().FolderPath));
+            }
+            else
+            {
+                documents.ToString().MatchSnapshot();
+            }
 
             IReadOnlyList<Diagnostic> diagnostics =
                 CSharpCompiler.GetDiagnosticErrors(documents.ToString());
@@ -93,7 +118,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
         }
 
-        public static void AssertStarWarsResult(params string[] sourceTexts)
+        public static void AssertStarWarsResult(
+            params string[] sourceTexts) =>
+            AssertStarWarsResult(
+                new AssertSettings { StrictValidation = true },
+                sourceTexts);
+
+
+        public static void AssertStarWarsResult(
+            AssertSettings settings,
+            params string[] sourceTexts)
         {
             var source = new string[sourceTexts.Length + 2];
 
@@ -107,7 +141,35 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 destinationIndex: 2,
                 length: sourceTexts.Length);
 
-            AssertResult(source);
+            AssertResult(settings, source);
+        }
+
+        public static AssertSettings CreateIntegrationTest([CallerMemberName] string? testName = null)
+        {
+            SnapshotFullName snapshotFullName = Snapshot.FullName();
+            string testFile = System.IO.Path.Combine(
+                snapshotFullName.FolderPath,
+                testName + "Test.cs");
+            string ns = "StrawberryShake.CodeGeneration.CSharp.Integration." + testName;
+
+            if (!File.Exists(testFile))
+            {
+                File.WriteAllText(
+                    testFile,
+                    FileResource.Open("TestTemplate.txt")
+                        .Replace("{TestName}", testName)
+                        .Replace("{Namespace}", ns));
+            }
+
+            return new AssertSettings
+            {
+                ClientName = testName! + "Client",
+                Namespace = ns,
+                StrictValidation = true,
+                SnapshotFile = System.IO.Path.Combine(
+                    snapshotFullName.FolderPath,
+                    testName + "Test.Client.cs")
+            };
         }
 
         private static ClientModel CreateClientModel(string[] sourceText, bool strictValidation)
@@ -129,6 +191,17 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
 
             return analyzer.Analyze();
+        }
+
+        public class AssertSettings
+        {
+            public string? ClientName { get; set; }
+
+            public string? Namespace { get; set; }
+
+            public bool StrictValidation { get; set; }
+
+            public string? SnapshotFile { get; set; }
         }
     }
 }

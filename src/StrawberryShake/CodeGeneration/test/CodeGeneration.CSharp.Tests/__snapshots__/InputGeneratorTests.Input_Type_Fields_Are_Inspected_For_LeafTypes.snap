@@ -397,9 +397,9 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ChangeHomePlanetInput
     {
-        public global::System.Int32 Id { get; set; }
+        public global::System.Int32 Id { get; set; } = default!;
 
-        public global::System.String HomePlanet { get; set; }
+        public global::System.String HomePlanet { get; set; } = default!;
     }
 }
 
@@ -580,18 +580,25 @@ namespace Foo.Bar
         public global::StrawberryShake.IOperationResult<IChangeHomePlanetResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
         {
             (IChangeHomePlanetResult Result, ChangeHomePlanetResultInfo Info)? data = null;
+            global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
 
-            if (response.Body is not null
-                && response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement obj))
+            if (response.Body != null)
             {
-                data = BuildData(obj);
+                if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement))
+                {
+                    data = BuildData(dataElement);
+                }
+                if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
+                {
+                    errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                }
             }
 
             return new global::StrawberryShake.OperationResult<IChangeHomePlanetResult>(
                 data?.Result,
                 data?.Info,
                 _resultDataFactory,
-                null);
+                errors);
         }
 
         private (IChangeHomePlanetResult, ChangeHomePlanetResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
@@ -602,7 +609,7 @@ namespace Foo.Bar
 
             var resultInfo = new ChangeHomePlanetResultInfo(
                 DeserializeNonNullableIChangeHomePlanet_ChangeHomePlanet(
-                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
                         "changeHomePlanet"),
                     entityIds),
@@ -633,7 +640,7 @@ namespace Foo.Bar
                 return new global::Foo.Bar.State.ChangeHomePlanetPayloadData(
                     typename,
                     human: UpdateNonNullableIChangeHomePlanet_ChangeHomePlanet_HumanEntity(
-                        global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                        global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                             obj,
                             "human"),
                         entityIds));
@@ -661,7 +668,7 @@ namespace Foo.Bar
             {
                 HumanEntity entity = _entityStore.GetOrCreate<HumanEntity>(entityId);
                 entity.HomePlanet = DeserializeString(
-                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
                         "homePlanet"));
 

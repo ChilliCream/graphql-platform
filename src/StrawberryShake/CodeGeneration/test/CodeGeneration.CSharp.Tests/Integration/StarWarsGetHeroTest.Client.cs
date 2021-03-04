@@ -9,89 +9,135 @@
 // ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
 
-// SearchSomethingResultFactory
+// DroidEntity
+
+// StrawberryShake.CodeGeneration.CSharp.EntityTypeGenerator
+
+#nullable enable
+
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class DroidEntity
+    {
+        public global::System.String Name { get; set; } = default!;
+    }
+}
+
+
+// HumanEntity
+
+// StrawberryShake.CodeGeneration.CSharp.EntityTypeGenerator
+
+#nullable enable
+
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class HumanEntity
+    {
+        public global::System.String Name { get; set; } = default!;
+    }
+}
+
+
+// GetHeroResultFactory
 
 // StrawberryShake.CodeGeneration.CSharp.ResultDataFactoryGenerator
 
 #nullable enable
 
-namespace Foo.Bar
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class SearchSomethingResultFactory
-        : global::StrawberryShake.IOperationResultDataFactory<SearchSomethingResult>
+    public partial class GetHeroResultFactory
+        : global::StrawberryShake.IOperationResultDataFactory<GetHeroResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityMapper<DroidEntity, GetHero_Hero_Droid> _getHero_Hero_DroidFromDroidEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<HumanEntity, GetHero_Hero_Human> _getHero_Hero_HumanFromHumanEntityMapper;
 
-        public SearchSomethingResultFactory(global::StrawberryShake.IEntityStore entityStore)
+        public GetHeroResultFactory(
+            global::StrawberryShake.IEntityStore entityStore,
+            global::StrawberryShake.IEntityMapper<DroidEntity, GetHero_Hero_Droid> getHero_Hero_DroidFromDroidEntityMapper,
+            global::StrawberryShake.IEntityMapper<HumanEntity, GetHero_Hero_Human> getHero_Hero_HumanFromHumanEntityMapper)
         {
             _entityStore = entityStore
                  ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _getHero_Hero_DroidFromDroidEntityMapper = getHero_Hero_DroidFromDroidEntityMapper
+                 ?? throw new global::System.ArgumentNullException(nameof(getHero_Hero_DroidFromDroidEntityMapper));
+            _getHero_Hero_HumanFromHumanEntityMapper = getHero_Hero_HumanFromHumanEntityMapper
+                 ?? throw new global::System.ArgumentNullException(nameof(getHero_Hero_HumanFromHumanEntityMapper));
         }
 
-        public SearchSomethingResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo)
+        public GetHeroResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo)
         {
-            if (dataInfo is SearchSomethingResultInfo info)
+            if (dataInfo is GetHeroResultInfo info)
             {
-                return new SearchSomethingResult(MapISearchResultData(info.Search));
+                return new GetHeroResult(MapIGetHero_Hero(info.Hero));
             }
 
-            throw new global::System.ArgumentException("SearchSomethingResultInfo expected.");
+            throw new global::System.ArgumentException("GetHeroResultInfo expected.");
         }
 
-        private ISearchSomething_Search? MapISearchResultData(global::Foo.Bar.State.ISearchResultData data)
+        private IGetHero_Hero? MapIGetHero_Hero(global::StrawberryShake.EntityId? entityId)
         {
-            if (data == default)
+            if (entityId == default)
             {
                 return null;
             }
 
-            ISearchSomething_Search returnValue = default!;
 
-            if (data is global::Foo.Bar.State.AuthorData author)
+            if (entityId.Value.Name.Equals(
+                    "Droid",
+                    global::System.StringComparison.Ordinal))
             {
-                returnValue = new global::Foo.Bar.SearchSomething_Search_Author(author.Name);
+                return _getHero_Hero_DroidFromDroidEntityMapper.Map(
+                    _entityStore.GetEntity<DroidEntity>(entityId.Value)
+                        ?? throw new global::StrawberryShake.GraphQLClientException());
             }
-            else if (data is global::Foo.Bar.State.BookData book)
+
+            if (entityId.Value.Name.Equals(
+                    "Human",
+                    global::System.StringComparison.Ordinal))
             {
-                returnValue = new global::Foo.Bar.SearchSomething_Search_Book(book.Title);
+                return _getHero_Hero_HumanFromHumanEntityMapper.Map(
+                    _entityStore.GetEntity<HumanEntity>(entityId.Value)
+                        ?? throw new global::StrawberryShake.GraphQLClientException());
             }
-            else {
-                throw new global::System.NotSupportedException();
-            }
-            return returnValue;
+            throw new global::System.NotSupportedException();
         }
     }
 }
 
 
-// SearchSomethingResultInfo
+// GetHeroResultInfo
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInfoGenerator
 
 #nullable enable
 
-namespace Foo.Bar
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class SearchSomethingResultInfo
+    public partial class GetHeroResultInfo
         : global::StrawberryShake.IOperationResultDataInfo
     {
         private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
         private readonly global::System.UInt64 _version;
 
-        public SearchSomethingResultInfo(
-            global::Foo.Bar.State.ISearchResultData? search,
+        public GetHeroResultInfo(
+            global::StrawberryShake.EntityId? hero,
             global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds,
             global::System.UInt64 version)
         {
-            Search = search;
+            Hero = hero;
             _entityIds = entityIds
                  ?? throw new global::System.ArgumentNullException(nameof(entityIds));
             _version = version;
         }
 
-        public global::Foo.Bar.State.ISearchResultData? Search { get; }
+        public global::StrawberryShake.EntityId? Hero { get; }
 
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
 
@@ -99,8 +145,8 @@ namespace Foo.Bar
 
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
-            return new SearchSomethingResultInfo(
-                Search,
+            return new GetHeroResultInfo(
+                Hero,
                 _entityIds,
                 version);
         }
@@ -108,41 +154,61 @@ namespace Foo.Bar
 }
 
 
-// SearchSomethingResult
+// GetHeroResult
 
 // StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
 
 #nullable enable
 
-namespace Foo.Bar
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class SearchSomethingResult
-        : ISearchSomethingResult
+    public partial class GetHeroResult
+        : IGetHeroResult
     {
-        public SearchSomethingResult(ISearchSomething_Search? search)
+        public GetHeroResult(IGetHero_Hero? hero)
         {
-            Search = search;
+            Hero = hero;
         }
 
-        public ISearchSomething_Search? Search { get; } = default!;
+        public IGetHero_Hero? Hero { get; } = default!;
     }
 }
 
 
-// SearchSomething_Search_Author
+// GetHero_Hero_DroidFromDroidEntityMapper
+
+// StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
+
+#nullable enable
+
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetHero_Hero_DroidFromDroidEntityMapper
+        : global::StrawberryShake.IEntityMapper<DroidEntity, GetHero_Hero_Droid>
+    {
+        public GetHero_Hero_Droid Map(DroidEntity entity)
+        {
+            return new GetHero_Hero_Droid(entity.Name);
+        }
+    }
+}
+
+
+// GetHero_Hero_Droid
 
 // StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
 
 #nullable enable
 
-namespace Foo.Bar
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class SearchSomething_Search_Author
-        : ISearchSomething_Search_Author
+    public partial class GetHero_Hero_Droid
+        : IGetHero_Hero_Droid
     {
-        public SearchSomething_Search_Author(global::System.String name)
+        public GetHero_Hero_Droid(global::System.String name)
         {
             Name = name;
         }
@@ -152,130 +218,150 @@ namespace Foo.Bar
 }
 
 
-// SearchSomething_Search_Book
+// GetHero_Hero_HumanFromHumanEntityMapper
+
+// StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
+
+#nullable enable
+
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetHero_Hero_HumanFromHumanEntityMapper
+        : global::StrawberryShake.IEntityMapper<HumanEntity, GetHero_Hero_Human>
+    {
+        public GetHero_Hero_Human Map(HumanEntity entity)
+        {
+            return new GetHero_Hero_Human(entity.Name);
+        }
+    }
+}
+
+
+// GetHero_Hero_Human
 
 // StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
 
 #nullable enable
 
-namespace Foo.Bar
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class SearchSomething_Search_Book
-        : ISearchSomething_Search_Book
+    public partial class GetHero_Hero_Human
+        : IGetHero_Hero_Human
     {
-        public SearchSomething_Search_Book(global::System.String title)
+        public GetHero_Hero_Human(global::System.String name)
         {
-            Title = title;
+            Name = name;
         }
 
-        public global::System.String Title { get; }
+        public global::System.String Name { get; }
     }
 }
 
 
-// ISearchSomethingResult
+// IGetHeroResult
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 
 #nullable enable
 
-namespace Foo.Bar
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISearchSomethingResult
+    public interface IGetHeroResult
     {
-        public ISearchSomething_Search? Search { get; }
+        public IGetHero_Hero? Hero { get; }
     }
 }
 
 
-// ISearchSomething_Search
+// IGetHero_Hero
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 
 #nullable enable
 
-namespace Foo.Bar
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISearchSomething_Search
-    {
-    }
-}
-
-
-// ISearchSomething_Search_Author
-
-// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
-
-#nullable enable
-
-namespace Foo.Bar
-{
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISearchSomething_Search_Author
-        : ISearchSomething_Search
+    public interface IGetHero_Hero
     {
         public global::System.String Name { get; }
     }
 }
 
 
-// ISearchSomething_Search_Book
+// IGetHero_Hero_Droid
 
 // StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
 
 #nullable enable
 
-namespace Foo.Bar
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISearchSomething_Search_Book
-        : ISearchSomething_Search
+    public interface IGetHero_Hero_Droid
+        : IGetHero_Hero
     {
-        public global::System.String Title { get; }
     }
 }
 
 
-// SearchSomethingQueryDocument
+// IGetHero_Hero_Human
+
+// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+
+#nullable enable
+
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IGetHero_Hero_Human
+        : IGetHero_Hero
+    {
+    }
+}
+
+
+// GetHeroQueryDocument
 
 // StrawberryShake.CodeGeneration.CSharp.OperationDocumentGenerator
 
 #nullable enable
 
-namespace Foo.Bar
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
 {
     /// <summary>
-    /// Represents the operation service of the SearchSomething GraphQL operation
+    /// Represents the operation service of the GetHero GraphQL operation
     /// <code>
-    /// query SearchSomething {
-    ///   search {
+    /// query GetHero {
+    ///   hero(episode: NEW_HOPE) {
     ///     __typename
-    ///     ... on Author {
-    ///       name
+    ///     name
+    ///     ... on Droid {
+    ///       id
     ///     }
-    ///     ... on Book {
-    ///       title
+    ///     ... on Human {
+    ///       id
     ///     }
     ///   }
     /// }
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class SearchSomethingQueryDocument
+    public partial class GetHeroQueryDocument
         : global::StrawberryShake.IDocument
     {
-        private SearchSomethingQueryDocument()
+        private GetHeroQueryDocument()
         {
         }
 
-        public static SearchSomethingQueryDocument Instance { get; } = new SearchSomethingQueryDocument();
+        public static GetHeroQueryDocument Instance { get; } = new GetHeroQueryDocument();
 
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
 
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{ 0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x53, 0x6f, 0x6d, 0x65, 0x74, 0x68, 0x69, 0x6e, 0x67, 0x20, 0x7b, 0x0a, 0x20, 0x20, 0x73, 0x65, 0x61, 0x72, 0x63, 0x68, 0x20, 0x7b, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x41, 0x75, 0x74, 0x68, 0x6f, 0x72, 0x20, 0x7b, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x7d, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x42, 0x6f, 0x6f, 0x6b, 0x20, 0x7b, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x7d, 0x0a, 0x20, 0x20, 0x7d, 0x0a, 0x7d };
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{ 0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x47, 0x65, 0x74, 0x48, 0x65, 0x72, 0x6f, 0x20, 0x7b, 0x0a, 0x20, 0x20, 0x68, 0x65, 0x72, 0x6f, 0x28, 0x65, 0x70, 0x69, 0x73, 0x6f, 0x64, 0x65, 0x3a, 0x20, 0x4e, 0x45, 0x57, 0x5f, 0x48, 0x4f, 0x50, 0x45, 0x29, 0x20, 0x7b, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x44, 0x72, 0x6f, 0x69, 0x64, 0x20, 0x7b, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x69, 0x64, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x7d, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x48, 0x75, 0x6d, 0x61, 0x6e, 0x20, 0x7b, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x69, 0x64, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x7d, 0x0a, 0x20, 0x20, 0x7d, 0x0a, 0x7d };
 
         public override global::System.String ToString()
         {
@@ -285,42 +371,43 @@ namespace Foo.Bar
 }
 
 
-// SearchSomethingQuery
+// GetHeroQuery
 
 // StrawberryShake.CodeGeneration.CSharp.OperationServiceGenerator
 
 #nullable enable
 
-namespace Foo.Bar
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
 {
     /// <summary>
-    /// Represents the operation service of the SearchSomething GraphQL operation
+    /// Represents the operation service of the GetHero GraphQL operation
     /// <code>
-    /// query SearchSomething {
-    ///   search {
+    /// query GetHero {
+    ///   hero(episode: NEW_HOPE) {
     ///     __typename
-    ///     ... on Author {
-    ///       name
+    ///     name
+    ///     ... on Droid {
+    ///       id
     ///     }
-    ///     ... on Book {
-    ///       title
+    ///     ... on Human {
+    ///       id
     ///     }
     ///   }
     /// }
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class SearchSomethingQuery
+    public partial class GetHeroQuery
     {
-        private readonly global::StrawberryShake.IOperationExecutor<ISearchSomethingResult> _operationExecutor;
+        private readonly global::StrawberryShake.IOperationExecutor<IGetHeroResult> _operationExecutor;
 
-        public SearchSomethingQuery(global::StrawberryShake.IOperationExecutor<ISearchSomethingResult> operationExecutor)
+        public GetHeroQuery(global::StrawberryShake.IOperationExecutor<IGetHeroResult> operationExecutor)
         {
             _operationExecutor = operationExecutor
                  ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
         }
 
-        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ISearchSomethingResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default)
+        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetHeroResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest();
 
@@ -331,7 +418,7 @@ namespace Foo.Bar
                 .ConfigureAwait(false);
         }
 
-        public global::System.IObservable<global::StrawberryShake.IOperationResult<ISearchSomethingResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null)
+        public global::System.IObservable<global::StrawberryShake.IOperationResult<IGetHeroResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null)
         {
             var request = CreateRequest();
             return _operationExecutor.Watch(
@@ -343,34 +430,34 @@ namespace Foo.Bar
         {
 
             return new global::StrawberryShake.OperationRequest(
-                "SearchSomething",
-                SearchSomethingQueryDocument.Instance);
+                "GetHero",
+                GetHeroQueryDocument.Instance);
         }
     }
 }
 
 
-// SearchSomethingBuilder
+// GetHeroBuilder
 
 // StrawberryShake.CodeGeneration.CSharp.JsonResultBuilderGenerator
 
 #nullable enable
 
-namespace Foo.Bar
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class SearchSomethingBuilder
-        : global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, ISearchSomethingResult>
+    public partial class GetHeroBuilder
+        : global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, IGetHeroResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
-        private readonly global::StrawberryShake.IOperationResultDataFactory<ISearchSomethingResult> _resultDataFactory;
+        private readonly global::StrawberryShake.IOperationResultDataFactory<IGetHeroResult> _resultDataFactory;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
 
-        public SearchSomethingBuilder(
+        public GetHeroBuilder(
             global::StrawberryShake.IEntityStore entityStore,
             global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> extractId,
-            global::StrawberryShake.IOperationResultDataFactory<ISearchSomethingResult> resultDataFactory,
+            global::StrawberryShake.IOperationResultDataFactory<IGetHeroResult> resultDataFactory,
             global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _entityStore = entityStore
@@ -383,9 +470,9 @@ namespace Foo.Bar
                  ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
         }
 
-        public global::StrawberryShake.IOperationResult<ISearchSomethingResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
+        public global::StrawberryShake.IOperationResult<IGetHeroResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
         {
-            (ISearchSomethingResult Result, SearchSomethingResultInfo Info)? data = null;
+            (IGetHeroResult Result, GetHeroResultInfo Info)? data = null;
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
 
             if (response.Body != null)
@@ -400,24 +487,26 @@ namespace Foo.Bar
                 }
             }
 
-            return new global::StrawberryShake.OperationResult<ISearchSomethingResult>(
+            return new global::StrawberryShake.OperationResult<IGetHeroResult>(
                 data?.Result,
                 data?.Info,
                 _resultDataFactory,
                 errors);
         }
 
-        private (ISearchSomethingResult, SearchSomethingResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
+        private (IGetHeroResult, GetHeroResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
         {
             using global::StrawberryShake.IEntityUpdateSession session = _entityStore.BeginUpdate();
             var entityIds = new global::System.Collections.Generic.HashSet<global::StrawberryShake.EntityId>();
 
+            global::StrawberryShake.EntityId? heroId = UpdateIGetHero_HeroEntity(
+                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                    obj,
+                    "hero"),
+                entityIds);
 
-            var resultInfo = new SearchSomethingResultInfo(
-                DeserializeISearchResultData(
-                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                        obj,
-                        "search")),
+            var resultInfo = new GetHeroResultInfo(
+                heroId,
                 entityIds,
                 session.Version);
 
@@ -427,35 +516,43 @@ namespace Foo.Bar
             );
         }
 
-        private global::Foo.Bar.State.ISearchResultData? DeserializeISearchResultData(global::System.Text.Json.JsonElement? obj)
+        private global::StrawberryShake.EntityId? UpdateIGetHero_HeroEntity(
+            global::System.Text.Json.JsonElement? obj,
+            global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
             if (!obj.HasValue)
             {
                 return null;
             }
 
-            var typename = obj.Value
-                .GetProperty("__typename")
-                .GetString();
+            global::StrawberryShake.EntityId entityId = _extractId(obj.Value);
+            entityIds.Add(entityId);
 
-            if (typename?.Equals("Author", global::System.StringComparison.Ordinal) ?? false)
+
+            if (entityId.Name.Equals(
+                    "Droid",
+                    global::System.StringComparison.Ordinal))
             {
-                return new global::Foo.Bar.State.AuthorData(
-                    typename,
-                    name: DeserializeNonNullableString(
-                        global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                            obj,
-                            "name")));
+                DroidEntity entity = _entityStore.GetOrCreate<DroidEntity>(entityId);
+                entity.Name = DeserializeNonNullableString(
+                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                        obj,
+                        "name"));
+
+                return entityId;
             }
 
-            if (typename?.Equals("Book", global::System.StringComparison.Ordinal) ?? false)
+            if (entityId.Name.Equals(
+                    "Human",
+                    global::System.StringComparison.Ordinal))
             {
-                return new global::Foo.Bar.State.BookData(
-                    typename,
-                    title: DeserializeNonNullableString(
-                        global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                            obj,
-                            "title")));
+                HumanEntity entity = _entityStore.GetOrCreate<HumanEntity>(entityId);
+                entity.Name = DeserializeNonNullableString(
+                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                        obj,
+                        "name"));
+
+                return entityId;
             }
 
             throw new global::System.NotSupportedException();
@@ -474,120 +571,31 @@ namespace Foo.Bar
 }
 
 
-// ISearchResultData
-
-// StrawberryShake.CodeGeneration.CSharp.DataTypeGenerator
-
-#nullable enable
-
-namespace Foo.Bar.State
-{
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISearchResultData
-    {
-        public global::System.String __typename { get; }
-    }
-}
-
-
-// AuthorData
-
-// StrawberryShake.CodeGeneration.CSharp.DataTypeGenerator
-
-#nullable enable
-
-namespace Foo.Bar.State
-{
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class AuthorData
-        : ISearchResultData
-    {
-        public AuthorData(
-            global::System.String typename,
-            global::System.String? name = null)
-        {
-            __typename = typename
-                 ?? throw new global::System.ArgumentNullException(nameof(typename));
-            Name = name;
-        }
-
-        public global::System.String __typename { get; }
-
-        public global::System.String? Name { get; }
-    }
-}
-
-
-// IPrintData
-
-// StrawberryShake.CodeGeneration.CSharp.DataTypeGenerator
-
-#nullable enable
-
-namespace Foo.Bar.State
-{
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IPrintData
-    {
-        public global::System.String __typename { get; }
-    }
-}
-
-
-// BookData
-
-// StrawberryShake.CodeGeneration.CSharp.DataTypeGenerator
-
-#nullable enable
-
-namespace Foo.Bar.State
-{
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class BookData
-        : ISearchResultData
-        , IPrintData
-    {
-        public BookData(
-            global::System.String typename,
-            global::System.String? title = null)
-        {
-            __typename = typename
-                 ?? throw new global::System.ArgumentNullException(nameof(typename));
-            Title = title;
-        }
-
-        public global::System.String __typename { get; }
-
-        public global::System.String? Title { get; }
-    }
-}
-
-
-// FooClient
+// StarWarsGetHeroClient
 
 // StrawberryShake.CodeGeneration.CSharp.ClientGenerator
 
 #nullable enable
 
-namespace Foo.Bar
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
 {
     /// <summary>
-    /// Represents the FooClient GraphQL client
+    /// Represents the StarWarsGetHeroClient GraphQL client
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class FooClient
+    public partial class StarWarsGetHeroClient
     {
-        private readonly global::Foo.Bar.SearchSomethingQuery _searchSomething;
+        private readonly global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.GetHeroQuery _getHero;
 
-        public FooClient(global::Foo.Bar.SearchSomethingQuery searchSomething)
+        public StarWarsGetHeroClient(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.GetHeroQuery getHero)
         {
-            _searchSomething = searchSomething
-                 ?? throw new global::System.ArgumentNullException(nameof(searchSomething));
+            _getHero = getHero
+                 ?? throw new global::System.ArgumentNullException(nameof(getHero));
         }
 
-        public static global::System.String ClientName => "FooClient";
+        public static global::System.String ClientName => "StarWarsGetHeroClient";
 
-        public global::Foo.Bar.SearchSomethingQuery SearchSomething => _searchSomething;
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.GetHeroQuery GetHero => _getHero;
     }
 }
 
@@ -598,7 +606,7 @@ namespace Foo.Bar
 
 #nullable enable
 
-namespace Foo.Bar
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class EntityIdFactory
@@ -611,14 +619,42 @@ namespace Foo.Bar
 
             return typeName switch
             {
+                "Droid" => CreateDroidEntityId(
+                    obj,
+                    typeName),
+                "Human" => CreateHumanEntityId(
+                    obj,
+                    typeName),
                 _ => throw new global::System.NotSupportedException()
             };
+        }
+
+        private static global::StrawberryShake.EntityId CreateDroidEntityId(
+            global::System.Text.Json.JsonElement obj,
+            global::System.String type)
+        {
+            return new global::StrawberryShake.EntityId(
+                type,
+                obj
+                    .GetProperty("id")
+                    .GetString()!);
+        }
+
+        private static global::StrawberryShake.EntityId CreateHumanEntityId(
+            global::System.Text.Json.JsonElement obj,
+            global::System.String type)
+        {
+            return new global::StrawberryShake.EntityId(
+                type,
+                obj
+                    .GetProperty("id")
+                    .GetString()!);
         }
     }
 }
 
 
-// FooClientServiceCollectionExtensions
+// StarWarsGetHeroClientServiceCollectionExtensions
 
 // StrawberryShake.CodeGeneration.CSharp.DependencyInjectionGenerator
 
@@ -627,9 +663,9 @@ namespace Foo.Bar
 namespace Microsoft.Extensions.DependencyInjection
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public static partial class FooClientServiceCollectionExtensions
+    public static partial class StarWarsGetHeroClientServiceCollectionExtensions
     {
-        public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddFooClient(
+        public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddStarWarsGetHeroClient(
             this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
             global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
@@ -650,12 +686,12 @@ namespace Microsoft.Extensions.DependencyInjection
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.SearchSomethingQuery>(
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.GetHeroQuery>(
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.FooClient>(
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.StarWarsGetHeroClient>(
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
 
             return services;
@@ -672,7 +708,7 @@ namespace Microsoft.Extensions.DependencyInjection
             }
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId>>(
                 services,
-                global::Foo.Bar.EntityIdFactory.CreateEntityId);
+                global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.EntityIdFactory.CreateEntityId);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IEntityStore, global::StrawberryShake.EntityStore>(services);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IOperationStore>(
                 services,
@@ -684,9 +720,11 @@ namespace Microsoft.Extensions.DependencyInjection
                 sp => 
                 {
                     var clientFactory = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Net.Http.IHttpClientFactory>(parentServices);
-                    return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("FooClient"));
+                    return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("StarWarsGetHeroClient"));
                 });
 
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.DroidEntity, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.GetHero_Hero_Droid>, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.GetHero_Hero_DroidFromDroidEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.HumanEntity, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.GetHero_Hero_Human>, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.GetHero_Hero_HumanFromHumanEntityMapper>(services);
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.StringSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.BooleanSerializer>(services);
@@ -712,17 +750,17 @@ namespace Microsoft.Extensions.DependencyInjection
                         global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(
                             sp))));
 
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.ISearchSomethingResult>, global::Foo.Bar.SearchSomethingResultFactory>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.ISearchSomethingResult>, global::Foo.Bar.SearchSomethingBuilder>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::Foo.Bar.ISearchSomethingResult>>(
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.IGetHeroResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.GetHeroResultFactory>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.IGetHeroResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.GetHeroBuilder>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.IGetHeroResult>>(
                 services,
-                sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::Foo.Bar.ISearchSomethingResult>(
+                sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.IGetHeroResult>(
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.Http.HttpConnection>(sp),
-                    () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.ISearchSomethingResult>>(sp),
+                    () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.IGetHeroResult>>(sp),
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
                     strategy));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.SearchSomethingQuery>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.FooClient>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.GetHeroQuery>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.StarWarsGetHeroClient>(services);
             return services;
         }
 

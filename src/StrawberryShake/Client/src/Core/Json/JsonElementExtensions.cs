@@ -1,10 +1,10 @@
 using System.Text.Json;
 
-namespace StrawberryShake.Transport.Http
+namespace StrawberryShake.Json
 {
     public static class JsonElementExtensions
     {
-        public static JsonElement? GetPropertyOrNull(JsonElement jsonElement, string key)
+        public static JsonElement? GetPropertyOrNull(this JsonElement jsonElement, string key)
         {
             if (jsonElement.TryGetProperty(key, out JsonElement property) &&
                 property.ValueKind != JsonValueKind.Null)
@@ -15,7 +15,7 @@ namespace StrawberryShake.Transport.Http
             return null;
         }
 
-        public static JsonElement? GetPropertyOrNull(JsonElement? jsonElement, string key)
+        public static JsonElement? GetPropertyOrNull(this JsonElement? jsonElement, string key)
         {
             if (jsonElement.HasValue)
             {

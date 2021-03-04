@@ -4,10 +4,9 @@ using System.Runtime.Serialization;
 using System.Text;
 using Snapshooter;
 using Snapshooter.Xunit;
-using StrawberryShake.Transport.WebSockets.Protocol;
 using Xunit;
 
-namespace StrawberryShake.Transport.WebSockets
+namespace StrawberryShake.Transport.WebSockets.Protocols
 {
     public class GraphQLWebSocketMessageParserTests
     {
