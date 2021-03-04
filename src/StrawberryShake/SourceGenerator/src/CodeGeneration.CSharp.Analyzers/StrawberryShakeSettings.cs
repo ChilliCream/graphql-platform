@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using StrawberryShake.CodeGeneration.Descriptors.Operations;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
@@ -17,5 +18,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
         public string? HashAlgorithm { get; set; }
 
         public RequestStrategy RequestStrategy { get; set; } = RequestStrategy.Default;
+
+        public List<StrawberryShakeTransportSettings>? TransportProfiles { get; set; }
     }
 }
