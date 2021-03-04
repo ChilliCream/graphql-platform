@@ -10,6 +10,8 @@ using HotChocolate.Language;
 using HotChocolate.Validation;
 using StrawberryShake.CodeGeneration.Analyzers;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
+using StrawberryShake.CodeGeneration.CSharp.Generators;
+using StrawberryShake.CodeGeneration.Descriptors;
 using StrawberryShake.CodeGeneration.Mappers;
 using StrawberryShake.CodeGeneration.Utilities;
 using StrawberryShake.Properties;
@@ -162,7 +164,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
             var context = new MapperContext(
                 settings.Namespace,
                 settings.ClientName,
-                settings.HashProvider);
+                settings.HashProvider,
+                settings.RequestStrategy);
 
             // First we run all mappers that do not have any dependencies on others.
             EntityIdFactoryDescriptorMapper.Map(clientModel, context);

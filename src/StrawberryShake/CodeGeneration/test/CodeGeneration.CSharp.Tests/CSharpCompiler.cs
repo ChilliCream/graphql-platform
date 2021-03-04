@@ -15,6 +15,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
     internal static class CSharpCompiler
     {
         // we pin these types so that they are added to this assembly
+#pragma warning disable 414
         private static readonly EntityId? _entityId = null!;
         private static readonly JsonDocument? _jsonDocument = null!;
         private static readonly HttpConnection? _httpConnection = null!;
@@ -22,6 +23,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private static readonly ServiceCollection? _serviceCollection = null!;
         private static readonly IHttpClientFactory? _httpClientFactory = null!;
         private static readonly HttpClient? _httpClient = null!;
+#pragma warning restore 414
 
         private static readonly CSharpCompilationOptions _options =
             new(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Debug);
@@ -47,7 +49,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
 
             SyntaxTree[] syntaxTree = new SyntaxTree[sourceText.Length];
-            for (int i = 0; i < sourceText.Length; i++)
+            for (var i = 0; i < sourceText.Length; i++)
             {
                 syntaxTree[i] = SyntaxFactory.ParseSyntaxTree(
                     SourceText.From(sourceText[i]));

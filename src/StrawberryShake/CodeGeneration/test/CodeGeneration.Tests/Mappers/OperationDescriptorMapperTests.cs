@@ -41,7 +41,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
             var context = new MapperContext(
                 "Foo.Bar",
                 "FooClient",
-                new Sha1DocumentHashProvider());
+                new Sha1DocumentHashProvider(),
+                Descriptors.Operations.RequestStrategy.Default);
             TypeDescriptorMapper.Map(clientModel, context);
             OperationDescriptorMapper.Map(clientModel, context);
 

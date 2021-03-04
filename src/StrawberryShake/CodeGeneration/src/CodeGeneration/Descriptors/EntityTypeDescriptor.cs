@@ -1,9 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate;
-using static StrawberryShake.CodeGeneration.NamingConventions;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
+using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 
-namespace StrawberryShake.CodeGeneration
+namespace StrawberryShake.CodeGeneration.Descriptors
 {
     public class EntityTypeDescriptor : ICodeDescriptor
     {

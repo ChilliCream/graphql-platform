@@ -1,8 +1,9 @@
 using System.Linq;
 using System.Text.Json;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
+using StrawberryShake.CodeGeneration.Descriptors;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public class EntityIdFactoryGenerator : CodeGenerator<EntityIdFactoryDescriptor>
     {

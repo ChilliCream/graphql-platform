@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using HotChocolate;
-using static StrawberryShake.CodeGeneration.NamingConventions;
+using HotChocolate.Execution.Options;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
+using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 
-namespace StrawberryShake.CodeGeneration
+namespace StrawberryShake.CodeGeneration.Descriptors.Operations
 {
     /// <summary>
     /// Describes a GraphQL query
@@ -17,7 +19,8 @@ namespace StrawberryShake.CodeGeneration
             byte[] body,
             string bodyString,
             string hashAlgorithm,
-            string hashValue)
+            string hashValue,
+            RequestStrategy strategy)
             : base(
                 name,
                 new RuntimeTypeInfo(CreateQueryServiceName(name), @namespace),
@@ -26,7 +29,8 @@ namespace StrawberryShake.CodeGeneration
                 body,
                 bodyString,
                 hashAlgorithm,
-                hashValue)
+                hashValue,
+                strategy)
         {
         }
     }

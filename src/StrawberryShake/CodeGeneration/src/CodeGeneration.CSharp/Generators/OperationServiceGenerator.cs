@@ -4,14 +4,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
+using StrawberryShake.CodeGeneration.Descriptors.Operations;
 using StrawberryShake.CodeGeneration.Extensions;
 using StrawberryShake.CodeGeneration.Properties;
-using StrawberryShake.Serialization;
-using static StrawberryShake.CodeGeneration.CSharp.InputValueFormatterGenerator;
-using static StrawberryShake.CodeGeneration.NamingConventions;
+using static StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator;
+using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
     {
@@ -125,7 +125,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                         .Inline()
                                         .SetMethodName(
                                             _serializerResolver,
-                                            nameof(ISerializerResolver.GetInputValueFormatter))
+                                            "GetInputValueFormatter")
                                         .AddArgument(name.AsStringToken())));
 
                     classBuilder
@@ -194,7 +194,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     MethodCallBuilder
                         .New()
                         .SetReturn()
-                        .SetMethodName(_operationExecutor, nameof(IOperationExecutor<object>.Watch))
+                        .SetMethodName(_operationExecutor, "Watch")
                         .AddArgument(_request)
                         .AddArgument(_strategy));
         }
@@ -237,9 +237,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         .New()
                         .SetReturn()
                         .SetAwait()
-                        .SetMethodName(
-                            _operationExecutor,
-                            nameof(IOperationExecutor<object>.ExecuteAsync))
+                        .SetMethodName(_operationExecutor, "ExecuteAsync")
                         .AddArgument(_request)
                         .AddArgument(_cancellationToken)
                         .Chain(x => x

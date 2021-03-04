@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using HotChocolate;
-using StrawberryShake.CodeGeneration.Properties;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
-namespace StrawberryShake.CodeGeneration
+namespace StrawberryShake.CodeGeneration.Descriptors.Operations
 {
     /// <summary>
     /// Describes a GraphQL operation
@@ -17,7 +17,8 @@ namespace StrawberryShake.CodeGeneration
             byte[] body,
             string bodyString,
             string hashAlgorithm,
-            string hashValue)
+            string hashValue,
+            RequestStrategy strategy)
         {
             Name = name;
             RuntimeType = runtimeType;
@@ -27,6 +28,7 @@ namespace StrawberryShake.CodeGeneration
             BodyString = bodyString;
             HashAlgorithm = hashAlgorithm;
             HashValue = hashValue;
+            Strategy = strategy;
         }
 
         /// <summary>
@@ -34,6 +36,9 @@ namespace StrawberryShake.CodeGeneration
         /// </summary>
         public NameString Name { get; }
 
+        /// <summary>
+        /// Gets the runtime type name.
+        /// </summary>
         public RuntimeTypeInfo RuntimeType { get; }
 
         /// <summary>
@@ -47,7 +52,7 @@ namespace StrawberryShake.CodeGeneration
         public byte[] Body { get;  }
 
         /// <summary>
-        /// Gets the GraphQL Document as string.
+        /// Gets the GraphQL Document as readable string.
         /// </summary>
         public string BodyString { get; }
 
@@ -65,5 +70,10 @@ namespace StrawberryShake.CodeGeneration
         /// The arguments the operation takes.
         /// </summary>
         public IReadOnlyList<PropertyDescriptor> Arguments { get; }
+
+        /// <summary>
+        ///
+        /// </summary>
+        public RequestStrategy Strategy { get; }
     }
 }

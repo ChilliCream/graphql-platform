@@ -1,6 +1,6 @@
 using HotChocolate;
 
-namespace StrawberryShake.CodeGeneration
+namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors
 {
     /// <summary>
     /// Describes a type reference like the type of a member, parameter or the return type of a method

@@ -4,13 +4,12 @@ using System.Linq;
 using HotChocolate;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
-using StrawberryShake.Serialization;
-using IInputValueFormatter = StrawberryShake.Serialization.IInputValueFormatter;
-using static StrawberryShake.CodeGeneration.NamingConventions;
+using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public class InputValueFormatterGenerator : CodeGenerator<InputObjectTypeDescriptor>
     {
@@ -64,7 +63,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         .AddMethodCall()
                         .SetMethodName(
                             serializerResolver,
-                            nameof(ISerializerResolver.GetInputValueFormatter))
+                            "GetInputValueFormatter")
                         .AddArgument(name.AsStringToken());
 
                     classBuilder
@@ -91,7 +90,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             // Format Method
 
             ArrayBuilder arrayBuilder = classBuilder
-                .AddMethod(nameof(IInputValueFormatter.Format))
+                .AddMethod("Format")
                 .SetPublic()
                 .SetReturnType(TypeNames.Object.MakeNullable())
                 .AddParameter(runtimeValue, x => x.SetType(TypeNames.Object.MakeNullable()))
@@ -143,7 +142,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     var serializerName = GetFieldName(descriptor.GetName().Value) + "Formatter";
                     MethodCallBuilder methodCall = MethodCallBuilder
                         .New()
-                        .SetMethodName(serializerName, nameof(IInputValueFormatter.Format))
+                        .SetMethodName(serializerName, "Format")
                         .AddArgument(variableName);
 
                     return assignment == "return"

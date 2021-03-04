@@ -14,9 +14,8 @@ using StrawberryShake.CodeGeneration.Analyzers;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Utilities;
 using Xunit;
-using static StrawberryShake.CodeGeneration.CSharp.CSharpGenerator;
-using Path = HotChocolate.Path;
 using Snapshot = Snapshooter.Xunit.Snapshot;
+using static StrawberryShake.CodeGeneration.CSharp.CSharpGenerator;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -27,8 +26,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             CSharpGeneratorResult result = Generate(
                 fileNames,
-                @namespace: "Foo.Bar",
-                clientName: "FooClient");
+                new CSharpGeneratorSettings
+                {
+                    Namespace = "Foo.Bar",
+                    ClientName = "FooClient"
+                });
 
             Assert.True(
                 result.Errors.Any(),
@@ -71,8 +73,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             CSharpGeneratorResult result = Generate(
                 clientModel,
-                @namespace: settings.Namespace ?? "Foo.Bar",
-                clientName: settings.ClientName ?? "FooClient");
+                new CSharpGeneratorSettings
+                {
+                    Namespace = settings.Namespace ?? "Foo.Bar",
+                    ClientName = settings.ClientName ?? "FooClient"
+                });
 
             Assert.False(
                 result.Errors.Any(),

@@ -1,10 +1,10 @@
 using System;
 using System.Text.Json;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
-using StrawberryShake.Serialization;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public partial class JsonResultBuilderGenerator
     {
@@ -39,9 +39,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 MethodCallBuilder
                     .New()
                     .SetReturn()
-                    .SetMethodName(
-                        GetFieldName(namedType.Name) + "Parser",
-                        nameof(ILeafValueParser<object, object>.Parse))
+                    .SetMethodName(GetFieldName(namedType.Name) + "Parser", "Parse")
                     .AddArgument(MethodCallBuilder
                         .Inline()
                         .SetMethodName(_obj, nameof(Nullable<JsonElement>.Value), deserializeMethod)

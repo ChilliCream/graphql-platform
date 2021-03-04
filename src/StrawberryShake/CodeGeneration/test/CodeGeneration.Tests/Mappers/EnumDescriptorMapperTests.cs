@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using Xunit;
 using static StrawberryShake.CodeGeneration.Mappers.TestDataHelper;
 
@@ -25,7 +26,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
             var context = new MapperContext(
                 "Foo.Bar",
                 "FooClient",
-                new Sha1DocumentHashProvider());
+                new Sha1DocumentHashProvider(),
+                Descriptors.Operations.RequestStrategy.Default);
             TypeDescriptorMapper.Map(clientModel, context);
 
             // assert

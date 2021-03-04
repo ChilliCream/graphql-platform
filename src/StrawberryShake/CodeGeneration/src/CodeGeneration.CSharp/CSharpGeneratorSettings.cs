@@ -1,4 +1,5 @@
 using HotChocolate.Language;
+using RequestStrategyGen = StrawberryShake.CodeGeneration.Descriptors.Operations.RequestStrategy;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -8,8 +9,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         public string Namespace { get; set; } = "StrawberryShake.GraphQL";
 
-        public bool StrictSchemaValidation { get; } = true;
+        public bool StrictSchemaValidation { get; set; } = true;
 
-        public IDocumentHashProvider HashProvider { get; set; } = new Sha1DocumentHashProvider();
+        public RequestStrategyGen RequestStrategy { get; set; } =
+            RequestStrategyGen.Default;
+
+        public IDocumentHashProvider HashProvider { get; set; } =
+            new Sha1DocumentHashProvider(HashFormat.Hex);
     }
 }

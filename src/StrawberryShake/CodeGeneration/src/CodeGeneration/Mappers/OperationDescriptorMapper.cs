@@ -5,7 +5,9 @@ using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
-using static StrawberryShake.CodeGeneration.NamingConventions;
+using StrawberryShake.CodeGeneration.Descriptors.Operations;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
+using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.Mappers
 {
@@ -32,8 +34,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
                 var resultTypeName = CreateResultRootTypeName(modelOperation.ResultType.Name);
 
-                string bodyString = modelOperation.Document.ToString(false);
-                byte[] body = Encoding.UTF8.GetBytes(bodyString);
+                string bodyString = modelOperation.Document.ToString();
+                byte[] body = Encoding.UTF8.GetBytes(modelOperation.Document.ToString(false));
                 string hash = context.HashProvider.ComputeHash(body);
 
                 switch (modelOperation.OperationType)
@@ -49,7 +51,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
                                 body,
                                 bodyString,
                                 context.HashProvider.Name,
-                                hash));
+                                hash,
+                                context.RequestStrategy));
                         break;
 
                     case OperationType.Mutation:
@@ -63,7 +66,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
                                 body,
                                 bodyString,
                                 context.HashProvider.Name,
-                                hash));
+                                hash,
+                                context.RequestStrategy));
                         break;
 
                     case OperationType.Subscription:
@@ -77,7 +81,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
                                 body,
                                 bodyString,
                                 context.HashProvider.Name,
-                                hash));
+                                hash,
+                                context.RequestStrategy));
                         break;
 
                     default:
