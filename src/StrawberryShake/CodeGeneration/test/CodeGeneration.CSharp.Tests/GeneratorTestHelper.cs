@@ -149,7 +149,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
             AssertResult(settings, source);
         }
 
-        public static AssertSettings CreateIntegrationTest([CallerMemberName] string? testName = null)
+        public static AssertSettings CreateIntegrationTest(
+            Descriptors.Operations.RequestStrategy requestStrategy =
+                Descriptors.Operations.RequestStrategy.Default,
+            [CallerMemberName] string? testName = null)
         {
             SnapshotFullName snapshotFullName = Snapshot.FullName();
             string testFile = System.IO.Path.Combine(
@@ -173,7 +176,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 StrictValidation = true,
                 SnapshotFile = System.IO.Path.Combine(
                     snapshotFullName.FolderPath,
-                    testName + "Test.Client.cs")
+                    testName + "Test.Client.cs"),
+                RequestStrategy = requestStrategy
             };
         }
 
@@ -207,6 +211,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
             public bool StrictValidation { get; set; }
 
             public string? SnapshotFile { get; set; }
+
+            public Descriptors.Operations.RequestStrategy RequestStrategy { get; set; } =
+                Descriptors.Operations.RequestStrategy.Default;
         }
     }
 }
