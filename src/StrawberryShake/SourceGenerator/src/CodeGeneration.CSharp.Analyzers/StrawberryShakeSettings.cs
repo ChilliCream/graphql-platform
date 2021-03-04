@@ -1,3 +1,5 @@
+using StrawberryShake.CodeGeneration.Descriptors.Operations;
+
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 {
     public class StrawberryShakeSettings
@@ -11,5 +13,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
         public bool DependencyInjection { get; set; } = true;
 
         public bool StrictSchemaValidation { get; set; } = true;
+
+        public string? HashAlgorithm { get; set; }
+
+        public RequestStrategy RequestStrategy { get; } = RequestStrategy.Default;
     }
 }

@@ -12,6 +12,8 @@ using HotChocolate.Utilities;
 using Newtonsoft.Json;
 using IOPath = System.IO.Path;
 using static StrawberryShake.CodeGeneration.CSharp.Analyzers.DiagnosticErrorHelper;
+using HotChocolate.Language;
+using StrawberryShake.CodeGeneration.Descriptors.Operations;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 {
@@ -104,9 +106,21 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 }
 
                 // If the generator has no errors we will write the documents.
-                foreach (CSharpDocument document in result.CSharpDocuments)
+                foreach (SourceDocument document in
+                    result.Documents.Where(t => t.Kind == SourceDocumentKind.CSharp))
                 {
                     WriteDocument(context, document);
+                }
+
+                string? persistedQueryDirectory = context.GetPersistedQueryDirectory();
+                if (context.Settings.RequestStrategy == RequestStrategy.PersistedQuery &&
+                    persistedQueryDirectory is not null)
+                {
+                    foreach (SourceDocument document in
+                        result.Documents.Where(t => t.Kind == SourceDocumentKind.GraphQL))
+                    {
+                        WriteGraphQLQuery(context, persistedQueryDirectory, document);
+                    }
                 }
 
                 // remove files that are now obsolete
@@ -121,7 +135,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
         private void WriteDocument(
             ClientGeneratorContext context,
-            CSharpDocument document)
+            SourceDocument document)
         {
             string documentName = $"{document.Name}.{context.Settings.Name}.StrawberryShake.cs";
             context.Log.WriteDocument(documentName);
@@ -132,6 +146,17 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
             context.Execution.AddSource(documentName, sourceText);
 
+            WriteFile(fileName, document.SourceText);
+        }
+
+        private void WriteGraphQLQuery(
+            ClientGeneratorContext context,
+            string persistedQueryDirectory,
+            SourceDocument document)
+        {
+            string documentName = document.Hash + ".graphql";
+            string fileName = IOPath.Combine(persistedQueryDirectory, documentName);
+            context.Log.WriteDocument(documentName);
             WriteFile(fileName, document.SourceText);
         }
 
@@ -169,11 +194,33 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
             try
             {
-                result = CSharpGenerator.Generate(
-                    context.GetDocuments(),
-                    clientName: context.Settings.Name,
-                    @namespace: context.GetNamespace(),
-                    strictSchemaValidation: context.Settings.StrictSchemaValidation);
+                var settings = new CSharpGeneratorSettings
+                {
+                    ClientName = context.Settings.Name,
+                    Namespace = context.GetNamespace(),
+                    RequestStrategy = context.Settings.RequestStrategy,
+                    StrictSchemaValidation = context.Settings.StrictSchemaValidation,
+                    HashProvider = context.Settings.HashAlgorithm?.ToLowerInvariant() switch
+                    {
+                        "sha1" => new Sha1DocumentHashProvider(HashFormat.Hex),
+                        "sha256" => new Sha256DocumentHashProvider(HashFormat.Hex),
+                        "md5" => new MD5DocumentHashProvider(HashFormat.Hex),
+                        _ => new Sha1DocumentHashProvider(HashFormat.Hex)
+                    }
+                };
+
+                string? persistedQueryDirectory = context.GetPersistedQueryDirectory();
+
+                context.Log.SetGeneratorSettings(settings);
+                context.Log.SetPersistedQueryLocation(persistedQueryDirectory);
+
+                if (settings.RequestStrategy == RequestStrategy.PersistedQuery &&
+                    persistedQueryDirectory is null)
+                {
+                    settings.RequestStrategy = RequestStrategy.Default;
+                }
+
+                result = CSharpGenerator.Generate(context.GetDocuments(), settings);
                 return true;
             }
             catch (GraphQLException ex)

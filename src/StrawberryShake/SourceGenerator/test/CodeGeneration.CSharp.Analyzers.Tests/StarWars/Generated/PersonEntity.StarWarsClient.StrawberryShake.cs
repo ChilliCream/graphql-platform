@@ -1,4 +1,4 @@
-﻿// StrawberryShake.CodeGeneration.CSharp.EntityTypeGenerator
+﻿// StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
 
 #nullable enable
 

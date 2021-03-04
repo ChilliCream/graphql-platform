@@ -7,6 +7,7 @@
       "namespace": "StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars",
       "url": "http://localhost:5000",
       "dependencyInjection": true,
+      "requestStrategy": "PersistedQuery",
       "protocols": [
         { "transport": "HTTP", "format": "JSON" },
         { "transport": "WebSocket", "format": "JSON" },
