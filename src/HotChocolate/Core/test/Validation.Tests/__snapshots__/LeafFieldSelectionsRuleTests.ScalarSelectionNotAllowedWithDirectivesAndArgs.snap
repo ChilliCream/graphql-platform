@@ -20,6 +20,143 @@
       "responseName": "doesKnowCommand",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Leaf-Field-Selections"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": null,
+      "Arguments": [
+        {
+          "Kind": "Argument",
+          "Location": {
+            "Start": 86,
+            "End": 102,
+            "Line": 4,
+            "Column": 41
+          },
+          "Name": {
+            "Kind": "Name",
+            "Location": {
+              "Start": 86,
+              "End": 97,
+              "Line": 4,
+              "Column": 41
+            },
+            "Value": "dogCommand"
+          },
+          "Value": {
+            "Kind": "EnumValue",
+            "Location": {
+              "Start": 98,
+              "End": 102,
+              "Line": 4,
+              "Column": 53
+            },
+            "Value": "SIT"
+          }
+        }
+      ],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 122,
+          "End": 157,
+          "Line": 4,
+          "Column": 77
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": null,
+            "Location": {
+              "Start": 124,
+              "End": 135,
+              "Line": 4,
+              "Column": 79
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 124,
+                "End": 135,
+                "Line": 4,
+                "Column": 79
+              },
+              "Value": "sinceWhen"
+            },
+            "Directives": []
+          }
+        ]
+      },
+      "Location": {
+        "Start": 70,
+        "End": 157,
+        "Line": 4,
+        "Column": 25
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 70,
+          "End": 86,
+          "Line": 4,
+          "Column": 25
+        },
+        "Value": "doesKnowCommand"
+      },
+      "Directives": [
+        {
+          "Kind": "Directive",
+          "Location": {
+            "Start": 103,
+            "End": 123,
+            "Line": 4,
+            "Column": 58
+          },
+          "Name": {
+            "Kind": "Name",
+            "Location": {
+              "Start": 104,
+              "End": 112,
+              "Line": 4,
+              "Column": 59
+            },
+            "Value": "include"
+          },
+          "Arguments": [
+            {
+              "Kind": "Argument",
+              "Location": {
+                "Start": 112,
+                "End": 121,
+                "Line": 4,
+                "Column": 67
+              },
+              "Name": {
+                "Kind": "Name",
+                "Location": {
+                  "Start": 112,
+                  "End": 115,
+                  "Line": 4,
+                  "Column": 67
+                },
+                "Value": "if"
+              },
+              "Value": {
+                "Kind": "BooleanValue",
+                "Location": {
+                  "Start": 116,
+                  "End": 121,
+                  "Line": 4,
+                  "Column": 71
+                },
+                "Value": true
+              }
+            }
+          ]
+        }
+      ]
+    }
   }
 ]

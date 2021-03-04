@@ -1,4 +1,6 @@
-﻿#nullable enable
+﻿// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
+
+#nullable enable
 
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
 {
@@ -7,12 +9,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
         : global::StrawberryShake.IOperationResultDataInfo
     {
         private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
-        private readonly ulong _version;
+        private readonly global::System.UInt64 _version;
 
         public GetPeopleResultInfo(
             global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.PersonConnectionData? people,
             global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds,
-            ulong version)
+            global::System.UInt64 version)
         {
             People = people;
             _entityIds = entityIds
@@ -20,18 +22,21 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
             _version = version;
         }
 
+        /// <summary>
+        /// Gets access to all the people known to this service.
+        /// </summary>
         public global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.PersonConnectionData? People { get; }
 
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
 
-        public ulong Version => _version;
+        public global::System.UInt64 Version => _version;
 
-        public global::StrawberryShake.IOperationResultDataInfo WithVersion(ulong version)
+        public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new GetPeopleResultInfo(
                 People,
                 _entityIds,
-                _version);
+                version);
         }
     }
 }

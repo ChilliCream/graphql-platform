@@ -1,6 +1,8 @@
 using System.Linq;
 using System.Threading.Tasks;
+using HotChocolate.Language;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using Xunit;
 using static StrawberryShake.CodeGeneration.Mappers.TestDataHelper;
 
@@ -21,31 +23,35 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 }");
 
             // act
-            var context = new MapperContext("Foo.Bar", "FooClient");
-            EnumDescriptorMapper.Map(clientModel, context);
+            var context = new MapperContext(
+                "Foo.Bar",
+                "FooClient",
+                new Sha1DocumentHashProvider(),
+                Descriptors.Operations.RequestStrategy.Default);
+            TypeDescriptorMapper.Map(clientModel, context);
 
             // assert
             Assert.Collection(
-                context.EnumTypes.OrderBy(t => t.Name),
+                context.Types.OfType<EnumTypeDescriptor>().OrderBy(t => t.Name),
                 enumType =>
                 {
                     Assert.Equal("Episode", enumType.Name);
 
                     Assert.Collection(
-                        enumType.Values.OrderBy(t => t.Name),
+                        enumType.Values.OrderBy(t => t.RuntimeValue),
                         value =>
                         {
-                            Assert.Equal("Empire", value.Name);
+                            Assert.Equal("Empire", value.RuntimeValue);
                             Assert.Null(value.Value);
                         },
                         value =>
                         {
-                            Assert.Equal("Jedi", value.Name);
+                            Assert.Equal("Jedi", value.RuntimeValue);
                             Assert.Null(value.Value);
                         },
                         value =>
                         {
-                            Assert.Equal("NewHope", value.Name);
+                            Assert.Equal("NewHope", value.RuntimeValue);
                             Assert.Null(value.Value);
                         });
                 });

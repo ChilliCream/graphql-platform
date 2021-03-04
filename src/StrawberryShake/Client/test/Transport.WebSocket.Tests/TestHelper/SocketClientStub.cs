@@ -21,6 +21,9 @@ namespace StrawberryShake.Transport.WebSockets
 
         public Uri? Uri { get; set; }
 
+        public ISocketConnectionInterceptor ConnectionInterceptor { get; set; } =
+            DefaultSocketConnectionInterceptor.Instance;
+
         public string? Name { get; set; }
 
         public Queue<string> MessagesReceive { get; } = new();

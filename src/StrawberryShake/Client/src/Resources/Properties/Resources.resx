@@ -93,4 +93,28 @@
   <data name="ThrowHelper_InputFormatter_InvalidType" xml:space="preserve">
     <value>The runtime value is expected to be {0} for {1}.</value>
   </data>
+  <data name="CSharpGenerator_Generate_ClientNameCannotBeNull" xml:space="preserve">
+    <value>'{0}' cannot be null or empty.</value>
+  </data>
+  <data name="CSharpGenerator_Generate_ArgumentCannotBeNull" xml:space="preserve">
+    <value>'{0}' cannot be null or empty.</value>
+  </data>
+  <data name="InMemoryConnection_InvalidResponseFormat" xml:space="preserve">
+    <value>The response was in a invalid format</value>
+  </data>
+  <data name="InMemoryClient_ExecuteAsync_NoExecutorFound" xml:space="preserve">
+    <value>There was no executor configured for client {0}</value>
+  </data>
+  <data name="JsonErrorParser_ParseError_MessageCannotBeNull" xml:space="preserve">
+    <value>The error format is invalid and was missing the property `message`.</value>
+  </data>
+  <data name="Location_Location_Line_OutOfRange" xml:space="preserve">
+    <value>line is a 1-base index and cannot be less than one.</value>
+  </data>
+  <data name="Location_Location_Column_OutOfRange" xml:space="preserve">
+    <value>column is a 1-base index and cannot be less than one.</value>
+  </data>
+  <data name="JsonErrorParser_ParseErrors_Error" xml:space="preserve">
+    <value>Error parsing a server error.</value>
+  </data>
 </root>

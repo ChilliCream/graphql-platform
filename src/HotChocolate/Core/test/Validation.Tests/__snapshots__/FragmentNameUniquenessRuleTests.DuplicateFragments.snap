@@ -13,6 +13,113 @@
       "fragment": "fragmentOne",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-Name-Uniqueness"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "FragmentDefinition",
+      "VariableDefinitions": [],
+      "TypeCondition": {
+        "Kind": "NamedType",
+        "Location": {
+          "Start": 255,
+          "End": 260,
+          "Line": 12,
+          "Column": 41
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 255,
+            "End": 260,
+            "Line": 12,
+            "Column": 41
+          },
+          "Value": "Dog"
+        }
+      },
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 259,
+          "End": 370,
+          "Line": 12,
+          "Column": 45
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": {
+              "Kind": "SelectionSet",
+              "Location": {
+                "Start": 287,
+                "End": 357,
+                "Line": 13,
+                "Column": 27
+              },
+              "Selections": [
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": null,
+                  "Location": {
+                    "Start": 313,
+                    "End": 339,
+                    "Line": 14,
+                    "Column": 25
+                  },
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": {
+                      "Start": 313,
+                      "End": 339,
+                      "Line": 14,
+                      "Column": 25
+                    },
+                    "Value": "name"
+                  },
+                  "Directives": []
+                }
+              ]
+            },
+            "Location": {
+              "Start": 281,
+              "End": 357,
+              "Line": 13,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 281,
+                "End": 288,
+                "Line": 13,
+                "Column": 21
+              },
+              "Value": "owner"
+            },
+            "Directives": []
+          }
+        ]
+      },
+      "Location": {
+        "Start": 231,
+        "End": 370,
+        "Line": 12,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 240,
+          "End": 254,
+          "Line": 12,
+          "Column": 26
+        },
+        "Value": "fragmentOne"
+      },
+      "Directives": []
+    }
   }
 ]

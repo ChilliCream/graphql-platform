@@ -15,7 +15,18 @@
       "locationType": "Int",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "StringValue",
+      "Location": {
+        "Start": 75,
+        "End": 103,
+        "Line": 3,
+        "Column": 31
+      },
+      "Value": "one",
+      "Block": false
+    }
   },
   {
     "Message": "The specified value type of variable `b` does not match the variable type.",
@@ -33,7 +44,17 @@
       "locationType": "String",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "IntValue",
+      "Location": {
+        "Start": 115,
+        "End": 139,
+        "Line": 4,
+        "Column": 34
+      },
+      "Value": "4"
+    }
   },
   {
     "Message": "The specified value type of variable `c` does not match the variable type.",
@@ -51,6 +72,17 @@
       "locationType": "ComplexInput",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "StringValue",
+      "Location": {
+        "Start": 157,
+        "End": 195,
+        "Line": 5,
+        "Column": 40
+      },
+      "Value": "NotVeryComplex",
+      "Block": false
+    }
   }
 ]

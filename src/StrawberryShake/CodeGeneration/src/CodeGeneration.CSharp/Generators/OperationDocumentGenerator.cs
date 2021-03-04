@@ -1,85 +1,118 @@
 using System;
+using System.Security.Cryptography;
+using System.Text;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
-using static StrawberryShake.CodeGeneration.NamingConventions;
+using StrawberryShake.CodeGeneration.Descriptors.Operations;
+using StrawberryShake.CodeGeneration.Properties;
+using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
-    public class OperationDocumentGenerator: ClassBaseGenerator<OperationDescriptor>
+    public class OperationDocumentGenerator : ClassBaseGenerator<OperationDescriptor>
     {
         protected override void Generate(
-            CodeWriter writer, 
-            OperationDescriptor descriptor, 
+            CodeWriter writer,
+            OperationDescriptor descriptor,
             out string fileName)
         {
-            var (classBuilder, constructorBuilder) = CreateClassBuilder();
+            var documentName = CreateDocumentTypeName(descriptor.RuntimeType.Name);
+            fileName = documentName;
 
-            fileName = DocumentTypeNameFromOperationName(descriptor.Name);
-            classBuilder
-                .AddImplements(TypeNames.IDocument)
-                .SetName(fileName);
-            constructorBuilder.SetAccessModifier(AccessModifier.Private);
-
-            classBuilder.AddField(
-                FieldBuilder.New()
-                    .SetStatic()
-                    .SetConst()
-                    .SetType(TypeNames.String)
-                    .SetName("_bodyString")
-                    .SetValue($"@\"{descriptor.BodyString}\"", true));
-
-            classBuilder.AddField(
-                FieldBuilder.New()
-                    .SetStatic()
-                    .SetReadOnly()
-                    .SetType("byte[]")
-                    .SetName("_body")
-                    .SetValue($"{TypeNames.EncodingUtf8}.GetBytes(_bodyString)"));
-
-            string operationKind;
-            switch (descriptor)
+            string operationKind = descriptor switch
             {
-                case MutationOperationDescriptor mutationOperationDescriptor:
-                    operationKind = "Mutation";
-                    break;
-                case QueryOperationDescriptor queryOperationDescriptor:
-                    operationKind = "Query";
-                    break;
-                case SubscriptionOperationDescriptor subscriptionOperationDescriptor:
-                    operationKind = "Subscription";
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(descriptor));
+                MutationOperationDescriptor => "Mutation",
+                QueryOperationDescriptor => "Query",
+                SubscriptionOperationDescriptor => "Subscription",
+                _ => throw new ArgumentOutOfRangeException(nameof(descriptor))
+            };
+
+            ClassBuilder classBuilder = ClassBuilder
+                .New()
+                .SetName(fileName)
+                .AddImplements(TypeNames.IDocument)
+                .SetComment(
+                    XmlCommentBuilder
+                        .New()
+                        .SetSummary(
+                            string.Format(
+                                CodeGenerationResources.OperationServiceDescriptor_Description,
+                                descriptor.Name))
+                        .AddCode(descriptor.BodyString));
+
+            classBuilder
+                .AddConstructor()
+                .SetPrivate();
+
+            classBuilder
+                .AddProperty("Instance")
+                .SetStatic()
+                .SetType(documentName)
+                .SetValue($"new {documentName}()");
+
+            classBuilder
+                .AddProperty("Kind")
+                .SetType(TypeNames.OperationKind)
+                .AsLambda($"{TypeNames.OperationKind}.{operationKind}");
+
+            if (descriptor.Strategy == RequestStrategy.PersistedQuery)
+            {
+                classBuilder
+                    .AddProperty("Body")
+                    .SetType(TypeNames.IReadOnlySpan.WithGeneric(TypeNames.Byte))
+                    .AsLambda($"new {TypeNames.Byte}[0]");
+            }
+            else
+            {
+                classBuilder
+                    .AddProperty("Body")
+                    .SetType(TypeNames.IReadOnlySpan.WithGeneric(TypeNames.Byte))
+                    .AsLambda(GetByteArray(descriptor.Body));
             }
 
-            classBuilder.AddProperty(
-                PropertyBuilder.New()
-                    .SetStatic()
-                    .SetType(fileName)
-                    .SetName("Instance")
-                    .SetValue($"new {fileName}()"));
+            classBuilder
+                .AddProperty("Hash")
+                .SetType(TypeNames.DocumentHash)
+                .SetValue(
+                    $@"new {TypeNames.DocumentHash}(" +
+                    $@"""{descriptor.HashAlgorithm}"", " +
+                    $@"""{descriptor.HashValue}"")");
 
-            classBuilder.AddProperty(
-                PropertyBuilder.New()
-                    .SetType(TypeNames.OperationKind)
-                    .SetName("Kind").AsLambda($"{TypeNames.OperationKind}.{operationKind}"));
-
-            classBuilder.AddProperty(
-                PropertyBuilder.New()
-                    .SetType($"{TypeNames.IReadOnlySpan}<byte>")
-                    .SetName("Body").AsLambda("_body"));
-
-            classBuilder.AddMethod(
-                MethodBuilder.New()
-                    .SetAccessModifier(AccessModifier.Public)
-                    .SetReturnType("override string")
-                    .SetName("ToString")
-                    .AddCode("return _bodyString;"));
+            classBuilder
+                .AddMethod("ToString")
+                .SetPublic()
+                .SetOverride()
+                .SetReturnType(TypeNames.String)
+                .AddCode(MethodCallBuilder
+                    .New()
+                    .SetReturn()
+                    .SetMethodName(TypeNames.EncodingUtf8, nameof(Encoding.UTF8.GetString))
+                    .AddArgument("Body"));
 
             CodeFileBuilder
                 .New()
-                .SetNamespace(descriptor.Namespace)
+                .SetNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal)
                 .AddType(classBuilder)
                 .Build(writer);
+        }
+
+        private static string GetByteArray(byte[] bytes)
+        {
+            var builder = new StringBuilder();
+            builder.Append($"new {TypeNames.Byte}[]{{ ");
+
+            for (var i = 0; i < bytes.Length; i++)
+            {
+                builder.Append("0x");
+                builder.Append(bytes[i].ToString("x2"));
+                if (i < bytes.Length - 1)
+                {
+                    builder.Append(", ");
+                }
+            }
+
+            builder.Append(" }");
+
+            return builder.ToString();
         }
     }
 }

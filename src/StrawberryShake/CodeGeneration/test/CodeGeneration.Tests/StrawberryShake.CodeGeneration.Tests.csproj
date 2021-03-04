@@ -37,7 +37,7 @@
   </ItemGroup>
 
   <!--For Visual Studio for Mac Test Explorer we need this reference here-->
-  <ItemGroup>    
+  <ItemGroup>
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
   </ItemGroup>
 

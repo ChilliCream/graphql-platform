@@ -1,6 +1,7 @@
 using StrawberryShake.CodeGeneration.CSharp.Builders;
+using StrawberryShake.CodeGeneration.Descriptors;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public abstract class ClassBaseGenerator<T> : CodeGenerator<T> where T : ICodeDescriptor
     {
@@ -13,6 +14,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 classBuilder.AddConstructor(constructorBuilder);
             }
+
             return (classBuilder, constructorBuilder);
         }
 
@@ -25,14 +27,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             var paramName = fieldName.TrimStart('_');
 
-            classBuilder.AddField(
-                FieldBuilder
-                    .New()
-                    .SetReadOnly()
-                    .SetName(fieldName)
-                    .SetType(type));
+            classBuilder.AddField()
+                .SetReadOnly()
+                .SetName(fieldName)
+                .SetType(type);
 
-            var assignment = AssignmentBuilder
+            AssignmentBuilder assignment = AssignmentBuilder
                 .New()
                 .SetLefthandSide(fieldName)
                 .SetRighthandSide(paramName);
