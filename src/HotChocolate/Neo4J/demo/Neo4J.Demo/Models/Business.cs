@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using HotChocolate;
 using HotChocolate.Data.Neo4J;
-using HotChocolate.Data.Neo4J.Language;
 
 namespace Neo4jDemo.Models
 {
+    [Neo4JNode("Business")]
     public class Business
     {
         [GraphQLNonNullType]
@@ -14,10 +14,10 @@ namespace Neo4jDemo.Models
         [GraphQLNonNullType]
         public string State { get; set; }
 
-        //[Neo4JRelationship("REVIEWS", RelationshipDirection.)]
+        [Neo4JRelationship("REVIEWS", RelationshipDirection.Outgoing)]
         public List<Review> Reviews { get; set; }
 
         [Neo4JCypher(@"MATCH (this)<-[:REVIEWS]-(r:Review) RETURN avg(r.stars)")]
-        public double AverageRating { get; set; }
+        public double? AverageRating { get; set; }
     }
 }

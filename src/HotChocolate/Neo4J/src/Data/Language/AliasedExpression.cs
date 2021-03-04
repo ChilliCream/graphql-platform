@@ -23,7 +23,7 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public new AliasedExpression As(string newAlias)
         {
-            Assertions.HasText(newAlias, "The alias may not be null or empty.");
+            Ensure.HasText(newAlias, "The alias may not be null or empty.");
             return new AliasedExpression(_expression, newAlias);
         }
 

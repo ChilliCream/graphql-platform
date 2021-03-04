@@ -21,7 +21,7 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public static SymbolicName Of(string name)
         {
-            Assertions.HasText(name, "Name must not be empty.");
+            Ensure.HasText(name, "Name must not be empty.");
             //Assertions.IsTrue();
             return new SymbolicName(name);
         }
@@ -37,6 +37,12 @@ namespace HotChocolate.Data.Neo4J.Language
         {
             Ensure.IsNotNull(otherValue, "Value to concat must not be null.");
             return otherValue == string.Empty ? this : Of(_value + otherValue);
+        }
+
+        public static SymbolicName Unsafe(string name) {
+
+            Ensure.HasText(name, "Name must not be empty.");
+            return new SymbolicName(name);
         }
 
         public Condition AsCondition() => new ExpressionCondition(this);

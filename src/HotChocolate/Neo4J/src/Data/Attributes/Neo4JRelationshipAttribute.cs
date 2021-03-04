@@ -1,5 +1,4 @@
 using System.Reflection;
-using HotChocolate.Data.Neo4J.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 

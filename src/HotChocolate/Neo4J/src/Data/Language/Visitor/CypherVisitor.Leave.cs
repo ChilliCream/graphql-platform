@@ -39,6 +39,9 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.RelationshipDetails:
                     LeaveVisitable((RelationshipDetails)visitable);
                     break;
+                case ClauseKind.PropertyLookup:
+                    LeaveVisitable((PropertyLookup)visitable);
+                    break;
                 case ClauseKind.AliasedExpression:
                 case ClauseKind.Expression:
                     break;
@@ -65,8 +68,6 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.KeyValueSeparator:
                     break;
                 case ClauseKind.Property:
-                    break;
-                case ClauseKind.PropertyLookup:
                     break;
                 case ClauseKind.SortItem:
                     break;

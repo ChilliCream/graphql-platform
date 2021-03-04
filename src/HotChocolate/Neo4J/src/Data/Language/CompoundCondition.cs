@@ -23,11 +23,11 @@ namespace HotChocolate.Data.Neo4J.Language
             return Add(Operator.And, condition);
         }
 
-        static CompoundCondition Empty() {
+        public static CompoundCondition Empty() {
             return _emptyCondition;
         }
 
-        public CompoundCondition(Operator op)
+        private CompoundCondition(Operator op)
         {
             _operator = op;
             _conditions = new List<Condition>();
@@ -37,7 +37,6 @@ namespace HotChocolate.Data.Neo4J.Language
         {
             return new CompoundCondition(op).Add(op, left).Add(op, right);
         }
-
 
         private CompoundCondition Add(Operator chainingOperator, Condition condition)
         {
@@ -74,13 +73,9 @@ namespace HotChocolate.Data.Neo4J.Language
                 return this;
             }
 
-            if (_operator == chainingOperator)
-            {
-                _conditions.Add(condition);
-                return this;
-            }
-
-            return Create(this, chainingOperator, condition);
+            if (_operator != chainingOperator) return Create(this, chainingOperator, condition);
+            _conditions.Add(condition);
+            return this;
         }
 
         private bool CanBeFlattenedWith(Operator operatorBefore)

@@ -6,7 +6,7 @@ namespace HotChocolate.Data.Neo4J.Language
 {
     public class StatementBuilder
     {
-        private bool _isWrite = false;
+        private bool _isWrite;
         private Create? _create;
         private Match? _match;
         private Where? _where;

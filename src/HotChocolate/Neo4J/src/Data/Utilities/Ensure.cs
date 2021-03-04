@@ -1,4 +1,6 @@
 using System;
+using System.Linq;
+using HotChocolate.Data.Neo4J.Extensions;
 
 namespace HotChocolate.Data.Neo4J
 {
@@ -19,6 +21,30 @@ namespace HotChocolate.Data.Neo4J
             _ = value ?? throw new ArgumentNullException(paramName, @"Value cannot be null.");
 
             return value;
+        }
+
+        public static void HasText(string text, string message)
+        {
+            if(!text.HasText())
+            {
+                throw new ArgumentException(message);
+            }
+        }
+
+        public static void IsTrue(bool expression, string message)
+        {
+            if (!expression)
+            {
+                throw new ArgumentException(message);
+            }
+        }
+
+        public static void IsNotEmpty(string[] objects, string message)
+        {
+            if (!objects.Any())
+            {
+                throw new ArgumentException(message);
+            }
         }
     }
 }

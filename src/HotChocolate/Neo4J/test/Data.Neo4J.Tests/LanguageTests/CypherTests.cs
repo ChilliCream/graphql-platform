@@ -174,6 +174,18 @@ namespace HotChocolate.Data.Neo4J.Language
             }
         }
 
+        public class ReadingAndReturnWithProjections
+        {
+            [Fact]
+            public void NodeWithSingleFieldProjection()
+            {
+                StatementBuilder statement = Cypher
+                    .Match(_userNode)
+                    .Return(_userNode.Project("email"));
+                statement.Build().MatchSnapshot();
+            }
+        }
+
         public class MatchNodes
         {
             [Fact]

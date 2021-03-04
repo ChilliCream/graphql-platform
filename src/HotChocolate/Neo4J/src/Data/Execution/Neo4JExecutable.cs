@@ -45,16 +45,15 @@ namespace HotChocolate.Data.Neo4J.Execution
 
         public async ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
         {
-            Node node = Cypher.Node("Business").Named("b");
-            StatementBuilder statement = Cypher.Match(node).Return(node);
+            //Node node = Cypher.Node("Business").Named("b");
+            //StatementBuilder statement = Cypher.Match(node).Return(node);
 
-            // statement builder => match / where / return
-            // IResultCursor cursor = await _session.RunAsync(@"
-            //     MATCH (business:Business)
-            //     RETURN business { .name, .city, .state, reviews: [(business)<-[:REVIEWS]-(reviews) | reviews {.rating, .text}] }
-            // ").ConfigureAwait(false);
+            IResultCursor cursor = await _session.RunAsync(@"
+                MATCH (business:Business)
+                RETURN business { .name, .city, .state, reviews: [(business)<-[:REVIEWS]-(reviews) | reviews {.rating, .text}] }
+            ").ConfigureAwait(false);
 
-            IResultCursor cursor = await _session.RunAsync(statement.Build());
+            //IResultCursor cursor = await _session.RunAsync(statement.Build());
 
             return await cursor.MapAsync<T>().ConfigureAwait(false);
         }

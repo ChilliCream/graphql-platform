@@ -66,8 +66,18 @@ namespace HotChocolate.Data.Neo4J.Language
 
         private void EnterVisitable(PropertyLookup propertyLookup)
         {
-            _writer.Write(".");
-            _writer.Write(propertyLookup.GetPropertyKeyName());
+            if (propertyLookup.IsDynamicLookup()) {
+                _writer.Write("[");
+            } else {
+                _writer.Write(".");
+            }
+        }
+
+        private void LeaveVisitable(PropertyLookup propertyLookup)
+        {
+            if (propertyLookup.IsDynamicLookup()) {
+                _writer.Write("]");
+            }
         }
 
         private void EnterVisitable(Operator op)

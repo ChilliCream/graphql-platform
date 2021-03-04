@@ -44,7 +44,7 @@ namespace HotChocolate.Data.Neo4J.Language
             _properties = properties;
         }
 
-        private Node(SymbolicName symbolicName, Properties properties, List<NodeLabel> labels)
+        private Node(SymbolicName? symbolicName, Properties? properties, List<NodeLabel>? labels)
         {
             _symbolicName = symbolicName;
             _properties = properties;
@@ -54,22 +54,27 @@ namespace HotChocolate.Data.Neo4J.Language
         /// <summary>
         /// Creates a copy of this node with a new symbolic name.
         /// </summary>
-        /// <param name="newSymbolicName"></param>
-        /// <returns></returns>
+        /// <param name="newSymbolicName">The new symbolic name.</param>
+        /// <returns>The new node</returns>
         public Node Named(string newSymbolicName)
         {
-            Assertions.HasText(newSymbolicName, "Symbolic name is required");
+            Ensure.HasText(newSymbolicName, "Symbolic name is required");
             return new Node(SymbolicName.Of(newSymbolicName), _properties, _labels);
         }
 
         /// <summary>
         /// Creates a copy of this node with a new symbolic name.
         /// </summary>
-        /// <param name="newSymbolicName"></param>
-        /// <returns></returns>
-        public Node Named(SymbolicName newSymbolicName) => new Node(newSymbolicName, _properties, _labels);
+        /// <param name="newSymbolicName">The new symbolic name.</param>
+        /// <returns>The new node</returns>
+        public Node Named(SymbolicName newSymbolicName)
+        {
+            Ensure.IsNotNull(newSymbolicName, "Symbolic name is required");
+            return new Node(newSymbolicName, _properties, _labels);
+        }
 
-        public Node WithProperties(MapExpression? newProperties) => new(_symbolicName, newProperties == null ? null : new Properties(newProperties), _labels);
+        public Node WithProperties(MapExpression? newProperties) =>
+            new(_symbolicName, newProperties == null ? null : new Properties(newProperties), _labels);
 
         public Node WithProperties(params object[] keysAndValues)
         {
@@ -81,17 +86,19 @@ namespace HotChocolate.Data.Neo4J.Language
             return WithProperties(newProperties);
         }
 
-        public Property Property(string name)
-        {
-            return Language.Property.Create(this, name);
-        }
+        public Property Property(string name) => Property(new[] { name });
+
+        public Property Property(params string[] names) =>
+            Language.Property.Create(this, names);
+
+        public Property Property(Expression lookup) =>
+            Language.Property.Create(this,lookup);
 
         public MapProjection Project(List<object> entries) =>
             Project(entries.ToArray());
 
         public MapProjection Project(params object[] entries) =>
             MapProjection.Create(GetRequiredSymbolicName(), entries);
-
 
         public static Node Create(string primaryLabel)
         {
@@ -121,10 +128,28 @@ namespace HotChocolate.Data.Neo4J.Language
         public Relationship RelationshipBetween(Node other, params string[] types) =>
             Relationship.Create(this, RelationshipDirection.None, other, types);
 
-        public Condition IsEqualTo(Node otherNode) => GetRequiredSymbolicName().IsEqualTo(otherNode.GetSymbolicName());
+        public Condition? IsEqualTo(Node otherNode) =>
+            GetRequiredSymbolicName()?.IsEqualTo(otherNode.GetRequiredSymbolicName());
 
-        public AliasedExpression As(string alias) => GetRequiredSymbolicName().As(alias);
+        public Condition? IsNotEqualTo(Node otherNode) =>
+            GetRequiredSymbolicName()?.IsNotEqualTo(otherNode.GetRequiredSymbolicName());
 
+        public Condition? IsNull()  => GetRequiredSymbolicName()?.IsNull();
+
+        public Condition? IsNotNull()  => GetRequiredSymbolicName()?.IsNotNull();
+
+        public SortItem? Descending => GetRequiredSymbolicName()?.Descending();
+
+        public SortItem? Ascending => GetRequiredSymbolicName()?.Ascending();
+
+        public AliasedExpression? As(string alias) =>
+            GetRequiredSymbolicName()?.As(alias);
+
+        public IReadOnlyList<NodeLabel>? GetLabels() => _labels?.AsReadOnly();
+
+        public Condition HasLabels(params string[] labelsToQuery) =>
+            HasLabelCondition.Create(_symbolicName)
+            ?? throw new InvalidOperationException("Cannot query a node without a symbolic name.");
 
         public override void Visit(CypherVisitor cypherVisitor)
         {

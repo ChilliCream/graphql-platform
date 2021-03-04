@@ -11,6 +11,7 @@ namespace Neo4jDemo.Schema
     [ExtendObjectType(Name = "Query")]
     public class Query
     {
+        // Would like to add this for someone that wants projections, filtering, sorting, pagination all together without boilerplate
         // [UseNeo4J(database="neo4j")]
         // public Neo4JExecutable<Business> Businesses() => new();
 

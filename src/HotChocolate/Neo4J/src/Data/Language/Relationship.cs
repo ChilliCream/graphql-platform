@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using ServiceStack;
 
@@ -80,6 +81,26 @@ namespace HotChocolate.Data.Neo4J.Language
         }
 
         public Property Property(string name)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Property Property(params string[] names)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Property Property(Expression lookup)
+        {
+            throw new NotImplementedException();
+        }
+
+        public MapProjection Project(List<object> entries)
+        {
+            throw new NotImplementedException();
+        }
+
+        public MapProjection Project(params object[] entries)
         {
             throw new NotImplementedException();
         }

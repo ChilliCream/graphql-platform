@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace HotChocolate.Data.Neo4J.Language
 {
     /// <summary>
@@ -6,11 +8,11 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public interface IPropertyContainer : INamed
     {
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns>A new Property associated with Named </returns>
         public Property Property(string name);
+        public Property Property(params string[] names);
+        public Property Property(Expression lookup);
+        public MapProjection Project(List<object> entries);
+        public MapProjection Project(params object[] entries);
+
     }
 }

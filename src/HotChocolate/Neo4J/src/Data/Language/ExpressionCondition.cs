@@ -5,7 +5,7 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class ExpressionCondition : Condition
     {
-        public override ClauseKind Kind { get; } = ClauseKind.Default;
+        public override ClauseKind Kind { get; } = ClauseKind.ExpressionCondition;
         private readonly Expression _expression;
 
         public ExpressionCondition(Expression expression)

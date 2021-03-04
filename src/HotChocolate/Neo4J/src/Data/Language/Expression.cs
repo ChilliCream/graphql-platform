@@ -1,5 +1,3 @@
-using HotChocolate.Data.Neo4J;
-
 namespace HotChocolate.Data.Neo4J.Language
 {
     /// <summary>
@@ -16,8 +14,19 @@ namespace HotChocolate.Data.Neo4J.Language
         /// <returns>An aliased expression</returns>
         public AliasedExpression As(string alias)
         {
-            Assertions.HasText(alias, "The alias may not be null or empty.");
+            Ensure.HasText(alias, "The alias may not be null or empty.");
             return new AliasedExpression(this, alias);
+        }
+
+        /// <summary>
+        /// Reuse an existing symbolic name to alias this expression
+        /// </summary>
+        /// <param name="alias"></param>
+        /// <returns>An aliased expression.</returns>
+        public AliasedExpression As(SymbolicName alias)
+        {
+            Ensure.IsNotNull(alias, "The alias may not be null.");
+            return As(alias.GetValue());
         }
 
         public Condition IsEqualTo(Expression rhs) => Conditions.IsEqualTo(this, rhs);
@@ -35,10 +44,11 @@ namespace HotChocolate.Data.Neo4J.Language
         public Condition Contains(Expression expression) => Conditions.Contains(this, expression);
         public Condition IsNull() => Conditions.IsNull(this);
         public Condition IsNotNull() => Conditions.IsNotNull(this);
+        public Condition IsEmpty() => Conditions.IsEmpty(this);
         public Condition In(Expression expression) => Comparison.Create(this, Operator.In, expression);
         public Operation Concat(Expression expression) => Operations.Concat(this, expression);
         public Operation Add(Expression expression) => Operations.Add(this, expression);
-        public Operation Substract(Expression expression) => Operations.Subtract(this, expression);
+        public Operation Subtract(Expression expression) => Operations.Subtract(this, expression);
         public Operation Multiply(Expression expression) => Operations.Multiply(this, expression);
         public Operation Divide(Expression expression) => Operations.Divide(this, expression);
         public Operation Remainder(Expression expression) => Operations.Remainder(this, expression);
