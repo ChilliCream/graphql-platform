@@ -41,7 +41,12 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 "Foo.Bar",
                 "FooClient",
                 new Sha1DocumentHashProvider(),
-                Descriptors.Operations.RequestStrategy.Default);
+                Descriptors.Operations.RequestStrategy.Default,
+                new[]
+                {
+                    TransportProfile.Default
+                });
+
             TypeDescriptorMapper.Map(
                 clientModel,
                 context);
@@ -109,14 +114,19 @@ namespace StrawberryShake.CodeGeneration.Mappers
         public void MapDataTypeDescriptors_DataUnionType()
         {
             // arrange
-            var clientModel = CreateClientModelAsync("union.query3.graphql", "union.schema.graphql");
+            var clientModel =
+                CreateClientModelAsync("union.query3.graphql", "union.schema.graphql");
 
             // act
             var context = new MapperContext(
                 "Foo.Bar",
                 "FooClient",
                 new Sha1DocumentHashProvider(),
-                Descriptors.Operations.RequestStrategy.Default);
+                Descriptors.Operations.RequestStrategy.Default,
+                new[]
+                {
+                    TransportProfile.Default
+                });
             TypeDescriptorMapper.Map(
                 clientModel,
                 context);
@@ -206,7 +216,11 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 "Foo.Bar",
                 "FooClient",
                 new Sha1DocumentHashProvider(),
-                Descriptors.Operations.RequestStrategy.Default);
+                Descriptors.Operations.RequestStrategy.Default,
+                new[]
+                {
+                    TransportProfile.Default
+                });
             TypeDescriptorMapper.Map(
                 clientModel,
                 context);

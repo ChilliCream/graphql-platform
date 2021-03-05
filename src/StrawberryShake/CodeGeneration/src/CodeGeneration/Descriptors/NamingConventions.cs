@@ -51,6 +51,9 @@ namespace StrawberryShake.CodeGeneration.Descriptors
         public static string CreateServiceCollectionExtensions(string clientName) =>
             clientName + "ServiceCollectionExtensions";
 
+        public static string CreateClientProfileKind(string clientName) =>
+            clientName + "ProfileKind";
+
         public static string CreateInputValueFormatter(InputObjectTypeDescriptor type) =>
             type.Name + "InputValueFormatter";
 

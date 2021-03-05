@@ -69,6 +69,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             // Add Properties to class
             foreach (PropertyDescriptor property in descriptor.Properties)
             {
+                if (property.Name.Value is __typename)
+                {
+                    continue;
+                }
+
                 TypeReferenceBuilder propertyType = property.Type.Kind switch
                 {
                     TypeKind.LeafType => property.Type.ToBuilder(),

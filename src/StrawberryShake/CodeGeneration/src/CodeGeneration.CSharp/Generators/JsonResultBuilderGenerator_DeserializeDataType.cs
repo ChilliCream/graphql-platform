@@ -73,6 +73,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
                 foreach (PropertyDescriptor property in concreteType.Properties)
                 {
+                    if (property.Name.Value is __typename)
+                    {
+                        continue;
+                    }
+
                     returnStatement.AddArgument(
                         CodeBlockBuilder
                             .New()

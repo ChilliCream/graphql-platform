@@ -26,7 +26,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             method
                 .AddParameter(_dataParameterName)
-                .SetType(complexTypeDescriptor.ParentRuntimeType.ToString())
+                .SetType(complexTypeDescriptor.ParentRuntimeType
+                    .ToString()
+                    .MakeNullable(!isNonNullable))
                 .SetName(_dataParameterName);
 
             if (!isNonNullable)
@@ -35,7 +37,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             }
 
             const string returnValue = nameof(returnValue);
-            method.AddCode($"{complexTypeDescriptor.RuntimeType.Name} {returnValue} = default!;");
+            method.AddCode($"{complexTypeDescriptor.RuntimeType.Name}? {returnValue};");
             method.AddEmptyLine();
 
             GenerateIfForEachImplementedBy(

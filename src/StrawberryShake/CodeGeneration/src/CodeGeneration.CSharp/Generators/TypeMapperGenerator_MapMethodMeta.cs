@@ -126,7 +126,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         {
             IfBuilder ifBuilder = IfBuilder
                 .New()
-                .SetCondition($"{propertyName} == default")
+                .SetCondition($"{propertyName} is null")
                 .AddCode(
                     isNonNullType
                         ? ExceptionBuilder.New(TypeNames.ArgumentNullException)

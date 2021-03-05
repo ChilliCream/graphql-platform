@@ -11,7 +11,6 @@ using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.StarWars;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
-using StrawberryShake.Transport.Http;
 using StrawberryShake.Transport.WebSockets.Protocols;
 using Xunit;
 
@@ -39,7 +38,6 @@ namespace StrawberryShake.Transport.InMemory
                 .AddInMemorySubscriptions();
 
             serviceCollection
-                .AddProtocol<GraphQLWebSocketProtocolFactory>()
                 .AddInMemoryClient("Foo");
 
             IServiceProvider services =

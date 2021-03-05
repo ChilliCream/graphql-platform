@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -59,7 +60,7 @@ namespace StrawberryShake.Transport.InMemory
 
             var requestBuilder = new QueryRequestBuilder();
 
-            if (request.Id is null)
+            if (request.Document.Body.Length > 0)
             {
                 requestBuilder.SetQuery(Utf8GraphQLParser.Parse(request.Document.Body));
             }
@@ -69,7 +70,7 @@ namespace StrawberryShake.Transport.InMemory
             }
 
             requestBuilder.SetOperation(request.Name);
-            requestBuilder.SetVariableValues(request.Variables);
+            requestBuilder.SetVariableValues(CreateVariables(request.Variables));
             requestBuilder.SetExtensions(request.GetExtensionsOrNull());
             requestBuilder.SetProperties(request.GetContextDataOrNull());
 
@@ -84,6 +85,52 @@ namespace StrawberryShake.Transport.InMemory
             return await Executor
                 .ExecuteAsync(requestBuilder.Create(), cancellationToken)
                 .ConfigureAwait(false);
+        }
+
+        private IReadOnlyDictionary<string, object?>? CreateVariables(
+            IReadOnlyDictionary<string, object?>? variables)
+        {
+            if (variables is not null)
+            {
+                var response = new Dictionary<string, object?>();
+                foreach (KeyValuePair<string, object?> pair in variables)
+                {
+                    response[pair.Key] = CreateVariableValue(pair.Value);
+                }
+
+                return response;
+            }
+
+            return null;
+        }
+
+        private object? CreateVariableValue(object? variables)
+        {
+            switch (variables)
+            {
+                case IEnumerable<KeyValuePair<string, object?>> pairs:
+                {
+                    var response = new Dictionary<string, object?>();
+                    foreach (KeyValuePair<string, object?> pair in pairs)
+                    {
+                        response[pair.Key] = CreateVariableValue(pair.Value);
+                    }
+
+                    return response;
+                }
+                case IList list:
+                {
+                    var response = new List<object?>();
+                    for (var index = 0; index < list.Count; index++)
+                    {
+                        response.Add(CreateVariableValue(list[index]));
+                    }
+
+                    return response;
+                }
+                default:
+                    return variables;
+            }
         }
     }
 }

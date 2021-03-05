@@ -36,8 +36,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
             AssertStarWarsResult(
                 @"mutation createReviewMut($episode: Episode!, $review: ReviewInput!) {
                     createReview(episode: $episode, review: $review) {
-                    stars
-                    commentary
+                        stars
+                        commentary
                     }
                 }");
         }

@@ -106,9 +106,9 @@ namespace Foo.Bar
             throw new global::System.ArgumentException("GetPeopleResultInfo expected.");
         }
 
-        private IGetPeople_People? MapIGetPeople_People(global::Foo.Bar.State.PersonConnectionData data)
+        private IGetPeople_People? MapIGetPeople_People(global::Foo.Bar.State.PersonConnectionData? data)
         {
-            if (data == default)
+            if (data is null)
             {
                 return null;
             }
@@ -129,7 +129,7 @@ namespace Foo.Bar
 
         private global::System.Collections.Generic.IReadOnlyList<IGetPeople_People_Nodes?>? MapIGetPeople_People_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
         {
-            if (list == default)
+            if (list is null)
             {
                 return null;
             }
@@ -146,7 +146,7 @@ namespace Foo.Bar
 
         private IGetPeople_People_Nodes? MapIGetPeople_People_Nodes(global::StrawberryShake.EntityId? entityId)
         {
-            if (entityId == default)
+            if (entityId is null)
             {
                 return null;
             }
@@ -163,9 +163,9 @@ namespace Foo.Bar
             throw new global::System.NotSupportedException();
         }
 
-        private IGetPeople_People_Nodes_Messages? MapIGetPeople_People_Nodes_Messages(global::Foo.Bar.State.MessageConnectionData data)
+        private IGetPeople_People_Nodes_Messages? MapIGetPeople_People_Nodes_Messages(global::Foo.Bar.State.MessageConnectionData? data)
         {
-            if (data == default)
+            if (data is null)
             {
                 return null;
             }
@@ -186,7 +186,7 @@ namespace Foo.Bar
 
         private global::System.Collections.Generic.IReadOnlyList<IGetPeople_People_Nodes_Messages_Nodes?>? MapIGetPeople_People_Nodes_Messages_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
         {
-            if (list == default)
+            if (list is null)
             {
                 return null;
             }
@@ -203,7 +203,7 @@ namespace Foo.Bar
 
         private IGetPeople_People_Nodes_Messages_Nodes? MapIGetPeople_People_Nodes_Messages_Nodes(global::StrawberryShake.EntityId? entityId)
         {
-            if (entityId == default)
+            if (entityId is null)
             {
                 return null;
             }
@@ -375,9 +375,9 @@ namespace Foo.Bar
                 MapIGetPeople_People_Nodes_Messages(entity.Messages));
         }
 
-        private IGetPeople_People_Nodes_Messages? MapIGetPeople_People_Nodes_Messages(global::Foo.Bar.State.MessageConnectionData data)
+        private IGetPeople_People_Nodes_Messages? MapIGetPeople_People_Nodes_Messages(global::Foo.Bar.State.MessageConnectionData? data)
         {
-            if (data == default)
+            if (data is null)
             {
                 return null;
             }
@@ -398,7 +398,7 @@ namespace Foo.Bar
 
         private global::System.Collections.Generic.IReadOnlyList<IGetPeople_People_Nodes_Messages_Nodes?>? MapIGetPeople_People_Nodes_Messages_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
         {
-            if (list == default)
+            if (list is null)
             {
                 return null;
             }
@@ -415,7 +415,7 @@ namespace Foo.Bar
 
         private IGetPeople_People_Nodes_Messages_Nodes? MapIGetPeople_People_Nodes_Messages_Nodes(global::StrawberryShake.EntityId? entityId)
         {
-            if (entityId == default)
+            if (entityId is null)
             {
                 return null;
             }
@@ -1715,9 +1715,9 @@ namespace Foo.Bar
 
         private global::System.Object? FormatText(global::System.String value)
         {
-            if (value == default)
+            if (value is null)
             {
-                return null;
+                throw new global::System.ArgumentNullException(nameof(value));
             }
 
             return _stringFormatter.Format(value);
@@ -1725,9 +1725,9 @@ namespace Foo.Bar
 
         private global::System.Object? FormatAddress(global::System.String value)
         {
-            if (value == default)
+            if (value is null)
             {
-                return null;
+                throw new global::System.ArgumentNullException(nameof(value));
             }
 
             return _stringFormatter.Format(value);
@@ -2409,10 +2409,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 services,
                 sp => 
                 {
-                    var serviceCollection = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
-
-                    ConfigureClient(
-                        serviceCollection,
+                    var serviceCollection = ConfigureClientDefault(
                         sp,
                         strategy);
 
@@ -2437,15 +2434,11 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        private static global::Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureClient(
-            global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
+        private static global::Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureClientDefault(
             global::System.IServiceProvider parentServices,
             global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
-            if (services is null)
-            {
-                throw new global::System.ArgumentNullException(nameof(services));
-            }
+            var services = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId>>(
                 services,
                 global::Foo.Bar.EntityIdFactory.CreateEntityId);

@@ -168,7 +168,7 @@ namespace Foo.Bar
 
         private global::System.Collections.Generic.IReadOnlyList<IGetStore2_SearchableStore_Books?>? MapIGetStore2_SearchableStore_BooksArray(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BookData?>? list)
         {
-            if (list == default)
+            if (list is null)
             {
                 return null;
             }
@@ -183,9 +183,9 @@ namespace Foo.Bar
             return books;
         }
 
-        private IGetStore2_SearchableStore_Books? MapIGetStore2_SearchableStore_Books(global::Foo.Bar.State.BookData data)
+        private IGetStore2_SearchableStore_Books? MapIGetStore2_SearchableStore_Books(global::Foo.Bar.State.BookData? data)
         {
-            if (data == default)
+            if (data is null)
             {
                 return null;
             }
@@ -206,14 +206,14 @@ namespace Foo.Bar
             return returnValue;
         }
 
-        private IGetStore2_SearchableStore_Search? MapISearchResultData(global::Foo.Bar.State.ISearchResultData data)
+        private IGetStore2_SearchableStore_Search? MapISearchResultData(global::Foo.Bar.State.ISearchResultData? data)
         {
-            if (data == default)
+            if (data is null)
             {
                 return null;
             }
 
-            IGetStore2_SearchableStore_Search returnValue = default!;
+            IGetStore2_SearchableStore_Search? returnValue;
 
             if (data is global::Foo.Bar.State.AuthorData author)
             {
@@ -992,10 +992,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 services,
                 sp => 
                 {
-                    var serviceCollection = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
-
-                    ConfigureClient(
-                        serviceCollection,
+                    var serviceCollection = ConfigureClientDefault(
                         sp,
                         strategy);
 
@@ -1016,15 +1013,11 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        private static global::Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureClient(
-            global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
+        private static global::Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureClientDefault(
             global::System.IServiceProvider parentServices,
             global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
-            if (services is null)
-            {
-                throw new global::System.ArgumentNullException(nameof(services));
-            }
+            var services = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId>>(
                 services,
                 global::Foo.Bar.EntityIdFactory.CreateEntityId);
