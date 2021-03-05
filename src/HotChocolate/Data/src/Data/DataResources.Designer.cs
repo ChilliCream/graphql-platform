@@ -417,6 +417,12 @@ namespace HotChocolate.Data {
             }
         }
         
+        internal static string ProjectionVisitor_NodeFieldWasNotFound {
+            get {
+                return ResourceManager.GetString("ProjectionVisitor_NodeFieldWasNotFound", resourceCulture);
+            }
+        }
+        
         internal static string FilterConvention_ProviderHasToBeInitializedByConvention {
             get {
                 return ResourceManager.GetString("FilterConvention_ProviderHasToBeInitializedByConvention", resourceCulture);

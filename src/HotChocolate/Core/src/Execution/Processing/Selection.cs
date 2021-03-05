@@ -12,7 +12,9 @@ namespace HotChocolate.Execution.Processing
     public class Selection : ISelection
     {
         private static readonly ArgumentMap _emptyArguments =
-            new ArgumentMap(new Dictionary<NameString, ArgumentValue>());
+            new(new Dictionary<NameString, ArgumentValue>());
+
+        private static readonly IReadOnlyList<FieldNode> _emptySelections = new FieldNode[0];
         private List<SelectionIncludeCondition>? _includeConditions;
         private List<FieldNode>? _selections;
         private IReadOnlyList<FieldNode>? _syntaxNodes;
@@ -35,9 +37,8 @@ namespace HotChocolate.Execution.Processing
             SyntaxNode = selection
                 ?? throw new ArgumentNullException(nameof(selection));
             ResponseName = responseName ??
-                (selection.Alias is null
-                    ? selection.Name.Value
-                    : selection.Alias.Value);
+                selection.Alias?.Value ??
+                selection.Name.Value;
             ResolverPipeline = resolverPipeline ??
                 throw new ArgumentNullException(nameof(resolverPipeline));
             Arguments = arguments is null

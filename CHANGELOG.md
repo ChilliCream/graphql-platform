@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Addtional HotChocolate scalars  (HotChocolate.Types.Scalars)
+    - PhoneNumber (#2995)
+    - EmailAddress (#2989)
+    - NegativeFloat (#2996)
+    - NonPositiveFloat (#3024)
+    - NonNegativeFloat (#3015)
+    - PositiveInt (#2929)
+    - NegativeInt (#2940)
+    - NonNegativeInt (#3020)
+    - NonEmptyString (#2940)
+
+### Fixed
+
+- Fixed issue where the PagingHelper introduced a self-reference which cause type system initialization issues.
+
+## [11.0.9]
+
+### Added
+
+- Added result formatter options to minify the JSON payload. (#2897)
+- Added support for spatial transformation between different CRS. (#2904)
+
+### Changed
+
+- Relaxed UUID deserialization (by default we now allow for any UUID format). (#2896)
+
+### Fixed
+
+- Fixed selection optimizer were not resolved correctly. (#2889)
+- Fixed projection of edge type (#2888) 
+
 ## [11.0.8]
 
 ### Added

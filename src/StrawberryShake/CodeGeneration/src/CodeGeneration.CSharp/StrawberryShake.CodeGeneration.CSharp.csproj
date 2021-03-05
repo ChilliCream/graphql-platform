@@ -7,11 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Client\src\Resources\StrawberryShake.Resources.csproj" />
     <ProjectReference Include="..\CodeGeneration\StrawberryShake.CodeGeneration.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="System.Text.Json" Version="4.7.0" />
   </ItemGroup>
 
 </Project>

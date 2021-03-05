@@ -2,15 +2,15 @@
 title: "Scalars"
 ---
 
-A GraphQL schema should be built as expressive as possible. 
-Just from looking at the schema, a developer should know how to use the API. 
+A GraphQL schema should be built as expressive as possible.
+Just from looking at the schema, a developer should know how to use the API.
 In GraphQL you are not limited to only describing the structure of a type, you can even describe value types.
 Scalar types represent types that can hold data of a specific kind.
 Scalars are leaf types, meaning you cannot use e.g. `{ fieldname }` to further drill down into the type.
 
-A scalar must only know how to serialize and deserialize the value of the field. 
-GraphQL gives you the freedom to define custom scalar types. 
-This makes them the perfect tool for expressive value types. 
+A scalar must only know how to serialize and deserialize the value of the field.
+GraphQL gives you the freedom to define custom scalar types.
+This makes them the perfect tool for expressive value types.
 You could create a scalar for `CreditCardNumber` or `NonEmptyString`.
 
 The GraphQL specification defines the following scalars
@@ -160,8 +160,8 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
-
 # Custom Scalars
+
 All scalars in HotChocolate are defined though a `ScalarType`
 The easiest way to create a custom scalar is to extend `ScalarType<TRuntimeType, TLiteral>`.
 This base class already includes basic serialization and parsing logic.
@@ -223,7 +223,7 @@ public sealed class CreditCardNumberType
 }
 ```
 
-By extending `ScalarType` you have full control over serialization and parsing. 
+By extending `ScalarType` you have full control over serialization and parsing.
 
 ```csharp
     public sealed class CreditCardNumberType
@@ -323,3 +323,72 @@ By extending `ScalarType` you have full control over serialization and parsing.
         }
     }
 ```
+
+# Additional Scalars
+HotChocolate provides additional scalars for more specific usecases. 
+
+To use these scalars you have to add the package `HotChocolate.Types.Scalars`
+
+```csharp
+dotnet add package HotChocolate.Types.Scalars
+```
+
+These scalars cannot be mapped by HotChocolate to a field. 
+You need to specify them manually.
+
+**Annotation Based**
+```csharp
+public class User 
+{
+    [GraphQLType(typeof(NonEmptyStringType))]
+    public string UserName { get; set; }
+}
+```
+
+**Code First**
+```csharp
+public class UserType : ObjectType<User> 
+{
+    protected override void Configure(
+        IObjectTypeDescriptor<User> descriptor)
+    {
+        descriptor.Field(x => x.UserName).Type<NonEmptyStringType>();
+    }
+}
+```
+
+**Schema First**
+```sql
+type User {
+  userName: NonEmptyString
+}
+```
+
+You will also have to add the Scalar to the schema: 
+```csharp
+services
+  .AddGraphQLServer()
+  // ....
+  .AddType<NonEmptyStringType>()
+```
+
+**Available Scalars:**
+
+| Type             | Description                                                                                                                                            |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| EmailAddress     | The `EmailAddress` scalar type represents a email address, represented as UTF-8 character sequences that follows the specification defined in RFC 5322 |
+| HexColor         | The `HexColor` scalar type represents a valid HEX color code.                                                                                          |
+| Hsl              | The `Hsl` scalar type represents a valid a CSS HSL color as defined here https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors.      |
+| Hsla             | The `Hsla` scalar type represents a valid a CSS HSLA color as defined here https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors.    |
+| NegativeFloat    | The `NegativeFloat` scalar type represents a double‐precision fractional value less than 0                                                             |
+| NegativeInt      | The `NegativeIntType` scalar type represents a signed 32-bit numeric non-fractional with a maximum of -1.                                              |
+| NonEmptyString   | The `NonNullString` scalar type represents non empty textual data, represented as UTF‐8 character sequences with at least one character                |
+| NonNegativeFloat | The `NonNegativeFloat` scalar type represents a double‐precision fractional value greater than or equal to 0.                                          |
+| NonNegativeInt   | The `NonNegativeIntType` scalar type represents a unsigned 32-bit numeric non-fractional value greater than or equal to 0.                             |
+| NonPositiveFloat | The `NonPositiveFloat` scalar type represents a double‐precision fractional value less than or equal to 0.                                             |
+| NonPositiveInt   | The `NonPositiveInt` scalar type represents a signed 32-bit numeric non-fractional value less than or equal to 0.                                      |
+| PhoneNumber      | The `PhoneNumber` scalar type represents a value that conforms to the standard E.164 format as specified in: https://en.wikipedia.org/wiki/E.164.      |
+| PositiveInt      | The `PositiveInt` scalar type represents a signed 32‐bit numeric non‐fractional value of at least the value 1.                                         |
+| PostalCode       | The `PostalCode` scalar type represents a valid postal code.                                                                                           |
+| UnsignedInt      | The `UnsignedInt` scalar type represents a unsigned 32‐bit numeric non‐fractional value greater than or equal to 0.                                    |
+| IPv4             | The `IPv4` scalar type represents a valid a IPv4 address as defined here https://en.wikipedia.org/wiki/IPv4.                                           |

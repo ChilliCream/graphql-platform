@@ -13,6 +13,80 @@
       "fragment": "nameFragment",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragments-Must-Be-Used"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "FragmentDefinition",
+      "VariableDefinitions": [],
+      "TypeCondition": {
+        "Kind": "NamedType",
+        "Location": {
+          "Start": 42,
+          "End": 47,
+          "Line": 2,
+          "Column": 42
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 42,
+            "End": 47,
+            "Line": 2,
+            "Column": 42
+          },
+          "Value": "Dog"
+        }
+      },
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 46,
+          "End": 118,
+          "Line": 2,
+          "Column": 46
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": null,
+            "Location": {
+              "Start": 77,
+              "End": 99,
+              "Line": 3,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 77,
+                "End": 99,
+                "Line": 3,
+                "Column": 21
+              },
+              "Value": "name"
+            },
+            "Directives": []
+          }
+        ]
+      },
+      "Location": {
+        "Start": 17,
+        "End": 118,
+        "Line": 2,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 26,
+          "End": 41,
+          "Line": 2,
+          "Column": 26
+        },
+        "Value": "nameFragment"
+      },
+      "Directives": []
+    }
   }
 ]

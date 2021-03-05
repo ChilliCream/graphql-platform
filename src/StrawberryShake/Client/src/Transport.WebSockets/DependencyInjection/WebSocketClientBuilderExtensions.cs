@@ -1,8 +1,8 @@
 using System;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using StrawberryShake.Transport.WebSockets;
 
-namespace StrawberryShake.Transport.WebSockets
+namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
     /// Extension methods for configuring an <see cref="IWebSocketClientBuilder"/>
@@ -23,7 +23,7 @@ namespace StrawberryShake.Transport.WebSockets
         /// </returns>
         public static IWebSocketClientBuilder ConfigureWebSocketClient(
             this IWebSocketClientBuilder builder,
-            Action<WebSocketClient> configureClient)
+            Action<ISocketClient> configureClient)
         {
             if (builder == null)
             {
@@ -35,9 +35,9 @@ namespace StrawberryShake.Transport.WebSockets
                 throw new ArgumentNullException(nameof(configureClient));
             }
 
-            builder.Services.Configure<WebSocketClientFactoryOptions>(
+            builder.Services.Configure<SocketClientFactoryOptions>(
                 builder.Name,
-                options => options.WebSocketClientActions.Add(configureClient));
+                options => options.SocketClientActions.Add(configureClient));
 
             return builder;
         }
@@ -60,7 +60,7 @@ namespace StrawberryShake.Transport.WebSockets
         /// </remarks>
         public static IWebSocketClientBuilder ConfigureWebSocketClient(
             this IWebSocketClientBuilder builder,
-            Action<IServiceProvider, WebSocketClient> configureClient)
+            Action<IServiceProvider, ISocketClient> configureClient)
         {
             if (builder == null)
             {
@@ -72,13 +72,86 @@ namespace StrawberryShake.Transport.WebSockets
                 throw new ArgumentNullException(nameof(configureClient));
             }
 
-            builder.Services.AddTransient<IConfigureOptions<WebSocketClientFactoryOptions>>(sp =>
-                new ConfigureNamedOptions<WebSocketClientFactoryOptions>(
+            builder.Services.AddTransient<IConfigureOptions<SocketClientFactoryOptions>>(sp =>
+                new ConfigureNamedOptions<SocketClientFactoryOptions>(
                     builder.Name,
-                    options => options.WebSocketClientActions.Add(
+                    options => options.SocketClientActions.Add(
                         client => configureClient(sp, client))));
 
             return builder;
+        }
+
+        /// <summary>
+        /// Configures a <see cref="ISocketConnectionInterceptor"/> on this socket client
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="IServiceCollection"/>.
+        /// </param>
+        /// <param name="interceptor">
+        /// The interceptor that should be used
+        /// </param>
+        /// <returns>
+        /// An <see cref="IWebSocketClientBuilder"/> that can be used to configure the client.
+        /// </returns>
+        public static IWebSocketClientBuilder ConfigureConnectionInterceptor(
+            this IWebSocketClientBuilder builder,
+            ISocketConnectionInterceptor interceptor)
+        {
+            return builder.ConfigureConnectionInterceptor(_ => interceptor);
+        }
+
+        /// <summary>
+        /// Configures what type of <see cref="ISocketConnectionInterceptor"/> this socket client
+        /// should use.
+        ///
+        /// Resolves the <typeparamref name="TInterceptor"/> from the dependency injection
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="IServiceCollection"/>.
+        /// </param>
+        /// <typeparam name="TInterceptor">
+        /// The type of the <see cref="ISocketConnectionInterceptor"/> that should be resolved from
+        /// the dependency injection
+        /// </typeparam>
+        /// <returns>
+        /// An <see cref="IWebSocketClientBuilder"/> that can be used to configure the client.
+        /// </returns>
+        public static IWebSocketClientBuilder ConfigureConnectionInterceptor<TInterceptor>(
+            this IWebSocketClientBuilder builder)
+            where TInterceptor : ISocketConnectionInterceptor
+        {
+            return builder
+                .ConfigureConnectionInterceptor(sp => sp.GetRequiredService<TInterceptor>());
+        }
+
+        /// <summary>
+        /// Configures a <see cref="ISocketConnectionInterceptor"/> on this socket client
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="IServiceCollection"/>.
+        /// </param>
+        /// <param name="factory">
+        /// A delegate that creates a <see cref="ISocketConnectionInterceptor"/>
+        /// </param>
+        /// <returns>
+        /// An <see cref="IWebSocketClientBuilder"/> that can be used to configure the client.
+        /// </returns>
+        public static IWebSocketClientBuilder ConfigureConnectionInterceptor(
+            this IWebSocketClientBuilder builder,
+            Func<IServiceProvider, ISocketConnectionInterceptor> factory)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
+            return builder
+                .ConfigureWebSocketClient((sp, x) => x.ConnectionInterceptor = factory(sp));
         }
     }
 }

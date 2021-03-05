@@ -1,18 +1,30 @@
-<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
-
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <AssemblyName>StrawberryShake.CodeGeneration.CSharp.Tests</AssemblyName>
-    <RootNamespace>StrawberryShake.CodeGeneration.CSharp</RootNamespace>
+    <RootNamespace>StrawberryShake</RootNamespace>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+      <AssemblyName>StrawberryShake.CodeGeneration.CSharp.Tests</AssemblyName>
+      <RootNamespace>StrawberryShake.CodeGeneration.CSharp</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\HotChocolate\AspNetCore\test\AspNetCore.Tests\HotChocolate.AspNetCore.Tests.csproj" />
+    <ProjectReference Include="..\..\..\..\HotChocolate\Core\test\StarWars\HotChocolate.StarWars.csproj" />
+    <ProjectReference Include="..\..\..\Client\src\Transport.Http\StrawberryShake.Transport.Http.csproj" />
+    <ProjectReference Include="..\..\..\Client\src\Transport.InMemory\StrawberryShake.Transport.InMemory.csproj" />
+    <ProjectReference Include="..\..\..\Client\test\Transport.WebSocket.Tests\StrawberryShake.Transport.WebSocket.Tests.csproj" />
     <ProjectReference Include="..\..\src\CodeGeneration.CSharp\StrawberryShake.CodeGeneration.CSharp.csproj" />
   </ItemGroup>
 
-  <!--For Visual Studio for Mac Test Explorer we need this reference here-->
   <ItemGroup>
-    <PackageReference Include="ChilliCream.Testing.Utilities" Version="0.2.0" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+    <Compile Remove="Other\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="Other\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -22,6 +34,33 @@
     <None Update="$(MSBuildProjectDirectory)\xunit.runner.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="__resources__\Query_SyntaxError.graphql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="__resources__\Query_SchemaValidationError.graphql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="__resources__\BookUnionQuery.graphql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="__resources__\BookUnionQueryWithEntity.graphql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="__resources__\BookInterfaceQuery.graphql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="__resources__\QueryWithSubscription.graphql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="__resources__\StarWarsSchema_ChangeHomePlanet.graphql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <!--For Visual Studio for Mac Test Explorer we need this reference here-->
+  <ItemGroup>
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.8.0" />
   </ItemGroup>
 
 </Project>

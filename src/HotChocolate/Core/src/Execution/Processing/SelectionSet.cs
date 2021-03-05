@@ -65,7 +65,6 @@ namespace HotChocolate.Execution.Processing
         /// <summary>
         /// Gets an empty selection set.
         /// </summary>
-        public static SelectionSet Empty { get; } =
-            new SelectionSet(new ISelection[0], false);
+        public static SelectionSet Empty { get; } = new(new ISelection[0], false);
     }
 }

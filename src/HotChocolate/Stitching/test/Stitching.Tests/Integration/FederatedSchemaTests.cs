@@ -53,7 +53,7 @@ namespace HotChocolate.Stitching.Integration
             schema.Print().MatchSnapshot();
         }
 
-        [Fact]
+        [Fact(Skip = "This test is flaky")]
         public async Task AutoMerge_Execute()
         {
             // arrange

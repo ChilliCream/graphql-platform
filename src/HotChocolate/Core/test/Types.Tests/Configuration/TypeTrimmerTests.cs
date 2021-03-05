@@ -76,6 +76,35 @@ namespace HotChocolate.Configuration
         }
 
         [Fact]
+        private void Interface_Implementors_Correctly_Detected_2()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("abc")
+                    .Field("field")
+                    .Type(new NamedTypeNode("ghi"))
+                    .Resolver("test"))
+                .AddInterfaceType(c => c
+                    .Name("def")
+                    .Field("field")
+                    .Type<StringType>())
+                .AddObjectType(c => c
+                    .Name("ghi")
+                    .Implements(new NamedTypeNode("def"))
+                    .Field("field")
+                    .Type<StringType>()
+                    .Resolver("test"))
+                .AddType<FloatType>()
+                .ModifyOptions(o => o.RemoveUnreachableTypes = true)
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
         private void Union_Set_Is_Correctly_Detected()
         {
             // arrange

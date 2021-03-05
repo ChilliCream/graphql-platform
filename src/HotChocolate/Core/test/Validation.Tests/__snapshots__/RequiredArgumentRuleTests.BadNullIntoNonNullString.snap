@@ -19,6 +19,35 @@
       "argument": "stringArg",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Argument",
+      "Location": {
+        "Start": 97,
+        "End": 113,
+        "Line": 4,
+        "Column": 47
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 97,
+          "End": 107,
+          "Line": 4,
+          "Column": 47
+        },
+        "Value": "stringArg"
+      },
+      "Value": {
+        "Kind": "NullValue",
+        "Location": {
+          "Start": 108,
+          "End": 113,
+          "Line": 4,
+          "Column": 58
+        },
+        "Value": null
+      }
+    }
   }
 ]
