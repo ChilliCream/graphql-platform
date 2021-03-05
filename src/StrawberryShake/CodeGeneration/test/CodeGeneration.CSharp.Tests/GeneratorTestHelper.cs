@@ -21,16 +21,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public static class GeneratorTestHelper
     {
-        public static IReadOnlyList<IError> AssertError(
-            params string[] fileNames)
+        public static IReadOnlyList<IError> AssertError(params string[] fileNames)
         {
             CSharpGeneratorResult result = Generate(
                 fileNames,
-                new CSharpGeneratorSettings
-                {
-                    Namespace = "Foo.Bar",
-                    ClientName = "FooClient"
-                });
+                new CSharpGeneratorSettings { Namespace = "Foo.Bar", ClientName = "FooClient" });
 
             Assert.True(
                 result.Errors.Any(),
@@ -39,8 +34,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return result.Errors;
         }
 
-        public static void AssertResult(
-            params string[] sourceTexts) =>
+        public static void AssertResult(params string[] sourceTexts) =>
             AssertResult(true, sourceTexts);
 
         public static void AssertResult(
@@ -71,6 +65,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
             documents.AppendLine("// ReSharper disable InconsistentNaming");
             documents.AppendLine();
 
+            if (settings.Profiles.Count == 0)
+            {
+                settings.Profiles.Add(TransportProfile.Default);
+            }
+
             CSharpGeneratorResult result = Generate(
                 clientModel,
                 new CSharpGeneratorSettings
@@ -78,7 +77,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     Namespace = settings.Namespace ?? "Foo.Bar",
                     ClientName = settings.ClientName ?? "FooClient",
                     StrictSchemaValidation = settings.StrictValidation,
-                    RequestStrategy = settings.RequestStrategy
+                    RequestStrategy = settings.RequestStrategy,
+                    TransportProfiles = settings.Profiles
                 });
 
             Assert.False(
@@ -123,10 +123,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             if (settings.SnapshotFile is not null)
             {
-                documents.ToString().MatchSnapshot(
-                    new SnapshotFullName(
-                        settings.SnapshotFile,
-                        Snapshot.FullName().FolderPath));
+                documents.ToString()
+                    .MatchSnapshot(
+                        new SnapshotFullName(
+                            settings.SnapshotFile,
+                            Snapshot.FullName().FolderPath));
             }
             else
             {
@@ -148,8 +149,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
         }
 
-        public static void AssertStarWarsResult(
-            params string[] sourceTexts) =>
+        public static void AssertStarWarsResult(params string[] sourceTexts) =>
             AssertStarWarsResult(
                 new AssertSettings { StrictValidation = true },
                 sourceTexts);
@@ -177,6 +177,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         public static AssertSettings CreateIntegrationTest(
             Descriptors.Operations.RequestStrategy requestStrategy =
                 Descriptors.Operations.RequestStrategy.Default,
+            TransportProfile[]? profiles = null,
             [CallerMemberName] string? testName = null)
         {
             SnapshotFullName snapshotFullName = Snapshot.FullName();
@@ -202,7 +203,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 SnapshotFile = System.IO.Path.Combine(
                     snapshotFullName.FolderPath,
                     testName + "Test.Client.cs"),
-                RequestStrategy = requestStrategy
+                RequestStrategy = requestStrategy,
+                Profiles = (profiles ?? new []{TransportProfile.Default }).ToList()
             };
         }
 
@@ -236,6 +238,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
             public bool StrictValidation { get; set; }
 
             public string? SnapshotFile { get; set; }
+
+            public List<TransportProfile> Profiles { get; set; } = new();
 
             public Descriptors.Operations.RequestStrategy RequestStrategy { get; set; } =
                 Descriptors.Operations.RequestStrategy.Default;

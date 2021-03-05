@@ -13,7 +13,6 @@ namespace StrawberryShake.CodeGeneration.Mappers
         private readonly List<INamedTypeDescriptor> _types = new();
         private readonly List<EntityTypeDescriptor> _entityTypes = new();
         private readonly List<DataTypeDescriptor> _dataTypes = new();
-        private readonly Dictionary<NameString, EnumTypeDescriptor> _enums = new();
         private readonly Dictionary<NameString, OperationDescriptor> _operations = new();
         private readonly Dictionary<NameString, ResultBuilderDescriptor> _resultBuilder = new();
         private ClientDescriptor? _client;
@@ -24,12 +23,14 @@ namespace StrawberryShake.CodeGeneration.Mappers
             string @namespace,
             string clientName,
             IDocumentHashProvider hashProvider,
-            RequestStrategy requestStrategy)
+            RequestStrategy requestStrategy,
+            IReadOnlyList<TransportProfile> transportProfiles)
         {
             Namespace = @namespace;
             ClientName = clientName;
             HashProvider = hashProvider;
             RequestStrategy = requestStrategy;
+            TransportProfiles = transportProfiles;
         }
 
         public string ClientName { get; }
@@ -40,6 +41,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
         public RequestStrategy RequestStrategy { get; }
 
         public IDocumentHashProvider HashProvider { get; }
+
+        public IReadOnlyList<TransportProfile> TransportProfiles { get; }
 
         public IReadOnlyList<INamedTypeDescriptor> Types => _types;
 
@@ -135,7 +138,9 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 throw new ArgumentNullException(nameof(operationDescriptor)));
         }
 
-        public void Register(NameString operationName, ResultBuilderDescriptor resultBuilderDescriptor)
+        public void Register(
+            NameString operationName,
+            ResultBuilderDescriptor resultBuilderDescriptor)
         {
             _resultBuilder.Add(
                 operationName.EnsureNotEmpty(nameof(operationName)),

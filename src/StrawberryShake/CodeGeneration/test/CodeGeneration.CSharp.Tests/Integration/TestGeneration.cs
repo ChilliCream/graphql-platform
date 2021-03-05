@@ -29,5 +29,38 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration
                         }
                     }
                 }");
+
+        [Fact]
+        public void MultiProfile() =>
+            AssertStarWarsResult(
+                CreateIntegrationTest(profiles: new[]
+                {
+                    new TransportProfile("InMemory", TransportType.InMemory),
+                    TransportProfile.Default
+                }),
+                @"query GetHero {
+                    hero(episode: NEW_HOPE) {
+                        name
+                        friends {
+                            nodes {
+                                name
+                            }
+                        }
+                    }
+                }",
+                @"subscription OnReviewSub {
+                    onReview(episode: NEW_HOPE) {
+                      __typename
+                      stars
+                      commentary
+                    }
+                  }
+                ",
+                @"mutation createReviewMut($episode: Episode!, $review: ReviewInput!) {
+                    createReview(episode: $episode, review: $review) {
+                        stars
+                        commentary
+                    }
+                }");
     }
 }

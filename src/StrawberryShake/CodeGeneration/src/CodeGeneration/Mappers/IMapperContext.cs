@@ -40,6 +40,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
         IReadOnlyCollection<OperationDescriptor> Operations { get; }
 
+        IReadOnlyList<TransportProfile> TransportProfiles { get; }
+
         ClientDescriptor Client { get; }
 
         void Register(IEnumerable<INamedTypeDescriptor> typeDescriptors);

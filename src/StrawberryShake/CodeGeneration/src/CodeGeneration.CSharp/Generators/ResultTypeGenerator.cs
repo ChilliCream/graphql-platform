@@ -9,6 +9,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public class ResultTypeGenerator : CodeGenerator<ObjectTypeDescriptor>
     {
+        private const string __typename = "__typename";
+
         protected override bool CanHandle(ObjectTypeDescriptor descriptor)
         {
             return true;
@@ -48,7 +50,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .AddParameter(paramName, x => x.SetType(propTypeBuilder))
                     .AddCode(AssignmentBuilder
                         .New()
-                        .SetLefthandSide(prop.Name)
+                        .SetLefthandSide((prop.Name.Value is __typename ? "this." : "") + prop.Name)
                         .SetRighthandSide(paramName));
             }
 

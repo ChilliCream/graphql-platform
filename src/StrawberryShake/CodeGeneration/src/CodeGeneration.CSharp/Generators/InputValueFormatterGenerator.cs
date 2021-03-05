@@ -95,6 +95,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .SetReturnType(TypeNames.Object.MakeNullable())
                 .AddParameter(runtimeValue, x => x.SetType(TypeNames.Object.MakeNullable()))
                 .AddBody()
+                .AddCode(IfBuilder
+                    .New()
+                    .SetCondition($"{runtimeValue} is null")
+                    .AddCode("return null;"))
+                .AddEmptyLine()
                 .ArgumentException(runtimeValue, $"!({runtimeValue} is {typeName} d)")
                 .AddEmptyLine()
                 .AddArray()
@@ -136,6 +141,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             string variableName,
             string assignment = "return")
         {
+            RuntimeTypeInfo runtimeType = typeDescriptor.GetRuntimeType();
+            var isValueType = runtimeType.IsValueType;
+
             switch (typeDescriptor)
             {
                 case INamedTypeDescriptor descriptor:
@@ -155,16 +163,17 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 case NonNullTypeDescriptor descriptor:
                     return CodeBlockBuilder
                         .New()
-                        .AddIf(x =>
-                            x.SetCondition($"{variableName} == default")
-                                .AddCode(
-                                    assignment == "return"
-                                        ? CodeLineBuilder.From("return null;")
-                                        : CodeBlockBuilder
-                                            .New()
-                                            .AddLine($"{assignment}.Add(null);")
-                                            .AddLine("continue;")))
-                        .AddEmptyLine()
+                        .If(!isValueType,
+                            i =>
+                            {
+                                i.AddIf(x => x
+                                        .SetCondition($"{variableName} is null")
+                                        .AddCode(
+                                            ExceptionBuilder
+                                                .New(TypeNames.ArgumentNullException)
+                                                .AddArgument($"nameof({variableName})")))
+                                    .AddEmptyLine();
+                            })
                         .AddCode(
                             GenerateSerializer(
                                 descriptor.InnerType(),

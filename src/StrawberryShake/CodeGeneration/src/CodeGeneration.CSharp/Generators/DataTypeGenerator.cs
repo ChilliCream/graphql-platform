@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using HotChocolate.Utilities;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Descriptors;
@@ -69,6 +70,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             // Add Properties to class
             foreach (PropertyDescriptor property in descriptor.Properties)
             {
+                if (property.Name.Value.EqualsOrdinal(__typename))
+                {
+                    continue;
+                }
+
                 TypeReferenceBuilder propertyType = property.Type.Kind switch
                 {
                     TypeKind.LeafType => property.Type.ToBuilder(),

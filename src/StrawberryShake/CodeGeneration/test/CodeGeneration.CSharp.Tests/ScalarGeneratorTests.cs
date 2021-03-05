@@ -60,7 +60,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 "type Query { person: Person }",
                 "type Person { name: String! email: Email }",
                 "scalar Email",
-                @"extend scalar Email 
+                @"extend scalar Email
                     @runtimeType(name: ""global::System.Int64"")
                     @serializationType(name: ""global::System.Int32"")",
                 "extend schema @key(fields: \"id\")");
@@ -71,7 +71,25 @@ namespace StrawberryShake.CodeGeneration.CSharp
             AssertResult(
                 FileResource.Open("AllExpenses.graphql"),
                 FileResource.Open("Expenses.extensions.graphql"),
-                FileResource.Open("Expenses.graphql"));  
+                FileResource.Open("Expenses.graphql"));
+        }
+
+        [Fact]
+        public void TimeSpan_Not_Detected()
+        {
+            AssertResult(
+                strictValidation: false,
+                @"
+                    query GetSessions {
+                      sessions(order: { title: ASC }) {
+                        nodes {
+                          title
+                        }
+                      }
+                    }
+                ",
+                FileResource.Open("Workshop.Schema.graphql"),
+                "extend schema @key(fields: \"id\")");
         }
     }
 }
