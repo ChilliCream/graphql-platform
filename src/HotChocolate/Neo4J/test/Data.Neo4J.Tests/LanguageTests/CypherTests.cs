@@ -11,7 +11,24 @@ namespace HotChocolate.Data.Neo4J.Language
         public class ReadingAndReturn
         {
             [Fact]
+            public void MatchThreeNodes()
+            {
+                StatementBuilder statement = Cypher
+                    .Match(_bikeNode, _userNode, Cypher.Node("U").Named("o"));
+                statement.Build().MatchSnapshot();
+            }
+
+            [Fact]
             public void UnrelatedNodes()
+            {
+                StatementBuilder statement = Cypher
+                    .Match(_bikeNode, _userNode, Cypher.Node("U").Named("o"))
+                    .Return(_bikeNode, _userNode);
+                statement.Build().MatchSnapshot();
+            }
+
+            [Fact]
+            public void NodeWithProperties()
             {
                 StatementBuilder statement = Cypher.Match(_bikeNode, _userNode, Cypher.Node("U").Named("o"))
                     .Return(_bikeNode, _userNode);
@@ -195,16 +212,50 @@ namespace HotChocolate.Data.Neo4J.Language
             }
 
             [Fact]
-            public void NodeWithTwoFieldsAndRelationshipProjection()
+            public void NodeWithTwoFieldsProjectionWithOrderByAscending()
             {
                 StatementBuilder statement = Cypher
                     .Match(_userNode)
+                    .Return(_userNode.Project("name", "email"))
+                    .OrderBy(Cypher.Sort(_userNode.Property("name")).Ascending());
+                statement.Build().MatchSnapshot();
+            }
+
+            [Fact]
+            public void NodeWithTwoFieldsProjectionWithTwoFieldOrderBy()
+            {
+                StatementBuilder statement = Cypher
+                    .Match(_userNode)
+                    .Return(_userNode.Project("name", "email"))
+                    .OrderBy(
+                        Cypher.Sort(_userNode.Property("name")).Ascending(),
+                        Cypher.Sort(_userNode.Property("email")).Descending());
+                statement.Build().MatchSnapshot();
+            }
+
+            [Fact]
+            public void NodeWithTwoFieldsProjectionWithOrderByDescending()
+            {
+                StatementBuilder statement = Cypher
+                    .Match(_userNode)
+                    .Return(_userNode.Project("name", "email"))
+                    .OrderBy(Cypher.Sort(_userNode.Property("name")).Descending());
+                statement.Build().MatchSnapshot();
+            }
+
+            [Fact]
+            public void NodeWithTwoFieldsAndRelationshipProjection()
+            {
+                StatementBuilder statement = Cypher
+                    .Match(_userNode, _bikeNode)
                     .Return(_userNode.Project(
                         "name",
                         "email",
                         "owns",
                         new PatternComprehension(
-                            _userNode.RelationshipTo(_bikeNode, "OWNS"),new Where(_bikeNode.Property("age").IsEqualTo(Cypher.LiteralOf(12))),_bikeNode.Project("age"))
+                            _userNode.RelationshipTo(_bikeNode, "OWNS"),
+                            new Where(_bikeNode.Property("age").IsEqualTo(Cypher.LiteralOf(12))),
+                            _bikeNode.Project("age"))
                         ));
                 statement.Build().MatchSnapshot();
             }
@@ -217,6 +268,30 @@ namespace HotChocolate.Data.Neo4J.Language
             {
                 Node movie = Cypher.Node("Movie").Named("m");
                 StatementBuilder statement = Cypher.Match(movie).Return(movie);
+                statement.Build().MatchSnapshot();
+            }
+
+            [Fact]
+            public void MatchNamedNodeSkip()
+            {
+                Node movie = Cypher.Node("Movie").Named("m");
+                StatementBuilder statement = Cypher.Match(movie).Return(movie).Skip(1);
+                statement.Build().MatchSnapshot();
+            }
+
+            [Fact]
+            public void MatchNamedNodeLimit()
+            {
+                Node movie = Cypher.Node("Movie").Named("m");
+                StatementBuilder statement = Cypher.Match(movie).Return(movie).Limit(1);
+                statement.Build().MatchSnapshot();
+            }
+
+            [Fact]
+            public void MatchNamedNodeSkipLimit()
+            {
+                Node movie = Cypher.Node("Movie").Named("m");
+                StatementBuilder statement = Cypher.Match(movie).Return(movie).Skip(1).Limit(1);
                 statement.Build().MatchSnapshot();
             }
 
@@ -269,7 +344,8 @@ namespace HotChocolate.Data.Neo4J.Language
             public void CreateNodeWithProperties()
             {
                 StatementBuilder statement = Cypher
-                    .Create(_userNode.WithProperties("email", Cypher.Null(), "name", Cypher.LiteralOf("Peter Jackson")));
+                    .Create(
+                        _userNode.WithProperties("email", Cypher.Null(), "name", Cypher.LiteralOf("Peter Jackson")));
                 statement.Build().MatchSnapshot();
             }
         }

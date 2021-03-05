@@ -5,18 +5,18 @@ namespace HotChocolate.Data.Neo4J.Language
 {
     public class MatchVisitorTests
     {
-        [Fact]
-        public void MatchNamedNode()
-        {
-            var visitor = new CypherVisitor();
+        // [Fact]
+        // public void MatchNamedNode()
+        // {
+        //     var visitor = new CypherVisitor();
+        //
+        //     Node movie = Node.Create("Movie").Named("m");
+        //     Match statement = new(false, new Pattern(movie), null);
+        //     statement.Visit(visitor);
+        //     visitor.Print().MatchSnapshot();
+        // }
 
-            Node movie = Node.Create("Movie").Named("m");
-            Match statement = new(false, new Pattern(movie), null);
-            statement.Visit(visitor);
-            visitor.Print().MatchSnapshot();
-        }
-
-        [Fact]
+        /*[Fact]
         public void MatchNamedNodeWithProperties()
         {
             var visitor = new CypherVisitor();
@@ -32,6 +32,6 @@ namespace HotChocolate.Data.Neo4J.Language
             Match statement = new(false, new Pattern(movie), null);
             statement.Visit(visitor);
             visitor.Print().MatchSnapshot();
-        }
+        }*/
     }
 }
