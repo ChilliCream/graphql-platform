@@ -1,6 +1,8 @@
-namespace HotChocolate.Types
+using System.Collections.Generic;
+
+namespace StrawberryShake.CodeGeneration
 {
-    public static class ScalarNames
+    public static class BuiltInScalarNames
     {
         public const string String = nameof(String);
         public const string ID = nameof(ID);
@@ -20,5 +22,29 @@ namespace HotChocolate.Types
         public const string TimeSpan = nameof(TimeSpan);
         public const string MultiplierPath = nameof(MultiplierPath);
         public const string Name = nameof(Name);
+
+        private static readonly HashSet<string> _typeNames = new()
+        {
+            String,
+            ID,
+            Boolean,
+            Byte,
+            Short,
+            Int,
+            Long,
+            Float,
+            Decimal,
+            Url,
+            Uuid,
+            DateTime,
+            Date,
+            MultiplierPath,
+            Name,
+            ByteArray,
+            Any,
+            TimeSpan
+        };
+
+        public static bool IsBuiltInScalar(string typeName) => _typeNames.Contains(typeName);
     }
 }
