@@ -4,6 +4,7 @@
     <PackageId>StrawberryShake.CodeGeneration.CSharp.Analyzers</PackageId>
     <AssemblyName>StrawberryShake.CodeGeneration.CSharp.Analyzers</AssemblyName>
     <RootNamespace>StrawberryShake.CodeGeneration.CSharp.Analyzers</RootNamespace>
+    <Description>StrawberryShake CSharp source generator.</Description>
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild> <!-- Generates a package at build -->
     <IncludeBuildOutput>false</IncludeBuildOutput> <!-- Do not include the generator as a lib dependency -->

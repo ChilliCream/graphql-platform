@@ -5,6 +5,7 @@
     <AssemblyName>StrawberryShake.Resources</AssemblyName>
     <RootNamespace>StrawberryShake</RootNamespace>
     <Nullable>enable</Nullable>
+    <Description>Resources for StrawberryShake GraphQL clients.</Description>
   </PropertyGroup>
 
   <ItemGroup>
