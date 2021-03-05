@@ -8,7 +8,7 @@ namespace HotChocolate.Data.Neo4J.Language
         {
             if (PreEnter(visitable))
             {
-                _currentVisitedElements.Enqueue(visitable);
+                _currentVisitedElements.AddFirst(visitable);
             }
 
             switch (visitable.Kind)
@@ -91,6 +91,10 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.ListExpression:
                     EnterVisitable((ListExpression)visitable);
                     break;
+                case ClauseKind.SortDirection:
+                    EnterVisitable((SortDirection)visitable);
+                    break;
+                case ClauseKind.MapProjection:
                 case ClauseKind.Expression:
                 case ClauseKind.Visitable:
                 case ClauseKind.TypedSubtree:
@@ -98,7 +102,6 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.ExcludePattern:
                 case ClauseKind.StatementPrefix:
                 case ClauseKind.Comparison:
-                case ClauseKind.MapProjection:
                 case ClauseKind.Property:
                 case ClauseKind.SortItem:
                 case ClauseKind.BooleanLiteral:
@@ -128,7 +131,6 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.Statement:
                 case ClauseKind.ExpressionCondition:
                 case ClauseKind.HasLabelCondition:
-
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

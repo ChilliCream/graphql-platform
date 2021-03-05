@@ -23,11 +23,6 @@ namespace HotChocolate.Data.Neo4J.Language
             _writer.Write(" WHERE ");
         }
 
-        private void LeaveVisitable(Where where)
-        {
-            _writer.Write(" ");
-        }
-
         private void EnterVisitable(Exists exists)
         {
             _writer.Write(" EXISTS ");
@@ -46,11 +41,19 @@ namespace HotChocolate.Data.Neo4J.Language
         private void EnterVisitable(Node node)
         {
             _writer.Write("(");
+            _skipNodeContent = _visitedNamed.Contains(node);
+
+            if (!_skipNodeContent) return;
+            var symbolicName = node.GetSymbolicName()?.GetValue() ?? node.GetRequiredSymbolicName().GetValue();
+            _writer.Write(symbolicName);
+
         }
 
         private void LeaveVisitable(Node node)
         {
             _writer.Write(")");
+
+            _skipNodeContent = false;
         }
 
         private void EnterVisitable(SymbolicName symbolicName)
@@ -66,11 +69,7 @@ namespace HotChocolate.Data.Neo4J.Language
 
         private void EnterVisitable(PropertyLookup propertyLookup)
         {
-            if (propertyLookup.IsDynamicLookup()) {
-                _writer.Write("[");
-            } else {
-                _writer.Write(".");
-            }
+            _writer.Write(propertyLookup.IsDynamicLookup() ? "[" : ".");
         }
 
         private void LeaveVisitable(PropertyLookup propertyLookup)
@@ -102,7 +101,7 @@ namespace HotChocolate.Data.Neo4J.Language
 
         private void EnterVisitable(MapExpression map)
         {
-            _writer.Write("{");
+            _writer.Write(" {");
         }
 
         private void EnterVisitable(KeyValueMapEntry map)
@@ -245,6 +244,12 @@ namespace HotChocolate.Data.Neo4J.Language
         private void LeaveVisitable(ListExpression expression)
         {
             _writer.Write("[");
+        }
+
+        private void EnterVisitable(SortDirection sortDirection)
+        {
+            _writer.Write(" ");
+            _writer.Write(sortDirection.GetSymbol());
         }
     }
 }

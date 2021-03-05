@@ -1,6 +1,9 @@
-using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using HotChocolate.Language;
+
+#nullable enable
 
 namespace HotChocolate.Data.Neo4J.Language
 {
@@ -11,7 +14,8 @@ namespace HotChocolate.Data.Neo4J.Language
     {
         private readonly Regex LABEL_AND_TYPE_QUOTATION = new (@"`", RegexOptions.Compiled);
 
-        private Queue<IVisitable> _currentVisitedElements = new ();
+        private readonly LinkedList<IVisitable> _currentVisitedElements = new ();
+
         /// <summary>
         /// Target for all rendered parts of the cypher statement.
         /// </summary>
@@ -20,7 +24,7 @@ namespace HotChocolate.Data.Neo4J.Language
         /// <summary>
         /// Keeps track of named objects that have been already visited.
         /// </summary>
-        private readonly HashSet<Named> _visitedNamed = new();
+        private readonly HashSet<INamed> _visitedNamed = new();
 
         /// <summary>
         /// A set of aliased expressions that already have been seen and for which an alias must be used on each following
@@ -31,7 +35,7 @@ namespace HotChocolate.Data.Neo4J.Language
         /// <summary>
         /// Keeps track if currently in an aliased expression so that the content can be skipped when already visited.
         /// </summary>
-        private readonly Queue<AliasedExpression> _currentAliasedElements = new();
+        private readonly List<AliasedExpression> _currentAliasedElements = new();
 
         /// <summary>
         /// This keeps track on which level of the tree a separator is needed.
@@ -46,7 +50,7 @@ namespace HotChocolate.Data.Neo4J.Language
         /// <summary>
         /// The current level in the tree of cypher elements.
         /// </summary>
-        private int _currentLevel = 0;
+        private int _currentLevel;
 
         /// <summary>
         /// Will be set to true when entering an already visited node.
@@ -60,52 +64,58 @@ namespace HotChocolate.Data.Neo4J.Language
         /// </summary>
         private bool _skipAliasing = false;
 
-        //public CypherQuery Query { get; } = new CypherQuery();
         public string Print() => _writer.Print();
 
         private void EnableSeparator(int level, bool on) {
             if (on) {
-                _separatorOnLevel.Add(level, "");
+                _separatorOnLevel[level] = "";
             } else {
                 _separatorOnLevel.Remove(level);
             }
         }
 
-        private string SeparatorOnCurrentLevel() => _separatorOnLevel[_currentLevel];
 
-        protected bool PreEnter(IVisitable visitable)
+        private bool PreEnter(IVisitable visitable)
         {
-            // AliasedExpression lastAliased = _currentAliasedElements.Peek();
-            // if (_skipNodeContent || _visitableToAliased.Contains(lastAliased)) {
-            //     return false;
-            // }
+            _currentAliasedElements.TryPeek(out AliasedExpression lastAliased);
+            if (_skipNodeContent || _visitableToAliased.Contains(lastAliased)) {
+                return false;
+            }
+
+            if (visitable is AliasedExpression aliasedExpression) {
+                _currentAliasedElements.Push(aliasedExpression);
+            }
+
+            if (visitable is MapProjection) {
+                _skipAliasing = true;
+            }
+
             var nextLevel = ++_currentLevel + 1;
-            if (visitable is TypedSubtree<Visitable>) {
+
+            if (visitable is ITypedSubtree)
+            {
                 EnableSeparator(nextLevel, true);
+            }
+
+            if (_separatorOnLevel.ContainsKey(_currentLevel))
+            {
+                _writer.Write(_separatorOnLevel[_currentLevel]);
             }
 
             return !_skipNodeContent;
         }
 
-        protected void PostLeave(IVisitable visitable)
+        private void PostLeave(IVisitable visitable)
         {
-            //SeparatorOnCurrentLevel().ifPresent(ref -> ref.set(", "));
-
-            if (visitable is TypedSubtree<Visitable>) {
-                EnableSeparator(_currentLevel + 1, false);
+            if (_separatorOnLevel.ContainsKey(_currentLevel))
+            {
+                _separatorOnLevel[_currentLevel] = ", ";
             }
 
-            // if (Equals(_currentAliasedElements.Peek(), visitable)) {
-            //     _currentAliasedElements.Dequeue();
-            // }
-            //
-            // if (visitable is MapProjection) {
-            //     _skipAliasing = false;
-            // }
-            //
-            // if (visitable is AliasedExpression aliasedExpression) {
-            //     _visitableToAliased.Add(aliasedExpression);
-            // }
+            if (visitable is ITypedSubtree)
+            {
+                EnableSeparator(_currentLevel, false);
+            }
 
             --_currentLevel;
         }

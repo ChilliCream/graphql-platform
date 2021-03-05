@@ -6,17 +6,16 @@ namespace HotChocolate.Data.Neo4J.Language
     {
         public void Leave(IVisitable visitable)
         {
-            //if (!Equals(_currentVisitedElements.Peek(), visitable)) return;
-            //PostLeave(visitable);
-            //_currentVisitedElements.Dequeue();
+            if (Equals(_currentVisitedElements.First?.Value, visitable))
+            {
+                PostLeave(visitable);
+                _currentVisitedElements.RemoveFirst();
+            }
 
             switch (visitable.Kind)
             {
                 case ClauseKind.Match:
                     LeaveVisitable((Match)visitable);
-                    break;
-                case ClauseKind.Where:
-                    LeaveVisitable((Where)visitable);
                     break;
                 case ClauseKind.Create:
                     LeaveVisitable((Create)visitable);
@@ -46,6 +45,7 @@ namespace HotChocolate.Data.Neo4J.Language
                     LeaveVisitable((ListExpression)visitable);
                     break;
                 case ClauseKind.AliasedExpression:
+                case ClauseKind.SortDirection:
                 case ClauseKind.Expression:
                 case ClauseKind.Visitable:
                 case ClauseKind.TypedSubtree:
@@ -97,6 +97,7 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.RelationshipTypes:
                 case ClauseKind.ExpressionCondition:
                 case ClauseKind.HasLabelCondition:
+                case ClauseKind.Where:
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
