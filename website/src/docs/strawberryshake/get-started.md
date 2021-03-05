@@ -254,3 +254,99 @@ Welcome to your new app.
 IMAGE BROWSER
 
 ## Step 6: Using the built-in store with reactive APIs.
+
+The simple fetch of our data works. But every time we visit the index page it will fetch the data again although the data does not change often. Strawberry Shake also comes with state management where you can control the entity store and update it when you need to. In order to best interact with the store we will use `System.Reactive` from Microsoft. Lets get started :)
+
+1. Install the package `System.Reactive`.
+
+```bash
+dotnet add Demo package System.Reactive
+```
+
+2. Next, let us update the `_Imports.razor` with some more imports, namely `System`, `System.Reactive.Linq`, `System.Linq` and `StrawberryShake`.
+
+```razor
+@using System
+@using System.Reactive.Linq
+@using System.Linq
+@using System.Net.Http
+@using System.Net.Http.Json
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Routing
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components.Web.Virtualization
+@using Microsoft.AspNetCore.Components.WebAssembly.Http
+@using Microsoft.JSInterop
+@using Demo
+@using Demo.Shared
+@using Demo.GraphQL
+@using StrawberryShake
+```
+
+3. Head back to `Pages/Index.razor` and replace the code section with the following code:
+
+```csharp
+private string[] titles = Array.Empty<string>();
+private IDisposable storeSession;
+
+protected override void OnInitialized()
+{
+    storeSession =
+        ConferenceClient
+            .GetSessions
+            .Watch(StrawberryShake.ExecutionStrategy.CacheFirst)
+            .Where(t => !t.Errors.Any())
+            .Select(t => t.Data.Sessions.Nodes.Select(t => t.Title).ToArray())
+            .Subscribe(result =>
+            {
+                titles = result;
+                StateHasChanged();
+            });
+}
+```
+
+4. Implement `IDisposable` and handle the `storeSession` dispose.
+
+```csharp
+@page "/"
+@inject ConferenceClient ConferenceClient;
+@implements IDisposable
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+
+<SurveyPrompt Title="How is Blazor working for you?" />
+
+<ul>
+@foreach (var title in titles)
+{
+    <li>@title</li>
+}
+</ul>
+
+@code {
+    private string[] titles = Array.Empty<string>();
+    private IDisposable storeSession;
+
+    protected override void OnInitialized()
+    {
+        storeSession =
+            ConferenceClient
+                .GetSessions
+                .Watch(StrawberryShake.ExecutionStrategy.CacheFirst)
+                .Where(t => !t.Errors.Any())
+                .Select(t => t.Data.Sessions.Nodes.Select(t => t.Title).ToArray())
+                .Subscribe(result =>
+                {
+                    titles = result;
+                    StateHasChanged();
+                });
+    }
+
+    public void Dispose()
+    {
+        storeSession.Dispose();
+    }
+}
+```
