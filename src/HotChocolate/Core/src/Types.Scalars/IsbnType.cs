@@ -4,12 +4,11 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types.Scalars
 {
+    /// <summary>
+    /// The `ISBN` scalar type is a ISBN-10 or ISBN-13 number: https://en.wikipedia.org/wiki/International_Standard_Book_Number.
+    /// </summary>
     public class IsbnType : RegexType
     {
-        /// <summary>
-        /// The `ISBN` scalar type is a ISBN-10 or ISBN-13 number: https://en.wikipedia.org/wiki/International_Standard_Book_Number.
-        /// </summary>
-
         private static readonly string _validationPattern =
             "^(?:ISBN(-1(?:(0)|3))?:?\\ )?" +
             "(?(1)(?(2)(?=[0-9X]{10}$|(?=(?:[0-9]+[- ]){3})[- 0-9X]{13}$)[0-9]{1,5}[- ]?[0-9]+[- ]?[0-9]+[- ]?[0-9X]" +
