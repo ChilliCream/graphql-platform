@@ -42,7 +42,11 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 "Foo.Bar",
                 "FooClient",
                 new Sha1DocumentHashProvider(),
-                Descriptors.Operations.RequestStrategy.Default);
+                Descriptors.Operations.RequestStrategy.Default,
+                new[]
+                {
+                    TransportProfile.Default
+                });
             TypeDescriptorMapper.Map(clientModel, context);
             OperationDescriptorMapper.Map(clientModel, context);
 

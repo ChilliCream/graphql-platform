@@ -7,9 +7,8 @@ using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Execution;
 using StrawberryShake.Properties;
-using StrawberryShake.Transport.InMemory;
 
-namespace StrawberryShake.Transport.Http
+namespace StrawberryShake.Transport.InMemory
 {
     public class InMemoryConnection : IConnection<JsonDocument>
     {

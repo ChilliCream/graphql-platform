@@ -1,8 +1,10 @@
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration
 {
-    public class CSharpGeneratorTransportProfile
+    public class TransportProfile
     {
-        public CSharpGeneratorTransportProfile(
+        public const string DefaultProfileName = "Default";
+
+        public TransportProfile(
             string name,
             TransportType defaultTransport,
             TransportType? query = null,
@@ -22,5 +24,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
         public TransportType Mutation { get; }
 
         public TransportType Subscription { get; }
+
+        public static TransportProfile Default { get; } =
+            new(DefaultProfileName, TransportType.Http, subscription: TransportType.WebSocket);
     }
 }

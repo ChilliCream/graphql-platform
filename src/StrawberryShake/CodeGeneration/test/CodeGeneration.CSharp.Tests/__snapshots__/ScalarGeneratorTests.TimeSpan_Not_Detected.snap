@@ -60,9 +60,9 @@ namespace Foo.Bar
             throw new global::System.ArgumentException("GetSessionsResultInfo expected.");
         }
 
-        private IGetSessions_Sessions? MapIGetSessions_Sessions(global::Foo.Bar.State.SessionConnectionData data)
+        private IGetSessions_Sessions? MapIGetSessions_Sessions(global::Foo.Bar.State.SessionConnectionData? data)
         {
-            if (data == default)
+            if (data is null)
             {
                 return null;
             }
@@ -83,7 +83,7 @@ namespace Foo.Bar
 
         private global::System.Collections.Generic.IReadOnlyList<IGetSessions_Sessions_Nodes>? MapIGetSessions_Sessions_NodesNonNullableArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId>? list)
         {
-            if (list == default)
+            if (list is null)
             {
                 return null;
             }
@@ -745,10 +745,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 services,
                 sp => 
                 {
-                    var serviceCollection = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
-
-                    ConfigureClient(
-                        serviceCollection,
+                    var serviceCollection = ConfigureClientDefault(
                         sp,
                         strategy);
 
@@ -769,15 +766,11 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        private static global::Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureClient(
-            global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
+        private static global::Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureClientDefault(
             global::System.IServiceProvider parentServices,
             global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
-            if (services is null)
-            {
-                throw new global::System.ArgumentNullException(nameof(services));
-            }
+            var services = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId>>(
                 services,
                 global::Foo.Bar.EntityIdFactory.CreateEntityId);

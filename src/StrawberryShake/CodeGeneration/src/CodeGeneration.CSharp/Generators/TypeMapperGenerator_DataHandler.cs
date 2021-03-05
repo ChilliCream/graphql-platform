@@ -19,7 +19,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         {
             method
                 .AddParameter(_dataParameterName)
-                .SetType(namedTypeDescriptor.ParentRuntimeType!.ToString());
+                .SetType(namedTypeDescriptor.ParentRuntimeType!
+                    .ToString()
+                    .MakeNullable(!isNonNullable));
 
             if (!isNonNullable)
             {

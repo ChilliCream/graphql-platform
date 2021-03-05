@@ -226,7 +226,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     foreach (var profile in profiles)
                     {
                         settings.TransportProfiles.Add(
-                            new CSharpGeneratorTransportProfile(
+                            new TransportProfile(
                                 profile.Name,
                                 profile.Default,
                                 profile.Query,

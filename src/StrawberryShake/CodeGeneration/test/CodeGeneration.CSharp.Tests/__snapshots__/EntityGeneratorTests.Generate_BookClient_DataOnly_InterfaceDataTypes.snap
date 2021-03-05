@@ -41,7 +41,7 @@ namespace Foo.Bar
 
         private global::System.Collections.Generic.IReadOnlyList<ISearchSomething_Prints?>? MapIPrintDataArray(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.IPrintData?>? list)
         {
-            if (list == default)
+            if (list is null)
             {
                 return null;
             }
@@ -56,14 +56,14 @@ namespace Foo.Bar
             return prints;
         }
 
-        private ISearchSomething_Prints? MapIPrintData(global::Foo.Bar.State.IPrintData data)
+        private ISearchSomething_Prints? MapIPrintData(global::Foo.Bar.State.IPrintData? data)
         {
-            if (data == default)
+            if (data is null)
             {
                 return null;
             }
 
-            ISearchSomething_Prints returnValue = default!;
+            ISearchSomething_Prints? returnValue;
 
             if (data is global::Foo.Bar.State.BookData book)
             {
@@ -718,10 +718,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 services,
                 sp => 
                 {
-                    var serviceCollection = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
-
-                    ConfigureClient(
-                        serviceCollection,
+                    var serviceCollection = ConfigureClientDefault(
                         sp,
                         strategy);
 
@@ -742,15 +739,11 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        private static global::Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureClient(
-            global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
+        private static global::Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureClientDefault(
             global::System.IServiceProvider parentServices,
             global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
-            if (services is null)
-            {
-                throw new global::System.ArgumentNullException(nameof(services));
-            }
+            var services = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId>>(
                 services,
                 global::Foo.Bar.EntityIdFactory.CreateEntityId);
