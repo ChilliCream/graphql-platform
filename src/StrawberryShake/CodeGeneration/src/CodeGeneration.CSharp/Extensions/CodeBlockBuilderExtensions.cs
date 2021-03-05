@@ -4,20 +4,6 @@ using StrawberryShake.CodeGeneration.CSharp.Builders;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    internal static class EnumBuilderExtensions
-    {
-        public static EnumBuilder AddElements(
-            this EnumBuilder builder,
-            IEnumerable<string> elements)
-        {
-            foreach (var element in elements)
-            {
-                builder.AddElement(element);
-            }
-
-            return builder;
-        }
-    }
     internal static class CodeBlockBuilderExtensions
     {
         public static CodeBlockBuilder AddLine(

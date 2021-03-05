@@ -11,7 +11,7 @@ namespace StrawberryShake.Json
         public void Error_With_Message()
         {
             // arrange
-            var result = JsonDocument.Parse(@"{ ""errors"": [ { ""message"": ""errors"" } ] }");
+            var result = JsonDocument.Parse(@" [ { ""message"": ""errors"" } ] ");
 
             // act
             IReadOnlyList<IClientError>? errors = JsonErrorParser.ParseErrors(result.RootElement);
@@ -24,13 +24,7 @@ namespace StrawberryShake.Json
         public void Error_Has_No_Message()
         {
             // arrange
-            var result = JsonDocument.Parse(@"
-            {
-                ""errors"": [
-                    {
-                    }
-                ]
-            }");
+            var result = JsonDocument.Parse(@"[{ }]");
 
             // act
             IReadOnlyList<IClientError>? errors = JsonErrorParser.ParseErrors(result.RootElement);
@@ -48,14 +42,13 @@ namespace StrawberryShake.Json
         {
             // arrange
             var result = JsonDocument.Parse(@"
-            {
-                ""errors"": [
+                [
                     {
                         ""message"": ""errors"",
                         ""path"": [ 1, ""foo"", 2, ""bar"" ]
                     }
                 ]
-            }");
+            ");
 
             // act
             IReadOnlyList<IClientError>? errors = JsonErrorParser.ParseErrors(result.RootElement);
@@ -80,14 +73,13 @@ namespace StrawberryShake.Json
         {
             // arrange
             var result = JsonDocument.Parse(@"
-            {
-                ""errors"": [
+                [
                     {
                         ""message"": ""errors"",
                         ""path"": [ true ]
                     }
                 ]
-            }");
+            ");
 
             // act
             IReadOnlyList<IClientError>? errors = JsonErrorParser.ParseErrors(result.RootElement);
@@ -111,14 +103,13 @@ namespace StrawberryShake.Json
         {
             // arrange
             var result = JsonDocument.Parse(@"
-            {
-                ""errors"": [
+                [
                     {
                         ""message"": ""errors"",
                         ""locations"": [ { ""line"": 1, ""column"": 5 } ]
                     }
                 ]
-            }");
+            ");
 
             // act
             IReadOnlyList<IClientError>? errors = JsonErrorParser.ParseErrors(result.RootElement);
@@ -144,8 +135,7 @@ namespace StrawberryShake.Json
         {
             // arrange
             var result = JsonDocument.Parse(@"
-            {
-                ""errors"": [
+                [
                     {
                         ""message"": ""errors"",
                         ""extensions"":
@@ -162,7 +152,7 @@ namespace StrawberryShake.Json
                         }
                     }
                 ]
-            }");
+            ");
 
             // act
             IReadOnlyList<IClientError>? errors = JsonErrorParser.ParseErrors(result.RootElement);
@@ -182,8 +172,7 @@ namespace StrawberryShake.Json
         {
             // arrange
             var result = JsonDocument.Parse(@"
-            {
-                ""errors"": [
+                [
                     {
                         ""message"": ""errors"",
                         ""extensions"":
@@ -192,7 +181,7 @@ namespace StrawberryShake.Json
                         }
                     }
                 ]
-            }");
+            ");
 
             // act
             IReadOnlyList<IClientError>? errors = JsonErrorParser.ParseErrors(result.RootElement);
@@ -213,14 +202,13 @@ namespace StrawberryShake.Json
         {
             // arrange
             var result = JsonDocument.Parse(@"
-            {
-                ""errors"": [
+                [
                     {
                         ""message"": ""errors"",
                         ""code"": ""CS1234""
                     }
                 ]
-            }");
+            ");
 
             // act
             IReadOnlyList<IClientError>? errors = JsonErrorParser.ParseErrors(result.RootElement);
@@ -240,8 +228,7 @@ namespace StrawberryShake.Json
         {
             // arrange
             var result = JsonDocument.Parse(@"
-            {
-                ""errors"": [
+                [
                     {
                         ""message"": ""errors"",
                         ""code"": ""CSROOT"",
@@ -251,7 +238,7 @@ namespace StrawberryShake.Json
                         }
                     }
                 ]
-            }");
+            ");
 
             // act
             IReadOnlyList<IClientError>? errors = JsonErrorParser.ParseErrors(result.RootElement);
@@ -272,8 +259,7 @@ namespace StrawberryShake.Json
         {
             // arrange
             var result = JsonDocument.Parse(@"
-            {
-                ""errors"": [
+                [
                     {
                         ""message"": ""errors"",
                         ""locations"": [ { ""column"": 5 } ]
@@ -283,7 +269,7 @@ namespace StrawberryShake.Json
                         ""locations"": [ { ""column"": 5 } ]
                     }
                 ]
-            }");
+            ");
 
             // act
             IReadOnlyList<IClientError>? errors = JsonErrorParser.ParseErrors(result.RootElement);
@@ -304,28 +290,10 @@ namespace StrawberryShake.Json
         }
 
         [Fact]
-        public void Parsing_Errors_Does_Not_Exist()
-        {
-            // arrange
-            var result = JsonDocument.Parse(@"
-            {
-            }");
-
-            // act
-            IReadOnlyList<IClientError>? errors = JsonErrorParser.ParseErrors(result.RootElement);
-
-            // assert
-            Assert.Null(errors);
-        }
-
-        [Fact]
         public void Parsing_Errors_Is_Null()
         {
             // arrange
-            var result = JsonDocument.Parse(@"
-            {
-                ""errors"": null
-            }");
+            var result = JsonDocument.Parse("null");
 
             // act
             IReadOnlyList<IClientError>? errors = JsonErrorParser.ParseErrors(result.RootElement);

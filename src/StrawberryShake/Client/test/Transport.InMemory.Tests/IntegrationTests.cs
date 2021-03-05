@@ -52,7 +52,7 @@ namespace StrawberryShake.Transport.InMemory
 
             // act
             var connection =
-                new InMemoryConnection(async ct => await factory.CreateClientAsync("Foo", ct));
+                new InMemoryConnection(async ct => await factory.CreateAsync("Foo", ct));
 
             await foreach (var response in connection.ExecuteAsync(request, ct))
             {
@@ -97,7 +97,7 @@ namespace StrawberryShake.Transport.InMemory
 
             // act
             var connection =
-                new InMemoryConnection(async ct => await factory.CreateClientAsync("Foo", ct));
+                new InMemoryConnection(async ct => await factory.CreateAsync("Foo", ct));
 
             await foreach (var response in connection.ExecuteAsync(request, ct))
             {
@@ -148,7 +148,7 @@ namespace StrawberryShake.Transport.InMemory
 
             // act
             var connection =
-                new InMemoryConnection(async ct => await factory.CreateClientAsync("Foo", ct));
+                new InMemoryConnection(async ct => await factory.CreateAsync("Foo", ct));
 
             await foreach (var response in connection.ExecuteAsync(request, ct))
             {
@@ -193,7 +193,7 @@ namespace StrawberryShake.Transport.InMemory
 
             // act
             var connection =
-                new InMemoryConnection(async ct => await factory.CreateClientAsync("Foo", ct));
+                new InMemoryConnection(async ct => await factory.CreateAsync("Foo", ct));
 
             await foreach (var response in connection.ExecuteAsync(request, ct))
             {
