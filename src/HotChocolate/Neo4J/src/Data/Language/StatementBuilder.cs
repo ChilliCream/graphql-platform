@@ -12,8 +12,9 @@ namespace HotChocolate.Data.Neo4J.Language
         private Where? _where;
         private Return? _return;
 
-        //private readonly string Order;
-        //private readonly string Limit;
+        private OrderBy? _orderBy;
+        private Skip? _skip;
+        private Limit? _limit;
 
         public StatementBuilder Create(params IPatternElement[] elements)
         {
@@ -40,6 +41,12 @@ namespace HotChocolate.Data.Neo4J.Language
             return this;
         }
 
+        public StatementBuilder OrderBy(params SortItem[] items)
+        {
+            _orderBy = new OrderBy(items.ToList());
+            return this;
+        }
+
         public StatementBuilder Return(params Expression[] expressions)
         {
             _return = new Return(false, new ExpressionList(expressions));
@@ -52,6 +59,18 @@ namespace HotChocolate.Data.Neo4J.Language
             return this;
         }
 
+        public StatementBuilder Skip(int skipNumber)
+        {
+            _skip = new Skip(skipNumber);
+            return this;
+        }
+
+        public StatementBuilder Limit(int limitNumber)
+        {
+            _limit = new Limit(limitNumber);
+            return this;
+        }
+
         public string Build()
         {
             var visitor = new CypherVisitor();
@@ -61,10 +80,16 @@ namespace HotChocolate.Data.Neo4J.Language
                     _match?.Visit(visitor);
                     _where?.Visit(visitor);
                     _return?.Visit(visitor);
+                    _orderBy?.Visit(visitor);
+                    _skip?.Visit(visitor);
+                    _limit?.Visit(visitor);
                     break;
                 default:
                     _create?.Visit(visitor);
                     _return?.Visit(visitor);
+                    _orderBy?.Visit(visitor);
+                    _skip?.Visit(visitor);
+                    _limit?.Visit(visitor);
                     break;
             }
             return visitor.Print();

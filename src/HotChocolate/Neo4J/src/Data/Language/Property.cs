@@ -41,7 +41,7 @@ namespace HotChocolate.Data.Neo4J.Language
             return new Property(
                 parentContainer,
                 requiredSymbolicName,
-                new SingletonList<PropertyLookup>(PropertyLookup.ForExpression(lookup)));
+                new List<PropertyLookup> {PropertyLookup.ForExpression(lookup)});
         }
 
         public static Property Create(Expression containerContainer, Expression lookup)
@@ -49,14 +49,14 @@ namespace HotChocolate.Data.Neo4J.Language
             return new Property(
                 null,
                 containerContainer,
-                new SingletonList<PropertyLookup>(PropertyLookup.ForExpression(lookup)));
+                new List<PropertyLookup> {PropertyLookup.ForExpression(lookup)});
         }
 
         private static List<PropertyLookup> CreateListOfChainedNames(params string[] names)
         {
             Ensure.IsNotEmpty(names, "The properties name is required.");
             return names.Length == 1
-                ? new SingletonList<PropertyLookup>(PropertyLookup.ForName(names[0]))
+                ? new List<PropertyLookup> { PropertyLookup.ForName(names[0]) }
                 : names.Select(PropertyLookup.ForName).ToList();
         }
 

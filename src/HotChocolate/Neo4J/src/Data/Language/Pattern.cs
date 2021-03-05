@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace HotChocolate.Data.Neo4J.Language
 {
@@ -9,11 +10,11 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </para>
     /// <para>See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/Pattern.html">Pattern</a>.</para>
     /// </summary>
-    public class Pattern : TypedSubtree<IPatternElement>
+    public class Pattern : TypedSubtree<IPatternElement>, ITypedSubtree
     {
         public override ClauseKind Kind { get; } = ClauseKind.Pattern;
+
         public Pattern(List<IPatternElement> patternElements) : base(patternElements) { }
         public Pattern(params IPatternElement[] patternElements) : base(patternElements) { }
-
     }
 }

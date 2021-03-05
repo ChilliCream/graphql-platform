@@ -52,6 +52,7 @@ namespace HotChocolate.Data.Neo4J.Language
         Return,
         Set,
         Skip,
+        SortDirection,
         SortItem,
         Statement,
         StatementPrefix,

@@ -5,7 +5,7 @@ namespace HotChocolate.Data.Neo4J.Language
     /// <summary>
     /// A dedicated map expression.
     /// </summary>
-    public class MapExpression : TypedSubtree<Expression>, IExpression
+    public class MapExpression : TypedSubtree<Expression>, ITypedSubtree
     {
         public override ClauseKind Kind => ClauseKind.MapExpression;
 

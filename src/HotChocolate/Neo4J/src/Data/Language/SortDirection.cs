@@ -2,7 +2,7 @@ namespace HotChocolate.Data.Neo4J.Language
 {
     public class SortDirection : Visitable
     {
-        public override ClauseKind Kind => ClauseKind.Default;
+        public override ClauseKind Kind => ClauseKind.SortDirection;
 
         public static readonly SortDirection Undefined = new("");
         public static readonly SortDirection Ascending = new("ASC");
@@ -10,7 +10,7 @@ namespace HotChocolate.Data.Neo4J.Language
 
         private readonly string _symbol;
 
-        public SortDirection(string symbol)
+        private SortDirection(string symbol)
         {
             _symbol = symbol;
         }

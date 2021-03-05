@@ -4,12 +4,15 @@ using System.Linq;
 namespace HotChocolate.Data.Neo4J.Language
 {
     /// <summary>
-    /// A condition that consists of one or two
+    /// A condition that consists of one or two conditions
     /// </summary>
     public class CompoundCondition : Condition
     {
         public override ClauseKind Kind => ClauseKind.CompoundCondition;
 
+        /// <summary>
+        /// Empty compound condition
+        /// </summary>
         private static readonly CompoundCondition _emptyCondition =
             new (null);
 
@@ -35,7 +38,10 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public static CompoundCondition Create(Condition left, Operator op, Condition right)
         {
-            return new CompoundCondition(op).Add(op, left).Add(op, right);
+
+            return new CompoundCondition(op)
+                .Add(op, left)
+                .Add(op, right);
         }
 
         private CompoundCondition Add(Operator chainingOperator, Condition condition)
