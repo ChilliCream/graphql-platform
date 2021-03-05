@@ -93,6 +93,7 @@ namespace StrawberryShake.Transport.InMemory
             if (variables is not null)
             {
                 var response = new Dictionary<string, object?>();
+                
                 foreach (KeyValuePair<string, object?> pair in variables)
                 {
                     response[pair.Key] = CreateVariableValue(pair.Value);
