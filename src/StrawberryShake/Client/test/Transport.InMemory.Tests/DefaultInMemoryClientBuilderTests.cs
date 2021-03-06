@@ -81,7 +81,7 @@ namespace StrawberryShake.Transport.InMemory
             var factory = new DefaultInMemoryClientFactory(executorResolver, optionsMonitor);
 
             // act
-            await factory.CreateClientAsync("Foo");
+            await factory.CreateAsync("Foo");
 
             // assert
             Assert.True(wasCalled);
@@ -101,7 +101,7 @@ namespace StrawberryShake.Transport.InMemory
             var factory = new DefaultInMemoryClientFactory(executorResolver, optionsMonitor);
 
             // act
-            IInMemoryClient client = await factory.CreateClientAsync("Foo");
+            IInMemoryClient client = await factory.CreateAsync("Foo");
 
             // assert
             Assert.NotNull(client);
@@ -133,7 +133,7 @@ namespace StrawberryShake.Transport.InMemory
                 .ReturnsAsync(executor);
 
             // act
-            IInMemoryClient client = await factory.CreateClientAsync("Foo");
+            IInMemoryClient client = await factory.CreateAsync("Foo");
 
             // assert
             Assert.Equal(client.Executor, executor);
@@ -164,7 +164,7 @@ namespace StrawberryShake.Transport.InMemory
             executorMock.Setup(x => x.Schema).Returns(schemaMock.Object);
 
             // act
-            IInMemoryClient client = await factory.CreateClientAsync("Foo");
+            IInMemoryClient client = await factory.CreateAsync("Foo");
 
             // assert
             Assert.Equal(client.SchemaName, nameString);

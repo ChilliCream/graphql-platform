@@ -1,14 +1,17 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using HotChocolate;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
+using StrawberryShake.CodeGeneration.Descriptors;
+using StrawberryShake.CodeGeneration.Descriptors.Operations;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
-using StrawberryShake.Transport.WebSockets;
-using StrawberryShake.Serialization;
-using static StrawberryShake.CodeGeneration.NamingConventions;
+using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDescriptor>
     {
@@ -16,9 +19,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private const string _services = "services";
         private const string _strategy = "strategy";
         private const string _parentServices = "parentServices";
+        private const string _profile = "profile";
         private const string _clientFactory = "clientFactory";
         private const string _serviceCollection = "serviceCollection";
         private const string _sp = "sp";
+        private const string _ct = "ct";
 
         private static readonly string[] _serializers =
         {
@@ -51,7 +56,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetStatic()
                 .SetAccessModifier(AccessModifier.Public);
 
-            factory
+            MethodBuilder addClientMethod = factory
                 .AddMethod($"Add{descriptor.Name}")
                 .SetPublic()
                 .SetStatic()
@@ -62,25 +67,23 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .AddParameter(
                     _strategy,
                     x => x.SetType(TypeNames.ExecutionStrategy)
-                        .SetDefault(
-                            TypeNames.ExecutionStrategy + "." +
-                            nameof(ExecutionStrategy.NetworkOnly)))
+                        .SetDefault(TypeNames.ExecutionStrategy + "." + "NetworkOnly"))
                 .AddCode(GenerateMethodBody(descriptor));
 
-            factory
-                .AddMethod("ConfigureClient")
-                .SetPrivate()
-                .SetStatic()
-                .SetReturnType(TypeNames.IServiceCollection)
-                .AddParameter(_services, x => x.SetType(TypeNames.IServiceCollection))
-                .AddParameter(_parentServices, x => x.SetType(TypeNames.IServiceProvider))
-                .AddParameter(
-                    _strategy,
-                    x => x.SetType(TypeNames.ExecutionStrategy)
-                        .SetDefault(
-                            TypeNames.ExecutionStrategy + "." +
-                            nameof(ExecutionStrategy.NetworkOnly)))
-                .AddCode(GenerateInternalMethodBody(descriptor));
+            if (descriptor.TransportProfiles.Count > 1)
+            {
+                addClientMethod
+                    .AddParameter(_profile)
+                    .SetType(CreateProfileEnumReference(descriptor))
+                    .SetDefault(CreateProfileEnumReference(descriptor) + "." +
+                        descriptor.TransportProfiles[0].Name);
+            }
+
+            foreach (var profile in descriptor.TransportProfiles)
+            {
+                GenerateClientForProfile(factory, descriptor, profile);
+            }
+
 
             factory.AddClass(_clientServiceProvider);
 
@@ -89,6 +92,100 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetNamespace(TypeNames.DependencyInjectionNamespace)
                 .AddType(factory)
                 .Build(writer);
+        }
+
+        private static void GenerateClientForProfile(
+            ClassBuilder factory,
+            DependencyInjectionDescriptor descriptor,
+            TransportProfile profile)
+        {
+            factory
+                .AddMethod("ConfigureClient" + profile.Name)
+                .SetPrivate()
+                .SetStatic()
+                .SetReturnType(TypeNames.IServiceCollection)
+                .AddParameter(_parentServices, x => x.SetType(TypeNames.IServiceProvider))
+                .AddParameter(
+                    _strategy,
+                    x => x.SetType(TypeNames.ExecutionStrategy)
+                        .SetDefault(TypeNames.ExecutionStrategy + "." + "NetworkOnly"))
+                .AddCode(GenerateInternalMethodBody(descriptor, profile));
+        }
+
+        private static ICode GenerateClientServiceProviderFactory(
+            DependencyInjectionDescriptor descriptor)
+        {
+            if (descriptor.TransportProfiles.Count == 1)
+            {
+                return CodeBlockBuilder
+                    .New()
+                    .AddCode(
+                        AssignmentBuilder
+                            .New()
+                            .SetLefthandSide($"var {_serviceCollection}")
+                            .SetRighthandSide(
+                                MethodCallBuilder
+                                    .Inline()
+                                    .SetMethodName(
+                                        "ConfigureClient" +
+                                        descriptor.TransportProfiles[0].Name)
+                                    .AddArgument(_sp)
+                                    .AddArgument(_strategy)))
+                    .AddEmptyLine()
+                    .AddCode(MethodCallBuilder
+                        .New()
+                        .SetReturn()
+                        .SetNew()
+                        .SetMethodName("ClientServiceProvider")
+                        .SetWrapArguments()
+                        .AddArgument(MethodCallBuilder
+                            .Inline()
+                            .SetMethodName(TypeNames.BuildServiceProvider)
+                            .AddArgument(_serviceCollection)));
+            }
+
+            SwitchExpressionBuilder switchBuilder = SwitchExpressionBuilder
+                .New()
+                .SetExpression(_profile)
+                .SetDetermineStatement(false);
+
+            var enumName = CreateProfileEnumReference(descriptor);
+            foreach (var profile in descriptor.TransportProfiles)
+            {
+                switchBuilder
+                    .AddCase(
+                        $"{enumName}.{profile.Name}",
+                        MethodCallBuilder
+                            .Inline()
+                            .SetMethodName("ConfigureClient" + profile.Name)
+                            .AddArgument(_sp)
+                            .AddArgument(_strategy));
+            }
+
+            return CodeBlockBuilder
+                .New()
+                .AddCode(
+                    AssignmentBuilder
+                        .New()
+                        .SetLefthandSide($"var {_serviceCollection}")
+                        .SetRighthandSide(switchBuilder))
+                .AddEmptyLine()
+                .AddCode(MethodCallBuilder
+                    .New()
+                    .SetReturn()
+                    .SetNew()
+                    .SetMethodName("ClientServiceProvider")
+                    .SetWrapArguments()
+                    .AddArgument(MethodCallBuilder
+                        .Inline()
+                        .SetMethodName(TypeNames.BuildServiceProvider)
+                        .AddArgument(_serviceCollection)));
+        }
+
+        private static string CreateProfileEnumReference(DependencyInjectionDescriptor descriptor)
+        {
+            var rootNamespace = descriptor.RuntimeType.Namespace;
+            return $"{rootNamespace}.{CreateClientProfileKind(descriptor.Name)}";
         }
 
         private static ICode GenerateMethodBody(DependencyInjectionDescriptor descriptor) =>
@@ -101,34 +198,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                             .New()
                             .SetBlock(true)
                             .AddArgument(_sp)
-                            .SetCode(
-                                CodeBlockBuilder
-                                    .New()
-                                    .AddCode(
-                                        AssignmentBuilder
-                                            .New()
-                                            .SetLefthandSide($"var {_serviceCollection}")
-                                            .SetRighthandSide(
-                                                MethodCallBuilder
-                                                    .Inline()
-                                                    .SetNew()
-                                                    .SetMethodName(TypeNames.ServiceCollection)))
-                                    .AddEmptyLine()
-                                    .AddMethodCall(x => x.SetMethodName("ConfigureClient")
-                                        .AddArgument(_serviceCollection)
-                                        .AddArgument(_sp)
-                                        .AddArgument(_strategy))
-                                    .AddEmptyLine()
-                                    .AddCode(MethodCallBuilder
-                                        .New()
-                                        .SetReturn()
-                                        .SetNew()
-                                        .SetMethodName("ClientServiceProvider")
-                                        .SetWrapArguments()
-                                        .AddArgument(MethodCallBuilder
-                                            .Inline()
-                                            .SetMethodName(TypeNames.BuildServiceProvider)
-                                            .AddArgument(_serviceCollection))))))
+                            .SetCode(GenerateClientServiceProviderFactory(descriptor))))
                 .AddEmptyLine()
                 .ForEach(
                     descriptor.Operations,
@@ -195,7 +265,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
                             .AddArgument(_sp))
                         .AddGeneric(generic)));
 
-        private ICode GenerateInternalMethodBody(DependencyInjectionDescriptor descriptor)
+        private static ICode GenerateInternalMethodBody(
+            DependencyInjectionDescriptor descriptor,
+            TransportProfile profile)
         {
             var rootNamespace = descriptor.RuntimeType.Namespace;
 
@@ -206,19 +278,34 @@ namespace StrawberryShake.CodeGeneration.CSharp
             bool hasMutations =
                 descriptor.Operations.OfType<MutationOperationDescriptor>().Any();
 
-            var body = CodeBlockBuilder
+            CodeBlockBuilder body = CodeBlockBuilder
                 .New()
+                .AddCode(AssignmentBuilder.New()
+                    .SetLefthandSide($"var {_services}")
+                    .SetRighthandSide(MethodCallBuilder
+                        .Inline()
+                        .SetNew()
+                        .SetMethodName(TypeNames.ServiceCollection)))
                 .AddCode(CreateBaseCode(descriptor.RuntimeType.Namespace));
 
+            var generatedConnections = new HashSet<TransportType>();
             if (hasSubscriptions)
             {
+                generatedConnections.Add(profile.Subscription);
                 body.AddCode(
-                    RegisterWebSocketConnection($"{rootNamespace}.{descriptor.Name}"));
+                    RegisterConnection(profile.Subscription, descriptor.Name));
             }
 
-            if (hasQueries || hasMutations)
+            if (hasQueries && !generatedConnections.Contains(profile.Query))
             {
-                body.AddCode(RegisterHttpConnection(descriptor.Name));
+                generatedConnections.Add(profile.Query);
+                body.AddCode(RegisterConnection(profile.Query, descriptor.Name));
+            }
+
+            if (hasMutations && !generatedConnections.Contains(profile.Mutation))
+            {
+                generatedConnections.Add(profile.Mutation);
+                body.AddCode(RegisterConnection(profile.Mutation, descriptor.Name));
             }
 
             body.AddEmptyLine();
@@ -310,9 +397,22 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     continue;
                 }
 
-                string connectionKind = operation is SubscriptionOperationDescriptor
-                    ? TypeNames.WebSocketConnection
-                    : TypeNames.HttpConnection;
+                TransportType operationKind = operation switch
+                {
+                    SubscriptionOperationDescriptor => profile.Subscription,
+                    QueryOperationDescriptor => profile.Query,
+                    MutationOperationDescriptor => profile.Mutation,
+                    _ => throw ThrowHelper.DependencyInjection_InvalidOperationKind(operation)
+                };
+
+                string connectionKind = operationKind switch
+                {
+                    TransportType.Http => TypeNames.HttpConnection,
+                    TransportType.WebSocket => TypeNames.WebSocketConnection,
+                    TransportType.InMemory => TypeNames.InMemoryConnection,
+                    { } v => throw ThrowHelper.DependencyInjection_InvalidTransportType(v)
+                };
+
                 string operationName = operation.Name;
                 string fullName = operation.RuntimeType.ToString();
                 string operationInterface = typeDescriptor.RuntimeType.ToString();
@@ -452,6 +552,53 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                         nameof(IHttpClientFactory.CreateClient))
                                     .AddArgument(clientName.AsStringToken()))))));
 
+        private static ICode RegisterConnection(TransportType transportProfile, string clientName)
+        {
+            return transportProfile switch
+            {
+                TransportType.WebSocket => RegisterWebSocketConnection(clientName),
+                TransportType.Http => RegisterHttpConnection(clientName),
+                TransportType.InMemory => RegisterInMemoryConnection(clientName),
+                { } v => throw ThrowHelper.DependencyInjection_InvalidTransportType(v)
+            };
+        }
+
+        private static ICode RegisterInMemoryConnection(string clientName)
+        {
+            return MethodCallBuilder
+                .New()
+                .SetMethodName(TypeNames.AddSingleton)
+                .AddArgument(_services)
+                .AddArgument(LambdaBuilder
+                    .New()
+                    .AddArgument(_sp)
+                    .SetBlock(true)
+                    .SetCode(CodeBlockBuilder
+                        .New()
+                        .AddCode(AssignmentBuilder
+                            .New()
+                            .SetLefthandSide($"var {_clientFactory}")
+                            .SetRighthandSide(MethodCallBuilder
+                                .Inline()
+                                .SetMethodName(TypeNames.GetRequiredService)
+                                .AddGeneric(TypeNames.IInMemoryClientFactory)
+                                .AddArgument(_parentServices)))
+                        .AddCode(MethodCallBuilder
+                            .New()
+                            .SetReturn()
+                            .SetNew()
+                            .SetMethodName(TypeNames.InMemoryConnection)
+                            .AddArgument(LambdaBuilder
+                                .New()
+                                .SetAsync()
+                                .AddArgument(_ct)
+                                .SetCode(MethodCallBuilder
+                                    .Inline()
+                                    .SetAwait()
+                                    .SetMethodName(_clientFactory, "CreateAsync")
+                                    .AddArgument(clientName.AsStringToken())
+                                    .AddArgument(_ct))))));
+        }
 
         private static ICode RegisterWebSocketConnection(string clientName) =>
             MethodCallBuilder
@@ -481,27 +628,18 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                 .New()
                                 .SetCode(MethodCallBuilder
                                     .Inline()
-                                    .SetMethodName(
-                                        _sessionPool,
-                                        nameof(ISessionPool.CreateAsync))
+                                    .SetMethodName(_sessionPool, "CreateAsync")
                                     .AddArgument(clientName.AsStringToken())
                                     .AddArgument("default"))))));
 
         private static ICode CreateBaseCode(string @namespace) =>
             CodeBlockBuilder
                 .New()
-                .AddCode(IfBuilder
-                    .New()
-                    .SetCondition($"{_services} is null")
-                    .AddCode(ExceptionBuilder
-                        .New(TypeNames.ArgumentNullException)
-                        .AddArgument($"nameof({_services})")))
                 .AddCode(MethodCallBuilder
                     .New()
                     .SetMethodName(TypeNames.AddSingleton)
-                    .AddGeneric(TypeNames.Func.WithGeneric(
-                        TypeNames.JsonElement,
-                        TypeNames.EntityId))
+                    .AddGeneric(
+                        TypeNames.Func.WithGeneric(TypeNames.JsonElement, TypeNames.EntityId))
                     .AddArgument(_services)
                     .AddArgument($"{@namespace}.EntityIdFactory.CreateEntityId"))
                 .AddCode(MethodCallBuilder
@@ -527,7 +665,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                 .SetMethodName(TypeNames.GetRequiredService)
                                 .AddGeneric(TypeNames.IEntityStore)
                                 .AddArgument(_sp)
-                                .Chain(x => x.SetMethodName(nameof(OperationStore.Watch)))))));
+                                .Chain(x => x.SetMethodName("Watch"))))));
 
         private static string _clientServiceProvider = @"
         private class ClientServiceProvider

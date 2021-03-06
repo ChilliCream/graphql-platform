@@ -33,7 +33,7 @@ namespace StrawberryShake.Transport.InMemory
         }
 
         /// <inheritdoc />
-        public async ValueTask<IInMemoryClient> CreateClientAsync(
+        public async ValueTask<IInMemoryClient> CreateAsync(
             string name,
             CancellationToken cancellationToken = default)
         {

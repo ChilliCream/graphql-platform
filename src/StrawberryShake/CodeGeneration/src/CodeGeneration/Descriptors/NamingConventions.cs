@@ -1,6 +1,7 @@
 using HotChocolate;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
-namespace StrawberryShake.CodeGeneration
+namespace StrawberryShake.CodeGeneration.Descriptors
 {
     public static class NamingConventions
     {
@@ -49,6 +50,9 @@ namespace StrawberryShake.CodeGeneration
 
         public static string CreateServiceCollectionExtensions(string clientName) =>
             clientName + "ServiceCollectionExtensions";
+
+        public static string CreateClientProfileKind(string clientName) =>
+            clientName + "ProfileKind";
 
         public static string CreateInputValueFormatter(InputObjectTypeDescriptor type) =>
             type.Name + "InputValueFormatter";
