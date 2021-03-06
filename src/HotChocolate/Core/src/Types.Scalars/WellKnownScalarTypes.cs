@@ -8,6 +8,7 @@ namespace HotChocolate.Types
         public const string Hsla = nameof(Hsla);
         public const string Isbn = nameof(Isbn);
         public const string IPv4 = nameof(IPv4);
+        public const string IPv6 = nameof(IPv6);
         public const string NegativeFloat = nameof(NegativeFloat);
         public const string NegativeInt = nameof(NegativeInt);
         public const string NonEmptyString = nameof(NonEmptyString);

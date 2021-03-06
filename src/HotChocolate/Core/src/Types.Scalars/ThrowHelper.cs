@@ -90,6 +90,50 @@ namespace HotChocolate.Types.Scalars
                 type);
         }
 
+        public static SerializationException IPv4Type_ParseValue_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.IPv4Type_IsInvalid_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.IPv4)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException IPv4Type_ParseLiteral_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.IPv4Type_IsInvalid_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.IPv4)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException IPv6Type_ParseValue_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.IPv6Type_IsInvalid_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.IPv6)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException IPv6Type_ParseLiteral_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.IPv6Type_IsInvalid_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.IPv6)
+                    .Build(),
+                type);
+        }
+
         public static SerializationException IsbnType_ParseValue_IsInvalid(IType type)
         {
             return new SerializationException(
@@ -319,28 +363,6 @@ namespace HotChocolate.Types.Scalars
                 type);
         }
 
-        public static SerializationException UnsignedIntType_ParseLiteral_IsNotUnsigned(IType type)
-        {
-            return new SerializationException(
-                ErrorBuilder.New()
-                    .SetMessage(ScalarResources.UnsignedIntType_IsNotUnsigned_ParseLiteral)
-                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
-                    .SetExtension("actualType", WellKnownScalarTypes.UnsignedInt)
-                    .Build(),
-                type);
-        }
-
-        public static SerializationException UnsignedIntType_ParseValue_IsNotUnsigned(IType type)
-        {
-            return new SerializationException(
-                ErrorBuilder.New()
-                    .SetMessage(ScalarResources.UnsignedIntType_IsNotUnsigned_ParseValue)
-                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                    .SetExtension("actualType", WellKnownScalarTypes.UnsignedInt)
-                    .Build(),
-                type);
-        }
-
         public static SerializationException PostalCodeType_ParseLiteral_IsInvalid(IType type)
         {
             return new SerializationException(
@@ -362,29 +384,6 @@ namespace HotChocolate.Types.Scalars
                     .Build(),
                 type);
         }
-
-        public static SerializationException IPv4Type_ParseValue_IsInvalid(IType type)
-        {
-            return new SerializationException(
-                ErrorBuilder.New()
-                    .SetMessage(ScalarResources.IPv4Type_IsInvalid_ParseValue)
-                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                    .SetExtension("actualType", WellKnownScalarTypes.IPv4)
-                    .Build(),
-                type);
-        }
-
-        public static SerializationException IPv4Type_ParseLiteral_IsInvalid(IType type)
-        {
-            return new SerializationException(
-                ErrorBuilder.New()
-                    .SetMessage(ScalarResources.IPv4Type_IsInvalid_ParseLiteral)
-                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
-                    .SetExtension("actualType", WellKnownScalarTypes.IPv4)
-                    .Build(),
-                type);
-        }
-
         public static SerializationException RegexType_ParseValue_IsInvalid(
             IType type,
             string name)
@@ -411,6 +410,28 @@ namespace HotChocolate.Types.Scalars
                             ScalarResources.RegexType_IsInvalid_ParseLiteral,
                             name))
                     .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException UnsignedIntType_ParseLiteral_IsNotUnsigned(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.UnsignedIntType_IsNotUnsigned_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.UnsignedInt)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException UnsignedIntType_ParseValue_IsNotUnsigned(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.UnsignedIntType_IsNotUnsigned_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.UnsignedInt)
                     .Build(),
                 type);
         }
