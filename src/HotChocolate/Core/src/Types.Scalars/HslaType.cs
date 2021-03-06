@@ -10,14 +10,15 @@ namespace HotChocolate.Types.Scalars
     /// </summary>
     public class HslaType : RegexType
     {
-        private static readonly string _validationPattern =
+        private const string _validationPattern =
             "^(?:hsla?)\\((?:\\d+%?(?:deg|rad|grad|turn)?(?:,|\\s)+){2,3}[\\s\\/]*[\\d\\.]+%?\\)";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HslaType"/> class.
         /// </summary>
         public HslaType()
-            : base(WellKnownScalarTypes.Hsla,
+            : base(
+                WellKnownScalarTypes.Hsla,
                 _validationPattern,
                 ScalarResources.HslaType_Description,
                 RegexOptions.Compiled | RegexOptions.IgnoreCase)
