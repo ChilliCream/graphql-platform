@@ -4,6 +4,6 @@ namespace HotChocolate.Data.Neo4J.Filtering
 {
     public class Neo4JFilterDefinition
     {
-        public Where where { get; set; }
+        public Condition Condition { get; set; }
     }
 }

@@ -17,7 +17,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
         /// <summary>
         /// Tries to build the query based on the items that are stored on the scope
         /// </summary>
-        /// <param name="context">the context</param>
+        /// <param name="context">The context</param>
         /// <param name="query">The query that was build</param>
         /// <returns>True in case the query has been build successfully, otherwise false</returns>
         public static bool TryCreateQuery(

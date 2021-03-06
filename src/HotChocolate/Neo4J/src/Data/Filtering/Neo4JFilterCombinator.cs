@@ -20,15 +20,38 @@ namespace HotChocolate.Data.Neo4J.Filtering
                 throw new InvalidOperationException();
             }
 
-            // TODO: Filter combination implementation
             combined = combinator switch
             {
-                FilterCombinator.And => new(),
-                FilterCombinator.Or => new(),
+                FilterCombinator.And => CombineWithAnd(context, operations),
+                FilterCombinator.Or => CombineWithOr(context, operations),
                 _ => throw new InvalidOperationException()
             };
 
             return true;
+        }
+
+        private static Neo4JFilterDefinition CombineWithAnd(
+            Neo4JFilterVisitorContext context,
+            Queue<Neo4JFilterDefinition> operations)
+        {
+            if (operations.Count < 0)
+            {
+                throw new InvalidOperationException();
+            }
+
+            return new Neo4JAndFilterDefinition(operations.ToArray());
+        }
+
+        private static Neo4JFilterDefinition CombineWithOr(
+            Neo4JFilterVisitorContext context,
+            Queue<Neo4JFilterDefinition> operations)
+        {
+            if (operations.Count < 0)
+            {
+                throw new InvalidOperationException();
+            }
+
+            return new Neo4JOrFilterDefinition(operations.ToArray());
         }
     }
 }

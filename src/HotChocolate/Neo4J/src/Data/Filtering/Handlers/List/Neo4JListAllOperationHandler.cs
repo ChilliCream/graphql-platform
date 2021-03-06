@@ -39,7 +39,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
                     new Neo4JFilterOperation(
                         "$elemMatch",
                         new Neo4JNotFilterDefinition(
-                            new Neo4JOrFilterDefinition()))));
+                            new Neo4JOrFilterDefinition(negatedChilds)))));
         }
 
         private static Neo4JFilterDefinition CreateArrayAllScalar(
@@ -57,7 +57,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
             }
 
             return new Neo4JNotFilterDefinition(
-                new Neo4JOrFilterDefinition());
+                new Neo4JOrFilterDefinition(negatedChilds));
         }
     }
 }

@@ -19,8 +19,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
                 return false;
             }
 
-            // TODO: implement AndFilterDefinition
-            // query = new AndFilterDefinition(scope.Level.Peek().ToArray());
+            query = new Neo4JAndFilterDefinition(scope.Level.Peek().ToArray());
 
             return true;
         }
