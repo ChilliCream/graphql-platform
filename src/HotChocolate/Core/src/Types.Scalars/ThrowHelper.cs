@@ -124,7 +124,6 @@ namespace HotChocolate.Types.Scalars
                 type);
         }
 
-      
         public static SerializationException NegativeIntType_ParseValue_IsNotNegative(IType type)
         {
             return new SerializationException(
@@ -393,7 +392,7 @@ namespace HotChocolate.Types.Scalars
                     .Build(),
                 type);
         }
-      
+
         public static SerializationException MacAddressType_ParseValue_IsInvalid(IType type)
         {
             return new SerializationException(

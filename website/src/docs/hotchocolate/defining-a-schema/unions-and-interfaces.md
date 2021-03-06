@@ -138,6 +138,7 @@ public class TextMessage : IMessage
 ```
 
 _Configure Services_
+
 ```csharp
   public void ConfigureServices(IServiceCollection services)
   {
@@ -195,6 +196,7 @@ public class MediaMessageType : InterfaceType<IMediaMessage>
 ```
 
 In a `ObjectType` you can declare what interface this object type implements.
+
 ```csharp
 public class VideoMessageType : ObjectType<VideoMessage>
 {
@@ -352,6 +354,7 @@ public class Query
 ```
 
 _Configure Services_
+
 ```csharp
   public void ConfigureServices(IServiceCollection services)
   {

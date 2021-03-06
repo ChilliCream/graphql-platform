@@ -27,7 +27,7 @@ namespace HotChocolate.Types.Scalars
         [InlineData(typeof(StringValueNode), "f", false)]
         [InlineData(typeof(StringValueNode), "ff", false)]
         [InlineData(typeof(StringValueNode), "ff:ff:ff", false)]
-        [InlineData(typeof(StringValueNode), "ff:ff:ff:ff:ff", false)]       
+        [InlineData(typeof(StringValueNode), "ff:ff:ff:ff:ff", false)]
         [InlineData(typeof(StringValueNode), "ff:ff:ff:ff:ff:ff", true)]
         [InlineData(typeof(StringValueNode), "ff-ff-ff-ff-ff-ff", true)]
         [InlineData(typeof(StringValueNode), "ff:ff:ff:ff:ff:ff:", false)]
@@ -39,7 +39,7 @@ namespace HotChocolate.Types.Scalars
         [InlineData(typeof(StringValueNode), "9d:f7:56:d1:73:a4", true)]
         [InlineData(typeof(StringValueNode), "9d-f7-56-d1-73-a4", true)]
         [InlineData(typeof(StringValueNode), "fa:7e:9e:9f:13:78", true)]
-        [InlineData(typeof(StringValueNode), "fa-7e-9e-9f-13-78", true)]        
+        [InlineData(typeof(StringValueNode), "fa-7e-9e-9f-13-78", true)]
         [InlineData(typeof(NullValueNode), null, true)]
         public void IsInstanceOfType_GivenValueNode_MatchExpected(
             Type type,
