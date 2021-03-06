@@ -24,5 +24,37 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 FileResource.Open("BridgeClientDemo.graphql"),
                 "extend schema @key(fields: \"id\")");
         }
+
+        [Fact]
+        public void Query_With_Nested_Fragments()
+        {
+            AssertResult(
+                strictValidation: true,
+                @"
+                    query getAll(){
+                        listings{
+                            ... ListingsPayload
+                        }
+                    }
+                    fragment ListingsPayload on ListingsPayload{
+                        items{
+                            ... HasListingId
+                            ... Offer
+                            ... Auction
+                        }
+                    }
+                    fragment HasListingId on Listing{
+                        listingId
+                    }
+                    fragment Offer on Offer{
+                        price
+                    }
+                    fragment Auction on Auction{
+                        startingPrice
+                    }
+                ",
+                FileResource.Open("MultipleInterfaceSchema.graphql"),
+                "extend schema @key(fields: \"id\")");
+        }
     }
 }
