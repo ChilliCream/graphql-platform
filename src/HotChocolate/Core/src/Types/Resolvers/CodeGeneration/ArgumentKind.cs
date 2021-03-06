@@ -1,4 +1,4 @@
-﻿namespace HotChocolate.Resolvers.CodeGeneration
+namespace HotChocolate.Resolvers.CodeGeneration
 {
     internal enum ArgumentKind
     {
@@ -16,6 +16,7 @@
         CustomContext,
         DataLoader,
         DirectiveObject,
-        EventMessage
+        EventMessage,
+        SpreadableArgument
     }
 }

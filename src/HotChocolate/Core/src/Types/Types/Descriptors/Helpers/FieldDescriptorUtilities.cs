@@ -116,6 +116,11 @@ namespace HotChocolate.Types.Descriptors
                             arguments.Add(argumentDefinition);
                         }
                     }
+                    else if (IsSpreadableArgumentType(method, parameter))
+                    {
+                        // foreach member of the object/class
+                        // add an argument
+                    }
                 }
             }
         }
@@ -127,6 +132,15 @@ namespace HotChocolate.Types.Descriptors
             return ArgumentHelper
                 .LookupKind(parameter, member.ReflectedType) ==
                     ArgumentKind.Argument;
+        }
+
+        private static bool IsSpreadableArgumentType(
+            MemberInfo member,
+            ParameterInfo parameter)
+        {
+            return ArgumentHelper
+                .LookupKind(parameter, member.ReflectedType) ==
+                    ArgumentKind.SpreadableArgument;
         }
     }
 }

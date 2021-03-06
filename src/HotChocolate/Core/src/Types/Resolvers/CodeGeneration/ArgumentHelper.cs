@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -24,7 +24,8 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 || TryCheckForSubscription(parameter, out argumentKind)
                 || TryCheckForSchemaTypes(parameter, out argumentKind)
                 || TryCheckForQueryTypes(parameter, out argumentKind)
-                || TryCheckForExtensions(parameter, out argumentKind))
+                || TryCheckForExtensions(parameter, out argumentKind)
+                || TryCheckForSpreadableArgument(parameter, out argumentKind))
             {
                 return argumentKind;
             }
@@ -165,6 +166,20 @@ namespace HotChocolate.Resolvers.CodeGeneration
             return false;
         }
 
+        private static bool TryCheckForSpreadableArgument(
+            this ParameterInfo parameter,
+            out ArgumentKind argumentKind)
+        {
+            if (IsSpreadableArgument(parameter))
+            {
+                argumentKind = ArgumentKind.SpreadableArgument;
+                return true;
+            }
+
+            argumentKind = default(ArgumentKind);
+            return false;
+        }
+
         internal static bool IsDataLoader(ParameterInfo parameter)
         {
             return typeof(IDataLoader).IsAssignableFrom(parameter.ParameterType)
@@ -227,5 +242,8 @@ namespace HotChocolate.Resolvers.CodeGeneration
 
         internal static bool IsSchema(ParameterInfo parameter) =>
             typeof(ISchema).IsAssignableFrom(parameter.ParameterType);
+
+        internal static bool IsSpreadableArgument(ParameterInfo parameter) =>
+            parameter.IsDefined(typeof(SpreadAttribute));
     }
 }
