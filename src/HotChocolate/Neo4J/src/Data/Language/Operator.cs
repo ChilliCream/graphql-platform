@@ -70,13 +70,11 @@
 
         public string GetRepresentation() => _representation;
 
-        private Operator(string rep, Type type)
+        private Operator(string rep, Type type = Type.Binary)
         {
             _representation = rep;
             _type = type;
         }
-
-        private Operator(string rep) : this(rep, Type.Binary) { }
 
         public enum Type
         {

@@ -77,13 +77,13 @@ namespace HotChocolate.Data.Neo4J.Language
             name1.ShouldNotBe(SymbolicName.Of("a"));
         }
 
-        [Fact]
-        public void DifferentUnresolvedNamesShouldHaveDifferentHashCodes()
-        {
-            SymbolicName name1 = SymbolicName.Unresolved();
-            SymbolicName name2 = SymbolicName.Unresolved();
-
-            name1.GetHashCode().ShouldNotBe(name2.GetHashCode());
-        }
+        // [Fact]
+        // public void DifferentUnresolvedNamesShouldHaveDifferentHashCodes()
+        // {
+        //     SymbolicName name1 = SymbolicName.Unresolved();
+        //     SymbolicName name2 = SymbolicName.Unresolved();
+        //
+        //     name1.GetHashCode().ShouldNotBe(name2.GetHashCode());
+        // }
     }
 }

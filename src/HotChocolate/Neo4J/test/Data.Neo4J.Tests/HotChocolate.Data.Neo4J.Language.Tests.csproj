@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <Folder Include="LanguageTests\__snapshots__" />
+    <Folder Include="VisitorTests\__snapshots__" />
   </ItemGroup>
 
 </Project>

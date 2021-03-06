@@ -114,7 +114,7 @@ namespace HotChocolate.Data.Neo4J.Language
 
             if (visitable is ITypedSubtree)
             {
-                EnableSeparator(_currentLevel, false);
+                EnableSeparator(_currentLevel+1, false);
             }
 
             --_currentLevel;

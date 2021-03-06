@@ -5,8 +5,8 @@ namespace HotChocolate.Data.Neo4J.Language
 {
     public class CypherTests
     {
-        private static Node _bikeNode = Cypher.Node("Bike").Named("b");
-        private static Node _userNode = Cypher.Node("User").Named("u");
+        private static readonly Node _bikeNode = Cypher.Node("Bike").Named("b");
+        private static readonly Node _userNode = Cypher.Node("User").Named("u");
 
         public class ReadingAndReturn
         {
@@ -256,7 +256,8 @@ namespace HotChocolate.Data.Neo4J.Language
                             _userNode.RelationshipTo(_bikeNode, "OWNS"),
                             new Where(_bikeNode.Property("age").IsEqualTo(Cypher.LiteralOf(12))),
                             _bikeNode.Project("age"))
-                        ));
+                        ))
+                    .OrderBy(Cypher.Sort(_userNode.Property("name")).Descending());;
                 statement.Build().MatchSnapshot();
             }
         }

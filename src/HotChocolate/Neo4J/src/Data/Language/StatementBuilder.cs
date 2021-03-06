@@ -1,4 +1,5 @@
 using System.Linq;
+using HotChocolate.Data.Neo4J.Filtering;
 
 #nullable enable
 
@@ -47,7 +48,7 @@ namespace HotChocolate.Data.Neo4J.Language
             return this;
         }
 
-        public StatementBuilder Return(params Expression[] expressions)
+        public StatementBuilder Return(params Expression[]? expressions)
         {
             _return = new Return(false, new ExpressionList(expressions));
             return this;
