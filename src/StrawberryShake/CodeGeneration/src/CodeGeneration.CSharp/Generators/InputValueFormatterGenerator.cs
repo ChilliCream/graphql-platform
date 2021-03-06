@@ -4,13 +4,12 @@ using System.Linq;
 using HotChocolate;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
-using StrawberryShake.Serialization;
-using IInputValueFormatter = StrawberryShake.Serialization.IInputValueFormatter;
-using static StrawberryShake.CodeGeneration.NamingConventions;
+using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public class InputValueFormatterGenerator : CodeGenerator<InputObjectTypeDescriptor>
     {
@@ -64,7 +63,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         .AddMethodCall()
                         .SetMethodName(
                             serializerResolver,
-                            nameof(ISerializerResolver.GetInputValueFormatter))
+                            "GetInputValueFormatter")
                         .AddArgument(name.AsStringToken());
 
                     classBuilder
@@ -91,11 +90,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
             // Format Method
 
             ArrayBuilder arrayBuilder = classBuilder
-                .AddMethod(nameof(IInputValueFormatter.Format))
+                .AddMethod("Format")
                 .SetPublic()
                 .SetReturnType(TypeNames.Object.MakeNullable())
                 .AddParameter(runtimeValue, x => x.SetType(TypeNames.Object.MakeNullable()))
                 .AddBody()
+                .AddCode(IfBuilder
+                    .New()
+                    .SetCondition($"{runtimeValue} is null")
+                    .AddCode("return null;"))
+                .AddEmptyLine()
                 .ArgumentException(runtimeValue, $"!({runtimeValue} is {typeName} d)")
                 .AddEmptyLine()
                 .AddArray()
@@ -137,13 +141,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
             string variableName,
             string assignment = "return")
         {
+            RuntimeTypeInfo runtimeType = typeDescriptor.GetRuntimeType();
+            var isValueType = runtimeType.IsValueType;
+
             switch (typeDescriptor)
             {
                 case INamedTypeDescriptor descriptor:
                     var serializerName = GetFieldName(descriptor.GetName().Value) + "Formatter";
                     MethodCallBuilder methodCall = MethodCallBuilder
                         .New()
-                        .SetMethodName(serializerName, nameof(IInputValueFormatter.Format))
+                        .SetMethodName(serializerName, "Format")
                         .AddArgument(variableName);
 
                     return assignment == "return"
@@ -156,16 +163,17 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 case NonNullTypeDescriptor descriptor:
                     return CodeBlockBuilder
                         .New()
-                        .AddIf(x =>
-                            x.SetCondition($"{variableName} == default")
-                                .AddCode(
-                                    assignment == "return"
-                                        ? CodeLineBuilder.From("return null;")
-                                        : CodeBlockBuilder
-                                            .New()
-                                            .AddLine($"{assignment}.Add(null);")
-                                            .AddLine("continue;")))
-                        .AddEmptyLine()
+                        .If(!isValueType,
+                            i =>
+                            {
+                                i.AddIf(x => x
+                                        .SetCondition($"{variableName} is null")
+                                        .AddCode(
+                                            ExceptionBuilder
+                                                .New(TypeNames.ArgumentNullException)
+                                                .AddArgument($"nameof({variableName})")))
+                                    .AddEmptyLine();
+                            })
                         .AddCode(
                             GenerateSerializer(
                                 descriptor.InnerType(),

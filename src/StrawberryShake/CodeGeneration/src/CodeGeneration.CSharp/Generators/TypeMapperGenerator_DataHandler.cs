@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public partial class TypeMapperGenerator
     {
@@ -18,7 +19,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             method
                 .AddParameter(_dataParameterName)
-                .SetType(namedTypeDescriptor.ParentRuntimeType!.ToString());
+                .SetType(namedTypeDescriptor.ParentRuntimeType!
+                    .ToString()
+                    .MakeNullable(!isNonNullable));
 
             if (!isNonNullable)
             {

@@ -11,7 +11,6 @@ namespace StrawberryShake.Json
         public void Serialize(OperationRequest request, IBufferWriter<byte> bufferWriter)
         {
             using var jsonWriter = new Utf8JsonWriter(bufferWriter);
-
             Serialize(request, jsonWriter);
         }
 
@@ -28,12 +27,11 @@ namespace StrawberryShake.Json
 
         private static void WriteRequest(OperationRequest request, Utf8JsonWriter writer)
         {
-            if (request.Id is not null)
+            if (request.Strategy == RequestStrategy.PersistedQuery)
             {
                 writer.WriteString("id", request.Id);
             }
-
-            if (request.Document.Body.Length > 0)
+            else
             {
                 writer.WriteString("query", request.Document.Body);
             }

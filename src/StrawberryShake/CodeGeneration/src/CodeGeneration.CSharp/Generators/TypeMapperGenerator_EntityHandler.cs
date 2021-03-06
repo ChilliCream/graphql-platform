@@ -1,11 +1,11 @@
-using System;
 using System.Collections.Generic;
 using HotChocolate;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
-using static StrawberryShake.CodeGeneration.NamingConventions;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
+using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public partial class TypeMapperGenerator
     {
@@ -70,11 +70,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .New()
                 .SetReturn()
                 .SetWrapArguments()
-                .SetMethodName(dataMapperName, nameof(IEntityMapper<object, object>.Map));
+                .SetMethodName(dataMapperName, "Map");
 
             MethodCallBuilder argument = MethodCallBuilder
                 .Inline()
-                .SetMethodName(StoreFieldName, nameof(IEntityStore.GetEntity))
+                .SetMethodName(StoreFieldName, "GetEntity")
                 .AddGeneric(CreateEntityTypeName(objectTypeDescriptor.Name))
                 .AddArgument(isNonNullable ? _entityId : $"{_entityId}.Value");
 
@@ -97,14 +97,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                 ? new[]
                                 {
                                     _entityId,
-                                    nameof(EntityId.Name),
+                                    "Name",
                                     nameof(string.Equals)
                                 }
                                 : new[]
                                 {
                                     _entityId,
-                                    nameof(Nullable<EntityId>.Value),
-                                    nameof(EntityId.Name),
+                                    "Value",
+                                    "Name",
                                     nameof(string.Equals)
                                 })
                         .AddArgument(objectTypeDescriptor.Name.AsStringToken())

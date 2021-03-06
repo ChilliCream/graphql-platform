@@ -445,6 +445,8 @@ namespace StrawberryShake.Transport.WebSockets
             public OperationKind Kind => OperationKind.Query;
 
             public ReadOnlySpan<byte> Body => _query;
+
+            public DocumentHash Hash { get; } = new("MD5", "ABC");
         }
 
         private class StubSessionInterceptor : DefaultSocketSessionInterceptor

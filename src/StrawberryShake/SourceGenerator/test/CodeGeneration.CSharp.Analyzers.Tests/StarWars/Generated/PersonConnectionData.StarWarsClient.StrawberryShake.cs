@@ -1,9 +1,12 @@
-﻿// StrawberryShake.CodeGeneration.CSharp.DataTypeGenerator
+﻿// StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
 
 #nullable enable
 
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State
 {
+    /// <summary>
+    /// A connection to a list of items.
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class PersonConnectionData
     {
@@ -18,6 +21,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State
 
         public global::System.String __typename { get; }
 
+        /// <summary>
+        /// A flattened list of the nodes.
+        /// </summary>
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Nodes { get; }
     }
 }

@@ -4,6 +4,7 @@
     <PackageId>StrawberryShake.CodeGeneration.CSharp.Analyzers</PackageId>
     <AssemblyName>StrawberryShake.CodeGeneration.CSharp.Analyzers</AssemblyName>
     <RootNamespace>StrawberryShake.CodeGeneration.CSharp.Analyzers</RootNamespace>
+    <Description>StrawberryShake CSharp source generator.</Description>
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild> <!-- Generates a package at build -->
     <IncludeBuildOutput>false</IncludeBuildOutput> <!-- Do not include the generator as a lib dependency -->
@@ -19,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="StrawberryShake.CodeGeneration.CSharp" Version="11.1.0-local.110" PrivateAssets="all" GeneratePathProperty="true" />
+    <PackageReference Include="StrawberryShake.CodeGeneration.CSharp" Version="11.1.0-pse-add-protocol-facotries-to-strawberry-shake.1" PrivateAssets="all" GeneratePathProperty="true" />
     <PackageReference Include="DotNet.Glob" Version="3.1.2" PrivateAssets="all" GeneratePathProperty="true" />
   </ItemGroup>
 

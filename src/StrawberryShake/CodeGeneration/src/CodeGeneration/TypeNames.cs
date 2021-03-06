@@ -24,6 +24,8 @@ namespace StrawberryShake.CodeGeneration
         public const string IDocument = StrawberryshakeNamespace + "IDocument";
         public const string GraphQLClientException = StrawberryshakeNamespace + "GraphQLClientException";
         public const string IClientError = StrawberryshakeNamespace + "IClientError";
+        public const string DocumentHash = StrawberryshakeNamespace + "DocumentHash";
+        public const string RequestStrategy = StrawberryshakeNamespace + "RequestStrategy";
 
         public const string OperationKind = StrawberryshakeNamespace + "OperationKind";
         public const string EntityId = StrawberryshakeNamespace + "EntityId";
@@ -37,8 +39,10 @@ namespace StrawberryShake.CodeGeneration
         public const string ExecutionStrategy = StrawberryshakeNamespace + "ExecutionStrategy";
         public const string GetPropertyOrNull = StrawberryshakeNamespace + "Json.JsonElementExtensions.GetPropertyOrNull";
         public const string HttpConnection= StrawberryshakeNamespace + "Transport.Http.HttpConnection";
+        public const string InMemoryConnection = StrawberryshakeNamespace + "Transport.InMemory.InMemoryConnection";
         public const string WebSocketConnection= StrawberryshakeNamespace + "Transport.WebSockets.WebSocketConnection";
         public const string ISessionPool= StrawberryshakeNamespace + "Transport.WebSockets.ISessionPool";
+        public const string IInMemoryClientFactory= StrawberryshakeNamespace + "Transport.InMemory.IInMemoryClientFactory";
         public const string AddProtocol= GlobalDependencyInjectionNamespace + "WebSocketClientFactoryServiceCollectionExtensions.AddProtocol";
         public const string GraphQLWebSocketProtocolFactory= StrawberryshakeNamespace + "Transport.WebSockets.Protocol.GraphQLWebSocketProtocolFactory";
 

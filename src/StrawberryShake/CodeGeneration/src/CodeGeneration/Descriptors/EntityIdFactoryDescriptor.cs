@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using HotChocolate;
 
-namespace StrawberryShake.CodeGeneration
+namespace StrawberryShake.CodeGeneration.Descriptors
 {
     /// <summary>
     /// Represents the code descriptor of the entity id factor.

@@ -1,9 +1,9 @@
-using System;
 using System.Collections.Generic;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
-using static StrawberryShake.CodeGeneration.NamingConventions;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
+using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public partial class JsonResultBuilderGenerator
     {
@@ -24,7 +24,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         MethodCallBuilder
                             .Inline()
                             .SetMethodName(_extractId)
-                            .AddArgument($"{_obj}.{nameof(Nullable<EntityId>.Value)}")));
+                            .AddArgument($"{_obj}.Value")));
 
             methodBuilder.AddCode(
                 MethodCallBuilder
@@ -44,10 +44,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         .SetCondition(
                             MethodCallBuilder
                                 .Inline()
-                                .SetMethodName(
-                                    _entityId,
-                                    nameof(EntityId.Name),
-                                    nameof(string.Equals))
+                                .SetMethodName(_entityId, "Name", nameof(string.Equals))
                                 .AddArgument(concreteType.Name.AsStringToken())
                                 .AddArgument(TypeNames.OrdinalStringComparison));
 
@@ -96,7 +93,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetRighthandSide(
                         MethodCallBuilder
                             .Inline()
-                            .SetMethodName(_entityStore, nameof(IEntityStore.GetOrCreate))
+                            .SetMethodName(_entityStore, "GetOrCreate")
                             .AddGeneric(entityTypeName)
                             .AddArgument(_entityId)));
         }

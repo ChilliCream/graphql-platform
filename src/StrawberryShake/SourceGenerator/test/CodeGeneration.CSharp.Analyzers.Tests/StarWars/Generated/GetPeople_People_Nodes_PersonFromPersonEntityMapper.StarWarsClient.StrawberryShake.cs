@@ -1,4 +1,4 @@
-﻿// StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
+﻿// StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
 
 #nullable enable
 

@@ -11,7 +11,7 @@
 
 // CreateReviewMutResultFactory
 
-// StrawberryShake.CodeGeneration.CSharp.ResultDataFactoryGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
 
 #nullable enable
 
@@ -62,7 +62,7 @@ namespace Foo.Bar
 
 // CreateReviewMutResultInfo
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInfoGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
 
 #nullable enable
 
@@ -105,7 +105,7 @@ namespace Foo.Bar
 
 // CreateReviewMutResult
 
-// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
 
 #nullable enable
 
@@ -127,7 +127,7 @@ namespace Foo.Bar
 
 // CreateReviewMut_CreateReview_Review
 
-// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
 
 #nullable enable
 
@@ -154,7 +154,7 @@ namespace Foo.Bar
 
 // ICreateReviewMutResult
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -170,7 +170,7 @@ namespace Foo.Bar
 
 // ICreateReviewMut_CreateReview
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -188,7 +188,7 @@ namespace Foo.Bar
 
 // ICreateReviewMut_CreateReview_Review
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -204,7 +204,7 @@ namespace Foo.Bar
 
 // ReviewInputInputValueFormatter
 
-// StrawberryShake.CodeGeneration.CSharp.InputValueFormatterGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
 
 #nullable enable
 
@@ -227,6 +227,11 @@ namespace Foo.Bar
 
         public global::System.Object? Format(global::System.Object? runtimeValue)
         {
+            if (runtimeValue is null)
+            {
+                return null;
+            }
+
             if (!(runtimeValue is ReviewInput d))
             {
                 throw new global::System.ArgumentException(nameof(runtimeValue));
@@ -244,11 +249,6 @@ namespace Foo.Bar
 
         private global::System.Object? FormatStars(global::System.Int32 value)
         {
-            if (value == default)
-            {
-                return null;
-            }
-
             return _intFormatter.Format(value);
         }
 
@@ -262,7 +262,7 @@ namespace Foo.Bar
 
 // ReviewInput
 
-// StrawberryShake.CodeGeneration.CSharp.InputTypeGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
 
 #nullable enable
 
@@ -280,7 +280,7 @@ namespace Foo.Bar
 
 // Episode
 
-// StrawberryShake.CodeGeneration.CSharp.EnumGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.EnumGenerator
 
 #nullable enable
 
@@ -298,7 +298,7 @@ namespace Foo.Bar
 
 // EpisodeSerializer
 
-// StrawberryShake.CodeGeneration.CSharp.EnumParserGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.EnumParserGenerator
 
 #nullable enable
 
@@ -338,7 +338,7 @@ namespace Foo.Bar
 
 // CreateReviewMutMutationDocument
 
-// StrawberryShake.CodeGeneration.CSharp.OperationDocumentGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
 
 #nullable enable
 
@@ -368,7 +368,9 @@ namespace Foo.Bar
 
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Mutation;
 
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{ 0x6d, 0x75, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x52, 0x65, 0x76, 0x69, 0x65, 0x77, 0x4d, 0x75, 0x74, 0x28, 0x24, 0x65, 0x70, 0x69, 0x73, 0x6f, 0x64, 0x65, 0x3a, 0x20, 0x45, 0x70, 0x69, 0x73, 0x6f, 0x64, 0x65, 0x21, 0x2c, 0x20, 0x24, 0x72, 0x65, 0x76, 0x69, 0x65, 0x77, 0x3a, 0x20, 0x52, 0x65, 0x76, 0x69, 0x65, 0x77, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x21, 0x29, 0x20, 0x7b, 0x0a, 0x20, 0x20, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x52, 0x65, 0x76, 0x69, 0x65, 0x77, 0x28, 0x65, 0x70, 0x69, 0x73, 0x6f, 0x64, 0x65, 0x3a, 0x20, 0x24, 0x65, 0x70, 0x69, 0x73, 0x6f, 0x64, 0x65, 0x2c, 0x20, 0x72, 0x65, 0x76, 0x69, 0x65, 0x77, 0x3a, 0x20, 0x24, 0x72, 0x65, 0x76, 0x69, 0x65, 0x77, 0x29, 0x20, 0x7b, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x73, 0x74, 0x61, 0x72, 0x73, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x63, 0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x74, 0x61, 0x72, 0x79, 0x0a, 0x20, 0x20, 0x7d, 0x0a, 0x7d };
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{ 0x6d, 0x75, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x52, 0x65, 0x76, 0x69, 0x65, 0x77, 0x4d, 0x75, 0x74, 0x28, 0x24, 0x65, 0x70, 0x69, 0x73, 0x6f, 0x64, 0x65, 0x3a, 0x20, 0x45, 0x70, 0x69, 0x73, 0x6f, 0x64, 0x65, 0x21, 0x2c, 0x20, 0x24, 0x72, 0x65, 0x76, 0x69, 0x65, 0x77, 0x3a, 0x20, 0x52, 0x65, 0x76, 0x69, 0x65, 0x77, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x21, 0x29, 0x20, 0x7b, 0x20, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x52, 0x65, 0x76, 0x69, 0x65, 0x77, 0x28, 0x65, 0x70, 0x69, 0x73, 0x6f, 0x64, 0x65, 0x3a, 0x20, 0x24, 0x65, 0x70, 0x69, 0x73, 0x6f, 0x64, 0x65, 0x2c, 0x20, 0x72, 0x65, 0x76, 0x69, 0x65, 0x77, 0x3a, 0x20, 0x24, 0x72, 0x65, 0x76, 0x69, 0x65, 0x77, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x73, 0x74, 0x61, 0x72, 0x73, 0x20, 0x63, 0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x74, 0x61, 0x72, 0x79, 0x20, 0x7d, 0x20, 0x7d };
+
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "7b7488dce3bce5700fe4fab0d349728a5121c153");
 
         public override global::System.String ToString()
         {
@@ -380,7 +382,7 @@ namespace Foo.Bar
 
 // CreateReviewMutMutation
 
-// StrawberryShake.CodeGeneration.CSharp.OperationServiceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
 
 #nullable enable
 
@@ -458,26 +460,23 @@ namespace Foo.Bar
                 FormatReview(review));
 
             return new global::StrawberryShake.OperationRequest(
-                "CreateReviewMut",
-                CreateReviewMutMutationDocument.Instance,
-                variables);
+                id: CreateReviewMutMutationDocument.Instance.Hash.Value,
+                name: "CreateReviewMut",
+                document: CreateReviewMutMutationDocument.Instance,
+                strategy: global::StrawberryShake.RequestStrategy.Default,
+                variables:variables);
         }
 
         private global::System.Object? FormatEpisode(Episode value)
         {
-            if (value == default)
-            {
-                return null;
-            }
-
             return _episodeFormatter.Format(value);
         }
 
         private global::System.Object? FormatReview(ReviewInput value)
         {
-            if (value == default)
+            if (value is null)
             {
-                return null;
+                throw new global::System.ArgumentNullException(nameof(value));
             }
 
             return _reviewInputFormatter.Format(value);
@@ -488,7 +487,7 @@ namespace Foo.Bar
 
 // CreateReviewMutBuilder
 
-// StrawberryShake.CodeGeneration.CSharp.JsonResultBuilderGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
 
 #nullable enable
 
@@ -622,7 +621,7 @@ namespace Foo.Bar
 
 // ReviewData
 
-// StrawberryShake.CodeGeneration.CSharp.DataTypeGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
 
 #nullable enable
 
@@ -653,7 +652,7 @@ namespace Foo.Bar.State
 
 // FooClient
 
-// StrawberryShake.CodeGeneration.CSharp.ClientGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
 
 #nullable enable
 
@@ -682,7 +681,7 @@ namespace Foo.Bar
 
 // EntityIdFactory
 
-// StrawberryShake.CodeGeneration.CSharp.EntityIdFactoryGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator
 
 #nullable enable
 
@@ -708,7 +707,7 @@ namespace Foo.Bar
 
 // FooClientServiceCollectionExtensions
 
-// StrawberryShake.CodeGeneration.CSharp.DependencyInjectionGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.DependencyInjectionGenerator
 
 #nullable enable
 
@@ -725,10 +724,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 services,
                 sp => 
                 {
-                    var serviceCollection = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
-
-                    ConfigureClient(
-                        serviceCollection,
+                    var serviceCollection = ConfigureClientDefault(
                         sp,
                         strategy);
 
@@ -749,15 +745,11 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        private static global::Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureClient(
-            global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
+        private static global::Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureClientDefault(
             global::System.IServiceProvider parentServices,
             global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
-            if (services is null)
-            {
-                throw new global::System.ArgumentNullException(nameof(services));
-            }
+            var services = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId>>(
                 services,
                 global::Foo.Bar.EntityIdFactory.CreateEntityId);
