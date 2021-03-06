@@ -9,7 +9,7 @@ namespace StrawberryShake.Json
     {
         public static IReadOnlyList<IClientError>? ParseErrors(JsonElement result)
         {
-            if (result.GetPropertyOrNull("errors") is { ValueKind: JsonValueKind.Array } errors)
+            if (result is { ValueKind: JsonValueKind.Array } errors)
             {
                 var array = new IClientError[errors.GetArrayLength()];
                 var i = 0;

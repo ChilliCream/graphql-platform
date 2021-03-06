@@ -1,4 +1,5 @@
 using System;
+using StrawberryShake.CodeGeneration.Descriptors;
 
 namespace StrawberryShake.CodeGeneration
 {

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace StrawberryShake.CodeGeneration
+namespace StrawberryShake.CodeGeneration.Descriptors
 {
     /// <summary>
     /// Represents the entity for which the ID shall be generated or an id field of that entity.
@@ -21,8 +21,8 @@ namespace StrawberryShake.CodeGeneration
         /// The child fields.
         /// </param>
         public EntityIdDescriptor(
-            string name, 
-            string typeName, 
+            string name,
+            string typeName,
             IReadOnlyList<EntityIdDescriptor>? fields = null)
         {
             Name = name;

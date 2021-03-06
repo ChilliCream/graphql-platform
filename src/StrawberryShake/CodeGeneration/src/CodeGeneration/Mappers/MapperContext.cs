@@ -1,6 +1,10 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate;
+using HotChocolate.Language;
+using StrawberryShake.CodeGeneration.Descriptors;
+using StrawberryShake.CodeGeneration.Descriptors.Operations;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
 namespace StrawberryShake.CodeGeneration.Mappers
 {
@@ -9,23 +13,36 @@ namespace StrawberryShake.CodeGeneration.Mappers
         private readonly List<INamedTypeDescriptor> _types = new();
         private readonly List<EntityTypeDescriptor> _entityTypes = new();
         private readonly List<DataTypeDescriptor> _dataTypes = new();
-        private readonly Dictionary<NameString, EnumTypeDescriptor> _enums = new();
         private readonly Dictionary<NameString, OperationDescriptor> _operations = new();
         private readonly Dictionary<NameString, ResultBuilderDescriptor> _resultBuilder = new();
         private ClientDescriptor? _client;
         private EntityIdFactoryDescriptor? _entityIdFactory;
         private DependencyInjectionDescriptor? _dependencyInjectionDescriptor;
 
-        public MapperContext(string @namespace, string clientName)
+        public MapperContext(
+            string @namespace,
+            string clientName,
+            IDocumentHashProvider hashProvider,
+            RequestStrategy requestStrategy,
+            IReadOnlyList<TransportProfile> transportProfiles)
         {
             Namespace = @namespace;
             ClientName = clientName;
+            HashProvider = hashProvider;
+            RequestStrategy = requestStrategy;
+            TransportProfiles = transportProfiles;
         }
 
         public string ClientName { get; }
 
         public string Namespace { get; }
         public string StateNamespace => Namespace + ".State";
+
+        public RequestStrategy RequestStrategy { get; }
+
+        public IDocumentHashProvider HashProvider { get; }
+
+        public IReadOnlyList<TransportProfile> TransportProfiles { get; }
 
         public IReadOnlyList<INamedTypeDescriptor> Types => _types;
 
@@ -121,7 +138,9 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 throw new ArgumentNullException(nameof(operationDescriptor)));
         }
 
-        public void Register(NameString operationName, ResultBuilderDescriptor resultBuilderDescriptor)
+        public void Register(
+            NameString operationName,
+            ResultBuilderDescriptor resultBuilderDescriptor)
         {
             _resultBuilder.Add(
                 operationName.EnsureNotEmpty(nameof(operationName)),

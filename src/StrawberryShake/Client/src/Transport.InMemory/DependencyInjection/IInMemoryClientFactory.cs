@@ -20,7 +20,7 @@ namespace StrawberryShake.Transport.InMemory
         /// <returns>A new <see cref="IInMemoryClient"/> instance.</returns>
         /// <remarks>
         /// <para>
-        /// Each call to <see cref="CreateClientAsync"/> is guaranteed to return
+        /// Each call to <see cref="CreateAsync"/> is guaranteed to return
         /// a new <see cref="IInMemoryClient"/> instance. Callers may cache the returned
         /// <see cref="IInMemoryClient"/> instance indefinitely or surround its use in a
         /// <langword>using</langword> block to dispose it when desired.
@@ -30,7 +30,7 @@ namespace StrawberryShake.Transport.InMemory
         /// instance's public properties as desired.
         /// </para>
         /// </remarks>
-        ValueTask<IInMemoryClient> CreateClientAsync(
+        ValueTask<IInMemoryClient> CreateAsync(
             string name,
             CancellationToken cancellationToken = default);
     }

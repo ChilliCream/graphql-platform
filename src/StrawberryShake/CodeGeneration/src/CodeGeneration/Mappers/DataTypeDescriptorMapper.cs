@@ -4,6 +4,8 @@ using System.Linq;
 using HotChocolate;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
+using StrawberryShake.CodeGeneration.Descriptors;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 

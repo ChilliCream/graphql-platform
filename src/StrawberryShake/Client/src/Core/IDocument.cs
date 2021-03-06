@@ -16,5 +16,10 @@ namespace StrawberryShake
         /// Gets the GraphQL document body.
         /// </summary>
         ReadOnlySpan<byte> Body { get; }
+
+        /// <summary>
+        /// Gets the document hash.
+        /// </summary>
+        DocumentHash Hash { get; }
     }
 }

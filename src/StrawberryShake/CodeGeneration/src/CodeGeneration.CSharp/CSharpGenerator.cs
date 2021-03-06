@@ -10,6 +10,9 @@ using HotChocolate.Language;
 using HotChocolate.Validation;
 using StrawberryShake.CodeGeneration.Analyzers;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
+using StrawberryShake.CodeGeneration.CSharp.Generators;
+using StrawberryShake.CodeGeneration.Descriptors;
+using StrawberryShake.CodeGeneration.Descriptors.Operations;
 using StrawberryShake.CodeGeneration.Mappers;
 using StrawberryShake.CodeGeneration.Utilities;
 using StrawberryShake.Properties;
@@ -26,6 +29,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             new EntityTypeGenerator(),
             new EntityIdFactoryGenerator(),
             new DependencyInjectionGenerator(),
+            new TransportProfileEnumGenerator(),
             new InputValueFormatterGenerator(),
             new EnumGenerator(),
             new EnumParserGenerator(),
@@ -43,31 +47,31 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         public static CSharpGeneratorResult Generate(
             IEnumerable<string> fileNames,
-            bool strictSchemaValidation = true,
-            string clientName = "GraphQLClient",
-            string @namespace = "StrawberryShake.GraphQL")
+            CSharpGeneratorSettings? settings = null)
         {
             if (fileNames is null)
             {
                 throw new ArgumentNullException(nameof(fileNames));
             }
 
-            if (string.IsNullOrEmpty(clientName))
+            settings ??= new();
+
+            if (string.IsNullOrEmpty(settings.ClientName))
             {
                 throw new ArgumentException(
                     string.Format(
                         Resources.CSharpGenerator_Generate_ArgumentCannotBeNull,
-                        nameof(clientName)),
-                    nameof(clientName));
+                        nameof(settings.ClientName)),
+                    nameof(settings));
             }
 
-            if (string.IsNullOrEmpty(@namespace))
+            if (string.IsNullOrEmpty(settings.Namespace))
             {
                 throw new ArgumentException(
                     string.Format(
                         Resources.CSharpGenerator_Generate_ArgumentCannotBeNull,
-                        nameof(@namespace)),
-                    nameof(@namespace));
+                        nameof(settings.Namespace)),
+                    nameof(settings));
             }
 
             var files = new List<GraphQLFile>();
@@ -101,7 +105,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 typeSystemFiles,
                 fileLookup,
                 errors,
-                strictSchemaValidation,
+                settings.StrictSchemaValidation,
                 out ISchema? schema))
             {
                 return new(errors);
@@ -129,38 +133,42 @@ namespace StrawberryShake.CodeGeneration.CSharp
             ClientModel clientModel = analyzer.Analyze();
 
             // With the client model we finally can create CSharp code.
-            return Generate(clientModel, clientName: clientName, @namespace: @namespace);
+            return Generate(clientModel, settings);
         }
 
         public static CSharpGeneratorResult Generate(
             ClientModel clientModel,
-            string clientName = "GraphQLClient",
-            string @namespace = "StrawberryShake.GraphQL")
+            CSharpGeneratorSettings settings)
         {
             if (clientModel is null)
             {
                 throw new ArgumentNullException(nameof(clientModel));
             }
 
-            if (string.IsNullOrEmpty(clientName))
+            if (string.IsNullOrEmpty(settings.ClientName))
             {
                 throw new ArgumentException(
                     string.Format(
                         Resources.CSharpGenerator_Generate_ArgumentCannotBeNull,
-                        nameof(clientName)),
-                    nameof(clientName));
+                        nameof(settings.ClientName)),
+                    nameof(settings));
             }
 
-            if (string.IsNullOrEmpty(@namespace))
+            if (string.IsNullOrEmpty(settings.Namespace))
             {
                 throw new ArgumentException(
                     string.Format(
                         Resources.CSharpGenerator_Generate_ArgumentCannotBeNull,
-                        nameof(@namespace)),
-                    nameof(@namespace));
+                        nameof(settings.Namespace)),
+                    nameof(settings));
             }
 
-            var context = new MapperContext(@namespace, clientName);
+            var context = new MapperContext(
+                settings.Namespace,
+                settings.ClientName,
+                settings.HashProvider,
+                settings.RequestStrategy,
+                settings.TransportProfiles);
 
             // First we run all mappers that do not have any dependencies on others.
             EntityIdFactoryDescriptorMapper.Map(clientModel, context);
@@ -180,9 +188,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
             // Lastly we generate the client mapper
             ClientDescriptorMapper.Map(clientModel, context);
 
-            // Last we execute all our generators with the descriptiptors.
+            // Last we execute all our generators with the descriptors.
             var code = new StringBuilder();
-            var documents = new List<CSharpDocument>();
+            var documents = new List<SourceDocument>();
 
             foreach (var descriptor in context.GetAllDescriptors())
             {
@@ -195,10 +203,22 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 }
             }
 
+            if (settings.RequestStrategy == RequestStrategy.PersistedQuery)
+            {
+                foreach (var operation in context.Operations)
+                {
+                    documents.Add(new SourceDocument(
+                        operation.Name,
+                        Encoding.UTF8.GetString(operation.Body),
+                        SourceDocumentKind.GraphQL,
+                        operation.HashValue));
+                }
+            }
+
             return new(documents);
         }
 
-        private static CSharpDocument WriteDocument(
+        private static SourceDocument WriteDocument(
             ICodeGenerator generator,
             ICodeDescriptor descriptor,
             StringBuilder code)
@@ -215,7 +235,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             generator.Generate(writer, descriptor, out string fileName);
 
             writer.Flush();
-            return new(fileName, code.ToString());
+            return new(fileName, code.ToString(), SourceDocumentKind.CSharp);
         }
 
         private static bool TryParseDocuments(
