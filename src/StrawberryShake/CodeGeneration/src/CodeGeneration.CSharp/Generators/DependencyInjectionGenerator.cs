@@ -626,11 +626,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                             .SetMethodName(TypeNames.WebSocketConnection)
                             .AddArgument(LambdaBuilder
                                 .New()
+                                .SetAsync()
+                                .AddArgument(_ct)
                                 .SetCode(MethodCallBuilder
                                     .Inline()
+                                    .SetAwait()
                                     .SetMethodName(_sessionPool, "CreateAsync")
                                     .AddArgument(clientName.AsStringToken())
-                                    .AddArgument("default"))))));
+                                    .AddArgument(_ct))))));
 
         private static ICode CreateBaseCode(string @namespace) =>
             CodeBlockBuilder
