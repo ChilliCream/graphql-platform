@@ -11,7 +11,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
 {
     public class FilteringTestBase
     {
-        /*private Func<IResolverContext, IExecutable<TResult>> BuildResolver<TResult>(
+        private Func<IResolverContext, IExecutable<TResult>> BuildResolver<TResult>(
             Neo4jResource mongoResource,
             params TResult[] results)
             where TResult : class =>
@@ -67,6 +67,6 @@ namespace HotChocolate.Data.Neo4J.Filtering
                 .GetRequestExecutorAsync()
                 .GetAwaiter()
                 .GetResult();
-        }*/
+        }
     }
 }

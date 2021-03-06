@@ -9,7 +9,7 @@ using Neo4jDemo.Models;
 namespace Neo4jDemo.Schema
 {
     [ExtendObjectType(Name = "Query")]
-    public class Query
+    public class Queries
     {
         // Would like to add this for someone that wants projections, filtering, sorting, pagination all together without boilerplate
         // [UseNeo4J(database="neo4j")]

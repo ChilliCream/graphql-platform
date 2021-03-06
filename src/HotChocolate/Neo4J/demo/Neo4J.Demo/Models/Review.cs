@@ -7,10 +7,10 @@ namespace Neo4jDemo.Models
         public double Rating { get; set; }
         public string Text { get; set; }
 
-        [Neo4JRelationship("WROTE", RelationshipDirection.Outgoing)]
+        [Neo4JRelationship("WROTE")]
         public User User { get; set; }
 
-        [Neo4JRelationship("REVIEWS", RelationshipDirection.Outgoing)]
+        [Neo4JRelationship("REVIEWS")]
         public Business Business { get; set; }
     }
 }

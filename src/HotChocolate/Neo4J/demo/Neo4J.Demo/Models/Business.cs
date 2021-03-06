@@ -14,7 +14,7 @@ namespace Neo4jDemo.Models
         [GraphQLNonNullType]
         public string State { get; set; }
 
-        [Neo4JRelationship("REVIEWS", RelationshipDirection.Outgoing)]
+        [Neo4JRelationship("REVIEWS")]
         public List<Review> Reviews { get; set; }
 
         [Neo4JCypher(@"MATCH (this)<-[:REVIEWS]-(r:Review) RETURN avg(r.stars)")]
