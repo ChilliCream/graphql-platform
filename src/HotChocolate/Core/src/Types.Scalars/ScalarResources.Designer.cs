@@ -63,12 +63,6 @@ namespace HotChocolate.Types.Scalars {
             }
         }
         
-        internal static string EmailAddressType_ValidationPattern {
-            get {
-                return ResourceManager.GetString("EmailAddressType_ValidationPattern", resourceCulture);
-            }
-        }
-        
         internal static string HexColorType_Description {
             get {
                 return ResourceManager.GetString("HexColorType_Description", resourceCulture);
@@ -84,12 +78,6 @@ namespace HotChocolate.Types.Scalars {
         internal static string HexColorType_IsInvalid_ParseValue {
             get {
                 return ResourceManager.GetString("HexColorType_IsInvalid_ParseValue", resourceCulture);
-            }
-        }
-        
-        internal static string HexColorType_ValidationPattern {
-            get {
-                return ResourceManager.GetString("HexColorType_ValidationPattern", resourceCulture);
             }
         }
         
@@ -111,12 +99,6 @@ namespace HotChocolate.Types.Scalars {
             }
         }
         
-        internal static string HslType_ValidationPattern {
-            get {
-                return ResourceManager.GetString("HslType_ValidationPattern", resourceCulture);
-            }
-        }
-        
         internal static string HslaType_Description {
             get {
                 return ResourceManager.GetString("HslaType_Description", resourceCulture);
@@ -132,6 +114,24 @@ namespace HotChocolate.Types.Scalars {
         internal static string HslaType_IsInvalid_ParseValue {
             get {
                 return ResourceManager.GetString("HslaType_IsInvalid_ParseValue", resourceCulture);
+            }
+        }
+        
+        internal static string IPv4Type_Description {
+            get {
+                return ResourceManager.GetString("IPv4Type_Description", resourceCulture);
+            }
+        }
+        
+        internal static string IPv4Type_IsInvalid_ParseLiteral {
+            get {
+                return ResourceManager.GetString("IPv4Type_IsInvalid_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        internal static string IPv4Type_IsInvalid_ParseValue {
+            get {
+                return ResourceManager.GetString("IPv4Type_IsInvalid_ParseValue", resourceCulture);
             }
         }
         
@@ -279,12 +279,6 @@ namespace HotChocolate.Types.Scalars {
             }
         }
         
-        internal static string PhoneNumber_ValidationPattern {
-            get {
-                return ResourceManager.GetString("PhoneNumber_ValidationPattern", resourceCulture);
-            }
-        }
-        
         internal static string PositiveIntType_Description {
             get {
                 return ResourceManager.GetString("PositiveIntType_Description", resourceCulture);
@@ -321,108 +315,6 @@ namespace HotChocolate.Types.Scalars {
             }
         }
         
-        internal static string PostalCodeType_ValidationPattern_US {
-            get {
-                return ResourceManager.GetString("PostalCodeType_ValidationPattern_US", resourceCulture);
-            }
-        }
-        
-        internal static string PostalCodeType_ValidationPattern_UK {
-            get {
-                return ResourceManager.GetString("PostalCodeType_ValidationPattern_UK", resourceCulture);
-            }
-        }
-        
-        internal static string PostalCodeType_ValidationPattern_DE {
-            get {
-                return ResourceManager.GetString("PostalCodeType_ValidationPattern_DE", resourceCulture);
-            }
-        }
-        
-        internal static string PostalCodeType_ValidationPattern_CA {
-            get {
-                return ResourceManager.GetString("PostalCodeType_ValidationPattern_CA", resourceCulture);
-            }
-        }
-        
-        internal static string PostalCodeType_ValidationPattern_FR {
-            get {
-                return ResourceManager.GetString("PostalCodeType_ValidationPattern_FR", resourceCulture);
-            }
-        }
-        
-        internal static string PostalCodeType_ValidationPattern_IT {
-            get {
-                return ResourceManager.GetString("PostalCodeType_ValidationPattern_IT", resourceCulture);
-            }
-        }
-        
-        internal static string PostalCodeType_ValidationPattern_AU {
-            get {
-                return ResourceManager.GetString("PostalCodeType_ValidationPattern_AU", resourceCulture);
-            }
-        }
-        
-        internal static string PostalCodeType_ValidationPattern_NL {
-            get {
-                return ResourceManager.GetString("PostalCodeType_ValidationPattern_NL", resourceCulture);
-            }
-        }
-        
-        internal static string PostalCodeType_ValidationPattern_ES {
-            get {
-                return ResourceManager.GetString("PostalCodeType_ValidationPattern_ES", resourceCulture);
-            }
-        }
-        
-        internal static string PostalCodeType_ValidationPattern_DK {
-            get {
-                return ResourceManager.GetString("PostalCodeType_ValidationPattern_DK", resourceCulture);
-            }
-        }
-        
-        internal static string PostalCodeType_ValidationPattern_SE {
-            get {
-                return ResourceManager.GetString("PostalCodeType_ValidationPattern_SE", resourceCulture);
-            }
-        }
-        
-        internal static string PostalCodeType_ValidationPattern_BE {
-            get {
-                return ResourceManager.GetString("PostalCodeType_ValidationPattern_BE", resourceCulture);
-            }
-        }
-        
-        internal static string PostalCodeType_ValidationPattern_IN {
-            get {
-                return ResourceManager.GetString("PostalCodeType_ValidationPattern_IN", resourceCulture);
-            }
-        }
-        
-        internal static string PostalCodeType_ValidationPattern_AT {
-            get {
-                return ResourceManager.GetString("PostalCodeType_ValidationPattern_AT", resourceCulture);
-            }
-        }
-        
-        internal static string PostalCodeType_ValidationPattern_PT {
-            get {
-                return ResourceManager.GetString("PostalCodeType_ValidationPattern_PT", resourceCulture);
-            }
-        }
-        
-        internal static string PostalCodeType_ValidationPattern_CH {
-            get {
-                return ResourceManager.GetString("PostalCodeType_ValidationPattern_CH", resourceCulture);
-            }
-        }
-        
-        internal static string PostalCodeType_ValidationPattern_LU {
-            get {
-                return ResourceManager.GetString("PostalCodeType_ValidationPattern_LU", resourceCulture);
-            }
-        }
-        
         internal static string RegexType_IsInvalid_ParseLiteral {
             get {
                 return ResourceManager.GetString("RegexType_IsInvalid_ParseLiteral", resourceCulture);
@@ -450,24 +342,6 @@ namespace HotChocolate.Types.Scalars {
         internal static string UnsignedIntType_IsNotUnsigned_ParseValue {
             get {
                 return ResourceManager.GetString("UnsignedIntType_IsNotUnsigned_ParseValue", resourceCulture);
-            }
-        }
-        
-        internal static string IPv4Type_Description {
-            get {
-                return ResourceManager.GetString("IPv4Type_Description", resourceCulture);
-            }
-        }
-        
-        internal static string IPv4Type_IsInvalid_ParseLiteral {
-            get {
-                return ResourceManager.GetString("IPv4Type_IsInvalid_ParseLiteral", resourceCulture);
-            }
-        }
-        
-        internal static string IPv4Type_IsInvalid_ParseValue {
-            get {
-                return ResourceManager.GetString("IPv4Type_IsInvalid_ParseValue", resourceCulture);
             }
         }
     }
