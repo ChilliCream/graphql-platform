@@ -6,7 +6,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
     public class ResultTypeGeneratorTests
     {
         [Fact]
-        public void Operation_With_Complex_Arguments()
+        public void Operation_With_Complex_Types()
         {
             AssertResult(
                 @"query GetFoo {
