@@ -327,6 +327,24 @@ namespace HotChocolate.Types.Scalars {
             }
         }
         
+        internal static string RgbType_Description {
+            get {
+                return ResourceManager.GetString("RgbType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string RgbType_IsInvalid_ParseLiteral {
+            get {
+                return ResourceManager.GetString("RgbType_IsInvalid_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        internal static string RgbType_IsInvalid_ParseValue {
+            get {
+                return ResourceManager.GetString("RgbType_IsInvalid_ParseValue", resourceCulture);
+            }
+        }
+        
         internal static string UnsignedIntType_Description {
             get {
                 return ResourceManager.GetString("UnsignedIntType_Description", resourceCulture);

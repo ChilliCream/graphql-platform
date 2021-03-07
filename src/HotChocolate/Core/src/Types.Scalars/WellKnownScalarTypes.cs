@@ -17,6 +17,7 @@ namespace HotChocolate.Types
         public const string PhoneNumber = nameof(PhoneNumber);
         public const string PositiveInt = nameof(PositiveInt);
         public const string PostalCode = nameof(PostalCode);
+        public const string Rgb = nameof(Rgb);
         public const string UnsignedInt = nameof(UnsignedInt);
     }
 }
