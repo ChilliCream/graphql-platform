@@ -164,14 +164,86 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class AllExpensesResult
-        : IAllExpensesResult
+        : global::System.IEquatable<AllExpensesResult>
+        , IAllExpensesResult
     {
         public AllExpensesResult(global::System.Collections.Generic.IReadOnlyList<IAllExpenses_Expense?>? expense)
         {
             Expense = expense;
         }
 
-        public global::System.Collections.Generic.IReadOnlyList<IAllExpenses_Expense?>? Expense { get; } = default!;
+        public global::System.Collections.Generic.IReadOnlyList<IAllExpenses_Expense?>? Expense { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((AllExpensesResult)obj);
+        }
+
+        public global::System.Boolean Equals(AllExpensesResult? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(
+                        Expense,
+                        other.Expense));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                if (!(Expense is null))
+                {
+                    foreach (var Expense_elm in Expense)
+                    {
+                        if (!(Expense_elm is null))
+                        {
+                            hash ^= 397 * Expense_elm.GetHashCode();
+                        }
+                    }
+                }
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -232,7 +304,8 @@ namespace Foo.Bar
             {
                 returnValue = new AllExpenses_Expense_Tags_Tag(data.Name ?? throw new global::System.ArgumentNullException());
             }
-            else {
+            else
+            {
                 throw new global::System.NotSupportedException();
             }
             return returnValue;
@@ -251,7 +324,8 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class AllExpenses_Expense_Expense
-        : IAllExpenses_Expense_Expense
+        : global::System.IEquatable<AllExpenses_Expense_Expense>
+        , IAllExpenses_Expense_Expense
     {
         public AllExpenses_Expense_Expense(
             global::System.Guid id,
@@ -277,13 +351,105 @@ namespace Foo.Bar
 
         public global::System.DateTimeOffset Date { get; }
 
-        public global::System.String? Description { get; } = default!;
+        public global::System.String? Description { get; }
 
         public ExpenseCategory Category { get; }
 
         public PaymentMethod PaymentMethod { get; }
 
-        public global::System.Collections.Generic.IReadOnlyList<IAllExpenses_Expense_Tags?>? Tags { get; } = default!;
+        public global::System.Collections.Generic.IReadOnlyList<IAllExpenses_Expense_Tags?>? Tags { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((AllExpenses_Expense_Expense)obj);
+        }
+
+        public global::System.Boolean Equals(AllExpenses_Expense_Expense? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Id == other.Id)
+                && Amount == other.Amount
+                && Date.Equals(other.Date)
+                && ((Description is null && other.Description is null) ||Description != null && Description.Equals(other.Description))
+                && Category.Equals(other.Category)
+                && PaymentMethod.Equals(other.PaymentMethod)
+                && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(
+                        Tags,
+                        other.Tags);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * Id.GetHashCode();
+
+                hash ^= 397 * Amount.GetHashCode();
+
+                hash ^= 397 * Date.GetHashCode();
+
+                if (!(Description is null))
+                {
+                    hash ^= 397 * Description.GetHashCode();
+                }
+
+                hash ^= 397 * Category.GetHashCode();
+
+                hash ^= 397 * PaymentMethod.GetHashCode();
+
+                if (!(Tags is null))
+                {
+                    foreach (var Tags_elm in Tags)
+                    {
+                        if (!(Tags_elm is null))
+                        {
+                            hash ^= 397 * Tags_elm.GetHashCode();
+                        }
+                    }
+                }
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -298,14 +464,78 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class AllExpenses_Expense_Tags_Tag
-        : IAllExpenses_Expense_Tags_Tag
+        : global::System.IEquatable<AllExpenses_Expense_Tags_Tag>
+        , IAllExpenses_Expense_Tags_Tag
     {
         public AllExpenses_Expense_Tags_Tag(global::System.String? name)
         {
             Name = name;
         }
 
-        public global::System.String? Name { get; } = default!;
+        public global::System.String? Name { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((AllExpenses_Expense_Tags_Tag)obj);
+        }
+
+        public global::System.Boolean Equals(AllExpenses_Expense_Tags_Tag? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((Name is null && other.Name is null) ||Name != null && Name.Equals(other.Name)));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                if (!(Name is null))
+                {
+                    hash ^= 397 * Name.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
     }
 }
 

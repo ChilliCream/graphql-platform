@@ -77,7 +77,8 @@ namespace Foo.Bar
                     magazine.Isbn,
                     magazine.CoverImageUrl);
             }
-            else {
+            else
+            {
                 throw new global::System.NotSupportedException();
             }
             return returnValue;
@@ -139,14 +140,86 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchSomethingResult
-        : ISearchSomethingResult
+        : global::System.IEquatable<SearchSomethingResult>
+        , ISearchSomethingResult
     {
         public SearchSomethingResult(global::System.Collections.Generic.IReadOnlyList<ISearchSomething_Prints?>? prints)
         {
             Prints = prints;
         }
 
-        public global::System.Collections.Generic.IReadOnlyList<ISearchSomething_Prints?>? Prints { get; } = default!;
+        public global::System.Collections.Generic.IReadOnlyList<ISearchSomething_Prints?>? Prints { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((SearchSomethingResult)obj);
+        }
+
+        public global::System.Boolean Equals(SearchSomethingResult? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(
+                        Prints,
+                        other.Prints));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                if (!(Prints is null))
+                {
+                    foreach (var Prints_elm in Prints)
+                    {
+                        if (!(Prints_elm is null))
+                        {
+                            hash ^= 397 * Prints_elm.GetHashCode();
+                        }
+                    }
+                }
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -161,7 +234,8 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchSomething_Prints_Book
-        : ISearchSomething_Prints_Book
+        : global::System.IEquatable<SearchSomething_Prints_Book>
+        , ISearchSomething_Prints_Book
     {
         public SearchSomething_Prints_Book(
             global::System.String isbn,
@@ -174,6 +248,69 @@ namespace Foo.Bar
         public global::System.String Isbn { get; }
 
         public global::System.String Title { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((SearchSomething_Prints_Book)obj);
+        }
+
+        public global::System.Boolean Equals(SearchSomething_Prints_Book? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Isbn.Equals(other.Isbn))
+                && Title.Equals(other.Title);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * Isbn.GetHashCode();
+
+                hash ^= 397 * Title.GetHashCode();
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -188,7 +325,8 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchSomething_Prints_Magazine
-        : ISearchSomething_Prints_Magazine
+        : global::System.IEquatable<SearchSomething_Prints_Magazine>
+        , ISearchSomething_Prints_Magazine
     {
         public SearchSomething_Prints_Magazine(
             global::System.String isbn,
@@ -200,7 +338,73 @@ namespace Foo.Bar
 
         public global::System.String Isbn { get; }
 
-        public global::System.String? CoverImageUrl { get; } = default!;
+        public global::System.String? CoverImageUrl { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((SearchSomething_Prints_Magazine)obj);
+        }
+
+        public global::System.Boolean Equals(SearchSomething_Prints_Magazine? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Isbn.Equals(other.Isbn))
+                && ((CoverImageUrl is null && other.CoverImageUrl is null) ||CoverImageUrl != null && CoverImageUrl.Equals(other.CoverImageUrl));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * Isbn.GetHashCode();
+
+                if (!(CoverImageUrl is null))
+                {
+                    hash ^= 397 * CoverImageUrl.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
     }
 }
 

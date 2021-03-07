@@ -137,14 +137,78 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPersonResult
-        : IGetPersonResult
+        : global::System.IEquatable<GetPersonResult>
+        , IGetPersonResult
     {
         public GetPersonResult(IGetPerson_Person? person)
         {
             Person = person;
         }
 
-        public IGetPerson_Person? Person { get; } = default!;
+        public IGetPerson_Person? Person { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetPersonResult)obj);
+        }
+
+        public global::System.Boolean Equals(GetPersonResult? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((Person is null && other.Person is null) ||Person != null && Person.Equals(other.Person)));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                if (!(Person is null))
+                {
+                    hash ^= 397 * Person.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -181,7 +245,8 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPerson_Person_Person
-        : IGetPerson_Person_Person
+        : global::System.IEquatable<GetPerson_Person_Person>
+        , IGetPerson_Person_Person
     {
         public GetPerson_Person_Person(
             global::System.DateTimeOffset id,
@@ -193,7 +258,73 @@ namespace Foo.Bar
 
         public global::System.DateTimeOffset Id { get; }
 
-        public global::System.String? Email { get; } = default!;
+        public global::System.String? Email { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetPerson_Person_Person)obj);
+        }
+
+        public global::System.Boolean Equals(GetPerson_Person_Person? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Id.Equals(other.Id))
+                && ((Email is null && other.Email is null) ||Email != null && Email.Equals(other.Email));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * Id.GetHashCode();
+
+                if (!(Email is null))
+                {
+                    hash ^= 397 * Email.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
     }
 }
 

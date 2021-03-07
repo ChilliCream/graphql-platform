@@ -168,14 +168,78 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroResult
-        : IGetHeroResult
+        : global::System.IEquatable<GetHeroResult>
+        , IGetHeroResult
     {
         public GetHeroResult(IGetHero_Hero? hero)
         {
             Hero = hero;
         }
 
-        public IGetHero_Hero? Hero { get; } = default!;
+        public IGetHero_Hero? Hero { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetHeroResult)obj);
+        }
+
+        public global::System.Boolean Equals(GetHeroResult? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((Hero is null && other.Hero is null) ||Hero != null && Hero.Equals(other.Hero)));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                if (!(Hero is null))
+                {
+                    hash ^= 397 * Hero.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -231,7 +295,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
             {
                 returnValue = new GetHero_Hero_Friends_CharacterConnection(MapIGetHero_Hero_Friends_NodesArray(data.Nodes));
             }
-            else {
+            else
+            {
                 throw new global::System.NotSupportedException();
             }
             return returnValue;
@@ -295,7 +360,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_Hero_Droid
-        : IGetHero_Hero_Droid
+        : global::System.IEquatable<GetHero_Hero_Droid>
+        , IGetHero_Hero_Droid
     {
         public GetHero_Hero_Droid(
             global::System.String name,
@@ -307,7 +373,73 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 
         public global::System.String Name { get; }
 
-        public IGetHero_Hero_Friends? Friends { get; } = default!;
+        public IGetHero_Hero_Friends? Friends { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetHero_Hero_Droid)obj);
+        }
+
+        public global::System.Boolean Equals(GetHero_Hero_Droid? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Name.Equals(other.Name))
+                && ((Friends is null && other.Friends is null) ||Friends != null && Friends.Equals(other.Friends));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * Name.GetHashCode();
+
+                if (!(Friends is null))
+                {
+                    hash ^= 397 * Friends.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -363,7 +495,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
             {
                 returnValue = new GetHero_Hero_Friends_CharacterConnection(MapIGetHero_Hero_Friends_NodesArray(data.Nodes));
             }
-            else {
+            else
+            {
                 throw new global::System.NotSupportedException();
             }
             return returnValue;
@@ -427,7 +560,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_Hero_Human
-        : IGetHero_Hero_Human
+        : global::System.IEquatable<GetHero_Hero_Human>
+        , IGetHero_Hero_Human
     {
         public GetHero_Hero_Human(
             global::System.String name,
@@ -439,7 +573,73 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 
         public global::System.String Name { get; }
 
-        public IGetHero_Hero_Friends? Friends { get; } = default!;
+        public IGetHero_Hero_Friends? Friends { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetHero_Hero_Human)obj);
+        }
+
+        public global::System.Boolean Equals(GetHero_Hero_Human? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Name.Equals(other.Name))
+                && ((Friends is null && other.Friends is null) ||Friends != null && Friends.Equals(other.Friends));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * Name.GetHashCode();
+
+                if (!(Friends is null))
+                {
+                    hash ^= 397 * Friends.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -457,7 +657,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_Hero_Friends_CharacterConnection
-        : IGetHero_Hero_Friends_CharacterConnection
+        : global::System.IEquatable<GetHero_Hero_Friends_CharacterConnection>
+        , IGetHero_Hero_Friends_CharacterConnection
     {
         public GetHero_Hero_Friends_CharacterConnection(global::System.Collections.Generic.IReadOnlyList<IGetHero_Hero_Friends_Nodes?>? nodes)
         {
@@ -467,7 +668,78 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         /// <summary>
         /// A flattened list of the nodes.
         /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<IGetHero_Hero_Friends_Nodes?>? Nodes { get; } = default!;
+        public global::System.Collections.Generic.IReadOnlyList<IGetHero_Hero_Friends_Nodes?>? Nodes { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetHero_Hero_Friends_CharacterConnection)obj);
+        }
+
+        public global::System.Boolean Equals(GetHero_Hero_Friends_CharacterConnection? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(
+                        Nodes,
+                        other.Nodes));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                if (!(Nodes is null))
+                {
+                    foreach (var Nodes_elm in Nodes)
+                    {
+                        if (!(Nodes_elm is null))
+                        {
+                            hash ^= 397 * Nodes_elm.GetHashCode();
+                        }
+                    }
+                }
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -502,7 +774,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_Hero_Friends_Nodes_Droid
-        : IGetHero_Hero_Friends_Nodes_Droid
+        : global::System.IEquatable<GetHero_Hero_Friends_Nodes_Droid>
+        , IGetHero_Hero_Friends_Nodes_Droid
     {
         public GetHero_Hero_Friends_Nodes_Droid(global::System.String name)
         {
@@ -510,6 +783,66 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         }
 
         public global::System.String Name { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetHero_Hero_Friends_Nodes_Droid)obj);
+        }
+
+        public global::System.Boolean Equals(GetHero_Hero_Friends_Nodes_Droid? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Name.Equals(other.Name));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * Name.GetHashCode();
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -544,7 +877,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_Hero_Friends_Nodes_Human
-        : IGetHero_Hero_Friends_Nodes_Human
+        : global::System.IEquatable<GetHero_Hero_Friends_Nodes_Human>
+        , IGetHero_Hero_Friends_Nodes_Human
     {
         public GetHero_Hero_Friends_Nodes_Human(global::System.String name)
         {
@@ -552,6 +886,66 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         }
 
         public global::System.String Name { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetHero_Hero_Friends_Nodes_Human)obj);
+        }
+
+        public global::System.Boolean Equals(GetHero_Hero_Friends_Nodes_Human? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Name.Equals(other.Name));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * Name.GetHashCode();
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -754,7 +1148,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
                     data.Stars ?? throw new global::System.ArgumentNullException(),
                     data.Commentary ?? throw new global::System.ArgumentNullException());
             }
-            else {
+            else
+            {
                 throw new global::System.NotSupportedException();
             }
             return returnValue;
@@ -816,7 +1211,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnReviewSubResult
-        : IOnReviewSubResult
+        : global::System.IEquatable<OnReviewSubResult>
+        , IOnReviewSubResult
     {
         public OnReviewSubResult(IOnReviewSub_OnReview onReview)
         {
@@ -824,6 +1220,66 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         }
 
         public IOnReviewSub_OnReview OnReview { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((OnReviewSubResult)obj);
+        }
+
+        public global::System.Boolean Equals(OnReviewSubResult? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (OnReview.Equals(other.OnReview));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * OnReview.GetHashCode();
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -838,7 +1294,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnReviewSub_OnReview_Review
-        : IOnReviewSub_OnReview_Review
+        : global::System.IEquatable<OnReviewSub_OnReview_Review>
+        , IOnReviewSub_OnReview_Review
     {
         public OnReviewSub_OnReview_Review(
             global::System.String __typename,
@@ -857,7 +1314,76 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 
         public global::System.Int32 Stars { get; }
 
-        public global::System.String? Commentary { get; } = default!;
+        public global::System.String? Commentary { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((OnReviewSub_OnReview_Review)obj);
+        }
+
+        public global::System.Boolean Equals(OnReviewSub_OnReview_Review? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (__typename.Equals(other.__typename))
+                && Stars == other.Stars
+                && ((Commentary is null && other.Commentary is null) ||Commentary != null && Commentary.Equals(other.Commentary));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * __typename.GetHashCode();
+
+                hash ^= 397 * Stars.GetHashCode();
+
+                if (!(Commentary is null))
+                {
+                    hash ^= 397 * Commentary.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -959,7 +1485,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
                     data.Stars ?? throw new global::System.ArgumentNullException(),
                     data.Commentary ?? throw new global::System.ArgumentNullException());
             }
-            else {
+            else
+            {
                 throw new global::System.NotSupportedException();
             }
             return returnValue;
@@ -1021,7 +1548,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class CreateReviewMutResult
-        : ICreateReviewMutResult
+        : global::System.IEquatable<CreateReviewMutResult>
+        , ICreateReviewMutResult
     {
         public CreateReviewMutResult(ICreateReviewMut_CreateReview createReview)
         {
@@ -1029,6 +1557,66 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         }
 
         public ICreateReviewMut_CreateReview CreateReview { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((CreateReviewMutResult)obj);
+        }
+
+        public global::System.Boolean Equals(CreateReviewMutResult? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (CreateReview.Equals(other.CreateReview));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * CreateReview.GetHashCode();
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -1043,7 +1631,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class CreateReviewMut_CreateReview_Review
-        : ICreateReviewMut_CreateReview_Review
+        : global::System.IEquatable<CreateReviewMut_CreateReview_Review>
+        , ICreateReviewMut_CreateReview_Review
     {
         public CreateReviewMut_CreateReview_Review(
             global::System.Int32 stars,
@@ -1055,7 +1644,73 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 
         public global::System.Int32 Stars { get; }
 
-        public global::System.String? Commentary { get; } = default!;
+        public global::System.String? Commentary { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((CreateReviewMut_CreateReview_Review)obj);
+        }
+
+        public global::System.Boolean Equals(CreateReviewMut_CreateReview_Review? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Stars == other.Stars)
+                && ((Commentary is null && other.Commentary is null) ||Commentary != null && Commentary.Equals(other.Commentary));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * Stars.GetHashCode();
+
+                if (!(Commentary is null))
+                {
+                    hash ^= 397 * Commentary.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
     }
 }
 
