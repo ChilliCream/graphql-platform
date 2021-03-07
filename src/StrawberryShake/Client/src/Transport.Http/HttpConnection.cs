@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading;
 using StrawberryShake.Internal;
+using StrawberryShake.Json;
 
 namespace StrawberryShake.Transport.Http
 {

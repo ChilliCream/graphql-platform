@@ -1,4 +1,4 @@
-﻿// StrawberryShake.CodeGeneration.CSharp.JsonResultBuilderGenerator
+﻿// StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
 
 #nullable enable
 
@@ -38,18 +38,25 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
         public global::StrawberryShake.IOperationResult<IGetPeopleResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
         {
             (IGetPeopleResult Result, GetPeopleResultInfo Info)? data = null;
+            global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
 
-            if (response.Body is not null
-                && response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement obj))
+            if (response.Body != null)
             {
-                data = BuildData(obj);
+                if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement))
+                {
+                    data = BuildData(dataElement);
+                }
+                if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
+                {
+                    errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                }
             }
 
             return new global::StrawberryShake.OperationResult<IGetPeopleResult>(
                 data?.Result,
                 data?.Info,
                 _resultDataFactory,
-                null);
+                errors);
         }
 
         private (IGetPeopleResult, GetPeopleResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
@@ -60,7 +67,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
 
             var resultInfo = new GetPeopleResultInfo(
                 DeserializeIGetPeople_People(
-                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
                         "people"),
                     entityIds),
@@ -91,7 +98,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
                 return new global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.PersonConnectionData(
                     typename,
                     nodes: UpdateIGetPeople_People_NodesEntityArray(
-                        global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                        global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                             obj,
                             "nodes"),
                         entityIds));
@@ -140,19 +147,19 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
             {
                 PersonEntity entity = _entityStore.GetOrCreate<PersonEntity>(entityId);
                 entity.Name = DeserializeNonNullableString(
-                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
                         "name"));
                 entity.Email = DeserializeNonNullableString(
-                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
                         "email"));
                 entity.IsOnline = DeserializeNonNullableBoolean(
-                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
                         "isOnline"));
                 entity.LastSeen = DeserializeNonNullableDateTimeOffset(
-                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
                         "lastSeen"));
 

@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using Snapshooter.Xunit;
-using StrawberryShake.Transport.WebSockets.Protocol;
 using Xunit;
 
-namespace StrawberryShake.Transport.WebSockets
+namespace StrawberryShake.Transport.WebSockets.Protocols
 {
     public class GraphQlWsSocketWriterExtensionTests
     {
@@ -182,6 +181,8 @@ namespace StrawberryShake.Transport.WebSockets
             public OperationKind Kind => OperationKind.Query;
 
             public ReadOnlySpan<byte> Body => _body;
+
+            public DocumentHash Hash { get; } = new("MD5", "ABC");
 
             public override string ToString() => _bodyString;
 

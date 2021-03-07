@@ -5,9 +5,11 @@
     <AssemblyName>StrawberryShake.Core</AssemblyName>
     <RootNamespace>StrawberryShake</RootNamespace>
     <Nullable>enable</Nullable>
+    <Description>Abstractions and foundational APIs for StrawberryShake GraphQL clients.</Description>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="System.Text.Json" Version="4.7.0" />
     <PackageReference Include="System.Collections.Immutable" Version="5.0.0" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="5.0.0" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
   </ItemGroup>

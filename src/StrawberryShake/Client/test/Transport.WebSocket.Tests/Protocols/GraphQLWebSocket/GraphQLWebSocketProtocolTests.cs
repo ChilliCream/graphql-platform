@@ -3,14 +3,12 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualBasic;
 using Moq;
 using Snapshooter.Xunit;
 using StrawberryShake.Transport.WebSockets.Messages;
-using StrawberryShake.Transport.WebSockets.Protocol;
 using Xunit;
 
-namespace StrawberryShake.Transport.WebSockets
+namespace StrawberryShake.Transport.WebSockets.Protocols
 {
     public class GraphQlWsProtocolTests
     {
@@ -38,7 +36,7 @@ namespace StrawberryShake.Transport.WebSockets
 
             // act
             Exception? exception =
-                Record.Exception(() => new GraphQLWebSocketProtocol(socketClient));
+                Record.Exception((Action) (() => new GraphQLWebSocketProtocol(socketClient)));
 
             // assert
             Assert.IsType<ArgumentNullException>(exception);
@@ -407,6 +405,8 @@ namespace StrawberryShake.Transport.WebSockets
             public OperationKind Kind => OperationKind.Query;
 
             public ReadOnlySpan<byte> Body => _body;
+
+            public DocumentHash Hash { get; } = new("MD5", "ABC");
 
             public override string ToString() => _bodyString;
 

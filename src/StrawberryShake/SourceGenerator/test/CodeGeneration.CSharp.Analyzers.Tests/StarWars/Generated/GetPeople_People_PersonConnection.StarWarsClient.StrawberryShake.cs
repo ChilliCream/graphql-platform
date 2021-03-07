@@ -1,9 +1,12 @@
-﻿// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+﻿// StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
 
 #nullable enable
 
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
 {
+    /// <summary>
+    /// A connection to a list of items.
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeople_People_PersonConnection
         : IGetPeople_People_PersonConnection
@@ -13,6 +16,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
             Nodes = nodes;
         }
 
+        /// <summary>
+        /// A flattened list of the nodes.
+        /// </summary>
         public global::System.Collections.Generic.IReadOnlyList<IGetPeople_People_Nodes?>? Nodes { get; } = default!;
     }
 }

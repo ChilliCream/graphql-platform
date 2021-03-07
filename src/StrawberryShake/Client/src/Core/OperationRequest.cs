@@ -4,39 +4,71 @@ using System.Collections.Immutable;
 
 namespace StrawberryShake
 {
+    /// <summary>
+    /// Represents an operation request that is send to the GraphQL server.
+    /// </summary>
     public sealed class OperationRequest : IEquatable<OperationRequest>
     {
         private readonly IReadOnlyDictionary<string, object?> _variables;
         private Dictionary<string, object?>? _extensions;
         private Dictionary<string, object?>? _contextData;
 
+        /// <summary>
+        /// Creates a new instance of <see cref="OperationRequest"/>.
+        /// </summary>
+        /// <param name="name">The operation name.</param>
+        /// <param name="document">The GraphQL query document containing this operation.</param>
+        /// <param name="variables">The request variable values.</param>
+        /// <param name="strategy">The request strategy to the connection.</param>
         public OperationRequest(
             string name,
             IDocument document,
-            IReadOnlyDictionary<string, object?>? variables = null)
-            : this(null, name, document, variables)
+            IReadOnlyDictionary<string, object?>? variables = null,
+            RequestStrategy strategy = RequestStrategy.Default)
+            : this(null, name, document, variables, strategy)
         {
         }
 
+        /// <summary>
+        /// Creates a new instance of <see cref="OperationRequest"/>.
+        /// </summary>
+        /// <param name="id">The the optional request id.</param>
+        /// <param name="name">The operation name.</param>
+        /// <param name="document">The GraphQL query document containing this operation.</param>
+        /// <param name="variables">The request variable values.</param>
+        /// <param name="strategy">The request strategy to the connection.</param>
         public OperationRequest(
             string? id,
             string name,
             IDocument document,
-            IReadOnlyDictionary<string, object?>? variables = null)
+            IReadOnlyDictionary<string, object?>? variables = null,
+            RequestStrategy strategy = RequestStrategy.Default)
         {
             Id = id;
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Document = document ?? throw new ArgumentNullException(nameof(document));
             _variables = variables ?? ImmutableDictionary<string, object?>.Empty;
+            Strategy = strategy;
         }
 
+        /// <summary>
+        /// Deconstructs <see cref="OperationRequest"/>.
+        /// </summary>
+        /// <param name="id">The the optional request id.</param>
+        /// <param name="name">The operation name.</param>
+        /// <param name="document">The GraphQL query document containing this operation.</param>
+        /// <param name="variables">The request variable values.</param>
+        /// <param name="extensions">The request extension values.</param>
+        /// <param name="contextData">The local context data.</param>
+        /// <param name="strategy">The request strategy to the connection.</param>
         public void Deconstruct(
             out string? id,
             out string name,
             out IDocument document,
             out IReadOnlyDictionary<string, object?> variables,
             out IReadOnlyDictionary<string, object?>? extensions,
-            out IReadOnlyDictionary<string, object?>? contextData)
+            out IReadOnlyDictionary<string, object?>? contextData,
+            out RequestStrategy strategy)
         {
             id = Id;
             name = Name;
@@ -44,6 +76,7 @@ namespace StrawberryShake
             variables = _variables;
             extensions = _extensions;
             contextData = _contextData;
+            strategy = Strategy;
         }
 
         /// <summary>
@@ -62,7 +95,7 @@ namespace StrawberryShake
         public IDocument Document { get; }
 
         /// <summary>
-        /// Gets the variable values.
+        /// Gets the request variable values.
         /// </summary>
         public IReadOnlyDictionary<string, object?> Variables => _variables;
 
@@ -88,6 +121,23 @@ namespace StrawberryShake
             }
         }
 
+        /// <summary>
+        /// Defines the request strategy to the connection.
+        /// </summary>
+        public RequestStrategy Strategy { get; }
+
+        /// <summary>
+        /// Gets the request extension values or null.
+        /// </summary>
+        public IReadOnlyDictionary<string, object?>? GetExtensionsOrNull() =>
+            _extensions;
+
+        /// <summary>
+        /// Gets the request context data values or null.
+        /// </summary>
+        public IReadOnlyDictionary<string, object?>? GetContextDataOrNull() =>
+            _contextData;
+
         public bool Equals(OperationRequest? other)
         {
             if (ReferenceEquals(null, other))
@@ -101,9 +151,9 @@ namespace StrawberryShake
             }
 
             return Id == other.Id &&
-               Name == other.Name &&
-               Document.Equals(other.Document) &&
-               EqualsVariables(other._variables);
+                   Name == other.Name &&
+                   Document.Equals(other.Document) &&
+                   EqualsVariables(other._variables);
         }
 
         public override bool Equals(object? obj)
@@ -141,8 +191,8 @@ namespace StrawberryShake
 
             foreach (var key in _variables.Keys)
             {
-                if(!_variables.TryGetValue(key, out object? a) ||
-                   !others.TryGetValue(key, out object? b))
+                if (!_variables.TryGetValue(key, out object? a) ||
+                    !others.TryGetValue(key, out object? b))
                 {
                     return false;
                 }
@@ -156,21 +206,22 @@ namespace StrawberryShake
             return true;
         }
 
-         public override int GetHashCode()
-         {
-             unchecked
-             {
-                 var hash = (Id?.GetHashCode() ?? 0) * 397 ^
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hash =
+                    (Id?.GetHashCode() ?? 0) * 397 ^
                     Name.GetHashCode() * 397 ^
                     Document.GetHashCode() * 397;
 
-                 foreach (KeyValuePair<string, object?> variable in _variables)
-                 {
-                     hash ^= variable.GetHashCode();
-                 }
+                foreach (KeyValuePair<string, object?> variable in _variables)
+                {
+                    hash ^= variable.GetHashCode();
+                }
 
-                 return hash;
-             }
-         }
+                return hash;
+            }
+        }
     }
 }

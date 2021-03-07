@@ -6,6 +6,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
     public class LambdaBuilder : ICode
     {
         private bool _block;
+        private bool _isAsync;
         private readonly List<string> _arguments = new();
         private ICode? _code;
 
@@ -27,11 +28,22 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
+        public LambdaBuilder SetAsync(bool value = true)
+        {
+            _isAsync = value;
+            return this;
+        }
+
         public void Build(CodeWriter writer)
         {
             if (_code is null)
             {
                 throw new ArgumentNullException(nameof(_code));
+            }
+
+            if (_isAsync)
+            {
+                writer.Write("async ");
             }
 
             if (_arguments.Count > 1)

@@ -11,7 +11,7 @@
 
 // GetPersonResultFactory
 
-// StrawberryShake.CodeGeneration.CSharp.ResultDataFactoryGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
 
 #nullable enable
 
@@ -39,9 +39,9 @@ namespace Foo.Bar
             throw new global::System.ArgumentException("GetPersonResultInfo expected.");
         }
 
-        private IGetPerson_Person? MapIGetPerson_Person(global::Foo.Bar.State.PersonData data)
+        private IGetPerson_Person? MapIGetPerson_Person(global::Foo.Bar.State.PersonData? data)
         {
-            if (data == default)
+            if (data is null)
             {
                 return null;
             }
@@ -65,7 +65,7 @@ namespace Foo.Bar
 
 // GetPersonResultInfo
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInfoGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
 
 #nullable enable
 
@@ -108,7 +108,7 @@ namespace Foo.Bar
 
 // GetPersonResult
 
-// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
 
 #nullable enable
 
@@ -130,7 +130,7 @@ namespace Foo.Bar
 
 // GetPerson_Person_Person
 
-// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
 
 #nullable enable
 
@@ -152,7 +152,7 @@ namespace Foo.Bar
 
 // IGetPersonResult
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -168,7 +168,7 @@ namespace Foo.Bar
 
 // IGetPerson_Person
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -184,7 +184,7 @@ namespace Foo.Bar
 
 // IGetPerson_Person_Person
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -200,7 +200,7 @@ namespace Foo.Bar
 
 // GetPersonQueryDocument
 
-// StrawberryShake.CodeGeneration.CSharp.OperationDocumentGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
 
 #nullable enable
 
@@ -229,7 +229,9 @@ namespace Foo.Bar
 
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
 
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{ 0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x47, 0x65, 0x74, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x0a, 0x20, 0x20, 0x70, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x0a, 0x20, 0x20, 0x7d, 0x0a, 0x7d };
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{ 0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x47, 0x65, 0x74, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x70, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x20, 0x7d, 0x20, 0x7d };
+
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "5584daf20236e87cc2159892887cd0fa5c76a944");
 
         public override global::System.String ToString()
         {
@@ -241,7 +243,7 @@ namespace Foo.Bar
 
 // GetPersonQuery
 
-// StrawberryShake.CodeGeneration.CSharp.OperationServiceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
 
 #nullable enable
 
@@ -292,8 +294,10 @@ namespace Foo.Bar
         {
 
             return new global::StrawberryShake.OperationRequest(
-                "GetPerson",
-                GetPersonQueryDocument.Instance);
+                id: GetPersonQueryDocument.Instance.Hash.Value,
+                name: "GetPerson",
+                document: GetPersonQueryDocument.Instance,
+                strategy: global::StrawberryShake.RequestStrategy.Default);
         }
     }
 }
@@ -301,7 +305,7 @@ namespace Foo.Bar
 
 // GetPersonBuilder
 
-// StrawberryShake.CodeGeneration.CSharp.JsonResultBuilderGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
 
 #nullable enable
 
@@ -335,18 +339,25 @@ namespace Foo.Bar
         public global::StrawberryShake.IOperationResult<IGetPersonResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
         {
             (IGetPersonResult Result, GetPersonResultInfo Info)? data = null;
+            global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
 
-            if (response.Body is not null
-                && response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement obj))
+            if (response.Body != null)
             {
-                data = BuildData(obj);
+                if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement))
+                {
+                    data = BuildData(dataElement);
+                }
+                if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
+                {
+                    errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                }
             }
 
             return new global::StrawberryShake.OperationResult<IGetPersonResult>(
                 data?.Result,
                 data?.Info,
                 _resultDataFactory,
-                null);
+                errors);
         }
 
         private (IGetPersonResult, GetPersonResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
@@ -357,7 +368,7 @@ namespace Foo.Bar
 
             var resultInfo = new GetPersonResultInfo(
                 DeserializeIGetPerson_Person(
-                    global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
                         "person")),
                 entityIds,
@@ -385,7 +396,7 @@ namespace Foo.Bar
                 return new global::Foo.Bar.State.PersonData(
                     typename,
                     email: DeserializeString(
-                        global::StrawberryShake.Transport.Http.JsonElementExtensions.GetPropertyOrNull(
+                        global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                             obj,
                             "email")));
             }
@@ -408,7 +419,7 @@ namespace Foo.Bar
 
 // PersonData
 
-// StrawberryShake.CodeGeneration.CSharp.DataTypeGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
 
 #nullable enable
 
@@ -435,7 +446,7 @@ namespace Foo.Bar.State
 
 // FooClient
 
-// StrawberryShake.CodeGeneration.CSharp.ClientGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
 
 #nullable enable
 
@@ -464,7 +475,7 @@ namespace Foo.Bar
 
 // EntityIdFactory
 
-// StrawberryShake.CodeGeneration.CSharp.EntityIdFactoryGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator
 
 #nullable enable
 
@@ -490,7 +501,7 @@ namespace Foo.Bar
 
 // FooClientServiceCollectionExtensions
 
-// StrawberryShake.CodeGeneration.CSharp.DependencyInjectionGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.DependencyInjectionGenerator
 
 #nullable enable
 
@@ -507,10 +518,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 services,
                 sp => 
                 {
-                    var serviceCollection = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
-
-                    ConfigureClient(
-                        serviceCollection,
+                    var serviceCollection = ConfigureClientDefault(
                         sp,
                         strategy);
 
@@ -531,15 +539,11 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        private static global::Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureClient(
-            global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
+        private static global::Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureClientDefault(
             global::System.IServiceProvider parentServices,
             global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
-            if (services is null)
-            {
-                throw new global::System.ArgumentNullException(nameof(services));
-            }
+            var services = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId>>(
                 services,
                 global::Foo.Bar.EntityIdFactory.CreateEntityId);

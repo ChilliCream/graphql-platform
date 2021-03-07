@@ -4,6 +4,7 @@ using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
 
 namespace StrawberryShake.CodeGeneration.Mappers

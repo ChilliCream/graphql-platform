@@ -52,6 +52,7 @@ namespace HotChocolate.Types
             { ScalarNames.Uuid, typeof(UuidType) },
             { ScalarNames.DateTime, typeof(DateTimeType) },
             { ScalarNames.Date, typeof(DateType) },
+            { ScalarNames.TimeSpan, typeof(TimeSpanType) },
             { ScalarNames.Any, typeof(AnyType) },
 
             { ScalarNames.MultiplierPath, typeof(MultiplierPathType) },

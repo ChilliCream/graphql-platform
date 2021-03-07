@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
+using StrawberryShake.CodeGeneration.Descriptors;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
-using StrawberryShake.Serialization;
-using static StrawberryShake.CodeGeneration.NamingConventions;
+using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuilderDescriptor>
     {
@@ -87,9 +88,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
                 MethodCallBuilder getLeaveValueParser = MethodCallBuilder
                     .Inline()
-                    .SetMethodName(
-                        _serializerResolver,
-                        nameof(ISerializerResolver.GetLeafValueParser))
+                    .SetMethodName(_serializerResolver, "GetLeafValueParser")
                     .AddGeneric(valueParser.SerializedType.ToString())
                     .AddGeneric(valueParser.RuntimeType.ToString())
                     .AddArgument(valueParser.Name.AsStringToken());
@@ -261,6 +260,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         $"({resultNamedType.RuntimeType.Name} Result, {concreteResultType} " +
                         "Info)? data")
                     .SetRighthandSide("null"));
+            buildMethod.AddCode(
+                AssignmentBuilder
+                    .New()
+                    .SetLefthandSide(
+                        TypeNames.IReadOnlyList
+                            .WithGeneric(TypeNames.IClientError)
+                            .MakeNullable() + " errors")
+                    .SetRighthandSide("null"));
 
             buildMethod.AddEmptyLine();
             buildMethod.AddCode(
@@ -269,10 +276,25 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetCondition(
                         ConditionBuilder
                             .New()
-                            .Set("response.Body is not null")
-                            .And("response.Body.RootElement.TryGetProperty(\"data\"," +
-                                $" out {TypeNames.JsonElement} obj)"))
-                    .AddCode("data = BuildData(obj);"));
+                            .Set("response.Body != null"))
+                    .AddCode(
+                        IfBuilder
+                            .New()
+                            .SetCondition(
+                                ConditionBuilder
+                                    .New()
+                                    .Set("response.Body.RootElement.TryGetProperty(\"data\"," +
+                                         $" out {TypeNames.JsonElement} dataElement)"))
+                            .AddCode("data = BuildData(dataElement);"))
+                    .AddCode(
+                        IfBuilder
+                            .New()
+                            .SetCondition(
+                                ConditionBuilder
+                                    .New()
+                                    .Set("response.Body.RootElement.TryGetProperty(\"errors\"," +
+                                         $" out {TypeNames.JsonElement} errorsElement)"))
+                            .AddCode($"errors = {TypeNames.ParseError}(errorsElement);")));
 
             buildMethod.AddEmptyLine();
             buildMethod.AddCode(
@@ -285,7 +307,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .AddArgument("data?.Result")
                     .AddArgument("data?.Info")
                     .AddArgument(_resultDataFactory)
-                    .AddArgument("null"));
+                    .AddArgument("errors"));
         }
 
         private MethodCallBuilder BuildUpdateMethodCall(PropertyDescriptor property)

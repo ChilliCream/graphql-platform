@@ -1,8 +1,9 @@
 using StrawberryShake.CodeGeneration.CSharp.Builders;
-using static StrawberryShake.CodeGeneration.NamingConventions;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
+using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 using static StrawberryShake.CodeGeneration.TypeNames;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public class EnumParserGenerator : CodeGenerator<EnumTypeDescriptor>
     {

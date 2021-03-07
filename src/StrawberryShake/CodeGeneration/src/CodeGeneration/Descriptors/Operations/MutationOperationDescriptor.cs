@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using HotChocolate;
-using static StrawberryShake.CodeGeneration.NamingConventions;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
+using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 
-namespace StrawberryShake.CodeGeneration
+namespace StrawberryShake.CodeGeneration.Descriptors.Operations
 {
     /// <summary>
     /// Describes a GraphQL mutation
@@ -14,13 +15,21 @@ namespace StrawberryShake.CodeGeneration
             string @namespace,
             ITypeDescriptor resultTypeReference,
             IReadOnlyList<PropertyDescriptor> arguments,
-            string bodyString)
+            byte[] body,
+            string bodyString,
+            string hashAlgorithm,
+            string hashValue,
+            RequestStrategy strategy)
             : base(
                 name,
                 new RuntimeTypeInfo(CreateMutationServiceName(name), @namespace),
                 resultTypeReference,
                 arguments,
-                bodyString)
+                body,
+                bodyString,
+                hashAlgorithm,
+                hashValue,
+                strategy)
         {
         }
     }

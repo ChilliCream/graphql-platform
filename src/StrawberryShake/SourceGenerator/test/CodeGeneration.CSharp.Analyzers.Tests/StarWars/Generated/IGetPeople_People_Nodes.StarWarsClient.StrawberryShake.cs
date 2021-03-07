@@ -1,4 +1,4 @@
-﻿// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+﻿// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
 

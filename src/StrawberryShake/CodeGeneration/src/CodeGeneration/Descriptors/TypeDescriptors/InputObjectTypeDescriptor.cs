@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using HotChocolate;
 
-namespace StrawberryShake.CodeGeneration
+namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors
 {
     public class InputObjectTypeDescriptor : INamedTypeDescriptor
     {

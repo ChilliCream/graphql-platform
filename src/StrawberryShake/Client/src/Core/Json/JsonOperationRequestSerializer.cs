@@ -4,14 +4,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.Json;
 
-namespace StrawberryShake.Transport.Http
+namespace StrawberryShake.Json
 {
     public class JsonOperationRequestSerializer
     {
         public void Serialize(OperationRequest request, IBufferWriter<byte> bufferWriter)
         {
             using var jsonWriter = new Utf8JsonWriter(bufferWriter);
-
             Serialize(request, jsonWriter);
         }
 
@@ -28,12 +27,11 @@ namespace StrawberryShake.Transport.Http
 
         private static void WriteRequest(OperationRequest request, Utf8JsonWriter writer)
         {
-            if (request.Id is not null)
+            if (request.Strategy == RequestStrategy.PersistedQuery)
             {
                 writer.WriteString("id", request.Id);
             }
-
-            if (request.Document.Body.Length > 0)
+            else
             {
                 writer.WriteString("query", request.Document.Body);
             }
@@ -52,10 +50,10 @@ namespace StrawberryShake.Transport.Http
 
         private static void WriteExtensions(OperationRequest request, Utf8JsonWriter writer)
         {
-            if (request.Extensions.Count > 0)
+            if (request.GetExtensionsOrNull() is { Count: > 0 } extensions)
             {
                 writer.WritePropertyName("extensions");
-                WriteDictionary(request.Extensions, writer);
+                WriteDictionary(extensions, writer);
             }
         }
 
