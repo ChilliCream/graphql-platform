@@ -160,6 +160,15 @@
   <data name="HslaType_IsInvalid_ParseValue" xml:space="preserve">
     <value>HslaType cannot parse the provided value. The provided value is not a valid CSS HSLA color code.</value>
   </data>
+  <data name="IPv4Type_Description" xml:space="preserve">
+    <value>The IPv4 scalar type represents a valid a IPv4 address as defined in RFC791</value>
+  </data>
+  <data name="IPv4Type_IsInvalid_ParseLiteral" xml:space="preserve">
+    <value>IPv4Type cannot parse the provided literal. The provided value is not a valid IPv4 address.</value>
+  </data>
+  <data name="IPv4Type_IsInvalid_ParseValue" xml:space="preserve">
+    <value>IPv4Type cannot parse the provided value. The provided value is not a valid IPv4 address.</value>
+  </data>
   <data name="IsbnType_Description" xml:space="preserve">
     <value>The ISBN scalar type is a ISBN-10 or ISBN-13 number: https://en.wikipedia.org/wiki/International_Standard_Book_Number.</value>
   </data>
@@ -324,14 +333,5 @@
   </data>
   <data name="UnsignedIntType_IsNotUnsigned_ParseValue" xml:space="preserve">
     <value>UnsignedIntType cannot parse the provided value. The provided value is not greater than or equal to 0.</value>
-  </data>
-  <data name="IPv4Type_Description" xml:space="preserve">
-    <value>The IPv4 scalar type represents a valid a IPv4 address as defined in RFC791</value>
-  </data>
-  <data name="IPv4Type_IsInvalid_ParseLiteral" xml:space="preserve">
-    <value>IPv4Type cannot parse the provided literal. The provided value is not a valid IPv4 address.</value>
-  </data>
-  <data name="IPv4Type_IsInvalid_ParseValue" xml:space="preserve">
-    <value>IPv4Type cannot parse the provided value. The provided value is not a valid IPv4 address.</value>
   </data>
 </root>
