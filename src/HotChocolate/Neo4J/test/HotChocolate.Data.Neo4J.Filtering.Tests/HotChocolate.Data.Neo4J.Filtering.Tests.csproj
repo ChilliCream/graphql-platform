@@ -27,9 +27,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Reference Include="HotChocolate.Execution, Version=11.1.0.0, Culture=neutral, PublicKeyToken=null">
-        <HintPath>..\..\..\Core\src\Execution\bin\Debug\netcoreapp3.1\HotChocolate.Execution.dll</HintPath>
-      </Reference>
+      <Folder Include="__snapshots__" />
     </ItemGroup>
 
 </Project>

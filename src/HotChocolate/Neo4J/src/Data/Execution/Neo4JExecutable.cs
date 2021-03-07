@@ -42,40 +42,9 @@ namespace HotChocolate.Data.Neo4J.Execution
             _session = session;
         }
 
-        public Neo4JExecutable()
-        {
-        }
-
-
         public async ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
         {
-            Node node = Cypher
-                .Node(typeof(T).Name)
-                .Named(typeof(T).Name.ToCamelCase());
-
-            StatementBuilder statement = Cypher.Match(node);
-
-            // IResultCursor cursor = await _session.RunAsync(@"
-            //     MATCH (business:Business)
-            //     RETURN business { .name, .city, .state, reviews: [(business)<-[:REVIEWS]-(reviews) | reviews {.rating, .text}] }
-            // ").ConfigureAwait(false);
-
-            if (Filters is not null)
-            {
-                statement.Where(Filters.Condition);
-            }
-
-            if (Projection is not null)
-            {
-                statement.Return(Projection.Expressions);
-            }
-
-            if (Sorting is not null)
-            {
-
-            }
-
-            IResultCursor cursor = await _session.RunAsync(statement.Build());
+            IResultCursor cursor = await _session.RunAsync(Pipeline().Build());
             return await cursor.MapAsync<T>().ConfigureAwait(false);
         }
 
@@ -91,7 +60,7 @@ namespace HotChocolate.Data.Neo4J.Execution
 
         public string Print()
         {
-            return "";
+            return Pipeline().Build() ?? "";
         }
 
         public INeo4JExecutable WithFiltering(Neo4JFilterDefinition filters)
@@ -110,6 +79,39 @@ namespace HotChocolate.Data.Neo4J.Execution
         {
             Projection = projection;
             return this;
+        }
+
+        public StatementBuilder Pipeline()
+        {
+            Node node = Cypher
+                .Node(typeof(T).Name)
+                .Named(typeof(T).Name.ToCamelCase());
+
+            StatementBuilder statement = Cypher.Match(node);
+
+            if (Filters is not null)
+            {
+                //statement.Where(Filters.Condition);
+            }
+
+            if (Projection is not null)
+            {
+                //statement.Return(Projection.Expressions);
+            }
+
+            if (Sorting is not null)
+            {
+
+            }
+
+            // IResultCursor cursor = await _session.RunAsync(@"
+            //     MATCH (business:Business)
+            //     RETURN business { .name, .city, .state, reviews: [(business)<-[:REVIEWS]-(reviews) | reviews {.rating, .text}] }
+            // ").ConfigureAwait(false);
+
+            statement.Return(node);
+
+            return statement;
         }
     }
 }

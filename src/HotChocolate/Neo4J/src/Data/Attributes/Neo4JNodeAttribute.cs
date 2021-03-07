@@ -6,10 +6,12 @@ namespace HotChocolate.Data.Neo4J
 {
     public class Neo4JNodeAttribute : ObjectTypeDescriptorAttribute
     {
-        private readonly string[] _labels;
-        public Neo4JNodeAttribute(params string[] labels)
+        public string Key { get; }
+        public string[] Labels { get; }
+        public Neo4JNodeAttribute(string key, params string[] labels)
         {
-            _labels = labels;
+            Key = key;
+            Labels = labels;
         }
 
         public override void OnConfigure(
@@ -19,7 +21,7 @@ namespace HotChocolate.Data.Neo4J
         {
             descriptor
                 .Extend()
-                .OnBeforeCreate(x => x.ContextData.Add(nameof(Neo4JNodeAttribute), _labels));
+                .OnBeforeCreate(x => x.ContextData.Add(nameof(Neo4JNodeAttribute), new {Key, Labels}));
         }
     }
 }

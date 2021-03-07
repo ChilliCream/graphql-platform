@@ -1,37 +1,79 @@
-using System;
+﻿using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection;
+using System.Threading.Tasks;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Neo4J.Execution;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
+using Neo4j.Driver;
 using Squadron;
+using Xunit;
 
 namespace HotChocolate.Data.Neo4J.Filtering
 {
-    public class FilteringTestBase
+    public class Neo4JBooleanFilterTests : IClassFixture<Neo4jResource>
+        //: SchemaCache
+        //, IClassFixture<Neo4jResource>
     {
-        private Func<IResolverContext, IExecutable<TResult>> BuildResolver<TResult>(
-            Neo4jResource neo4JResource,
-            params TResult[] results)
-            where TResult : class
+        private Neo4jResource _neo4JResource { get; }
+        public class Foo
         {
-
-            return ctx => new Neo4JExecutable<TResult>(neo4JResource.GetAsyncSession());
+            public bool Bar { get; set; }
         }
 
-        protected IRequestExecutor CreateSchema<TEntity, T>(
+        public class FooFilterType
+            : FilterInputType<Foo>
+        {
+        }
+
+        private static readonly Foo[] _fooEntities =
+        {
+            new() { Bar = true },
+            new() { Bar = false }
+        };
+
+        public Neo4JBooleanFilterTests(Neo4jResource neo4jResource)
+        {
+            //Init(resource);
+            _neo4JResource = neo4jResource;
+        }
+
+        [Fact]
+        public async Task Create_BooleanEqual_Expression()
+        {
+            // arrange
+            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(_fooEntities, _neo4JResource, false);
+
+            // act
+            // assert
+            IExecutionResult res1 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery("{ root(where: { bar: { eq: true}}){ bar}}")
+                    .Create());
+
+            res1.MatchDocumentSnapshot("true");
+
+            IExecutionResult res2 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery("{ root(where: { bar: { eq: false}}){ bar}}")
+                    .Create());
+
+            res2.MatchDocumentSnapshot("false");
+        }
+
+        protected async Task<IRequestExecutor> CreateSchema<TEntity, T>(
             TEntity[] entities,
             Neo4jResource  neo4JResource,
             bool withPaging = false)
             where TEntity : class
             where T : FilterInputType<TEntity>
         {
-            Func<IResolverContext, IExecutable<TEntity>> resolver = BuildResolver(
-                neo4JResource,
-                entities);
+            IAsyncSession session = _neo4JResource.GetAsyncSession();
+            IResultCursor cursor = await session.RunAsync(@"CREATE (:Foo {bar: true}), (:Foo {bar: false})");
+            await cursor.ConsumeAsync();
 
             return new ServiceCollection()
                 .AddGraphQL()
@@ -40,7 +82,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
                     c => c
                         .Name("Query")
                         .Field("root")
-                        .Resolver(resolver)
+                        .Resolver(new Neo4JExecutable<TEntity>(neo4JResource.GetAsyncSession()))
                         .Use(
                             next => async context =>
                             {
@@ -73,5 +115,6 @@ namespace HotChocolate.Data.Neo4J.Filtering
                 .GetAwaiter()
                 .GetResult();
         }
+
     }
 }

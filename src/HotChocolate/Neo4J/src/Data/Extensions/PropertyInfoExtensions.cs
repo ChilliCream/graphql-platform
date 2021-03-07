@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Reflection;
 
-namespace HotChocolate.Data.Neo4J.Extensions
+namespace HotChocolate.Data.Neo4J
 {
     public static class PropertyInfoExtensions
     {

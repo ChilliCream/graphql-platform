@@ -8,6 +8,7 @@ namespace HotChocolate.Data.Neo4J.Language
         private readonly Expression _expression;
         private readonly SortDirection? _direction;
 
+
         private SortItem(Expression expression, SortDirection? direction)
         {
             _expression = expression;
