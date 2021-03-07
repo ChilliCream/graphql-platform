@@ -1,7 +1,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using StrawberryShake.Transport.Http;
 using Xunit;
 
 namespace StrawberryShake.Transport.InMemory

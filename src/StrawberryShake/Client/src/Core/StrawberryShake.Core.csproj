@@ -5,6 +5,7 @@
     <AssemblyName>StrawberryShake.Core</AssemblyName>
     <RootNamespace>StrawberryShake</RootNamespace>
     <Nullable>enable</Nullable>
+    <Description>Abstractions and foundational APIs for StrawberryShake GraphQL clients.</Description>
   </PropertyGroup>
 
   <ItemGroup>

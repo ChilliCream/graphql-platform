@@ -1,4 +1,4 @@
-namespace StrawberryShake.CodeGeneration
+namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors
 {
     public enum TypeKind
     {

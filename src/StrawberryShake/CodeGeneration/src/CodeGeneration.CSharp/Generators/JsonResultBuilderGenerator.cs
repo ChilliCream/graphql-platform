@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
+using StrawberryShake.CodeGeneration.Descriptors;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
-using StrawberryShake.Serialization;
-using static StrawberryShake.CodeGeneration.NamingConventions;
+using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuilderDescriptor>
     {
@@ -87,9 +88,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
                 MethodCallBuilder getLeaveValueParser = MethodCallBuilder
                     .Inline()
-                    .SetMethodName(
-                        _serializerResolver,
-                        nameof(ISerializerResolver.GetLeafValueParser))
+                    .SetMethodName(_serializerResolver, "GetLeafValueParser")
                     .AddGeneric(valueParser.SerializedType.ToString())
                     .AddGeneric(valueParser.RuntimeType.ToString())
                     .AddArgument(valueParser.Name.AsStringToken());

@@ -11,7 +11,7 @@
 
 // HumanEntity
 
-// StrawberryShake.CodeGeneration.CSharp.EntityTypeGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
 
 #nullable enable
 
@@ -33,7 +33,7 @@ namespace Foo.Bar
 
 // ChangeHomePlanetResultFactory
 
-// StrawberryShake.CodeGeneration.CSharp.ResultDataFactoryGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
 
 #nullable enable
 
@@ -101,7 +101,7 @@ namespace Foo.Bar
 
 // ChangeHomePlanetResultInfo
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInfoGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
 
 #nullable enable
 
@@ -144,7 +144,7 @@ namespace Foo.Bar
 
 // ChangeHomePlanetResult
 
-// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
 
 #nullable enable
 
@@ -166,7 +166,7 @@ namespace Foo.Bar
 
 // ChangeHomePlanet_ChangeHomePlanet_ChangeHomePlanetPayload
 
-// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
 
 #nullable enable
 
@@ -188,7 +188,7 @@ namespace Foo.Bar
 
 // ChangeHomePlanet_ChangeHomePlanet_Human_HumanFromHumanEntityMapper
 
-// StrawberryShake.CodeGeneration.CSharp.ResultFromEntityTypeMapperGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
 
 #nullable enable
 
@@ -208,7 +208,7 @@ namespace Foo.Bar
 
 // ChangeHomePlanet_ChangeHomePlanet_Human_Human
 
-// StrawberryShake.CodeGeneration.CSharp.ResultTypeGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
 
 #nullable enable
 
@@ -236,7 +236,7 @@ namespace Foo.Bar
 
 // IChangeHomePlanetResult
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -252,7 +252,7 @@ namespace Foo.Bar
 
 // IChangeHomePlanet_ChangeHomePlanet
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -268,7 +268,7 @@ namespace Foo.Bar
 
 // IChangeHomePlanet_ChangeHomePlanet_ChangeHomePlanetPayload
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -284,7 +284,7 @@ namespace Foo.Bar
 
 // IChangeHomePlanet_ChangeHomePlanet_Human
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -306,7 +306,7 @@ namespace Foo.Bar
 
 // IChangeHomePlanet_ChangeHomePlanet_Human_Human
 
-// StrawberryShake.CodeGeneration.CSharp.ResultInterfaceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
 
@@ -325,7 +325,7 @@ namespace Foo.Bar
 
 // ChangeHomePlanetInputInputValueFormatter
 
-// StrawberryShake.CodeGeneration.CSharp.InputValueFormatterGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
 
 #nullable enable
 
@@ -348,6 +348,11 @@ namespace Foo.Bar
 
         public global::System.Object? Format(global::System.Object? runtimeValue)
         {
+            if (runtimeValue is null)
+            {
+                return null;
+            }
+
             if (!(runtimeValue is ChangeHomePlanetInput d))
             {
                 throw new global::System.ArgumentException(nameof(runtimeValue));
@@ -365,19 +370,14 @@ namespace Foo.Bar
 
         private global::System.Object? FormatId(global::System.Int32 value)
         {
-            if (value == default)
-            {
-                return null;
-            }
-
             return _intFormatter.Format(value);
         }
 
         private global::System.Object? FormatHomePlanet(global::System.String value)
         {
-            if (value == default)
+            if (value is null)
             {
-                return null;
+                throw new global::System.ArgumentNullException(nameof(value));
             }
 
             return _stringFormatter.Format(value);
@@ -388,7 +388,7 @@ namespace Foo.Bar
 
 // ChangeHomePlanetInput
 
-// StrawberryShake.CodeGeneration.CSharp.InputTypeGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
 
 #nullable enable
 
@@ -406,7 +406,7 @@ namespace Foo.Bar
 
 // ChangeHomePlanetMutationDocument
 
-// StrawberryShake.CodeGeneration.CSharp.OperationDocumentGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
 
 #nullable enable
 
@@ -441,7 +441,9 @@ namespace Foo.Bar
 
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Mutation;
 
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{ 0x6d, 0x75, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x43, 0x68, 0x61, 0x6e, 0x67, 0x65, 0x48, 0x6f, 0x6d, 0x65, 0x50, 0x6c, 0x61, 0x6e, 0x65, 0x74, 0x28, 0x24, 0x69, 0x6e, 0x70, 0x75, 0x74, 0x3a, 0x20, 0x43, 0x68, 0x61, 0x6e, 0x67, 0x65, 0x48, 0x6f, 0x6d, 0x65, 0x50, 0x6c, 0x61, 0x6e, 0x65, 0x74, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x21, 0x29, 0x20, 0x7b, 0x0a, 0x20, 0x20, 0x63, 0x68, 0x61, 0x6e, 0x67, 0x65, 0x48, 0x6f, 0x6d, 0x65, 0x50, 0x6c, 0x61, 0x6e, 0x65, 0x74, 0x28, 0x69, 0x6e, 0x70, 0x75, 0x74, 0x3a, 0x20, 0x24, 0x69, 0x6e, 0x70, 0x75, 0x74, 0x29, 0x20, 0x7b, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x68, 0x75, 0x6d, 0x61, 0x6e, 0x20, 0x7b, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x68, 0x6f, 0x6d, 0x65, 0x50, 0x6c, 0x61, 0x6e, 0x65, 0x74, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x48, 0x75, 0x6d, 0x61, 0x6e, 0x20, 0x7b, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x69, 0x64, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x7d, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x7d, 0x0a, 0x20, 0x20, 0x7d, 0x0a, 0x7d };
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{ 0x6d, 0x75, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x43, 0x68, 0x61, 0x6e, 0x67, 0x65, 0x48, 0x6f, 0x6d, 0x65, 0x50, 0x6c, 0x61, 0x6e, 0x65, 0x74, 0x28, 0x24, 0x69, 0x6e, 0x70, 0x75, 0x74, 0x3a, 0x20, 0x43, 0x68, 0x61, 0x6e, 0x67, 0x65, 0x48, 0x6f, 0x6d, 0x65, 0x50, 0x6c, 0x61, 0x6e, 0x65, 0x74, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x21, 0x29, 0x20, 0x7b, 0x20, 0x63, 0x68, 0x61, 0x6e, 0x67, 0x65, 0x48, 0x6f, 0x6d, 0x65, 0x50, 0x6c, 0x61, 0x6e, 0x65, 0x74, 0x28, 0x69, 0x6e, 0x70, 0x75, 0x74, 0x3a, 0x20, 0x24, 0x69, 0x6e, 0x70, 0x75, 0x74, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x68, 0x75, 0x6d, 0x61, 0x6e, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x68, 0x6f, 0x6d, 0x65, 0x50, 0x6c, 0x61, 0x6e, 0x65, 0x74, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x48, 0x75, 0x6d, 0x61, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d };
+
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "45cbc2ae79f3f3a850a21ba472689a46f0cc19c4");
 
         public override global::System.String ToString()
         {
@@ -453,7 +455,7 @@ namespace Foo.Bar
 
 // ChangeHomePlanetMutation
 
-// StrawberryShake.CodeGeneration.CSharp.OperationServiceGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
 
 #nullable enable
 
@@ -523,16 +525,18 @@ namespace Foo.Bar
                 FormatInput(input));
 
             return new global::StrawberryShake.OperationRequest(
-                "ChangeHomePlanet",
-                ChangeHomePlanetMutationDocument.Instance,
-                variables);
+                id: ChangeHomePlanetMutationDocument.Instance.Hash.Value,
+                name: "ChangeHomePlanet",
+                document: ChangeHomePlanetMutationDocument.Instance,
+                strategy: global::StrawberryShake.RequestStrategy.Default,
+                variables:variables);
         }
 
         private global::System.Object? FormatInput(ChangeHomePlanetInput value)
         {
-            if (value == default)
+            if (value is null)
             {
-                return null;
+                throw new global::System.ArgumentNullException(nameof(value));
             }
 
             return _changeHomePlanetInputFormatter.Format(value);
@@ -543,7 +547,7 @@ namespace Foo.Bar
 
 // ChangeHomePlanetBuilder
 
-// StrawberryShake.CodeGeneration.CSharp.JsonResultBuilderGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
 
 #nullable enable
 
@@ -693,7 +697,7 @@ namespace Foo.Bar
 
 // ChangeHomePlanetPayloadData
 
-// StrawberryShake.CodeGeneration.CSharp.DataTypeGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
 
 #nullable enable
 
@@ -720,7 +724,7 @@ namespace Foo.Bar.State
 
 // FooClient
 
-// StrawberryShake.CodeGeneration.CSharp.ClientGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
 
 #nullable enable
 
@@ -749,7 +753,7 @@ namespace Foo.Bar
 
 // EntityIdFactory
 
-// StrawberryShake.CodeGeneration.CSharp.EntityIdFactoryGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator
 
 #nullable enable
 
@@ -789,7 +793,7 @@ namespace Foo.Bar
 
 // FooClientServiceCollectionExtensions
 
-// StrawberryShake.CodeGeneration.CSharp.DependencyInjectionGenerator
+// StrawberryShake.CodeGeneration.CSharp.Generators.DependencyInjectionGenerator
 
 #nullable enable
 
@@ -806,10 +810,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 services,
                 sp => 
                 {
-                    var serviceCollection = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
-
-                    ConfigureClient(
-                        serviceCollection,
+                    var serviceCollection = ConfigureClientDefault(
                         sp,
                         strategy);
 
@@ -830,15 +831,11 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        private static global::Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureClient(
-            global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
+        private static global::Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureClientDefault(
             global::System.IServiceProvider parentServices,
             global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
-            if (services is null)
-            {
-                throw new global::System.ArgumentNullException(nameof(services));
-            }
+            var services = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId>>(
                 services,
                 global::Foo.Bar.EntityIdFactory.CreateEntityId);

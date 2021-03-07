@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate;
+using StrawberryShake.CodeGeneration.Descriptors.Operations;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
-namespace StrawberryShake.CodeGeneration
+namespace StrawberryShake.CodeGeneration.Descriptors
 {
     /// <summary>
     /// Describes the dependency injection requirements of a  GraphQL client
@@ -14,12 +16,14 @@ namespace StrawberryShake.CodeGeneration
             string @namespace,
             IReadOnlyList<EntityTypeDescriptor> entities,
             List<OperationDescriptor> operations,
-            IReadOnlyList<ITypeDescriptor> typeDescriptors)
+            IReadOnlyList<ITypeDescriptor> typeDescriptors,
+            IReadOnlyList<TransportProfile> transportProfiles)
         {
             RuntimeType = new(name, @namespace);
             Entities = entities;
             Operations = operations;
             TypeDescriptors = typeDescriptors;
+            TransportProfiles = transportProfiles;
             EnumTypeDescriptor = typeDescriptors.OfType<EnumTypeDescriptor>().ToList();;
         }
 
@@ -35,6 +39,8 @@ namespace StrawberryShake.CodeGeneration
         public IReadOnlyList<ITypeDescriptor> TypeDescriptors { get; }
 
         public IReadOnlyList<EnumTypeDescriptor> EnumTypeDescriptor { get; }
+
+        public IReadOnlyList<TransportProfile> TransportProfiles { get; }
 
         /// <summary>
         /// The operations that are contained in this client class

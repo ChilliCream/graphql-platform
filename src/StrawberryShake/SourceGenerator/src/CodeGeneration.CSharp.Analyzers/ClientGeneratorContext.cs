@@ -110,5 +110,18 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             throw new GraphQLException(
                 $"Specify a namespace for the client `{Settings.Name}`.");
         }
+
+        public string? GetPersistedQueryDirectory()
+        {
+            if (Execution.AnalyzerConfigOptions.GlobalOptions.TryGetValue(
+                "build_property.StrawberryShake_PersistedQueryDirectory",
+                out string? value) &&
+                !string.IsNullOrEmpty(value))
+            {
+                return value;
+            }
+
+            return null;
+        }
     }
 }
