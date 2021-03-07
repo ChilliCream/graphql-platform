@@ -15,23 +15,23 @@ namespace HotChocolate.Types.Scalars
         private static readonly Regex[] _validationPatterns =
             new[]
                 {
-                    ScalarResources.PostalCodeType_ValidationPattern_US,
-                    ScalarResources.PostalCodeType_ValidationPattern_DE,
-                    ScalarResources.PostalCodeType_ValidationPattern_UK,
-                    ScalarResources.PostalCodeType_ValidationPattern_CA,
-                    ScalarResources.PostalCodeType_ValidationPattern_FR,
-                    ScalarResources.PostalCodeType_ValidationPattern_IT,
-                    ScalarResources.PostalCodeType_ValidationPattern_AU,
-                    ScalarResources.PostalCodeType_ValidationPattern_NL,
-                    ScalarResources.PostalCodeType_ValidationPattern_ES,
-                    ScalarResources.PostalCodeType_ValidationPattern_DK,
-                    ScalarResources.PostalCodeType_ValidationPattern_SE,
-                    ScalarResources.PostalCodeType_ValidationPattern_BE,
-                    ScalarResources.PostalCodeType_ValidationPattern_IN,
-                    ScalarResources.PostalCodeType_ValidationPattern_AT,
-                    ScalarResources.PostalCodeType_ValidationPattern_PT,
-                    ScalarResources.PostalCodeType_ValidationPattern_CH,
-                    ScalarResources.PostalCodeType_ValidationPattern_LU
+                    PostalCodePatterns.US,
+                    PostalCodePatterns.UK,
+                    PostalCodePatterns.DE,
+                    PostalCodePatterns.CA,
+                    PostalCodePatterns.FR,
+                    PostalCodePatterns.IT,
+                    PostalCodePatterns.AU,
+                    PostalCodePatterns.NL,
+                    PostalCodePatterns.ES,
+                    PostalCodePatterns.DK,
+                    PostalCodePatterns.SE,
+                    PostalCodePatterns.BE,
+                    PostalCodePatterns.IN,
+                    PostalCodePatterns.AT,
+                    PostalCodePatterns.PT,
+                    PostalCodePatterns.CH,
+                    PostalCodePatterns.LU
                 }
                 .Select(x => new Regex(x, RegexOptions.Compiled | RegexOptions.IgnoreCase))
                 .ToArray();
@@ -143,6 +143,47 @@ namespace HotChocolate.Types.Scalars
             }
 
             return false;
+        }
+
+        private static class PostalCodePatterns
+        {
+            public const string US =
+                "(^\\d{5}([-]?\\d{4})?$)";
+            public const string UK =
+                "(^(GIR|[A-Z]\\d[A-Z\\d]??|[A-Z]{2}\\d[A-Z\\d]??)[ ]??(\\d[A-Z]{2})$)";
+            public const string DE =
+                "(\\b((?:0[1-46-9]\\d{3})|(?:[1-357-9]\\d{4})|(?:[4][0-24-9]" +
+                "\\d{3})|(?:[6][013-9]\\d{3}))\\b)";
+            public const string CA =
+                "(^([ABCEGHJKLMNPRSTVXY]\\d[ABCEGHJKLMNPRSTVWXYZ]) {0,1}" +
+                "(\\d[ABCEGHJKLMNPRSTVWXYZ]\\d)$)";
+            public const string FR =
+                "(^(F-)?((2[A|B])|[0-9]{2})[0-9]{3}$)";
+            public const string IT =
+                "(^(V-|I-)?[0-9]{5}$)";
+            public const string AU =
+                "(^(0[289][0-9]{2})|([1345689][0-9]{3})|(2[0-8][0-9]{2})|(290[0-9])|" +
+                "(291[0-4])|(7[0-4][0-9]{2})|(7[8-9][0-9]{2})$)";
+            public const string NL =
+                "(^[1-9][0-9]{3}\\s?([a-zA-Z]{2})?$)";
+            public const string ES =
+                "(^([1-9]{2}|[0-9][1-9]|[1-9][0-9])[0-9]{3}$)";
+            public const string DK =
+                "(^([D|d][K|k]( |-))?[1-9]{1}[0-9]{3}$)";
+            public const string SE =
+                "(^(s-|S-){0,1}[0-9]{3}\\s?[0-9]{2}$)";
+            public const string BE =
+                "(^[1-9]{1}[0-9]{3}$)";
+            public const string IN =
+                "(^\\d{6}$)";
+            public const string AT =
+                "(^\\d{4}$)";
+            public const string PT =
+                "(^\\d{4}([\\-]\\d{3})?$)";
+            public const string CH =
+                "(^\\d{4}$)";
+            public const string LU =
+                "(^\\d{4}$)";
         }
     }
 }

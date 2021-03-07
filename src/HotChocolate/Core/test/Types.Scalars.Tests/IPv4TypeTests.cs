@@ -27,7 +27,7 @@ namespace HotChocolate.Types.Scalars
         [InlineData(typeof(StringValueNode), "1", false)]
         [InlineData(typeof(StringValueNode), "1.2", false)]
         [InlineData(typeof(StringValueNode), "1.2.3", false)]
-        [InlineData(typeof(StringValueNode), "1.2.3.4", true)]       
+        [InlineData(typeof(StringValueNode), "1.2.3.4", true)]
         [InlineData(typeof(StringValueNode), "255.255.255.255", true)]
         [InlineData(typeof(StringValueNode), "255.256.256.256", false)]
         [InlineData(typeof(StringValueNode), "300.256.256.256", false)]
@@ -193,7 +193,7 @@ namespace HotChocolate.Types.Scalars
             // arrange
             // act
             // assert
-            ExpectDeserializeToThrowSerializationException<EmailAddressType>(value);
+            ExpectDeserializeToThrowSerializationException<IPv4Type>(value);
         }
 
         [Theory]
@@ -240,7 +240,7 @@ namespace HotChocolate.Types.Scalars
             // arrange
             // act
             // assert
-            ExpectSerializeToThrowSerializationException<EmailAddressType>(value);
+            ExpectSerializeToThrowSerializationException<IPv4Type>(value);
         }
     }
 }
