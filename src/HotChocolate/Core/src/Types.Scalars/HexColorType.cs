@@ -10,13 +10,15 @@ namespace HotChocolate.Types.Scalars
     /// </summary>
     public class HexColorType : RegexType
     {
-        private static readonly string _validationPattern = "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3}|[A-Fa-f0-9]{8})$";
+        private const string _validationPattern =
+            "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3}|[A-Fa-f0-9]{8})$";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HexColorType"/> class.
         /// </summary>
         public HexColorType()
-            : base(WellKnownScalarTypes.HexColor,
+            : base(
+                WellKnownScalarTypes.HexColor,
                 _validationPattern,
                 ScalarResources.HexColorType_Description,
                 RegexOptions.Compiled | RegexOptions.IgnoreCase)
