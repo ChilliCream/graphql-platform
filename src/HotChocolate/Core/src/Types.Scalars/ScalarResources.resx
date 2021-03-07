@@ -61,9 +61,9 @@
             : and then encoded with base64 encoding.
     -->
   <xsd:schema id="root"
-              xmlns=""
-              xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-              xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    xmlns=""
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
 
     <xsd:element name="root" msdata:IsDataSet="true">
@@ -117,26 +117,21 @@
     <value>2.0</value>
   </resheader>
   <resheader name="reader">
-    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral,
-      PublicKeyToken=b77a5c561934e089
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     </value>
   </resheader>
   <resheader name="writer">
-    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral,
-      PublicKeyToken=b77a5c561934e089
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     </value>
   </resheader>
   <data name="EmailAddressType_Description" xml:space="preserve">
-    <value>The EmailAddress scalar type represents a email address, represented as UTF-8 character sequences. The scalar follows the specification defined in RFC 5322</value>
+    <value>The EmailAddress scalar type constitutes a valid email address, represented as a UTF-8 character sequence. The scalar follows the specification defined by the HTML Spec https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address.</value>
   </data>
   <data name="EmailAddressType_IsInvalid_ParseLiteral" xml:space="preserve">
     <value>EmailAddressType cannot parse the provided literal. The provided value does not meet the RFC 5322 specification.</value>
   </data>
   <data name="EmailAddressType_IsInvalid_ParseValue" xml:space="preserve">
     <value>EmailAddressType cannot parse the provided value. The provided value does not meet the RFC 5322 specification.</value>
-  </data>
-  <data name="EmailAddressType_ValidationPattern" xml:space="preserve">
-    <value>(?:[a-z0-9!#$%&amp;'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&amp;'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])</value>
   </data>
   <data name="HexColorType_Description" xml:space="preserve">
     <value>The HexColor scalar type represents a valid HexColor color code.</value>
@@ -147,9 +142,6 @@
   <data name="HexColorType_IsInvalid_ParseValue" xml:space="preserve">
     <value>HexColorType cannot parse the provided value. The provided value is not a valid HEX color code.</value>
   </data>
-  <data name="HexColorType_ValidationPattern" xml:space="preserve">
-    <value>(^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3}|[A-Fa-f0-9]{8})$)</value>
-  </data>
   <data name="HslType_Description" xml:space="preserve">
     <value>The Hsl scalar type represents a a valid a CSS HSL color defined in https://www.w3.org/TR/css-color-3/#hsl-color.</value>
   </data>
@@ -158,9 +150,6 @@
   </data>
   <data name="HslType_IsInvalid_ParseValue" xml:space="preserve">
     <value>HslType cannot parse the provided value. The provided value is not a valid CSS HSL color code.</value>
-  </data>
-  <data name="HslType_ValidationPattern" xml:space="preserve">
-    <value>(^(?:hsla?)\((?:\d+%?(?:deg|rad|grad|turn)?(?:,|\s)+){2,3}[\s\/]*[\d\.]+%?\))</value>
   </data>
   <data name="HslaType_Description" xml:space="preserve">
     <value>The Hsla scalar type represents a a valid a CSS HSLA color as defined in https://www.w3.org/TR/css-color-3/#hsla-color.</value>
@@ -179,6 +168,15 @@
   </data>
   <data name="MacAddressType_IsInvalid_ParseValue" xml:space="preserve">
     <value>MacAddressType cannot parse the provided value. The provided value is not a valid MAC address.</value>
+  </data>
+  <data name="IPv4Type_Description" xml:space="preserve">
+    <value>The IPv4 scalar type represents a valid a IPv4 address as defined in RFC791</value>
+  </data>
+  <data name="IPv4Type_IsInvalid_ParseLiteral" xml:space="preserve">
+    <value>IPv4Type cannot parse the provided literal. The provided value is not a valid IPv4 address.</value>
+  </data>
+  <data name="IPv4Type_IsInvalid_ParseValue" xml:space="preserve">
+    <value>IPv4Type cannot parse the provided value. The provided value is not a valid IPv4 address.</value>
   </data>
   <data name="NegativeFloatType_Description" xml:space="preserve">
     <value>The NegativeFloat scalar type represents a double‐precision fractional value less than 0.</value>
@@ -252,9 +250,6 @@
   <data name="PhoneNumberType_IsInvalid_ParseValue" xml:space="preserve">
     <value>PhoneNumberType cannot parse the provided value. The provided value does not meet the standard E.164 format.</value>
   </data>
-  <data name="PhoneNumber_ValidationPattern" xml:space="preserve">
-    <value>(^\+[1-9]\d{1,14}$)</value>
-  </data>
   <data name="PositiveIntType_Description" xml:space="preserve">
     <value>The PositiveInt scalar type represents a signed 32-bit numeric non-fractional value of at least the value 1.</value>
   </data>
@@ -273,57 +268,6 @@
   <data name="PostalCodeType_IsInvalid_ParseValue" xml:space="preserve">
     <value>PostalCodeType cannot parse the provided value. The provided value is a invalid postal code.</value>
   </data>
-  <data name="PostalCodeType_ValidationPattern_US" xml:space="preserve">
-    <value>(^\d{5}([-]?\d{4})?$)</value>
-  </data>
-  <data name="PostalCodeType_ValidationPattern_UK" xml:space="preserve">
-    <value>(^(GIR|[A-Z]\d[A-Z\d]??|[A-Z]{2}\d[A-Z\d]??)[ ]??(\d[A-Z]{2})$)</value>
-  </data>
-  <data name="PostalCodeType_ValidationPattern_DE" xml:space="preserve">
-    <value>(\b((?:0[1-46-9]\d{3})|(?:[1-357-9]\d{4})|(?:[4][0-24-9]\d{3})|(?:[6][013-9]\d{3}))\b)</value>
-  </data>
-  <data name="PostalCodeType_ValidationPattern_CA" xml:space="preserve">
-    <value>(^([ABCEGHJKLMNPRSTVXY]\d[ABCEGHJKLMNPRSTVWXYZ]) {0,1}(\d[ABCEGHJKLMNPRSTVWXYZ]\d)$)</value>
-  </data>
-  <data name="PostalCodeType_ValidationPattern_FR" xml:space="preserve">
-    <value>(^(F-)?((2[A|B])|[0-9]{2})[0-9]{3}$)</value>
-  </data>
-  <data name="PostalCodeType_ValidationPattern_IT" xml:space="preserve">
-    <value>(^(V-|I-)?[0-9]{5}$)</value>
-  </data>
-  <data name="PostalCodeType_ValidationPattern_AU" xml:space="preserve">
-    <value>(^(0[289][0-9]{2})|([1345689][0-9]{3})|(2[0-8][0-9]{2})|(290[0-9])|(291[0-4])|(7[0-4][0-9]{2})|(7[8-9][0-9]{2})$)</value>
-  </data>
-  <data name="PostalCodeType_ValidationPattern_NL" xml:space="preserve">
-    <value>(^[1-9][0-9]{3}\s?([a-zA-Z]{2})?$)</value>
-  </data>
-  <data name="PostalCodeType_ValidationPattern_ES" xml:space="preserve">
-    <value>(^([1-9]{2}|[0-9][1-9]|[1-9][0-9])[0-9]{3}$)</value>
-  </data>
-  <data name="PostalCodeType_ValidationPattern_DK" xml:space="preserve">
-    <value>(^([D|d][K|k]( |-))?[1-9]{1}[0-9]{3}$)</value>
-  </data>
-  <data name="PostalCodeType_ValidationPattern_SE" xml:space="preserve">
-    <value>(^(s-|S-){0,1}[0-9]{3}\s?[0-9]{2}$)</value>
-  </data>
-  <data name="PostalCodeType_ValidationPattern_BE" xml:space="preserve">
-    <value>(^[1-9]{1}[0-9]{3}$)</value>
-  </data>
-  <data name="PostalCodeType_ValidationPattern_IN" xml:space="preserve">
-    <value>(^\d{6}$)</value>
-  </data>
-  <data name="PostalCodeType_ValidationPattern_AT" xml:space="preserve">
-    <value>(^\d{4}$)</value>
-  </data>
-  <data name="PostalCodeType_ValidationPattern_PT" xml:space="preserve">
-    <value>(^\d{4}([\-]\d{3})?$)</value>
-  </data>
-  <data name="PostalCodeType_ValidationPattern_CH" xml:space="preserve">
-    <value>(^\d{4}$)</value>
-  </data>
-  <data name="PostalCodeType_ValidationPattern_LU" xml:space="preserve">
-    <value>(^\d{4}$)</value>
-  </data>
   <data name="RegexType_IsInvalid_ParseLiteral" xml:space="preserve">
     <value>{0}Type cannot parse the provided literal. The provided value does not match the regular expression pattern.</value>
   </data>
@@ -338,14 +282,5 @@
   </data>
   <data name="UnsignedIntType_IsNotUnsigned_ParseValue" xml:space="preserve">
     <value>UnsignedIntType cannot parse the provided value. The provided value is not greater than or equal to 0.</value>
-  </data>
-  <data name="IPv4Type_Description" xml:space="preserve">
-    <value>The IPv4 scalar type represents a valid a IPv4 address as defined in RFC791</value>
-  </data>
-  <data name="IPv4Type_IsInvalid_ParseLiteral" xml:space="preserve">
-    <value>IPv4Type cannot parse the provided literal. The provided value is not a valid IPv4 address.</value>
-  </data>
-  <data name="IPv4Type_IsInvalid_ParseValue" xml:space="preserve">
-    <value>IPv4Type cannot parse the provided value. The provided value is not a valid IPv4 address.</value>
   </data>
 </root>

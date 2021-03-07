@@ -1,3 +1,4 @@
+using System;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
 
@@ -7,108 +8,31 @@ namespace HotChocolate.Types.Scalars
     /// The `HexColor` scalar type represents a valid HEX color code as defined in
     /// <a href="https://www.w3.org/TR/css-color-4/#hex-notation">W3 HEX notation</a>
     /// </summary>
-    public class HexColorType : StringType
+    public class HexColorType : RegexType
     {
-        private static readonly string _validationPattern =
-            ScalarResources.HexColorType_ValidationPattern;
-
-        private static readonly Regex _validationRegex =
-            new(_validationPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private const string _validationPattern =
+            "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3}|[A-Fa-f0-9]{8})$";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HexColorType"/> class.
         /// </summary>
         public HexColorType()
-            : this(
+            : base(
                 WellKnownScalarTypes.HexColor,
-                ScalarResources.HexColorType_Description)
+                _validationPattern,
+                ScalarResources.HexColorType_Description,
+                RegexOptions.Compiled | RegexOptions.IgnoreCase)
         {
         }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="HexColorType"/> class.
-        /// </summary>
-        public HexColorType(
-            NameString name,
-            string? description = null,
-            BindingBehavior bind = BindingBehavior.Explicit)
-            : base(name, description, bind)
+        protected override Exception CreateParseLiteralError(StringValueNode valueSyntax)
         {
-            Description = description;
+            return ThrowHelper.HexColorType_ParseLiteral_IsInvalid(this);
         }
 
-        /// <inheritdoc />
-        protected override bool IsInstanceOfType(string runtimeValue)
+        protected override Exception CreateParseValueError(string runtimeValue)
         {
-            return _validationRegex.IsMatch(runtimeValue);
-        }
-
-        /// <inheritdoc />
-        protected override bool IsInstanceOfType(StringValueNode valueSyntax)
-        {
-            return _validationRegex.IsMatch(valueSyntax.Value);
-        }
-
-        /// <inheritdoc />
-        protected override string ParseLiteral(StringValueNode valueSyntax)
-        {
-            if(!_validationRegex.IsMatch(valueSyntax.Value))
-            {
-                throw ThrowHelper.HexColorType_ParseLiteral_IsInvalid(this);
-            }
-
-            return base.ParseLiteral(valueSyntax);
-        }
-
-        /// <inheritdoc />
-        protected override StringValueNode ParseValue(string runtimeValue)
-        {
-            if(!_validationRegex.IsMatch(runtimeValue))
-            {
-                throw ThrowHelper.HexColorType_ParseValue_IsInvalid(this);
-            }
-
-            return base.ParseValue(runtimeValue);
-        }
-
-        /// <inheritdoc />
-        public override bool TrySerialize(object? runtimeValue, out object? resultValue)
-        {
-            if (runtimeValue is null)
-            {
-                resultValue = null;
-                return true;
-            }
-
-            if(runtimeValue is string s &&
-               _validationRegex.IsMatch(s))
-            {
-                resultValue = s;
-                return true;
-            }
-
-            resultValue = null;
-            return false;
-        }
-
-        /// <inheritdoc />
-        public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
-        {
-            if (resultValue is null)
-            {
-                runtimeValue = null;
-                return true;
-            }
-
-            if(resultValue is string s &&
-               _validationRegex.IsMatch(s))
-            {
-                runtimeValue = s;
-                return true;
-            }
-
-            runtimeValue = null;
-            return false;
+            return ThrowHelper.HexColorType_ParseValue_IsInvalid(this);
         }
     }
 }
