@@ -25,12 +25,12 @@ namespace HotChocolate.Types.Scalars
         {
         }
 
-        protected override Exception CreateParseLiteralError(StringValueNode valueSyntax)
+        protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
         {
             return ThrowHelper.HexColorType_ParseLiteral_IsInvalid(this);
         }
 
-        protected override Exception CreateParseValueError(string runtimeValue)
+        protected override SerializationException CreateParseValueError(object runtimeValue)
         {
             return ThrowHelper.HexColorType_ParseValue_IsInvalid(this);
         }

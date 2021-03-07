@@ -30,12 +30,14 @@ namespace HotChocolate.Types.Scalars
         {
         }
 
-        protected override Exception CreateParseLiteralError(StringValueNode valueSyntax)
+        /// <inheritdoc />
+        protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
         {
             return ThrowHelper.EmailAddressType_ParseLiteral_IsInvalid(this);
         }
 
-        protected override Exception CreateParseValueError(string runtimeValue)
+        /// <inheritdoc />
+        protected override SerializationException CreateParseValueError(object runtimeValue)
         {
             return ThrowHelper.EmailAddressType_ParseValue_IsInvalid(this);
         }
