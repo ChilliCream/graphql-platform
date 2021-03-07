@@ -297,6 +297,30 @@ namespace HotChocolate.Types.Scalars
                 type);
         }
 
+        public static SerializationException PortType_ParseLiteral_OutOfRange(
+            IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.PortType_OutOfRange_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.Port)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException PortType_ParseValue_OutOfRange(
+            IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.PortType_OutOfRange_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.Port)
+                    .Build(),
+                type);
+        }
+
         public static SerializationException PositiveIntType_ParseLiteral_ZeroOrLess(IType type)
         {
             return new SerializationException(

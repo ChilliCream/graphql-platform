@@ -279,6 +279,24 @@ namespace HotChocolate.Types.Scalars {
             }
         }
         
+        internal static string PortType_Description {
+            get {
+                return ResourceManager.GetString("PortType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string PortType_OutOfRange_ParseLiteral {
+            get {
+                return ResourceManager.GetString("PortType_OutOfRange_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        internal static string PortType_OutOfRange_ParseValue {
+            get {
+                return ResourceManager.GetString("PortType_OutOfRange_ParseValue", resourceCulture);
+            }
+        }
+        
         internal static string PositiveIntType_Description {
             get {
                 return ResourceManager.GetString("PositiveIntType_Description", resourceCulture);
