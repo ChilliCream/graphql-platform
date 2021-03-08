@@ -10,7 +10,7 @@ using static StrawberryShake.CodeGeneration.CodeGenerationErrorCodes;
 
 namespace StrawberryShake.CodeGeneration
 {
-    internal static class ErrorHelper
+    public static class ErrorHelper
     {
         public const string FileExtensionKey = "file";
         public const string TitleExtensionKey = "title";
