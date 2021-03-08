@@ -24,13 +24,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
                 _ => { },
                 out var port);
             var serviceCollection = new ServiceCollection();
-            serviceCollection.AddHttpClient(
-                StarWarsGetHeroClient.ClientName,
-                c => c.BaseAddress = new Uri("http://localhost:" + port + "/graphql"));
-            serviceCollection.AddWebSocketClient(
-                StarWarsGetHeroClient.ClientName,
-                c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
-            serviceCollection.AddStarWarsGetHeroClient();
+
+            serviceCollection
+                .AddStarWarsGetHeroClient()
+                .ConfigureHttpClient(
+                    c => c.BaseAddress = new Uri("http://localhost:" + port + "/graphql"))
+                .ConfigureWebSocketClient(
+                    c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
+
             IServiceProvider services = serviceCollection.BuildServiceProvider();
             StarWarsGetHeroClient client = services.GetRequiredService<StarWarsGetHeroClient>();
 
@@ -50,13 +51,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
                 _ => { },
                 out var port);
             var serviceCollection = new ServiceCollection();
-            serviceCollection.AddHttpClient(
-                StarWarsGetHeroClient.ClientName,
-                c => c.BaseAddress = new Uri("http://localhost:" + port + "/graphql"));
-            serviceCollection.AddWebSocketClient(
-                StarWarsGetHeroClient.ClientName,
-                c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
-            serviceCollection.AddStarWarsGetHeroClient();
+
+            serviceCollection.AddStarWarsGetHeroClient()
+                .ConfigureHttpClient(
+                    c => c.BaseAddress = new Uri("http://localhost:" + port + "/graphql"))
+                .ConfigureWebSocketClient(
+                    c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
+
             IServiceProvider services = serviceCollection.BuildServiceProvider();
             StarWarsGetHeroClient client = services.GetRequiredService<StarWarsGetHeroClient>();
 
@@ -87,13 +88,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
                 _ => { },
                 out var port);
             var serviceCollection = new ServiceCollection();
-            serviceCollection.AddHttpClient(
-                StarWarsGetHeroClient.ClientName,
-                c => c.BaseAddress = new Uri("http://localhost:" + port + "/graphql"));
-            serviceCollection.AddWebSocketClient(
-                StarWarsGetHeroClient.ClientName,
-                c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
-            serviceCollection.AddStarWarsGetHeroClient();
+
+            serviceCollection.AddStarWarsGetHeroClient()
+                .ConfigureHttpClient(
+                    c => c.BaseAddress = new Uri("http://localhost:" + port + "/graphql"))
+                .ConfigureWebSocketClient(
+                    c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
+
             IServiceProvider services = serviceCollection.BuildServiceProvider();
             StarWarsGetHeroClient client = services.GetRequiredService<StarWarsGetHeroClient>();
 

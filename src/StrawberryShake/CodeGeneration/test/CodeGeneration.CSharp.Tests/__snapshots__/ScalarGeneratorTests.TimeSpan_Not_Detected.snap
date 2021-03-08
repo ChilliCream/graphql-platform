@@ -15,7 +15,7 @@
 
 #nullable enable
 
-namespace Foo.Bar
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SessionEntity
@@ -31,18 +31,18 @@ namespace Foo.Bar
 
 #nullable enable
 
-namespace Foo.Bar
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetSessionsResultFactory
         : global::StrawberryShake.IOperationResultDataFactory<GetSessionsResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<SessionEntity, GetSessions_Sessions_Nodes_Session> _getSessions_Sessions_Nodes_SessionFromSessionEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.SessionEntity, GetSessions_Sessions_Nodes_Session> _getSessions_Sessions_Nodes_SessionFromSessionEntityMapper;
 
         public GetSessionsResultFactory(
             global::StrawberryShake.IEntityStore entityStore,
-            global::StrawberryShake.IEntityMapper<SessionEntity, GetSessions_Sessions_Nodes_Session> getSessions_Sessions_Nodes_SessionFromSessionEntityMapper)
+            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.SessionEntity, GetSessions_Sessions_Nodes_Session> getSessions_Sessions_Nodes_SessionFromSessionEntityMapper)
         {
             _entityStore = entityStore
                  ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -60,7 +60,7 @@ namespace Foo.Bar
             throw new global::System.ArgumentException("GetSessionsResultInfo expected.");
         }
 
-        private IGetSessions_Sessions? MapIGetSessions_Sessions(global::Foo.Bar.State.SessionConnectionData? data)
+        private global::Foo.Bar.IGetSessions_Sessions? MapIGetSessions_Sessions(global::Foo.Bar.State.SessionConnectionData? data)
         {
             if (data is null)
             {
@@ -75,20 +75,21 @@ namespace Foo.Bar
             {
                 returnValue = new GetSessions_Sessions_SessionConnection(MapIGetSessions_Sessions_NodesNonNullableArray(data.Nodes));
             }
-            else {
+            else
+            {
                 throw new global::System.NotSupportedException();
             }
             return returnValue;
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<IGetSessions_Sessions_Nodes>? MapIGetSessions_Sessions_NodesNonNullableArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId>? list)
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetSessions_Sessions_Nodes>? MapIGetSessions_Sessions_NodesNonNullableArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId>? list)
         {
             if (list is null)
             {
                 return null;
             }
 
-            var sessions = new global::System.Collections.Generic.List<IGetSessions_Sessions_Nodes>();
+            var sessions = new global::System.Collections.Generic.List<global::Foo.Bar.IGetSessions_Sessions_Nodes>();
 
             foreach (global::StrawberryShake.EntityId child in list)
             {
@@ -98,7 +99,7 @@ namespace Foo.Bar
             return sessions;
         }
 
-        private IGetSessions_Sessions_Nodes MapNonNullableIGetSessions_Sessions_Nodes(global::StrawberryShake.EntityId entityId)
+        private global::Foo.Bar.IGetSessions_Sessions_Nodes MapNonNullableIGetSessions_Sessions_Nodes(global::StrawberryShake.EntityId entityId)
         {
 
             if (entityId.Name.Equals(
@@ -106,7 +107,7 @@ namespace Foo.Bar
                     global::System.StringComparison.Ordinal))
             {
                 return _getSessions_Sessions_Nodes_SessionFromSessionEntityMapper.Map(
-                    _entityStore.GetEntity<SessionEntity>(entityId)
+                    _entityStore.GetEntity<global::Foo.Bar.State.SessionEntity>(entityId)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
@@ -121,7 +122,7 @@ namespace Foo.Bar
 
 #nullable enable
 
-namespace Foo.Bar
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetSessionsResultInfo
@@ -168,14 +169,78 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetSessionsResult
-        : IGetSessionsResult
+        : global::System.IEquatable<GetSessionsResult>
+        , IGetSessionsResult
     {
-        public GetSessionsResult(IGetSessions_Sessions? sessions)
+        public GetSessionsResult(global::Foo.Bar.IGetSessions_Sessions? sessions)
         {
             Sessions = sessions;
         }
 
-        public IGetSessions_Sessions? Sessions { get; } = default!;
+        public global::Foo.Bar.IGetSessions_Sessions? Sessions { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetSessionsResult)obj);
+        }
+
+        public global::System.Boolean Equals(GetSessionsResult? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((Sessions is null && other.Sessions is null) ||Sessions != null && Sessions.Equals(other.Sessions)));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                if (!(Sessions is null))
+                {
+                    hash ^= 397 * Sessions.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -193,9 +258,10 @@ namespace Foo.Bar
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetSessions_Sessions_SessionConnection
-        : IGetSessions_Sessions_SessionConnection
+        : global::System.IEquatable<GetSessions_Sessions_SessionConnection>
+        , IGetSessions_Sessions_SessionConnection
     {
-        public GetSessions_Sessions_SessionConnection(global::System.Collections.Generic.IReadOnlyList<IGetSessions_Sessions_Nodes>? nodes)
+        public GetSessions_Sessions_SessionConnection(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetSessions_Sessions_Nodes>? nodes)
         {
             Nodes = nodes;
         }
@@ -203,7 +269,75 @@ namespace Foo.Bar
         /// <summary>
         /// A flattened list of the nodes.
         /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<IGetSessions_Sessions_Nodes>? Nodes { get; } = default!;
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetSessions_Sessions_Nodes>? Nodes { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetSessions_Sessions_SessionConnection)obj);
+        }
+
+        public global::System.Boolean Equals(GetSessions_Sessions_SessionConnection? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(
+                        Nodes,
+                        other.Nodes));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                if (!(Nodes is null))
+                {
+                    foreach (var Nodes_elm in Nodes)
+                    {
+                        hash ^= 397 * Nodes_elm.GetHashCode();
+                    }
+                }
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -214,13 +348,13 @@ namespace Foo.Bar
 
 #nullable enable
 
-namespace Foo.Bar
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetSessions_Sessions_Nodes_SessionFromSessionEntityMapper
-        : global::StrawberryShake.IEntityMapper<SessionEntity, GetSessions_Sessions_Nodes_Session>
+        : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.SessionEntity, GetSessions_Sessions_Nodes_Session>
     {
-        public GetSessions_Sessions_Nodes_Session Map(SessionEntity entity)
+        public GetSessions_Sessions_Nodes_Session Map(global::Foo.Bar.State.SessionEntity entity)
         {
             return new GetSessions_Sessions_Nodes_Session(entity.Title);
         }
@@ -238,7 +372,8 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetSessions_Sessions_Nodes_Session
-        : IGetSessions_Sessions_Nodes_Session
+        : global::System.IEquatable<GetSessions_Sessions_Nodes_Session>
+        , IGetSessions_Sessions_Nodes_Session
     {
         public GetSessions_Sessions_Nodes_Session(global::System.String title)
         {
@@ -246,6 +381,66 @@ namespace Foo.Bar
         }
 
         public global::System.String Title { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetSessions_Sessions_Nodes_Session)obj);
+        }
+
+        public global::System.Boolean Equals(GetSessions_Sessions_Nodes_Session? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Title.Equals(other.Title));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * Title.GetHashCode();
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -261,7 +456,7 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetSessionsResult
     {
-        public IGetSessions_Sessions? Sessions { get; }
+        public global::Foo.Bar.IGetSessions_Sessions? Sessions { get; }
     }
 }
 
@@ -283,7 +478,7 @@ namespace Foo.Bar
         /// <summary>
         /// A flattened list of the nodes.
         /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<IGetSessions_Sessions_Nodes>? Nodes { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetSessions_Sessions_Nodes>? Nodes { get; }
     }
 }
 
@@ -462,7 +657,7 @@ namespace Foo.Bar
 
 #nullable enable
 
-namespace Foo.Bar
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetSessionsBuilder
@@ -599,7 +794,7 @@ namespace Foo.Bar
                     "Session",
                     global::System.StringComparison.Ordinal))
             {
-                SessionEntity entity = _entityStore.GetOrCreate<SessionEntity>(entityId);
+                global::Foo.Bar.State.SessionEntity entity = _entityStore.GetOrCreate<global::Foo.Bar.State.SessionEntity>(entityId);
                 entity.Title = DeserializeNonNullableString(
                     global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
@@ -692,7 +887,7 @@ namespace Foo.Bar
 
 #nullable enable
 
-namespace Foo.Bar
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class EntityIdFactory
@@ -737,7 +932,7 @@ namespace Microsoft.Extensions.DependencyInjection
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class FooClientServiceCollectionExtensions
     {
-        public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddFooClient(
+        public static global::StrawberryShake.IClientBuilder AddFooClient(
             this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
             global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
@@ -763,7 +958,9 @@ namespace Microsoft.Extensions.DependencyInjection
                 sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.FooClient>(
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
 
-            return services;
+            return new global::StrawberryShake.ClientBuilder(
+                "FooClient",
+                services);
         }
 
         private static global::Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureClientDefault(
@@ -773,7 +970,7 @@ namespace Microsoft.Extensions.DependencyInjection
             var services = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId>>(
                 services,
-                global::Foo.Bar.EntityIdFactory.CreateEntityId);
+                global::Foo.Bar.State.EntityIdFactory.CreateEntityId);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IEntityStore, global::StrawberryShake.EntityStore>(services);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IOperationStore>(
                 services,
@@ -788,7 +985,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("FooClient"));
                 });
 
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.SessionEntity, global::Foo.Bar.GetSessions_Sessions_Nodes_Session>, global::Foo.Bar.GetSessions_Sessions_Nodes_SessionFromSessionEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.SessionEntity, global::Foo.Bar.GetSessions_Sessions_Nodes_Session>, global::Foo.Bar.State.GetSessions_Sessions_Nodes_SessionFromSessionEntityMapper>(services);
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.StringSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.BooleanSerializer>(services);
@@ -814,8 +1011,8 @@ namespace Microsoft.Extensions.DependencyInjection
                         global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(
                             sp))));
 
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IGetSessionsResult>, global::Foo.Bar.GetSessionsResultFactory>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.IGetSessionsResult>, global::Foo.Bar.GetSessionsBuilder>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IGetSessionsResult>, global::Foo.Bar.State.GetSessionsResultFactory>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.IGetSessionsResult>, global::Foo.Bar.State.GetSessionsBuilder>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::Foo.Bar.IGetSessionsResult>>(
                 services,
                 sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::Foo.Bar.IGetSessionsResult>(

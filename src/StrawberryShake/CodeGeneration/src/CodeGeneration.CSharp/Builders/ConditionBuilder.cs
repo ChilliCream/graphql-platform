@@ -5,6 +5,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
     public class ConditionBuilder : ICode
     {
         private readonly List<ICode> _conditions = new();
+        private bool _setReturn;
+        private bool _determineStatement;
         public static ConditionBuilder New() => new();
 
         public ConditionBuilder Set(string condition)
@@ -13,9 +15,21 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
+        public ConditionBuilder SetReturn(bool value = true)
+        {
+            _setReturn = value;
+            return this;
+        }
+
         public ConditionBuilder Set(ICode condition)
         {
             _conditions.Add(condition);
+            return this;
+        }
+
+        public ConditionBuilder SetDetermineStatement(bool value = true)
+        {
+            _determineStatement = value;
             return this;
         }
 
@@ -26,6 +40,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
         public ConditionBuilder And(ICode condition)
         {
+            if (_conditions.Count == 0)
+            {
+                return Set(condition);
+            }
+
             _conditions.Add(
                 CodeBlockBuilder.New()
                     .AddCode(CodeInlineBuilder.New().SetText("&& "))
@@ -35,30 +54,48 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
         public ConditionBuilder Or(ICode condition)
         {
+            if (_conditions.Count == 0)
+            {
+                return Set(condition);
+            }
+
             _conditions.Add(
                 CodeBlockBuilder.New()
                     .AddCode(CodeInlineBuilder.New().SetText("|| "))
-                    .AddCode(condition)
-            );
+                    .AddCode(condition));
             return this;
         }
 
         public void Build(CodeWriter writer)
         {
-            if (_conditions.Count == 0)
+            if (_determineStatement)
             {
-                return;
+                writer.WriteIndent();
             }
 
-            using (writer.IncreaseIndent())
+            if (_setReturn)
             {
-                WriteCondition(writer, _conditions[0]);
-                for (var i = 1; i < _conditions.Count; i++)
+                writer.Write("return ");
+            }
+
+            if (_conditions.Count != 0)
+            {
+                using (writer.IncreaseIndent())
                 {
-                    CodeLineBuilder.New().Build(writer);
-                    writer.WriteIndent();
-                    WriteCondition(writer, _conditions[i]);
+                    WriteCondition(writer, _conditions[0]);
+                    for (var i = 1; i < _conditions.Count; i++)
+                    {
+                        CodeLineBuilder.New().Build(writer);
+                        writer.WriteIndent();
+                        WriteCondition(writer, _conditions[i]);
+                    }
                 }
+            }
+
+            if (_determineStatement)
+            {
+                writer.Write(";");
+                writer.WriteLine();
             }
         }
 

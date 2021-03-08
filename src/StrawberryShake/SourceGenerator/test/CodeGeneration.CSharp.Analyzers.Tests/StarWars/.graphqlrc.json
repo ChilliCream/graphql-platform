@@ -9,14 +9,15 @@
       "dependencyInjection": true,
       "requestStrategy": "PersistedQuery",
       "hashAlgorithm": "md5",
-      "protocols": [
+      "outputDirectoryName": ".generated",
+      "transportProfiles": [
         {
-          "profile": "Default",
-          "transport": "HTTP",
+          "name": "Default",
+          "default": "HTTP",
           "streamTransport": "WebSocket"
         },
         {
-          "profile": "Default",
+          "name": "WebSocket",
           "default": "HTTP",
           "query": "WebSocket",
           "subscription": "WebSocket"

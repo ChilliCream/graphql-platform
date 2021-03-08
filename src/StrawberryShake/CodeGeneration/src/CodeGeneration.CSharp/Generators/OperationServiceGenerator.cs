@@ -27,9 +27,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         protected override void Generate(
             CodeWriter writer,
             OperationDescriptor descriptor,
-            out string fileName)
+            out string fileName,
+            out string? path)
         {
             fileName = descriptor.RuntimeType.Name;
+            path = null;
 
             ClassBuilder classBuilder = ClassBuilder
                 .New()
@@ -86,7 +88,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .SetPrivate()
                     .SetReturnType(TypeNames.Object.MakeNullable())
                     .SetName("Format" + GetPropertyName(argument.Name))
-                    .AddParameter(_value, x => x.SetType(argument.Type.ToBuilder()))
+                    .AddParameter(_value, x => x.SetType(argument.Type.ToTypeReference()))
                     .AddCode(GenerateSerializer(argument.Type, _value));
             }
         }
@@ -176,7 +178,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 watchMethod
                     .AddParameter()
                     .SetName(GetParameterName(arg.Name))
-                    .SetType(arg.Type.ToBuilder());
+                    .SetType(arg.Type.ToTypeReference());
             }
 
             watchMethod.AddParameter()
@@ -217,7 +219,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 executeMethod
                     .AddParameter()
                     .SetName(GetParameterName(arg.Name))
-                    .SetType(arg.Type.ToBuilder());
+                    .SetType(arg.Type.ToTypeReference());
             }
 
             executeMethod
@@ -284,7 +286,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 {
                     var argName = GetParameterName(arg.Name);
 
-                    method.AddParameter(argName, x => x.SetType(arg.Type.ToBuilder()));
+                    method.AddParameter(argName, x => x.SetType(arg.Type.ToTypeReference()));
 
                     method.AddCode(
                         MethodCallBuilder
