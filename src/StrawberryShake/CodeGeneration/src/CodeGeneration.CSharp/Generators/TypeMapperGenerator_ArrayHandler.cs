@@ -21,7 +21,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         {
             methodBuilder
                 .AddParameter(_list)
-                .SetType(listTypeDescriptor.ToEntityIdBuilder());
+                .SetType(listTypeDescriptor.ToStateTypeReference());
 
             var listVarName = GetParameterName(listTypeDescriptor.Name) + "s";
 
@@ -40,7 +40,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                             .AddCode("new ")
                             .AddCode(TypeNames.List)
                             .AddCode("<")
-                            .AddCode(listTypeDescriptor.InnerType.ToBuilder().SkipTrailingSpace())
+                            .AddCode(listTypeDescriptor.InnerType.ToTypeReference().SkipTrailingSpace())
                             .AddCode(">")
                             .AddCode("()")));
             methodBuilder.AddEmptyLine();
@@ -50,7 +50,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .SetLoopHeader(
                     CodeBlockBuilder
                         .New()
-                        .AddCode(listTypeDescriptor.InnerType.ToEntityIdBuilder())
+                        .AddCode(listTypeDescriptor.InnerType.ToStateTypeReference())
                         .AddCode($"{_child} in {_list}"))
                 .AddCode(
                     MethodCallBuilder

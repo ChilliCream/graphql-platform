@@ -80,5 +80,35 @@ namespace StrawberryShake.CodeGeneration.Properties {
                 return ResourceManager.GetString("ClientDescriptor_Description", resourceCulture);
             }
         }
+        
+        internal static string ThrowHelper_DuplicateSelectionSet {
+            get {
+                return ResourceManager.GetString("ThrowHelper_DuplicateSelectionSet", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_ReturnFragmentDoesNotExist {
+            get {
+                return ResourceManager.GetString("ThrowHelper_ReturnFragmentDoesNotExist", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_FragmentMustBeImplementedByAllTypeFragments {
+            get {
+                return ResourceManager.GetString("ThrowHelper_FragmentMustBeImplementedByAllTypeFragments", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_ResultTypeNameCollision {
+            get {
+                return ResourceManager.GetString("ThrowHelper_ResultTypeNameCollision", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_TypeNameCollision {
+            get {
+                return ResourceManager.GetString("ThrowHelper_TypeNameCollision", resourceCulture);
+            }
+        }
     }
 }

@@ -11,14 +11,17 @@ namespace StrawberryShake.CodeGeneration.Mappers
         {
             foreach (OperationModel modelOperation in model.Operations)
             {
-                var resultTypeName =
-                    CreateResultRootTypeName(modelOperation.ResultType.Name);
+                RuntimeTypeInfo resultType = context.GetRuntimeType(
+                    modelOperation.ResultType.Name,
+                    Descriptors.TypeDescriptors.TypeKind.ResultType);
 
                 context.Register(
                     modelOperation.Name,
                     new ResultBuilderDescriptor(
-                        modelOperation.Name,
-                        context.Types.Single(t => t.RuntimeType.Name.Equals(resultTypeName)),
+                        new RuntimeTypeInfo(
+                            CreateResultBuilderName(modelOperation.Name),
+                            CreateStateNamespace(context.Namespace)),
+                        context.Types.Single(t => t.RuntimeType.Equals(resultType)),
                         modelOperation.LeafTypes.Select(
                             leafType =>
                             {

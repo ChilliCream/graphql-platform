@@ -9,9 +9,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         protected override void Generate(
             CodeWriter writer,
             EnumTypeDescriptor descriptor,
-            out string fileName)
+            out string fileName,
+            out string? path)
         {
             fileName = descriptor.Name;
+            path = null;
 
             EnumBuilder enumBuilder = EnumBuilder
                 .New()

@@ -115,16 +115,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
             if (_elseCode is not null)
             {
-                writer.WriteIndent();
-                writer.Write("else {");
+                writer.WriteIndentedLine("else");
+                writer.WriteIndentedLine("{");
                 using (writer.IncreaseIndent())
                 {
-                    writer.WriteLine();
                     _elseCode.Build(writer);
                 }
 
-                writer.WriteIndent();
-                writer.WriteLine("}");
+                writer.WriteIndentedLine("}");
             }
         }
     }

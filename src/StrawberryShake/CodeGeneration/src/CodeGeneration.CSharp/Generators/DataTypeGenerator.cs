@@ -18,9 +18,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         protected override void Generate(
             CodeWriter writer,
             DataTypeDescriptor descriptor,
-            out string fileName)
+            out string fileName,
+            out string? path)
         {
             fileName = descriptor.RuntimeType.Name;
+            path = State;
+
             AbstractTypeBuilder typeBuilder;
             ConstructorBuilder? constructorBuilder = null;
 
@@ -75,13 +78,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     continue;
                 }
 
-                TypeReferenceBuilder propertyType = property.Type.Kind switch
-                {
-                    TypeKind.LeafType => property.Type.ToBuilder(),
-                    TypeKind.DataType => property.Type.ToBuilder(property.Type.Name),
-                    TypeKind.EntityType => property.Type.ToEntityIdBuilder(),
-                    _ => throw new ArgumentOutOfRangeException()
-                };
+                TypeReferenceBuilder propertyType = property.Type.ToStateTypeReference();
 
                 typeBuilder
                     .AddProperty(property.Name)

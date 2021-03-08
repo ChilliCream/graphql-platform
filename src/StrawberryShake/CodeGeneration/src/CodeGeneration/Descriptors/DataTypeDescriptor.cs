@@ -20,6 +20,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors
         /// The types that are subsets of the DataType represented by this descriptor.
         /// </param>
         /// <param name="implements"></param>
+        /// <param name="documentation"></param>
         /// <param name="isInterface"></param>
         public DataTypeDescriptor(
             NameString name,

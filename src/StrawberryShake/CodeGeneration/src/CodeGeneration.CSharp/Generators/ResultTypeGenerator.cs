@@ -2,7 +2,6 @@ using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
-using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Generators
@@ -19,13 +18,17 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         protected override void Generate(
             CodeWriter writer,
             ObjectTypeDescriptor descriptor,
-            out string fileName)
+            out string fileName,
+            out string? path)
         {
             fileName = descriptor.RuntimeType.Name;
+            path = null;
+
             ClassBuilder classBuilder = ClassBuilder
                 .New()
                 .SetComment(descriptor.Description)
-                .SetName(fileName);
+                .SetName(fileName)
+                .AddEquality(fileName, descriptor.Properties);
 
             ConstructorBuilder constructorBuilder = classBuilder
                 .AddConstructor()
@@ -33,7 +36,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             foreach (var prop in descriptor.Properties)
             {
-                TypeReferenceBuilder propTypeBuilder = prop.Type.ToBuilder();
+                TypeReferenceBuilder propTypeBuilder = prop.Type.ToTypeReference();
 
                 // Add Property to class
                 classBuilder
@@ -41,8 +44,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .SetComment(prop.Description)
                     .SetName(prop.Name)
                     .SetType(propTypeBuilder)
-                    .SetPublic()
-                    .SetValue(prop.Type.IsNullableType() ? "default!" : null);
+                    .SetPublic();
 
                 // Add initialization of property to the constructor
                 var paramName = GetParameterName(prop.Name);
