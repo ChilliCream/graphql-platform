@@ -79,7 +79,8 @@ namespace Foo.Bar
             {
                 returnValue = new SearchNewsItems_NewsItems_NewsItemCollectionSegment(MapISearchNewsItems_NewsItems_ItemsArray(data.Items));
             }
-            else {
+            else
+            {
                 throw new global::System.NotSupportedException();
             }
             return returnValue;
@@ -177,14 +178,78 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchNewsItemsResult
-        : ISearchNewsItemsResult
+        : global::System.IEquatable<SearchNewsItemsResult>
+        , ISearchNewsItemsResult
     {
         public SearchNewsItemsResult(ISearchNewsItems_NewsItems? newsItems)
         {
             NewsItems = newsItems;
         }
 
-        public ISearchNewsItems_NewsItems? NewsItems { get; } = default!;
+        public ISearchNewsItems_NewsItems? NewsItems { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((SearchNewsItemsResult)obj);
+        }
+
+        public global::System.Boolean Equals(SearchNewsItemsResult? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((NewsItems is null && other.NewsItems is null) ||NewsItems != null && NewsItems.Equals(other.NewsItems)));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                if (!(NewsItems is null))
+                {
+                    hash ^= 397 * NewsItems.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -199,14 +264,86 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchNewsItems_NewsItems_NewsItemCollectionSegment
-        : ISearchNewsItems_NewsItems_NewsItemCollectionSegment
+        : global::System.IEquatable<SearchNewsItems_NewsItems_NewsItemCollectionSegment>
+        , ISearchNewsItems_NewsItems_NewsItemCollectionSegment
     {
         public SearchNewsItems_NewsItems_NewsItemCollectionSegment(global::System.Collections.Generic.IReadOnlyList<ISearchNewsItems_NewsItems_Items?>? items)
         {
             Items = items;
         }
 
-        public global::System.Collections.Generic.IReadOnlyList<ISearchNewsItems_NewsItems_Items?>? Items { get; } = default!;
+        public global::System.Collections.Generic.IReadOnlyList<ISearchNewsItems_NewsItems_Items?>? Items { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((SearchNewsItems_NewsItems_NewsItemCollectionSegment)obj);
+        }
+
+        public global::System.Boolean Equals(SearchNewsItems_NewsItems_NewsItemCollectionSegment? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(
+                        Items,
+                        other.Items));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                if (!(Items is null))
+                {
+                    foreach (var Items_elm in Items)
+                    {
+                        if (!(Items_elm is null))
+                        {
+                            hash ^= 397 * Items_elm.GetHashCode();
+                        }
+                    }
+                }
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -244,7 +381,8 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchNewsItems_NewsItems_Items_NewsItem
-        : ISearchNewsItems_NewsItems_Items_NewsItem
+        : global::System.IEquatable<SearchNewsItems_NewsItems_Items_NewsItem>
+        , ISearchNewsItems_NewsItems_Items_NewsItem
     {
         public SearchNewsItems_NewsItems_Items_NewsItem(
             global::System.String id,
@@ -261,6 +399,72 @@ namespace Foo.Bar
         public global::System.String Title { get; }
 
         public global::System.String Summary { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((SearchNewsItems_NewsItems_Items_NewsItem)obj);
+        }
+
+        public global::System.Boolean Equals(SearchNewsItems_NewsItems_Items_NewsItem? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Id.Equals(other.Id))
+                && Title.Equals(other.Title)
+                && Summary.Equals(other.Summary);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * Id.GetHashCode();
+
+                hash ^= 397 * Title.GetHashCode();
+
+                hash ^= 397 * Summary.GetHashCode();
+
+                return hash;
+            }
+        }
     }
 }
 

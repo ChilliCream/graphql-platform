@@ -121,7 +121,8 @@ namespace Foo.Bar
             {
                 returnValue = new GetPeople_People_PersonConnection(MapIGetPeople_People_NodesArray(data.Nodes));
             }
-            else {
+            else
+            {
                 throw new global::System.NotSupportedException();
             }
             return returnValue;
@@ -178,7 +179,8 @@ namespace Foo.Bar
             {
                 returnValue = new GetPeople_People_Nodes_Messages_MessageConnection(MapIGetPeople_People_Nodes_Messages_NodesArray(data.Nodes));
             }
-            else {
+            else
+            {
                 throw new global::System.NotSupportedException();
             }
             return returnValue;
@@ -296,7 +298,8 @@ namespace Foo.Bar
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleResult
-        : IGetPeopleResult
+        : global::System.IEquatable<GetPeopleResult>
+        , IGetPeopleResult
     {
         public GetPeopleResult(IGetPeople_People? people)
         {
@@ -306,7 +309,70 @@ namespace Foo.Bar
         /// <summary>
         /// Gets access to all the people known to this service.
         /// </summary>
-        public IGetPeople_People? People { get; } = default!;
+        public IGetPeople_People? People { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetPeopleResult)obj);
+        }
+
+        public global::System.Boolean Equals(GetPeopleResult? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((People is null && other.People is null) ||People != null && People.Equals(other.People)));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                if (!(People is null))
+                {
+                    hash ^= 397 * People.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -324,7 +390,8 @@ namespace Foo.Bar
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeople_People_PersonConnection
-        : IGetPeople_People_PersonConnection
+        : global::System.IEquatable<GetPeople_People_PersonConnection>
+        , IGetPeople_People_PersonConnection
     {
         public GetPeople_People_PersonConnection(global::System.Collections.Generic.IReadOnlyList<IGetPeople_People_Nodes?>? nodes)
         {
@@ -334,7 +401,78 @@ namespace Foo.Bar
         /// <summary>
         /// A flattened list of the nodes.
         /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<IGetPeople_People_Nodes?>? Nodes { get; } = default!;
+        public global::System.Collections.Generic.IReadOnlyList<IGetPeople_People_Nodes?>? Nodes { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetPeople_People_PersonConnection)obj);
+        }
+
+        public global::System.Boolean Equals(GetPeople_People_PersonConnection? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(
+                        Nodes,
+                        other.Nodes));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                if (!(Nodes is null))
+                {
+                    foreach (var Nodes_elm in Nodes)
+                    {
+                        if (!(Nodes_elm is null))
+                        {
+                            hash ^= 397 * Nodes_elm.GetHashCode();
+                        }
+                    }
+                }
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -390,7 +528,8 @@ namespace Foo.Bar
             {
                 returnValue = new GetPeople_People_Nodes_Messages_MessageConnection(MapIGetPeople_People_Nodes_Messages_NodesArray(data.Nodes));
             }
-            else {
+            else
+            {
                 throw new global::System.NotSupportedException();
             }
             return returnValue;
@@ -462,7 +601,8 @@ namespace Foo.Bar
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeople_People_Nodes_Person
-        : IGetPeople_People_Nodes_Person
+        : global::System.IEquatable<GetPeople_People_Nodes_Person>
+        , IGetPeople_People_Nodes_Person
     {
         public GetPeople_People_Nodes_Person(
             global::System.String name,
@@ -480,7 +620,73 @@ namespace Foo.Bar
         /// <summary>
         /// Field messages
         /// </summary>
-        public IGetPeople_People_Nodes_Messages? Messages { get; } = default!;
+        public IGetPeople_People_Nodes_Messages? Messages { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetPeople_People_Nodes_Person)obj);
+        }
+
+        public global::System.Boolean Equals(GetPeople_People_Nodes_Person? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Name.Equals(other.Name))
+                && ((Messages is null && other.Messages is null) ||Messages != null && Messages.Equals(other.Messages));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * Name.GetHashCode();
+
+                if (!(Messages is null))
+                {
+                    hash ^= 397 * Messages.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -498,7 +704,8 @@ namespace Foo.Bar
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeople_People_Nodes_Messages_MessageConnection
-        : IGetPeople_People_Nodes_Messages_MessageConnection
+        : global::System.IEquatable<GetPeople_People_Nodes_Messages_MessageConnection>
+        , IGetPeople_People_Nodes_Messages_MessageConnection
     {
         public GetPeople_People_Nodes_Messages_MessageConnection(global::System.Collections.Generic.IReadOnlyList<IGetPeople_People_Nodes_Messages_Nodes?>? nodes)
         {
@@ -508,7 +715,78 @@ namespace Foo.Bar
         /// <summary>
         /// A flattened list of the nodes.
         /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<IGetPeople_People_Nodes_Messages_Nodes?>? Nodes { get; } = default!;
+        public global::System.Collections.Generic.IReadOnlyList<IGetPeople_People_Nodes_Messages_Nodes?>? Nodes { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetPeople_People_Nodes_Messages_MessageConnection)obj);
+        }
+
+        public global::System.Boolean Equals(GetPeople_People_Nodes_Messages_MessageConnection? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(
+                        Nodes,
+                        other.Nodes));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                if (!(Nodes is null))
+                {
+                    foreach (var Nodes_elm in Nodes)
+                    {
+                        if (!(Nodes_elm is null))
+                        {
+                            hash ^= 397 * Nodes_elm.GetHashCode();
+                        }
+                    }
+                }
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -575,7 +853,8 @@ namespace Foo.Bar
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeople_People_Nodes_Messages_Nodes_Message
-        : IGetPeople_People_Nodes_Messages_Nodes_Message
+        : global::System.IEquatable<GetPeople_People_Nodes_Messages_Nodes_Message>
+        , IGetPeople_People_Nodes_Messages_Nodes_Message
     {
         public GetPeople_People_Nodes_Messages_Nodes_Message(
             IGetPeople_People_Nodes_Messages_Nodes_Sender sender,
@@ -594,6 +873,69 @@ namespace Foo.Bar
         /// Field text
         /// </summary>
         public global::System.String Text { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetPeople_People_Nodes_Messages_Nodes_Message)obj);
+        }
+
+        public global::System.Boolean Equals(GetPeople_People_Nodes_Messages_Nodes_Message? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Sender.Equals(other.Sender))
+                && Text.Equals(other.Text);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * Sender.GetHashCode();
+
+                hash ^= 397 * Text.GetHashCode();
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -631,7 +973,8 @@ namespace Foo.Bar
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeople_People_Nodes_Messages_Nodes_Sender_Person
-        : IGetPeople_People_Nodes_Messages_Nodes_Sender_Person
+        : global::System.IEquatable<GetPeople_People_Nodes_Messages_Nodes_Sender_Person>
+        , IGetPeople_People_Nodes_Messages_Nodes_Sender_Person
     {
         public GetPeople_People_Nodes_Messages_Nodes_Sender_Person(global::System.String name)
         {
@@ -642,6 +985,66 @@ namespace Foo.Bar
         /// Field name
         /// </summary>
         public global::System.String Name { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetPeople_People_Nodes_Messages_Nodes_Sender_Person)obj);
+        }
+
+        public global::System.Boolean Equals(GetPeople_People_Nodes_Messages_Nodes_Sender_Person? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Name.Equals(other.Name));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * Name.GetHashCode();
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -966,7 +1369,8 @@ namespace Foo.Bar
             {
                 returnValue = new WriteMessage_SendMessage_SendMessagePayload(MapNonNullableIWriteMessage_SendMessage_Message(data.Message ?? throw new global::System.ArgumentNullException()));
             }
-            else {
+            else
+            {
                 throw new global::System.NotSupportedException();
             }
             return returnValue;
@@ -1062,7 +1466,8 @@ namespace Foo.Bar
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class WriteMessageResult
-        : IWriteMessageResult
+        : global::System.IEquatable<WriteMessageResult>
+        , IWriteMessageResult
     {
         public WriteMessageResult(IWriteMessage_SendMessage sendMessage)
         {
@@ -1073,6 +1478,66 @@ namespace Foo.Bar
         /// Field sendMessage
         /// </summary>
         public IWriteMessage_SendMessage SendMessage { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((WriteMessageResult)obj);
+        }
+
+        public global::System.Boolean Equals(WriteMessageResult? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (SendMessage.Equals(other.SendMessage));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * SendMessage.GetHashCode();
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -1090,7 +1555,8 @@ namespace Foo.Bar
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class WriteMessage_SendMessage_SendMessagePayload
-        : IWriteMessage_SendMessage_SendMessagePayload
+        : global::System.IEquatable<WriteMessage_SendMessage_SendMessagePayload>
+        , IWriteMessage_SendMessage_SendMessagePayload
     {
         public WriteMessage_SendMessage_SendMessagePayload(IWriteMessage_SendMessage_Message message)
         {
@@ -1101,6 +1567,66 @@ namespace Foo.Bar
         /// Field message
         /// </summary>
         public IWriteMessage_SendMessage_Message Message { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((WriteMessage_SendMessage_SendMessagePayload)obj);
+        }
+
+        public global::System.Boolean Equals(WriteMessage_SendMessage_SendMessagePayload? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Message.Equals(other.Message));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * Message.GetHashCode();
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -1167,7 +1693,8 @@ namespace Foo.Bar
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class WriteMessage_SendMessage_Message_Message
-        : IWriteMessage_SendMessage_Message_Message
+        : global::System.IEquatable<WriteMessage_SendMessage_Message_Message>
+        , IWriteMessage_SendMessage_Message_Message
     {
         public WriteMessage_SendMessage_Message_Message(
             IGetPeople_People_Nodes_Messages_Nodes_Sender sender,
@@ -1186,6 +1713,69 @@ namespace Foo.Bar
         /// Field text
         /// </summary>
         public global::System.String Text { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((WriteMessage_SendMessage_Message_Message)obj);
+        }
+
+        public global::System.Boolean Equals(WriteMessage_SendMessage_Message_Message? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Sender.Equals(other.Sender))
+                && Text.Equals(other.Text);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * Sender.GetHashCode();
+
+                hash ^= 397 * Text.GetHashCode();
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -1223,7 +1813,8 @@ namespace Foo.Bar
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class WriteMessage_SendMessage_Message_Sender_Person
-        : IWriteMessage_SendMessage_Message_Sender_Person
+        : global::System.IEquatable<WriteMessage_SendMessage_Message_Sender_Person>
+        , IWriteMessage_SendMessage_Message_Sender_Person
     {
         public WriteMessage_SendMessage_Message_Sender_Person(global::System.String name)
         {
@@ -1234,6 +1825,66 @@ namespace Foo.Bar
         /// Field name
         /// </summary>
         public global::System.String Name { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((WriteMessage_SendMessage_Message_Sender_Person)obj);
+        }
+
+        public global::System.Boolean Equals(WriteMessage_SendMessage_Message_Sender_Person? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Name.Equals(other.Name));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * Name.GetHashCode();
+
+                return hash;
+            }
+        }
     }
 }
 

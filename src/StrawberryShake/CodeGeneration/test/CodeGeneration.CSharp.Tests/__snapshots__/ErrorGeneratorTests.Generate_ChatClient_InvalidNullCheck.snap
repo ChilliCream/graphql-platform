@@ -157,7 +157,8 @@ namespace Foo.Bar
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleResult
-        : IGetPeopleResult
+        : global::System.IEquatable<GetPeopleResult>
+        , IGetPeopleResult
     {
         public GetPeopleResult(IGetPeople_Me me)
         {
@@ -168,6 +169,66 @@ namespace Foo.Bar
         /// Gets the currently logged in user.
         /// </summary>
         public IGetPeople_Me Me { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetPeopleResult)obj);
+        }
+
+        public global::System.Boolean Equals(GetPeopleResult? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Me.Equals(other.Me));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * Me.GetHashCode();
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -217,7 +278,8 @@ namespace Foo.Bar
             {
                 returnValue = new GetPeople_Me_Friends_PersonConnection(MapIGetPeople_Me_Friends_NodesArray(data.Nodes));
             }
-            else {
+            else
+            {
                 throw new global::System.NotSupportedException();
             }
             return returnValue;
@@ -275,7 +337,8 @@ namespace Foo.Bar
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeople_Me_Person
-        : IGetPeople_Me_Person
+        : global::System.IEquatable<GetPeople_Me_Person>
+        , IGetPeople_Me_Person
     {
         public GetPeople_Me_Person(IGetPeople_Me_Friends? friends)
         {
@@ -285,7 +348,70 @@ namespace Foo.Bar
         /// <summary>
         /// Field friends
         /// </summary>
-        public IGetPeople_Me_Friends? Friends { get; } = default!;
+        public IGetPeople_Me_Friends? Friends { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetPeople_Me_Person)obj);
+        }
+
+        public global::System.Boolean Equals(GetPeople_Me_Person? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((Friends is null && other.Friends is null) ||Friends != null && Friends.Equals(other.Friends)));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                if (!(Friends is null))
+                {
+                    hash ^= 397 * Friends.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -303,7 +429,8 @@ namespace Foo.Bar
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeople_Me_Friends_PersonConnection
-        : IGetPeople_Me_Friends_PersonConnection
+        : global::System.IEquatable<GetPeople_Me_Friends_PersonConnection>
+        , IGetPeople_Me_Friends_PersonConnection
     {
         public GetPeople_Me_Friends_PersonConnection(global::System.Collections.Generic.IReadOnlyList<IGetPeople_Me_Friends_Nodes?>? nodes)
         {
@@ -313,7 +440,78 @@ namespace Foo.Bar
         /// <summary>
         /// A flattened list of the nodes.
         /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<IGetPeople_Me_Friends_Nodes?>? Nodes { get; } = default!;
+        public global::System.Collections.Generic.IReadOnlyList<IGetPeople_Me_Friends_Nodes?>? Nodes { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetPeople_Me_Friends_PersonConnection)obj);
+        }
+
+        public global::System.Boolean Equals(GetPeople_Me_Friends_PersonConnection? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(
+                        Nodes,
+                        other.Nodes));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                if (!(Nodes is null))
+                {
+                    foreach (var Nodes_elm in Nodes)
+                    {
+                        if (!(Nodes_elm is null))
+                        {
+                            hash ^= 397 * Nodes_elm.GetHashCode();
+                        }
+                    }
+                }
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -354,7 +552,8 @@ namespace Foo.Bar
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeople_Me_Friends_Nodes_Person
-        : IGetPeople_Me_Friends_Nodes_Person
+        : global::System.IEquatable<GetPeople_Me_Friends_Nodes_Person>
+        , IGetPeople_Me_Friends_Nodes_Person
     {
         public GetPeople_Me_Friends_Nodes_Person(
             global::System.String name,
@@ -380,6 +579,72 @@ namespace Foo.Bar
         /// Field isOnline
         /// </summary>
         public global::System.Boolean IsOnline { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetPeople_Me_Friends_Nodes_Person)obj);
+        }
+
+        public global::System.Boolean Equals(GetPeople_Me_Friends_Nodes_Person? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Name.Equals(other.Name))
+                && Email.Equals(other.Email)
+                && IsOnline == other.IsOnline;
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * Name.GetHashCode();
+
+                hash ^= 397 * Email.GetHashCode();
+
+                hash ^= 397 * IsOnline.GetHashCode();
+
+                return hash;
+            }
+        }
     }
 }
 

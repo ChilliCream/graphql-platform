@@ -78,7 +78,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 TypeReferenceBuilder propertyType = property.Type.Kind switch
                 {
                     TypeKind.LeafType => property.Type.ToBuilder(),
-                    TypeKind.DataType => property.Type.ToBuilder(property.Type.Name),
+                    TypeKind.DataType =>
+                        property.Type.ToBuilder(CreateDataTypeName(property.Type.Name)),
                     TypeKind.EntityType => property.Type.ToEntityIdBuilder(),
                     _ => throw new ArgumentOutOfRangeException()
                 };

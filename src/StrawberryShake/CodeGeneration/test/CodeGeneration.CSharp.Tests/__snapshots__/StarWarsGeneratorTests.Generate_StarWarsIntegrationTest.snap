@@ -49,7 +49,8 @@ namespace Foo.Bar
             {
                 returnValue = new CreateReview_CreateReview_Review(data.Stars ?? throw new global::System.ArgumentNullException());
             }
-            else {
+            else
+            {
                 throw new global::System.NotSupportedException();
             }
             return returnValue;
@@ -111,7 +112,8 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class CreateReviewResult
-        : ICreateReviewResult
+        : global::System.IEquatable<CreateReviewResult>
+        , ICreateReviewResult
     {
         public CreateReviewResult(ICreateReview_CreateReview createReview)
         {
@@ -119,6 +121,66 @@ namespace Foo.Bar
         }
 
         public ICreateReview_CreateReview CreateReview { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((CreateReviewResult)obj);
+        }
+
+        public global::System.Boolean Equals(CreateReviewResult? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (CreateReview.Equals(other.CreateReview));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * CreateReview.GetHashCode();
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -133,7 +195,8 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class CreateReview_CreateReview_Review
-        : ICreateReview_CreateReview_Review
+        : global::System.IEquatable<CreateReview_CreateReview_Review>
+        , ICreateReview_CreateReview_Review
     {
         public CreateReview_CreateReview_Review(global::System.Int32 stars)
         {
@@ -141,6 +204,66 @@ namespace Foo.Bar
         }
 
         public global::System.Int32 Stars { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((CreateReview_CreateReview_Review)obj);
+        }
+
+        public global::System.Boolean Equals(CreateReview_CreateReview_Review? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Stars == other.Stars);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * Stars.GetHashCode();
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -233,7 +356,8 @@ namespace Foo.Bar
             {
                 returnValue = new OnReview_OnReview_Review(data.Stars ?? throw new global::System.ArgumentNullException());
             }
-            else {
+            else
+            {
                 throw new global::System.NotSupportedException();
             }
             return returnValue;
@@ -295,7 +419,8 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnReviewResult
-        : IOnReviewResult
+        : global::System.IEquatable<OnReviewResult>
+        , IOnReviewResult
     {
         public OnReviewResult(IOnReview_OnReview onReview)
         {
@@ -303,6 +428,66 @@ namespace Foo.Bar
         }
 
         public IOnReview_OnReview OnReview { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((OnReviewResult)obj);
+        }
+
+        public global::System.Boolean Equals(OnReviewResult? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (OnReview.Equals(other.OnReview));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * OnReview.GetHashCode();
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -317,7 +502,8 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnReview_OnReview_Review
-        : IOnReview_OnReview_Review
+        : global::System.IEquatable<OnReview_OnReview_Review>
+        , IOnReview_OnReview_Review
     {
         public OnReview_OnReview_Review(global::System.Int32 stars)
         {
@@ -325,6 +511,66 @@ namespace Foo.Bar
         }
 
         public global::System.Int32 Stars { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((OnReview_OnReview_Review)obj);
+        }
+
+        public global::System.Boolean Equals(OnReview_OnReview_Review? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Stars == other.Stars);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * Stars.GetHashCode();
+
+                return hash;
+            }
+        }
     }
 }
 

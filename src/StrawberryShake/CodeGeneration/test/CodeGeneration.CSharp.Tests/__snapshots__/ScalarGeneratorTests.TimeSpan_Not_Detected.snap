@@ -75,7 +75,8 @@ namespace Foo.Bar
             {
                 returnValue = new GetSessions_Sessions_SessionConnection(MapIGetSessions_Sessions_NodesNonNullableArray(data.Nodes));
             }
-            else {
+            else
+            {
                 throw new global::System.NotSupportedException();
             }
             return returnValue;
@@ -168,14 +169,78 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetSessionsResult
-        : IGetSessionsResult
+        : global::System.IEquatable<GetSessionsResult>
+        , IGetSessionsResult
     {
         public GetSessionsResult(IGetSessions_Sessions? sessions)
         {
             Sessions = sessions;
         }
 
-        public IGetSessions_Sessions? Sessions { get; } = default!;
+        public IGetSessions_Sessions? Sessions { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetSessionsResult)obj);
+        }
+
+        public global::System.Boolean Equals(GetSessionsResult? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((Sessions is null && other.Sessions is null) ||Sessions != null && Sessions.Equals(other.Sessions)));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                if (!(Sessions is null))
+                {
+                    hash ^= 397 * Sessions.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -193,7 +258,8 @@ namespace Foo.Bar
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetSessions_Sessions_SessionConnection
-        : IGetSessions_Sessions_SessionConnection
+        : global::System.IEquatable<GetSessions_Sessions_SessionConnection>
+        , IGetSessions_Sessions_SessionConnection
     {
         public GetSessions_Sessions_SessionConnection(global::System.Collections.Generic.IReadOnlyList<IGetSessions_Sessions_Nodes>? nodes)
         {
@@ -203,7 +269,75 @@ namespace Foo.Bar
         /// <summary>
         /// A flattened list of the nodes.
         /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<IGetSessions_Sessions_Nodes>? Nodes { get; } = default!;
+        public global::System.Collections.Generic.IReadOnlyList<IGetSessions_Sessions_Nodes>? Nodes { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetSessions_Sessions_SessionConnection)obj);
+        }
+
+        public global::System.Boolean Equals(GetSessions_Sessions_SessionConnection? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(
+                        Nodes,
+                        other.Nodes));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                if (!(Nodes is null))
+                {
+                    foreach (var Nodes_elm in Nodes)
+                    {
+                        hash ^= 397 * Nodes_elm.GetHashCode();
+                    }
+                }
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -238,7 +372,8 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetSessions_Sessions_Nodes_Session
-        : IGetSessions_Sessions_Nodes_Session
+        : global::System.IEquatable<GetSessions_Sessions_Nodes_Session>
+        , IGetSessions_Sessions_Nodes_Session
     {
         public GetSessions_Sessions_Nodes_Session(global::System.String title)
         {
@@ -246,6 +381,66 @@ namespace Foo.Bar
         }
 
         public global::System.String Title { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetSessions_Sessions_Nodes_Session)obj);
+        }
+
+        public global::System.Boolean Equals(GetSessions_Sessions_Nodes_Session? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Title.Equals(other.Title));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * Title.GetHashCode();
+
+                return hash;
+            }
+        }
     }
 }
 
