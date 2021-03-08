@@ -15,7 +15,7 @@
 
 #nullable enable
 
-namespace Foo.Bar
+namespace Foo.Bar.State
 {
     /// <summary>
     /// A human character in the Star Wars universe.
@@ -37,18 +37,18 @@ namespace Foo.Bar
 
 #nullable enable
 
-namespace Foo.Bar
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ChangeHomePlanetResultFactory
         : global::StrawberryShake.IOperationResultDataFactory<ChangeHomePlanetResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<HumanEntity, ChangeHomePlanet_ChangeHomePlanet_Human_Human> _changeHomePlanet_ChangeHomePlanet_Human_HumanFromHumanEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.HumanEntity, ChangeHomePlanet_ChangeHomePlanet_Human_Human> _changeHomePlanet_ChangeHomePlanet_Human_HumanFromHumanEntityMapper;
 
         public ChangeHomePlanetResultFactory(
             global::StrawberryShake.IEntityStore entityStore,
-            global::StrawberryShake.IEntityMapper<HumanEntity, ChangeHomePlanet_ChangeHomePlanet_Human_Human> changeHomePlanet_ChangeHomePlanet_Human_HumanFromHumanEntityMapper)
+            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.HumanEntity, ChangeHomePlanet_ChangeHomePlanet_Human_Human> changeHomePlanet_ChangeHomePlanet_Human_HumanFromHumanEntityMapper)
         {
             _entityStore = entityStore
                  ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -66,7 +66,7 @@ namespace Foo.Bar
             throw new global::System.ArgumentException("ChangeHomePlanetResultInfo expected.");
         }
 
-        private IChangeHomePlanet_ChangeHomePlanet MapNonNullableIChangeHomePlanet_ChangeHomePlanet(global::Foo.Bar.State.ChangeHomePlanetPayloadData data)
+        private global::Foo.Bar.IChangeHomePlanet_ChangeHomePlanet MapNonNullableIChangeHomePlanet_ChangeHomePlanet(global::Foo.Bar.State.ChangeHomePlanetPayloadData data)
         {
             IChangeHomePlanet_ChangeHomePlanet returnValue = default!;
 
@@ -83,7 +83,7 @@ namespace Foo.Bar
             return returnValue;
         }
 
-        private IChangeHomePlanet_ChangeHomePlanet_Human MapNonNullableIChangeHomePlanet_ChangeHomePlanet_Human(global::StrawberryShake.EntityId entityId)
+        private global::Foo.Bar.IChangeHomePlanet_ChangeHomePlanet_Human MapNonNullableIChangeHomePlanet_ChangeHomePlanet_Human(global::StrawberryShake.EntityId entityId)
         {
 
             if (entityId.Name.Equals(
@@ -91,7 +91,7 @@ namespace Foo.Bar
                     global::System.StringComparison.Ordinal))
             {
                 return _changeHomePlanet_ChangeHomePlanet_Human_HumanFromHumanEntityMapper.Map(
-                    _entityStore.GetEntity<HumanEntity>(entityId)
+                    _entityStore.GetEntity<global::Foo.Bar.State.HumanEntity>(entityId)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
@@ -106,7 +106,7 @@ namespace Foo.Bar
 
 #nullable enable
 
-namespace Foo.Bar
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ChangeHomePlanetResultInfo
@@ -156,12 +156,12 @@ namespace Foo.Bar
         : global::System.IEquatable<ChangeHomePlanetResult>
         , IChangeHomePlanetResult
     {
-        public ChangeHomePlanetResult(IChangeHomePlanet_ChangeHomePlanet changeHomePlanet)
+        public ChangeHomePlanetResult(global::Foo.Bar.IChangeHomePlanet_ChangeHomePlanet changeHomePlanet)
         {
             ChangeHomePlanet = changeHomePlanet;
         }
 
-        public IChangeHomePlanet_ChangeHomePlanet ChangeHomePlanet { get; }
+        public global::Foo.Bar.IChangeHomePlanet_ChangeHomePlanet ChangeHomePlanet { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -239,12 +239,12 @@ namespace Foo.Bar
         : global::System.IEquatable<ChangeHomePlanet_ChangeHomePlanet_ChangeHomePlanetPayload>
         , IChangeHomePlanet_ChangeHomePlanet_ChangeHomePlanetPayload
     {
-        public ChangeHomePlanet_ChangeHomePlanet_ChangeHomePlanetPayload(IChangeHomePlanet_ChangeHomePlanet_Human human)
+        public ChangeHomePlanet_ChangeHomePlanet_ChangeHomePlanetPayload(global::Foo.Bar.IChangeHomePlanet_ChangeHomePlanet_Human human)
         {
             Human = human;
         }
 
-        public IChangeHomePlanet_ChangeHomePlanet_Human Human { get; }
+        public global::Foo.Bar.IChangeHomePlanet_ChangeHomePlanet_Human Human { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -315,13 +315,13 @@ namespace Foo.Bar
 
 #nullable enable
 
-namespace Foo.Bar
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ChangeHomePlanet_ChangeHomePlanet_Human_HumanFromHumanEntityMapper
-        : global::StrawberryShake.IEntityMapper<HumanEntity, ChangeHomePlanet_ChangeHomePlanet_Human_Human>
+        : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.HumanEntity, ChangeHomePlanet_ChangeHomePlanet_Human_Human>
     {
-        public ChangeHomePlanet_ChangeHomePlanet_Human_Human Map(HumanEntity entity)
+        public ChangeHomePlanet_ChangeHomePlanet_Human_Human Map(global::Foo.Bar.State.HumanEntity entity)
         {
             return new ChangeHomePlanet_ChangeHomePlanet_Human_Human(entity.HomePlanet);
         }
@@ -432,7 +432,7 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IChangeHomePlanetResult
     {
-        public IChangeHomePlanet_ChangeHomePlanet ChangeHomePlanet { get; }
+        public global::Foo.Bar.IChangeHomePlanet_ChangeHomePlanet ChangeHomePlanet { get; }
     }
 }
 
@@ -448,7 +448,7 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IChangeHomePlanet_ChangeHomePlanet
     {
-        public IChangeHomePlanet_ChangeHomePlanet_Human Human { get; }
+        public global::Foo.Bar.IChangeHomePlanet_ChangeHomePlanet_Human Human { get; }
     }
 }
 
@@ -681,7 +681,7 @@ namespace Foo.Bar
         }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IChangeHomePlanetResult>> ExecuteAsync(
-            ChangeHomePlanetInput input,
+            global::Foo.Bar.ChangeHomePlanetInput input,
             global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(input);
@@ -694,7 +694,7 @@ namespace Foo.Bar
         }
 
         public global::System.IObservable<global::StrawberryShake.IOperationResult<IChangeHomePlanetResult>> Watch(
-            ChangeHomePlanetInput input,
+            global::Foo.Bar.ChangeHomePlanetInput input,
             global::StrawberryShake.ExecutionStrategy? strategy = null)
         {
             var request = CreateRequest(input);
@@ -703,7 +703,7 @@ namespace Foo.Bar
                 strategy);
         }
 
-        private global::StrawberryShake.OperationRequest CreateRequest(ChangeHomePlanetInput input)
+        private global::StrawberryShake.OperationRequest CreateRequest(global::Foo.Bar.ChangeHomePlanetInput input)
         {
             var variables = new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>();
 
@@ -719,7 +719,7 @@ namespace Foo.Bar
                 variables:variables);
         }
 
-        private global::System.Object? FormatInput(ChangeHomePlanetInput value)
+        private global::System.Object? FormatInput(global::Foo.Bar.ChangeHomePlanetInput value)
         {
             if (value is null)
             {
@@ -738,7 +738,7 @@ namespace Foo.Bar
 
 #nullable enable
 
-namespace Foo.Bar
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ChangeHomePlanetBuilder
@@ -857,7 +857,7 @@ namespace Foo.Bar
                     "Human",
                     global::System.StringComparison.Ordinal))
             {
-                HumanEntity entity = _entityStore.GetOrCreate<HumanEntity>(entityId);
+                global::Foo.Bar.State.HumanEntity entity = _entityStore.GetOrCreate<global::Foo.Bar.State.HumanEntity>(entityId);
                 entity.HomePlanet = DeserializeString(
                     global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
@@ -944,7 +944,7 @@ namespace Foo.Bar
 
 #nullable enable
 
-namespace Foo.Bar
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class EntityIdFactory
@@ -1027,7 +1027,7 @@ namespace Microsoft.Extensions.DependencyInjection
             var services = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId>>(
                 services,
-                global::Foo.Bar.EntityIdFactory.CreateEntityId);
+                global::Foo.Bar.State.EntityIdFactory.CreateEntityId);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IEntityStore, global::StrawberryShake.EntityStore>(services);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IOperationStore>(
                 services,
@@ -1042,7 +1042,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("FooClient"));
                 });
 
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.HumanEntity, global::Foo.Bar.ChangeHomePlanet_ChangeHomePlanet_Human_Human>, global::Foo.Bar.ChangeHomePlanet_ChangeHomePlanet_Human_HumanFromHumanEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.HumanEntity, global::Foo.Bar.ChangeHomePlanet_ChangeHomePlanet_Human_Human>, global::Foo.Bar.State.ChangeHomePlanet_ChangeHomePlanet_Human_HumanFromHumanEntityMapper>(services);
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.StringSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.BooleanSerializer>(services);
@@ -1069,8 +1069,8 @@ namespace Microsoft.Extensions.DependencyInjection
                         global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(
                             sp))));
 
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IChangeHomePlanetResult>, global::Foo.Bar.ChangeHomePlanetResultFactory>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.IChangeHomePlanetResult>, global::Foo.Bar.ChangeHomePlanetBuilder>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IChangeHomePlanetResult>, global::Foo.Bar.State.ChangeHomePlanetResultFactory>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.IChangeHomePlanetResult>, global::Foo.Bar.State.ChangeHomePlanetBuilder>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::Foo.Bar.IChangeHomePlanetResult>>(
                 services,
                 sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::Foo.Bar.IChangeHomePlanetResult>(

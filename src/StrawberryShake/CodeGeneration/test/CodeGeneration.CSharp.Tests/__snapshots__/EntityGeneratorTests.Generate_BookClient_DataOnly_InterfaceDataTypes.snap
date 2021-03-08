@@ -15,7 +15,7 @@
 
 #nullable enable
 
-namespace Foo.Bar
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchSomethingResultFactory
@@ -39,14 +39,14 @@ namespace Foo.Bar
             throw new global::System.ArgumentException("SearchSomethingResultInfo expected.");
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<ISearchSomething_Prints?>? MapIPrintDataArray(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.IPrintData?>? list)
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.ISearchSomething_Prints?>? MapIPrintDataArray(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.IPrintData?>? list)
         {
             if (list is null)
             {
                 return null;
             }
 
-            var prints = new global::System.Collections.Generic.List<ISearchSomething_Prints?>();
+            var prints = new global::System.Collections.Generic.List<global::Foo.Bar.ISearchSomething_Prints?>();
 
             foreach (global::Foo.Bar.State.IPrintData? child in list)
             {
@@ -56,7 +56,7 @@ namespace Foo.Bar
             return prints;
         }
 
-        private ISearchSomething_Prints? MapIPrintData(global::Foo.Bar.State.IPrintData? data)
+        private global::Foo.Bar.ISearchSomething_Prints? MapIPrintData(global::Foo.Bar.State.IPrintData? data)
         {
             if (data is null)
             {
@@ -93,7 +93,7 @@ namespace Foo.Bar
 
 #nullable enable
 
-namespace Foo.Bar
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchSomethingResultInfo
@@ -143,12 +143,12 @@ namespace Foo.Bar
         : global::System.IEquatable<SearchSomethingResult>
         , ISearchSomethingResult
     {
-        public SearchSomethingResult(global::System.Collections.Generic.IReadOnlyList<ISearchSomething_Prints?>? prints)
+        public SearchSomethingResult(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.ISearchSomething_Prints?>? prints)
         {
             Prints = prints;
         }
 
-        public global::System.Collections.Generic.IReadOnlyList<ISearchSomething_Prints?>? Prints { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.ISearchSomething_Prints?>? Prints { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -420,7 +420,7 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISearchSomethingResult
     {
-        public global::System.Collections.Generic.IReadOnlyList<ISearchSomething_Prints?>? Prints { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.ISearchSomething_Prints?>? Prints { get; }
     }
 }
 
@@ -598,7 +598,7 @@ namespace Foo.Bar
 
 #nullable enable
 
-namespace Foo.Bar
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchSomethingBuilder
@@ -883,7 +883,7 @@ namespace Foo.Bar
 
 #nullable enable
 
-namespace Foo.Bar
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class EntityIdFactory
@@ -952,7 +952,7 @@ namespace Microsoft.Extensions.DependencyInjection
             var services = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId>>(
                 services,
-                global::Foo.Bar.EntityIdFactory.CreateEntityId);
+                global::Foo.Bar.State.EntityIdFactory.CreateEntityId);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IEntityStore, global::StrawberryShake.EntityStore>(services);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IOperationStore>(
                 services,
@@ -992,8 +992,8 @@ namespace Microsoft.Extensions.DependencyInjection
                         global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(
                             sp))));
 
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.ISearchSomethingResult>, global::Foo.Bar.SearchSomethingResultFactory>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.ISearchSomethingResult>, global::Foo.Bar.SearchSomethingBuilder>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.ISearchSomethingResult>, global::Foo.Bar.State.SearchSomethingResultFactory>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.ISearchSomethingResult>, global::Foo.Bar.State.SearchSomethingBuilder>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::Foo.Bar.ISearchSomethingResult>>(
                 services,
                 sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::Foo.Bar.ISearchSomethingResult>(

@@ -15,7 +15,7 @@
 
 #nullable enable
 
-namespace Foo.Bar
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnReviewSubResultFactory
@@ -39,7 +39,7 @@ namespace Foo.Bar
             throw new global::System.ArgumentException("OnReviewSubResultInfo expected.");
         }
 
-        private IOnReviewSub_OnReview MapNonNullableIOnReviewSub_OnReview(global::Foo.Bar.State.ReviewData data)
+        private global::Foo.Bar.IOnReviewSub_OnReview MapNonNullableIOnReviewSub_OnReview(global::Foo.Bar.State.ReviewData data)
         {
             IOnReviewSub_OnReview returnValue = default!;
 
@@ -67,7 +67,7 @@ namespace Foo.Bar
 
 #nullable enable
 
-namespace Foo.Bar
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnReviewSubResultInfo
@@ -117,12 +117,12 @@ namespace Foo.Bar
         : global::System.IEquatable<OnReviewSubResult>
         , IOnReviewSubResult
     {
-        public OnReviewSubResult(IOnReviewSub_OnReview onReview)
+        public OnReviewSubResult(global::Foo.Bar.IOnReviewSub_OnReview onReview)
         {
             OnReview = onReview;
         }
 
-        public IOnReviewSub_OnReview OnReview { get; }
+        public global::Foo.Bar.IOnReviewSub_OnReview OnReview { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -292,7 +292,7 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IOnReviewSubResult
     {
-        public IOnReviewSub_OnReview OnReview { get; }
+        public global::Foo.Bar.IOnReviewSub_OnReview OnReview { get; }
     }
 }
 
@@ -433,7 +433,7 @@ namespace Foo.Bar
 
 #nullable enable
 
-namespace Foo.Bar
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnReviewSubBuilder
@@ -624,7 +624,7 @@ namespace Foo.Bar
 
 #nullable enable
 
-namespace Foo.Bar
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class EntityIdFactory
@@ -693,7 +693,7 @@ namespace Microsoft.Extensions.DependencyInjection
             var services = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId>>(
                 services,
-                global::Foo.Bar.EntityIdFactory.CreateEntityId);
+                global::Foo.Bar.State.EntityIdFactory.CreateEntityId);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IEntityStore, global::StrawberryShake.EntityStore>(services);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IOperationStore>(
                 services,
@@ -735,8 +735,8 @@ namespace Microsoft.Extensions.DependencyInjection
                         global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(
                             sp))));
 
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IOnReviewSubResult>, global::Foo.Bar.OnReviewSubResultFactory>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.IOnReviewSubResult>, global::Foo.Bar.OnReviewSubBuilder>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IOnReviewSubResult>, global::Foo.Bar.State.OnReviewSubResultFactory>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.IOnReviewSubResult>, global::Foo.Bar.State.OnReviewSubBuilder>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::Foo.Bar.IOnReviewSubResult>>(
                 services,
                 sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::Foo.Bar.IOnReviewSubResult>(

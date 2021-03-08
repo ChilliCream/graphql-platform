@@ -15,7 +15,7 @@
 
 #nullable enable
 
-namespace Foo.Bar
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPersonResultFactory
@@ -39,7 +39,7 @@ namespace Foo.Bar
             throw new global::System.ArgumentException("GetPersonResultInfo expected.");
         }
 
-        private IGetPerson_Person? MapIGetPerson_Person(global::Foo.Bar.State.PersonData? data)
+        private global::Foo.Bar.IGetPerson_Person? MapIGetPerson_Person(global::Foo.Bar.State.PersonData? data)
         {
             if (data is null)
             {
@@ -70,7 +70,7 @@ namespace Foo.Bar
 
 #nullable enable
 
-namespace Foo.Bar
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPersonResultInfo
@@ -120,12 +120,12 @@ namespace Foo.Bar
         : global::System.IEquatable<GetPersonResult>
         , IGetPersonResult
     {
-        public GetPersonResult(IGetPerson_Person? person)
+        public GetPersonResult(global::Foo.Bar.IGetPerson_Person? person)
         {
             Person = person;
         }
 
-        public IGetPerson_Person? Person { get; }
+        public global::Foo.Bar.IGetPerson_Person? Person { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -290,7 +290,7 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetPersonResult
     {
-        public IGetPerson_Person? Person { get; }
+        public global::Foo.Bar.IGetPerson_Person? Person { get; }
     }
 }
 
@@ -438,7 +438,7 @@ namespace Foo.Bar
 
 #nullable enable
 
-namespace Foo.Bar
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPersonBuilder
@@ -608,7 +608,7 @@ namespace Foo.Bar
 
 #nullable enable
 
-namespace Foo.Bar
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class EntityIdFactory
@@ -677,7 +677,7 @@ namespace Microsoft.Extensions.DependencyInjection
             var services = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId>>(
                 services,
-                global::Foo.Bar.EntityIdFactory.CreateEntityId);
+                global::Foo.Bar.State.EntityIdFactory.CreateEntityId);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IEntityStore, global::StrawberryShake.EntityStore>(services);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IOperationStore>(
                 services,
@@ -720,8 +720,8 @@ namespace Microsoft.Extensions.DependencyInjection
                         global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(
                             sp))));
 
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IGetPersonResult>, global::Foo.Bar.GetPersonResultFactory>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.IGetPersonResult>, global::Foo.Bar.GetPersonBuilder>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IGetPersonResult>, global::Foo.Bar.State.GetPersonResultFactory>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.IGetPersonResult>, global::Foo.Bar.State.GetPersonBuilder>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::Foo.Bar.IGetPersonResult>>(
                 services,
                 sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::Foo.Bar.IGetPersonResult>(
