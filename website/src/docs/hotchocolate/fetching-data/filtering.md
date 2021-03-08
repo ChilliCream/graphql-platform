@@ -135,8 +135,8 @@ public class CustomerOperationFilterInput : StringOperationFilterInput
 {
     protected override void Configure(IFilterInputTypeDescriptor descriptor)
     {
-        descriptor.Operation(DefaultFilterOperations.Equals);
-        descriptor.Operation(DefaultFilterOperations.NotEquals);
+        descriptor.Operation(DefaultFilterOperations.Equals).Type<StringType>();
+        descriptor.Operation(DefaultFilterOperations.NotEquals).Type<StringType>();
     }
 }
 ```
