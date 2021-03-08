@@ -10,14 +10,14 @@
       "requestStrategy": "PersistedQuery",
       "hashAlgorithm": "md5",
       "outputDirectoryName": ".generated",
-      "protocols": [
+      "transportProfiles": [
         {
-          "profile": "Default",
-          "transport": "HTTP",
+          "name": "Default",
+          "default": "HTTP",
           "streamTransport": "WebSocket"
         },
         {
-          "profile": "Default",
+          "name": "Default",
           "default": "HTTP",
           "query": "WebSocket",
           "subscription": "WebSocket"
