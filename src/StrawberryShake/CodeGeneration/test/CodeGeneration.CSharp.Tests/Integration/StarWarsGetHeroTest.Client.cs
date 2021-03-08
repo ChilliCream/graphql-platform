@@ -164,14 +164,78 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroResult
-        : IGetHeroResult
+        : global::System.IEquatable<GetHeroResult>
+        , IGetHeroResult
     {
         public GetHeroResult(IGetHero_Hero? hero)
         {
             Hero = hero;
         }
 
-        public IGetHero_Hero? Hero { get; } = default!;
+        public IGetHero_Hero? Hero { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetHeroResult)obj);
+        }
+
+        public global::System.Boolean Equals(GetHeroResult? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((Hero is null && other.Hero is null) ||Hero != null && Hero.Equals(other.Hero)));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                if (!(Hero is null))
+                {
+                    hash ^= 397 * Hero.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -206,7 +270,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_Hero_Droid
-        : IGetHero_Hero_Droid
+        : global::System.IEquatable<GetHero_Hero_Droid>
+        , IGetHero_Hero_Droid
     {
         public GetHero_Hero_Droid(global::System.String name)
         {
@@ -214,6 +279,66 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
         }
 
         public global::System.String Name { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetHero_Hero_Droid)obj);
+        }
+
+        public global::System.Boolean Equals(GetHero_Hero_Droid? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Name.Equals(other.Name));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * Name.GetHashCode();
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -248,7 +373,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_Hero_Human
-        : IGetHero_Hero_Human
+        : global::System.IEquatable<GetHero_Hero_Human>
+        , IGetHero_Hero_Human
     {
         public GetHero_Hero_Human(global::System.String name)
         {
@@ -256,6 +382,66 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
         }
 
         public global::System.String Name { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetHero_Hero_Human)obj);
+        }
+
+        public global::System.Boolean Equals(GetHero_Hero_Human? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Name.Equals(other.Name));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * Name.GetHashCode();
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -669,7 +855,7 @@ namespace Microsoft.Extensions.DependencyInjection
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class StarWarsGetHeroClientServiceCollectionExtensions
     {
-        public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddStarWarsGetHeroClient(
+        public static global::StrawberryShake.IClientBuilder AddStarWarsGetHeroClient(
             this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
             global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
@@ -695,7 +881,9 @@ namespace Microsoft.Extensions.DependencyInjection
                 sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.StarWarsGetHeroClient>(
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
 
-            return services;
+            return new global::StrawberryShake.ClientBuilder(
+                "StarWarsGetHeroClient",
+                services);
         }
 
         private static global::Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureClientDefault(

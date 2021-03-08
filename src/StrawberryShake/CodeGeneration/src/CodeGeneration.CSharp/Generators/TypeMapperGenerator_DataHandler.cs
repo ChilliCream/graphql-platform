@@ -80,7 +80,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             foreach (PropertyDescriptor prop in objectTypeDescriptor.Properties)
             {
                 var propAccess = $"{_dataParameterName}.{prop.Name}";
-                if (prop.Type.IsEntityType())
+                if (prop.Type.IsEntityType() || prop.Type.IsDataType())
                 {
                     constructorCall.AddArgument(BuildMapMethodCall(_dataParameterName, prop, true));
                 }
