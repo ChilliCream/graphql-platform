@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake.Transport.Http;
+using StrawberryShake.Transport.InMemory;
 using StrawberryShake.Transport.WebSockets;
 
 namespace StrawberryShake.CodeGeneration.CSharp
@@ -23,6 +24,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private static readonly ServiceCollection? _serviceCollection = null!;
         private static readonly IHttpClientFactory? _httpClientFactory = null!;
         private static readonly HttpClient? _httpClient = null!;
+        private static readonly InMemoryClient _memoryClient = null!;
 #pragma warning restore 414
 
         private static readonly CSharpCompilationOptions _options =
@@ -31,7 +33,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private static readonly HashSet<string> _excludedCodes = new()
         {
             // warning CS1702: Assuming assembly reference is of different version
-            "CS1702", "CS1701"
+            "CS1702",
+            "CS1701"
         };
 
         public static IReadOnlyList<Diagnostic> GetDiagnosticErrors(params string[] sourceText)
@@ -63,8 +66,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .WithReferences(ResolveReferences());
 
             return compilation.GetDiagnostics()
-                .Where(x =>
-                    x.Severity == DiagnosticSeverity.Error && !_excludedCodes.Contains(x.Id))
+                .Where(x => x.Severity == DiagnosticSeverity.Error &&
+                    !_excludedCodes.Contains(x.Id))
                 .ToList();
         }
 

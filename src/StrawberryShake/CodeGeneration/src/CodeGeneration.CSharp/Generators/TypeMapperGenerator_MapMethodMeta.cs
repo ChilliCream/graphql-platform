@@ -107,7 +107,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .New()
                     .SetAccessModifier(AccessModifier.Private)
                     .SetName(methodName)
-                    .SetReturnType(typeReference.ToBuilder());
+                    .SetReturnType(typeReference.ToTypeReference());
 
                 classBuilder.AddMethod(methodBuilder);
 

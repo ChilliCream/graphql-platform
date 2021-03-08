@@ -21,7 +21,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         protected override void Generate(
             CodeWriter writer,
             ITypeDescriptor typeDescriptor,
-            out string fileName)
+            out string fileName,
+            out string? path)
         {
             ComplexTypeDescriptor descriptor =
                 typeDescriptor as ComplexTypeDescriptor ??
@@ -29,6 +30,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     "A result data factory can only be generated for complex types");
 
             fileName = CreateResultFactoryName(descriptor.RuntimeType.Name);
+            path = State;
 
             ClassBuilder classBuilder =
                 ClassBuilder
@@ -91,7 +93,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             CodeFileBuilder
                 .New()
-                .SetNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal)
+                .SetNamespace(CreateStateNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal))
                 .AddType(classBuilder)
                 .Build(writer);
         }

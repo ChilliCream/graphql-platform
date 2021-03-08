@@ -2,18 +2,18 @@
 
 #nullable enable
 
-namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
+namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State
 {
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.1.0.0")]
     public partial class GetPeopleResultFactory
         : global::StrawberryShake.IOperationResultDataFactory<GetPeopleResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<PersonEntity, GetPeople_People_Nodes_Person> _getPeople_People_Nodes_PersonFromPersonEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.PersonEntity, GetPeople_People_Nodes_Person> _getPeople_People_Nodes_PersonFromPersonEntityMapper;
 
         public GetPeopleResultFactory(
             global::StrawberryShake.IEntityStore entityStore,
-            global::StrawberryShake.IEntityMapper<PersonEntity, GetPeople_People_Nodes_Person> getPeople_People_Nodes_PersonFromPersonEntityMapper)
+            global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.PersonEntity, GetPeople_People_Nodes_Person> getPeople_People_Nodes_PersonFromPersonEntityMapper)
         {
             _entityStore = entityStore
                  ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -31,9 +31,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
             throw new global::System.ArgumentException("GetPeopleResultInfo expected.");
         }
 
-        private IGetPeople_People? MapIGetPeople_People(global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.PersonConnectionData data)
+        private IGetPeople_People? MapIGetPeople_People(global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.PersonConnectionData? data)
         {
-            if (data == default)
+            if (data is null)
             {
                 return null;
             }
@@ -46,7 +46,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
             {
                 returnValue = new GetPeople_People_PersonConnection(MapIGetPeople_People_NodesArray(data.Nodes));
             }
-            else {
+            else
+            {
                 throw new global::System.NotSupportedException();
             }
             return returnValue;
@@ -54,7 +55,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
 
         private global::System.Collections.Generic.IReadOnlyList<IGetPeople_People_Nodes?>? MapIGetPeople_People_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
         {
-            if (list == default)
+            if (list is null)
             {
                 return null;
             }
@@ -71,7 +72,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
 
         private IGetPeople_People_Nodes? MapIGetPeople_People_Nodes(global::StrawberryShake.EntityId? entityId)
         {
-            if (entityId == default)
+            if (entityId is null)
             {
                 return null;
             }
@@ -82,7 +83,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
                     global::System.StringComparison.Ordinal))
             {
                 return _getPeople_People_Nodes_PersonFromPersonEntityMapper.Map(
-                    _entityStore.GetEntity<PersonEntity>(entityId.Value)
+                    _entityStore.GetEntity<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.PersonEntity>(entityId.Value)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();

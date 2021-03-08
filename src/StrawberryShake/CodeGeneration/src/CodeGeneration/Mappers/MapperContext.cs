@@ -15,6 +15,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
         private readonly List<DataTypeDescriptor> _dataTypes = new();
         private readonly Dictionary<NameString, OperationDescriptor> _operations = new();
         private readonly Dictionary<NameString, ResultBuilderDescriptor> _resultBuilder = new();
+        private readonly Dictionary<(string, TypeKind), RuntimeTypeInfo> _runtimeTypes = new();
+        private readonly HashSet<string> _runtimeTypeNames = new();
         private ClientDescriptor? _client;
         private EntityIdFactoryDescriptor? _entityIdFactory;
         private DependencyInjectionDescriptor? _dependencyInjectionDescriptor;
@@ -97,6 +99,11 @@ namespace StrawberryShake.CodeGeneration.Mappers
             yield return DependencyInjection;
         }
 
+        public RuntimeTypeInfo GetRuntimeType(NameString typeName, TypeKind kind)
+        {
+            return _runtimeTypes[(typeName, kind)];
+        }
+
         public void Register(IEnumerable<INamedTypeDescriptor> typeDescriptors)
         {
             if (_types.Count > 0)
@@ -161,6 +168,24 @@ namespace StrawberryShake.CodeGeneration.Mappers
         public void Register(DependencyInjectionDescriptor dependencyInjectionDescriptor)
         {
             _dependencyInjectionDescriptor = dependencyInjectionDescriptor;
+        }
+
+        public bool Register(NameString typeName, TypeKind kind, RuntimeTypeInfo runtimeType)
+        {
+            // we already have a registration.
+            if (_runtimeTypes.ContainsKey((typeName, kind)))
+            {
+                return false;
+            }
+
+            // the type name is not unique.
+            if (!_runtimeTypeNames.Add(runtimeType.ToString()))
+            {
+                return false;
+            }
+
+            _runtimeTypes.Add((typeName, kind), runtimeType);
+            return true;
         }
     }
 }

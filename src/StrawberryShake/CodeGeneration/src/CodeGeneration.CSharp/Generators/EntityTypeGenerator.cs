@@ -12,10 +12,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         protected override void Generate(
             CodeWriter writer,
             EntityTypeDescriptor descriptor,
-            out string fileName)
+            out string fileName,
+            out string? path)
         {
             // Setup class
             fileName = descriptor.RuntimeType.Name;
+            path = State;
 
             ClassBuilder classBuilder = ClassBuilder
                 .New()
@@ -28,7 +30,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 classBuilder
                     .AddProperty(item.Value.Name)
                     .SetComment(item.Value.Description)
-                    .SetType(item.Value.Type.ToEntityIdBuilder())
+                    .SetType(item.Value.Type.ToStateTypeReference())
                     .MakeSettable()
                     .SetPublic()
                     .SetValue(item.Value.Type.IsNullableType() ? null : "default!");
