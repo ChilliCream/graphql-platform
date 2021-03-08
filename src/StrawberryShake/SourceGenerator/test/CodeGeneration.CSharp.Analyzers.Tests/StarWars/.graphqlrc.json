@@ -9,6 +9,7 @@
       "dependencyInjection": true,
       "requestStrategy": "PersistedQuery",
       "hashAlgorithm": "md5",
+      "generatedDirectoryName": ".generated",
       "protocols": [
         {
           "profile": "Default",

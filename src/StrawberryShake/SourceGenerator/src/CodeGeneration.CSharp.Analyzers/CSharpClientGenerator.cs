@@ -151,7 +151,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 ? context.OutputDirectory
                 : IOPath.Combine(context.OutputDirectory, document.Path);
 
-            if (directories.Add(directory) && !Directory.Exists(directory))
+            if (directories.Add(directory) &&
+                context.OutputFiles &&
+                !Directory.Exists(directory))
             {
                 Directory.CreateDirectory(directory);
             }
@@ -163,7 +165,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 documentName,
                 SourceText.From(document.SourceText, Encoding.UTF8));
 
-            WriteFile(fileName, document.SourceText);
+            if (context.OutputFiles)
+            {
+                WriteFile(fileName, document.SourceText);
+            }
         }
 
         private void WriteGraphQLQuery(
@@ -367,7 +372,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 .Where(t => IOPath.GetFileName(t).EqualsOrdinal(".graphqlrc.json"))
                 .ToList();
 
-        private void CreateDirectoryIfNotExists(string directory)
+        private void CreateDirectoryIfNotExists(string? directory)
         {
             if (!Directory.Exists(directory))
             {
