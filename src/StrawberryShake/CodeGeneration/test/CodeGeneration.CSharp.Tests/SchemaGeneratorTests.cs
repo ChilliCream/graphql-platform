@@ -174,5 +174,20 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     name: String
                 }");
         }
+
+        [Fact]
+        public void Create_UpdateMembers_Mutation()
+        {
+            AssertResult(
+                @"mutation UpdateMembers($input: UpdateProjectMembersInput!) {
+                    project {
+                        updateMembers(input: $input) {
+                            correlationId
+                        }
+                    }
+                }",
+                "extend schema @key(fields: \"id\")",
+                FileResource.Open("Schema_Bug_2.graphql"));
+        }
     }
 }
