@@ -144,5 +144,35 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 "extend schema @key(fields: \"id\")",
                 FileResource.Open("Schema_Bug_1.graphql"));
         }
+
+        [Fact]
+        public void Create_DataType_Query()
+        {
+            AssertResult(
+                @"query GetAllFoos {
+                    test {
+                        profile {
+                            name
+                        }
+                    }
+                }",
+                "extend schema @key(fields: \"id\")",
+                @"schema {
+                    query: Query
+                }
+
+                type Query {
+                    test: [Foo!]!
+                }
+
+                type Foo {
+                    profile: Profile!
+                }
+
+                type Profile {
+                    # id: ID! # Can no longer generate if no id is present
+                    name: String
+                }");
+        }
     }
 }
