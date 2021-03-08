@@ -83,7 +83,7 @@ namespace Foo.Bar
         /// <summary>
         /// Field direction
         /// </summary>
-        public Direction Direction { get; set; } = default!;
+        public global::Foo.Bar.Direction Direction { get; set; } = default!;
 
         /// <summary>
         /// Fiejld recipient
@@ -138,7 +138,7 @@ namespace Foo.Bar
             throw new global::System.ArgumentException("GetPeopleResultInfo expected.");
         }
 
-        private IGetPeople_People? MapIGetPeople_People(global::Foo.Bar.State.PersonConnectionData? data)
+        private global::Foo.Bar.IGetPeople_People? MapIGetPeople_People(global::Foo.Bar.State.PersonConnectionData? data)
         {
             if (data is null)
             {
@@ -160,14 +160,14 @@ namespace Foo.Bar
             return returnValue;
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<IGetPeople_People_Nodes?>? MapIGetPeople_People_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetPeople_People_Nodes?>? MapIGetPeople_People_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
         {
             if (list is null)
             {
                 return null;
             }
 
-            var persons = new global::System.Collections.Generic.List<IGetPeople_People_Nodes?>();
+            var persons = new global::System.Collections.Generic.List<global::Foo.Bar.IGetPeople_People_Nodes?>();
 
             foreach (global::StrawberryShake.EntityId? child in list)
             {
@@ -177,7 +177,7 @@ namespace Foo.Bar
             return persons;
         }
 
-        private IGetPeople_People_Nodes? MapIGetPeople_People_Nodes(global::StrawberryShake.EntityId? entityId)
+        private global::Foo.Bar.IGetPeople_People_Nodes? MapIGetPeople_People_Nodes(global::StrawberryShake.EntityId? entityId)
         {
             if (entityId is null)
             {
@@ -261,7 +261,7 @@ namespace Foo.Bar
         : global::System.IEquatable<GetPeopleResult>
         , IGetPeopleResult
     {
-        public GetPeopleResult(IGetPeople_People? people)
+        public GetPeopleResult(global::Foo.Bar.IGetPeople_People? people)
         {
             People = people;
         }
@@ -269,7 +269,7 @@ namespace Foo.Bar
         /// <summary>
         /// Gets access to all the people known to this service.
         /// </summary>
-        public IGetPeople_People? People { get; }
+        public global::Foo.Bar.IGetPeople_People? People { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -353,7 +353,7 @@ namespace Foo.Bar
         : global::System.IEquatable<GetPeople_People_PersonConnection>
         , IGetPeople_People_PersonConnection
     {
-        public GetPeople_People_PersonConnection(global::System.Collections.Generic.IReadOnlyList<IGetPeople_People_Nodes?>? nodes)
+        public GetPeople_People_PersonConnection(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetPeople_People_Nodes?>? nodes)
         {
             Nodes = nodes;
         }
@@ -361,7 +361,7 @@ namespace Foo.Bar
         /// <summary>
         /// A flattened list of the nodes.
         /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<IGetPeople_People_Nodes?>? Nodes { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetPeople_People_Nodes?>? Nodes { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -612,7 +612,7 @@ namespace Foo.Bar
         /// <summary>
         /// Gets access to all the people known to this service.
         /// </summary>
-        public IGetPeople_People? People { get; }
+        public global::Foo.Bar.IGetPeople_People? People { get; }
     }
 }
 
@@ -634,7 +634,7 @@ namespace Foo.Bar
         /// <summary>
         /// A flattened list of the nodes.
         /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<IGetPeople_People_Nodes?>? Nodes { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetPeople_People_Nodes?>? Nodes { get; }
     }
 }
 
@@ -791,7 +791,7 @@ namespace Foo.Bar
             throw new global::System.ArgumentException("GetMessagesResultInfo expected.");
         }
 
-        private IGetMessages_PersonByEmail MapNonNullableIGetMessages_PersonByEmail(global::StrawberryShake.EntityId entityId)
+        private global::Foo.Bar.IGetMessages_PersonByEmail MapNonNullableIGetMessages_PersonByEmail(global::StrawberryShake.EntityId entityId)
         {
 
             if (entityId.Name.Equals(
@@ -870,7 +870,7 @@ namespace Foo.Bar
         : global::System.IEquatable<GetMessagesResult>
         , IGetMessagesResult
     {
-        public GetMessagesResult(IGetMessages_PersonByEmail personByEmail)
+        public GetMessagesResult(global::Foo.Bar.IGetMessages_PersonByEmail personByEmail)
         {
             PersonByEmail = personByEmail;
         }
@@ -878,7 +878,7 @@ namespace Foo.Bar
         /// <summary>
         /// Field personByEmail
         /// </summary>
-        public IGetMessages_PersonByEmail PersonByEmail { get; }
+        public global::Foo.Bar.IGetMessages_PersonByEmail PersonByEmail { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -981,7 +981,7 @@ namespace Foo.Bar
             return new GetMessages_PersonByEmail_Person(MapIGetMessages_PersonByEmail_Messages(entity.Messages));
         }
 
-        private IGetMessages_PersonByEmail_Messages? MapIGetMessages_PersonByEmail_Messages(global::Foo.Bar.State.MessageConnectionData? data)
+        private global::Foo.Bar.IGetMessages_PersonByEmail_Messages? MapIGetMessages_PersonByEmail_Messages(global::Foo.Bar.State.MessageConnectionData? data)
         {
             if (data is null)
             {
@@ -1003,14 +1003,14 @@ namespace Foo.Bar
             return returnValue;
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<IGetMessages_PersonByEmail_Messages_Nodes?>? MapIGetMessages_PersonByEmail_Messages_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes?>? MapIGetMessages_PersonByEmail_Messages_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
         {
             if (list is null)
             {
                 return null;
             }
 
-            var messages = new global::System.Collections.Generic.List<IGetMessages_PersonByEmail_Messages_Nodes?>();
+            var messages = new global::System.Collections.Generic.List<global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes?>();
 
             foreach (global::StrawberryShake.EntityId? child in list)
             {
@@ -1020,7 +1020,7 @@ namespace Foo.Bar
             return messages;
         }
 
-        private IGetMessages_PersonByEmail_Messages_Nodes? MapIGetMessages_PersonByEmail_Messages_Nodes(global::StrawberryShake.EntityId? entityId)
+        private global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes? MapIGetMessages_PersonByEmail_Messages_Nodes(global::StrawberryShake.EntityId? entityId)
         {
             if (entityId is null)
             {
@@ -1039,7 +1039,7 @@ namespace Foo.Bar
             throw new global::System.NotSupportedException();
         }
 
-        private IGetMessages_PersonByEmail_Messages_Nodes_Recipient MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Recipient(global::StrawberryShake.EntityId entityId)
+        private global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Recipient(global::StrawberryShake.EntityId entityId)
         {
 
             if (entityId.Name.Equals(
@@ -1053,7 +1053,7 @@ namespace Foo.Bar
             throw new global::System.NotSupportedException();
         }
 
-        private IGetMessages_PersonByEmail_Messages_Nodes_Sender MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Sender(global::StrawberryShake.EntityId entityId)
+        private global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Sender(global::StrawberryShake.EntityId entityId)
         {
 
             if (entityId.Name.Equals(
@@ -1086,7 +1086,7 @@ namespace Foo.Bar
         : global::System.IEquatable<GetMessages_PersonByEmail_Person>
         , IGetMessages_PersonByEmail_Person
     {
-        public GetMessages_PersonByEmail_Person(IGetMessages_PersonByEmail_Messages? messages)
+        public GetMessages_PersonByEmail_Person(global::Foo.Bar.IGetMessages_PersonByEmail_Messages? messages)
         {
             Messages = messages;
         }
@@ -1094,7 +1094,7 @@ namespace Foo.Bar
         /// <summary>
         /// Field messages
         /// </summary>
-        public IGetMessages_PersonByEmail_Messages? Messages { get; }
+        public global::Foo.Bar.IGetMessages_PersonByEmail_Messages? Messages { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -1178,7 +1178,7 @@ namespace Foo.Bar
         : global::System.IEquatable<GetMessages_PersonByEmail_Messages_MessageConnection>
         , IGetMessages_PersonByEmail_Messages_MessageConnection
     {
-        public GetMessages_PersonByEmail_Messages_MessageConnection(global::System.Collections.Generic.IReadOnlyList<IGetMessages_PersonByEmail_Messages_Nodes?>? nodes)
+        public GetMessages_PersonByEmail_Messages_MessageConnection(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes?>? nodes)
         {
             Nodes = nodes;
         }
@@ -1186,7 +1186,7 @@ namespace Foo.Bar
         /// <summary>
         /// A flattened list of the nodes.
         /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<IGetMessages_PersonByEmail_Messages_Nodes?>? Nodes { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes?>? Nodes { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -1302,7 +1302,7 @@ namespace Foo.Bar
                 entity.Sent);
         }
 
-        private IGetMessages_PersonByEmail_Messages_Nodes_Recipient MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Recipient(global::StrawberryShake.EntityId entityId)
+        private global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Recipient(global::StrawberryShake.EntityId entityId)
         {
 
             if (entityId.Name.Equals(
@@ -1316,7 +1316,7 @@ namespace Foo.Bar
             throw new global::System.NotSupportedException();
         }
 
-        private IGetMessages_PersonByEmail_Messages_Nodes_Sender MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Sender(global::StrawberryShake.EntityId entityId)
+        private global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Sender(global::StrawberryShake.EntityId entityId)
         {
 
             if (entityId.Name.Equals(
@@ -1352,9 +1352,9 @@ namespace Foo.Bar
         public GetMessages_PersonByEmail_Messages_Nodes_Message(
             global::System.String id,
             global::System.String text,
-            Direction direction,
-            IGetMessages_PersonByEmail_Messages_Nodes_Recipient recipient,
-            IGetMessages_PersonByEmail_Messages_Nodes_Sender sender,
+            global::Foo.Bar.Direction direction,
+            global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient recipient,
+            global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender sender,
             global::System.DateTimeOffset sent)
         {
             Id = id;
@@ -1378,17 +1378,17 @@ namespace Foo.Bar
         /// <summary>
         /// Field direction
         /// </summary>
-        public Direction Direction { get; }
+        public global::Foo.Bar.Direction Direction { get; }
 
         /// <summary>
         /// Fiejld recipient
         /// </summary>
-        public IGetMessages_PersonByEmail_Messages_Nodes_Recipient Recipient { get; }
+        public global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient Recipient { get; }
 
         /// <summary>
         /// Field sender
         /// </summary>
-        public IGetMessages_PersonByEmail_Messages_Nodes_Sender Sender { get; }
+        public global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender Sender { get; }
 
         /// <summary>
         /// Field sent
@@ -1756,7 +1756,7 @@ namespace Foo.Bar
         /// <summary>
         /// Field personByEmail
         /// </summary>
-        public IGetMessages_PersonByEmail PersonByEmail { get; }
+        public global::Foo.Bar.IGetMessages_PersonByEmail PersonByEmail { get; }
     }
 }
 
@@ -1778,7 +1778,7 @@ namespace Foo.Bar
         /// <summary>
         /// Field messages
         /// </summary>
-        public IGetMessages_PersonByEmail_Messages? Messages { get; }
+        public global::Foo.Bar.IGetMessages_PersonByEmail_Messages? Messages { get; }
     }
 }
 
@@ -1819,7 +1819,7 @@ namespace Foo.Bar
         /// <summary>
         /// A flattened list of the nodes.
         /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<IGetMessages_PersonByEmail_Messages_Nodes?>? Nodes { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes?>? Nodes { get; }
     }
 }
 
@@ -1870,17 +1870,17 @@ namespace Foo.Bar
         /// <summary>
         /// Field direction
         /// </summary>
-        public Direction Direction { get; }
+        public global::Foo.Bar.Direction Direction { get; }
 
         /// <summary>
         /// Fiejld recipient
         /// </summary>
-        public IGetMessages_PersonByEmail_Messages_Nodes_Recipient Recipient { get; }
+        public global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient Recipient { get; }
 
         /// <summary>
         /// Field sender
         /// </summary>
-        public IGetMessages_PersonByEmail_Messages_Nodes_Sender Sender { get; }
+        public global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender Sender { get; }
 
         /// <summary>
         /// Field sent
@@ -2047,7 +2047,7 @@ namespace Foo.Bar
             throw new global::System.ArgumentException("SendMessageInput_1ResultInfo expected.");
         }
 
-        private ISendMessageInput_SendMessage MapNonNullableISendMessageInput_SendMessage(global::Foo.Bar.State.SendMessagePayloadData data)
+        private global::Foo.Bar.ISendMessageInput_SendMessage MapNonNullableISendMessageInput_SendMessage(global::Foo.Bar.State.SendMessagePayloadData data)
         {
             ISendMessageInput_SendMessage returnValue = default!;
 
@@ -2064,7 +2064,7 @@ namespace Foo.Bar
             return returnValue;
         }
 
-        private ISendMessageInput_SendMessage_Message MapNonNullableISendMessageInput_SendMessage_Message(global::StrawberryShake.EntityId entityId)
+        private global::Foo.Bar.ISendMessageInput_SendMessage_Message MapNonNullableISendMessageInput_SendMessage_Message(global::StrawberryShake.EntityId entityId)
         {
 
             if (entityId.Name.Equals(
@@ -2078,7 +2078,7 @@ namespace Foo.Bar
             throw new global::System.NotSupportedException();
         }
 
-        private IGetMessages_PersonByEmail_Messages_Nodes_Recipient MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Recipient(global::StrawberryShake.EntityId entityId)
+        private global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Recipient(global::StrawberryShake.EntityId entityId)
         {
 
             if (entityId.Name.Equals(
@@ -2092,7 +2092,7 @@ namespace Foo.Bar
             throw new global::System.NotSupportedException();
         }
 
-        private IGetMessages_PersonByEmail_Messages_Nodes_Sender MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Sender(global::StrawberryShake.EntityId entityId)
+        private global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Sender(global::StrawberryShake.EntityId entityId)
         {
 
             if (entityId.Name.Equals(
@@ -2171,7 +2171,7 @@ namespace Foo.Bar
         : global::System.IEquatable<SendMessageInput_1Result>
         , ISendMessageInputResult
     {
-        public SendMessageInput_1Result(ISendMessageInput_SendMessage sendMessage)
+        public SendMessageInput_1Result(global::Foo.Bar.ISendMessageInput_SendMessage sendMessage)
         {
             SendMessage = sendMessage;
         }
@@ -2179,7 +2179,7 @@ namespace Foo.Bar
         /// <summary>
         /// Field sendMessage
         /// </summary>
-        public ISendMessageInput_SendMessage SendMessage { get; }
+        public global::Foo.Bar.ISendMessageInput_SendMessage SendMessage { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -2260,7 +2260,7 @@ namespace Foo.Bar
         : global::System.IEquatable<SendMessageInput_SendMessage_SendMessagePayload>
         , ISendMessageInput_SendMessage_SendMessagePayload
     {
-        public SendMessageInput_SendMessage_SendMessagePayload(ISendMessageInput_SendMessage_Message message)
+        public SendMessageInput_SendMessage_SendMessagePayload(global::Foo.Bar.ISendMessageInput_SendMessage_Message message)
         {
             Message = message;
         }
@@ -2268,7 +2268,7 @@ namespace Foo.Bar
         /// <summary>
         /// Field message
         /// </summary>
-        public ISendMessageInput_SendMessage_Message Message { get; }
+        public global::Foo.Bar.ISendMessageInput_SendMessage_Message Message { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -2373,7 +2373,7 @@ namespace Foo.Bar
                 entity.Sent);
         }
 
-        private IGetMessages_PersonByEmail_Messages_Nodes_Recipient MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Recipient(global::StrawberryShake.EntityId entityId)
+        private global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Recipient(global::StrawberryShake.EntityId entityId)
         {
 
             if (entityId.Name.Equals(
@@ -2387,7 +2387,7 @@ namespace Foo.Bar
             throw new global::System.NotSupportedException();
         }
 
-        private IGetMessages_PersonByEmail_Messages_Nodes_Sender MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Sender(global::StrawberryShake.EntityId entityId)
+        private global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Sender(global::StrawberryShake.EntityId entityId)
         {
 
             if (entityId.Name.Equals(
@@ -2423,9 +2423,9 @@ namespace Foo.Bar
         public SendMessageInput_SendMessage_Message_Message(
             global::System.String id,
             global::System.String text,
-            Direction direction,
-            IGetMessages_PersonByEmail_Messages_Nodes_Recipient recipient,
-            IGetMessages_PersonByEmail_Messages_Nodes_Sender sender,
+            global::Foo.Bar.Direction direction,
+            global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient recipient,
+            global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender sender,
             global::System.DateTimeOffset sent)
         {
             Id = id;
@@ -2449,17 +2449,17 @@ namespace Foo.Bar
         /// <summary>
         /// Field direction
         /// </summary>
-        public Direction Direction { get; }
+        public global::Foo.Bar.Direction Direction { get; }
 
         /// <summary>
         /// Fiejld recipient
         /// </summary>
-        public IGetMessages_PersonByEmail_Messages_Nodes_Recipient Recipient { get; }
+        public global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient Recipient { get; }
 
         /// <summary>
         /// Field sender
         /// </summary>
-        public IGetMessages_PersonByEmail_Messages_Nodes_Sender Sender { get; }
+        public global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender Sender { get; }
 
         /// <summary>
         /// Field sent
@@ -2827,7 +2827,7 @@ namespace Foo.Bar
         /// <summary>
         /// Field sendMessage
         /// </summary>
-        public ISendMessageInput_SendMessage SendMessage { get; }
+        public global::Foo.Bar.ISendMessageInput_SendMessage SendMessage { get; }
     }
 }
 
@@ -2849,7 +2849,7 @@ namespace Foo.Bar
         /// <summary>
         /// Field message
         /// </summary>
-        public ISendMessageInput_SendMessage_Message Message { get; }
+        public global::Foo.Bar.ISendMessageInput_SendMessage_Message Message { get; }
     }
 }
 
@@ -3030,7 +3030,7 @@ namespace Foo.Bar
             throw new global::System.ArgumentException("SendMessageMutResultInfo expected.");
         }
 
-        private ISendMessageMut_SendMessage MapNonNullableISendMessageMut_SendMessage(global::Foo.Bar.State.SendMessagePayloadData data)
+        private global::Foo.Bar.ISendMessageMut_SendMessage MapNonNullableISendMessageMut_SendMessage(global::Foo.Bar.State.SendMessagePayloadData data)
         {
             ISendMessageMut_SendMessage returnValue = default!;
 
@@ -3047,7 +3047,7 @@ namespace Foo.Bar
             return returnValue;
         }
 
-        private ISendMessageMut_SendMessage_Message MapNonNullableISendMessageMut_SendMessage_Message(global::StrawberryShake.EntityId entityId)
+        private global::Foo.Bar.ISendMessageMut_SendMessage_Message MapNonNullableISendMessageMut_SendMessage_Message(global::StrawberryShake.EntityId entityId)
         {
 
             if (entityId.Name.Equals(
@@ -3061,7 +3061,7 @@ namespace Foo.Bar
             throw new global::System.NotSupportedException();
         }
 
-        private IGetMessages_PersonByEmail_Messages_Nodes_Recipient MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Recipient(global::StrawberryShake.EntityId entityId)
+        private global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Recipient(global::StrawberryShake.EntityId entityId)
         {
 
             if (entityId.Name.Equals(
@@ -3075,7 +3075,7 @@ namespace Foo.Bar
             throw new global::System.NotSupportedException();
         }
 
-        private IGetMessages_PersonByEmail_Messages_Nodes_Sender MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Sender(global::StrawberryShake.EntityId entityId)
+        private global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Sender(global::StrawberryShake.EntityId entityId)
         {
 
             if (entityId.Name.Equals(
@@ -3154,7 +3154,7 @@ namespace Foo.Bar
         : global::System.IEquatable<SendMessageMutResult>
         , ISendMessageMutResult
     {
-        public SendMessageMutResult(ISendMessageMut_SendMessage sendMessage)
+        public SendMessageMutResult(global::Foo.Bar.ISendMessageMut_SendMessage sendMessage)
         {
             SendMessage = sendMessage;
         }
@@ -3162,7 +3162,7 @@ namespace Foo.Bar
         /// <summary>
         /// Field sendMessage
         /// </summary>
-        public ISendMessageMut_SendMessage SendMessage { get; }
+        public global::Foo.Bar.ISendMessageMut_SendMessage SendMessage { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -3243,7 +3243,7 @@ namespace Foo.Bar
         : global::System.IEquatable<SendMessageMut_SendMessage_SendMessagePayload>
         , ISendMessageMut_SendMessage_SendMessagePayload
     {
-        public SendMessageMut_SendMessage_SendMessagePayload(ISendMessageMut_SendMessage_Message message)
+        public SendMessageMut_SendMessage_SendMessagePayload(global::Foo.Bar.ISendMessageMut_SendMessage_Message message)
         {
             Message = message;
         }
@@ -3251,7 +3251,7 @@ namespace Foo.Bar
         /// <summary>
         /// Field message
         /// </summary>
-        public ISendMessageMut_SendMessage_Message Message { get; }
+        public global::Foo.Bar.ISendMessageMut_SendMessage_Message Message { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -3356,7 +3356,7 @@ namespace Foo.Bar
                 entity.Sent);
         }
 
-        private IGetMessages_PersonByEmail_Messages_Nodes_Recipient MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Recipient(global::StrawberryShake.EntityId entityId)
+        private global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Recipient(global::StrawberryShake.EntityId entityId)
         {
 
             if (entityId.Name.Equals(
@@ -3370,7 +3370,7 @@ namespace Foo.Bar
             throw new global::System.NotSupportedException();
         }
 
-        private IGetMessages_PersonByEmail_Messages_Nodes_Sender MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Sender(global::StrawberryShake.EntityId entityId)
+        private global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Sender(global::StrawberryShake.EntityId entityId)
         {
 
             if (entityId.Name.Equals(
@@ -3406,9 +3406,9 @@ namespace Foo.Bar
         public SendMessageMut_SendMessage_Message_Message(
             global::System.String id,
             global::System.String text,
-            Direction direction,
-            IGetMessages_PersonByEmail_Messages_Nodes_Recipient recipient,
-            IGetMessages_PersonByEmail_Messages_Nodes_Sender sender,
+            global::Foo.Bar.Direction direction,
+            global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient recipient,
+            global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender sender,
             global::System.DateTimeOffset sent)
         {
             Id = id;
@@ -3432,17 +3432,17 @@ namespace Foo.Bar
         /// <summary>
         /// Field direction
         /// </summary>
-        public Direction Direction { get; }
+        public global::Foo.Bar.Direction Direction { get; }
 
         /// <summary>
         /// Fiejld recipient
         /// </summary>
-        public IGetMessages_PersonByEmail_Messages_Nodes_Recipient Recipient { get; }
+        public global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient Recipient { get; }
 
         /// <summary>
         /// Field sender
         /// </summary>
-        public IGetMessages_PersonByEmail_Messages_Nodes_Sender Sender { get; }
+        public global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender Sender { get; }
 
         /// <summary>
         /// Field sent
@@ -3810,7 +3810,7 @@ namespace Foo.Bar
         /// <summary>
         /// Field sendMessage
         /// </summary>
-        public ISendMessageMut_SendMessage SendMessage { get; }
+        public global::Foo.Bar.ISendMessageMut_SendMessage SendMessage { get; }
     }
 }
 
@@ -3832,7 +3832,7 @@ namespace Foo.Bar
         /// <summary>
         /// Field message
         /// </summary>
-        public ISendMessageMut_SendMessage_Message Message { get; }
+        public global::Foo.Bar.ISendMessageMut_SendMessage_Message Message { get; }
     }
 }
 
@@ -4005,7 +4005,7 @@ namespace Foo.Bar
             throw new global::System.ArgumentException("ReadMessagesResultInfo expected.");
         }
 
-        private IReadMessages_Message MapNonNullableIReadMessages_Message(global::StrawberryShake.EntityId entityId)
+        private global::Foo.Bar.IReadMessages_Message MapNonNullableIReadMessages_Message(global::StrawberryShake.EntityId entityId)
         {
 
             if (entityId.Name.Equals(
@@ -4084,7 +4084,7 @@ namespace Foo.Bar
         : global::System.IEquatable<ReadMessagesResult>
         , IReadMessagesResult
     {
-        public ReadMessagesResult(IReadMessages_Message message)
+        public ReadMessagesResult(global::Foo.Bar.IReadMessages_Message message)
         {
             Message = message;
         }
@@ -4092,7 +4092,7 @@ namespace Foo.Bar
         /// <summary>
         /// field onMessageReceived
         /// </summary>
-        public IReadMessages_Message Message { get; }
+        public global::Foo.Bar.IReadMessages_Message Message { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -4197,7 +4197,7 @@ namespace Foo.Bar
                 entity.Sent);
         }
 
-        private IGetMessages_PersonByEmail_Messages_Nodes_Recipient MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Recipient(global::StrawberryShake.EntityId entityId)
+        private global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Recipient(global::StrawberryShake.EntityId entityId)
         {
 
             if (entityId.Name.Equals(
@@ -4211,7 +4211,7 @@ namespace Foo.Bar
             throw new global::System.NotSupportedException();
         }
 
-        private IGetMessages_PersonByEmail_Messages_Nodes_Sender MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Sender(global::StrawberryShake.EntityId entityId)
+        private global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Sender(global::StrawberryShake.EntityId entityId)
         {
 
             if (entityId.Name.Equals(
@@ -4247,9 +4247,9 @@ namespace Foo.Bar
         public ReadMessages_Message_Message(
             global::System.String id,
             global::System.String text,
-            Direction direction,
-            IGetMessages_PersonByEmail_Messages_Nodes_Recipient recipient,
-            IGetMessages_PersonByEmail_Messages_Nodes_Sender sender,
+            global::Foo.Bar.Direction direction,
+            global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient recipient,
+            global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender sender,
             global::System.DateTimeOffset sent)
         {
             Id = id;
@@ -4273,17 +4273,17 @@ namespace Foo.Bar
         /// <summary>
         /// Field direction
         /// </summary>
-        public Direction Direction { get; }
+        public global::Foo.Bar.Direction Direction { get; }
 
         /// <summary>
         /// Fiejld recipient
         /// </summary>
-        public IGetMessages_PersonByEmail_Messages_Nodes_Recipient Recipient { get; }
+        public global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient Recipient { get; }
 
         /// <summary>
         /// Field sender
         /// </summary>
-        public IGetMessages_PersonByEmail_Messages_Nodes_Sender Sender { get; }
+        public global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender Sender { get; }
 
         /// <summary>
         /// Field sent
@@ -4651,7 +4651,7 @@ namespace Foo.Bar
         /// <summary>
         /// field onMessageReceived
         /// </summary>
-        public IReadMessages_Message Message { get; }
+        public global::Foo.Bar.IReadMessages_Message Message { get; }
     }
 }
 
@@ -5423,7 +5423,7 @@ namespace Foo.Bar
         }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ISendMessageInputResult>> ExecuteAsync(
-            SendMessageInput input,
+            global::Foo.Bar.SendMessageInput input,
             global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(input);
@@ -5436,7 +5436,7 @@ namespace Foo.Bar
         }
 
         public global::System.IObservable<global::StrawberryShake.IOperationResult<ISendMessageInputResult>> Watch(
-            SendMessageInput input,
+            global::Foo.Bar.SendMessageInput input,
             global::StrawberryShake.ExecutionStrategy? strategy = null)
         {
             var request = CreateRequest(input);
@@ -5445,7 +5445,7 @@ namespace Foo.Bar
                 strategy);
         }
 
-        private global::StrawberryShake.OperationRequest CreateRequest(SendMessageInput input)
+        private global::StrawberryShake.OperationRequest CreateRequest(global::Foo.Bar.SendMessageInput input)
         {
             var variables = new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>();
 
@@ -5461,7 +5461,7 @@ namespace Foo.Bar
                 variables:variables);
         }
 
-        private global::System.Object? FormatInput(SendMessageInput value)
+        private global::System.Object? FormatInput(global::Foo.Bar.SendMessageInput value)
         {
             if (value is null)
             {
@@ -6297,7 +6297,7 @@ namespace Foo.Bar
             return _iDParser.Parse(obj.Value.GetString()!);
         }
 
-        private Direction DeserializeNonNullableDirection(global::System.Text.Json.JsonElement? obj)
+        private global::Foo.Bar.Direction DeserializeNonNullableDirection(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {
@@ -6582,7 +6582,7 @@ namespace Foo.Bar
             return _iDParser.Parse(obj.Value.GetString()!);
         }
 
-        private Direction DeserializeNonNullableDirection(global::System.Text.Json.JsonElement? obj)
+        private global::Foo.Bar.Direction DeserializeNonNullableDirection(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {
@@ -6867,7 +6867,7 @@ namespace Foo.Bar
             return _iDParser.Parse(obj.Value.GetString()!);
         }
 
-        private Direction DeserializeNonNullableDirection(global::System.Text.Json.JsonElement? obj)
+        private global::Foo.Bar.Direction DeserializeNonNullableDirection(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {
@@ -7126,7 +7126,7 @@ namespace Foo.Bar
             return _iDParser.Parse(obj.Value.GetString()!);
         }
 
-        private Direction DeserializeNonNullableDirection(global::System.Text.Json.JsonElement? obj)
+        private global::Foo.Bar.Direction DeserializeNonNullableDirection(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {

@@ -9,27 +9,7 @@
 // ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
 
-// SearchableStoreEntity
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
-
-#nullable enable
-
-namespace Foo.Bar
-{
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class SearchableStoreEntity
-    {
-        public global::System.String Id { get; set; } = default!;
-
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BookData?>? Books { get; set; }
-
-        public global::Foo.Bar.State.ISearchResultData? Search { get; set; }
-    }
-}
-
-
-// GetStore2ResultFactory
+// GetAllResultFactory
 
 // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
 
@@ -38,50 +18,83 @@ namespace Foo.Bar
 namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetStore2ResultFactory
-        : global::StrawberryShake.IOperationResultDataFactory<GetStore2Result>
+    public partial class GetAllResultFactory
+        : global::StrawberryShake.IOperationResultDataFactory<GetAllResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<SearchableStoreEntity, GetStore2_SearchableStore_SearchableStore> _getStore2_SearchableStore_SearchableStoreFromSearchableStoreEntityMapper;
 
-        public GetStore2ResultFactory(
-            global::StrawberryShake.IEntityStore entityStore,
-            global::StrawberryShake.IEntityMapper<SearchableStoreEntity, GetStore2_SearchableStore_SearchableStore> getStore2_SearchableStore_SearchableStoreFromSearchableStoreEntityMapper)
+        public GetAllResultFactory(global::StrawberryShake.IEntityStore entityStore)
         {
             _entityStore = entityStore
                  ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-            _getStore2_SearchableStore_SearchableStoreFromSearchableStoreEntityMapper = getStore2_SearchableStore_SearchableStoreFromSearchableStoreEntityMapper
-                 ?? throw new global::System.ArgumentNullException(nameof(getStore2_SearchableStore_SearchableStoreFromSearchableStoreEntityMapper));
         }
 
-        public GetStore2Result Create(global::StrawberryShake.IOperationResultDataInfo dataInfo)
+        public GetAllResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo)
         {
-            if (dataInfo is GetStore2ResultInfo info)
+            if (dataInfo is GetAllResultInfo info)
             {
-                return new GetStore2Result(MapNonNullableIGetStore2_SearchableStore(info.SearchableStore));
+                return new GetAllResult(MapNonNullableIGetAll_Listings(info.Listings));
             }
 
-            throw new global::System.ArgumentException("GetStore2ResultInfo expected.");
+            throw new global::System.ArgumentException("GetAllResultInfo expected.");
         }
 
-        private global::Foo.Bar.IGetStore2_SearchableStore MapNonNullableIGetStore2_SearchableStore(global::StrawberryShake.EntityId entityId)
+        private global::Foo.Bar.IGetAll_Listings MapNonNullableIGetAll_Listings(global::Foo.Bar.State.ListingsPayloadData data)
         {
+            IGetAll_Listings returnValue = default!;
 
-            if (entityId.Name.Equals(
-                    "SearchableStore",
+            if (data.__typename.Equals(
+                    "ListingsPayload",
                     global::System.StringComparison.Ordinal))
             {
-                return _getStore2_SearchableStore_SearchableStoreFromSearchableStoreEntityMapper.Map(
-                    _entityStore.GetEntity<SearchableStoreEntity>(entityId)
-                        ?? throw new global::StrawberryShake.GraphQLClientException());
+                returnValue = new GetAll_Listings_ListingsPayload(MapNonNullableIListingDataNonNullableArray(data.Items ?? throw new global::System.ArgumentNullException()));
             }
-            throw new global::System.NotSupportedException();
+            else
+            {
+                throw new global::System.NotSupportedException();
+            }
+            return returnValue;
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetAll_Listings_Items> MapNonNullableIListingDataNonNullableArray(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.IListingData>? list)
+        {
+            var listings = new global::System.Collections.Generic.List<global::Foo.Bar.IGetAll_Listings_Items>();
+
+            foreach (global::Foo.Bar.State.IListingData child in list)
+            {
+                listings.Add(MapNonNullableIListingData(child));
+            }
+
+            return listings;
+        }
+
+        private global::Foo.Bar.IGetAll_Listings_Items MapNonNullableIListingData(global::Foo.Bar.State.IListingData data)
+        {
+            IGetAll_Listings_Items? returnValue;
+
+            if (data is global::Foo.Bar.State.AuctionData auction)
+            {
+                returnValue = new global::Foo.Bar.GetAll_Listings_Items_Auction(
+                    auction.ListingId,
+                    auction.StartingPrice.Value);
+            }
+            else if (data is global::Foo.Bar.State.OfferData offer)
+            {
+                returnValue = new global::Foo.Bar.GetAll_Listings_Items_Offer(
+                    offer.ListingId,
+                    offer.Price.Value);
+            }
+            else
+            {
+                throw new global::System.NotSupportedException();
+            }
+            return returnValue;
         }
     }
 }
 
 
-// GetStore2ResultInfo
+// GetAllResultInfo
 
 // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
 
@@ -90,24 +103,24 @@ namespace Foo.Bar
 namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetStore2ResultInfo
+    public partial class GetAllResultInfo
         : global::StrawberryShake.IOperationResultDataInfo
     {
         private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
         private readonly global::System.UInt64 _version;
 
-        public GetStore2ResultInfo(
-            global::StrawberryShake.EntityId searchableStore,
+        public GetAllResultInfo(
+            global::Foo.Bar.State.ListingsPayloadData listings,
             global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds,
             global::System.UInt64 version)
         {
-            SearchableStore = searchableStore;
+            Listings = listings;
             _entityIds = entityIds
                  ?? throw new global::System.ArgumentNullException(nameof(entityIds));
             _version = version;
         }
 
-        public global::StrawberryShake.EntityId SearchableStore { get; }
+        public global::Foo.Bar.State.ListingsPayloadData Listings { get; }
 
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
 
@@ -115,8 +128,8 @@ namespace Foo.Bar
 
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
-            return new GetStore2ResultInfo(
-                SearchableStore,
+            return new GetAllResultInfo(
+                Listings,
                 _entityIds,
                 version);
         }
@@ -124,7 +137,7 @@ namespace Foo.Bar
 }
 
 
-// GetStore2Result
+// GetAllResult
 
 // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
 
@@ -133,16 +146,16 @@ namespace Foo.Bar
 namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetStore2Result
-        : global::System.IEquatable<GetStore2Result>
-        , IGetStore2Result
+    public partial class GetAllResult
+        : global::System.IEquatable<GetAllResult>
+        , IGetAllResult
     {
-        public GetStore2Result(global::Foo.Bar.IGetStore2_SearchableStore searchableStore)
+        public GetAllResult(global::Foo.Bar.IGetAll_Listings listings)
         {
-            SearchableStore = searchableStore;
+            Listings = listings;
         }
 
-        public global::Foo.Bar.IGetStore2_SearchableStore SearchableStore { get; }
+        public global::Foo.Bar.IGetAll_Listings Listings { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -165,10 +178,10 @@ namespace Foo.Bar
                 return false;
             }
 
-            return Equals((GetStore2Result)obj);
+            return Equals((GetAllResult)obj);
         }
 
-        public global::System.Boolean Equals(GetStore2Result? other)
+        public global::System.Boolean Equals(GetAllResult? other)
         {
             if (ReferenceEquals(
                     null,
@@ -189,7 +202,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (SearchableStore.Equals(other.SearchableStore));
+            return (Listings.Equals(other.Listings));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -198,7 +211,7 @@ namespace Foo.Bar
             {
                 int hash = 5;
 
-                hash ^= 397 * SearchableStore.GetHashCode();
+                hash ^= 397 * Listings.GetHashCode();
 
                 return hash;
             }
@@ -207,97 +220,7 @@ namespace Foo.Bar
 }
 
 
-// GetStore2_SearchableStore_SearchableStoreFromSearchableStoreEntityMapper
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-
-#nullable enable
-
-namespace Foo.Bar
-{
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetStore2_SearchableStore_SearchableStoreFromSearchableStoreEntityMapper
-        : global::StrawberryShake.IEntityMapper<SearchableStoreEntity, GetStore2_SearchableStore_SearchableStore>
-    {
-        public GetStore2_SearchableStore_SearchableStore Map(SearchableStoreEntity entity)
-        {
-            return new GetStore2_SearchableStore_SearchableStore(
-                entity.Id,
-                MapIGetStore2_SearchableStore_BooksArray(entity.Books),
-                MapISearchResultData(entity.Search));
-        }
-
-        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetStore2_SearchableStore_Books?>? MapIGetStore2_SearchableStore_BooksArray(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BookData?>? list)
-        {
-            if (list is null)
-            {
-                return null;
-            }
-
-            var books = new global::System.Collections.Generic.List<global::Foo.Bar.IGetStore2_SearchableStore_Books?>();
-
-            foreach (global::Foo.Bar.State.BookData? child in list)
-            {
-                books.Add(MapIGetStore2_SearchableStore_Books(child));
-            }
-
-            return books;
-        }
-
-        private global::Foo.Bar.IGetStore2_SearchableStore_Books? MapIGetStore2_SearchableStore_Books(global::Foo.Bar.State.BookData? data)
-        {
-            if (data is null)
-            {
-                return null;
-            }
-
-            IGetStore2_SearchableStore_Books returnValue = default!;
-
-            if (data?.__typename.Equals(
-                    "Book",
-                    global::System.StringComparison.Ordinal) ?? false)
-            {
-                returnValue = new GetStore2_SearchableStore_Books_Book(
-                    data.Isbn ?? throw new global::System.ArgumentNullException(),
-                    data.Title ?? throw new global::System.ArgumentNullException());
-            }
-            else
-            {
-                throw new global::System.NotSupportedException();
-            }
-            return returnValue;
-        }
-
-        private global::Foo.Bar.IGetStore2_SearchableStore_Search? MapISearchResultData(global::Foo.Bar.State.ISearchResultData? data)
-        {
-            if (data is null)
-            {
-                return null;
-            }
-
-            IGetStore2_SearchableStore_Search? returnValue;
-
-            if (data is global::Foo.Bar.State.AuthorData author)
-            {
-                returnValue = new global::Foo.Bar.GetStore2_SearchableStore_Search_Author();
-            }
-            else if (data is global::Foo.Bar.State.BookData book)
-            {
-                returnValue = new global::Foo.Bar.GetStore2_SearchableStore_Search_Book(
-                    book.Title,
-                    book.Isbn);
-            }
-            else
-            {
-                throw new global::System.NotSupportedException();
-            }
-            return returnValue;
-        }
-    }
-}
-
-
-// GetStore2_SearchableStore_SearchableStore
+// GetAll_Listings_ListingsPayload
 
 // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
 
@@ -306,25 +229,16 @@ namespace Foo.Bar
 namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetStore2_SearchableStore_SearchableStore
-        : global::System.IEquatable<GetStore2_SearchableStore_SearchableStore>
-        , IGetStore2_SearchableStore_SearchableStore
+    public partial class GetAll_Listings_ListingsPayload
+        : global::System.IEquatable<GetAll_Listings_ListingsPayload>
+        , IGetAll_Listings_ListingsPayload
     {
-        public GetStore2_SearchableStore_SearchableStore(
-            global::System.String id,
-            global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetStore2_SearchableStore_Books?>? books,
-            global::Foo.Bar.IGetStore2_SearchableStore_Search? search)
+        public GetAll_Listings_ListingsPayload(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetAll_Listings_Items> items)
         {
-            Id = id;
-            Books = books;
-            Search = search;
+            Items = items;
         }
 
-        public global::System.String Id { get; }
-
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetStore2_SearchableStore_Books?>? Books { get; }
-
-        public global::Foo.Bar.IGetStore2_SearchableStore_Search? Search { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetAll_Listings_Items> Items { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -347,10 +261,10 @@ namespace Foo.Bar
                 return false;
             }
 
-            return Equals((GetStore2_SearchableStore_SearchableStore)obj);
+            return Equals((GetAll_Listings_ListingsPayload)obj);
         }
 
-        public global::System.Boolean Equals(GetStore2_SearchableStore_SearchableStore? other)
+        public global::System.Boolean Equals(GetAll_Listings_ListingsPayload? other)
         {
             if (ReferenceEquals(
                     null,
@@ -371,11 +285,9 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Id.Equals(other.Id))
-                && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(
-                        Books,
-                        other.Books)
-                && ((Search is null && other.Search is null) ||Search != null && Search.Equals(other.Search));
+            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(
+                        Items,
+                        other.Items));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -384,22 +296,9 @@ namespace Foo.Bar
             {
                 int hash = 5;
 
-                hash ^= 397 * Id.GetHashCode();
-
-                if (!(Books is null))
+                foreach (var Items_elm in Items)
                 {
-                    foreach (var Books_elm in Books)
-                    {
-                        if (!(Books_elm is null))
-                        {
-                            hash ^= 397 * Books_elm.GetHashCode();
-                        }
-                    }
-                }
-
-                if (!(Search is null))
-                {
-                    hash ^= 397 * Search.GetHashCode();
+                    hash ^= 397 * Items_elm.GetHashCode();
                 }
 
                 return hash;
@@ -409,7 +308,7 @@ namespace Foo.Bar
 }
 
 
-// GetStore2_SearchableStore_Books_Book
+// GetAll_Listings_Items_Auction
 
 // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
 
@@ -418,21 +317,21 @@ namespace Foo.Bar
 namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetStore2_SearchableStore_Books_Book
-        : global::System.IEquatable<GetStore2_SearchableStore_Books_Book>
-        , IGetStore2_SearchableStore_Books_Book
+    public partial class GetAll_Listings_Items_Auction
+        : global::System.IEquatable<GetAll_Listings_Items_Auction>
+        , IGetAll_Listings_Items_Auction
     {
-        public GetStore2_SearchableStore_Books_Book(
-            global::System.String isbn,
-            global::System.String title)
+        public GetAll_Listings_Items_Auction(
+            global::System.String listingId,
+            global::System.Int32 startingPrice)
         {
-            Isbn = isbn;
-            Title = title;
+            ListingId = listingId;
+            StartingPrice = startingPrice;
         }
 
-        public global::System.String Isbn { get; }
+        public global::System.String ListingId { get; }
 
-        public global::System.String Title { get; }
+        public global::System.Int32 StartingPrice { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -455,10 +354,10 @@ namespace Foo.Bar
                 return false;
             }
 
-            return Equals((GetStore2_SearchableStore_Books_Book)obj);
+            return Equals((GetAll_Listings_Items_Auction)obj);
         }
 
-        public global::System.Boolean Equals(GetStore2_SearchableStore_Books_Book? other)
+        public global::System.Boolean Equals(GetAll_Listings_Items_Auction? other)
         {
             if (ReferenceEquals(
                     null,
@@ -479,8 +378,8 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Isbn.Equals(other.Isbn))
-                && Title.Equals(other.Title);
+            return (ListingId.Equals(other.ListingId))
+                && StartingPrice == other.StartingPrice;
         }
 
         public override global::System.Int32 GetHashCode()
@@ -489,9 +388,9 @@ namespace Foo.Bar
             {
                 int hash = 5;
 
-                hash ^= 397 * Isbn.GetHashCode();
+                hash ^= 397 * ListingId.GetHashCode();
 
-                hash ^= 397 * Title.GetHashCode();
+                hash ^= 397 * StartingPrice.GetHashCode();
 
                 return hash;
             }
@@ -500,7 +399,7 @@ namespace Foo.Bar
 }
 
 
-// GetStore2_SearchableStore_Search_Author
+// GetAll_Listings_Items_Offer
 
 // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
 
@@ -509,13 +408,21 @@ namespace Foo.Bar
 namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetStore2_SearchableStore_Search_Author
-        : global::System.IEquatable<GetStore2_SearchableStore_Search_Author>
-        , IGetStore2_SearchableStore_Search_Author
+    public partial class GetAll_Listings_Items_Offer
+        : global::System.IEquatable<GetAll_Listings_Items_Offer>
+        , IGetAll_Listings_Items_Offer
     {
-        public GetStore2_SearchableStore_Search_Author()
+        public GetAll_Listings_Items_Offer(
+            global::System.String listingId,
+            global::System.Int32 price)
         {
+            ListingId = listingId;
+            Price = price;
         }
+
+        public global::System.String ListingId { get; }
+
+        public global::System.Int32 Price { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -538,10 +445,10 @@ namespace Foo.Bar
                 return false;
             }
 
-            return Equals((GetStore2_SearchableStore_Search_Author)obj);
+            return Equals((GetAll_Listings_Items_Offer)obj);
         }
 
-        public global::System.Boolean Equals(GetStore2_SearchableStore_Search_Author? other)
+        public global::System.Boolean Equals(GetAll_Listings_Items_Offer? other)
         {
             if (ReferenceEquals(
                     null,
@@ -562,7 +469,8 @@ namespace Foo.Bar
                 return false;
             }
 
-            return true;
+            return (ListingId.Equals(other.ListingId))
+                && Price == other.Price;
         }
 
         public override global::System.Int32 GetHashCode()
@@ -571,96 +479,9 @@ namespace Foo.Bar
             {
                 int hash = 5;
 
-                return hash;
-            }
-        }
-    }
-}
+                hash ^= 397 * ListingId.GetHashCode();
 
-
-// GetStore2_SearchableStore_Search_Book
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-
-#nullable enable
-
-namespace Foo.Bar
-{
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetStore2_SearchableStore_Search_Book
-        : global::System.IEquatable<GetStore2_SearchableStore_Search_Book>
-        , IGetStore2_SearchableStore_Search_Book
-    {
-        public GetStore2_SearchableStore_Search_Book(
-            global::System.String title,
-            global::System.String isbn)
-        {
-            Title = title;
-            Isbn = isbn;
-        }
-
-        public global::System.String Title { get; }
-
-        public global::System.String Isbn { get; }
-
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(
-                    null,
-                    obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(
-                    this,
-                    obj))
-            {
-                return false;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((GetStore2_SearchableStore_Search_Book)obj);
-        }
-
-        public global::System.Boolean Equals(GetStore2_SearchableStore_Search_Book? other)
-        {
-            if (ReferenceEquals(
-                    null,
-                    other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(
-                    this,
-                    other))
-            {
-                return false;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Title.Equals(other.Title))
-                && Isbn.Equals(other.Isbn);
-        }
-
-        public override global::System.Int32 GetHashCode()
-        {
-            unchecked
-            {
-                int hash = 5;
-
-                hash ^= 397 * Title.GetHashCode();
-
-                hash ^= 397 * Isbn.GetHashCode();
+                hash ^= 397 * Price.GetHashCode();
 
                 return hash;
             }
@@ -669,7 +490,7 @@ namespace Foo.Bar
 }
 
 
-// IGetStore2Result
+// IGetAllResult
 
 // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
@@ -678,14 +499,14 @@ namespace Foo.Bar
 namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetStore2Result
+    public interface IGetAllResult
     {
-        public global::Foo.Bar.IGetStore2_SearchableStore SearchableStore { get; }
+        public global::Foo.Bar.IGetAll_Listings Listings { get; }
     }
 }
 
 
-// IGetStore2_SearchableStore
+// IListingsPayload
 
 // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
@@ -694,18 +515,14 @@ namespace Foo.Bar
 namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetStore2_SearchableStore
+    public interface IListingsPayload
     {
-        public global::System.String Id { get; }
-
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetStore2_SearchableStore_Books?>? Books { get; }
-
-        public global::Foo.Bar.IGetStore2_SearchableStore_Search? Search { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetAll_Listings_Items> Items { get; }
     }
 }
 
 
-// IGetStore2_SearchableStore_SearchableStore
+// IGetAll_Listings
 
 // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
@@ -714,14 +531,14 @@ namespace Foo.Bar
 namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetStore2_SearchableStore_SearchableStore
-        : IGetStore2_SearchableStore
+    public interface IGetAll_Listings
+        : IListingsPayload
     {
     }
 }
 
 
-// IGetStore2_SearchableStore_Books
+// IGetAll_Listings_ListingsPayload
 
 // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
@@ -730,16 +547,14 @@ namespace Foo.Bar
 namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetStore2_SearchableStore_Books
+    public interface IGetAll_Listings_ListingsPayload
+        : IGetAll_Listings
     {
-        public global::System.String Isbn { get; }
-
-        public global::System.String Title { get; }
     }
 }
 
 
-// IGetStore2_SearchableStore_Books_Book
+// IHasListingId
 
 // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
@@ -748,14 +563,14 @@ namespace Foo.Bar
 namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetStore2_SearchableStore_Books_Book
-        : IGetStore2_SearchableStore_Books
+    public interface IHasListingId
     {
+        public global::System.String ListingId { get; }
     }
 }
 
 
-// IGetStore2_SearchableStore_Search
+// IGetAll_Listings_Items
 
 // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
@@ -764,13 +579,14 @@ namespace Foo.Bar
 namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetStore2_SearchableStore_Search
+    public interface IGetAll_Listings_Items
+        : IHasListingId
     {
     }
 }
 
 
-// IGetStore2_SearchableStore_Search_Author
+// IAuction
 
 // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
@@ -779,14 +595,14 @@ namespace Foo.Bar
 namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetStore2_SearchableStore_Search_Author
-        : IGetStore2_SearchableStore_Search
+    public interface IAuction
     {
+        public global::System.Int32 StartingPrice { get; }
     }
 }
 
 
-// IGetStore2_SearchableStore_Search_Book
+// IGetAll_Listings_Items_Auction
 
 // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
@@ -795,17 +611,48 @@ namespace Foo.Bar
 namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetStore2_SearchableStore_Search_Book
-        : IGetStore2_SearchableStore_Search
+    public interface IGetAll_Listings_Items_Auction
+        : IGetAll_Listings_Items
+        , IAuction
     {
-        public global::System.String Title { get; }
-
-        public global::System.String Isbn { get; }
     }
 }
 
 
-// GetStore2QueryDocument
+// IOffer
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IOffer
+    {
+        public global::System.Int32 Price { get; }
+    }
+}
+
+
+// IGetAll_Listings_Items_Offer
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IGetAll_Listings_Items_Offer
+        : IGetAll_Listings_Items
+        , IOffer
+    {
+    }
+}
+
+
+// GetAllQueryDocument
 
 // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
 
@@ -814,46 +661,52 @@ namespace Foo.Bar
 namespace Foo.Bar
 {
     /// <summary>
-    /// Represents the operation service of the GetStore2 GraphQL operation
+    /// Represents the operation service of the GetAll GraphQL operation
     /// <code>
-    /// query GetStore2 {
-    ///   searchableStore {
+    /// query GetAll {
+    ///   listings {
     ///     __typename
-    ///     id
-    ///     books {
-    ///       __typename
-    ///       isbn
-    ///       title
-    ///     }
-    ///     search {
-    ///       __typename
-    ///       ... on Book {
-    ///         title
-    ///         isbn
-    ///       }
-    ///     }
-    ///     ... on SearchableStore {
-    ///       id
-    ///     }
+    ///     ... ListingsPayload
     ///   }
+    /// }
+    /// 
+    /// fragment ListingsPayload on ListingsPayload {
+    ///   items {
+    ///     __typename
+    ///     ... HasListingId
+    ///     ... Offer
+    ///     ... Auction
+    ///   }
+    /// }
+    /// 
+    /// fragment HasListingId on Listing {
+    ///   listingId
+    /// }
+    /// 
+    /// fragment Offer on Offer {
+    ///   price
+    /// }
+    /// 
+    /// fragment Auction on Auction {
+    ///   startingPrice
     /// }
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetStore2QueryDocument
+    public partial class GetAllQueryDocument
         : global::StrawberryShake.IDocument
     {
-        private GetStore2QueryDocument()
+        private GetAllQueryDocument()
         {
         }
 
-        public static GetStore2QueryDocument Instance { get; } = new GetStore2QueryDocument();
+        public static GetAllQueryDocument Instance { get; } = new GetAllQueryDocument();
 
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
 
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{ 0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x47, 0x65, 0x74, 0x53, 0x74, 0x6f, 0x72, 0x65, 0x32, 0x20, 0x7b, 0x20, 0x73, 0x65, 0x61, 0x72, 0x63, 0x68, 0x61, 0x62, 0x6c, 0x65, 0x53, 0x74, 0x6f, 0x72, 0x65, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x69, 0x64, 0x20, 0x62, 0x6f, 0x6f, 0x6b, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x69, 0x73, 0x62, 0x6e, 0x20, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x20, 0x7d, 0x20, 0x73, 0x65, 0x61, 0x72, 0x63, 0x68, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x42, 0x6f, 0x6f, 0x6b, 0x20, 0x7b, 0x20, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x20, 0x69, 0x73, 0x62, 0x6e, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x61, 0x62, 0x6c, 0x65, 0x53, 0x74, 0x6f, 0x72, 0x65, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d };
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{ 0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x47, 0x65, 0x74, 0x41, 0x6c, 0x6c, 0x20, 0x7b, 0x20, 0x6c, 0x69, 0x73, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x4c, 0x69, 0x73, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x50, 0x61, 0x79, 0x6c, 0x6f, 0x61, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x4c, 0x69, 0x73, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x50, 0x61, 0x79, 0x6c, 0x6f, 0x61, 0x64, 0x20, 0x6f, 0x6e, 0x20, 0x4c, 0x69, 0x73, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x50, 0x61, 0x79, 0x6c, 0x6f, 0x61, 0x64, 0x20, 0x7b, 0x20, 0x69, 0x74, 0x65, 0x6d, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x48, 0x61, 0x73, 0x4c, 0x69, 0x73, 0x74, 0x69, 0x6e, 0x67, 0x49, 0x64, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x4f, 0x66, 0x66, 0x65, 0x72, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x41, 0x75, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x48, 0x61, 0x73, 0x4c, 0x69, 0x73, 0x74, 0x69, 0x6e, 0x67, 0x49, 0x64, 0x20, 0x6f, 0x6e, 0x20, 0x4c, 0x69, 0x73, 0x74, 0x69, 0x6e, 0x67, 0x20, 0x7b, 0x20, 0x6c, 0x69, 0x73, 0x74, 0x69, 0x6e, 0x67, 0x49, 0x64, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x4f, 0x66, 0x66, 0x65, 0x72, 0x20, 0x6f, 0x6e, 0x20, 0x4f, 0x66, 0x66, 0x65, 0x72, 0x20, 0x7b, 0x20, 0x70, 0x72, 0x69, 0x63, 0x65, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x41, 0x75, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x6f, 0x6e, 0x20, 0x41, 0x75, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x73, 0x74, 0x61, 0x72, 0x74, 0x69, 0x6e, 0x67, 0x50, 0x72, 0x69, 0x63, 0x65, 0x20, 0x7d };
 
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "3319c32a6efc271a924c607e95150aabe701c260");
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "c2ce13cb04932b7d4f0a3b22a6566fa34494b068");
 
         public override global::System.String ToString()
         {
@@ -863,7 +716,7 @@ namespace Foo.Bar
 }
 
 
-// GetStore2Query
+// GetAllQuery
 
 // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
 
@@ -872,43 +725,49 @@ namespace Foo.Bar
 namespace Foo.Bar
 {
     /// <summary>
-    /// Represents the operation service of the GetStore2 GraphQL operation
+    /// Represents the operation service of the GetAll GraphQL operation
     /// <code>
-    /// query GetStore2 {
-    ///   searchableStore {
+    /// query GetAll {
+    ///   listings {
     ///     __typename
-    ///     id
-    ///     books {
-    ///       __typename
-    ///       isbn
-    ///       title
-    ///     }
-    ///     search {
-    ///       __typename
-    ///       ... on Book {
-    ///         title
-    ///         isbn
-    ///       }
-    ///     }
-    ///     ... on SearchableStore {
-    ///       id
-    ///     }
+    ///     ... ListingsPayload
     ///   }
+    /// }
+    /// 
+    /// fragment ListingsPayload on ListingsPayload {
+    ///   items {
+    ///     __typename
+    ///     ... HasListingId
+    ///     ... Offer
+    ///     ... Auction
+    ///   }
+    /// }
+    /// 
+    /// fragment HasListingId on Listing {
+    ///   listingId
+    /// }
+    /// 
+    /// fragment Offer on Offer {
+    ///   price
+    /// }
+    /// 
+    /// fragment Auction on Auction {
+    ///   startingPrice
     /// }
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetStore2Query
+    public partial class GetAllQuery
     {
-        private readonly global::StrawberryShake.IOperationExecutor<IGetStore2Result> _operationExecutor;
+        private readonly global::StrawberryShake.IOperationExecutor<IGetAllResult> _operationExecutor;
 
-        public GetStore2Query(global::StrawberryShake.IOperationExecutor<IGetStore2Result> operationExecutor)
+        public GetAllQuery(global::StrawberryShake.IOperationExecutor<IGetAllResult> operationExecutor)
         {
             _operationExecutor = operationExecutor
                  ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
         }
 
-        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetStore2Result>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default)
+        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetAllResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest();
 
@@ -919,7 +778,7 @@ namespace Foo.Bar
                 .ConfigureAwait(false);
         }
 
-        public global::System.IObservable<global::StrawberryShake.IOperationResult<IGetStore2Result>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null)
+        public global::System.IObservable<global::StrawberryShake.IOperationResult<IGetAllResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null)
         {
             var request = CreateRequest();
             return _operationExecutor.Watch(
@@ -931,16 +790,16 @@ namespace Foo.Bar
         {
 
             return new global::StrawberryShake.OperationRequest(
-                id: GetStore2QueryDocument.Instance.Hash.Value,
-                name: "GetStore2",
-                document: GetStore2QueryDocument.Instance,
+                id: GetAllQueryDocument.Instance.Hash.Value,
+                name: "GetAll",
+                document: GetAllQueryDocument.Instance,
                 strategy: global::StrawberryShake.RequestStrategy.Default);
         }
     }
 }
 
 
-// GetStore2Builder
+// GetAllBuilder
 
 // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
 
@@ -949,18 +808,19 @@ namespace Foo.Bar
 namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetStore2Builder
-        : global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, IGetStore2Result>
+    public partial class GetAllBuilder
+        : global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, IGetAllResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
-        private readonly global::StrawberryShake.IOperationResultDataFactory<IGetStore2Result> _resultDataFactory;
-        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
+        private readonly global::StrawberryShake.IOperationResultDataFactory<IGetAllResult> _resultDataFactory;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _iDParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Int32, global::System.Int32> _intParser;
 
-        public GetStore2Builder(
+        public GetAllBuilder(
             global::StrawberryShake.IEntityStore entityStore,
             global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> extractId,
-            global::StrawberryShake.IOperationResultDataFactory<IGetStore2Result> resultDataFactory,
+            global::StrawberryShake.IOperationResultDataFactory<IGetAllResult> resultDataFactory,
             global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _entityStore = entityStore
@@ -969,13 +829,15 @@ namespace Foo.Bar
                  ?? throw new global::System.ArgumentNullException(nameof(extractId));
             _resultDataFactory = resultDataFactory
                  ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
-            _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String")
-                 ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
+            _iDParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("ID")
+                 ?? throw new global::System.ArgumentException("No serializer for type `ID` found.");
+            _intParser = serializerResolver.GetLeafValueParser<global::System.Int32, global::System.Int32>("Int")
+                 ?? throw new global::System.ArgumentException("No serializer for type `Int` found.");
         }
 
-        public global::StrawberryShake.IOperationResult<IGetStore2Result> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
+        public global::StrawberryShake.IOperationResult<IGetAllResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
         {
-            (IGetStore2Result Result, GetStore2ResultInfo Info)? data = null;
+            (IGetAllResult Result, GetAllResultInfo Info)? data = null;
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
 
             if (response.Body != null)
@@ -990,26 +852,24 @@ namespace Foo.Bar
                 }
             }
 
-            return new global::StrawberryShake.OperationResult<IGetStore2Result>(
+            return new global::StrawberryShake.OperationResult<IGetAllResult>(
                 data?.Result,
                 data?.Info,
                 _resultDataFactory,
                 errors);
         }
 
-        private (IGetStore2Result, GetStore2ResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
+        private (IGetAllResult, GetAllResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
         {
             using global::StrawberryShake.IEntityUpdateSession session = _entityStore.BeginUpdate();
             var entityIds = new global::System.Collections.Generic.HashSet<global::StrawberryShake.EntityId>();
 
-            global::StrawberryShake.EntityId searchableStoreId = UpdateNonNullableIGetStore2_SearchableStoreEntity(
-                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                    obj,
-                    "searchableStore"),
-                entityIds);
 
-            var resultInfo = new GetStore2ResultInfo(
-                searchableStoreId,
+            var resultInfo = new GetAllResultInfo(
+                DeserializeNonNullableIGetAll_Listings(
+                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                        obj,
+                        "listings")),
                 entityIds,
                 session.Version);
 
@@ -1019,38 +879,84 @@ namespace Foo.Bar
             );
         }
 
-        private global::StrawberryShake.EntityId UpdateNonNullableIGetStore2_SearchableStoreEntity(
-            global::System.Text.Json.JsonElement? obj,
-            global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        private global::Foo.Bar.State.ListingsPayloadData DeserializeNonNullableIGetAll_Listings(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {
                 throw new global::System.ArgumentNullException();
             }
 
-            global::StrawberryShake.EntityId entityId = _extractId(obj.Value);
-            entityIds.Add(entityId);
+            var typename = obj.Value
+                .GetProperty("__typename")
+                .GetString();
 
-
-            if (entityId.Name.Equals(
-                    "SearchableStore",
-                    global::System.StringComparison.Ordinal))
+            if (typename?.Equals("ListingsPayload", global::System.StringComparison.Ordinal) ?? false)
             {
-                SearchableStoreEntity entity = _entityStore.GetOrCreate<SearchableStoreEntity>(entityId);
-                entity.Id = DeserializeNonNullableString(
-                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                        obj,
-                        "id"));
-                entity.Books = DeserializeIGetStore2_SearchableStore_BooksArray(
-                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                        obj,
-                        "books"));
-                entity.Search = DeserializeISearchResultData(
-                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                        obj,
-                        "search"));
+                return new global::Foo.Bar.State.ListingsPayloadData(
+                    typename,
+                    items: DeserializeNonNullableIListingDataNonNullableArray(
+                        global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                            obj,
+                            "items")));
+            }
 
-                return entityId;
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.IListingData> DeserializeNonNullableIListingDataNonNullableArray(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            var listings = new global::System.Collections.Generic.List<global::Foo.Bar.State.IListingData>();
+
+            foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
+            {
+                listings.Add(DeserializeNonNullableIListingData(child));
+            }
+
+            return listings;
+        }
+
+        private global::Foo.Bar.State.IListingData DeserializeNonNullableIListingData(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            var typename = obj.Value
+                .GetProperty("__typename")
+                .GetString();
+
+            if (typename?.Equals("Auction", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::Foo.Bar.State.AuctionData(
+                    typename,
+                    listingId: DeserializeNonNullableString(
+                        global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                            obj,
+                            "listingId")),
+                    startingPrice: DeserializeNonNullableInt32(
+                        global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                            obj,
+                            "startingPrice")));
+            }
+
+            if (typename?.Equals("Offer", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::Foo.Bar.State.OfferData(
+                    typename,
+                    listingId: DeserializeNonNullableString(
+                        global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                            obj,
+                            "listingId")),
+                    price: DeserializeNonNullableInt32(
+                        global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                            obj,
+                            "price")));
             }
 
             throw new global::System.NotSupportedException();
@@ -1063,91 +969,23 @@ namespace Foo.Bar
                 throw new global::System.ArgumentNullException();
             }
 
-            return _stringParser.Parse(obj.Value.GetString()!);
+            return _iDParser.Parse(obj.Value.GetString()!);
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BookData?>? DeserializeIGetStore2_SearchableStore_BooksArray(global::System.Text.Json.JsonElement? obj)
+        private global::System.Int32 DeserializeNonNullableInt32(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {
-                return null;
+                throw new global::System.ArgumentNullException();
             }
 
-            var books = new global::System.Collections.Generic.List<global::Foo.Bar.State.BookData?>();
-
-            foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
-            {
-                books.Add(DeserializeIGetStore2_SearchableStore_Books(child));
-            }
-
-            return books;
-        }
-
-        private global::Foo.Bar.State.BookData? DeserializeIGetStore2_SearchableStore_Books(global::System.Text.Json.JsonElement? obj)
-        {
-            if (!obj.HasValue)
-            {
-                return null;
-            }
-
-            var typename = obj.Value
-                .GetProperty("__typename")
-                .GetString();
-
-            if (typename?.Equals("Book", global::System.StringComparison.Ordinal) ?? false)
-            {
-                return new global::Foo.Bar.State.BookData(
-                    typename,
-                    isbn: DeserializeNonNullableString(
-                        global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                            obj,
-                            "isbn")),
-                    title: DeserializeNonNullableString(
-                        global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                            obj,
-                            "title")));
-            }
-
-            throw new global::System.NotSupportedException();
-        }
-
-        private global::Foo.Bar.State.ISearchResultData? DeserializeISearchResultData(global::System.Text.Json.JsonElement? obj)
-        {
-            if (!obj.HasValue)
-            {
-                return null;
-            }
-
-            var typename = obj.Value
-                .GetProperty("__typename")
-                .GetString();
-
-            if (typename?.Equals("Author", global::System.StringComparison.Ordinal) ?? false)
-            {
-                return new global::Foo.Bar.State.AuthorData(typename);
-            }
-
-            if (typename?.Equals("Book", global::System.StringComparison.Ordinal) ?? false)
-            {
-                return new global::Foo.Bar.State.BookData(
-                    typename,
-                    title: DeserializeNonNullableString(
-                        global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                            obj,
-                            "title")),
-                    isbn: DeserializeNonNullableString(
-                        global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                            obj,
-                            "isbn")));
-            }
-
-            throw new global::System.NotSupportedException();
+            return _intParser.Parse(obj.Value.GetInt32()!);
         }
     }
 }
 
 
-// ISearchResultData
+// ListingsPayloadData
 
 // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
 
@@ -1156,63 +994,25 @@ namespace Foo.Bar
 namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISearchResultData
+    public partial class ListingsPayloadData
     {
-        public global::System.String __typename { get; }
-    }
-}
-
-
-// IPrintData
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-
-#nullable enable
-
-namespace Foo.Bar.State
-{
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IPrintData
-    {
-        public global::System.String __typename { get; }
-    }
-}
-
-
-// BookData
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-
-#nullable enable
-
-namespace Foo.Bar.State
-{
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class BookData
-        : ISearchResultData
-        , IPrintData
-    {
-        public BookData(
+        public ListingsPayloadData(
             global::System.String typename,
-            global::System.String? isbn = null,
-            global::System.String? title = null)
+            global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.IListingData>? items = null)
         {
             __typename = typename
                  ?? throw new global::System.ArgumentNullException(nameof(typename));
-            Isbn = isbn;
-            Title = title;
+            Items = items;
         }
 
         public global::System.String __typename { get; }
 
-        public global::System.String? Isbn { get; }
-
-        public global::System.String? Title { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.IListingData>? Items { get; }
     }
 }
 
 
-// AuthorData
+// IListingData
 
 // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
 
@@ -1221,16 +1021,73 @@ namespace Foo.Bar.State
 namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class AuthorData
-        : ISearchResultData
+    public interface IListingData
     {
-        public AuthorData(global::System.String typename)
+        public global::System.String __typename { get; }
+    }
+}
+
+
+// AuctionData
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+
+#nullable enable
+
+namespace Foo.Bar.State
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class AuctionData
+        : IListingData
+    {
+        public AuctionData(
+            global::System.String typename,
+            global::System.String? listingId = null,
+            global::System.Int32? startingPrice = null)
         {
             __typename = typename
                  ?? throw new global::System.ArgumentNullException(nameof(typename));
+            ListingId = listingId;
+            StartingPrice = startingPrice;
         }
 
         public global::System.String __typename { get; }
+
+        public global::System.String? ListingId { get; }
+
+        public global::System.Int32? StartingPrice { get; }
+    }
+}
+
+
+// OfferData
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+
+#nullable enable
+
+namespace Foo.Bar.State
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class OfferData
+        : IListingData
+    {
+        public OfferData(
+            global::System.String typename,
+            global::System.String? listingId = null,
+            global::System.Int32? price = null)
+        {
+            __typename = typename
+                 ?? throw new global::System.ArgumentNullException(nameof(typename));
+            ListingId = listingId;
+            Price = price;
+        }
+
+        public global::System.String __typename { get; }
+
+        public global::System.String? ListingId { get; }
+
+        public global::System.Int32? Price { get; }
     }
 }
 
@@ -1249,17 +1106,17 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient
     {
-        private readonly global::Foo.Bar.GetStore2Query _getStore2;
+        private readonly global::Foo.Bar.GetAllQuery _getAll;
 
-        public FooClient(global::Foo.Bar.GetStore2Query getStore2)
+        public FooClient(global::Foo.Bar.GetAllQuery getAll)
         {
-            _getStore2 = getStore2
-                 ?? throw new global::System.ArgumentNullException(nameof(getStore2));
+            _getAll = getAll
+                 ?? throw new global::System.ArgumentNullException(nameof(getAll));
         }
 
         public static global::System.String ClientName => "FooClient";
 
-        public global::Foo.Bar.GetStore2Query GetStore2 => _getStore2;
+        public global::Foo.Bar.GetAllQuery GetAll => _getAll;
     }
 }
 
@@ -1283,22 +1140,8 @@ namespace Foo.Bar
 
             return typeName switch
             {
-                "SearchableStore" => CreateSearchableStoreEntityId(
-                    obj,
-                    typeName),
                 _ => throw new global::System.NotSupportedException()
             };
-        }
-
-        private static global::StrawberryShake.EntityId CreateSearchableStoreEntityId(
-            global::System.Text.Json.JsonElement obj,
-            global::System.String type)
-        {
-            return new global::StrawberryShake.EntityId(
-                type,
-                obj
-                    .GetProperty("id")
-                    .GetString()!);
         }
     }
 }
@@ -1333,7 +1176,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.GetStore2Query>(
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.GetAllQuery>(
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
@@ -1368,7 +1211,6 @@ namespace Microsoft.Extensions.DependencyInjection
                     return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("FooClient"));
                 });
 
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.SearchableStoreEntity, global::Foo.Bar.GetStore2_SearchableStore_SearchableStore>, global::Foo.Bar.GetStore2_SearchableStore_SearchableStoreFromSearchableStoreEntityMapper>(services);
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.StringSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.BooleanSerializer>(services);
@@ -1394,16 +1236,16 @@ namespace Microsoft.Extensions.DependencyInjection
                         global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(
                             sp))));
 
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IGetStore2Result>, global::Foo.Bar.GetStore2ResultFactory>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.IGetStore2Result>, global::Foo.Bar.GetStore2Builder>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::Foo.Bar.IGetStore2Result>>(
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IGetAllResult>, global::Foo.Bar.GetAllResultFactory>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.IGetAllResult>, global::Foo.Bar.GetAllBuilder>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::Foo.Bar.IGetAllResult>>(
                 services,
-                sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::Foo.Bar.IGetStore2Result>(
+                sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::Foo.Bar.IGetAllResult>(
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.Http.HttpConnection>(sp),
-                    () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.IGetStore2Result>>(sp),
+                    () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.IGetAllResult>>(sp),
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
                     strategy));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.GetStore2Query>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.GetAllQuery>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.FooClient>(services);
             return services;
         }

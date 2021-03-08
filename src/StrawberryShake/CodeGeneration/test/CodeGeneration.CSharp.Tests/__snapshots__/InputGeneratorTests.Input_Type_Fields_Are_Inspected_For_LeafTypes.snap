@@ -66,7 +66,7 @@ namespace Foo.Bar
             throw new global::System.ArgumentException("ChangeHomePlanetResultInfo expected.");
         }
 
-        private IChangeHomePlanet_ChangeHomePlanet MapNonNullableIChangeHomePlanet_ChangeHomePlanet(global::Foo.Bar.State.ChangeHomePlanetPayloadData data)
+        private global::Foo.Bar.IChangeHomePlanet_ChangeHomePlanet MapNonNullableIChangeHomePlanet_ChangeHomePlanet(global::Foo.Bar.State.ChangeHomePlanetPayloadData data)
         {
             IChangeHomePlanet_ChangeHomePlanet returnValue = default!;
 
@@ -83,7 +83,7 @@ namespace Foo.Bar
             return returnValue;
         }
 
-        private IChangeHomePlanet_ChangeHomePlanet_Human MapNonNullableIChangeHomePlanet_ChangeHomePlanet_Human(global::StrawberryShake.EntityId entityId)
+        private global::Foo.Bar.IChangeHomePlanet_ChangeHomePlanet_Human MapNonNullableIChangeHomePlanet_ChangeHomePlanet_Human(global::StrawberryShake.EntityId entityId)
         {
 
             if (entityId.Name.Equals(
@@ -156,12 +156,12 @@ namespace Foo.Bar
         : global::System.IEquatable<ChangeHomePlanetResult>
         , IChangeHomePlanetResult
     {
-        public ChangeHomePlanetResult(IChangeHomePlanet_ChangeHomePlanet changeHomePlanet)
+        public ChangeHomePlanetResult(global::Foo.Bar.IChangeHomePlanet_ChangeHomePlanet changeHomePlanet)
         {
             ChangeHomePlanet = changeHomePlanet;
         }
 
-        public IChangeHomePlanet_ChangeHomePlanet ChangeHomePlanet { get; }
+        public global::Foo.Bar.IChangeHomePlanet_ChangeHomePlanet ChangeHomePlanet { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -239,12 +239,12 @@ namespace Foo.Bar
         : global::System.IEquatable<ChangeHomePlanet_ChangeHomePlanet_ChangeHomePlanetPayload>
         , IChangeHomePlanet_ChangeHomePlanet_ChangeHomePlanetPayload
     {
-        public ChangeHomePlanet_ChangeHomePlanet_ChangeHomePlanetPayload(IChangeHomePlanet_ChangeHomePlanet_Human human)
+        public ChangeHomePlanet_ChangeHomePlanet_ChangeHomePlanetPayload(global::Foo.Bar.IChangeHomePlanet_ChangeHomePlanet_Human human)
         {
             Human = human;
         }
 
-        public IChangeHomePlanet_ChangeHomePlanet_Human Human { get; }
+        public global::Foo.Bar.IChangeHomePlanet_ChangeHomePlanet_Human Human { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -432,7 +432,7 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IChangeHomePlanetResult
     {
-        public IChangeHomePlanet_ChangeHomePlanet ChangeHomePlanet { get; }
+        public global::Foo.Bar.IChangeHomePlanet_ChangeHomePlanet ChangeHomePlanet { get; }
     }
 }
 
@@ -448,7 +448,7 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IChangeHomePlanet_ChangeHomePlanet
     {
-        public IChangeHomePlanet_ChangeHomePlanet_Human Human { get; }
+        public global::Foo.Bar.IChangeHomePlanet_ChangeHomePlanet_Human Human { get; }
     }
 }
 
@@ -681,7 +681,7 @@ namespace Foo.Bar
         }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IChangeHomePlanetResult>> ExecuteAsync(
-            ChangeHomePlanetInput input,
+            global::Foo.Bar.ChangeHomePlanetInput input,
             global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(input);
@@ -694,7 +694,7 @@ namespace Foo.Bar
         }
 
         public global::System.IObservable<global::StrawberryShake.IOperationResult<IChangeHomePlanetResult>> Watch(
-            ChangeHomePlanetInput input,
+            global::Foo.Bar.ChangeHomePlanetInput input,
             global::StrawberryShake.ExecutionStrategy? strategy = null)
         {
             var request = CreateRequest(input);
@@ -703,7 +703,7 @@ namespace Foo.Bar
                 strategy);
         }
 
-        private global::StrawberryShake.OperationRequest CreateRequest(ChangeHomePlanetInput input)
+        private global::StrawberryShake.OperationRequest CreateRequest(global::Foo.Bar.ChangeHomePlanetInput input)
         {
             var variables = new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>();
 
@@ -719,7 +719,7 @@ namespace Foo.Bar
                 variables:variables);
         }
 
-        private global::System.Object? FormatInput(ChangeHomePlanetInput value)
+        private global::System.Object? FormatInput(global::Foo.Bar.ChangeHomePlanetInput value)
         {
             if (value is null)
             {

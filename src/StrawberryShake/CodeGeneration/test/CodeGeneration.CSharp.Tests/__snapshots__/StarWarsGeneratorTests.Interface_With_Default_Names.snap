@@ -22,7 +22,7 @@ namespace Foo.Bar
     {
         public global::System.String Name { get; set; } = default!;
 
-        public global::System.Collections.Generic.IReadOnlyList<Episode?>? AppearsIn { get; set; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Episode?>? AppearsIn { get; set; }
     }
 }
 
@@ -40,7 +40,7 @@ namespace Foo.Bar
     {
         public global::System.String Name { get; set; } = default!;
 
-        public global::System.Collections.Generic.IReadOnlyList<Episode?>? AppearsIn { get; set; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Episode?>? AppearsIn { get; set; }
     }
 }
 
@@ -84,7 +84,7 @@ namespace Foo.Bar
             throw new global::System.ArgumentException("GetHeroResultInfo expected.");
         }
 
-        private IGetHero_Hero? MapIGetHero_Hero(global::StrawberryShake.EntityId? entityId)
+        private global::Foo.Bar.IGetHero_Hero? MapIGetHero_Hero(global::StrawberryShake.EntityId? entityId)
         {
             if (entityId is null)
             {
@@ -171,12 +171,12 @@ namespace Foo.Bar
         : global::System.IEquatable<GetHeroResult>
         , IGetHeroResult
     {
-        public GetHeroResult(IGetHero_Hero? hero)
+        public GetHeroResult(global::Foo.Bar.IGetHero_Hero? hero)
         {
             Hero = hero;
         }
 
-        public IGetHero_Hero? Hero { get; }
+        public global::Foo.Bar.IGetHero_Hero? Hero { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -281,7 +281,7 @@ namespace Foo.Bar
     {
         public GetHero_Hero_Droid(
             global::System.String name,
-            global::System.Collections.Generic.IReadOnlyList<Episode?>? appearsIn)
+            global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Episode?>? appearsIn)
         {
             Name = name;
             AppearsIn = appearsIn;
@@ -289,7 +289,7 @@ namespace Foo.Bar
 
         public global::System.String Name { get; }
 
-        public global::System.Collections.Generic.IReadOnlyList<Episode?>? AppearsIn { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Episode?>? AppearsIn { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -405,7 +405,7 @@ namespace Foo.Bar
     {
         public GetHero_Hero_Human(
             global::System.String name,
-            global::System.Collections.Generic.IReadOnlyList<Episode?>? appearsIn)
+            global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Episode?>? appearsIn)
         {
             Name = name;
             AppearsIn = appearsIn;
@@ -413,7 +413,7 @@ namespace Foo.Bar
 
         public global::System.String Name { get; }
 
-        public global::System.Collections.Generic.IReadOnlyList<Episode?>? AppearsIn { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Episode?>? AppearsIn { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -503,7 +503,7 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetHeroResult
     {
-        public IGetHero_Hero? Hero { get; }
+        public global::Foo.Bar.IGetHero_Hero? Hero { get; }
     }
 }
 
@@ -521,7 +521,7 @@ namespace Foo.Bar
     {
         public global::System.String Name { get; }
 
-        public global::System.Collections.Generic.IReadOnlyList<Episode?>? AppearsIn { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Episode?>? AppearsIn { get; }
     }
 }
 
@@ -877,14 +877,14 @@ namespace Foo.Bar
             return _stringParser.Parse(obj.Value.GetString()!);
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<Episode?>? DeserializeEpisodeArray(global::System.Text.Json.JsonElement? obj)
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Episode?>? DeserializeEpisodeArray(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {
                 return null;
             }
 
-            var episodes = new global::System.Collections.Generic.List<Episode?>();
+            var episodes = new global::System.Collections.Generic.List<global::Foo.Bar.Episode?>();
 
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
@@ -894,7 +894,7 @@ namespace Foo.Bar
             return episodes;
         }
 
-        private Episode? DeserializeEpisode(global::System.Text.Json.JsonElement? obj)
+        private global::Foo.Bar.Episode? DeserializeEpisode(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {

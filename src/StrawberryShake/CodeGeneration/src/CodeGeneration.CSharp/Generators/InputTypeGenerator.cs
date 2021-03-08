@@ -26,7 +26,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .AddProperty(prop.Name)
                     .SetPublic()
                     .SetComment(prop.Description)
-                    .SetType(prop.Type.ToBuilder())
+                    .SetType(prop.Type.ToTypeReference())
                     .MakeSettable()
                     .SetValue("default!");
             }

@@ -39,7 +39,7 @@ namespace Foo.Bar
             throw new global::System.ArgumentException("CreateReviewResultInfo expected.");
         }
 
-        private ICreateReview_CreateReview MapNonNullableICreateReview_CreateReview(global::Foo.Bar.State.ReviewData data)
+        private global::Foo.Bar.ICreateReview_CreateReview MapNonNullableICreateReview_CreateReview(global::Foo.Bar.State.ReviewData data)
         {
             ICreateReview_CreateReview returnValue = default!;
 
@@ -115,12 +115,12 @@ namespace Foo.Bar
         : global::System.IEquatable<CreateReviewResult>
         , ICreateReviewResult
     {
-        public CreateReviewResult(ICreateReview_CreateReview createReview)
+        public CreateReviewResult(global::Foo.Bar.ICreateReview_CreateReview createReview)
         {
             CreateReview = createReview;
         }
 
-        public ICreateReview_CreateReview CreateReview { get; }
+        public global::Foo.Bar.ICreateReview_CreateReview CreateReview { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -279,7 +279,7 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ICreateReviewResult
     {
-        public ICreateReview_CreateReview CreateReview { get; }
+        public global::Foo.Bar.ICreateReview_CreateReview CreateReview { get; }
     }
 }
 
@@ -346,7 +346,7 @@ namespace Foo.Bar
             throw new global::System.ArgumentException("OnReviewResultInfo expected.");
         }
 
-        private IOnReview_OnReview MapNonNullableIOnReview_OnReview(global::Foo.Bar.State.ReviewData data)
+        private global::Foo.Bar.IOnReview_OnReview MapNonNullableIOnReview_OnReview(global::Foo.Bar.State.ReviewData data)
         {
             IOnReview_OnReview returnValue = default!;
 
@@ -422,12 +422,12 @@ namespace Foo.Bar
         : global::System.IEquatable<OnReviewResult>
         , IOnReviewResult
     {
-        public OnReviewResult(IOnReview_OnReview onReview)
+        public OnReviewResult(global::Foo.Bar.IOnReview_OnReview onReview)
         {
             OnReview = onReview;
         }
 
-        public IOnReview_OnReview OnReview { get; }
+        public global::Foo.Bar.IOnReview_OnReview OnReview { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -586,7 +586,7 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IOnReviewResult
     {
-        public IOnReview_OnReview OnReview { get; }
+        public global::Foo.Bar.IOnReview_OnReview OnReview { get; }
     }
 }
 

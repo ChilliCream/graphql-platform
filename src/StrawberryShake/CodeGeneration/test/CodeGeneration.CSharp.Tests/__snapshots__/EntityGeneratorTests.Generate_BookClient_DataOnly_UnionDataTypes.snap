@@ -39,7 +39,7 @@ namespace Foo.Bar
             throw new global::System.ArgumentException("SearchSomethingResultInfo expected.");
         }
 
-        private ISearchSomething_Search? MapISearchResultData(global::Foo.Bar.State.ISearchResultData? data)
+        private global::Foo.Bar.ISearchSomething_Search? MapISearchResultData(global::Foo.Bar.State.ISearchResultData? data)
         {
             if (data is null)
             {
@@ -122,12 +122,12 @@ namespace Foo.Bar
         : global::System.IEquatable<SearchSomethingResult>
         , ISearchSomethingResult
     {
-        public SearchSomethingResult(ISearchSomething_Search? search)
+        public SearchSomethingResult(global::Foo.Bar.ISearchSomething_Search? search)
         {
             Search = search;
         }
 
-        public ISearchSomething_Search? Search { get; }
+        public global::Foo.Bar.ISearchSomething_Search? Search { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -372,7 +372,7 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISearchSomethingResult
     {
-        public ISearchSomething_Search? Search { get; }
+        public global::Foo.Bar.ISearchSomething_Search? Search { get; }
     }
 }
 

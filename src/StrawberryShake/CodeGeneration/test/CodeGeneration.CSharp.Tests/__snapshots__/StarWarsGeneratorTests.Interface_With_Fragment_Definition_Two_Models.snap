@@ -88,7 +88,7 @@ namespace Foo.Bar
             throw new global::System.ArgumentException("GetHeroResultInfo expected.");
         }
 
-        private IGetHero_Hero? MapIGetHero_Hero(global::StrawberryShake.EntityId? entityId)
+        private global::Foo.Bar.IGetHero_Hero? MapIGetHero_Hero(global::StrawberryShake.EntityId? entityId)
         {
             if (entityId is null)
             {
@@ -175,12 +175,12 @@ namespace Foo.Bar
         : global::System.IEquatable<GetHeroResult>
         , IGetHeroResult
     {
-        public GetHeroResult(IGetHero_Hero? hero)
+        public GetHeroResult(global::Foo.Bar.IGetHero_Hero? hero)
         {
             Hero = hero;
         }
 
-        public IGetHero_Hero? Hero { get; }
+        public global::Foo.Bar.IGetHero_Hero? Hero { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -285,7 +285,7 @@ namespace Foo.Bar
                 MapIGetHero_Hero_Friends(entity.Friends));
         }
 
-        private IGetHero_Hero_Friends? MapIGetHero_Hero_Friends(global::Foo.Bar.State.CharacterConnectionData? data)
+        private global::Foo.Bar.IGetHero_Hero_Friends? MapIGetHero_Hero_Friends(global::Foo.Bar.State.CharacterConnectionData? data)
         {
             if (data is null)
             {
@@ -307,14 +307,14 @@ namespace Foo.Bar
             return returnValue;
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<IGetHero_Hero_Friends_Nodes?>? MapIGetHero_Hero_Friends_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetHero_Hero_Friends_Nodes?>? MapIGetHero_Hero_Friends_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
         {
             if (list is null)
             {
                 return null;
             }
 
-            var characters = new global::System.Collections.Generic.List<IGetHero_Hero_Friends_Nodes?>();
+            var characters = new global::System.Collections.Generic.List<global::Foo.Bar.IGetHero_Hero_Friends_Nodes?>();
 
             foreach (global::StrawberryShake.EntityId? child in list)
             {
@@ -324,7 +324,7 @@ namespace Foo.Bar
             return characters;
         }
 
-        private IGetHero_Hero_Friends_Nodes? MapIGetHero_Hero_Friends_Nodes(global::StrawberryShake.EntityId? entityId)
+        private global::Foo.Bar.IGetHero_Hero_Friends_Nodes? MapIGetHero_Hero_Friends_Nodes(global::StrawberryShake.EntityId? entityId)
         {
             if (entityId is null)
             {
@@ -371,7 +371,7 @@ namespace Foo.Bar
         public GetHero_Hero_Droid(
             global::System.String name,
             global::System.String? primaryFunction,
-            IGetHero_Hero_Friends? friends)
+            global::Foo.Bar.IGetHero_Hero_Friends? friends)
         {
             Name = name;
             PrimaryFunction = primaryFunction;
@@ -382,7 +382,7 @@ namespace Foo.Bar
 
         public global::System.String? PrimaryFunction { get; }
 
-        public IGetHero_Hero_Friends? Friends { get; }
+        public global::Foo.Bar.IGetHero_Hero_Friends? Friends { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -496,7 +496,7 @@ namespace Foo.Bar
                 MapIGetHero_Hero_Friends(entity.Friends));
         }
 
-        private IGetHero_Hero_Friends? MapIGetHero_Hero_Friends(global::Foo.Bar.State.CharacterConnectionData? data)
+        private global::Foo.Bar.IGetHero_Hero_Friends? MapIGetHero_Hero_Friends(global::Foo.Bar.State.CharacterConnectionData? data)
         {
             if (data is null)
             {
@@ -518,14 +518,14 @@ namespace Foo.Bar
             return returnValue;
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<IGetHero_Hero_Friends_Nodes?>? MapIGetHero_Hero_Friends_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetHero_Hero_Friends_Nodes?>? MapIGetHero_Hero_Friends_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
         {
             if (list is null)
             {
                 return null;
             }
 
-            var characters = new global::System.Collections.Generic.List<IGetHero_Hero_Friends_Nodes?>();
+            var characters = new global::System.Collections.Generic.List<global::Foo.Bar.IGetHero_Hero_Friends_Nodes?>();
 
             foreach (global::StrawberryShake.EntityId? child in list)
             {
@@ -535,7 +535,7 @@ namespace Foo.Bar
             return characters;
         }
 
-        private IGetHero_Hero_Friends_Nodes? MapIGetHero_Hero_Friends_Nodes(global::StrawberryShake.EntityId? entityId)
+        private global::Foo.Bar.IGetHero_Hero_Friends_Nodes? MapIGetHero_Hero_Friends_Nodes(global::StrawberryShake.EntityId? entityId)
         {
             if (entityId is null)
             {
@@ -582,7 +582,7 @@ namespace Foo.Bar
         public GetHero_Hero_Human(
             global::System.String name,
             global::System.String? homePlanet,
-            IGetHero_Hero_Friends? friends)
+            global::Foo.Bar.IGetHero_Hero_Friends? friends)
         {
             Name = name;
             HomePlanet = homePlanet;
@@ -593,7 +593,7 @@ namespace Foo.Bar
 
         public global::System.String? HomePlanet { get; }
 
-        public IGetHero_Hero_Friends? Friends { get; }
+        public global::Foo.Bar.IGetHero_Hero_Friends? Friends { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -686,7 +686,7 @@ namespace Foo.Bar
         : global::System.IEquatable<GetHero_Hero_Friends_CharacterConnection>
         , IGetHero_Hero_Friends_CharacterConnection
     {
-        public GetHero_Hero_Friends_CharacterConnection(global::System.Collections.Generic.IReadOnlyList<IGetHero_Hero_Friends_Nodes?>? nodes)
+        public GetHero_Hero_Friends_CharacterConnection(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetHero_Hero_Friends_Nodes?>? nodes)
         {
             Nodes = nodes;
         }
@@ -694,7 +694,7 @@ namespace Foo.Bar
         /// <summary>
         /// A flattened list of the nodes.
         /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<IGetHero_Hero_Friends_Nodes?>? Nodes { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetHero_Hero_Friends_Nodes?>? Nodes { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -987,7 +987,7 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetHeroResult
     {
-        public IGetHero_Hero? Hero { get; }
+        public global::Foo.Bar.IGetHero_Hero? Hero { get; }
     }
 }
 
@@ -1005,7 +1005,7 @@ namespace Foo.Bar
     {
         public global::System.String Name { get; }
 
-        public IGetHero_Hero_Friends? Friends { get; }
+        public global::Foo.Bar.IGetHero_Hero_Friends? Friends { get; }
     }
 }
 
@@ -1056,7 +1056,7 @@ namespace Foo.Bar
     {
         public global::System.String Name { get; }
 
-        public IGetHero_Hero_Friends? Friends { get; }
+        public global::Foo.Bar.IGetHero_Hero_Friends? Friends { get; }
     }
 }
 
@@ -1108,7 +1108,7 @@ namespace Foo.Bar
     {
         public global::System.String Name { get; }
 
-        public IGetHero_Hero_Friends? Friends { get; }
+        public global::Foo.Bar.IGetHero_Hero_Friends? Friends { get; }
     }
 }
 
@@ -1147,7 +1147,7 @@ namespace Foo.Bar
         /// <summary>
         /// A flattened list of the nodes.
         /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<IGetHero_Hero_Friends_Nodes?>? Nodes { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetHero_Hero_Friends_Nodes?>? Nodes { get; }
     }
 }
 

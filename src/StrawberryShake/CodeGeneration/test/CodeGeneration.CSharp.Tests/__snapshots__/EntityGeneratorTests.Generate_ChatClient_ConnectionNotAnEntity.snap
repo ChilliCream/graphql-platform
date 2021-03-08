@@ -76,7 +76,7 @@ namespace Foo.Bar
             throw new global::System.ArgumentException("GetPeopleResultInfo expected.");
         }
 
-        private IGetPeople_People? MapIGetPeople_People(global::Foo.Bar.State.PersonConnectionData? data)
+        private global::Foo.Bar.IGetPeople_People? MapIGetPeople_People(global::Foo.Bar.State.PersonConnectionData? data)
         {
             if (data is null)
             {
@@ -98,14 +98,14 @@ namespace Foo.Bar
             return returnValue;
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<IGetPeople_People_Nodes?>? MapIGetPeople_People_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetPeople_People_Nodes?>? MapIGetPeople_People_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
         {
             if (list is null)
             {
                 return null;
             }
 
-            var persons = new global::System.Collections.Generic.List<IGetPeople_People_Nodes?>();
+            var persons = new global::System.Collections.Generic.List<global::Foo.Bar.IGetPeople_People_Nodes?>();
 
             foreach (global::StrawberryShake.EntityId? child in list)
             {
@@ -115,7 +115,7 @@ namespace Foo.Bar
             return persons;
         }
 
-        private IGetPeople_People_Nodes? MapIGetPeople_People_Nodes(global::StrawberryShake.EntityId? entityId)
+        private global::Foo.Bar.IGetPeople_People_Nodes? MapIGetPeople_People_Nodes(global::StrawberryShake.EntityId? entityId)
         {
             if (entityId is null)
             {
@@ -199,7 +199,7 @@ namespace Foo.Bar
         : global::System.IEquatable<GetPeopleResult>
         , IGetPeopleResult
     {
-        public GetPeopleResult(IGetPeople_People? people)
+        public GetPeopleResult(global::Foo.Bar.IGetPeople_People? people)
         {
             People = people;
         }
@@ -207,7 +207,7 @@ namespace Foo.Bar
         /// <summary>
         /// Gets access to all the people known to this service.
         /// </summary>
-        public IGetPeople_People? People { get; }
+        public global::Foo.Bar.IGetPeople_People? People { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -291,7 +291,7 @@ namespace Foo.Bar
         : global::System.IEquatable<GetPeople_People_PersonConnection>
         , IGetPeople_People_PersonConnection
     {
-        public GetPeople_People_PersonConnection(global::System.Collections.Generic.IReadOnlyList<IGetPeople_People_Nodes?>? nodes)
+        public GetPeople_People_PersonConnection(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetPeople_People_Nodes?>? nodes)
         {
             Nodes = nodes;
         }
@@ -299,7 +299,7 @@ namespace Foo.Bar
         /// <summary>
         /// A flattened list of the nodes.
         /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<IGetPeople_People_Nodes?>? Nodes { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetPeople_People_Nodes?>? Nodes { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -525,7 +525,7 @@ namespace Foo.Bar
         /// <summary>
         /// Gets access to all the people known to this service.
         /// </summary>
-        public IGetPeople_People? People { get; }
+        public global::Foo.Bar.IGetPeople_People? People { get; }
     }
 }
 
@@ -547,7 +547,7 @@ namespace Foo.Bar
         /// <summary>
         /// A flattened list of the nodes.
         /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<IGetPeople_People_Nodes?>? Nodes { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetPeople_People_Nodes?>? Nodes { get; }
     }
 }
 

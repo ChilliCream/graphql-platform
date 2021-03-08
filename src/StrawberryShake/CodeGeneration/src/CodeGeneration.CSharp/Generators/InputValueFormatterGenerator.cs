@@ -123,7 +123,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
                 classBuilder
                     .AddMethod(serializerMethodName)
-                    .AddParameter(value, x => x.SetType(property.Type.ToBuilder()))
+                    .AddParameter(value, x => x.SetType(property.Type.ToTypeReference()))
                     .SetReturnType(TypeNames.Object.MakeNullable())
                     .SetPrivate()
                     .AddCode(GenerateSerializer(property.Type, value));
