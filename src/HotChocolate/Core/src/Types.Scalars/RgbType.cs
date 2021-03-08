@@ -11,8 +11,7 @@ namespace HotChocolate.Types.Scalars
     public class RgbType : RegexType
     {
         private const string _validationPattern =
-            "/^rgb\\(\\s*(-?\\d+|-?\\d*\\.\\d+(?=%))(%?)\\s*,\\s*(-?\\d+|-?\\d*\\.\\d+(?=%))" +
-            "(\\2)\\s*,\\s*(-?\\d+|-?\\d*\\.\\d+(?=%))(\\2)\\s*\\)$/";
+            "^rgb\\(\\s*(-?\\d+|-?\\d*\\.\\d+(?=%))(%?)\\s*,\\s*(-?\\d+|-?\\d*\\.\\d+(?=%))(\\2)\\s*,\\s*(-?\\d+|-?\\d*\\.\\d+(?=%))(\\2)\\s*\\)$";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RgbType"/> class.
