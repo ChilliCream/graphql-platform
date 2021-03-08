@@ -20,11 +20,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
                     descriptor.Name);
         }
 
-        public static NameString ExtractTypeName(this INamedTypeDescriptor descriptor)
+        public static RuntimeTypeInfo ExtractType(
+            this INamedTypeDescriptor descriptor)
         {
             return descriptor.IsEntityType()
-                ? CreateEntityTypeName(descriptor.Name)
-                : descriptor.Name;
+                ? CreateEntityType(descriptor.Name, descriptor.RuntimeType.NamespaceWithoutGlobal)
+                : new (descriptor.Name, descriptor.RuntimeType.NamespaceWithoutGlobal);
         }
 
         public static TypeReferenceBuilder ToBuilder(

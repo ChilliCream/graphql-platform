@@ -6,12 +6,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
             string name,
             string source,
             SourceDocumentKind kind,
-            string? hash = null)
+            string? hash = null,
+            string? path = null)
         {
             Name = name;
             SourceText = source;
             Kind = kind;
             Hash = hash;
+            Path = path;
         }
 
         public string Name { get; }
@@ -21,5 +23,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         public SourceDocumentKind Kind { get; }
 
         public string? Hash { get; }
+
+        public string? Path { get; }
     }
 }

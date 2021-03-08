@@ -195,7 +195,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             else
             {
                 // TODO : resources
-                throw new InvalidOperationException(
+                throw new CodeGeneratorException(
                     $"Field `{fieldName}` does not exist in type `{type.Name}`.");
             }
         }
@@ -296,7 +296,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             }
 
             // TODO : resources
-            throw new InvalidOperationException(
+            throw new CodeGeneratorException(
                 $"Could not resolve fragment {fragmentName}.");
         }
 

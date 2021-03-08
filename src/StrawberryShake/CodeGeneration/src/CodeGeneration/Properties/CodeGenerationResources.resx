@@ -36,4 +36,19 @@
   <data name="ClientDescriptor_Description" xml:space="preserve">
     <value>Represents the {0} GraphQL client</value>
   </data>
+  <data name="ThrowHelper_DuplicateSelectionSet" xml:space="preserve">
+    <value>The same selection set is mapped multiple times.</value>
+  </data>
+  <data name="ThrowHelper_ReturnFragmentDoesNotExist" xml:space="preserve">
+    <value>The specified return fragment does not exist.</value>
+  </data>
+  <data name="ThrowHelper_FragmentMustBeImplementedByAllTypeFragments" xml:space="preserve">
+    <value>The specified return fragment must be implement by all type fragments.</value>
+  </data>
+  <data name="ThrowHelper_ResultTypeNameCollision" xml:space="preserve">
+    <value>There is a name collision between a fragment and the result type name `{0}`.</value>
+  </data>
+  <data name="ThrowHelper_TypeNameCollision" xml:space="preserve">
+    <value>There is a name collision for `{0}`.</value>
+  </data>
 </root>

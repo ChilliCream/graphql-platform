@@ -15,7 +15,7 @@
 
 #nullable enable
 
-namespace Foo.Bar
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class NewsItemEntity
@@ -35,18 +35,18 @@ namespace Foo.Bar
 
 #nullable enable
 
-namespace Foo.Bar
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchNewsItemsResultFactory
         : global::StrawberryShake.IOperationResultDataFactory<SearchNewsItemsResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<NewsItemEntity, SearchNewsItems_NewsItems_Items_NewsItem> _searchNewsItems_NewsItems_Items_NewsItemFromNewsItemEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.NewsItemEntity, SearchNewsItems_NewsItems_Items_NewsItem> _searchNewsItems_NewsItems_Items_NewsItemFromNewsItemEntityMapper;
 
         public SearchNewsItemsResultFactory(
             global::StrawberryShake.IEntityStore entityStore,
-            global::StrawberryShake.IEntityMapper<NewsItemEntity, SearchNewsItems_NewsItems_Items_NewsItem> searchNewsItems_NewsItems_Items_NewsItemFromNewsItemEntityMapper)
+            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.NewsItemEntity, SearchNewsItems_NewsItems_Items_NewsItem> searchNewsItems_NewsItems_Items_NewsItemFromNewsItemEntityMapper)
         {
             _entityStore = entityStore
                  ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -116,7 +116,7 @@ namespace Foo.Bar
                     global::System.StringComparison.Ordinal))
             {
                 return _searchNewsItems_NewsItems_Items_NewsItemFromNewsItemEntityMapper.Map(
-                    _entityStore.GetEntity<NewsItemEntity>(entityId.Value)
+                    _entityStore.GetEntity<global::Foo.Bar.State.NewsItemEntity>(entityId.Value)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
@@ -131,7 +131,7 @@ namespace Foo.Bar
 
 #nullable enable
 
-namespace Foo.Bar
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchNewsItemsResultInfo
@@ -354,13 +354,13 @@ namespace Foo.Bar
 
 #nullable enable
 
-namespace Foo.Bar
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchNewsItems_NewsItems_Items_NewsItemFromNewsItemEntityMapper
-        : global::StrawberryShake.IEntityMapper<NewsItemEntity, SearchNewsItems_NewsItems_Items_NewsItem>
+        : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.NewsItemEntity, SearchNewsItems_NewsItems_Items_NewsItem>
     {
-        public SearchNewsItems_NewsItems_Items_NewsItem Map(NewsItemEntity entity)
+        public SearchNewsItems_NewsItems_Items_NewsItem Map(global::Foo.Bar.State.NewsItemEntity entity)
         {
             return new SearchNewsItems_NewsItems_Items_NewsItem(
                 entity.Id,
@@ -735,7 +735,7 @@ namespace Foo.Bar
 
 #nullable enable
 
-namespace Foo.Bar
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchNewsItemsBuilder
@@ -878,7 +878,7 @@ namespace Foo.Bar
                     "NewsItem",
                     global::System.StringComparison.Ordinal))
             {
-                NewsItemEntity entity = _entityStore.GetOrCreate<NewsItemEntity>(entityId);
+                global::Foo.Bar.State.NewsItemEntity entity = _entityStore.GetOrCreate<global::Foo.Bar.State.NewsItemEntity>(entityId);
                 entity.Id = DeserializeNonNullableString(
                     global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
@@ -973,7 +973,7 @@ namespace Foo.Bar
 
 #nullable enable
 
-namespace Foo.Bar
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class EntityIdFactory
@@ -1056,7 +1056,7 @@ namespace Microsoft.Extensions.DependencyInjection
             var services = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId>>(
                 services,
-                global::Foo.Bar.EntityIdFactory.CreateEntityId);
+                global::Foo.Bar.State.EntityIdFactory.CreateEntityId);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IEntityStore, global::StrawberryShake.EntityStore>(services);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IOperationStore>(
                 services,
@@ -1071,7 +1071,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("FooClient"));
                 });
 
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.NewsItemEntity, global::Foo.Bar.SearchNewsItems_NewsItems_Items_NewsItem>, global::Foo.Bar.SearchNewsItems_NewsItems_Items_NewsItemFromNewsItemEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.NewsItemEntity, global::Foo.Bar.SearchNewsItems_NewsItems_Items_NewsItem>, global::Foo.Bar.State.SearchNewsItems_NewsItems_Items_NewsItemFromNewsItemEntityMapper>(services);
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.StringSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.BooleanSerializer>(services);
@@ -1097,8 +1097,8 @@ namespace Microsoft.Extensions.DependencyInjection
                         global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(
                             sp))));
 
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.ISearchNewsItemsResult>, global::Foo.Bar.SearchNewsItemsResultFactory>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.ISearchNewsItemsResult>, global::Foo.Bar.SearchNewsItemsBuilder>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.ISearchNewsItemsResult>, global::Foo.Bar.State.SearchNewsItemsResultFactory>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.ISearchNewsItemsResult>, global::Foo.Bar.State.SearchNewsItemsBuilder>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::Foo.Bar.ISearchNewsItemsResult>>(
                 services,
                 sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::Foo.Bar.ISearchNewsItemsResult>(

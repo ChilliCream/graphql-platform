@@ -15,9 +15,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         protected override void Generate(
             CodeWriter writer,
             InterfaceTypeDescriptor descriptor,
-            out string fileName)
+            out string fileName,
+            out string? path)
         {
             fileName = descriptor.RuntimeType.Name;
+            path = null;
 
             InterfaceBuilder interfaceBuilder = InterfaceBuilder
                 .New()
