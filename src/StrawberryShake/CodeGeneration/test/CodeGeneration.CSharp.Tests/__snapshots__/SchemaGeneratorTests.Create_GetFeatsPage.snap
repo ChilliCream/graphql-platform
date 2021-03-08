@@ -86,7 +86,7 @@ namespace Foo.Bar.State
             throw new global::System.ArgumentException("GetFeatsPageResultInfo expected.");
         }
 
-        private IGetFeatsPage_Feats? MapIGetFeatsPage_Feats(global::Foo.Bar.State.FeatCollectionSegmentData? data)
+        private global::Foo.Bar.IGetFeatsPage_Feats? MapIGetFeatsPage_Feats(global::Foo.Bar.State.FeatCollectionSegmentData? data)
         {
             if (data is null)
             {
@@ -108,14 +108,14 @@ namespace Foo.Bar.State
             return returnValue;
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<IGetFeatsPage_Feats_Items?>? MapIGetFeatsPage_Feats_ItemsArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFeatsPage_Feats_Items?>? MapIGetFeatsPage_Feats_ItemsArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
         {
             if (list is null)
             {
                 return null;
             }
 
-            var feats = new global::System.Collections.Generic.List<IGetFeatsPage_Feats_Items?>();
+            var feats = new global::System.Collections.Generic.List<global::Foo.Bar.IGetFeatsPage_Feats_Items?>();
 
             foreach (global::StrawberryShake.EntityId? child in list)
             {
@@ -125,7 +125,7 @@ namespace Foo.Bar.State
             return feats;
         }
 
-        private IGetFeatsPage_Feats_Items? MapIGetFeatsPage_Feats_Items(global::StrawberryShake.EntityId? entityId)
+        private global::Foo.Bar.IGetFeatsPage_Feats_Items? MapIGetFeatsPage_Feats_Items(global::StrawberryShake.EntityId? entityId)
         {
             if (entityId is null)
             {
@@ -144,7 +144,7 @@ namespace Foo.Bar.State
             throw new global::System.NotSupportedException();
         }
 
-        private IGetFeatsPage_Feats_Items_ActionType MapNonNullableIGetFeatsPage_Feats_Items_ActionType(global::StrawberryShake.EntityId entityId)
+        private global::Foo.Bar.IGetFeatsPage_Feats_Items_ActionType MapNonNullableIGetFeatsPage_Feats_Items_ActionType(global::StrawberryShake.EntityId entityId)
         {
 
             if (entityId.Name.Equals(
@@ -217,12 +217,12 @@ namespace Foo.Bar
         : global::System.IEquatable<GetFeatsPageResult>
         , IGetFeatsPageResult
     {
-        public GetFeatsPageResult(IGetFeatsPage_Feats? feats)
+        public GetFeatsPageResult(global::Foo.Bar.IGetFeatsPage_Feats? feats)
         {
             Feats = feats;
         }
 
-        public IGetFeatsPage_Feats? Feats { get; }
+        public global::Foo.Bar.IGetFeatsPage_Feats? Feats { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -303,12 +303,12 @@ namespace Foo.Bar
         : global::System.IEquatable<GetFeatsPage_Feats_FeatCollectionSegment>
         , IGetFeatsPage_Feats_FeatCollectionSegment
     {
-        public GetFeatsPage_Feats_FeatCollectionSegment(global::System.Collections.Generic.IReadOnlyList<IGetFeatsPage_Feats_Items?>? items)
+        public GetFeatsPage_Feats_FeatCollectionSegment(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFeatsPage_Feats_Items?>? items)
         {
             Items = items;
         }
 
-        public global::System.Collections.Generic.IReadOnlyList<IGetFeatsPage_Feats_Items?>? Items { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFeatsPage_Feats_Items?>? Items { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -418,7 +418,7 @@ namespace Foo.Bar.State
                 MapNonNullableIGetFeatsPage_Feats_Items_ActionType(entity.ActionType));
         }
 
-        private IGetFeatsPage_Feats_Items_ActionType MapNonNullableIGetFeatsPage_Feats_Items_ActionType(global::StrawberryShake.EntityId entityId)
+        private global::Foo.Bar.IGetFeatsPage_Feats_Items_ActionType MapNonNullableIGetFeatsPage_Feats_Items_ActionType(global::StrawberryShake.EntityId entityId)
         {
 
             if (entityId.Name.Equals(
@@ -452,7 +452,7 @@ namespace Foo.Bar
             global::System.String name,
             global::System.Int32 level,
             global::System.Boolean canBeLearnedMoreThanOnce,
-            IGetFeatsPage_Feats_Items_ActionType actionType)
+            global::Foo.Bar.IGetFeatsPage_Feats_Items_ActionType actionType)
         {
             Name = name;
             Level = level;
@@ -466,7 +466,7 @@ namespace Foo.Bar
 
         public global::System.Boolean CanBeLearnedMoreThanOnce { get; }
 
-        public IGetFeatsPage_Feats_Items_ActionType ActionType { get; }
+        public global::Foo.Bar.IGetFeatsPage_Feats_Items_ActionType ActionType { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -654,7 +654,7 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetFeatsPageResult
     {
-        public IGetFeatsPage_Feats? Feats { get; }
+        public global::Foo.Bar.IGetFeatsPage_Feats? Feats { get; }
     }
 }
 
@@ -670,7 +670,7 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetFeatsPage_Feats
     {
-        public global::System.Collections.Generic.IReadOnlyList<IGetFeatsPage_Feats_Items?>? Items { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFeatsPage_Feats_Items?>? Items { get; }
     }
 }
 
@@ -708,7 +708,7 @@ namespace Foo.Bar
 
         public global::System.Boolean CanBeLearnedMoreThanOnce { get; }
 
-        public IGetFeatsPage_Feats_Items_ActionType ActionType { get; }
+        public global::Foo.Bar.IGetFeatsPage_Feats_Items_ActionType ActionType { get; }
     }
 }
 

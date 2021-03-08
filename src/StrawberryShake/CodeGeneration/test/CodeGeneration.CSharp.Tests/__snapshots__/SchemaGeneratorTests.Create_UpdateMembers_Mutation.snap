@@ -39,7 +39,7 @@ namespace Foo.Bar.State
             throw new global::System.ArgumentException("UpdateMembersResultInfo expected.");
         }
 
-        private IUpdateMembers_Project MapNonNullableIUpdateMembers_Project(global::Foo.Bar.State.ProjectMutationsData data)
+        private global::Foo.Bar.IUpdateMembers_Project MapNonNullableIUpdateMembers_Project(global::Foo.Bar.State.ProjectMutationsData data)
         {
             IUpdateMembers_Project returnValue = default!;
 
@@ -56,7 +56,7 @@ namespace Foo.Bar.State
             return returnValue;
         }
 
-        private IUpdateMembers_Project_UpdateMembers? MapIUpdateMembers_Project_UpdateMembers(global::Foo.Bar.State.MutationResultData? data)
+        private global::Foo.Bar.IUpdateMembers_Project_UpdateMembers? MapIUpdateMembers_Project_UpdateMembers(global::Foo.Bar.State.MutationResultData? data)
         {
             if (data is null)
             {
@@ -137,12 +137,12 @@ namespace Foo.Bar
         : global::System.IEquatable<UpdateMembersResult>
         , IUpdateMembersResult
     {
-        public UpdateMembersResult(IUpdateMembers_Project project)
+        public UpdateMembersResult(global::Foo.Bar.IUpdateMembers_Project project)
         {
             Project = project;
         }
 
-        public IUpdateMembers_Project Project { get; }
+        public global::Foo.Bar.IUpdateMembers_Project Project { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -220,7 +220,7 @@ namespace Foo.Bar
         : global::System.IEquatable<UpdateMembers_Project_ProjectMutations>
         , IUpdateMembers_Project_ProjectMutations
     {
-        public UpdateMembers_Project_ProjectMutations(IUpdateMembers_Project_UpdateMembers? updateMembers)
+        public UpdateMembers_Project_ProjectMutations(global::Foo.Bar.IUpdateMembers_Project_UpdateMembers? updateMembers)
         {
             UpdateMembers = updateMembers;
         }
@@ -228,7 +228,7 @@ namespace Foo.Bar
         /// <summary>
         /// Update the project members
         /// </summary>
-        public IUpdateMembers_Project_UpdateMembers? UpdateMembers { get; }
+        public global::Foo.Bar.IUpdateMembers_Project_UpdateMembers? UpdateMembers { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -390,7 +390,7 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IUpdateMembersResult
     {
-        public IUpdateMembers_Project Project { get; }
+        public global::Foo.Bar.IUpdateMembers_Project Project { get; }
     }
 }
 
@@ -409,7 +409,7 @@ namespace Foo.Bar
         /// <summary>
         /// Update the project members
         /// </summary>
-        public IUpdateMembers_Project_UpdateMembers? UpdateMembers { get; }
+        public global::Foo.Bar.IUpdateMembers_Project_UpdateMembers? UpdateMembers { get; }
     }
 }
 
@@ -512,7 +512,7 @@ namespace Foo.Bar
             return _guidFormatter.Format(value);
         }
 
-        private global::System.Object? FormatMembers(global::System.Collections.Generic.IReadOnlyList<UpdateProjectMemberInput?> value)
+        private global::System.Object? FormatMembers(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.UpdateProjectMemberInput?> value)
         {
             if (value is null)
             {
@@ -553,7 +553,7 @@ namespace Foo.Bar
         /// <summary>
         /// A member of the project
         /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<UpdateProjectMemberInput?> Members { get; set; } = default!;
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.UpdateProjectMemberInput?> Members { get; set; } = default!;
     }
 }
 
@@ -613,7 +613,7 @@ namespace Foo.Bar
             return _guidFormatter.Format(value);
         }
 
-        private global::System.Object? FormatType(ProjectUserRoleType value)
+        private global::System.Object? FormatType(global::Foo.Bar.ProjectUserRoleType value)
         {
             return _projectUserRoleTypeFormatter.Format(value);
         }
@@ -645,7 +645,7 @@ namespace Foo.Bar
         /// <summary>
         /// The type of role the user has on the project, only used when Remove is false
         /// </summary>
-        public ProjectUserRoleType Type { get; set; } = default!;
+        public global::Foo.Bar.ProjectUserRoleType Type { get; set; } = default!;
 
         /// <summary>
         /// True will remove the member from the project
@@ -797,7 +797,7 @@ namespace Foo.Bar
         }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IUpdateMembersResult>> ExecuteAsync(
-            UpdateProjectMembersInput input,
+            global::Foo.Bar.UpdateProjectMembersInput input,
             global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(input);
@@ -810,7 +810,7 @@ namespace Foo.Bar
         }
 
         public global::System.IObservable<global::StrawberryShake.IOperationResult<IUpdateMembersResult>> Watch(
-            UpdateProjectMembersInput input,
+            global::Foo.Bar.UpdateProjectMembersInput input,
             global::StrawberryShake.ExecutionStrategy? strategy = null)
         {
             var request = CreateRequest(input);
@@ -819,7 +819,7 @@ namespace Foo.Bar
                 strategy);
         }
 
-        private global::StrawberryShake.OperationRequest CreateRequest(UpdateProjectMembersInput input)
+        private global::StrawberryShake.OperationRequest CreateRequest(global::Foo.Bar.UpdateProjectMembersInput input)
         {
             var variables = new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>();
 
@@ -835,7 +835,7 @@ namespace Foo.Bar
                 variables:variables);
         }
 
-        private global::System.Object? FormatInput(UpdateProjectMembersInput value)
+        private global::System.Object? FormatInput(global::Foo.Bar.UpdateProjectMembersInput value)
         {
             if (value is null)
             {
@@ -1005,7 +1005,7 @@ namespace Foo.Bar.State
     {
         public ProjectMutationsData(
             global::System.String typename,
-            MutationResultData? updateMembers = null)
+            global::Foo.Bar.State.MutationResultData? updateMembers = null)
         {
             __typename = typename
                  ?? throw new global::System.ArgumentNullException(nameof(typename));
@@ -1017,7 +1017,7 @@ namespace Foo.Bar.State
         /// <summary>
         /// Update the project members
         /// </summary>
-        public MutationResultData? UpdateMembers { get; }
+        public global::Foo.Bar.State.MutationResultData? UpdateMembers { get; }
     }
 }
 

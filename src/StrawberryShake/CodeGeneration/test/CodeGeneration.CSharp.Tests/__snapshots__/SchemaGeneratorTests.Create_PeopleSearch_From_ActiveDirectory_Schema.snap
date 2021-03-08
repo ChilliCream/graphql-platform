@@ -124,7 +124,7 @@ namespace Foo.Bar.State
             throw new global::System.ArgumentException("PeopleSearchResultInfo expected.");
         }
 
-        private IPeopleSearch_People? MapIPeopleSearch_People(global::Foo.Bar.State.PersonCollectionSegmentData? data)
+        private global::Foo.Bar.IPeopleSearch_People? MapIPeopleSearch_People(global::Foo.Bar.State.PersonCollectionSegmentData? data)
         {
             if (data is null)
             {
@@ -149,7 +149,7 @@ namespace Foo.Bar.State
             return returnValue;
         }
 
-        private IPeopleSearch_People_PageInfo MapNonNullableIPeopleSearch_People_PageInfo(global::Foo.Bar.State.CollectionSegmentInfoData data)
+        private global::Foo.Bar.IPeopleSearch_People_PageInfo MapNonNullableIPeopleSearch_People_PageInfo(global::Foo.Bar.State.CollectionSegmentInfoData data)
         {
             IPeopleSearch_People_PageInfo returnValue = default!;
 
@@ -168,14 +168,14 @@ namespace Foo.Bar.State
             return returnValue;
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<IPeopleSearch_People_Items>? MapIPeopleSearch_People_ItemsNonNullableArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId>? list)
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IPeopleSearch_People_Items>? MapIPeopleSearch_People_ItemsNonNullableArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId>? list)
         {
             if (list is null)
             {
                 return null;
             }
 
-            var persons = new global::System.Collections.Generic.List<IPeopleSearch_People_Items>();
+            var persons = new global::System.Collections.Generic.List<global::Foo.Bar.IPeopleSearch_People_Items>();
 
             foreach (global::StrawberryShake.EntityId child in list)
             {
@@ -185,7 +185,7 @@ namespace Foo.Bar.State
             return persons;
         }
 
-        private IPeopleSearch_People_Items MapNonNullableIPeopleSearch_People_Items(global::StrawberryShake.EntityId entityId)
+        private global::Foo.Bar.IPeopleSearch_People_Items MapNonNullableIPeopleSearch_People_Items(global::StrawberryShake.EntityId entityId)
         {
 
             if (entityId.Name.Equals(
@@ -199,7 +199,7 @@ namespace Foo.Bar.State
             throw new global::System.NotSupportedException();
         }
 
-        private IPeopleSearch_People_Items_Department? MapIPeopleSearch_People_Items_Department(global::StrawberryShake.EntityId? entityId)
+        private global::Foo.Bar.IPeopleSearch_People_Items_Department? MapIPeopleSearch_People_Items_Department(global::StrawberryShake.EntityId? entityId)
         {
             if (entityId is null)
             {
@@ -218,7 +218,7 @@ namespace Foo.Bar.State
             throw new global::System.NotSupportedException();
         }
 
-        private IPeopleSearch_People_Items_Manager? MapIPeopleSearch_People_Items_Manager(global::StrawberryShake.EntityId? entityId)
+        private global::Foo.Bar.IPeopleSearch_People_Items_Manager? MapIPeopleSearch_People_Items_Manager(global::StrawberryShake.EntityId? entityId)
         {
             if (entityId is null)
             {
@@ -299,7 +299,7 @@ namespace Foo.Bar
         : global::System.IEquatable<PeopleSearchResult>
         , IPeopleSearchQueryResult
     {
-        public PeopleSearchResult(IPeopleSearch_People? people)
+        public PeopleSearchResult(global::Foo.Bar.IPeopleSearch_People? people)
         {
             People = people;
         }
@@ -307,7 +307,7 @@ namespace Foo.Bar
         /// <summary>
         /// Searches for people based on their id, name, and identites.
         /// </summary>
-        public IPeopleSearch_People? People { get; }
+        public global::Foo.Bar.IPeopleSearch_People? People { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -390,8 +390,8 @@ namespace Foo.Bar
     {
         public PeopleSearch_People_PersonCollectionSegment(
             global::System.Int32 totalCount,
-            IPeopleSearch_People_PageInfo pageInfo,
-            global::System.Collections.Generic.IReadOnlyList<IPeopleSearch_People_Items>? items)
+            global::Foo.Bar.IPeopleSearch_People_PageInfo pageInfo,
+            global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IPeopleSearch_People_Items>? items)
         {
             TotalCount = totalCount;
             PageInfo = pageInfo;
@@ -403,9 +403,9 @@ namespace Foo.Bar
         /// <summary>
         /// Information to aid in pagination.
         /// </summary>
-        public IPeopleSearch_People_PageInfo PageInfo { get; }
+        public global::Foo.Bar.IPeopleSearch_People_PageInfo PageInfo { get; }
 
-        public global::System.Collections.Generic.IReadOnlyList<IPeopleSearch_People_Items>? Items { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IPeopleSearch_People_Items>? Items { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -626,7 +626,7 @@ namespace Foo.Bar.State
                 MapIPeopleSearch_People_Items_Manager(entity.Manager));
         }
 
-        private IPeopleSearch_People_Items_Department? MapIPeopleSearch_People_Items_Department(global::StrawberryShake.EntityId? entityId)
+        private global::Foo.Bar.IPeopleSearch_People_Items_Department? MapIPeopleSearch_People_Items_Department(global::StrawberryShake.EntityId? entityId)
         {
             if (entityId is null)
             {
@@ -645,7 +645,7 @@ namespace Foo.Bar.State
             throw new global::System.NotSupportedException();
         }
 
-        private IPeopleSearch_People_Items_Manager? MapIPeopleSearch_People_Items_Manager(global::StrawberryShake.EntityId? entityId)
+        private global::Foo.Bar.IPeopleSearch_People_Items_Manager? MapIPeopleSearch_People_Items_Manager(global::StrawberryShake.EntityId? entityId)
         {
             if (entityId is null)
             {
@@ -685,10 +685,10 @@ namespace Foo.Bar
             global::System.Int64 key,
             global::System.String? displayName,
             global::System.Boolean isActive,
-            IPeopleSearch_People_Items_Department? department,
+            global::Foo.Bar.IPeopleSearch_People_Items_Department? department,
             global::System.Uri? image,
             global::System.String title,
-            IPeopleSearch_People_Items_Manager? manager)
+            global::Foo.Bar.IPeopleSearch_People_Items_Manager? manager)
         {
             Id = id;
             Key = key;
@@ -720,7 +720,7 @@ namespace Foo.Bar
         /// <summary>
         /// The department the person belongs to.
         /// </summary>
-        public IPeopleSearch_People_Items_Department? Department { get; }
+        public global::Foo.Bar.IPeopleSearch_People_Items_Department? Department { get; }
 
         /// <summary>
         /// Url to image, you can specify a size in pixels by appending '?size=300' to get a square image.
@@ -735,7 +735,7 @@ namespace Foo.Bar
         /// <summary>
         /// The person managing the person.
         /// </summary>
-        public IPeopleSearch_People_Items_Manager? Manager { get; }
+        public global::Foo.Bar.IPeopleSearch_People_Items_Manager? Manager { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -1093,7 +1093,7 @@ namespace Foo.Bar
         /// <summary>
         /// Searches for people based on their id, name, and identites.
         /// </summary>
-        public IPeopleSearch_People? People { get; }
+        public global::Foo.Bar.IPeopleSearch_People? People { get; }
     }
 }
 
@@ -1114,9 +1114,9 @@ namespace Foo.Bar
         /// <summary>
         /// Information to aid in pagination.
         /// </summary>
-        public IPeopleSearch_People_PageInfo PageInfo { get; }
+        public global::Foo.Bar.IPeopleSearch_People_PageInfo PageInfo { get; }
 
-        public global::System.Collections.Generic.IReadOnlyList<IPeopleSearch_People_Items>? Items { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IPeopleSearch_People_Items>? Items { get; }
     }
 }
 
@@ -1214,7 +1214,7 @@ namespace Foo.Bar
         /// <summary>
         /// The department the person belongs to.
         /// </summary>
-        public IPeopleSearch_People_Items_Department? Department { get; }
+        public global::Foo.Bar.IPeopleSearch_People_Items_Department? Department { get; }
 
         /// <summary>
         /// Url to image, you can specify a size in pixels by appending '?size=300' to get a square image.
@@ -1229,7 +1229,7 @@ namespace Foo.Bar
         /// <summary>
         /// The person managing the person.
         /// </summary>
-        public IPeopleSearch_People_Items_Manager? Manager { get; }
+        public global::Foo.Bar.IPeopleSearch_People_Items_Manager? Manager { get; }
     }
 }
 
@@ -1979,7 +1979,7 @@ namespace Foo.Bar.State
         public PersonCollectionSegmentData(
             global::System.String typename,
             global::System.Int32? totalCount = null,
-            CollectionSegmentInfoData? pageInfo = null,
+            global::Foo.Bar.State.CollectionSegmentInfoData? pageInfo = null,
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId>? items = null)
         {
             __typename = typename
@@ -1996,7 +1996,7 @@ namespace Foo.Bar.State
         /// <summary>
         /// Information to aid in pagination.
         /// </summary>
-        public CollectionSegmentInfoData? PageInfo { get; }
+        public global::Foo.Bar.State.CollectionSegmentInfoData? PageInfo { get; }
 
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId>? Items { get; }
     }

@@ -39,9 +39,9 @@ namespace Foo.Bar.State
             throw new global::System.ArgumentException("GetAllFoosResultInfo expected.");
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<IGetAllFoos_Test> MapNonNullableIGetAllFoos_TestNonNullableArray(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.FooData>? list)
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetAllFoos_Test> MapNonNullableIGetAllFoos_TestNonNullableArray(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.FooData>? list)
         {
-            var foos = new global::System.Collections.Generic.List<IGetAllFoos_Test>();
+            var foos = new global::System.Collections.Generic.List<global::Foo.Bar.IGetAllFoos_Test>();
 
             foreach (global::Foo.Bar.State.FooData child in list)
             {
@@ -51,7 +51,7 @@ namespace Foo.Bar.State
             return foos;
         }
 
-        private IGetAllFoos_Test MapNonNullableIGetAllFoos_Test(global::Foo.Bar.State.FooData data)
+        private global::Foo.Bar.IGetAllFoos_Test MapNonNullableIGetAllFoos_Test(global::Foo.Bar.State.FooData data)
         {
             IGetAllFoos_Test returnValue = default!;
 
@@ -68,7 +68,7 @@ namespace Foo.Bar.State
             return returnValue;
         }
 
-        private IGetAllFoos_Test_Profile MapNonNullableIGetAllFoos_Test_Profile(global::Foo.Bar.State.ProfileData data)
+        private global::Foo.Bar.IGetAllFoos_Test_Profile MapNonNullableIGetAllFoos_Test_Profile(global::Foo.Bar.State.ProfileData data)
         {
             IGetAllFoos_Test_Profile returnValue = default!;
 
@@ -144,12 +144,12 @@ namespace Foo.Bar
         : global::System.IEquatable<GetAllFoosResult>
         , IGetAllFoosResult
     {
-        public GetAllFoosResult(global::System.Collections.Generic.IReadOnlyList<IGetAllFoos_Test> test)
+        public GetAllFoosResult(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetAllFoos_Test> test)
         {
             Test = test;
         }
 
-        public global::System.Collections.Generic.IReadOnlyList<IGetAllFoos_Test> Test { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetAllFoos_Test> Test { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -232,12 +232,12 @@ namespace Foo.Bar
         : global::System.IEquatable<GetAllFoos_Test_Foo>
         , IGetAllFoos_Test_Foo
     {
-        public GetAllFoos_Test_Foo(IGetAllFoos_Test_Profile profile)
+        public GetAllFoos_Test_Foo(global::Foo.Bar.IGetAllFoos_Test_Profile profile)
         {
             Profile = profile;
         }
 
-        public IGetAllFoos_Test_Profile Profile { get; }
+        public global::Foo.Bar.IGetAllFoos_Test_Profile Profile { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -399,7 +399,7 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetAllFoosResult
     {
-        public global::System.Collections.Generic.IReadOnlyList<IGetAllFoos_Test> Test { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetAllFoos_Test> Test { get; }
     }
 }
 
@@ -415,7 +415,7 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetAllFoos_Test
     {
-        public IGetAllFoos_Test_Profile Profile { get; }
+        public global::Foo.Bar.IGetAllFoos_Test_Profile Profile { get; }
     }
 }
 
@@ -747,7 +747,7 @@ namespace Foo.Bar.State
     {
         public FooData(
             global::System.String typename,
-            ProfileData? profile = null)
+            global::Foo.Bar.State.ProfileData? profile = null)
         {
             __typename = typename
                  ?? throw new global::System.ArgumentNullException(nameof(typename));
@@ -756,7 +756,7 @@ namespace Foo.Bar.State
 
         public global::System.String __typename { get; }
 
-        public ProfileData? Profile { get; }
+        public global::Foo.Bar.State.ProfileData? Profile { get; }
     }
 }
 
