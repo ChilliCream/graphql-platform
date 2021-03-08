@@ -25,7 +25,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             ClassBuilder classBuilder = ClassBuilder
                 .New()
                 .SetComment(descriptor.Description)
-                .SetName(fileName);
+                .SetName(fileName)
+                .AddEquality(fileName, descriptor.Properties);
 
             ConstructorBuilder constructorBuilder = classBuilder
                 .AddConstructor()
@@ -41,8 +42,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .SetComment(prop.Description)
                     .SetName(prop.Name)
                     .SetType(propTypeBuilder)
-                    .SetPublic()
-                    .SetValue(prop.Type.IsNullableType() ? "default!" : null);
+                    .SetPublic();
 
                 // Add initialization of property to the constructor
                 var paramName = GetParameterName(prop.Name);

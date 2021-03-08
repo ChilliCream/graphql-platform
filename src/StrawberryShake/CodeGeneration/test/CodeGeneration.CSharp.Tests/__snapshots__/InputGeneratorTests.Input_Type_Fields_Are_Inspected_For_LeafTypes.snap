@@ -76,7 +76,8 @@ namespace Foo.Bar
             {
                 returnValue = new ChangeHomePlanet_ChangeHomePlanet_ChangeHomePlanetPayload(MapNonNullableIChangeHomePlanet_ChangeHomePlanet_Human(data.Human ?? throw new global::System.ArgumentNullException()));
             }
-            else {
+            else
+            {
                 throw new global::System.NotSupportedException();
             }
             return returnValue;
@@ -152,7 +153,8 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ChangeHomePlanetResult
-        : IChangeHomePlanetResult
+        : global::System.IEquatable<ChangeHomePlanetResult>
+        , IChangeHomePlanetResult
     {
         public ChangeHomePlanetResult(IChangeHomePlanet_ChangeHomePlanet changeHomePlanet)
         {
@@ -160,6 +162,66 @@ namespace Foo.Bar
         }
 
         public IChangeHomePlanet_ChangeHomePlanet ChangeHomePlanet { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((ChangeHomePlanetResult)obj);
+        }
+
+        public global::System.Boolean Equals(ChangeHomePlanetResult? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (ChangeHomePlanet.Equals(other.ChangeHomePlanet));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * ChangeHomePlanet.GetHashCode();
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -174,7 +236,8 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ChangeHomePlanet_ChangeHomePlanet_ChangeHomePlanetPayload
-        : IChangeHomePlanet_ChangeHomePlanet_ChangeHomePlanetPayload
+        : global::System.IEquatable<ChangeHomePlanet_ChangeHomePlanet_ChangeHomePlanetPayload>
+        , IChangeHomePlanet_ChangeHomePlanet_ChangeHomePlanetPayload
     {
         public ChangeHomePlanet_ChangeHomePlanet_ChangeHomePlanetPayload(IChangeHomePlanet_ChangeHomePlanet_Human human)
         {
@@ -182,6 +245,66 @@ namespace Foo.Bar
         }
 
         public IChangeHomePlanet_ChangeHomePlanet_Human Human { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((ChangeHomePlanet_ChangeHomePlanet_ChangeHomePlanetPayload)obj);
+        }
+
+        public global::System.Boolean Equals(ChangeHomePlanet_ChangeHomePlanet_ChangeHomePlanetPayload? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Human.Equals(other.Human));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * Human.GetHashCode();
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -219,7 +342,8 @@ namespace Foo.Bar
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ChangeHomePlanet_ChangeHomePlanet_Human_Human
-        : IChangeHomePlanet_ChangeHomePlanet_Human_Human
+        : global::System.IEquatable<ChangeHomePlanet_ChangeHomePlanet_Human_Human>
+        , IChangeHomePlanet_ChangeHomePlanet_Human_Human
     {
         public ChangeHomePlanet_ChangeHomePlanet_Human_Human(global::System.String? homePlanet)
         {
@@ -229,7 +353,70 @@ namespace Foo.Bar
         /// <summary>
         /// The planet the character is originally from.
         /// </summary>
-        public global::System.String? HomePlanet { get; } = default!;
+        public global::System.String? HomePlanet { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((ChangeHomePlanet_ChangeHomePlanet_Human_Human)obj);
+        }
+
+        public global::System.Boolean Equals(ChangeHomePlanet_ChangeHomePlanet_Human_Human? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((HomePlanet is null && other.HomePlanet is null) ||HomePlanet != null && HomePlanet.Equals(other.HomePlanet)));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                if (!(HomePlanet is null))
+                {
+                    hash ^= 397 * HomePlanet.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -802,7 +989,7 @@ namespace Microsoft.Extensions.DependencyInjection
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class FooClientServiceCollectionExtensions
     {
-        public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddFooClient(
+        public static global::StrawberryShake.IClientBuilder AddFooClient(
             this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
             global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
@@ -828,7 +1015,9 @@ namespace Microsoft.Extensions.DependencyInjection
                 sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.FooClient>(
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
 
-            return services;
+            return new global::StrawberryShake.ClientBuilder(
+                "FooClient",
+                services);
         }
 
         private static global::Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureClientDefault(

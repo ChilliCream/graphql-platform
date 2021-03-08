@@ -49,7 +49,8 @@ namespace Foo.Bar
             {
                 returnValue = new GetListingsCount_Listings_ListingsPayload(data.Count ?? throw new global::System.ArgumentNullException());
             }
-            else {
+            else
+            {
                 throw new global::System.NotSupportedException();
             }
             return returnValue;
@@ -117,7 +118,8 @@ namespace Foo.Bar
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetListingsCountResult
-        : IGetListingsCountResult
+        : global::System.IEquatable<GetListingsCountResult>
+        , IGetListingsCountResult
     {
         public GetListingsCountResult(IGetListingsCount_Listings listings)
         {
@@ -128,6 +130,66 @@ namespace Foo.Bar
         /// Vyhledávání mezi inzeráty
         /// </summary>
         public IGetListingsCount_Listings Listings { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetListingsCountResult)obj);
+        }
+
+        public global::System.Boolean Equals(GetListingsCountResult? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Listings.Equals(other.Listings));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * Listings.GetHashCode();
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -142,7 +204,8 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetListingsCount_Listings_ListingsPayload
-        : IGetListingsCount_Listings_ListingsPayload
+        : global::System.IEquatable<GetListingsCount_Listings_ListingsPayload>
+        , IGetListingsCount_Listings_ListingsPayload
     {
         public GetListingsCount_Listings_ListingsPayload(global::System.Int32 count)
         {
@@ -150,6 +213,66 @@ namespace Foo.Bar
         }
 
         public global::System.Int32 Count { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetListingsCount_Listings_ListingsPayload)obj);
+        }
+
+        public global::System.Boolean Equals(GetListingsCount_Listings_ListingsPayload? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Count == other.Count);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * Count.GetHashCode();
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -544,7 +667,7 @@ namespace Microsoft.Extensions.DependencyInjection
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class FooClientServiceCollectionExtensions
     {
-        public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddFooClient(
+        public static global::StrawberryShake.IClientBuilder AddFooClient(
             this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
             global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
@@ -570,7 +693,9 @@ namespace Microsoft.Extensions.DependencyInjection
                 sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.FooClient>(
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
 
-            return services;
+            return new global::StrawberryShake.ClientBuilder(
+                "FooClient",
+                services);
         }
 
         private static global::Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureClientDefault(

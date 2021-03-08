@@ -23,13 +23,17 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
             // arrange
             CancellationToken ct = new CancellationTokenSource(20_000).Token;
             var serviceCollection = new ServiceCollection();
-            serviceCollection.AddGraphQLServer()
+            serviceCollection
+                .AddGraphQLServer()
                 .AddStarWarsTypes()
                 .AddExportDirectiveType()
                 .AddStarWarsRepositories()
                 .AddInMemorySubscriptions();
-            serviceCollection.AddInMemoryClient(MultiProfileClient.ClientName);
-            serviceCollection.AddMultiProfileClient();
+
+            serviceCollection
+                .AddMultiProfileClient()
+                .ConfigureInMemoryClient();
+
             IServiceProvider services = serviceCollection.BuildServiceProvider();
             MultiProfileClient client = services.GetRequiredService<MultiProfileClient>();
 
@@ -46,13 +50,17 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
             // arrange
             CancellationToken ct = new CancellationTokenSource(20_000).Token;
             var serviceCollection = new ServiceCollection();
-            serviceCollection.AddGraphQLServer()
+            serviceCollection
+                .AddGraphQLServer()
                 .AddStarWarsTypes()
                 .AddExportDirectiveType()
                 .AddStarWarsRepositories()
                 .AddInMemorySubscriptions();
-            serviceCollection.AddInMemoryClient(MultiProfileClient.ClientName);
-            serviceCollection.AddMultiProfileClient();
+
+            serviceCollection
+                .AddMultiProfileClient()
+                .ConfigureInMemoryClient();
+
             IServiceProvider services = serviceCollection.BuildServiceProvider();
             MultiProfileClient client = services.GetRequiredService<MultiProfileClient>();
 
@@ -74,13 +82,17 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
             // arrange
             CancellationToken ct = new CancellationTokenSource(20_000).Token;
             var serviceCollection = new ServiceCollection();
-            serviceCollection.AddGraphQLServer()
+            serviceCollection
+                .AddGraphQLServer()
                 .AddStarWarsTypes()
                 .AddExportDirectiveType()
                 .AddStarWarsRepositories()
                 .AddInMemorySubscriptions();
-            serviceCollection.AddInMemoryClient(MultiProfileClient.ClientName);
-            serviceCollection.AddMultiProfileClient();
+
+            serviceCollection
+                .AddMultiProfileClient()
+                .ConfigureInMemoryClient();
+
             IServiceProvider services = serviceCollection.BuildServiceProvider();
             MultiProfileClient client = services.GetRequiredService<MultiProfileClient>();
 

@@ -51,7 +51,8 @@ namespace Foo.Bar
                     data.Stars ?? throw new global::System.ArgumentNullException(),
                     data.Commentary ?? throw new global::System.ArgumentNullException());
             }
-            else {
+            else
+            {
                 throw new global::System.NotSupportedException();
             }
             return returnValue;
@@ -113,7 +114,8 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class CreateReviewMutResult
-        : ICreateReviewMutResult
+        : global::System.IEquatable<CreateReviewMutResult>
+        , ICreateReviewMutResult
     {
         public CreateReviewMutResult(ICreateReviewMut_CreateReview createReview)
         {
@@ -121,6 +123,66 @@ namespace Foo.Bar
         }
 
         public ICreateReviewMut_CreateReview CreateReview { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((CreateReviewMutResult)obj);
+        }
+
+        public global::System.Boolean Equals(CreateReviewMutResult? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (CreateReview.Equals(other.CreateReview));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * CreateReview.GetHashCode();
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -135,7 +197,8 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class CreateReviewMut_CreateReview_Review
-        : ICreateReviewMut_CreateReview_Review
+        : global::System.IEquatable<CreateReviewMut_CreateReview_Review>
+        , ICreateReviewMut_CreateReview_Review
     {
         public CreateReviewMut_CreateReview_Review(
             global::System.Int32 stars,
@@ -147,7 +210,73 @@ namespace Foo.Bar
 
         public global::System.Int32 Stars { get; }
 
-        public global::System.String? Commentary { get; } = default!;
+        public global::System.String? Commentary { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return false;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((CreateReviewMut_CreateReview_Review)obj);
+        }
+
+        public global::System.Boolean Equals(CreateReviewMut_CreateReview_Review? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return false;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Stars == other.Stars)
+                && ((Commentary is null && other.Commentary is null) ||Commentary != null && Commentary.Equals(other.Commentary));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * Stars.GetHashCode();
+
+                if (!(Commentary is null))
+                {
+                    hash ^= 397 * Commentary.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
     }
 }
 
@@ -716,7 +845,7 @@ namespace Microsoft.Extensions.DependencyInjection
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class FooClientServiceCollectionExtensions
     {
-        public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddFooClient(
+        public static global::StrawberryShake.IClientBuilder AddFooClient(
             this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
             global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
@@ -742,7 +871,9 @@ namespace Microsoft.Extensions.DependencyInjection
                 sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.FooClient>(
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
 
-            return services;
+            return new global::StrawberryShake.ClientBuilder(
+                "FooClient",
+                services);
         }
 
         private static global::Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureClientDefault(

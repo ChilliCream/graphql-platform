@@ -45,7 +45,9 @@ namespace StrawberryShake.CodeGeneration
         public const string IInMemoryClientFactory= StrawberryshakeNamespace + "Transport.InMemory.IInMemoryClientFactory";
         public const string AddProtocol= GlobalDependencyInjectionNamespace + "WebSocketClientFactoryServiceCollectionExtensions.AddProtocol";
         public const string GraphQLWebSocketProtocolFactory= StrawberryshakeNamespace + "Transport.WebSockets.Protocol.GraphQLWebSocketProtocolFactory";
+        public const string SequenceEqual= StrawberryshakeNamespace + "Helper.ComparisonHelper.SequenceEqual";
 
+        public const string IEquatable = "global::System.IEquatable";
         public const string JsonElement = "global::System.Text.Json.JsonElement";
         public const string JsonDocument = "global::System.Text.Json.JsonDocument";
         public const string ParseError = StrawberryshakeNamespace + "Json.JsonErrorParser.ParseErrors";
@@ -122,5 +124,8 @@ namespace StrawberryShake.CodeGeneration
         public const string DateSerializer = StrawberryshakeNamespace + "Serialization.DateSerializer";
         public const string ByteArraySerializer = StrawberryshakeNamespace + "Serialization.ByteArraySerializer";
         public const string TimeSpanSerializer = StrawberryshakeNamespace + "Serialization.TimeSpanSerializer";
+
+        public const string IClientBuilder = StrawberryshakeNamespace + "IClientBuilder";
+        public const string ClientBuilder = StrawberryshakeNamespace + "ClientBuilder";
     }
 }
