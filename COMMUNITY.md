@@ -14,7 +14,7 @@ Various libraries, packages, etc. that developers can add to their own project a
 - [FairyBread](https://github.com/benmccallum/fairybread) - Input validation for Hot Chocolate
 - [FluentChoco](https://github.com/dalrankov/FluentChoco) - FluentValidation middleware for Hot Chocolate
 - [Graph.ArgumentValidator](https://github.com/VarunSaiTeja/Graph.ArgumentValidator) - Add input argument validator to HotChocolate. (Just by adding 2 lines of code in StartUp.cs)
-- 
+ 
 ### Data access
 
 - [TransactChoco](https://github.com/dalrankov/TransactChoco) - TransactionScope middleware for Hot Chocolate
