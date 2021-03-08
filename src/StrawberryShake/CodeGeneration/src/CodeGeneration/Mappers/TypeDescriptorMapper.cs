@@ -243,14 +243,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     resultTypeName = CreateResultRootTypeName(outputType.Name, outputType.Type);
                     if (clientModel.OutputTypes.Any(t => t.Name.Equals(resultTypeName)))
                     {
-                        // TODO : throw helper
-                        throw new CodeGeneratorException(
-                            ErrorBuilder.New()
-                                .SetMessage(
-                                    "There is a name collision between a fragment and the result type name `{0}`.",
-                                    resultTypeName)
-                                .SetCode("SS0008")
-                                .Build());
+                        throw ThrowHelper.ResultTypeNameCollision(resultTypeName);
                     }
                 }
 
@@ -263,14 +256,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
             if (!context.Register(outputType.Name, kind, runtimeType))
             {
-                // TODO : throw helper
-                throw new CodeGeneratorException(
-                    ErrorBuilder.New()
-                        .SetMessage(
-                            "There is a name collision for `{0}`.",
-                            runtimeType.ToString())
-                        .SetCode("SS0009")
-                        .Build());
+               throw ThrowHelper.TypeNameCollision(runtimeType.Name);
             }
 
             return runtimeType;

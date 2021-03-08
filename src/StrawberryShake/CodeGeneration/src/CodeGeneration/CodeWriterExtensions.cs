@@ -4,9 +4,6 @@ namespace StrawberryShake.CodeGeneration
 {
     public static class CodeWriterExtensions
     {
-        // TODO : private static readonly string _version =
-        //    typeof(CodeWriter).Assembly.GetName().Version!.ToString();
-
         public static void WriteGeneratedAttribute(this CodeWriter writer)
         {
             if (writer is null)
@@ -14,8 +11,17 @@ namespace StrawberryShake.CodeGeneration
                 throw new ArgumentNullException(nameof(writer));
             }
 
+            string version = typeof(CodeWriter).Assembly.GetName().Version!.ToString();
+
+#if Debug
             writer.WriteIndentedLine(
-                $"[global::System.CodeDom.Compiler.GeneratedCode(\"StrawberryShake\", \"11.0.0\")]");
+                "[global::System.CodeDom.Compiler.GeneratedCode(" + 
+                "\"StrawberryShake\", \"11.0.0\")]");
+#else
+            writer.WriteIndentedLine(
+                "[global::System.CodeDom.Compiler.GeneratedCode(" +
+                $"\"StrawberryShake\", \"{version}\")]");
+#endif
         }
 
         public static CodeWriter WriteComment(this CodeWriter writer, string comment)
