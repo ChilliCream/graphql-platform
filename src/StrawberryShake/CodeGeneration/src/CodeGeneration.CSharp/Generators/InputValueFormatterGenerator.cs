@@ -24,13 +24,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         protected override void Generate(
             CodeWriter writer,
             InputObjectTypeDescriptor namedTypeDescriptor,
-            out string fileName)
+            out string fileName,
+            out string? path)
         {
             const string serializerResolver = nameof(serializerResolver);
             const string runtimeValue = nameof(runtimeValue);
             const string value = nameof(value);
 
             fileName = CreateInputValueFormatter(namedTypeDescriptor);
+            path = Serialization;
 
             NameString typeName = namedTypeDescriptor.Name;
 

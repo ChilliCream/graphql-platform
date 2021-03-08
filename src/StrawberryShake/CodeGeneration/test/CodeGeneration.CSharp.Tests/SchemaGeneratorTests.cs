@@ -111,5 +111,114 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 }",
                 "extend schema @key(fields: \"id\")");
         }
+
+        [Fact]
+        public void Create_PeopleSearch_From_ActiveDirectory_Schema()
+        {
+            AssertResult(
+                @"query PeopleSearch($term:String! $skip:Int $take:Int $inactive:Boolean) {
+                  people: peopleSearch(
+                    term: $term
+                    includeInactive: $inactive
+                    skip: $skip
+                    take: $take
+                  )
+                  {
+                    totalCount
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                    }
+                    items {
+                      ...PeopleSearchResult
+                    }
+                  }
+                }
+
+                fragment PeopleSearchResult on Person {
+                  id
+                  key
+                  displayName
+                  isActive
+                  department {
+                    id
+                    name
+                  }
+                  image
+                  title
+                  manager {
+                    id
+                    key
+                    displayName
+                  }
+                }",
+                "extend schema @key(fields: \"id\")",
+                FileResource.Open("ActiveDirectory.Schema.graphql"));
+        }
+
+        [Fact]
+        public void Create_GetFeatsPage()
+        {
+            AssertResult(
+                @"query GetFeatsPage($skip: Int, $take: Int) {
+                    feats(skip: $skip, take: $take) {
+                        items {
+                            name,
+                            level,
+                            canBeLearnedMoreThanOnce,
+                            actionType {
+                                name
+                            }
+                        }
+                    }
+                }",
+                "extend schema @key(fields: \"id\")",
+                FileResource.Open("Schema_Bug_1.graphql"));
+        }
+
+        [Fact]
+        public void Create_DataType_Query()
+        {
+            AssertResult(
+                @"query GetAllFoos {
+                    test {
+                        profile {
+                            name
+                        }
+                    }
+                }",
+                "extend schema @key(fields: \"id\")",
+                @"schema {
+                    query: Query
+                }
+
+                type Query {
+                    test: [Foo!]!
+                }
+
+                type Foo {
+                    profile: Profile!
+                }
+
+                type Profile {
+                    # id: ID! # Can no longer generate if no id is present
+                    name: String
+                }");
+        }
+
+        [Fact]
+        public void Create_UpdateMembers_Mutation()
+        {
+            AssertResult(
+                @"mutation UpdateMembers($input: UpdateProjectMembersInput!) {
+                    project {
+                        updateMembers(input: $input) {
+                            correlationId
+                        }
+                    }
+                }",
+                "extend schema @key(fields: \"id\")",
+                FileResource.Open("Schema_Bug_2.graphql"));
+        }
     }
 }

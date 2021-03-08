@@ -48,7 +48,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                                 .AddArgument(concreteType.Name.AsStringToken())
                                 .AddArgument(TypeNames.OrdinalStringComparison));
 
-                    var entityTypeName = CreateEntityTypeName(concreteType.Name);
+                    var entityTypeName = CreateEntityType(
+                        concreteType.Name, 
+                        concreteType.RuntimeType.NamespaceWithoutGlobal);
 
                     WriteEntityLoader(
                         ifStatement,
@@ -72,7 +74,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             }
             else if (namedTypeDescriptor is ComplexTypeDescriptor complexTypeDescriptor)
             {
-                WriteEntityLoader(methodBuilder, CreateEntityTypeName(namedTypeDescriptor.Name));
+                WriteEntityLoader(
+                    methodBuilder, 
+                    CreateEntityType(
+                        namedTypeDescriptor.Name, 
+                        namedTypeDescriptor.RuntimeType.NamespaceWithoutGlobal));
                 WritePropertyAssignments(methodBuilder, complexTypeDescriptor.Properties);
 
                 methodBuilder.AddEmptyLine();
@@ -84,17 +90,17 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
         private void WriteEntityLoader<T>(
             ICodeContainer<T> codeContainer,
-            string entityTypeName)
+            RuntimeTypeInfo entityType)
         {
             codeContainer.AddCode(
                 AssignmentBuilder
                     .New()
-                    .SetLefthandSide($"{entityTypeName} {_entity}")
+                    .SetLefthandSide($"{entityType} {_entity}")
                     .SetRighthandSide(
                         MethodCallBuilder
                             .Inline()
                             .SetMethodName(_entityStore, "GetOrCreate")
-                            .AddGeneric(entityTypeName)
+                            .AddGeneric(entityType.ToString())
                             .AddArgument(_entityId)));
         }
 

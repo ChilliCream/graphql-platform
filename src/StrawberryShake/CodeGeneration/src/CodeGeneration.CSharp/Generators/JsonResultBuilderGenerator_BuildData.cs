@@ -18,7 +18,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             ClassBuilder classBuilder)
         {
             var concreteType =
-                CreateResultInfoName(resultNamedType.ImplementedBy.First().RuntimeType.Name);
+                CreateResultInfoName(
+                    resultNamedType.ImplementedBy.First().RuntimeType.Name);
 
             MethodBuilder buildDataMethod = classBuilder
                 .AddMethod()

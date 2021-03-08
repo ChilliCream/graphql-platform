@@ -10,7 +10,6 @@ using HotChocolate.Types;
 using HotChocolate.Utilities;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
-using static StrawberryShake.CodeGeneration.Utilities.TypeHelpers;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
 {

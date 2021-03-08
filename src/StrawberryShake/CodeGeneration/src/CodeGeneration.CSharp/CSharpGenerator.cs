@@ -232,10 +232,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
             writer.WriteLine();
 #endif
 
-            generator.Generate(writer, descriptor, out string fileName);
+            generator.Generate(writer, descriptor, out var fileName, out var path);
 
             writer.Flush();
-            return new(fileName, code.ToString(), SourceDocumentKind.CSharp);
+
+            return new(
+                fileName,
+                code.ToString(),
+                SourceDocumentKind.CSharp,
+                path: path);
         }
 
         private static bool TryParseDocuments(

@@ -9,16 +9,13 @@ namespace StrawberryShake.CodeGeneration.Descriptors
     /// </summary>
     public class ResultBuilderDescriptor : ICodeDescriptor
     {
-        private readonly string _name;
-
         public ResultBuilderDescriptor(
-            string name,
+            RuntimeTypeInfo runtimeType,
             INamedTypeDescriptor resultNamedType,
             IReadOnlyCollection<ValueParserDescriptor> valueParsers)
         {
-            _name = name;
             ResultNamedType = resultNamedType;
-            RuntimeType = new(NamingConventions.CreateResultBuilderName(_name));
+            RuntimeType = runtimeType;
             ValueParsers = valueParsers;
         }
 
