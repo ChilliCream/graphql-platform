@@ -51,7 +51,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
 
 #nullable enable
 
-namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroResultFactory
@@ -121,7 +121,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 
 #nullable enable
 
-namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroResultInfo
@@ -250,7 +250,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 
 #nullable enable
 
-namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_Hero_DroidFromDroidEntityMapper
@@ -450,7 +450,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 
 #nullable enable
 
-namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_Hero_HumanFromHumanEntityMapper
@@ -750,7 +750,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 
 #nullable enable
 
-namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper
@@ -853,7 +853,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 
 #nullable enable
 
-namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper
@@ -1111,7 +1111,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 
 #nullable enable
 
-namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnReviewSubResultFactory
@@ -1164,7 +1164,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 
 #nullable enable
 
-namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnReviewSubResultInfo
@@ -1449,7 +1449,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 
 #nullable enable
 
-namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class CreateReviewMutResultFactory
@@ -1501,7 +1501,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 
 #nullable enable
 
-namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class CreateReviewMutResultInfo
@@ -2293,7 +2293,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 
 #nullable enable
 
-namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroBuilder
@@ -2527,7 +2527,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 
 #nullable enable
 
-namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnReviewSubBuilder
@@ -2668,7 +2668,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 
 #nullable enable
 
-namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class CreateReviewMutBuilder
@@ -2908,7 +2908,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 
 #nullable enable
 
-namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class EntityIdFactory
@@ -3020,7 +3020,7 @@ namespace Microsoft.Extensions.DependencyInjection
             var services = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId>>(
                 services,
-                global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.EntityIdFactory.CreateEntityId);
+                global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.EntityIdFactory.CreateEntityId);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IEntityStore, global::StrawberryShake.EntityStore>(services);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IOperationStore>(
                 services,
@@ -3037,10 +3037,10 @@ namespace Microsoft.Extensions.DependencyInjection
                         ct));
                 });
 
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.GetHero_Hero_Droid>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.GetHero_Hero_DroidFromDroidEntityMapper>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.GetHero_Hero_Human>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.GetHero_Hero_HumanFromHumanEntityMapper>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.GetHero_Hero_Friends_Nodes_Droid>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.GetHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.GetHero_Hero_Friends_Nodes_Human>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.GetHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.GetHero_Hero_Droid>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.GetHero_Hero_DroidFromDroidEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.GetHero_Hero_Human>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.GetHero_Hero_HumanFromHumanEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.GetHero_Hero_Friends_Nodes_Droid>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.GetHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.GetHero_Hero_Friends_Nodes_Human>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.GetHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper>(services);
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.EpisodeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.StringSerializer>(services);
@@ -3068,8 +3068,8 @@ namespace Microsoft.Extensions.DependencyInjection
                         global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(
                             sp))));
 
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.GetHeroResultFactory>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.GetHeroBuilder>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.GetHeroResultFactory>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.GetHeroBuilder>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroResult>>(
                 services,
                 sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroResult>(
@@ -3078,8 +3078,8 @@ namespace Microsoft.Extensions.DependencyInjection
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
                     strategy));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.GetHeroQuery>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IOnReviewSubResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.OnReviewSubResultFactory>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IOnReviewSubResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.OnReviewSubBuilder>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IOnReviewSubResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.OnReviewSubResultFactory>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IOnReviewSubResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.OnReviewSubBuilder>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IOnReviewSubResult>>(
                 services,
                 sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IOnReviewSubResult>(
@@ -3088,8 +3088,8 @@ namespace Microsoft.Extensions.DependencyInjection
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
                     strategy));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.OnReviewSubSubscription>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.CreateReviewMutResultFactory>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.CreateReviewMutBuilder>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.CreateReviewMutResultFactory>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.CreateReviewMutBuilder>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutResult>>(
                 services,
                 sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutResult>(
@@ -3109,7 +3109,7 @@ namespace Microsoft.Extensions.DependencyInjection
             var services = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId>>(
                 services,
-                global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.EntityIdFactory.CreateEntityId);
+                global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.EntityIdFactory.CreateEntityId);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IEntityStore, global::StrawberryShake.EntityStore>(services);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IOperationStore>(
                 services,
@@ -3133,10 +3133,10 @@ namespace Microsoft.Extensions.DependencyInjection
                     return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("MultiProfileClient"));
                 });
 
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.GetHero_Hero_Droid>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.GetHero_Hero_DroidFromDroidEntityMapper>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.GetHero_Hero_Human>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.GetHero_Hero_HumanFromHumanEntityMapper>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.GetHero_Hero_Friends_Nodes_Droid>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.GetHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.GetHero_Hero_Friends_Nodes_Human>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.GetHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.GetHero_Hero_Droid>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.GetHero_Hero_DroidFromDroidEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.GetHero_Hero_Human>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.GetHero_Hero_HumanFromHumanEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.GetHero_Hero_Friends_Nodes_Droid>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.GetHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.GetHero_Hero_Friends_Nodes_Human>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.GetHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper>(services);
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.EpisodeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.StringSerializer>(services);
@@ -3164,8 +3164,8 @@ namespace Microsoft.Extensions.DependencyInjection
                         global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(
                             sp))));
 
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.GetHeroResultFactory>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.GetHeroBuilder>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.GetHeroResultFactory>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.GetHeroBuilder>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroResult>>(
                 services,
                 sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroResult>(
@@ -3174,8 +3174,8 @@ namespace Microsoft.Extensions.DependencyInjection
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
                     strategy));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.GetHeroQuery>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IOnReviewSubResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.OnReviewSubResultFactory>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IOnReviewSubResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.OnReviewSubBuilder>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IOnReviewSubResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.OnReviewSubResultFactory>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IOnReviewSubResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.OnReviewSubBuilder>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IOnReviewSubResult>>(
                 services,
                 sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IOnReviewSubResult>(
@@ -3184,8 +3184,8 @@ namespace Microsoft.Extensions.DependencyInjection
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
                     strategy));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.OnReviewSubSubscription>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.CreateReviewMutResultFactory>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.CreateReviewMutBuilder>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.CreateReviewMutResultFactory>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.CreateReviewMutBuilder>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutResult>>(
                 services,
                 sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutResult>(

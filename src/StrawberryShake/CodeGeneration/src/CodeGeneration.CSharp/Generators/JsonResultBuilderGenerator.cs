@@ -117,7 +117,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             CodeFileBuilder
                 .New()
-                .SetNamespace(resultTypeDescriptor.RuntimeType.NamespaceWithoutGlobal)
+                .SetNamespace(resultBuilderDescriptor.RuntimeType.NamespaceWithoutGlobal)
                 .AddType(classBuilder)
                 .Build(writer);
         }

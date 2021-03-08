@@ -1,6 +1,7 @@
 using System.Linq;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Descriptors;
+using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.Mappers
 {
@@ -10,14 +11,16 @@ namespace StrawberryShake.CodeGeneration.Mappers
         {
             foreach (OperationModel modelOperation in model.Operations)
             {
-                var resultType = context.GetRuntimeType(
-                    modelOperation.ResultType.Name, 
+                RuntimeTypeInfo resultType = context.GetRuntimeType(
+                    modelOperation.ResultType.Name,
                     Descriptors.TypeDescriptors.TypeKind.ResultType);
 
                 context.Register(
                     modelOperation.Name,
                     new ResultBuilderDescriptor(
-                        modelOperation.Name,
+                        new RuntimeTypeInfo(
+                            CreateResultBuilderName(modelOperation.Name),
+                            CreateStateNamespace(context.Namespace)),
                         context.Types.Single(t => t.RuntimeType.Equals(resultType)),
                         modelOperation.LeafTypes.Select(
                             leafType =>

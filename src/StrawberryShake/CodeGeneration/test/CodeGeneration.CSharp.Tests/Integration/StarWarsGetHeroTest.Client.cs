@@ -47,7 +47,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.Stat
 
 #nullable enable
 
-namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroResultFactory
@@ -117,7 +117,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
 
 #nullable enable
 
-namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroResultInfo
@@ -246,7 +246,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
 
 #nullable enable
 
-namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_Hero_DroidFromDroidEntityMapper
@@ -349,7 +349,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
 
 #nullable enable
 
-namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_Hero_HumanFromHumanEntityMapper
@@ -633,7 +633,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
 
 #nullable enable
 
-namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroBuilder
@@ -796,7 +796,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
 
 #nullable enable
 
-namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class EntityIdFactory
@@ -893,7 +893,7 @@ namespace Microsoft.Extensions.DependencyInjection
             var services = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId>>(
                 services,
-                global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.EntityIdFactory.CreateEntityId);
+                global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.State.EntityIdFactory.CreateEntityId);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IEntityStore, global::StrawberryShake.EntityStore>(services);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IOperationStore>(
                 services,
@@ -908,8 +908,8 @@ namespace Microsoft.Extensions.DependencyInjection
                     return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("StarWarsGetHeroClient"));
                 });
 
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.State.DroidEntity, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.GetHero_Hero_Droid>, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.GetHero_Hero_DroidFromDroidEntityMapper>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.State.HumanEntity, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.GetHero_Hero_Human>, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.GetHero_Hero_HumanFromHumanEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.State.DroidEntity, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.GetHero_Hero_Droid>, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.State.GetHero_Hero_DroidFromDroidEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.State.HumanEntity, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.GetHero_Hero_Human>, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.State.GetHero_Hero_HumanFromHumanEntityMapper>(services);
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.StringSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.BooleanSerializer>(services);
@@ -935,8 +935,8 @@ namespace Microsoft.Extensions.DependencyInjection
                         global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(
                             sp))));
 
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.IGetHeroResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.GetHeroResultFactory>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.IGetHeroResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.GetHeroBuilder>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.IGetHeroResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.State.GetHeroResultFactory>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.IGetHeroResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.State.GetHeroBuilder>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.IGetHeroResult>>(
                 services,
                 sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.IGetHeroResult>(

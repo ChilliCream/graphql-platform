@@ -435,8 +435,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         connectionKind,
                         fullName,
                         operationInterface,
-                        $"{operation.RuntimeType.Namespace}.{factoryName}",
-                        $"{operation.RuntimeType.Namespace}.{builderName}"));
+                        $"{CreateStateNamespace(operation.RuntimeType.Namespace)}.{factoryName}",
+                        $"{CreateStateNamespace(operation.RuntimeType.Namespace)}.{builderName}"));
             }
 
             body.AddCode(
