@@ -7,7 +7,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
     /// <summary>
     /// A connection to a list of items.
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.1.0.0")]
     public partial class GetPeople_People_PersonConnection
         : global::System.IEquatable<GetPeople_People_PersonConnection>
         , IGetPeople_People_PersonConnection

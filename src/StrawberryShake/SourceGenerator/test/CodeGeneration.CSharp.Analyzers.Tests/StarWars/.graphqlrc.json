@@ -17,7 +17,7 @@
           "streamTransport": "WebSocket"
         },
         {
-          "name": "Default",
+          "name": "WebSocket",
           "default": "HTTP",
           "query": "WebSocket",
           "subscription": "WebSocket"
