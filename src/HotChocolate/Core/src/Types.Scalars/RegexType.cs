@@ -61,28 +61,6 @@ namespace HotChocolate.Types.Scalars
         }
 
         /// <inheritdoc />
-        protected override string ParseLiteral(StringValueNode valueSyntax)
-        {
-            if (!_validationRegex.IsMatch(valueSyntax.Value))
-            {
-                throw CreateParseLiteralError(valueSyntax);
-            }
-
-            return base.ParseLiteral(valueSyntax);
-        }
-
-        /// <inheritdoc />
-        protected override StringValueNode ParseValue(string runtimeValue)
-        {
-            if (!_validationRegex.IsMatch(runtimeValue))
-            {
-                throw CreateParseValueError(runtimeValue);
-            }
-
-            return base.ParseValue(runtimeValue);
-        }
-
-        /// <inheritdoc />
         public override bool TrySerialize(object? runtimeValue, out object? resultValue)
         {
             if (runtimeValue is null)

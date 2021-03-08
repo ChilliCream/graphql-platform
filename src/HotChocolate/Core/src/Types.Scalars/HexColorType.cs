@@ -24,11 +24,13 @@ namespace HotChocolate.Types.Scalars
         {
         }
 
+        /// <inheritdoc />
         protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
         {
             return ThrowHelper.HexColorType_ParseLiteral_IsInvalid(this);
         }
 
+        /// <inheritdoc />
         protected override SerializationException CreateParseValueError(object runtimeValue)
         {
             return ThrowHelper.HexColorType_ParseValue_IsInvalid(this);

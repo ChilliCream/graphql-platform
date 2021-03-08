@@ -198,7 +198,77 @@ namespace HotChocolate.Types.Scalars
             // arrange
             // act
             // assert
-            ExpectSerializeToThrowSerializationException<EmailAddressType>(value);
+            ExpectSerializeToThrowSerializationException<MacAddressType>(value);
+        }
+
+        [Theory]
+        [InlineData(typeof(StringValueNode), "fa-7e-9e-9f-13-78")]
+        [InlineData(typeof(StringValueNode), "fa:7e:9e:9f:13:78")]
+        [InlineData(typeof(StringValueNode), "9d-f7-56-d1-73-a4")]
+        [InlineData(typeof(StringValueNode), "00:00:00:00:00:00")]
+        [InlineData(typeof(StringValueNode), "ff-ff-ff-ff-ff-ff")]
+        [InlineData(typeof(NullValueNode), null)]
+        public void ParseValue_GivenObject_MatchExpectedType(Type type, object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseValueToMatchType<MacAddressType>(value, type);
+        }
+
+        [Theory]
+        [InlineData(TestEnum.Foo)]
+        [InlineData(1d)]
+        [InlineData(1)]
+        [InlineData(12345)]
+        [InlineData("")]
+        [InlineData("f")]
+        [InlineData("ff")]
+        [InlineData("ff:ff:ff")]
+        [InlineData("ff:ff:ff:ff:ff")]
+        [InlineData("ff:ff:ff:ff:ff:ff:")]
+        [InlineData("gf:ff:ff:ff:ff:ff")]
+        public void ParseValue_GivenObject_ThrowSerializationException(object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseValueToThrowSerializationException<MacAddressType>(value);
+        }
+
+        [Theory]
+        [InlineData(typeof(StringValueNode), "fa-7e-9e-9f-13-78")]
+        [InlineData(typeof(StringValueNode), "fa:7e:9e:9f:13:78")]
+        [InlineData(typeof(StringValueNode), "9d-f7-56-d1-73-a4")]
+        [InlineData(typeof(StringValueNode), "00:00:00:00:00:00")]
+        [InlineData(typeof(StringValueNode), "ff-ff-ff-ff-ff-ff")]
+        [InlineData(typeof(NullValueNode), null)]
+        public void ParseResult_GivenObject_MatchExpectedType(Type type, object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseResultToMatchType<MacAddressType>(value, type);
+        }
+
+        [Theory]
+        [InlineData(TestEnum.Foo)]
+        [InlineData(1d)]
+        [InlineData(1)]
+        [InlineData(12345)]
+        [InlineData("")]
+        [InlineData("f")]
+        [InlineData("ff")]
+        [InlineData("ff:ff:ff")]
+        [InlineData("ff:ff:ff:ff:ff")]
+        [InlineData("ff:ff:ff:ff:ff:ff:")]
+        [InlineData("gf:ff:ff:ff:ff:ff")]
+        public void ParseResult_GivenObject_ThrowSerializationException(object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseResultToThrowSerializationException<MacAddressType>(value);
         }
     }
 }
