@@ -27,7 +27,10 @@ namespace StrawberryShake.CodeGeneration.Mappers
             }
 
             context.Register(
-                new EntityIdFactoryDescriptor("EntityIdFactory", entities, context.Namespace));
+                new EntityIdFactoryDescriptor(
+                    "EntityIdFactory",
+                    entities,
+                    NamingConventions.CreateStateNamespace(context.Namespace)));
         }
     }
 }

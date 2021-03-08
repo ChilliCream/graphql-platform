@@ -10,10 +10,10 @@ using Microsoft.CodeAnalysis.Text;
 using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
+using Newtonsoft.Json;
 using StrawberryShake.CodeGeneration.Descriptors.Operations;
 using IOPath = System.IO.Path;
 using static StrawberryShake.CodeGeneration.CSharp.Analyzers.DiagnosticErrorHelper;
-using Newtonsoft.Json;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 {
@@ -106,10 +106,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 }
 
                 // If the generator has no errors we will write the documents.
+                var directories = new HashSet<string>();
                 foreach (SourceDocument document in
                     result.Documents.Where(t => t.Kind == SourceDocumentKind.CSharp))
                 {
-                    WriteDocument(context, document);
+                    WriteDocument(context, directories, document);
                 }
 
                 string? persistedQueryDirectory = context.GetPersistedQueryDirectory();
@@ -140,18 +141,34 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
         private void WriteDocument(
             ClientGeneratorContext context,
+            HashSet<string> directories,
             SourceDocument document)
         {
             string documentName = $"{document.Name}.{context.Settings.Name}.StrawberryShake.cs";
             context.Log.WriteDocument(documentName);
 
-            var fileName = IOPath.Combine(context.OutputDirectory, documentName);
-            var sourceText = SourceText.From(document.SourceText, Encoding.UTF8);
+            var directory = document.Path is null
+                ? context.OutputDirectory
+                : IOPath.Combine(context.OutputDirectory, document.Path);
+
+            if (directories.Add(directory) &&
+                context.OutputFiles &&
+                !Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            var fileName = IOPath.Combine(directory, documentName);
+
             context.FileNames.Add(fileName);
+            context.Execution.AddSource(
+                documentName,
+                SourceText.From(document.SourceText, Encoding.UTF8));
 
-            context.Execution.AddSource(documentName, sourceText);
-
-            WriteFile(fileName, document.SourceText);
+            if (context.OutputFiles)
+            {
+                WriteFile(fileName, document.SourceText);
+            }
         }
 
         private void WriteGraphQLQuery(
@@ -355,7 +372,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 .Where(t => IOPath.GetFileName(t).EqualsOrdinal(".graphqlrc.json"))
                 .ToList();
 
-        private void CreateDirectoryIfNotExists(string directory)
+        private void CreateDirectoryIfNotExists(string? directory)
         {
             if (!Directory.Exists(directory))
             {

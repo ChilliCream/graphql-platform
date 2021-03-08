@@ -7,7 +7,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State
     /// <summary>
     /// A connection to a list of items.
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.1.0.0")]
     public partial class PersonConnectionData
     {
         public PersonConnectionData(

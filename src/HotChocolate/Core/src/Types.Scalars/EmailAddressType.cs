@@ -5,22 +5,24 @@ using HotChocolate.Language;
 namespace HotChocolate.Types.Scalars
 {
     /// <summary>
-    /// The `EmailAddress` scalar type constitutes a valid email address, represented as a UTF-8 character sequence.
-    /// The scalar follows the specification defined by
-    /// the HTML Spec https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address.
+    /// The `EmailAddress` scalar type constitutes a valid email address, represented as a UTF-8
+    /// character sequence. The scalar follows the specification defined by the
+    /// <a href="https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address">
+    /// HTML Spec
+    /// </a>
     /// </summary>
     public class EmailAddressType : RegexType
     {
-        private static readonly string _validationPattern =
-            "^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9]" +
-            "(?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$";
-
+        private const string _validationPattern =
+            "^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?" +
+            "(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EmailAddressType"/> class.
         /// </summary>
         public EmailAddressType()
-            : base(WellKnownScalarTypes.EmailAddress,
+            : base(
+                WellKnownScalarTypes.EmailAddress,
                 _validationPattern,
                 ScalarResources.EmailAddressType_Description,
                 RegexOptions.Compiled | RegexOptions.IgnoreCase)

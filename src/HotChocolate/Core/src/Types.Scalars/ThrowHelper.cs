@@ -384,6 +384,7 @@ namespace HotChocolate.Types.Scalars
                     .Build(),
                 type);
         }
+
         public static SerializationException RegexType_ParseValue_IsInvalid(
             IType type,
             string name)
