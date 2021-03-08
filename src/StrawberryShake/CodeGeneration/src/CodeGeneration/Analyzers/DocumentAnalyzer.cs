@@ -73,9 +73,9 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     if (selectionSets.TryGetValue(selectionSet.Key, out var to) &&
                         to != selectionSet.Value)
                     {
-                        // TODO : we need a proper analyzer error here.
-                        throw new InvalidOperationException(
-                            "The same selection set is mapped multiple times.");
+                        throw new CodeGeneratorException(new Error(
+                            "The same selection set is mapped multiple times.",
+                            "SS0010"));
                     }
 
                     selectionSets[selectionSet.Key] = selectionSet.Value;

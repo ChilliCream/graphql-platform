@@ -80,5 +80,69 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 }",
                 "extend schema @key(fields: \"id\")");
         }
+
+        [Fact]
+        public void Create_PeopleSearch_From_ActiveDirectory_Schema()
+        {
+            AssertResult(
+                @"query PeopleSearch($term:String! $skip:Int $take:Int $inactive:Boolean) {
+                  people: peopleSearch(
+                    term: $term
+                    includeInactive: $inactive
+                    skip: $skip
+                    take: $take
+                  )
+                  {
+                    totalCount
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                    }
+                    items {
+                      ...PeopleSearchResult
+                    }
+                  }
+                }
+
+                fragment PeopleSearchResult on Person {
+                  id
+                  key
+                  displayName
+                  isActive
+                  department {
+                    id
+                    name
+                  }
+                  image
+                  title
+                  manager {
+                    id
+                    key
+                    displayName
+                  }
+                }",
+                "extend schema @key(fields: \"id\")",
+                FileResource.Open("ActiveDirectory.Schema.graphql"));
+        }
+
+        [Fact]
+        public void Create_GetFeatsPage()
+        {
+            AssertResult(
+                @"query GetFeatsPage($skip: Int, $take: Int) {
+                    feats(skip: $skip, take: $take) {
+                        items {
+                            name,
+                            level,
+                            canBeLearnedMoreThanOnce,
+                            actionType {
+                                name
+                            }
+                        }
+                    }
+                }",
+                "extend schema @key(fields: \"id\")",
+                FileResource.Open("Schema_Bug_1.graphql"));
+        }
     }
 }

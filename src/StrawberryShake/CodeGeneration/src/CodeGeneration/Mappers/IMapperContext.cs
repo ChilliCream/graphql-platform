@@ -59,5 +59,9 @@ namespace StrawberryShake.CodeGeneration.Mappers
         void Register(EntityIdFactoryDescriptor entityIdFactoryDescriptor);
 
         void Register(DependencyInjectionDescriptor dependencyInjectionDescriptor);
+
+        bool Register(NameString typeName, TypeKind kind, RuntimeTypeInfo runtimeType);
+
+        RuntimeTypeInfo GetRuntimeType(NameString typeName, TypeKind kind);
     }
 }

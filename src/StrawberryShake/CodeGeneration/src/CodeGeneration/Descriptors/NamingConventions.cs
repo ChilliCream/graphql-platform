@@ -1,4 +1,5 @@
 using HotChocolate;
+using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
 namespace StrawberryShake.CodeGeneration.Descriptors
@@ -36,8 +37,8 @@ namespace StrawberryShake.CodeGeneration.Descriptors
         public static string CreateResultFactoryName(string typeName) =>
             typeName + "Factory";
 
-        public static string CreateResultRootTypeName(string typeName) =>
-            typeName + "Result";
+        public static string CreateResultRootTypeName(string typeName, INamedType? type = null) =>
+            type is null ? typeName + "Result" : typeName + type.Name + "Result";
 
         public static string CreateResultBuilderName(string typeName) =>
             typeName + "Builder";
