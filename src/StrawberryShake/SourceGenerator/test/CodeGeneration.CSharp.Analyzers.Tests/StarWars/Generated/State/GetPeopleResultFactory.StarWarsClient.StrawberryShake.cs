@@ -9,11 +9,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
         : global::StrawberryShake.IOperationResultDataFactory<GetPeopleResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<PersonEntity, GetPeople_People_Nodes_Person> _getPeople_People_Nodes_PersonFromPersonEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.PersonEntity, GetPeople_People_Nodes_Person> _getPeople_People_Nodes_PersonFromPersonEntityMapper;
 
         public GetPeopleResultFactory(
             global::StrawberryShake.IEntityStore entityStore,
-            global::StrawberryShake.IEntityMapper<PersonEntity, GetPeople_People_Nodes_Person> getPeople_People_Nodes_PersonFromPersonEntityMapper)
+            global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.PersonEntity, GetPeople_People_Nodes_Person> getPeople_People_Nodes_PersonFromPersonEntityMapper)
         {
             _entityStore = entityStore
                  ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -46,7 +46,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
             {
                 returnValue = new GetPeople_People_PersonConnection(MapIGetPeople_People_NodesArray(data.Nodes));
             }
-            else {
+            else
+            {
                 throw new global::System.NotSupportedException();
             }
             return returnValue;
@@ -82,7 +83,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
                     global::System.StringComparison.Ordinal))
             {
                 return _getPeople_People_Nodes_PersonFromPersonEntityMapper.Map(
-                    _entityStore.GetEntity<PersonEntity>(entityId.Value)
+                    _entityStore.GetEntity<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.PersonEntity>(entityId.Value)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
