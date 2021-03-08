@@ -124,5 +124,8 @@ namespace StrawberryShake.CodeGeneration
         public const string DateSerializer = StrawberryshakeNamespace + "Serialization.DateSerializer";
         public const string ByteArraySerializer = StrawberryshakeNamespace + "Serialization.ByteArraySerializer";
         public const string TimeSpanSerializer = StrawberryshakeNamespace + "Serialization.TimeSpanSerializer";
+
+        public const string IClientBuilder = StrawberryshakeNamespace + "IClientBuilder";
+        public const string ClientBuilder = StrawberryshakeNamespace + "ClientBuilder";
     }
 }

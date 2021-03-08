@@ -60,7 +60,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .AddMethod($"Add{descriptor.Name}")
                 .SetPublic()
                 .SetStatic()
-                .SetReturnType(TypeNames.IServiceCollection)
+                .SetReturnType(TypeNames.IClientBuilder)
                 .AddParameter(
                     _services,
                     x => x.SetThis().SetType(TypeNames.IServiceCollection))
@@ -191,14 +191,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private static ICode GenerateMethodBody(DependencyInjectionDescriptor descriptor) =>
             CodeBlockBuilder
                 .New()
-                .AddMethodCall(x =>
-                    x.SetMethodName(TypeNames.AddSingleton)
-                        .AddArgument(_services)
-                        .AddArgument(LambdaBuilder
-                            .New()
-                            .SetBlock(true)
-                            .AddArgument(_sp)
-                            .SetCode(GenerateClientServiceProviderFactory(descriptor))))
+                .AddMethodCall(x => x
+                    .SetMethodName(TypeNames.AddSingleton)
+                    .AddArgument(_services)
+                    .AddArgument(LambdaBuilder
+                        .New()
+                        .SetBlock(true)
+                        .AddArgument(_sp)
+                        .SetCode(GenerateClientServiceProviderFactory(descriptor))))
                 .AddEmptyLine()
                 .ForEach(
                     descriptor.Operations,
@@ -209,7 +209,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .AddCode(ForwardSingletonToClientServiceProvider(
                     $"{descriptor.RuntimeType.Namespace}.{descriptor.Name}"))
                 .AddEmptyLine()
-                .AddLine($"return {_services};");
+                .AddMethodCall(x => x
+                    .SetReturn()
+                    .SetNew()
+                    .SetMethodName(TypeNames.ClientBuilder)
+                    .AddArgument(descriptor.Name.AsStringToken())
+                    .AddArgument(_services));
 
         private static ICode RegisterSerializerResolver() =>
             MethodCallBuilder
