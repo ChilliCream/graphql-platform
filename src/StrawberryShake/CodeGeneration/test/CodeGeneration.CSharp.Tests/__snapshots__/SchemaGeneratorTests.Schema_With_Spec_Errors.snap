@@ -39,7 +39,7 @@ namespace Foo.Bar.State
             throw new global::System.ArgumentException("GetListingsCountResultInfo expected.");
         }
 
-        private IGetListingsCount_Listings MapNonNullableIGetListingsCount_Listings(global::Foo.Bar.State.ListingsPayloadData data)
+        private global::Foo.Bar.IGetListingsCount_Listings MapNonNullableIGetListingsCount_Listings(global::Foo.Bar.State.ListingsPayloadData data)
         {
             IGetListingsCount_Listings returnValue = default!;
 
@@ -121,7 +121,7 @@ namespace Foo.Bar
         : global::System.IEquatable<GetListingsCountResult>
         , IGetListingsCountResult
     {
-        public GetListingsCountResult(IGetListingsCount_Listings listings)
+        public GetListingsCountResult(global::Foo.Bar.IGetListingsCount_Listings listings)
         {
             Listings = listings;
         }
@@ -129,7 +129,7 @@ namespace Foo.Bar
         /// <summary>
         /// Vyhledávání mezi inzeráty
         /// </summary>
-        public IGetListingsCount_Listings Listings { get; }
+        public global::Foo.Bar.IGetListingsCount_Listings Listings { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -294,7 +294,7 @@ namespace Foo.Bar
         /// <summary>
         /// Vyhledávání mezi inzeráty
         /// </summary>
-        public IGetListingsCount_Listings Listings { get; }
+        public global::Foo.Bar.IGetListingsCount_Listings Listings { get; }
     }
 }
 

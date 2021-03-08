@@ -60,7 +60,7 @@ namespace Foo.Bar.State
             throw new global::System.ArgumentException("GetPersonResultInfo expected.");
         }
 
-        private IGetPerson_Person? MapIGetPerson_Person(global::StrawberryShake.EntityId? entityId)
+        private global::Foo.Bar.IGetPerson_Person? MapIGetPerson_Person(global::StrawberryShake.EntityId? entityId)
         {
             if (entityId is null)
             {
@@ -138,12 +138,12 @@ namespace Foo.Bar
         : global::System.IEquatable<GetPersonResult>
         , IGetPersonResult
     {
-        public GetPersonResult(IGetPerson_Person? person)
+        public GetPersonResult(global::Foo.Bar.IGetPerson_Person? person)
         {
             Person = person;
         }
 
-        public IGetPerson_Person? Person { get; }
+        public global::Foo.Bar.IGetPerson_Person? Person { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -325,7 +325,7 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetPersonResult
     {
-        public IGetPerson_Person? Person { get; }
+        public global::Foo.Bar.IGetPerson_Person? Person { get; }
     }
 }
 
@@ -397,7 +397,7 @@ namespace Foo.Bar.State
             throw new global::System.ArgumentException("OnPersonResultInfo expected.");
         }
 
-        private IOnPerson_OnPerson? MapIOnPerson_OnPerson(global::StrawberryShake.EntityId? entityId)
+        private global::Foo.Bar.IOnPerson_OnPerson? MapIOnPerson_OnPerson(global::StrawberryShake.EntityId? entityId)
         {
             if (entityId is null)
             {
@@ -475,12 +475,12 @@ namespace Foo.Bar
         : global::System.IEquatable<OnPersonResult>
         , IOnPersonResult
     {
-        public OnPersonResult(IOnPerson_OnPerson? onPerson)
+        public OnPersonResult(global::Foo.Bar.IOnPerson_OnPerson? onPerson)
         {
             OnPerson = onPerson;
         }
 
-        public IOnPerson_OnPerson? OnPerson { get; }
+        public global::Foo.Bar.IOnPerson_OnPerson? OnPerson { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -662,7 +662,7 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IOnPersonResult
     {
-        public IOnPerson_OnPerson? OnPerson { get; }
+        public global::Foo.Bar.IOnPerson_OnPerson? OnPerson { get; }
     }
 }
 
@@ -734,7 +734,7 @@ namespace Foo.Bar.State
             throw new global::System.ArgumentException("CreatePersonResultInfo expected.");
         }
 
-        private ICreatePerson_CreatePerson? MapICreatePerson_CreatePerson(global::StrawberryShake.EntityId? entityId)
+        private global::Foo.Bar.ICreatePerson_CreatePerson? MapICreatePerson_CreatePerson(global::StrawberryShake.EntityId? entityId)
         {
             if (entityId is null)
             {
@@ -812,12 +812,12 @@ namespace Foo.Bar
         : global::System.IEquatable<CreatePersonResult>
         , ICreatePersonResult
     {
-        public CreatePersonResult(ICreatePerson_CreatePerson? createPerson)
+        public CreatePersonResult(global::Foo.Bar.ICreatePerson_CreatePerson? createPerson)
         {
             CreatePerson = createPerson;
         }
 
-        public ICreatePerson_CreatePerson? CreatePerson { get; }
+        public global::Foo.Bar.ICreatePerson_CreatePerson? CreatePerson { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -999,7 +999,7 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ICreatePersonResult
     {
-        public ICreatePerson_CreatePerson? CreatePerson { get; }
+        public global::Foo.Bar.ICreatePerson_CreatePerson? CreatePerson { get; }
     }
 }
 

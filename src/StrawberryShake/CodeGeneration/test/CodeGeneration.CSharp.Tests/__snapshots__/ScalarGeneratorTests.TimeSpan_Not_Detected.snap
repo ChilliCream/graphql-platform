@@ -60,7 +60,7 @@ namespace Foo.Bar.State
             throw new global::System.ArgumentException("GetSessionsResultInfo expected.");
         }
 
-        private IGetSessions_Sessions? MapIGetSessions_Sessions(global::Foo.Bar.State.SessionConnectionData? data)
+        private global::Foo.Bar.IGetSessions_Sessions? MapIGetSessions_Sessions(global::Foo.Bar.State.SessionConnectionData? data)
         {
             if (data is null)
             {
@@ -82,14 +82,14 @@ namespace Foo.Bar.State
             return returnValue;
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<IGetSessions_Sessions_Nodes>? MapIGetSessions_Sessions_NodesNonNullableArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId>? list)
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetSessions_Sessions_Nodes>? MapIGetSessions_Sessions_NodesNonNullableArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId>? list)
         {
             if (list is null)
             {
                 return null;
             }
 
-            var sessions = new global::System.Collections.Generic.List<IGetSessions_Sessions_Nodes>();
+            var sessions = new global::System.Collections.Generic.List<global::Foo.Bar.IGetSessions_Sessions_Nodes>();
 
             foreach (global::StrawberryShake.EntityId child in list)
             {
@@ -99,7 +99,7 @@ namespace Foo.Bar.State
             return sessions;
         }
 
-        private IGetSessions_Sessions_Nodes MapNonNullableIGetSessions_Sessions_Nodes(global::StrawberryShake.EntityId entityId)
+        private global::Foo.Bar.IGetSessions_Sessions_Nodes MapNonNullableIGetSessions_Sessions_Nodes(global::StrawberryShake.EntityId entityId)
         {
 
             if (entityId.Name.Equals(
@@ -172,12 +172,12 @@ namespace Foo.Bar
         : global::System.IEquatable<GetSessionsResult>
         , IGetSessionsResult
     {
-        public GetSessionsResult(IGetSessions_Sessions? sessions)
+        public GetSessionsResult(global::Foo.Bar.IGetSessions_Sessions? sessions)
         {
             Sessions = sessions;
         }
 
-        public IGetSessions_Sessions? Sessions { get; }
+        public global::Foo.Bar.IGetSessions_Sessions? Sessions { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -261,7 +261,7 @@ namespace Foo.Bar
         : global::System.IEquatable<GetSessions_Sessions_SessionConnection>
         , IGetSessions_Sessions_SessionConnection
     {
-        public GetSessions_Sessions_SessionConnection(global::System.Collections.Generic.IReadOnlyList<IGetSessions_Sessions_Nodes>? nodes)
+        public GetSessions_Sessions_SessionConnection(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetSessions_Sessions_Nodes>? nodes)
         {
             Nodes = nodes;
         }
@@ -269,7 +269,7 @@ namespace Foo.Bar
         /// <summary>
         /// A flattened list of the nodes.
         /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<IGetSessions_Sessions_Nodes>? Nodes { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetSessions_Sessions_Nodes>? Nodes { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -456,7 +456,7 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetSessionsResult
     {
-        public IGetSessions_Sessions? Sessions { get; }
+        public global::Foo.Bar.IGetSessions_Sessions? Sessions { get; }
     }
 }
 
@@ -478,7 +478,7 @@ namespace Foo.Bar
         /// <summary>
         /// A flattened list of the nodes.
         /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<IGetSessions_Sessions_Nodes>? Nodes { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetSessions_Sessions_Nodes>? Nodes { get; }
     }
 }
 

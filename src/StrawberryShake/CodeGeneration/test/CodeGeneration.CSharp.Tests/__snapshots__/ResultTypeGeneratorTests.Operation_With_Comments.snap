@@ -39,7 +39,7 @@ namespace Foo.Bar.State
             throw new global::System.ArgumentException("GetFooResultInfo expected.");
         }
 
-        private IGetFoo_Foo? MapIGetFoo_Foo(global::Foo.Bar.State.BazData? data)
+        private global::Foo.Bar.IGetFoo_Foo? MapIGetFoo_Foo(global::Foo.Bar.State.BazData? data)
         {
             if (data is null)
             {
@@ -66,7 +66,7 @@ namespace Foo.Bar.State
             return returnValue;
         }
 
-        private IGetFoo_Foo_Nested? MapIGetFoo_Foo_Nested(global::Foo.Bar.State.BazData? data)
+        private global::Foo.Bar.IGetFoo_Foo_Nested? MapIGetFoo_Foo_Nested(global::Foo.Bar.State.BazData? data)
         {
             if (data is null)
             {
@@ -88,9 +88,9 @@ namespace Foo.Bar.State
             return returnValue;
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<IGetFoo_Foo_NestedList> MapNonNullableIGetFoo_Foo_NestedListNonNullableArray(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BazData>? list)
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFoo_Foo_NestedList> MapNonNullableIGetFoo_Foo_NestedListNonNullableArray(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BazData>? list)
         {
-            var bazs = new global::System.Collections.Generic.List<IGetFoo_Foo_NestedList>();
+            var bazs = new global::System.Collections.Generic.List<global::Foo.Bar.IGetFoo_Foo_NestedList>();
 
             foreach (global::Foo.Bar.State.BazData child in list)
             {
@@ -100,7 +100,7 @@ namespace Foo.Bar.State
             return bazs;
         }
 
-        private IGetFoo_Foo_NestedList MapNonNullableIGetFoo_Foo_NestedList(global::Foo.Bar.State.BazData data)
+        private global::Foo.Bar.IGetFoo_Foo_NestedList MapNonNullableIGetFoo_Foo_NestedList(global::Foo.Bar.State.BazData data)
         {
             IGetFoo_Foo_NestedList returnValue = default!;
 
@@ -117,14 +117,14 @@ namespace Foo.Bar.State
             return returnValue;
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<IGetFoo_Foo_NestedMatrix?>?>? MapIGetFoo_Foo_NestedMatrixArrayArray(global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BazData?>?>? list)
+        private global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFoo_Foo_NestedMatrix?>?>? MapIGetFoo_Foo_NestedMatrixArrayArray(global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BazData?>?>? list)
         {
             if (list is null)
             {
                 return null;
             }
 
-            var bazs = new global::System.Collections.Generic.List<global::System.Collections.Generic.IReadOnlyList<IGetFoo_Foo_NestedMatrix?>?>();
+            var bazs = new global::System.Collections.Generic.List<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFoo_Foo_NestedMatrix?>?>();
 
             foreach (global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BazData?>? child in list)
             {
@@ -134,14 +134,14 @@ namespace Foo.Bar.State
             return bazs;
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<IGetFoo_Foo_NestedMatrix?>? MapIGetFoo_Foo_NestedMatrixArray(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BazData?>? list)
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFoo_Foo_NestedMatrix?>? MapIGetFoo_Foo_NestedMatrixArray(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BazData?>? list)
         {
             if (list is null)
             {
                 return null;
             }
 
-            var bazs = new global::System.Collections.Generic.List<IGetFoo_Foo_NestedMatrix?>();
+            var bazs = new global::System.Collections.Generic.List<global::Foo.Bar.IGetFoo_Foo_NestedMatrix?>();
 
             foreach (global::Foo.Bar.State.BazData? child in list)
             {
@@ -151,7 +151,7 @@ namespace Foo.Bar.State
             return bazs;
         }
 
-        private IGetFoo_Foo_NestedMatrix? MapIGetFoo_Foo_NestedMatrix(global::Foo.Bar.State.BazData? data)
+        private global::Foo.Bar.IGetFoo_Foo_NestedMatrix? MapIGetFoo_Foo_NestedMatrix(global::Foo.Bar.State.BazData? data)
         {
             if (data is null)
             {
@@ -232,12 +232,12 @@ namespace Foo.Bar
         : global::System.IEquatable<GetFooResult>
         , IGetFooResult
     {
-        public GetFooResult(IGetFoo_Foo? foo)
+        public GetFooResult(global::Foo.Bar.IGetFoo_Foo? foo)
         {
             Foo = foo;
         }
 
-        public IGetFoo_Foo? Foo { get; }
+        public global::Foo.Bar.IGetFoo_Foo? Foo { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -324,9 +324,9 @@ namespace Foo.Bar
         public GetFoo_Foo_Baz(
             global::System.String? str,
             global::System.String strNonNullable,
-            IGetFoo_Foo_Nested? nested,
-            global::System.Collections.Generic.IReadOnlyList<IGetFoo_Foo_NestedList> nestedList,
-            global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<IGetFoo_Foo_NestedMatrix?>?>? nestedMatrix)
+            global::Foo.Bar.IGetFoo_Foo_Nested? nested,
+            global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFoo_Foo_NestedList> nestedList,
+            global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFoo_Foo_NestedMatrix?>?>? nestedMatrix)
         {
             Str = str;
             StrNonNullable = strNonNullable;
@@ -348,17 +348,17 @@ namespace Foo.Bar
         /// <summary>
         /// Field nested
         /// </summary>
-        public IGetFoo_Foo_Nested? Nested { get; }
+        public global::Foo.Bar.IGetFoo_Foo_Nested? Nested { get; }
 
         /// <summary>
         /// Field nestedList
         /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<IGetFoo_Foo_NestedList> NestedList { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFoo_Foo_NestedList> NestedList { get; }
 
         /// <summary>
         /// Field nestedMatrix
         /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<IGetFoo_Foo_NestedMatrix?>?>? NestedMatrix { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFoo_Foo_NestedMatrix?>?>? NestedMatrix { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -750,7 +750,7 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetFooResult
     {
-        public IGetFoo_Foo? Foo { get; }
+        public global::Foo.Bar.IGetFoo_Foo? Foo { get; }
     }
 }
 
@@ -782,17 +782,17 @@ namespace Foo.Bar
         /// <summary>
         /// Field nested
         /// </summary>
-        public IGetFoo_Foo_Nested? Nested { get; }
+        public global::Foo.Bar.IGetFoo_Foo_Nested? Nested { get; }
 
         /// <summary>
         /// Field nestedList
         /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<IGetFoo_Foo_NestedList> NestedList { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFoo_Foo_NestedList> NestedList { get; }
 
         /// <summary>
         /// Field nestedMatrix
         /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<IGetFoo_Foo_NestedMatrix?>?>? NestedMatrix { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFoo_Foo_NestedMatrix?>?>? NestedMatrix { get; }
     }
 }
 
@@ -1351,9 +1351,9 @@ namespace Foo.Bar.State
             global::System.String typename,
             global::System.String? str = null,
             global::System.String? strNonNullable = null,
-            BazData? nested = null,
-            global::System.Collections.Generic.IReadOnlyList<BazData>? nestedList = null,
-            global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<BazData?>?>? nestedMatrix = null)
+            global::Foo.Bar.State.BazData? nested = null,
+            global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BazData>? nestedList = null,
+            global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BazData?>?>? nestedMatrix = null)
         {
             __typename = typename
                  ?? throw new global::System.ArgumentNullException(nameof(typename));
@@ -1379,17 +1379,17 @@ namespace Foo.Bar.State
         /// <summary>
         /// Field nested
         /// </summary>
-        public BazData? Nested { get; }
+        public global::Foo.Bar.State.BazData? Nested { get; }
 
         /// <summary>
         /// Field nestedList
         /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<BazData>? NestedList { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BazData>? NestedList { get; }
 
         /// <summary>
         /// Field nestedMatrix
         /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<BazData?>?>? NestedMatrix { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BazData?>?>? NestedMatrix { get; }
     }
 }
 

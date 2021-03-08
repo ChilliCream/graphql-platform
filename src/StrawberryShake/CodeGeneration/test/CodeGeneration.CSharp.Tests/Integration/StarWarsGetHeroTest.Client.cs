@@ -80,7 +80,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.Stat
             throw new global::System.ArgumentException("GetHeroResultInfo expected.");
         }
 
-        private IGetHero_Hero? MapIGetHero_Hero(global::StrawberryShake.EntityId? entityId)
+        private global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.IGetHero_Hero? MapIGetHero_Hero(global::StrawberryShake.EntityId? entityId)
         {
             if (entityId is null)
             {
@@ -167,12 +167,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
         : global::System.IEquatable<GetHeroResult>
         , IGetHeroResult
     {
-        public GetHeroResult(IGetHero_Hero? hero)
+        public GetHeroResult(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.IGetHero_Hero? hero)
         {
             Hero = hero;
         }
 
-        public IGetHero_Hero? Hero { get; }
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.IGetHero_Hero? Hero { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -457,7 +457,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetHeroResult
     {
-        public IGetHero_Hero? Hero { get; }
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.IGetHero_Hero? Hero { get; }
     }
 }
 

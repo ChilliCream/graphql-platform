@@ -30,7 +30,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 classBuilder
                     .AddProperty(item.Value.Name)
                     .SetComment(item.Value.Description)
-                    .SetType(item.Value.Type.ToEntityIdBuilder())
+                    .SetType(item.Value.Type.ToStateTypeReference())
                     .MakeSettable()
                     .SetPublic()
                     .SetValue(item.Value.Type.IsNullableType() ? null : "default!");

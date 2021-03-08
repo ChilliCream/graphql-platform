@@ -54,7 +54,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         .New()
                         .SetLefthandSide(CodeBlockBuilder
                             .New()
-                            .AddCode(property.Type.ToEntityIdBuilder())
+                            .AddCode(property.Type.ToStateTypeReference())
                             .AddCode($"{GetParameterName(property.Name)}Id"))
                         .SetRighthandSide(BuildUpdateMethodCall(property)));
             }

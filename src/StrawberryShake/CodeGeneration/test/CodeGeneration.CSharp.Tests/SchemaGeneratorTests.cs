@@ -26,6 +26,37 @@ namespace StrawberryShake.CodeGeneration.CSharp
         }
 
         [Fact]
+        public void Query_With_Nested_Fragments()
+        {
+            AssertResult(
+                strictValidation: true,
+                @"
+                    query getAll(){
+                        listings{
+                            ... ListingsPayload
+                        }
+                    }
+                    fragment ListingsPayload on ListingsPayload{
+                        items{
+                            ... HasListingId
+                            ... Offer
+                            ... Auction
+                        }
+                    }
+                    fragment HasListingId on Listing{
+                        listingId
+                    }
+                    fragment Offer on Offer{
+                        price
+                    }
+                    fragment Auction on Auction{
+                        startingPrice
+                    }
+                ",
+                FileResource.Open("MultipleInterfaceSchema.graphql"),
+                "extend schema @key(fields: \"id\")");
+        }
+
         public void Create_Query_With_Skip_Take()
         {
             AssertResult(

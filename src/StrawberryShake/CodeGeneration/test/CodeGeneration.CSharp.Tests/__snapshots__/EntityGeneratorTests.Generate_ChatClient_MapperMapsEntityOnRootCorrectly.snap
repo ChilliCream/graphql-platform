@@ -106,7 +106,7 @@ namespace Foo.Bar.State
             throw new global::System.ArgumentException("GetPeopleResultInfo expected.");
         }
 
-        private IGetPeople_People? MapIGetPeople_People(global::Foo.Bar.State.PersonConnectionData? data)
+        private global::Foo.Bar.IGetPeople_People? MapIGetPeople_People(global::Foo.Bar.State.PersonConnectionData? data)
         {
             if (data is null)
             {
@@ -128,14 +128,14 @@ namespace Foo.Bar.State
             return returnValue;
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<IGetPeople_People_Nodes?>? MapIGetPeople_People_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetPeople_People_Nodes?>? MapIGetPeople_People_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
         {
             if (list is null)
             {
                 return null;
             }
 
-            var persons = new global::System.Collections.Generic.List<IGetPeople_People_Nodes?>();
+            var persons = new global::System.Collections.Generic.List<global::Foo.Bar.IGetPeople_People_Nodes?>();
 
             foreach (global::StrawberryShake.EntityId? child in list)
             {
@@ -145,7 +145,7 @@ namespace Foo.Bar.State
             return persons;
         }
 
-        private IGetPeople_People_Nodes? MapIGetPeople_People_Nodes(global::StrawberryShake.EntityId? entityId)
+        private global::Foo.Bar.IGetPeople_People_Nodes? MapIGetPeople_People_Nodes(global::StrawberryShake.EntityId? entityId)
         {
             if (entityId is null)
             {
@@ -164,7 +164,7 @@ namespace Foo.Bar.State
             throw new global::System.NotSupportedException();
         }
 
-        private IGetPeople_People_Nodes_Messages? MapIGetPeople_People_Nodes_Messages(global::Foo.Bar.State.MessageConnectionData? data)
+        private global::Foo.Bar.IGetPeople_People_Nodes_Messages? MapIGetPeople_People_Nodes_Messages(global::Foo.Bar.State.MessageConnectionData? data)
         {
             if (data is null)
             {
@@ -186,14 +186,14 @@ namespace Foo.Bar.State
             return returnValue;
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<IGetPeople_People_Nodes_Messages_Nodes?>? MapIGetPeople_People_Nodes_Messages_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetPeople_People_Nodes_Messages_Nodes?>? MapIGetPeople_People_Nodes_Messages_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
         {
             if (list is null)
             {
                 return null;
             }
 
-            var messages = new global::System.Collections.Generic.List<IGetPeople_People_Nodes_Messages_Nodes?>();
+            var messages = new global::System.Collections.Generic.List<global::Foo.Bar.IGetPeople_People_Nodes_Messages_Nodes?>();
 
             foreach (global::StrawberryShake.EntityId? child in list)
             {
@@ -203,7 +203,7 @@ namespace Foo.Bar.State
             return messages;
         }
 
-        private IGetPeople_People_Nodes_Messages_Nodes? MapIGetPeople_People_Nodes_Messages_Nodes(global::StrawberryShake.EntityId? entityId)
+        private global::Foo.Bar.IGetPeople_People_Nodes_Messages_Nodes? MapIGetPeople_People_Nodes_Messages_Nodes(global::StrawberryShake.EntityId? entityId)
         {
             if (entityId is null)
             {
@@ -222,7 +222,7 @@ namespace Foo.Bar.State
             throw new global::System.NotSupportedException();
         }
 
-        private IGetPeople_People_Nodes_Messages_Nodes_Sender MapNonNullableIGetPeople_People_Nodes_Messages_Nodes_Sender(global::StrawberryShake.EntityId entityId)
+        private global::Foo.Bar.IGetPeople_People_Nodes_Messages_Nodes_Sender MapNonNullableIGetPeople_People_Nodes_Messages_Nodes_Sender(global::StrawberryShake.EntityId entityId)
         {
 
             if (entityId.Name.Equals(
@@ -301,7 +301,7 @@ namespace Foo.Bar
         : global::System.IEquatable<GetPeopleResult>
         , IGetPeopleResult
     {
-        public GetPeopleResult(IGetPeople_People? people)
+        public GetPeopleResult(global::Foo.Bar.IGetPeople_People? people)
         {
             People = people;
         }
@@ -309,7 +309,7 @@ namespace Foo.Bar
         /// <summary>
         /// Gets access to all the people known to this service.
         /// </summary>
-        public IGetPeople_People? People { get; }
+        public global::Foo.Bar.IGetPeople_People? People { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -393,7 +393,7 @@ namespace Foo.Bar
         : global::System.IEquatable<GetPeople_People_PersonConnection>
         , IGetPeople_People_PersonConnection
     {
-        public GetPeople_People_PersonConnection(global::System.Collections.Generic.IReadOnlyList<IGetPeople_People_Nodes?>? nodes)
+        public GetPeople_People_PersonConnection(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetPeople_People_Nodes?>? nodes)
         {
             Nodes = nodes;
         }
@@ -401,7 +401,7 @@ namespace Foo.Bar
         /// <summary>
         /// A flattened list of the nodes.
         /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<IGetPeople_People_Nodes?>? Nodes { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetPeople_People_Nodes?>? Nodes { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -513,7 +513,7 @@ namespace Foo.Bar.State
                 MapIGetPeople_People_Nodes_Messages(entity.Messages));
         }
 
-        private IGetPeople_People_Nodes_Messages? MapIGetPeople_People_Nodes_Messages(global::Foo.Bar.State.MessageConnectionData? data)
+        private global::Foo.Bar.IGetPeople_People_Nodes_Messages? MapIGetPeople_People_Nodes_Messages(global::Foo.Bar.State.MessageConnectionData? data)
         {
             if (data is null)
             {
@@ -535,14 +535,14 @@ namespace Foo.Bar.State
             return returnValue;
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<IGetPeople_People_Nodes_Messages_Nodes?>? MapIGetPeople_People_Nodes_Messages_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetPeople_People_Nodes_Messages_Nodes?>? MapIGetPeople_People_Nodes_Messages_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
         {
             if (list is null)
             {
                 return null;
             }
 
-            var messages = new global::System.Collections.Generic.List<IGetPeople_People_Nodes_Messages_Nodes?>();
+            var messages = new global::System.Collections.Generic.List<global::Foo.Bar.IGetPeople_People_Nodes_Messages_Nodes?>();
 
             foreach (global::StrawberryShake.EntityId? child in list)
             {
@@ -552,7 +552,7 @@ namespace Foo.Bar.State
             return messages;
         }
 
-        private IGetPeople_People_Nodes_Messages_Nodes? MapIGetPeople_People_Nodes_Messages_Nodes(global::StrawberryShake.EntityId? entityId)
+        private global::Foo.Bar.IGetPeople_People_Nodes_Messages_Nodes? MapIGetPeople_People_Nodes_Messages_Nodes(global::StrawberryShake.EntityId? entityId)
         {
             if (entityId is null)
             {
@@ -571,7 +571,7 @@ namespace Foo.Bar.State
             throw new global::System.NotSupportedException();
         }
 
-        private IGetPeople_People_Nodes_Messages_Nodes_Sender MapNonNullableIGetPeople_People_Nodes_Messages_Nodes_Sender(global::StrawberryShake.EntityId entityId)
+        private global::Foo.Bar.IGetPeople_People_Nodes_Messages_Nodes_Sender MapNonNullableIGetPeople_People_Nodes_Messages_Nodes_Sender(global::StrawberryShake.EntityId entityId)
         {
 
             if (entityId.Name.Equals(
@@ -606,7 +606,7 @@ namespace Foo.Bar
     {
         public GetPeople_People_Nodes_Person(
             global::System.String name,
-            IGetPeople_People_Nodes_Messages? messages)
+            global::Foo.Bar.IGetPeople_People_Nodes_Messages? messages)
         {
             Name = name;
             Messages = messages;
@@ -620,7 +620,7 @@ namespace Foo.Bar
         /// <summary>
         /// Field messages
         /// </summary>
-        public IGetPeople_People_Nodes_Messages? Messages { get; }
+        public global::Foo.Bar.IGetPeople_People_Nodes_Messages? Messages { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -707,7 +707,7 @@ namespace Foo.Bar
         : global::System.IEquatable<GetPeople_People_Nodes_Messages_MessageConnection>
         , IGetPeople_People_Nodes_Messages_MessageConnection
     {
-        public GetPeople_People_Nodes_Messages_MessageConnection(global::System.Collections.Generic.IReadOnlyList<IGetPeople_People_Nodes_Messages_Nodes?>? nodes)
+        public GetPeople_People_Nodes_Messages_MessageConnection(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetPeople_People_Nodes_Messages_Nodes?>? nodes)
         {
             Nodes = nodes;
         }
@@ -715,7 +715,7 @@ namespace Foo.Bar
         /// <summary>
         /// A flattened list of the nodes.
         /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<IGetPeople_People_Nodes_Messages_Nodes?>? Nodes { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetPeople_People_Nodes_Messages_Nodes?>? Nodes { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -823,7 +823,7 @@ namespace Foo.Bar.State
                 entity.Text);
         }
 
-        private IGetPeople_People_Nodes_Messages_Nodes_Sender MapNonNullableIGetPeople_People_Nodes_Messages_Nodes_Sender(global::StrawberryShake.EntityId entityId)
+        private global::Foo.Bar.IGetPeople_People_Nodes_Messages_Nodes_Sender MapNonNullableIGetPeople_People_Nodes_Messages_Nodes_Sender(global::StrawberryShake.EntityId entityId)
         {
 
             if (entityId.Name.Equals(
@@ -857,7 +857,7 @@ namespace Foo.Bar
         , IGetPeople_People_Nodes_Messages_Nodes_Message
     {
         public GetPeople_People_Nodes_Messages_Nodes_Message(
-            IGetPeople_People_Nodes_Messages_Nodes_Sender sender,
+            global::Foo.Bar.IGetPeople_People_Nodes_Messages_Nodes_Sender sender,
             global::System.String text)
         {
             Sender = sender;
@@ -867,7 +867,7 @@ namespace Foo.Bar
         /// <summary>
         /// Field sender
         /// </summary>
-        public IGetPeople_People_Nodes_Messages_Nodes_Sender Sender { get; }
+        public global::Foo.Bar.IGetPeople_People_Nodes_Messages_Nodes_Sender Sender { get; }
 
         /// <summary>
         /// Field text
@@ -1066,7 +1066,7 @@ namespace Foo.Bar
         /// <summary>
         /// Gets access to all the people known to this service.
         /// </summary>
-        public IGetPeople_People? People { get; }
+        public global::Foo.Bar.IGetPeople_People? People { get; }
     }
 }
 
@@ -1088,7 +1088,7 @@ namespace Foo.Bar
         /// <summary>
         /// A flattened list of the nodes.
         /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<IGetPeople_People_Nodes?>? Nodes { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetPeople_People_Nodes?>? Nodes { get; }
     }
 }
 
@@ -1152,7 +1152,7 @@ namespace Foo.Bar
         /// <summary>
         /// Field messages
         /// </summary>
-        public IGetPeople_People_Nodes_Messages? Messages { get; }
+        public global::Foo.Bar.IGetPeople_People_Nodes_Messages? Messages { get; }
     }
 }
 
@@ -1193,7 +1193,7 @@ namespace Foo.Bar
         /// <summary>
         /// A flattened list of the nodes.
         /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<IGetPeople_People_Nodes_Messages_Nodes?>? Nodes { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetPeople_People_Nodes_Messages_Nodes?>? Nodes { get; }
     }
 }
 
@@ -1234,7 +1234,7 @@ namespace Foo.Bar
         /// <summary>
         /// Field sender
         /// </summary>
-        public IGetPeople_People_Nodes_Messages_Nodes_Sender Sender { get; }
+        public global::Foo.Bar.IGetPeople_People_Nodes_Messages_Nodes_Sender Sender { get; }
 
         /// <summary>
         /// Field text
@@ -1359,7 +1359,7 @@ namespace Foo.Bar.State
             throw new global::System.ArgumentException("WriteMessageResultInfo expected.");
         }
 
-        private IWriteMessage_SendMessage MapNonNullableIWriteMessage_SendMessage(global::Foo.Bar.State.SendMessagePayloadData data)
+        private global::Foo.Bar.IWriteMessage_SendMessage MapNonNullableIWriteMessage_SendMessage(global::Foo.Bar.State.SendMessagePayloadData data)
         {
             IWriteMessage_SendMessage returnValue = default!;
 
@@ -1376,7 +1376,7 @@ namespace Foo.Bar.State
             return returnValue;
         }
 
-        private IWriteMessage_SendMessage_Message MapNonNullableIWriteMessage_SendMessage_Message(global::StrawberryShake.EntityId entityId)
+        private global::Foo.Bar.IWriteMessage_SendMessage_Message MapNonNullableIWriteMessage_SendMessage_Message(global::StrawberryShake.EntityId entityId)
         {
 
             if (entityId.Name.Equals(
@@ -1390,7 +1390,7 @@ namespace Foo.Bar.State
             throw new global::System.NotSupportedException();
         }
 
-        private IGetPeople_People_Nodes_Messages_Nodes_Sender MapNonNullableIGetPeople_People_Nodes_Messages_Nodes_Sender(global::StrawberryShake.EntityId entityId)
+        private global::Foo.Bar.IGetPeople_People_Nodes_Messages_Nodes_Sender MapNonNullableIGetPeople_People_Nodes_Messages_Nodes_Sender(global::StrawberryShake.EntityId entityId)
         {
 
             if (entityId.Name.Equals(
@@ -1469,7 +1469,7 @@ namespace Foo.Bar
         : global::System.IEquatable<WriteMessageResult>
         , IWriteMessageResult
     {
-        public WriteMessageResult(IWriteMessage_SendMessage sendMessage)
+        public WriteMessageResult(global::Foo.Bar.IWriteMessage_SendMessage sendMessage)
         {
             SendMessage = sendMessage;
         }
@@ -1477,7 +1477,7 @@ namespace Foo.Bar
         /// <summary>
         /// Field sendMessage
         /// </summary>
-        public IWriteMessage_SendMessage SendMessage { get; }
+        public global::Foo.Bar.IWriteMessage_SendMessage SendMessage { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -1558,7 +1558,7 @@ namespace Foo.Bar
         : global::System.IEquatable<WriteMessage_SendMessage_SendMessagePayload>
         , IWriteMessage_SendMessage_SendMessagePayload
     {
-        public WriteMessage_SendMessage_SendMessagePayload(IWriteMessage_SendMessage_Message message)
+        public WriteMessage_SendMessage_SendMessagePayload(global::Foo.Bar.IWriteMessage_SendMessage_Message message)
         {
             Message = message;
         }
@@ -1566,7 +1566,7 @@ namespace Foo.Bar
         /// <summary>
         /// Field message
         /// </summary>
-        public IWriteMessage_SendMessage_Message Message { get; }
+        public global::Foo.Bar.IWriteMessage_SendMessage_Message Message { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -1663,7 +1663,7 @@ namespace Foo.Bar.State
                 entity.Text);
         }
 
-        private IGetPeople_People_Nodes_Messages_Nodes_Sender MapNonNullableIGetPeople_People_Nodes_Messages_Nodes_Sender(global::StrawberryShake.EntityId entityId)
+        private global::Foo.Bar.IGetPeople_People_Nodes_Messages_Nodes_Sender MapNonNullableIGetPeople_People_Nodes_Messages_Nodes_Sender(global::StrawberryShake.EntityId entityId)
         {
 
             if (entityId.Name.Equals(
@@ -1697,7 +1697,7 @@ namespace Foo.Bar
         , IWriteMessage_SendMessage_Message_Message
     {
         public WriteMessage_SendMessage_Message_Message(
-            IGetPeople_People_Nodes_Messages_Nodes_Sender sender,
+            global::Foo.Bar.IGetPeople_People_Nodes_Messages_Nodes_Sender sender,
             global::System.String text)
         {
             Sender = sender;
@@ -1707,7 +1707,7 @@ namespace Foo.Bar
         /// <summary>
         /// Field sender
         /// </summary>
-        public IGetPeople_People_Nodes_Messages_Nodes_Sender Sender { get; }
+        public global::Foo.Bar.IGetPeople_People_Nodes_Messages_Nodes_Sender Sender { get; }
 
         /// <summary>
         /// Field text
@@ -1906,7 +1906,7 @@ namespace Foo.Bar
         /// <summary>
         /// Field sendMessage
         /// </summary>
-        public IWriteMessage_SendMessage SendMessage { get; }
+        public global::Foo.Bar.IWriteMessage_SendMessage SendMessage { get; }
     }
 }
 
@@ -1928,7 +1928,7 @@ namespace Foo.Bar
         /// <summary>
         /// Field message
         /// </summary>
-        public IWriteMessage_SendMessage_Message Message { get; }
+        public global::Foo.Bar.IWriteMessage_SendMessage_Message Message { get; }
     }
 }
 

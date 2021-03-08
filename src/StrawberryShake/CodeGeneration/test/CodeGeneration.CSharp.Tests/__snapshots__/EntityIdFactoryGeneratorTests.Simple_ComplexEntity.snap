@@ -62,7 +62,7 @@ namespace Foo.Bar.State
             throw new global::System.ArgumentException("GetPersonResultInfo expected.");
         }
 
-        private IGetPerson_Person? MapIGetPerson_Person(global::StrawberryShake.EntityId? entityId)
+        private global::Foo.Bar.IGetPerson_Person? MapIGetPerson_Person(global::StrawberryShake.EntityId? entityId)
         {
             if (entityId is null)
             {
@@ -140,12 +140,12 @@ namespace Foo.Bar
         : global::System.IEquatable<GetPersonResult>
         , IGetPersonResult
     {
-        public GetPersonResult(IGetPerson_Person? person)
+        public GetPersonResult(global::Foo.Bar.IGetPerson_Person? person)
         {
             Person = person;
         }
 
-        public IGetPerson_Person? Person { get; }
+        public global::Foo.Bar.IGetPerson_Person? Person { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -340,7 +340,7 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetPersonResult
     {
-        public IGetPerson_Person? Person { get; }
+        public global::Foo.Bar.IGetPerson_Person? Person { get; }
     }
 }
 

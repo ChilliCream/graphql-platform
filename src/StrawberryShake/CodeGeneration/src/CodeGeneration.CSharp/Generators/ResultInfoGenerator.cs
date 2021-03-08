@@ -45,7 +45,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             foreach (var prop in complexTypeDescriptor.Properties)
             {
-                TypeReferenceBuilder propTypeBuilder = prop.Type.ToEntityIdBuilder();
+                TypeReferenceBuilder propTypeBuilder = prop.Type.ToStateTypeReference();
 
                 // Add Property to class
                 classBuilder

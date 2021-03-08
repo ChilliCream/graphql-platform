@@ -167,7 +167,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 MethodBuilder methodBuilder = classBuilder
                     .AddMethod()
                     .SetPrivate()
-                    .SetReturnType(typeReference.ToEntityIdBuilder())
+                    .SetReturnType(typeReference.ToStateTypeReference())
                     .SetName(methodName);
 
                 methodBuilder

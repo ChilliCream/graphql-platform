@@ -28,9 +28,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
                 : new (descriptor.Name, descriptor.RuntimeType.NamespaceWithoutGlobal);
         }
 
-        public static TypeReferenceBuilder ToBuilder(
+        public static TypeReferenceBuilder ToTypeReference(
             this ITypeDescriptor typeReferenceDescriptor,
-            string? nameOverride = null,
             TypeReferenceBuilder? builder = null)
         {
             TypeReferenceBuilder actualBuilder = builder ?? TypeReferenceBuilder.New();
@@ -47,23 +46,22 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
             return typeReferenceDescriptor switch
             {
                 ListTypeDescriptor list =>
-                    ToBuilder(list.InnerType, nameOverride, actualBuilder.SetListType()),
+                    ToTypeReference(list.InnerType, actualBuilder.SetListType()),
 
                 EnumTypeDescriptor @enum =>
-                    actualBuilder.SetName(nameOverride ?? @enum.RuntimeType.Name),
+                    actualBuilder.SetName(@enum.RuntimeType.ToString()),
 
                 ILeafTypeDescriptor leaf =>
-                    actualBuilder.SetName(
-                        $"{leaf.RuntimeType.Namespace}.{nameOverride ?? leaf.RuntimeType.Name}"),
+                    actualBuilder.SetName(leaf.RuntimeType.ToString()),
 
                 INamedTypeDescriptor named =>
-                    actualBuilder.SetName(nameOverride ?? named.RuntimeType.Name),
+                    actualBuilder.SetName(named.RuntimeType.ToString()),
 
                 _ => throw new ArgumentOutOfRangeException(nameof(typeReferenceDescriptor))
             };
         }
 
-        public static TypeReferenceBuilder ToEntityIdBuilder(
+        public static TypeReferenceBuilder ToStateTypeReference(
             this ITypeDescriptor typeDescriptor,
             TypeReferenceBuilder? builder = null)
         {
@@ -81,15 +79,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
             return typeDescriptor switch
             {
                 ListTypeDescriptor listTypeDescriptor =>
-                    ToEntityIdBuilder(listTypeDescriptor.InnerType, actualBuilder.SetListType()),
+                    ToStateTypeReference(listTypeDescriptor.InnerType, actualBuilder.SetListType()),
 
                 EnumTypeDescriptor @enum =>
-                    actualBuilder.SetName(@enum.RuntimeType.Name),
+                    actualBuilder.SetName(@enum.RuntimeType.ToString()),
 
                 ILeafTypeDescriptor leaf =>
                     actualBuilder.SetName(leaf.RuntimeType.ToString()),
 
-                ComplexTypeDescriptor { ParentRuntimeType: { } parentRuntimeType } d =>
+                ComplexTypeDescriptor { ParentRuntimeType: { } parentRuntimeType }  =>
                     actualBuilder.SetName(parentRuntimeType.ToString()),
 
                 INamedTypeDescriptor { Kind: TypeKind.DataType } d =>
@@ -98,7 +96,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
                 INamedTypeDescriptor { Kind: TypeKind.EntityType } =>
                     actualBuilder.SetName(TypeNames.EntityId),
 
-                INamedTypeDescriptor d => actualBuilder.SetName(d.RuntimeType.Name),
+                INamedTypeDescriptor d => actualBuilder.SetName(d.RuntimeType.ToString()),
 
                 _ => throw new ArgumentOutOfRangeException(nameof(typeDescriptor))
             };

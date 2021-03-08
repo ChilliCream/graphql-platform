@@ -36,7 +36,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             foreach (var prop in descriptor.Properties)
             {
-                TypeReferenceBuilder propTypeBuilder = prop.Type.ToBuilder();
+                TypeReferenceBuilder propTypeBuilder = prop.Type.ToTypeReference();
 
                 // Add Property to class
                 classBuilder

@@ -31,7 +31,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 interfaceBuilder
                     .AddProperty(prop.Name)
                     .SetComment(prop.Description)
-                    .SetType(prop.Type.ToBuilder())
+                    .SetType(prop.Type.ToTypeReference())
                     .SetPublic();
             }
 

@@ -81,7 +81,7 @@ namespace Foo.Bar.State
             throw new global::System.ArgumentException("GetPeopleResultInfo expected.");
         }
 
-        private IGetPeople_Me MapNonNullableIGetPeople_Me(global::StrawberryShake.EntityId entityId)
+        private global::Foo.Bar.IGetPeople_Me MapNonNullableIGetPeople_Me(global::StrawberryShake.EntityId entityId)
         {
 
             if (entityId.Name.Equals(
@@ -160,7 +160,7 @@ namespace Foo.Bar
         : global::System.IEquatable<GetPeopleResult>
         , IGetPeopleResult
     {
-        public GetPeopleResult(IGetPeople_Me me)
+        public GetPeopleResult(global::Foo.Bar.IGetPeople_Me me)
         {
             Me = me;
         }
@@ -168,7 +168,7 @@ namespace Foo.Bar
         /// <summary>
         /// Gets the currently logged in user.
         /// </summary>
-        public IGetPeople_Me Me { get; }
+        public global::Foo.Bar.IGetPeople_Me Me { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -263,7 +263,7 @@ namespace Foo.Bar.State
             return new GetPeople_Me_Person(MapIGetPeople_Me_Friends(entity.Friends));
         }
 
-        private IGetPeople_Me_Friends? MapIGetPeople_Me_Friends(global::Foo.Bar.State.PersonConnectionData? data)
+        private global::Foo.Bar.IGetPeople_Me_Friends? MapIGetPeople_Me_Friends(global::Foo.Bar.State.PersonConnectionData? data)
         {
             if (data is null)
             {
@@ -285,14 +285,14 @@ namespace Foo.Bar.State
             return returnValue;
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<IGetPeople_Me_Friends_Nodes?>? MapIGetPeople_Me_Friends_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetPeople_Me_Friends_Nodes?>? MapIGetPeople_Me_Friends_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
         {
             if (list is null)
             {
                 return null;
             }
 
-            var persons = new global::System.Collections.Generic.List<IGetPeople_Me_Friends_Nodes?>();
+            var persons = new global::System.Collections.Generic.List<global::Foo.Bar.IGetPeople_Me_Friends_Nodes?>();
 
             foreach (global::StrawberryShake.EntityId? child in list)
             {
@@ -302,7 +302,7 @@ namespace Foo.Bar.State
             return persons;
         }
 
-        private IGetPeople_Me_Friends_Nodes? MapIGetPeople_Me_Friends_Nodes(global::StrawberryShake.EntityId? entityId)
+        private global::Foo.Bar.IGetPeople_Me_Friends_Nodes? MapIGetPeople_Me_Friends_Nodes(global::StrawberryShake.EntityId? entityId)
         {
             if (entityId is null)
             {
@@ -340,7 +340,7 @@ namespace Foo.Bar
         : global::System.IEquatable<GetPeople_Me_Person>
         , IGetPeople_Me_Person
     {
-        public GetPeople_Me_Person(IGetPeople_Me_Friends? friends)
+        public GetPeople_Me_Person(global::Foo.Bar.IGetPeople_Me_Friends? friends)
         {
             Friends = friends;
         }
@@ -348,7 +348,7 @@ namespace Foo.Bar
         /// <summary>
         /// Field friends
         /// </summary>
-        public IGetPeople_Me_Friends? Friends { get; }
+        public global::Foo.Bar.IGetPeople_Me_Friends? Friends { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -432,7 +432,7 @@ namespace Foo.Bar
         : global::System.IEquatable<GetPeople_Me_Friends_PersonConnection>
         , IGetPeople_Me_Friends_PersonConnection
     {
-        public GetPeople_Me_Friends_PersonConnection(global::System.Collections.Generic.IReadOnlyList<IGetPeople_Me_Friends_Nodes?>? nodes)
+        public GetPeople_Me_Friends_PersonConnection(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetPeople_Me_Friends_Nodes?>? nodes)
         {
             Nodes = nodes;
         }
@@ -440,7 +440,7 @@ namespace Foo.Bar
         /// <summary>
         /// A flattened list of the nodes.
         /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<IGetPeople_Me_Friends_Nodes?>? Nodes { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetPeople_Me_Friends_Nodes?>? Nodes { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -666,7 +666,7 @@ namespace Foo.Bar
         /// <summary>
         /// Gets the currently logged in user.
         /// </summary>
-        public IGetPeople_Me Me { get; }
+        public global::Foo.Bar.IGetPeople_Me Me { get; }
     }
 }
 
@@ -688,7 +688,7 @@ namespace Foo.Bar
         /// <summary>
         /// Field friends
         /// </summary>
-        public IGetPeople_Me_Friends? Friends { get; }
+        public global::Foo.Bar.IGetPeople_Me_Friends? Friends { get; }
     }
 }
 
@@ -729,7 +729,7 @@ namespace Foo.Bar
         /// <summary>
         /// A flattened list of the nodes.
         /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<IGetPeople_Me_Friends_Nodes?>? Nodes { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetPeople_Me_Friends_Nodes?>? Nodes { get; }
     }
 }
 

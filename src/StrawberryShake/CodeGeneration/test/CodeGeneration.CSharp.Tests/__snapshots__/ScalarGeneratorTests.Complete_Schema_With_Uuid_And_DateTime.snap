@@ -28,9 +28,9 @@ namespace Foo.Bar.State
 
         public global::System.String? Description { get; set; }
 
-        public ExpenseCategory Category { get; set; } = default!;
+        public global::Foo.Bar.ExpenseCategory Category { get; set; } = default!;
 
-        public PaymentMethod PaymentMethod { get; set; } = default!;
+        public global::Foo.Bar.PaymentMethod PaymentMethod { get; set; } = default!;
 
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.TagData?>? Tags { get; set; }
     }
@@ -72,14 +72,14 @@ namespace Foo.Bar.State
             throw new global::System.ArgumentException("AllExpensesResultInfo expected.");
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<IAllExpenses_Expense?>? MapIAllExpenses_ExpenseArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IAllExpenses_Expense?>? MapIAllExpenses_ExpenseArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
         {
             if (list is null)
             {
                 return null;
             }
 
-            var expenses = new global::System.Collections.Generic.List<IAllExpenses_Expense?>();
+            var expenses = new global::System.Collections.Generic.List<global::Foo.Bar.IAllExpenses_Expense?>();
 
             foreach (global::StrawberryShake.EntityId? child in list)
             {
@@ -89,7 +89,7 @@ namespace Foo.Bar.State
             return expenses;
         }
 
-        private IAllExpenses_Expense? MapIAllExpenses_Expense(global::StrawberryShake.EntityId? entityId)
+        private global::Foo.Bar.IAllExpenses_Expense? MapIAllExpenses_Expense(global::StrawberryShake.EntityId? entityId)
         {
             if (entityId is null)
             {
@@ -167,12 +167,12 @@ namespace Foo.Bar
         : global::System.IEquatable<AllExpensesResult>
         , IAllExpensesResult
     {
-        public AllExpensesResult(global::System.Collections.Generic.IReadOnlyList<IAllExpenses_Expense?>? expense)
+        public AllExpensesResult(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IAllExpenses_Expense?>? expense)
         {
             Expense = expense;
         }
 
-        public global::System.Collections.Generic.IReadOnlyList<IAllExpenses_Expense?>? Expense { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IAllExpenses_Expense?>? Expense { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -272,14 +272,14 @@ namespace Foo.Bar.State
                 MapIAllExpenses_Expense_TagsArray(entity.Tags));
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<IAllExpenses_Expense_Tags?>? MapIAllExpenses_Expense_TagsArray(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.TagData?>? list)
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IAllExpenses_Expense_Tags?>? MapIAllExpenses_Expense_TagsArray(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.TagData?>? list)
         {
             if (list is null)
             {
                 return null;
             }
 
-            var tags = new global::System.Collections.Generic.List<IAllExpenses_Expense_Tags?>();
+            var tags = new global::System.Collections.Generic.List<global::Foo.Bar.IAllExpenses_Expense_Tags?>();
 
             foreach (global::Foo.Bar.State.TagData? child in list)
             {
@@ -289,7 +289,7 @@ namespace Foo.Bar.State
             return tags;
         }
 
-        private IAllExpenses_Expense_Tags? MapIAllExpenses_Expense_Tags(global::Foo.Bar.State.TagData? data)
+        private global::Foo.Bar.IAllExpenses_Expense_Tags? MapIAllExpenses_Expense_Tags(global::Foo.Bar.State.TagData? data)
         {
             if (data is null)
             {
@@ -332,9 +332,9 @@ namespace Foo.Bar
             global::System.Decimal amount,
             global::System.DateTimeOffset date,
             global::System.String? description,
-            ExpenseCategory category,
-            PaymentMethod paymentMethod,
-            global::System.Collections.Generic.IReadOnlyList<IAllExpenses_Expense_Tags?>? tags)
+            global::Foo.Bar.ExpenseCategory category,
+            global::Foo.Bar.PaymentMethod paymentMethod,
+            global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IAllExpenses_Expense_Tags?>? tags)
         {
             Id = id;
             Amount = amount;
@@ -353,11 +353,11 @@ namespace Foo.Bar
 
         public global::System.String? Description { get; }
 
-        public ExpenseCategory Category { get; }
+        public global::Foo.Bar.ExpenseCategory Category { get; }
 
-        public PaymentMethod PaymentMethod { get; }
+        public global::Foo.Bar.PaymentMethod PaymentMethod { get; }
 
-        public global::System.Collections.Generic.IReadOnlyList<IAllExpenses_Expense_Tags?>? Tags { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IAllExpenses_Expense_Tags?>? Tags { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -551,7 +551,7 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IAllExpensesResult
     {
-        public global::System.Collections.Generic.IReadOnlyList<IAllExpenses_Expense?>? Expense { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IAllExpenses_Expense?>? Expense { get; }
     }
 }
 
@@ -575,11 +575,11 @@ namespace Foo.Bar
 
         public global::System.String? Description { get; }
 
-        public ExpenseCategory Category { get; }
+        public global::Foo.Bar.ExpenseCategory Category { get; }
 
-        public PaymentMethod PaymentMethod { get; }
+        public global::Foo.Bar.PaymentMethod PaymentMethod { get; }
 
-        public global::System.Collections.Generic.IReadOnlyList<IAllExpenses_Expense_Tags?>? Tags { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IAllExpenses_Expense_Tags?>? Tags { get; }
     }
 }
 
@@ -1130,7 +1130,7 @@ namespace Foo.Bar.State
             return _stringParser.Parse(obj.Value.GetString()!);
         }
 
-        private ExpenseCategory DeserializeNonNullableExpenseCategory(global::System.Text.Json.JsonElement? obj)
+        private global::Foo.Bar.ExpenseCategory DeserializeNonNullableExpenseCategory(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {
@@ -1140,7 +1140,7 @@ namespace Foo.Bar.State
             return _expenseCategoryParser.Parse(obj.Value.GetString()!);
         }
 
-        private PaymentMethod DeserializeNonNullablePaymentMethod(global::System.Text.Json.JsonElement? obj)
+        private global::Foo.Bar.PaymentMethod DeserializeNonNullablePaymentMethod(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {
