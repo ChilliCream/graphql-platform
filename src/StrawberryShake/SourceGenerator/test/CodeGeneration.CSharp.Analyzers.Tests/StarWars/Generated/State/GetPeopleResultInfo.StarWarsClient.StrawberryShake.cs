@@ -2,7 +2,7 @@
 
 #nullable enable
 
-namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
+namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleResultInfo
