@@ -24,8 +24,15 @@ namespace StrawberryShake.CodeGeneration
         /// The code descriptor.
         /// </param>
         /// <param name="fileName">
-        /// The name of the file
+        /// The name of the file.
         /// </param>
-        void Generate(CodeWriter writer, ICodeDescriptor descriptor, out string fileName);
+        /// <param name="path">
+        /// A hint where this file should be located.
+        /// </param>
+        void Generate(
+            CodeWriter writer,
+            ICodeDescriptor descriptor,
+            out string fileName,
+            out string? path);
     }
 }

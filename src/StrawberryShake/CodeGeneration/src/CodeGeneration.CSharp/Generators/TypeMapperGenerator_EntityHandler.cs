@@ -39,7 +39,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     {
                         var dataMapperType =
                             TypeNames.IEntityMapper.WithGeneric(
-                                CreateEntityTypeName(implementee.Name),
+                                CreateEntityType(
+                                    implementee.Name,
+                                    implementee.RuntimeType.NamespaceWithoutGlobal)
+                                    .ToString(),
                                 implementee.RuntimeType.Name);
 
                         AddConstructorAssignedField(
@@ -75,7 +78,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             MethodCallBuilder argument = MethodCallBuilder
                 .Inline()
                 .SetMethodName(StoreFieldName, "GetEntity")
-                .AddGeneric(CreateEntityTypeName(objectTypeDescriptor.Name))
+                .AddGeneric(CreateEntityType(
+                    objectTypeDescriptor.Name,
+                    objectTypeDescriptor.RuntimeType.NamespaceWithoutGlobal)
+                    .ToString())
                 .AddArgument(isNonNullable ? _entityId : $"{_entityId}.Value");
 
             constructorCall.AddArgument(

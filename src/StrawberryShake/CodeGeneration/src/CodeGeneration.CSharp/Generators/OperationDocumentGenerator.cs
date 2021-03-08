@@ -13,10 +13,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         protected override void Generate(
             CodeWriter writer,
             OperationDescriptor descriptor,
-            out string fileName)
+            out string fileName,
+            out string? path)
         {
             var documentName = CreateDocumentTypeName(descriptor.RuntimeType.Name);
             fileName = documentName;
+            path = null;
 
             string operationKind = descriptor switch
             {
