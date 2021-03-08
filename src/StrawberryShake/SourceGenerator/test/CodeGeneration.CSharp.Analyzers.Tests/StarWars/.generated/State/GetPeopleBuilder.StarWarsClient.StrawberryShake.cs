@@ -2,9 +2,9 @@
 
 #nullable enable
 
-namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
+namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State
 {
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.1.0.0")]
     public partial class GetPeopleBuilder
         : global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, IGetPeopleResult>
     {
@@ -145,7 +145,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
                     "Person",
                     global::System.StringComparison.Ordinal))
             {
-                PersonEntity entity = _entityStore.GetOrCreate<PersonEntity>(entityId);
+                global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.PersonEntity entity = _entityStore.GetOrCreate<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.PersonEntity>(entityId);
                 entity.Name = DeserializeNonNullableString(
                     global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,

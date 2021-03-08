@@ -19,6 +19,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
         public RequestStrategy RequestStrategy { get; set; } = RequestStrategy.Default;
 
+        public string OutputDirectoryName { get; set; } = ".generated";
+
         public List<StrawberryShakeTransportSettings>? TransportProfiles { get; set; }
     }
 }

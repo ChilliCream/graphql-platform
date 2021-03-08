@@ -31,7 +31,7 @@ namespace StrawberryShake.CodeGeneration
             }
 
             return error
-                .WithCode(CodeGenerationErrorCodes.SchemaValidationError)
+                .WithCode(SchemaValidationError)
                 .WithExtensions(extensions);
         }
 
