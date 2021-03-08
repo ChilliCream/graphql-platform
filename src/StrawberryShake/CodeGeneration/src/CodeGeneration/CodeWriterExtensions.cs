@@ -13,7 +13,7 @@ namespace StrawberryShake.CodeGeneration
 
             string version = typeof(CodeWriter).Assembly.GetName().Version!.ToString();
 
-#if Debug
+#if DEBUG
             writer.WriteIndentedLine(
                 "[global::System.CodeDom.Compiler.GeneratedCode(" + 
                 "\"StrawberryShake\", \"11.0.0\")]");

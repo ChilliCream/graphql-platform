@@ -17,7 +17,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         }
 
         [Fact]
-        public async Task Execute_MultiProfile_Test()
+        public void Execute_MultiProfile_Test()
         {
             // arrange
             CancellationToken ct = new CancellationTokenSource(20_000).Token;
@@ -31,15 +31,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
             serviceCollection.AddWebSocketClient(
                 MultiProfileClient.ClientName,
                 c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
-            serviceCollection.AddMultiProfileClient();
+
+
+            // act
+            serviceCollection.AddMultiProfileClient(
+                profile: MultiProfileClientProfileKind.Default);
             IServiceProvider services = serviceCollection.BuildServiceProvider();
             MultiProfileClient client = services.GetRequiredService<MultiProfileClient>();
 
-            // act
-
-
             // assert
-
+            Assert.NotNull(client);
         }
     }
 }
