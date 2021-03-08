@@ -15,7 +15,7 @@
 
 #nullable enable
 
-namespace Foo.Bar
+namespace Foo.Bar.State
 {
     /// <summary>
     /// Type person
@@ -62,7 +62,7 @@ namespace Foo.Bar
 
 #nullable enable
 
-namespace Foo.Bar
+namespace Foo.Bar.State
 {
     /// <summary>
     /// Type message
@@ -116,11 +116,11 @@ namespace Foo.Bar
         : global::StrawberryShake.IOperationResultDataFactory<GetPeopleResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<PersonEntity, GetPeople_People_Nodes_Person> _getPeople_People_Nodes_PersonFromPersonEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetPeople_People_Nodes_Person> _getPeople_People_Nodes_PersonFromPersonEntityMapper;
 
         public GetPeopleResultFactory(
             global::StrawberryShake.IEntityStore entityStore,
-            global::StrawberryShake.IEntityMapper<PersonEntity, GetPeople_People_Nodes_Person> getPeople_People_Nodes_PersonFromPersonEntityMapper)
+            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetPeople_People_Nodes_Person> getPeople_People_Nodes_PersonFromPersonEntityMapper)
         {
             _entityStore = entityStore
                  ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -190,7 +190,7 @@ namespace Foo.Bar
                     global::System.StringComparison.Ordinal))
             {
                 return _getPeople_People_Nodes_PersonFromPersonEntityMapper.Map(
-                    _entityStore.GetEntity<PersonEntity>(entityId.Value)
+                    _entityStore.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId.Value)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
@@ -447,9 +447,9 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeople_People_Nodes_PersonFromPersonEntityMapper
-        : global::StrawberryShake.IEntityMapper<PersonEntity, GetPeople_People_Nodes_Person>
+        : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetPeople_People_Nodes_Person>
     {
-        public GetPeople_People_Nodes_Person Map(PersonEntity entity)
+        public GetPeople_People_Nodes_Person Map(global::Foo.Bar.State.PersonEntity entity)
         {
             return new GetPeople_People_Nodes_Person(
                 entity.Name,
@@ -769,11 +769,11 @@ namespace Foo.Bar
         : global::StrawberryShake.IOperationResultDataFactory<GetMessagesResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Person> _getMessages_PersonByEmail_PersonFromPersonEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Person> _getMessages_PersonByEmail_PersonFromPersonEntityMapper;
 
         public GetMessagesResultFactory(
             global::StrawberryShake.IEntityStore entityStore,
-            global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Person> getMessages_PersonByEmail_PersonFromPersonEntityMapper)
+            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Person> getMessages_PersonByEmail_PersonFromPersonEntityMapper)
         {
             _entityStore = entityStore
                  ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -799,7 +799,7 @@ namespace Foo.Bar
                     global::System.StringComparison.Ordinal))
             {
                 return _getMessages_PersonByEmail_PersonFromPersonEntityMapper.Map(
-                    _entityStore.GetEntity<PersonEntity>(entityId)
+                    _entityStore.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
@@ -953,18 +953,18 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetMessages_PersonByEmail_PersonFromPersonEntityMapper
-        : global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Person>
+        : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Person>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<MessageEntity, GetMessages_PersonByEmail_Messages_Nodes_Message> _getMessages_PersonByEmail_Messages_Nodes_MessageFromMessageEntityMapper;
-        private readonly global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper;
-        private readonly global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.MessageEntity, GetMessages_PersonByEmail_Messages_Nodes_Message> _getMessages_PersonByEmail_Messages_Nodes_MessageFromMessageEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper;
 
         public GetMessages_PersonByEmail_PersonFromPersonEntityMapper(
             global::StrawberryShake.IEntityStore entityStore,
-            global::StrawberryShake.IEntityMapper<MessageEntity, GetMessages_PersonByEmail_Messages_Nodes_Message> getMessages_PersonByEmail_Messages_Nodes_MessageFromMessageEntityMapper,
-            global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper,
-            global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper)
+            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.MessageEntity, GetMessages_PersonByEmail_Messages_Nodes_Message> getMessages_PersonByEmail_Messages_Nodes_MessageFromMessageEntityMapper,
+            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper,
+            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper)
         {
             _entityStore = entityStore
                  ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -976,7 +976,7 @@ namespace Foo.Bar
                  ?? throw new global::System.ArgumentNullException(nameof(getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper));
         }
 
-        public GetMessages_PersonByEmail_Person Map(PersonEntity entity)
+        public GetMessages_PersonByEmail_Person Map(global::Foo.Bar.State.PersonEntity entity)
         {
             return new GetMessages_PersonByEmail_Person(MapIGetMessages_PersonByEmail_Messages(entity.Messages));
         }
@@ -1033,7 +1033,7 @@ namespace Foo.Bar
                     global::System.StringComparison.Ordinal))
             {
                 return _getMessages_PersonByEmail_Messages_Nodes_MessageFromMessageEntityMapper.Map(
-                    _entityStore.GetEntity<MessageEntity>(entityId.Value)
+                    _entityStore.GetEntity<global::Foo.Bar.State.MessageEntity>(entityId.Value)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
@@ -1047,7 +1047,7 @@ namespace Foo.Bar
                     global::System.StringComparison.Ordinal))
             {
                 return _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper.Map(
-                    _entityStore.GetEntity<PersonEntity>(entityId)
+                    _entityStore.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
@@ -1061,7 +1061,7 @@ namespace Foo.Bar
                     global::System.StringComparison.Ordinal))
             {
                 return _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper.Map(
-                    _entityStore.GetEntity<PersonEntity>(entityId)
+                    _entityStore.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
@@ -1272,16 +1272,16 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetMessages_PersonByEmail_Messages_Nodes_MessageFromMessageEntityMapper
-        : global::StrawberryShake.IEntityMapper<MessageEntity, GetMessages_PersonByEmail_Messages_Nodes_Message>
+        : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.MessageEntity, GetMessages_PersonByEmail_Messages_Nodes_Message>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper;
-        private readonly global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper;
 
         public GetMessages_PersonByEmail_Messages_Nodes_MessageFromMessageEntityMapper(
             global::StrawberryShake.IEntityStore entityStore,
-            global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper,
-            global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper)
+            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper,
+            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper)
         {
             _entityStore = entityStore
                  ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -1291,7 +1291,7 @@ namespace Foo.Bar
                  ?? throw new global::System.ArgumentNullException(nameof(getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper));
         }
 
-        public GetMessages_PersonByEmail_Messages_Nodes_Message Map(MessageEntity entity)
+        public GetMessages_PersonByEmail_Messages_Nodes_Message Map(global::Foo.Bar.State.MessageEntity entity)
         {
             return new GetMessages_PersonByEmail_Messages_Nodes_Message(
                 entity.Id,
@@ -1310,7 +1310,7 @@ namespace Foo.Bar
                     global::System.StringComparison.Ordinal))
             {
                 return _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper.Map(
-                    _entityStore.GetEntity<PersonEntity>(entityId)
+                    _entityStore.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
@@ -1324,7 +1324,7 @@ namespace Foo.Bar
                     global::System.StringComparison.Ordinal))
             {
                 return _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper.Map(
-                    _entityStore.GetEntity<PersonEntity>(entityId)
+                    _entityStore.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
@@ -1483,9 +1483,9 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper
-        : global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person>
+        : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person>
     {
-        public GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person Map(PersonEntity entity)
+        public GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person Map(global::Foo.Bar.State.PersonEntity entity)
         {
             return new GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person(
                 entity.Name,
@@ -1616,9 +1616,9 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper
-        : global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person>
+        : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person>
     {
-        public GetMessages_PersonByEmail_Messages_Nodes_Sender_Person Map(PersonEntity entity)
+        public GetMessages_PersonByEmail_Messages_Nodes_Sender_Person Map(global::Foo.Bar.State.PersonEntity entity)
         {
             return new GetMessages_PersonByEmail_Messages_Nodes_Sender_Person(
                 entity.Name,
@@ -2017,15 +2017,15 @@ namespace Foo.Bar
         : global::StrawberryShake.IOperationResultDataFactory<SendMessageInput_1Result>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<MessageEntity, SendMessageInput_SendMessage_Message_Message> _sendMessageInput_SendMessage_Message_MessageFromMessageEntityMapper;
-        private readonly global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper;
-        private readonly global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.MessageEntity, SendMessageInput_SendMessage_Message_Message> _sendMessageInput_SendMessage_Message_MessageFromMessageEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper;
 
         public SendMessageInput_1ResultFactory(
             global::StrawberryShake.IEntityStore entityStore,
-            global::StrawberryShake.IEntityMapper<MessageEntity, SendMessageInput_SendMessage_Message_Message> sendMessageInput_SendMessage_Message_MessageFromMessageEntityMapper,
-            global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper,
-            global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper)
+            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.MessageEntity, SendMessageInput_SendMessage_Message_Message> sendMessageInput_SendMessage_Message_MessageFromMessageEntityMapper,
+            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper,
+            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper)
         {
             _entityStore = entityStore
                  ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -2072,7 +2072,7 @@ namespace Foo.Bar
                     global::System.StringComparison.Ordinal))
             {
                 return _sendMessageInput_SendMessage_Message_MessageFromMessageEntityMapper.Map(
-                    _entityStore.GetEntity<MessageEntity>(entityId)
+                    _entityStore.GetEntity<global::Foo.Bar.State.MessageEntity>(entityId)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
@@ -2086,7 +2086,7 @@ namespace Foo.Bar
                     global::System.StringComparison.Ordinal))
             {
                 return _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper.Map(
-                    _entityStore.GetEntity<PersonEntity>(entityId)
+                    _entityStore.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
@@ -2100,7 +2100,7 @@ namespace Foo.Bar
                     global::System.StringComparison.Ordinal))
             {
                 return _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper.Map(
-                    _entityStore.GetEntity<PersonEntity>(entityId)
+                    _entityStore.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
@@ -2343,16 +2343,16 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SendMessageInput_SendMessage_Message_MessageFromMessageEntityMapper
-        : global::StrawberryShake.IEntityMapper<MessageEntity, SendMessageInput_SendMessage_Message_Message>
+        : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.MessageEntity, SendMessageInput_SendMessage_Message_Message>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper;
-        private readonly global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper;
 
         public SendMessageInput_SendMessage_Message_MessageFromMessageEntityMapper(
             global::StrawberryShake.IEntityStore entityStore,
-            global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper,
-            global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper)
+            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper,
+            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper)
         {
             _entityStore = entityStore
                  ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -2362,7 +2362,7 @@ namespace Foo.Bar
                  ?? throw new global::System.ArgumentNullException(nameof(getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper));
         }
 
-        public SendMessageInput_SendMessage_Message_Message Map(MessageEntity entity)
+        public SendMessageInput_SendMessage_Message_Message Map(global::Foo.Bar.State.MessageEntity entity)
         {
             return new SendMessageInput_SendMessage_Message_Message(
                 entity.Id,
@@ -2381,7 +2381,7 @@ namespace Foo.Bar
                     global::System.StringComparison.Ordinal))
             {
                 return _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper.Map(
-                    _entityStore.GetEntity<PersonEntity>(entityId)
+                    _entityStore.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
@@ -2395,7 +2395,7 @@ namespace Foo.Bar
                     global::System.StringComparison.Ordinal))
             {
                 return _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper.Map(
-                    _entityStore.GetEntity<PersonEntity>(entityId)
+                    _entityStore.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
@@ -2554,9 +2554,9 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SendMessageInput_SendMessage_Message_Recipient_PersonFromPersonEntityMapper
-        : global::StrawberryShake.IEntityMapper<PersonEntity, SendMessageInput_SendMessage_Message_Recipient_Person>
+        : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, SendMessageInput_SendMessage_Message_Recipient_Person>
     {
-        public SendMessageInput_SendMessage_Message_Recipient_Person Map(PersonEntity entity)
+        public SendMessageInput_SendMessage_Message_Recipient_Person Map(global::Foo.Bar.State.PersonEntity entity)
         {
             return new SendMessageInput_SendMessage_Message_Recipient_Person(
                 entity.Name,
@@ -2687,9 +2687,9 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SendMessageInput_SendMessage_Message_Sender_PersonFromPersonEntityMapper
-        : global::StrawberryShake.IEntityMapper<PersonEntity, SendMessageInput_SendMessage_Message_Sender_Person>
+        : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, SendMessageInput_SendMessage_Message_Sender_Person>
     {
-        public SendMessageInput_SendMessage_Message_Sender_Person Map(PersonEntity entity)
+        public SendMessageInput_SendMessage_Message_Sender_Person Map(global::Foo.Bar.State.PersonEntity entity)
         {
             return new SendMessageInput_SendMessage_Message_Sender_Person(
                 entity.Name,
@@ -3000,15 +3000,15 @@ namespace Foo.Bar
         : global::StrawberryShake.IOperationResultDataFactory<SendMessageMutResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<MessageEntity, SendMessageMut_SendMessage_Message_Message> _sendMessageMut_SendMessage_Message_MessageFromMessageEntityMapper;
-        private readonly global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper;
-        private readonly global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.MessageEntity, SendMessageMut_SendMessage_Message_Message> _sendMessageMut_SendMessage_Message_MessageFromMessageEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper;
 
         public SendMessageMutResultFactory(
             global::StrawberryShake.IEntityStore entityStore,
-            global::StrawberryShake.IEntityMapper<MessageEntity, SendMessageMut_SendMessage_Message_Message> sendMessageMut_SendMessage_Message_MessageFromMessageEntityMapper,
-            global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper,
-            global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper)
+            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.MessageEntity, SendMessageMut_SendMessage_Message_Message> sendMessageMut_SendMessage_Message_MessageFromMessageEntityMapper,
+            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper,
+            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper)
         {
             _entityStore = entityStore
                  ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -3055,7 +3055,7 @@ namespace Foo.Bar
                     global::System.StringComparison.Ordinal))
             {
                 return _sendMessageMut_SendMessage_Message_MessageFromMessageEntityMapper.Map(
-                    _entityStore.GetEntity<MessageEntity>(entityId)
+                    _entityStore.GetEntity<global::Foo.Bar.State.MessageEntity>(entityId)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
@@ -3069,7 +3069,7 @@ namespace Foo.Bar
                     global::System.StringComparison.Ordinal))
             {
                 return _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper.Map(
-                    _entityStore.GetEntity<PersonEntity>(entityId)
+                    _entityStore.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
@@ -3083,7 +3083,7 @@ namespace Foo.Bar
                     global::System.StringComparison.Ordinal))
             {
                 return _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper.Map(
-                    _entityStore.GetEntity<PersonEntity>(entityId)
+                    _entityStore.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
@@ -3326,16 +3326,16 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SendMessageMut_SendMessage_Message_MessageFromMessageEntityMapper
-        : global::StrawberryShake.IEntityMapper<MessageEntity, SendMessageMut_SendMessage_Message_Message>
+        : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.MessageEntity, SendMessageMut_SendMessage_Message_Message>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper;
-        private readonly global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper;
 
         public SendMessageMut_SendMessage_Message_MessageFromMessageEntityMapper(
             global::StrawberryShake.IEntityStore entityStore,
-            global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper,
-            global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper)
+            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper,
+            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper)
         {
             _entityStore = entityStore
                  ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -3345,7 +3345,7 @@ namespace Foo.Bar
                  ?? throw new global::System.ArgumentNullException(nameof(getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper));
         }
 
-        public SendMessageMut_SendMessage_Message_Message Map(MessageEntity entity)
+        public SendMessageMut_SendMessage_Message_Message Map(global::Foo.Bar.State.MessageEntity entity)
         {
             return new SendMessageMut_SendMessage_Message_Message(
                 entity.Id,
@@ -3364,7 +3364,7 @@ namespace Foo.Bar
                     global::System.StringComparison.Ordinal))
             {
                 return _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper.Map(
-                    _entityStore.GetEntity<PersonEntity>(entityId)
+                    _entityStore.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
@@ -3378,7 +3378,7 @@ namespace Foo.Bar
                     global::System.StringComparison.Ordinal))
             {
                 return _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper.Map(
-                    _entityStore.GetEntity<PersonEntity>(entityId)
+                    _entityStore.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
@@ -3537,9 +3537,9 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SendMessageMut_SendMessage_Message_Recipient_PersonFromPersonEntityMapper
-        : global::StrawberryShake.IEntityMapper<PersonEntity, SendMessageMut_SendMessage_Message_Recipient_Person>
+        : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, SendMessageMut_SendMessage_Message_Recipient_Person>
     {
-        public SendMessageMut_SendMessage_Message_Recipient_Person Map(PersonEntity entity)
+        public SendMessageMut_SendMessage_Message_Recipient_Person Map(global::Foo.Bar.State.PersonEntity entity)
         {
             return new SendMessageMut_SendMessage_Message_Recipient_Person(
                 entity.Name,
@@ -3670,9 +3670,9 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SendMessageMut_SendMessage_Message_Sender_PersonFromPersonEntityMapper
-        : global::StrawberryShake.IEntityMapper<PersonEntity, SendMessageMut_SendMessage_Message_Sender_Person>
+        : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, SendMessageMut_SendMessage_Message_Sender_Person>
     {
-        public SendMessageMut_SendMessage_Message_Sender_Person Map(PersonEntity entity)
+        public SendMessageMut_SendMessage_Message_Sender_Person Map(global::Foo.Bar.State.PersonEntity entity)
         {
             return new SendMessageMut_SendMessage_Message_Sender_Person(
                 entity.Name,
@@ -3983,11 +3983,11 @@ namespace Foo.Bar
         : global::StrawberryShake.IOperationResultDataFactory<ReadMessagesResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<MessageEntity, ReadMessages_Message_Message> _readMessages_Message_MessageFromMessageEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.MessageEntity, ReadMessages_Message_Message> _readMessages_Message_MessageFromMessageEntityMapper;
 
         public ReadMessagesResultFactory(
             global::StrawberryShake.IEntityStore entityStore,
-            global::StrawberryShake.IEntityMapper<MessageEntity, ReadMessages_Message_Message> readMessages_Message_MessageFromMessageEntityMapper)
+            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.MessageEntity, ReadMessages_Message_Message> readMessages_Message_MessageFromMessageEntityMapper)
         {
             _entityStore = entityStore
                  ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -4013,7 +4013,7 @@ namespace Foo.Bar
                     global::System.StringComparison.Ordinal))
             {
                 return _readMessages_Message_MessageFromMessageEntityMapper.Map(
-                    _entityStore.GetEntity<MessageEntity>(entityId)
+                    _entityStore.GetEntity<global::Foo.Bar.State.MessageEntity>(entityId)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
@@ -4167,16 +4167,16 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ReadMessages_Message_MessageFromMessageEntityMapper
-        : global::StrawberryShake.IEntityMapper<MessageEntity, ReadMessages_Message_Message>
+        : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.MessageEntity, ReadMessages_Message_Message>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper;
-        private readonly global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper;
 
         public ReadMessages_Message_MessageFromMessageEntityMapper(
             global::StrawberryShake.IEntityStore entityStore,
-            global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper,
-            global::StrawberryShake.IEntityMapper<PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper)
+            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper,
+            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper)
         {
             _entityStore = entityStore
                  ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -4186,7 +4186,7 @@ namespace Foo.Bar
                  ?? throw new global::System.ArgumentNullException(nameof(getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper));
         }
 
-        public ReadMessages_Message_Message Map(MessageEntity entity)
+        public ReadMessages_Message_Message Map(global::Foo.Bar.State.MessageEntity entity)
         {
             return new ReadMessages_Message_Message(
                 entity.Id,
@@ -4205,7 +4205,7 @@ namespace Foo.Bar
                     global::System.StringComparison.Ordinal))
             {
                 return _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper.Map(
-                    _entityStore.GetEntity<PersonEntity>(entityId)
+                    _entityStore.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
@@ -4219,7 +4219,7 @@ namespace Foo.Bar
                     global::System.StringComparison.Ordinal))
             {
                 return _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper.Map(
-                    _entityStore.GetEntity<PersonEntity>(entityId)
+                    _entityStore.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
@@ -4378,9 +4378,9 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ReadMessages_Message_Recipient_PersonFromPersonEntityMapper
-        : global::StrawberryShake.IEntityMapper<PersonEntity, ReadMessages_Message_Recipient_Person>
+        : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, ReadMessages_Message_Recipient_Person>
     {
-        public ReadMessages_Message_Recipient_Person Map(PersonEntity entity)
+        public ReadMessages_Message_Recipient_Person Map(global::Foo.Bar.State.PersonEntity entity)
         {
             return new ReadMessages_Message_Recipient_Person(
                 entity.Name,
@@ -4511,9 +4511,9 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ReadMessages_Message_Sender_PersonFromPersonEntityMapper
-        : global::StrawberryShake.IEntityMapper<PersonEntity, ReadMessages_Message_Sender_Person>
+        : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, ReadMessages_Message_Sender_Person>
     {
-        public ReadMessages_Message_Sender_Person Map(PersonEntity entity)
+        public ReadMessages_Message_Sender_Person Map(global::Foo.Bar.State.PersonEntity entity)
         {
             return new ReadMessages_Message_Sender_Person(
                 entity.Name,
@@ -5996,7 +5996,7 @@ namespace Foo.Bar
                     "Person",
                     global::System.StringComparison.Ordinal))
             {
-                PersonEntity entity = _entityStore.GetOrCreate<PersonEntity>(entityId);
+                global::Foo.Bar.State.PersonEntity entity = _entityStore.GetOrCreate<global::Foo.Bar.State.PersonEntity>(entityId);
                 entity.Name = DeserializeNonNullableString(
                     global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
@@ -6175,7 +6175,7 @@ namespace Foo.Bar
                     "Person",
                     global::System.StringComparison.Ordinal))
             {
-                PersonEntity entity = _entityStore.GetOrCreate<PersonEntity>(entityId);
+                global::Foo.Bar.State.PersonEntity entity = _entityStore.GetOrCreate<global::Foo.Bar.State.PersonEntity>(entityId);
                 entity.Messages = DeserializeIGetMessages_PersonByEmail_Messages(
                     global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
@@ -6253,7 +6253,7 @@ namespace Foo.Bar
                     "Message",
                     global::System.StringComparison.Ordinal))
             {
-                MessageEntity entity = _entityStore.GetOrCreate<MessageEntity>(entityId);
+                global::Foo.Bar.State.MessageEntity entity = _entityStore.GetOrCreate<global::Foo.Bar.State.MessageEntity>(entityId);
                 entity.Id = DeserializeNonNullableString(
                     global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
@@ -6324,7 +6324,7 @@ namespace Foo.Bar
                     "Person",
                     global::System.StringComparison.Ordinal))
             {
-                PersonEntity entity = _entityStore.GetOrCreate<PersonEntity>(entityId);
+                global::Foo.Bar.State.PersonEntity entity = _entityStore.GetOrCreate<global::Foo.Bar.State.PersonEntity>(entityId);
                 entity.Name = DeserializeNonNullableString(
                     global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
@@ -6371,7 +6371,7 @@ namespace Foo.Bar
                     "Person",
                     global::System.StringComparison.Ordinal))
             {
-                PersonEntity entity = _entityStore.GetOrCreate<PersonEntity>(entityId);
+                global::Foo.Bar.State.PersonEntity entity = _entityStore.GetOrCreate<global::Foo.Bar.State.PersonEntity>(entityId);
                 entity.Name = DeserializeNonNullableString(
                     global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
@@ -6538,7 +6538,7 @@ namespace Foo.Bar
                     "Message",
                     global::System.StringComparison.Ordinal))
             {
-                MessageEntity entity = _entityStore.GetOrCreate<MessageEntity>(entityId);
+                global::Foo.Bar.State.MessageEntity entity = _entityStore.GetOrCreate<global::Foo.Bar.State.MessageEntity>(entityId);
                 entity.Id = DeserializeNonNullableString(
                     global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
@@ -6609,7 +6609,7 @@ namespace Foo.Bar
                     "Person",
                     global::System.StringComparison.Ordinal))
             {
-                PersonEntity entity = _entityStore.GetOrCreate<PersonEntity>(entityId);
+                global::Foo.Bar.State.PersonEntity entity = _entityStore.GetOrCreate<global::Foo.Bar.State.PersonEntity>(entityId);
                 entity.Name = DeserializeNonNullableString(
                     global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
@@ -6656,7 +6656,7 @@ namespace Foo.Bar
                     "Person",
                     global::System.StringComparison.Ordinal))
             {
-                PersonEntity entity = _entityStore.GetOrCreate<PersonEntity>(entityId);
+                global::Foo.Bar.State.PersonEntity entity = _entityStore.GetOrCreate<global::Foo.Bar.State.PersonEntity>(entityId);
                 entity.Name = DeserializeNonNullableString(
                     global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
@@ -6823,7 +6823,7 @@ namespace Foo.Bar
                     "Message",
                     global::System.StringComparison.Ordinal))
             {
-                MessageEntity entity = _entityStore.GetOrCreate<MessageEntity>(entityId);
+                global::Foo.Bar.State.MessageEntity entity = _entityStore.GetOrCreate<global::Foo.Bar.State.MessageEntity>(entityId);
                 entity.Id = DeserializeNonNullableString(
                     global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
@@ -6894,7 +6894,7 @@ namespace Foo.Bar
                     "Person",
                     global::System.StringComparison.Ordinal))
             {
-                PersonEntity entity = _entityStore.GetOrCreate<PersonEntity>(entityId);
+                global::Foo.Bar.State.PersonEntity entity = _entityStore.GetOrCreate<global::Foo.Bar.State.PersonEntity>(entityId);
                 entity.Name = DeserializeNonNullableString(
                     global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
@@ -6941,7 +6941,7 @@ namespace Foo.Bar
                     "Person",
                     global::System.StringComparison.Ordinal))
             {
-                PersonEntity entity = _entityStore.GetOrCreate<PersonEntity>(entityId);
+                global::Foo.Bar.State.PersonEntity entity = _entityStore.GetOrCreate<global::Foo.Bar.State.PersonEntity>(entityId);
                 entity.Name = DeserializeNonNullableString(
                     global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
@@ -7082,7 +7082,7 @@ namespace Foo.Bar
                     "Message",
                     global::System.StringComparison.Ordinal))
             {
-                MessageEntity entity = _entityStore.GetOrCreate<MessageEntity>(entityId);
+                global::Foo.Bar.State.MessageEntity entity = _entityStore.GetOrCreate<global::Foo.Bar.State.MessageEntity>(entityId);
                 entity.Id = DeserializeNonNullableString(
                     global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
@@ -7153,7 +7153,7 @@ namespace Foo.Bar
                     "Person",
                     global::System.StringComparison.Ordinal))
             {
-                PersonEntity entity = _entityStore.GetOrCreate<PersonEntity>(entityId);
+                global::Foo.Bar.State.PersonEntity entity = _entityStore.GetOrCreate<global::Foo.Bar.State.PersonEntity>(entityId);
                 entity.Name = DeserializeNonNullableString(
                     global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
@@ -7200,7 +7200,7 @@ namespace Foo.Bar
                     "Person",
                     global::System.StringComparison.Ordinal))
             {
-                PersonEntity entity = _entityStore.GetOrCreate<PersonEntity>(entityId);
+                global::Foo.Bar.State.PersonEntity entity = _entityStore.GetOrCreate<global::Foo.Bar.State.PersonEntity>(entityId);
                 entity.Name = DeserializeNonNullableString(
                     global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
@@ -7529,20 +7529,20 @@ namespace Microsoft.Extensions.DependencyInjection
                     return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("FooClient"));
                 });
 
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.PersonEntity, global::Foo.Bar.GetPeople_People_Nodes_Person>, global::Foo.Bar.GetPeople_People_Nodes_PersonFromPersonEntityMapper>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.PersonEntity, global::Foo.Bar.GetMessages_PersonByEmail_Person>, global::Foo.Bar.GetMessages_PersonByEmail_PersonFromPersonEntityMapper>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.MessageEntity, global::Foo.Bar.GetMessages_PersonByEmail_Messages_Nodes_Message>, global::Foo.Bar.GetMessages_PersonByEmail_Messages_Nodes_MessageFromMessageEntityMapper>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.PersonEntity, global::Foo.Bar.GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person>, global::Foo.Bar.GetMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.PersonEntity, global::Foo.Bar.GetMessages_PersonByEmail_Messages_Nodes_Sender_Person>, global::Foo.Bar.GetMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.MessageEntity, global::Foo.Bar.SendMessageInput_SendMessage_Message_Message>, global::Foo.Bar.SendMessageInput_SendMessage_Message_MessageFromMessageEntityMapper>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.PersonEntity, global::Foo.Bar.SendMessageInput_SendMessage_Message_Recipient_Person>, global::Foo.Bar.SendMessageInput_SendMessage_Message_Recipient_PersonFromPersonEntityMapper>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.PersonEntity, global::Foo.Bar.SendMessageInput_SendMessage_Message_Sender_Person>, global::Foo.Bar.SendMessageInput_SendMessage_Message_Sender_PersonFromPersonEntityMapper>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.MessageEntity, global::Foo.Bar.SendMessageMut_SendMessage_Message_Message>, global::Foo.Bar.SendMessageMut_SendMessage_Message_MessageFromMessageEntityMapper>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.PersonEntity, global::Foo.Bar.SendMessageMut_SendMessage_Message_Recipient_Person>, global::Foo.Bar.SendMessageMut_SendMessage_Message_Recipient_PersonFromPersonEntityMapper>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.PersonEntity, global::Foo.Bar.SendMessageMut_SendMessage_Message_Sender_Person>, global::Foo.Bar.SendMessageMut_SendMessage_Message_Sender_PersonFromPersonEntityMapper>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.MessageEntity, global::Foo.Bar.ReadMessages_Message_Message>, global::Foo.Bar.ReadMessages_Message_MessageFromMessageEntityMapper>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.PersonEntity, global::Foo.Bar.ReadMessages_Message_Recipient_Person>, global::Foo.Bar.ReadMessages_Message_Recipient_PersonFromPersonEntityMapper>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.PersonEntity, global::Foo.Bar.ReadMessages_Message_Sender_Person>, global::Foo.Bar.ReadMessages_Message_Sender_PersonFromPersonEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, global::Foo.Bar.GetPeople_People_Nodes_Person>, global::Foo.Bar.GetPeople_People_Nodes_PersonFromPersonEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, global::Foo.Bar.GetMessages_PersonByEmail_Person>, global::Foo.Bar.GetMessages_PersonByEmail_PersonFromPersonEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.MessageEntity, global::Foo.Bar.GetMessages_PersonByEmail_Messages_Nodes_Message>, global::Foo.Bar.GetMessages_PersonByEmail_Messages_Nodes_MessageFromMessageEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, global::Foo.Bar.GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person>, global::Foo.Bar.GetMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, global::Foo.Bar.GetMessages_PersonByEmail_Messages_Nodes_Sender_Person>, global::Foo.Bar.GetMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.MessageEntity, global::Foo.Bar.SendMessageInput_SendMessage_Message_Message>, global::Foo.Bar.SendMessageInput_SendMessage_Message_MessageFromMessageEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, global::Foo.Bar.SendMessageInput_SendMessage_Message_Recipient_Person>, global::Foo.Bar.SendMessageInput_SendMessage_Message_Recipient_PersonFromPersonEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, global::Foo.Bar.SendMessageInput_SendMessage_Message_Sender_Person>, global::Foo.Bar.SendMessageInput_SendMessage_Message_Sender_PersonFromPersonEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.MessageEntity, global::Foo.Bar.SendMessageMut_SendMessage_Message_Message>, global::Foo.Bar.SendMessageMut_SendMessage_Message_MessageFromMessageEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, global::Foo.Bar.SendMessageMut_SendMessage_Message_Recipient_Person>, global::Foo.Bar.SendMessageMut_SendMessage_Message_Recipient_PersonFromPersonEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, global::Foo.Bar.SendMessageMut_SendMessage_Message_Sender_Person>, global::Foo.Bar.SendMessageMut_SendMessage_Message_Sender_PersonFromPersonEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.MessageEntity, global::Foo.Bar.ReadMessages_Message_Message>, global::Foo.Bar.ReadMessages_Message_MessageFromMessageEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, global::Foo.Bar.ReadMessages_Message_Recipient_Person>, global::Foo.Bar.ReadMessages_Message_Recipient_PersonFromPersonEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, global::Foo.Bar.ReadMessages_Message_Sender_Person>, global::Foo.Bar.ReadMessages_Message_Sender_PersonFromPersonEntityMapper>(services);
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::Foo.Bar.DirectionSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.StringSerializer>(services);

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -47,9 +46,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         protected override void Generate(
             CodeWriter writer,
             DependencyInjectionDescriptor descriptor,
-            out string fileName)
+            out string fileName,
+            out string? path)
         {
             fileName = CreateServiceCollectionExtensions(descriptor.Name);
+            path = DependencyInjection;
 
             ClassBuilder factory = ClassBuilder
                 .New(fileName)
@@ -326,7 +327,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
                     var interfaceName =
                         TypeNames.IEntityMapper.WithGeneric(
-                            $"{rootNamespace}.{namedTypeDescriptor.ExtractTypeName()}",
+                            namedTypeDescriptor.ExtractType().ToString(),
                             $"{rootNamespace}.{typeDescriptor.RuntimeType.Name}"
                         );
 

@@ -15,7 +15,7 @@
 
 #nullable enable
 
-namespace Foo.Bar
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class PersonEntity
@@ -66,7 +66,7 @@ namespace Foo.Bar
 
 #nullable enable
 
-namespace Foo.Bar
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class DepartmentEntity
@@ -94,15 +94,15 @@ namespace Foo.Bar
         : global::StrawberryShake.IOperationResultDataFactory<PeopleSearchResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<PersonEntity, PeopleSearch_People_Items_Person> _peopleSearch_People_Items_PersonFromPersonEntityMapper;
-        private readonly global::StrawberryShake.IEntityMapper<DepartmentEntity, PeopleSearch_People_Items_Department_Department> _peopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper;
-        private readonly global::StrawberryShake.IEntityMapper<PersonEntity, PeopleSearch_People_Items_Manager_Person> _peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, PeopleSearch_People_Items_Person> _peopleSearch_People_Items_PersonFromPersonEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.DepartmentEntity, PeopleSearch_People_Items_Department_Department> _peopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, PeopleSearch_People_Items_Manager_Person> _peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper;
 
         public PeopleSearchResultFactory(
             global::StrawberryShake.IEntityStore entityStore,
-            global::StrawberryShake.IEntityMapper<PersonEntity, PeopleSearch_People_Items_Person> peopleSearch_People_Items_PersonFromPersonEntityMapper,
-            global::StrawberryShake.IEntityMapper<DepartmentEntity, PeopleSearch_People_Items_Department_Department> peopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper,
-            global::StrawberryShake.IEntityMapper<PersonEntity, PeopleSearch_People_Items_Manager_Person> peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper)
+            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, PeopleSearch_People_Items_Person> peopleSearch_People_Items_PersonFromPersonEntityMapper,
+            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.DepartmentEntity, PeopleSearch_People_Items_Department_Department> peopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper,
+            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, PeopleSearch_People_Items_Manager_Person> peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper)
         {
             _entityStore = entityStore
                  ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -193,7 +193,7 @@ namespace Foo.Bar
                     global::System.StringComparison.Ordinal))
             {
                 return _peopleSearch_People_Items_PersonFromPersonEntityMapper.Map(
-                    _entityStore.GetEntity<PersonEntity>(entityId)
+                    _entityStore.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
@@ -212,7 +212,7 @@ namespace Foo.Bar
                     global::System.StringComparison.Ordinal))
             {
                 return _peopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper.Map(
-                    _entityStore.GetEntity<DepartmentEntity>(entityId.Value)
+                    _entityStore.GetEntity<global::Foo.Bar.State.DepartmentEntity>(entityId.Value)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
@@ -231,7 +231,7 @@ namespace Foo.Bar
                     global::System.StringComparison.Ordinal))
             {
                 return _peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper.Map(
-                    _entityStore.GetEntity<PersonEntity>(entityId.Value)
+                    _entityStore.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId.Value)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
@@ -594,16 +594,16 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class PeopleSearch_People_Items_PersonFromPersonEntityMapper
-        : global::StrawberryShake.IEntityMapper<PersonEntity, PeopleSearch_People_Items_Person>
+        : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, PeopleSearch_People_Items_Person>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<DepartmentEntity, PeopleSearch_People_Items_Department_Department> _peopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper;
-        private readonly global::StrawberryShake.IEntityMapper<PersonEntity, PeopleSearch_People_Items_Manager_Person> _peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.DepartmentEntity, PeopleSearch_People_Items_Department_Department> _peopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, PeopleSearch_People_Items_Manager_Person> _peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper;
 
         public PeopleSearch_People_Items_PersonFromPersonEntityMapper(
             global::StrawberryShake.IEntityStore entityStore,
-            global::StrawberryShake.IEntityMapper<DepartmentEntity, PeopleSearch_People_Items_Department_Department> peopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper,
-            global::StrawberryShake.IEntityMapper<PersonEntity, PeopleSearch_People_Items_Manager_Person> peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper)
+            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.DepartmentEntity, PeopleSearch_People_Items_Department_Department> peopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper,
+            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, PeopleSearch_People_Items_Manager_Person> peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper)
         {
             _entityStore = entityStore
                  ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -613,7 +613,7 @@ namespace Foo.Bar
                  ?? throw new global::System.ArgumentNullException(nameof(peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper));
         }
 
-        public PeopleSearch_People_Items_Person Map(PersonEntity entity)
+        public PeopleSearch_People_Items_Person Map(global::Foo.Bar.State.PersonEntity entity)
         {
             return new PeopleSearch_People_Items_Person(
                 entity.Id,
@@ -639,7 +639,7 @@ namespace Foo.Bar
                     global::System.StringComparison.Ordinal))
             {
                 return _peopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper.Map(
-                    _entityStore.GetEntity<DepartmentEntity>(entityId.Value)
+                    _entityStore.GetEntity<global::Foo.Bar.State.DepartmentEntity>(entityId.Value)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
@@ -658,7 +658,7 @@ namespace Foo.Bar
                     global::System.StringComparison.Ordinal))
             {
                 return _peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper.Map(
-                    _entityStore.GetEntity<PersonEntity>(entityId.Value)
+                    _entityStore.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId.Value)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
@@ -843,9 +843,9 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class PeopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper
-        : global::StrawberryShake.IEntityMapper<DepartmentEntity, PeopleSearch_People_Items_Department_Department>
+        : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.DepartmentEntity, PeopleSearch_People_Items_Department_Department>
     {
-        public PeopleSearch_People_Items_Department_Department Map(DepartmentEntity entity)
+        public PeopleSearch_People_Items_Department_Department Map(global::Foo.Bar.State.DepartmentEntity entity)
         {
             return new PeopleSearch_People_Items_Department_Department(
                 entity.Id,
@@ -959,9 +959,9 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class PeopleSearch_People_Items_Manager_PersonFromPersonEntityMapper
-        : global::StrawberryShake.IEntityMapper<PersonEntity, PeopleSearch_People_Items_Manager_Person>
+        : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, PeopleSearch_People_Items_Manager_Person>
     {
-        public PeopleSearch_People_Items_Manager_Person Map(PersonEntity entity)
+        public PeopleSearch_People_Items_Manager_Person Map(global::Foo.Bar.State.PersonEntity entity)
         {
             return new PeopleSearch_People_Items_Manager_Person(
                 entity.Id,
@@ -1810,7 +1810,7 @@ namespace Foo.Bar
                     "Person",
                     global::System.StringComparison.Ordinal))
             {
-                PersonEntity entity = _entityStore.GetOrCreate<PersonEntity>(entityId);
+                global::Foo.Bar.State.PersonEntity entity = _entityStore.GetOrCreate<global::Foo.Bar.State.PersonEntity>(entityId);
                 entity.Id = DeserializeNonNullableString(
                     global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
@@ -1899,7 +1899,7 @@ namespace Foo.Bar
                     "Department",
                     global::System.StringComparison.Ordinal))
             {
-                DepartmentEntity entity = _entityStore.GetOrCreate<DepartmentEntity>(entityId);
+                global::Foo.Bar.State.DepartmentEntity entity = _entityStore.GetOrCreate<global::Foo.Bar.State.DepartmentEntity>(entityId);
                 entity.Id = DeserializeNonNullableString(
                     global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
@@ -1942,7 +1942,7 @@ namespace Foo.Bar
                     "Person",
                     global::System.StringComparison.Ordinal))
             {
-                PersonEntity entity = _entityStore.GetOrCreate<PersonEntity>(entityId);
+                global::Foo.Bar.State.PersonEntity entity = _entityStore.GetOrCreate<global::Foo.Bar.State.PersonEntity>(entityId);
                 entity.Id = DeserializeNonNullableString(
                     global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
@@ -2190,9 +2190,9 @@ namespace Microsoft.Extensions.DependencyInjection
                     return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("FooClient"));
                 });
 
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.PersonEntity, global::Foo.Bar.PeopleSearch_People_Items_Person>, global::Foo.Bar.PeopleSearch_People_Items_PersonFromPersonEntityMapper>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.DepartmentEntity, global::Foo.Bar.PeopleSearch_People_Items_Department_Department>, global::Foo.Bar.PeopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.PersonEntity, global::Foo.Bar.PeopleSearch_People_Items_Manager_Person>, global::Foo.Bar.PeopleSearch_People_Items_Manager_PersonFromPersonEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, global::Foo.Bar.PeopleSearch_People_Items_Person>, global::Foo.Bar.PeopleSearch_People_Items_PersonFromPersonEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.DepartmentEntity, global::Foo.Bar.PeopleSearch_People_Items_Department_Department>, global::Foo.Bar.PeopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, global::Foo.Bar.PeopleSearch_People_Items_Manager_Person>, global::Foo.Bar.PeopleSearch_People_Items_Manager_PersonFromPersonEntityMapper>(services);
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.StringSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.BooleanSerializer>(services);

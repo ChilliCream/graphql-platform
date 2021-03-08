@@ -18,13 +18,6 @@ namespace StrawberryShake.CodeGeneration.Mappers
         string Namespace { get; }
 
         /// <summary>
-        /// Gets the client state namespace.
-        /// This namespace is where we have all the store related APIs.
-        /// </summary>
-        /// <value></value>
-        string StateNamespace { get; }
-
-        /// <summary>
         /// Gets the client request strategy.
         /// </summary>
         RequestStrategy RequestStrategy { get; }

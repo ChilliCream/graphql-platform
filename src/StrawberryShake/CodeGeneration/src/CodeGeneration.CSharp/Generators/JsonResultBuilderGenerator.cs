@@ -24,7 +24,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         protected override void Generate(
             CodeWriter writer,
             ResultBuilderDescriptor resultBuilderDescriptor,
-            out string fileName)
+            out string fileName,
+            out string? path)
         {
             InterfaceTypeDescriptor resultTypeDescriptor =
                 resultBuilderDescriptor.ResultNamedType as InterfaceTypeDescriptor
@@ -32,6 +33,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     "A result type can only be generated for complex types");
 
             fileName = resultBuilderDescriptor.RuntimeType.Name;
+            path = State;
 
             ClassBuilder classBuilder = ClassBuilder
                 .New()
@@ -362,7 +364,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 } => parentRuntimeType.Name,
 
                 INamedTypeDescriptor { Kind: TypeKind.EntityType } d =>
-                    CreateEntityTypeName(d.RuntimeType.Name),
+                    CreateEntityType(
+                        d.RuntimeType.Name,
+                        d.RuntimeType.NamespaceWithoutGlobal)
+                        .Name,
 
                 INamedTypeDescriptor d =>
                     d.RuntimeType.Name,

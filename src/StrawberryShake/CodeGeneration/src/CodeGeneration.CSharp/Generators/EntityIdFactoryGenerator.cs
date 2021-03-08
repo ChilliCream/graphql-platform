@@ -15,9 +15,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         protected override void Generate(
             CodeWriter writer,
             EntityIdFactoryDescriptor descriptor,
-            out string fileName)
+            out string fileName,
+            out string? path)
         {
             fileName = descriptor.Name;
+            path = State;
 
             ClassBuilder classBuilder = ClassBuilder
                 .New()

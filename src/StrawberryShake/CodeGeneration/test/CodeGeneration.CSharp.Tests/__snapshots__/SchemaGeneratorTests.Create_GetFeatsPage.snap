@@ -15,7 +15,7 @@
 
 #nullable enable
 
-namespace Foo.Bar
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FeatEntity
@@ -37,7 +37,7 @@ namespace Foo.Bar
 
 #nullable enable
 
-namespace Foo.Bar
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ActionTypeEntity
@@ -60,13 +60,13 @@ namespace Foo.Bar
         : global::StrawberryShake.IOperationResultDataFactory<GetFeatsPageResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<FeatEntity, GetFeatsPage_Feats_Items_Feat> _getFeatsPage_Feats_Items_FeatFromFeatEntityMapper;
-        private readonly global::StrawberryShake.IEntityMapper<ActionTypeEntity, GetFeatsPage_Feats_Items_ActionType_ActionType> _getFeatsPage_Feats_Items_ActionType_ActionTypeFromActionTypeEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.FeatEntity, GetFeatsPage_Feats_Items_Feat> _getFeatsPage_Feats_Items_FeatFromFeatEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.ActionTypeEntity, GetFeatsPage_Feats_Items_ActionType_ActionType> _getFeatsPage_Feats_Items_ActionType_ActionTypeFromActionTypeEntityMapper;
 
         public GetFeatsPageResultFactory(
             global::StrawberryShake.IEntityStore entityStore,
-            global::StrawberryShake.IEntityMapper<FeatEntity, GetFeatsPage_Feats_Items_Feat> getFeatsPage_Feats_Items_FeatFromFeatEntityMapper,
-            global::StrawberryShake.IEntityMapper<ActionTypeEntity, GetFeatsPage_Feats_Items_ActionType_ActionType> getFeatsPage_Feats_Items_ActionType_ActionTypeFromActionTypeEntityMapper)
+            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.FeatEntity, GetFeatsPage_Feats_Items_Feat> getFeatsPage_Feats_Items_FeatFromFeatEntityMapper,
+            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.ActionTypeEntity, GetFeatsPage_Feats_Items_ActionType_ActionType> getFeatsPage_Feats_Items_ActionType_ActionTypeFromActionTypeEntityMapper)
         {
             _entityStore = entityStore
                  ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -138,7 +138,7 @@ namespace Foo.Bar
                     global::System.StringComparison.Ordinal))
             {
                 return _getFeatsPage_Feats_Items_FeatFromFeatEntityMapper.Map(
-                    _entityStore.GetEntity<FeatEntity>(entityId.Value)
+                    _entityStore.GetEntity<global::Foo.Bar.State.FeatEntity>(entityId.Value)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
@@ -152,7 +152,7 @@ namespace Foo.Bar
                     global::System.StringComparison.Ordinal))
             {
                 return _getFeatsPage_Feats_Items_ActionType_ActionTypeFromActionTypeEntityMapper.Map(
-                    _entityStore.GetEntity<ActionTypeEntity>(entityId)
+                    _entityStore.GetEntity<global::Foo.Bar.State.ActionTypeEntity>(entityId)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
@@ -394,14 +394,14 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetFeatsPage_Feats_Items_FeatFromFeatEntityMapper
-        : global::StrawberryShake.IEntityMapper<FeatEntity, GetFeatsPage_Feats_Items_Feat>
+        : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.FeatEntity, GetFeatsPage_Feats_Items_Feat>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<ActionTypeEntity, GetFeatsPage_Feats_Items_ActionType_ActionType> _getFeatsPage_Feats_Items_ActionType_ActionTypeFromActionTypeEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.ActionTypeEntity, GetFeatsPage_Feats_Items_ActionType_ActionType> _getFeatsPage_Feats_Items_ActionType_ActionTypeFromActionTypeEntityMapper;
 
         public GetFeatsPage_Feats_Items_FeatFromFeatEntityMapper(
             global::StrawberryShake.IEntityStore entityStore,
-            global::StrawberryShake.IEntityMapper<ActionTypeEntity, GetFeatsPage_Feats_Items_ActionType_ActionType> getFeatsPage_Feats_Items_ActionType_ActionTypeFromActionTypeEntityMapper)
+            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.ActionTypeEntity, GetFeatsPage_Feats_Items_ActionType_ActionType> getFeatsPage_Feats_Items_ActionType_ActionTypeFromActionTypeEntityMapper)
         {
             _entityStore = entityStore
                  ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -409,7 +409,7 @@ namespace Foo.Bar
                  ?? throw new global::System.ArgumentNullException(nameof(getFeatsPage_Feats_Items_ActionType_ActionTypeFromActionTypeEntityMapper));
         }
 
-        public GetFeatsPage_Feats_Items_Feat Map(FeatEntity entity)
+        public GetFeatsPage_Feats_Items_Feat Map(global::Foo.Bar.State.FeatEntity entity)
         {
             return new GetFeatsPage_Feats_Items_Feat(
                 entity.Name,
@@ -426,7 +426,7 @@ namespace Foo.Bar
                     global::System.StringComparison.Ordinal))
             {
                 return _getFeatsPage_Feats_Items_ActionType_ActionTypeFromActionTypeEntityMapper.Map(
-                    _entityStore.GetEntity<ActionTypeEntity>(entityId)
+                    _entityStore.GetEntity<global::Foo.Bar.State.ActionTypeEntity>(entityId)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
@@ -550,9 +550,9 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetFeatsPage_Feats_Items_ActionType_ActionTypeFromActionTypeEntityMapper
-        : global::StrawberryShake.IEntityMapper<ActionTypeEntity, GetFeatsPage_Feats_Items_ActionType_ActionType>
+        : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.ActionTypeEntity, GetFeatsPage_Feats_Items_ActionType_ActionType>
     {
-        public GetFeatsPage_Feats_Items_ActionType_ActionType Map(ActionTypeEntity entity)
+        public GetFeatsPage_Feats_Items_ActionType_ActionType Map(global::Foo.Bar.State.ActionTypeEntity entity)
         {
             return new GetFeatsPage_Feats_Items_ActionType_ActionType(entity.Name);
         }
@@ -1080,7 +1080,7 @@ namespace Foo.Bar
                     "Feat",
                     global::System.StringComparison.Ordinal))
             {
-                FeatEntity entity = _entityStore.GetOrCreate<FeatEntity>(entityId);
+                global::Foo.Bar.State.FeatEntity entity = _entityStore.GetOrCreate<global::Foo.Bar.State.FeatEntity>(entityId);
                 entity.Name = DeserializeNonNullableString(
                     global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
@@ -1152,7 +1152,7 @@ namespace Foo.Bar
                     "ActionType",
                     global::System.StringComparison.Ordinal))
             {
-                ActionTypeEntity entity = _entityStore.GetOrCreate<ActionTypeEntity>(entityId);
+                global::Foo.Bar.State.ActionTypeEntity entity = _entityStore.GetOrCreate<global::Foo.Bar.State.ActionTypeEntity>(entityId);
                 entity.Name = DeserializeNonNullableString(
                     global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
@@ -1341,8 +1341,8 @@ namespace Microsoft.Extensions.DependencyInjection
                     return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("FooClient"));
                 });
 
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.FeatEntity, global::Foo.Bar.GetFeatsPage_Feats_Items_Feat>, global::Foo.Bar.GetFeatsPage_Feats_Items_FeatFromFeatEntityMapper>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.ActionTypeEntity, global::Foo.Bar.GetFeatsPage_Feats_Items_ActionType_ActionType>, global::Foo.Bar.GetFeatsPage_Feats_Items_ActionType_ActionTypeFromActionTypeEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.FeatEntity, global::Foo.Bar.GetFeatsPage_Feats_Items_Feat>, global::Foo.Bar.GetFeatsPage_Feats_Items_FeatFromFeatEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.ActionTypeEntity, global::Foo.Bar.GetFeatsPage_Feats_Items_ActionType_ActionType>, global::Foo.Bar.GetFeatsPage_Feats_Items_ActionType_ActionTypeFromActionTypeEntityMapper>(services);
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.StringSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.BooleanSerializer>(services);

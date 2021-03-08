@@ -15,7 +15,7 @@
 
 #nullable enable
 
-namespace Foo.Bar
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SessionEntity
@@ -38,11 +38,11 @@ namespace Foo.Bar
         : global::StrawberryShake.IOperationResultDataFactory<GetSessionsResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<SessionEntity, GetSessions_Sessions_Nodes_Session> _getSessions_Sessions_Nodes_SessionFromSessionEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.SessionEntity, GetSessions_Sessions_Nodes_Session> _getSessions_Sessions_Nodes_SessionFromSessionEntityMapper;
 
         public GetSessionsResultFactory(
             global::StrawberryShake.IEntityStore entityStore,
-            global::StrawberryShake.IEntityMapper<SessionEntity, GetSessions_Sessions_Nodes_Session> getSessions_Sessions_Nodes_SessionFromSessionEntityMapper)
+            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.SessionEntity, GetSessions_Sessions_Nodes_Session> getSessions_Sessions_Nodes_SessionFromSessionEntityMapper)
         {
             _entityStore = entityStore
                  ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -107,7 +107,7 @@ namespace Foo.Bar
                     global::System.StringComparison.Ordinal))
             {
                 return _getSessions_Sessions_Nodes_SessionFromSessionEntityMapper.Map(
-                    _entityStore.GetEntity<SessionEntity>(entityId)
+                    _entityStore.GetEntity<global::Foo.Bar.State.SessionEntity>(entityId)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
@@ -352,9 +352,9 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetSessions_Sessions_Nodes_SessionFromSessionEntityMapper
-        : global::StrawberryShake.IEntityMapper<SessionEntity, GetSessions_Sessions_Nodes_Session>
+        : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.SessionEntity, GetSessions_Sessions_Nodes_Session>
     {
-        public GetSessions_Sessions_Nodes_Session Map(SessionEntity entity)
+        public GetSessions_Sessions_Nodes_Session Map(global::Foo.Bar.State.SessionEntity entity)
         {
             return new GetSessions_Sessions_Nodes_Session(entity.Title);
         }
@@ -794,7 +794,7 @@ namespace Foo.Bar
                     "Session",
                     global::System.StringComparison.Ordinal))
             {
-                SessionEntity entity = _entityStore.GetOrCreate<SessionEntity>(entityId);
+                global::Foo.Bar.State.SessionEntity entity = _entityStore.GetOrCreate<global::Foo.Bar.State.SessionEntity>(entityId);
                 entity.Title = DeserializeNonNullableString(
                     global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
@@ -985,7 +985,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("FooClient"));
                 });
 
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.SessionEntity, global::Foo.Bar.GetSessions_Sessions_Nodes_Session>, global::Foo.Bar.GetSessions_Sessions_Nodes_SessionFromSessionEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.SessionEntity, global::Foo.Bar.GetSessions_Sessions_Nodes_Session>, global::Foo.Bar.GetSessions_Sessions_Nodes_SessionFromSessionEntityMapper>(services);
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.StringSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.BooleanSerializer>(services);

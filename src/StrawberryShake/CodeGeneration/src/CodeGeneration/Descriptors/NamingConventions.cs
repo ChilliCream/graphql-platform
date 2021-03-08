@@ -18,8 +18,16 @@ namespace StrawberryShake.CodeGeneration.Descriptors
         public static string CreateQueryServiceName(string typeName) =>
             typeName + "Query";
 
-        public static string CreateEntityTypeName(string typeName) =>
-            typeName + "Entity";
+        public static RuntimeTypeInfo CreateEntityType(
+            string graphqlTypeName,
+            string @namespace) =>
+            new(CreateEntityTypeName(graphqlTypeName), CreateStateNamespace(@namespace));
+
+        private static string CreateEntityTypeName(string graphqlTypeName) =>
+            graphqlTypeName + "Entity";
+
+        public static string CreateStateNamespace(string @namespace) =>
+            @namespace + ".State";
 
         public static string CreateDocumentTypeName(string operationTypeName) =>
             operationTypeName + "Document";
@@ -31,8 +39,8 @@ namespace StrawberryShake.CodeGeneration.Descriptors
 
         public static NameString CreateEntityMapperName(
             string typeName,
-            string graphqlTypename) =>
-            typeName + "From" + CreateEntityTypeName(graphqlTypename) + "Mapper";
+            string graphqlTypeName) =>
+            typeName + "From" + CreateEntityTypeName(graphqlTypeName) + "Mapper";
 
         public static string CreateResultFactoryName(string typeName) =>
             typeName + "Factory";

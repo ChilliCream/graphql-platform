@@ -18,9 +18,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         protected override void Generate(
             CodeWriter writer,
             ObjectTypeDescriptor descriptor,
-            out string fileName)
+            out string fileName,
+            out string? path)
         {
             fileName = descriptor.RuntimeType.Name;
+            path = null;
+
             ClassBuilder classBuilder = ClassBuilder
                 .New()
                 .SetComment(descriptor.Description)

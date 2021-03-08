@@ -15,7 +15,7 @@
 
 #nullable enable
 
-namespace Foo.Bar
+namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ExpenseEntity
@@ -50,11 +50,11 @@ namespace Foo.Bar
         : global::StrawberryShake.IOperationResultDataFactory<AllExpensesResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<ExpenseEntity, AllExpenses_Expense_Expense> _allExpenses_Expense_ExpenseFromExpenseEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.ExpenseEntity, AllExpenses_Expense_Expense> _allExpenses_Expense_ExpenseFromExpenseEntityMapper;
 
         public AllExpensesResultFactory(
             global::StrawberryShake.IEntityStore entityStore,
-            global::StrawberryShake.IEntityMapper<ExpenseEntity, AllExpenses_Expense_Expense> allExpenses_Expense_ExpenseFromExpenseEntityMapper)
+            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.ExpenseEntity, AllExpenses_Expense_Expense> allExpenses_Expense_ExpenseFromExpenseEntityMapper)
         {
             _entityStore = entityStore
                  ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -102,7 +102,7 @@ namespace Foo.Bar
                     global::System.StringComparison.Ordinal))
             {
                 return _allExpenses_Expense_ExpenseFromExpenseEntityMapper.Map(
-                    _entityStore.GetEntity<ExpenseEntity>(entityId.Value)
+                    _entityStore.GetEntity<global::Foo.Bar.State.ExpenseEntity>(entityId.Value)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
@@ -258,9 +258,9 @@ namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class AllExpenses_Expense_ExpenseFromExpenseEntityMapper
-        : global::StrawberryShake.IEntityMapper<ExpenseEntity, AllExpenses_Expense_Expense>
+        : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.ExpenseEntity, AllExpenses_Expense_Expense>
     {
-        public AllExpenses_Expense_Expense Map(ExpenseEntity entity)
+        public AllExpenses_Expense_Expense Map(global::Foo.Bar.State.ExpenseEntity entity)
         {
             return new AllExpenses_Expense_Expense(
                 entity.Id,
@@ -1054,7 +1054,7 @@ namespace Foo.Bar
                     "Expense",
                     global::System.StringComparison.Ordinal))
             {
-                ExpenseEntity entity = _entityStore.GetOrCreate<ExpenseEntity>(entityId);
+                global::Foo.Bar.State.ExpenseEntity entity = _entityStore.GetOrCreate<global::Foo.Bar.State.ExpenseEntity>(entityId);
                 entity.Id = DeserializeNonNullableGuid(
                     global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
@@ -1354,7 +1354,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("FooClient"));
                 });
 
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.ExpenseEntity, global::Foo.Bar.AllExpenses_Expense_Expense>, global::Foo.Bar.AllExpenses_Expense_ExpenseFromExpenseEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.ExpenseEntity, global::Foo.Bar.AllExpenses_Expense_Expense>, global::Foo.Bar.AllExpenses_Expense_ExpenseFromExpenseEntityMapper>(services);
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::Foo.Bar.ExpenseCategorySerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::Foo.Bar.PaymentMethodSerializer>(services);

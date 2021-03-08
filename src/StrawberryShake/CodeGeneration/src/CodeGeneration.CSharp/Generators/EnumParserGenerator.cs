@@ -10,12 +10,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         protected override void Generate(
             CodeWriter writer,
             EnumTypeDescriptor descriptor,
-            out string fileName)
+            out string fileName,
+            out string? path)
         {
             const string serializedValue = nameof(serializedValue);
             const string runtimeValue = nameof(runtimeValue);
 
             fileName = CreateEnumParserName(descriptor.Name);
+            path = Serialization;
 
             ClassBuilder classBuilder = ClassBuilder
                 .New(fileName)

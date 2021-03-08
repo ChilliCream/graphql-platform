@@ -21,20 +21,25 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         protected override void Generate(
             CodeWriter writer,
             ITypeDescriptor typeDescriptor,
-            out string fileName)
+            out string fileName,
+            out string? path)
         {
             // Setup class
             ComplexTypeDescriptor descriptor =
                 typeDescriptor as ComplexTypeDescriptor ??
                 throw new InvalidOperationException(
                     "A result entity mapper can only be generated for complex types");
+
             fileName = descriptor.ExtractMapperName();
+            path = State;
 
             ClassBuilder classBuilder = ClassBuilder
                 .New()
                 .AddImplements(
                     TypeNames.IEntityMapper
-                        .WithGeneric(descriptor.ExtractTypeName(), descriptor.RuntimeType.Name))
+                        .WithGeneric(
+                            descriptor.ExtractType().ToString(),
+                            descriptor.RuntimeType.Name))
                 .SetName(fileName);
 
             ConstructorBuilder constructorBuilder = ConstructorBuilder
@@ -61,7 +66,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         .New()
                         .SetType(
                             descriptor.Kind == TypeKind.EntityType
-                                ? CreateEntityTypeName(descriptor.Name)
+                                ? CreateEntityType(
+                                    descriptor.Name,
+                                    descriptor.RuntimeType.NamespaceWithoutGlobal)
+                                    .ToString()
                                 : descriptor.Name)
                         .SetName(_entity));
 

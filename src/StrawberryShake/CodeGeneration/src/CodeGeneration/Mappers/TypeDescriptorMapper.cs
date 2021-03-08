@@ -200,7 +200,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 parentRuntimeType =
                     new RuntimeTypeInfo(
                         NamingConventions.CreateDataTypeName(parentRuntimeTypeName),
-                        context.StateNamespace);
+                        CreateStateNamespace(context.Namespace));
             }
         }
 
