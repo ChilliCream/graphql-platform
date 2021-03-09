@@ -189,5 +189,81 @@ namespace HotChocolate.Types.Scalars
             // assert
             ExpectSerializeToThrowSerializationException<HexColorType>(value);
         }
+
+        [Theory]
+        [InlineData(typeof(StringValueNode), "#000")]
+        [InlineData(typeof(StringValueNode), "#FFFFFF")]
+        [InlineData(typeof(StringValueNode), "#A52A2A")]
+        [InlineData(typeof(StringValueNode), "#800080")]
+        [InlineData(typeof(StringValueNode), "#09C")]
+        [InlineData(typeof(StringValueNode), "#0099CC")]
+        [InlineData(typeof(StringValueNode), "#FFA500")]
+        [InlineData(typeof(StringValueNode), "#CcC")]
+        [InlineData(typeof(NullValueNode), null)]
+        public void ParseValue_GivenObject_MatchExpectedType(Type type, object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseValueToMatchType<HexColorType>(value, type);
+        }
+
+        [Theory]
+        [InlineData(TestEnum.Foo)]
+        [InlineData(1d)]
+        [InlineData(1)]
+        [InlineData(true)]
+        [InlineData("090")]
+        [InlineData("email@-example.com")]
+        [InlineData("FFFFFF")]
+        [InlineData("FF A5 00")]
+        [InlineData("#009CC")]
+        [InlineData("80 00 80")]
+        [InlineData("0000")]
+        public void ParseValue_GivenObject_ThrowSerializationException(object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseValueToThrowSerializationException<HexColorType>(value);
+        }
+
+        [Theory]
+        [InlineData(typeof(StringValueNode), "#000")]
+        [InlineData(typeof(StringValueNode), "#FFFFFF")]
+        [InlineData(typeof(StringValueNode), "#A52A2A")]
+        [InlineData(typeof(StringValueNode), "#800080")]
+        [InlineData(typeof(StringValueNode), "#09C")]
+        [InlineData(typeof(StringValueNode), "#0099CC")]
+        [InlineData(typeof(StringValueNode), "#FFA500")]
+        [InlineData(typeof(StringValueNode), "#CcC")]
+        [InlineData(typeof(NullValueNode), null)]
+        public void ParseResult_GivenObject_MatchExpectedType(Type type, object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseResultToMatchType<HexColorType>(value, type);
+        }
+
+        [Theory]
+        [InlineData(TestEnum.Foo)]
+        [InlineData(1d)]
+        [InlineData(1)]
+        [InlineData(true)]
+        [InlineData("090")]
+        [InlineData("email@-example.com")]
+        [InlineData("FFFFFF")]
+        [InlineData("FF A5 00")]
+        [InlineData("#009CC")]
+        [InlineData("80 00 80")]
+        [InlineData("0000")]
+        public void ParseResult_GivenObject_ThrowSerializationException(object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseResultToThrowSerializationException<HexColorType>(value);
+        }
     }
 }
