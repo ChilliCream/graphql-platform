@@ -17,18 +17,18 @@ namespace HotChocolate.Data.Neo4J.Filtering
 
         protected override int Operation => DefaultFilterOperations.EndsWith;
 
-        public override Neo4JFilterDefinition HandleOperation(
+        public override Condition HandleOperation(
             Neo4JFilterVisitorContext context,
             IFilterOperationField field,
             IValueNode value,
             object? parsedValue)
         {
             if (parsedValue is not string str) throw new InvalidOperationException();
-            var doc = new Neo4JFilterOperation(
-                Operator.EndsWith.GetRepresentation(),
-                str);
 
-            return new Neo4JFilterOperation(context.GetNeo4JFilterScope().GetPath(), doc);
+            Condition? expression = context
+                .GetNode()
+                .Property(context.GetNeo4JFilterScope().GetPath()).EndsWith(Cypher.LiteralOf(str));
+            return expression;
         }
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using HotChocolate.Data.Neo4J.Execution;
+using HotChocolate.Data.Neo4J.Language;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -27,8 +28,8 @@ namespace HotChocolate.Data.Neo4J.Sorting
         /// <summary>
         /// The visitor thar will traverse a incoming query and execute the sorting handlers
         /// </summary>
-        protected virtual SortVisitor<Neo4JSortVisitorContext, Neo4JSortDefinition>
-            Visitor { get; } = new SortVisitor<Neo4JSortVisitorContext, Neo4JSortDefinition>();
+        protected virtual SortVisitor<Neo4JSortVisitorContext, SortItem>
+            Visitor { get; } = new ();
 
         /// <inheritdoc />
         public override FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName)
@@ -51,7 +52,7 @@ namespace HotChocolate.Data.Neo4J.Sorting
 
                     Visitor.Visit(filter, visitorContext);
 
-                    if (!visitorContext.TryCreateQuery(out Neo4JSortDefinition order) ||
+                    if (!visitorContext.TryCreateQuery(out OrderBy order) ||
                         visitorContext.Errors.Count > 0)
                     {
                         context.Result = Array.Empty<TEntityType>();
@@ -64,7 +65,7 @@ namespace HotChocolate.Data.Neo4J.Sorting
                     {
                         context.LocalContextData =
                             context.LocalContextData.SetItem(
-                                nameof(Neo4JSortDefinition),
+                                nameof(OrderBy),
                                 order);
 
                         await next(context).ConfigureAwait(false);

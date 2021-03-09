@@ -2,18 +2,19 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Data.Filters;
+using HotChocolate.Data.Neo4J.Language;
 
 namespace HotChocolate.Data.Neo4J.Filtering
 {
     public class Neo4JFilterCombinator
-        : FilterOperationCombinator<Neo4JFilterVisitorContext, Neo4JFilterDefinition>
+        : FilterOperationCombinator<Neo4JFilterVisitorContext, Condition>
     {
         /// <inheritdoc />
         public override bool TryCombineOperations(
             Neo4JFilterVisitorContext context,
-            Queue<Neo4JFilterDefinition> operations,
+            Queue<Condition> operations,
             FilterCombinator combinator,
-            [NotNullWhen(true)] out Neo4JFilterDefinition combined)
+            [NotNullWhen(true)] out Condition combined)
         {
             if (operations.Count < 1)
             {
@@ -30,28 +31,40 @@ namespace HotChocolate.Data.Neo4J.Filtering
             return true;
         }
 
-        private static Neo4JFilterDefinition CombineWithAnd(
+        private static CompoundCondition CombineWithAnd(
             Neo4JFilterVisitorContext context,
-            Queue<Neo4JFilterDefinition> operations)
+            Queue<Condition> operations)
         {
             if (operations.Count < 0)
             {
                 throw new InvalidOperationException();
             }
 
-            return new Neo4JAndFilterDefinition(operations.ToArray());
+            var conditions = new CompoundCondition(Operator.And);
+            foreach (Condition condition in operations)
+            {
+                conditions.And(condition);
+            }
+
+            return conditions;
         }
 
-        private static Neo4JFilterDefinition CombineWithOr(
+        private static Condition CombineWithOr(
             Neo4JFilterVisitorContext context,
-            Queue<Neo4JFilterDefinition> operations)
+            Queue<Condition> operations)
         {
             if (operations.Count < 0)
             {
                 throw new InvalidOperationException();
             }
 
-            return new Neo4JOrFilterDefinition(operations.ToArray());
+            var conditions = new CompoundCondition(Operator.Or);
+            foreach (Condition condition in operations)
+            {
+                conditions.Or(condition);
+            }
+
+            return conditions;
         }
     }
 }

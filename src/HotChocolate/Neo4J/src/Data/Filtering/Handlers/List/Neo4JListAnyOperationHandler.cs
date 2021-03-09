@@ -1,6 +1,8 @@
+#nullable enable
 using System;
 using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
+using HotChocolate.Data.Neo4J.Language;
 using HotChocolate.Language;
 
 namespace HotChocolate.Data.Neo4J.Filtering
@@ -24,34 +26,32 @@ namespace HotChocolate.Data.Neo4J.Filtering
             IFilterFieldDefinition fieldDefinition)
         {
             return context.Type is IListFilterInputType &&
-                fieldDefinition is FilterOperationFieldDefinition operationField &&
-                operationField.Id is DefaultFilterOperations.Any;
+                   fieldDefinition is FilterOperationFieldDefinition {Id: DefaultFilterOperations.Any};
         }
 
         /// <inheritdoc />
-        public override Neo4JFilterDefinition HandleOperation(
+        public override Condition HandleOperation(
             Neo4JFilterVisitorContext context,
             IFilterOperationField field,
             IValueNode value,
             object? parsedValue)
         {
-            if (context.RuntimeTypes.Count <= 0 || context.RuntimeTypes.Peek().TypeArguments is not {Count: > 0} ||
-                parsedValue is not bool parsedBool ||
-                context.Scopes.Peek() is not Neo4JFilterScope scope) throw new InvalidOperationException();
-            var path = scope.GetPath();
-
-            if (parsedBool)
+            if (context.RuntimeTypes.Count > 0 &&
+                context.RuntimeTypes.Peek().TypeArguments is { Count: > 0 } &&
+                parsedValue is bool parsedBool &&
+                context.Scopes.Peek() is Neo4JFilterScope scope)
             {
-                // TODO: Implement ListAnyOperationHandler
-                return new Neo4JFilterOperation(
-                    path,
-                    null);
+                var path = scope.GetPath();
+
+                if (parsedBool)
+                {
+                    return new Neo4JFilterDefinition();
+                }
+
+                return new Neo4JFilterDefinition();
             }
 
-            // TODO: Implement ListAnyOperationHandler
-            return new Neo4JFilterOperation(
-                path,
-                null);
+            throw new InvalidOperationException();
         }
     }
 }

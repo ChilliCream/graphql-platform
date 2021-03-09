@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using HotChocolate.Data.Neo4J.Language;
 
 namespace HotChocolate.Data.Neo4J.Sorting
 {
@@ -10,7 +11,7 @@ namespace HotChocolate.Data.Neo4J.Sorting
 
         public static bool TryCreateQuery(
             this Neo4JSortVisitorContext context,
-            [NotNullWhen(true)] out Neo4JSortDefinition? query)
+            [NotNullWhen(true)] out OrderBy? query)
         {
             query = null;
 
@@ -19,7 +20,7 @@ namespace HotChocolate.Data.Neo4J.Sorting
                 return false;
             }
 
-            query = new Neo4JCombinedSortDefinition(context.Operations.ToArray());
+            query = new OrderBy(context.Operations.ToList());
             return true;
         }
     }

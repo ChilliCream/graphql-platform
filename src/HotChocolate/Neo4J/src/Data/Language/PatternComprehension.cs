@@ -21,6 +21,13 @@ namespace HotChocolate.Data.Neo4J.Language
             _expression = expression;
         }
 
+        public PatternComprehension(IPatternElement patternElement, Expression? expression)
+        {
+            _patternElement = patternElement;
+            _where = null;
+            _expression = expression;
+        }
+
         public override void Visit(CypherVisitor cypherVisitor)
         {
             cypherVisitor.Enter(this);

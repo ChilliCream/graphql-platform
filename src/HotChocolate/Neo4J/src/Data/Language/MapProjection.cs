@@ -15,7 +15,7 @@ namespace HotChocolate.Data.Neo4J.Language
         private readonly SymbolicName _name;
         private readonly MapExpression _expression;
 
-        private MapProjection(SymbolicName name, MapExpression expression)
+        public MapProjection(SymbolicName name, MapExpression expression)
         {
             _name = name;
             _expression = expression;

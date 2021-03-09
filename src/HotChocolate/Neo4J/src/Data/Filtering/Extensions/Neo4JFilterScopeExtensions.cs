@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using HotChocolate.Data.Neo4J.Language;
 
 namespace HotChocolate.Data.Neo4J.Filtering
 {
@@ -10,7 +11,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
 
         public static bool TryCreateQuery(
             this Neo4JFilterScope scope,
-            [NotNullWhen(true)] out Neo4JFilterDefinition query)
+            [NotNullWhen(true)] out CompoundCondition query)
         {
             query = null;
 
@@ -19,7 +20,13 @@ namespace HotChocolate.Data.Neo4J.Filtering
                 return false;
             }
 
-            query = new Neo4JAndFilterDefinition(scope.Level.Peek().ToArray());
+            var conditions = new CompoundCondition(Operator.And);
+            foreach (Condition condition in scope.Level.Peek().ToArray())
+            {
+                conditions.And(condition);
+            }
+
+            query = conditions;
 
             return true;
         }

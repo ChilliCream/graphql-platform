@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Data.Filters;
+using HotChocolate.Data.Neo4J.Language;
 using HotChocolate.Language;
 
 #nullable enable
@@ -13,14 +14,14 @@ namespace HotChocolate.Data.Neo4J.Filtering
     /// This base is optimized to handle filter operations for Neo4j
     /// </summary>
     public abstract class Neo4JFilterOperationHandlerBase
-        : FilterOperationHandler<Neo4JFilterVisitorContext, Neo4JFilterDefinition>
+        : FilterOperationHandler<Neo4JFilterVisitorContext, Condition>
     {
         /// <inheritdoc/>
         public override bool TryHandleOperation(
             Neo4JFilterVisitorContext context,
             IFilterOperationField field,
             ObjectFieldNode node,
-            [NotNullWhen(true)] out Neo4JFilterDefinition result)
+            [NotNullWhen(true)] out Condition result)
         {
             IValueNode value = node.Value;
             object? parsedValue = field.Type.ParseLiteral(value);
@@ -60,7 +61,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
         /// <param name="value">The value node of this field</param>
         /// <param name="parsedValue">The value of the value node</param>
         /// <returns>If <c>true</c> is returned the action is used for further processing</returns>
-        public abstract Neo4JFilterDefinition HandleOperation(
+        public abstract Condition HandleOperation(
             Neo4JFilterVisitorContext context,
             IFilterOperationField field,
             IValueNode value,

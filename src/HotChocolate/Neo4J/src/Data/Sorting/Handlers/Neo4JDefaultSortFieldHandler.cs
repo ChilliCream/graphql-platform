@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
+using HotChocolate.Data.Neo4J.Language;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
@@ -9,7 +10,7 @@ using HotChocolate.Language.Visitors;
 namespace HotChocolate.Data.Neo4J.Sorting
 {
     public class Neo4JDefaultSortFieldHandler
-        : SortFieldHandler<Neo4JSortVisitorContext, Neo4JSortDefinition>
+        : SortFieldHandler<Neo4JSortVisitorContext, SortItem>
     {
         /// <inheritdoc />
         public override bool CanHandle(

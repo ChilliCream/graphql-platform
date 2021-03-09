@@ -2,10 +2,7 @@ using System;
 using System.Collections;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Data.Neo4J.Filtering;
 using HotChocolate.Data.Neo4J.Language;
-using HotChocolate.Data.Neo4J.Projections;
-using HotChocolate.Data.Neo4J.Sorting;
 using Neo4j.Driver;
 using ServiceStack;
 
@@ -21,17 +18,17 @@ namespace HotChocolate.Data.Neo4J.Execution
         /// <summary>
         /// The filter definition that was set by <see cref="WithFiltering"/>
         /// </summary>
-        private Neo4JFilterDefinition? Filters { get; set; }
+        private CompoundCondition? Filters { get; set; }
 
         /// <summary>
         /// The sort definition that was set by <see cref="WithSorting"/>
         /// </summary>
-        private Neo4JSortDefinition? Sorting { get; set; }
+        private OrderBy? Sorting { get; set; }
 
         /// <summary>
         /// The projection definition that was set by <see cref="WithProjection"/>
         /// </summary>
-        private Neo4JProjectionDefinition? Projection { get; set; }
+        private object[]? Projection { get; set; }
 
         private object Paging { get; set; }
 
@@ -63,19 +60,19 @@ namespace HotChocolate.Data.Neo4J.Execution
             return Pipeline().Build() ?? "";
         }
 
-        public INeo4JExecutable WithFiltering(Neo4JFilterDefinition filters)
+        public INeo4JExecutable WithFiltering(CompoundCondition filters)
         {
             Filters = filters;
             return this;
         }
 
-        public INeo4JExecutable WithSorting(Neo4JSortDefinition sorting)
+        public INeo4JExecutable WithSorting(OrderBy sorting)
         {
             Sorting = sorting;
             return this;
         }
 
-        public INeo4JExecutable WithProjection(Neo4JProjectionDefinition projection)
+        public INeo4JExecutable WithProjection(object[] projection)
         {
             Projection = projection;
             return this;
@@ -83,20 +80,18 @@ namespace HotChocolate.Data.Neo4J.Execution
 
         public StatementBuilder Pipeline()
         {
-            Node node = Cypher
-                .Node(typeof(T).Name)
-                .Named(typeof(T).Name.ToCamelCase());
+            Node node = Cypher.NamedNode(typeof(T).Name);
 
-            StatementBuilder statement = Cypher.Match(node);
+            StatementBuilder statement = Cypher.Match(node).Return(node);
 
             if (Filters is not null)
             {
-                //statement.Where(Filters.Condition);
+                statement.Match(new Where(Filters), node);
             }
 
             if (Projection is not null)
             {
-                //statement.Return(Projection.Expressions);
+                statement.Return(node.Project(Projection));
             }
 
             if (Sorting is not null)
@@ -108,8 +103,6 @@ namespace HotChocolate.Data.Neo4J.Execution
             //     MATCH (business:Business)
             //     RETURN business { .name, .city, .state, reviews: [(business)<-[:REVIEWS]-(reviews) | reviews {.rating, .text}] }
             // ").ConfigureAwait(false);
-
-            statement.Return(node);
 
             return statement;
         }

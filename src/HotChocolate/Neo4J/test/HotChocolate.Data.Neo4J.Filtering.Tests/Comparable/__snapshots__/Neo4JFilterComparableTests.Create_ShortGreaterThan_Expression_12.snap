@@ -2,10 +2,10 @@
   "data": {
     "root": [
       {
-        "bar": true
+        "barShort": 14
       },
       {
-        "bar": false
+        "barShort": 13
       }
     ]
   }

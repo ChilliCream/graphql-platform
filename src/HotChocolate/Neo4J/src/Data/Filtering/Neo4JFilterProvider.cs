@@ -1,7 +1,9 @@
+#nullable enable
 using System;
 using System.Threading.Tasks;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Neo4J.Execution;
+using HotChocolate.Data.Neo4J.Language;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -26,7 +28,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
         /// <summary>
         /// The visitor that is used to traverse the incoming selection set an execute handlers
         /// </summary>
-        protected virtual FilterVisitor<Neo4JFilterVisitorContext, Neo4JFilterDefinition>
+        protected virtual FilterVisitor<Neo4JFilterVisitorContext, Condition>
             Visitor { get; } = new(new Neo4JFilterCombinator());
 
         /// <inheritdoc />
@@ -48,7 +50,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
 
                     Visitor.Visit(filter, visitorContext);
 
-                    if (!visitorContext.TryCreateQuery(out Neo4JFilterDefinition whereQuery) ||
+                    if (!visitorContext.TryCreateQuery(out CompoundCondition whereQuery) ||
                         visitorContext.Errors.Count > 0)
                     {
                         context.Result = Array.Empty<TEntityType>();
@@ -61,7 +63,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
                     {
                         context.LocalContextData =
                             context.LocalContextData.SetItem(
-                                nameof(Neo4JFilterDefinition),
+                                "Filter",
                                 whereQuery);
 
                         await next(context).ConfigureAwait(false);

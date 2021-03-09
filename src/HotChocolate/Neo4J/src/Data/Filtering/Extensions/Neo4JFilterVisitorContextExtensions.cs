@@ -1,5 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using HotChocolate.Data.Filters;
+using HotChocolate.Data.Neo4J.Language;
+using ServiceStack;
 
 namespace HotChocolate.Data.Neo4J.Filtering
 {
@@ -14,6 +17,14 @@ namespace HotChocolate.Data.Neo4J.Filtering
             this Neo4JFilterVisitorContext context) =>
             (Neo4JFilterScope)context.GetScope();
 
+        public static Node GetNode(
+            this Neo4JFilterVisitorContext context)
+        {
+            var nodeName = context.RuntimeTypes.Last().Type.Name;
+
+            return Cypher.Node(nodeName).Named(nodeName.ToCamelCase());
+        }
+
         /// <summary>
         /// Tries to build the query based on the items that are stored on the scope
         /// </summary>
@@ -22,7 +33,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
         /// <returns>True in case the query has been build successfully, otherwise false</returns>
         public static bool TryCreateQuery(
             this Neo4JFilterVisitorContext context,
-            [NotNullWhen(true)] out Neo4JFilterDefinition query)
+            [NotNullWhen(true)] out CompoundCondition query)
         {
             return context.GetNeo4JFilterScope().TryCreateQuery(out query);
         }

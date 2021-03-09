@@ -6,6 +6,7 @@ namespace HotChocolate.Data.Neo4J.Language
         /// Represents a literal with an optional content.
         /// </summary>
         public override ClauseKind Kind => ClauseKind.Literal;
+
         /// <summary>
         /// The content of this literal.
         /// </summary>

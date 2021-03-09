@@ -1,0 +1,14 @@
+﻿{
+  "data": {
+    "root": [
+      {
+        "barBool": true,
+        "bars": [
+          {
+            "name": "b"
+          }
+        ]
+      }
+    ]
+  }
+}

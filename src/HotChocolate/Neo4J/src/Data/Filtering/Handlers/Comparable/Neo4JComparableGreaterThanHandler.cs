@@ -9,7 +9,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
 {
     /// <summary>
     /// This filter operation handler maps a GreaterThan operation field to a
-    /// <see cref="FilterDefinition{TDocument}"/>
+    /// <see cref="Condition"/>
     /// </summary>
     public class Neo4JComparableGreaterThanHandler
         : Neo4JComparableOperationHandler
@@ -23,19 +23,19 @@ namespace HotChocolate.Data.Neo4J.Filtering
         protected override int Operation => DefaultFilterOperations.GreaterThan;
 
         /// <inheritdoc />
-        public override Neo4JFilterDefinition HandleOperation(
+        public override Condition HandleOperation(
             Neo4JFilterVisitorContext context,
             IFilterOperationField field,
             IValueNode value,
             object? parsedValue)
         {
-            if (parsedValue is {})
-            {
-                var doc = new Neo4JFilterOperation(Operator.GreaterThan.GetRepresentation(), parsedValue);
-                return new Neo4JFilterOperation(context.GetNeo4JFilterScope().GetPath(), doc);
-            }
+            if (parsedValue is null) throw new InvalidOperationException();
 
-            throw new InvalidOperationException();
+            Condition? expression = context
+                .GetNode()
+                .Property(context.GetNeo4JFilterScope().GetPath()).GreaterThan(Cypher.LiteralOf(parsedValue));
+
+            return expression;
         }
     }
 }

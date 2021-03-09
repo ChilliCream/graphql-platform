@@ -1,3 +1,4 @@
+using HotChocolate.Data.Neo4J.Language;
 using HotChocolate.Data.Projections;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
@@ -16,15 +17,23 @@ namespace HotChocolate.Data.Neo4J.Projections
         public override bool TryHandleEnter(
             Neo4JProjectionVisitorContext context,
             ISelection selection,
-            out ISelectionVisitorAction? action)
+            out ISelectionVisitorAction action)
         {
             IObjectField field = selection.Field;
-            context.Path.Push(field.GetName());
-            context.Projections.Push(
-                new Neo4JIncludeProjectionOperation(context.GetPath()));
-            context.Path.Pop();
-
             action = SelectionVisitor.SkipAndLeave;
+
+            if (context.IsRelationship == false)
+            {
+                context.Projections.Add(field.GetName());
+                return true;
+            }
+
+
+            context.CurrentNode ??= Cypher.NamedNode(selection.DeclaringType.Name.Value);
+            context.Relationship ??= context.ParentNode?.RelationshipTo(context.CurrentNode, "RELATED_TO");
+
+            context.RelationshipProjections.Add(field.GetName());
+
             return true;
         }
     }

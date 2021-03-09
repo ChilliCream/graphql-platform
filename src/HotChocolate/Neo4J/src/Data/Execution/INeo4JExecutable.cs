@@ -1,6 +1,4 @@
-using HotChocolate.Data.Neo4J.Filtering;
-using HotChocolate.Data.Neo4J.Projections;
-using HotChocolate.Data.Neo4J.Sorting;
+using HotChocolate.Data.Neo4J.Language;
 
 namespace HotChocolate.Data.Neo4J.Execution
 {
@@ -14,20 +12,20 @@ namespace HotChocolate.Data.Neo4J.Execution
         /// </summary>
         /// <param name="filters">The filter definition</param>
         /// <returns>A executable that contains the filter definition</returns>
-        INeo4JExecutable WithFiltering(Neo4JFilterDefinition filters);
+        INeo4JExecutable WithFiltering(CompoundCondition filters);
 
         /// <summary>
         /// Applies the sorting definition to the executable
         /// </summary>
         /// <param name="sorting">The sorting definition</param>
         /// <returns>A executable that contains the sorting definition</returns>
-        INeo4JExecutable WithSorting(Neo4JSortDefinition sorting);
+        INeo4JExecutable WithSorting(OrderBy sorting);
 
         /// <summary>
         /// Applies the projection definition to the executable
         /// </summary>
         /// <param name="projection">The projection definition</param>
         /// <returns>A executable that contains the projection definition</returns>
-        INeo4JExecutable WithProjection(Neo4JProjectionDefinition projection);
+        INeo4JExecutable WithProjection(object[] projection);
     }
 }

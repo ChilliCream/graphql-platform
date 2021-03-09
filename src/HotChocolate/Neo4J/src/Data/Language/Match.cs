@@ -1,4 +1,5 @@
-﻿namespace HotChocolate.Data.Neo4J.Language
+﻿#nullable enable
+namespace HotChocolate.Data.Neo4J.Language
 {
     /// <summary>
     /// https://s3.amazonaws.com/artifacts.opencypher.org/M15/railroad/Match.html
@@ -9,9 +10,9 @@
         public override ClauseKind Kind => ClauseKind.Match;
         private readonly bool _optional;
         private readonly Pattern _pattern;
-        private readonly Where _optionalWhere;
+        private readonly Where? _optionalWhere;
 
-        public Match(bool optional, Pattern pattern, Where optionalWhere)
+        public Match(bool optional, Pattern pattern, Where? optionalWhere)
         {
             _optional = optional;
             _pattern = pattern;

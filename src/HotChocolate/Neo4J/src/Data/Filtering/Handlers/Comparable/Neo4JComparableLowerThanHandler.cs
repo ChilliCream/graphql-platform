@@ -23,20 +23,19 @@ namespace HotChocolate.Data.Neo4J.Filtering
         protected override int Operation => DefaultFilterOperations.LowerThan;
 
         /// <inheritdoc />
-        public override Neo4JFilterDefinition HandleOperation(
+        public override Condition HandleOperation(
             Neo4JFilterVisitorContext context,
             IFilterOperationField field,
             IValueNode value,
             object? parsedValue)
         {
-            if (parsedValue is {})
-            {
-                var doc = new Neo4JFilterOperation(Operator.LessThan.GetRepresentation(), parsedValue);
+            if (parsedValue is null) throw new InvalidOperationException();
 
-                return new Neo4JFilterOperation(context.GetNeo4JFilterScope().GetPath(), doc);
-            }
+            Condition? expression = context
+                .GetNode()
+                .Property(context.GetNeo4JFilterScope().GetPath()).LessThan(Cypher.LiteralOf(parsedValue));
 
-            throw new InvalidOperationException();
+            return expression;
         }
     }
 }

@@ -1,37 +1,26 @@
-using System;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Reflection;
+using System.Threading.Tasks;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Neo4J.Execution;
 using HotChocolate.Execution;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
+using Neo4j.Driver;
 using Squadron;
 
 namespace HotChocolate.Data.Neo4J.Filtering
 {
     public class FilteringTestBase
     {
-        private Func<IResolverContext, IExecutable<TResult>> BuildResolver<TResult>(
+        protected async Task<IRequestExecutor> CreateSchema<TEntity, T>(
             Neo4jResource neo4JResource,
-            params TResult[] results)
-            where TResult : class
-        {
-
-            return ctx => new Neo4JExecutable<TResult>(neo4JResource.GetAsyncSession());
-        }
-
-        protected IRequestExecutor CreateSchema<TEntity, T>(
-            TEntity[] entities,
-            Neo4jResource  neo4JResource,
+            string query,
             bool withPaging = false)
             where TEntity : class
             where T : FilterInputType<TEntity>
         {
-            Func<IResolverContext, IExecutable<TEntity>> resolver = BuildResolver(
-                neo4JResource,
-                entities);
+            IAsyncSession session = neo4JResource.GetAsyncSession();
+            IResultCursor cursor = await session.RunAsync(query);
+            await cursor.ConsumeAsync();
 
             return new ServiceCollection()
                 .AddGraphQL()
@@ -40,7 +29,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
                     c => c
                         .Name("Query")
                         .Field("root")
-                        .Resolver(resolver)
+                        .Resolver(new Neo4JExecutable<TEntity>(neo4JResource.GetAsyncSession()))
                         .Use(
                             next => async context =>
                             {
@@ -56,7 +45,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
                     {
                         await next(context);
                         if (context.Result is IReadOnlyQueryResult result &&
-                            context.ContextData.TryGetValue("query", out var queryString))
+                            context.ContextData.TryGetValue("query", out object? queryString))
                         {
                             context.Result =
                                 QueryResultBuilder

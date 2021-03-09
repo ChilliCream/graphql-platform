@@ -1,5 +1,6 @@
 using System;
 using HotChocolate.Data.Filters;
+using HotChocolate.Data.Neo4J.Language;
 using HotChocolate.Language;
 
 #nullable enable
@@ -22,7 +23,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
         protected override int Operation => DefaultFilterOperations.GreaterThanOrEquals;
 
         /// <inheritdoc />
-        public override Neo4JFilterDefinition HandleOperation(
+        public override Condition HandleOperation(
             Neo4JFilterVisitorContext context,
             IFilterOperationField field,
             IValueNode value,
@@ -30,8 +31,11 @@ namespace HotChocolate.Data.Neo4J.Filtering
         {
             if (parsedValue is null) throw new InvalidOperationException();
 
-            var doc = new Neo4JFilterOperation("$gte", parsedValue);
-            return new Neo4JFilterOperation(context.GetNeo4JFilterScope().GetPath(), doc);
+            Condition? expression = context
+                .GetNode()
+                .Property(context.GetNeo4JFilterScope().GetPath()).GreaterThanOEqualTo(Cypher.LiteralOf(parsedValue));
+
+            return expression;
         }
     }
 }

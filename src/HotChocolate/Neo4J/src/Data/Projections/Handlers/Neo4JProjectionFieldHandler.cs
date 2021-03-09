@@ -1,7 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Data.Neo4J.Language;
 using HotChocolate.Data.Projections;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Types;
+using HotChocolate.Language;
 
 #nullable enable
 
@@ -21,8 +22,9 @@ namespace HotChocolate.Data.Neo4J.Projections
             ISelection selection,
             [NotNullWhen(true)] out ISelectionVisitorAction? action)
         {
-            IObjectField field = selection.Field;
-            context.Path.Push(field.GetName());
+            context.IsRelationship = true;
+            context.ParentNode ??= Cypher.NamedNode(selection.DeclaringType.Name.Value);
+            context.Projections.Push(selection.Field.GetName());
             action = SelectionVisitor.Continue;
             return true;
         }
@@ -33,8 +35,14 @@ namespace HotChocolate.Data.Neo4J.Projections
             ISelection selection,
             [NotNullWhen(true)] out ISelectionVisitorAction? action)
         {
-            context.Path.Pop();
+            context.TryCreateRelationshipProjection(out PatternComprehension? projections);
+            context.Projections.Push(projections);
 
+            context.IsRelationship = false;
+            context.Relationship = null;
+            context.CurrentNode = null;
+            context.ParentNode = null;
+            context.RelationshipProjections.Clear();
             action = SelectionVisitor.Continue;
             return true;
         }

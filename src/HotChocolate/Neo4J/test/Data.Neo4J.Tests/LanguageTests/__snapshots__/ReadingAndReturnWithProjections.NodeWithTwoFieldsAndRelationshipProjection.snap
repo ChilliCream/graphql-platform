@@ -1,0 +1,1 @@
+﻿MATCH (u:User), (b:Bike) RETURN u {.name, .email, owns: [(u:User)-[:OWNS]->(b:Bike) WHERE b.age = 12 | b {.age}]} ORDER BY u.name DESC

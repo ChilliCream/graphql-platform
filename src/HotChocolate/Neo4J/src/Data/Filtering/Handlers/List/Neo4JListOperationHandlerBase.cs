@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
+using HotChocolate.Data.Neo4J.Language;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
@@ -19,9 +20,9 @@ namespace HotChocolate.Data.Neo4J.Filtering
     /// the field
     /// </summary>
     public abstract class Neo4JListOperationHandlerBase
-        : FilterFieldHandler<Neo4JFilterVisitorContext, Neo4JFilterDefinition>
+        //: FilterFieldHandler<Neo4JFilterVisitorContext, Condition>
     {
-        /// <summary>
+        /*/// <summary>
         /// Specifies the identifier of the operations that should be handled by this handler
         /// </summary>
         protected abstract int Operation { get; }
@@ -77,7 +78,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
         {
             context.RuntimeTypes.Pop();
 
-            if (context.TryCreateQuery(out Neo4JFilterDefinition? query) &&
+            if (context.TryCreateQuery(out CompoundCondition? query) &&
                 context.Scopes.Pop() is Neo4JFilterScope scope)
             {
                 var path = context.GetNeo4JFilterScope().GetPath();
@@ -115,10 +116,10 @@ namespace HotChocolate.Data.Neo4J.Filtering
         /// </summary>
         /// <param name="scope">The scope where the definitions should be combined</param>
         /// <returns>A with and combined filter definition of all definitions of the scope</returns>
-        protected static Neo4JFilterDefinition CombineOperationsOfScope(
+        protected static Condition CombineOperationsOfScope(
             Neo4JFilterScope scope)
         {
-            Queue<Neo4JFilterDefinition> level = scope.Level.Peek();
+            Queue<Condition> level = scope.Level.Peek();
             if (level.Count == 1)
             {
                 return level.Peek();
@@ -126,6 +127,6 @@ namespace HotChocolate.Data.Neo4J.Filtering
 
             return new();
             //return new AndFilterDefinition(level.ToArray());
-        }
+        }*/
     }
 }

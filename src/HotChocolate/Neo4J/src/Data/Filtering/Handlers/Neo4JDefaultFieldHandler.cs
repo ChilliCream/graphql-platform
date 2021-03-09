@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Neo4J.Extensions;
+using HotChocolate.Data.Neo4J.Language;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 
@@ -14,7 +15,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
     /// <see cref="Neo4JFilterProvider"/>
     /// </summary>
     public class Neo4JDefaultFieldHandler
-        : FilterFieldHandler<Neo4JFilterVisitorContext, Neo4JFilterDefinition>
+        : FilterFieldHandler<Neo4JFilterVisitorContext, Condition>
     {
         /// <summary>
         /// Checks if the field not a filter operations field

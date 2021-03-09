@@ -260,6 +260,23 @@ namespace HotChocolate.Data.Neo4J.Language
                     .OrderBy(Cypher.Sort(_userNode.Property("name")).Descending());;
                 statement.Build().MatchSnapshot();
             }
+
+            [Fact]
+            public void NodeWithTwoFieldsAndRelationshipProjectionNullWhere()
+            {
+                StatementBuilder statement = Cypher
+                    .Match(_userNode, _bikeNode)
+                    .Return(_userNode.Project(
+                        "name",
+                        "email",
+                        "owns",
+                        new PatternComprehension(
+                            _userNode.RelationshipTo(_bikeNode, "OWNS"),
+                            _bikeNode.Project("age"))
+                    ))
+                    .OrderBy(Cypher.Sort(_userNode.Property("name")).Descending());;
+                statement.Build().MatchSnapshot();
+            }
         }
 
         public class MatchNodes

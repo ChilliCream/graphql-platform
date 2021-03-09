@@ -7,9 +7,9 @@ namespace HotChocolate.Data.Neo4J.Filtering
     /// This filter operation handler maps a All operation field to a
     /// <see cref="FilterDefinition{TDocument}"/>
     /// </summary>
-    public class Neo4JListAllOperationHandler : Neo4JListOperationHandlerBase
+    public class Neo4JListAllOperationHandler// : Neo4JListOperationHandlerBase
     {
-        /// <inheritdoc />
+        /*/// <inheritdoc />
         protected override int Operation => DefaultFilterOperations.All;
 
         /// <inheritdoc />
@@ -34,12 +34,13 @@ namespace HotChocolate.Data.Neo4J.Filtering
             }
 
             return new Neo4JFilterOperation(
-                path,
-                new Neo4JNotFilterDefinition(
-                    new Neo4JFilterOperation(
-                        "$elemMatch",
-                        new Neo4JNotFilterDefinition(
-                            new Neo4JOrFilterDefinition(negatedChilds)))));
+                path//,
+                // new Neo4JNotFilterDefinition(
+                //     new Neo4JFilterOperation(
+                //         "$elemMatch",
+                //         new Neo4JNotFilterDefinition(
+                //             new Neo4JOrFilterDefinition(negatedChilds))))
+                );
         }
 
         private static Neo4JFilterDefinition CreateArrayAllScalar(
@@ -58,6 +59,6 @@ namespace HotChocolate.Data.Neo4J.Filtering
 
             return new Neo4JNotFilterDefinition(
                 new Neo4JOrFilterDefinition(negatedChilds));
-        }
+        }*/
     }
 }

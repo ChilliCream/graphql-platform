@@ -15,7 +15,7 @@ namespace HotChocolate.Data.Neo4J.Sorting
     /// executed during the visitation of a input object.
     /// </summary>
     public abstract class Neo4JSortOperationHandlerBase
-        : SortOperationHandler<Neo4JSortVisitorContext, Neo4JSortDefinition>
+        : SortOperationHandler<Neo4JSortVisitorContext, SortItem>
     {
         private readonly SortDirection _sortDirection;
         private readonly int _operation;
@@ -54,7 +54,7 @@ namespace HotChocolate.Data.Neo4J.Sorting
                 return false;
             }
 
-            context.Operations.Enqueue(new Neo4JDirectionalSortOperation(context.GetPath(), _sortDirection));
+            context.Operations.Enqueue(SortItem.Create(Cypher.LiteralOf(context.GetPath()), _sortDirection));
 
             action = SyntaxVisitor.Continue;
             return true;

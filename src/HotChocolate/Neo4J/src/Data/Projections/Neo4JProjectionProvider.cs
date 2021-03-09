@@ -1,6 +1,8 @@
+#nullable enable
 using System;
 using System.Threading.Tasks;
 using HotChocolate.Data.Neo4J.Execution;
+using HotChocolate.Data.Neo4J.Language;
 using HotChocolate.Data.Projections;
 using HotChocolate.Resolvers;
 
@@ -43,7 +45,7 @@ namespace HotChocolate.Data.Neo4J.Projections
                     visitor.Visit(visitorContext);
 
                     if (!visitorContext.TryCreateQuery(
-                            out Neo4JProjectionDefinition? projections) ||
+                            out object[]? projections) ||
                         visitorContext.Errors.Count > 0)
                     {
                         context.Result = Array.Empty<TEntityType>();
@@ -56,7 +58,7 @@ namespace HotChocolate.Data.Neo4J.Projections
                     {
                         context.LocalContextData =
                             context.LocalContextData.SetItem(
-                                nameof(TEntityType),
+                                "ProjectionDefinition",
                                 projections);
 
                         await next(context).ConfigureAwait(false);

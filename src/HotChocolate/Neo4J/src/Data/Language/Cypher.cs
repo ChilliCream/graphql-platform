@@ -1,5 +1,7 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using ServiceStack;
 
 namespace HotChocolate.Data.Neo4J.Language
 {
@@ -29,6 +31,8 @@ namespace HotChocolate.Data.Neo4J.Language
             return Language.Node.Create(primaryLabel, properties, additionalLabels);
         }
 
+        public static Node NamedNode(string node) => Node(node).Named(node.ToCamelCase());
+
         public static Node AnyNode() => Language.Node.Create();
 
         public static Expression LiteralOf<T>(T literal)
@@ -38,9 +42,12 @@ namespace HotChocolate.Data.Neo4J.Language
                 null => NullLiteral.Instance,
                 string s => new StringLiteral(s),
                 bool b => b ? BooleanLiteral.True : BooleanLiteral.False,
+                short num => new IntegerLiteral(num),
                 int num => new IntegerLiteral(num),
+                long num => new DoubleLiteral(num),
+                float num => new DoubleLiteral(num),
                 double num => new DoubleLiteral(num),
-                //IEnumerable list => new ListLiteral(num),
+                //IList list => new ListLiteral(list),
                 _ => throw new ArgumentException("Unsupported literal type")
             };
         }
@@ -50,6 +57,10 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public static StatementBuilder Match(params IPatternElement[] pattern) {
             return Statement.Builder().Match(pattern);
+        }
+
+        public static StatementBuilder Match(Where optionalWhere, params IPatternElement[] pattern) {
+            return Statement.Builder().Match(optionalWhere, pattern);
         }
 
         public static StatementBuilder Create(params IPatternElement[] patternElements)

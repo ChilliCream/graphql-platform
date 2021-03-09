@@ -26,11 +26,19 @@ namespace HotChocolate.Data.Neo4J.Language
             return Add(Operator.And, condition);
         }
 
+        public new Condition Or(Condition condition) {
+            return Add(Operator.Or, condition);
+        }
+
+        public new Condition XOr(Condition condition) {
+            return Add(Operator.XOr, condition);
+        }
+
         public static CompoundCondition Empty() {
             return _emptyCondition;
         }
 
-        private CompoundCondition(Operator op)
+        public CompoundCondition(Operator op)
         {
             _operator = op;
             _conditions = new List<Condition>();
@@ -38,7 +46,11 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public static CompoundCondition Create(Condition left, Operator op, Condition right)
         {
-
+            Ensure.IsTrue(_validOperations.Contains(op),
+                "Operator " + op + " is not a valid operator for a compound condition.");
+            Ensure.IsNotNull(left, "Left hand side condition is required.");
+            Ensure.IsNotNull(op, "Operator is required.");
+            Ensure.IsNotNull(right, "Right hand side condition is required.");
             return new CompoundCondition(op)
                 .Add(op, left)
                 .Add(op, right);

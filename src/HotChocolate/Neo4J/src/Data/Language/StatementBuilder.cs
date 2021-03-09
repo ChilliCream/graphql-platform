@@ -10,7 +10,7 @@ namespace HotChocolate.Data.Neo4J.Language
         private bool _isWrite;
         private Create? _create;
         private Match? _match;
-        private Where? _where;
+        //private Where? _where;
         private Return? _return;
 
         private OrderBy? _orderBy;
@@ -30,9 +30,18 @@ namespace HotChocolate.Data.Neo4J.Language
         public StatementBuilder Match(params IPatternElement[] elements) =>
             Match(false, elements);
 
+        public StatementBuilder Match(Where? optionalWhere, params IPatternElement[] elements) =>
+            Match(false, optionalWhere, elements);
+
         private StatementBuilder Match(bool optional, params IPatternElement[] elements)
         {
             _match = new Match(optional, new Pattern(elements.ToList()), null);
+            return this;
+        }
+
+        private StatementBuilder Match(bool optional, Where? optionalWhere, params IPatternElement[] elements)
+        {
+            _match = new Match(optional, new Pattern(elements.ToList()), optionalWhere);
             return this;
         }
 
@@ -56,7 +65,7 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public StatementBuilder Where(Condition condition)
         {
-            _where = new Where(condition);
+            //_where = new Where(condition);
             return this;
         }
 
@@ -79,7 +88,7 @@ namespace HotChocolate.Data.Neo4J.Language
             {
                 case false:
                     _match?.Visit(visitor);
-                    _where?.Visit(visitor);
+                    //_where?.Visit(visitor);
                     _return?.Visit(visitor);
                     _orderBy?.Visit(visitor);
                     _skip?.Visit(visitor);

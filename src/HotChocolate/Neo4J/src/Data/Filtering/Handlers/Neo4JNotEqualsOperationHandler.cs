@@ -1,3 +1,4 @@
+#nullable enable
 using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Neo4J.Language;
@@ -23,15 +24,17 @@ namespace HotChocolate.Data.Neo4J.Filtering
         }
 
         /// <inheritdoc />
-        public override Neo4JFilterDefinition HandleOperation(
+        public override Condition HandleOperation(
             Neo4JFilterVisitorContext context,
             IFilterOperationField field,
             IValueNode value,
             object? parsedValue)
         {
-            var doc = new Neo4JFilterOperation(Operator.InEquality.GetRepresentation(), parsedValue);
+            Condition? expression = context
+                .GetNode()
+                .Property(context.GetNeo4JFilterScope().GetPath()).IsNotEqualTo(Cypher.LiteralOf(parsedValue));
 
-            return new Neo4JFilterOperation(context.GetNeo4JFilterScope().GetPath(), doc);
+            return expression;
         }
     }
 }
