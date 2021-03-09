@@ -185,7 +185,7 @@
     <value>IsbnType cannot parse the provided literal. The provided value is not a valid ISBN number.</value>
   </data>
   <data name="IsbnType_IsInvalid_ParseValue" xml:space="preserve">
-    <value>HslaType cannot parse the provided value. The provided value is not a valid ISBN number.</value>
+    <value>IsbnType cannot parse the provided value. The provided value is not a valid ISBN number.</value>
   </data>
   <data name="NegativeFloatType_Description" xml:space="preserve">
     <value>The NegativeFloat scalar type represents a double‐precision fractional value less than 0.</value>
