@@ -242,5 +242,95 @@ namespace HotChocolate.Types.Scalars
             // assert
             ExpectSerializeToThrowSerializationException<IPv4Type>(value);
         }
+
+        [Theory]
+        [InlineData(typeof(StringValueNode), "1.2.3.4")]
+        [InlineData(typeof(StringValueNode), "255.255.255.255")]
+        [InlineData(typeof(StringValueNode), "127.0.0.1")]
+        [InlineData(typeof(StringValueNode), "192.168.0.1")]
+        [InlineData(typeof(StringValueNode), "000.000.000.000")]
+        [InlineData(typeof(StringValueNode), "00.00.00.00")]
+        [InlineData(typeof(StringValueNode), "0.0.0.0/32")]
+        [InlineData(typeof(StringValueNode), "000.000.000.000/32")]
+        [InlineData(typeof(StringValueNode), "255.255.255.255/0")]
+        [InlineData(typeof(StringValueNode), "127.0.0.1/0")]
+        [InlineData(typeof(StringValueNode), "192.168.2.1/0")]
+        [InlineData(typeof(StringValueNode), "0.0.0.3/2")]
+        [InlineData(typeof(StringValueNode), "0.0.0.127/7")]
+        [InlineData(typeof(NullValueNode), null)]
+        public void ParseValue_GivenObject_MatchExpectedType(Type type, object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseValueToMatchType<IPv4Type>(value, type);
+        }
+
+        [Theory]
+        [InlineData(TestEnum.Foo)]
+        [InlineData(1d)]
+        [InlineData(1)]
+        [InlineData(12345)]
+        [InlineData("")]
+        [InlineData("1")]
+        [InlineData("1.2")]
+        [InlineData("1.2.3")]
+        [InlineData("300.256.256.256")]
+        [InlineData("255.300.256.256")]
+        [InlineData("255.256.300.256")]
+        [InlineData("255.256.256.300")]
+        [InlineData("255.255.255.255/33")]
+        public void ParseValue_GivenObject_ThrowSerializationException(object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseValueToThrowSerializationException<IPv4Type>(value);
+        }
+
+        [Theory]
+        [InlineData(typeof(StringValueNode), "1.2.3.4")]
+        [InlineData(typeof(StringValueNode), "255.255.255.255")]
+        [InlineData(typeof(StringValueNode), "127.0.0.1")]
+        [InlineData(typeof(StringValueNode), "192.168.0.1")]
+        [InlineData(typeof(StringValueNode), "000.000.000.000")]
+        [InlineData(typeof(StringValueNode), "00.00.00.00")]
+        [InlineData(typeof(StringValueNode), "0.0.0.0/32")]
+        [InlineData(typeof(StringValueNode), "000.000.000.000/32")]
+        [InlineData(typeof(StringValueNode), "255.255.255.255/0")]
+        [InlineData(typeof(StringValueNode), "127.0.0.1/0")]
+        [InlineData(typeof(StringValueNode), "192.168.2.1/0")]
+        [InlineData(typeof(StringValueNode), "0.0.0.3/2")]
+        [InlineData(typeof(StringValueNode), "0.0.0.127/7")]
+        [InlineData(typeof(NullValueNode), null)]
+        public void ParseResult_GivenObject_MatchExpectedType(Type type, object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseResultToMatchType<IPv4Type>(value, type);
+        }
+
+        [Theory]
+        [InlineData(TestEnum.Foo)]
+        [InlineData(1d)]
+        [InlineData(1)]
+        [InlineData(12345)]
+        [InlineData("")]
+        [InlineData("1")]
+        [InlineData("1.2")]
+        [InlineData("1.2.3")]
+        [InlineData("300.256.256.256")]
+        [InlineData("255.300.256.256")]
+        [InlineData("255.256.300.256")]
+        [InlineData("255.256.256.300")]
+        [InlineData("255.255.255.255/33")]
+        public void ParseResult_GivenObject_ThrowSerializationException(object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseResultToThrowSerializationException<IPv4Type>(value);
+        }
     }
 }
