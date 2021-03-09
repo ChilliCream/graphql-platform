@@ -18,7 +18,7 @@ namespace HotChocolate.Types.Scalars
             schema.ToString().MatchSnapshot();
         }
 
-                [Theory]
+        [Theory]
         [InlineData(typeof(EnumValueNode), TestEnum.Foo, false)]
         [InlineData(typeof(FloatValueNode), 1d, false)]
         [InlineData(typeof(IntValueNode), 1, false)]
@@ -283,6 +283,118 @@ namespace HotChocolate.Types.Scalars
             // act
             // assert
             ExpectSerializeToThrowSerializationException<IsbnType>(value);
+        }
+
+        [Theory]
+        [InlineData(typeof(StringValueNode), "ISBN-13: 978-0-596-52068-7")]
+        [InlineData(typeof(StringValueNode), "978 0 596 52068 7")]
+        [InlineData(typeof(StringValueNode), "9780596520687")]
+        [InlineData(typeof(StringValueNode), "ISBN-10 0-596-52068-9")]
+        [InlineData(typeof(StringValueNode), "0-596-52068-9")]
+        [InlineData(typeof(StringValueNode), "ISBN: 9780615856")]
+        [InlineData(typeof(StringValueNode), "1577677171")]
+        [InlineData(typeof(StringValueNode), "978 787 78 78")]
+        [InlineData(typeof(StringValueNode), "9790765335")]
+        [InlineData(typeof(StringValueNode), "979076533X")]
+        [InlineData(typeof(StringValueNode), "9780615856")]
+        [InlineData(typeof(StringValueNode), "ISBN 978-0615-856-73-5")]
+        [InlineData(typeof(StringValueNode), "ISBN-13: 978-0615-856-73-5")]
+        [InlineData(typeof(StringValueNode), "ISBN-13: 9780765335999")]
+        [InlineData(typeof(StringValueNode), "ISBN: 9780615856735")]
+        [InlineData(typeof(StringValueNode), "978-0615-856-73-5")]
+        [InlineData(typeof(StringValueNode), "9780765335999")]
+        [InlineData(typeof(NullValueNode), null)]
+        public void ParseValue_GivenObject_MatchExpectedType(Type type, object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseValueToMatchType<IsbnType>(value, type);
+        }
+
+         [Theory]
+         [InlineData(TestEnum.Foo)]
+         [InlineData(1d)]
+         [InlineData(1)]
+         [InlineData(12345)]
+         [InlineData("")]
+         [InlineData("1")]
+         [InlineData("0-200-xxxxx-x")]
+         [InlineData("1-714-2x4x3-x")]
+         [InlineData("0-6480000-x-x")]
+         [InlineData("0-9999999-x-x")]
+         [InlineData("1-7320000-x-x")]
+         [InlineData("1-915999-xx-x")]
+         [InlineData("1-86719-xxx-x")]
+         [InlineData("ISBN 1-7320000-x-8")]
+         [InlineData("ISBN1-915999-87-x")]
+         [InlineData("ISBN:131-86719-xxx-x")]
+         [InlineData("ISBN 9718-0615-856-73-5")]
+         [InlineData("ISBN: X9780615856735")]
+         [InlineData("ISBN-13: 978-0615-56-73-5")]
+         [InlineData("ISBN-13: 9780X765335999")]
+        public void ParseValue_GivenObject_ThrowSerializationException(object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseValueToThrowSerializationException<IsbnType>(value);
+        }
+
+        [Theory]
+        [InlineData(typeof(StringValueNode), "ISBN-13: 978-0-596-52068-7")]
+        [InlineData(typeof(StringValueNode), "978 0 596 52068 7")]
+        [InlineData(typeof(StringValueNode), "9780596520687")]
+        [InlineData(typeof(StringValueNode), "ISBN-10 0-596-52068-9")]
+        [InlineData(typeof(StringValueNode), "0-596-52068-9")]
+        [InlineData(typeof(StringValueNode), "ISBN: 9780615856")]
+        [InlineData(typeof(StringValueNode), "1577677171")]
+        [InlineData(typeof(StringValueNode), "978 787 78 78")]
+        [InlineData(typeof(StringValueNode), "9790765335")]
+        [InlineData(typeof(StringValueNode), "979076533X")]
+        [InlineData(typeof(StringValueNode), "9780615856")]
+        [InlineData(typeof(StringValueNode), "ISBN 978-0615-856-73-5")]
+        [InlineData(typeof(StringValueNode), "ISBN-13: 978-0615-856-73-5")]
+        [InlineData(typeof(StringValueNode), "ISBN-13: 9780765335999")]
+        [InlineData(typeof(StringValueNode), "ISBN: 9780615856735")]
+        [InlineData(typeof(StringValueNode), "978-0615-856-73-5")]
+        [InlineData(typeof(StringValueNode), "9780765335999")]
+        [InlineData(typeof(NullValueNode), null)]
+        public void ParseResult_GivenObject_MatchExpectedType(Type type, object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseResultToMatchType<IsbnType>(value, type);
+        }
+
+        [Theory]
+        [InlineData(TestEnum.Foo)]
+        [InlineData(1d)]
+        [InlineData(1)]
+        [InlineData(12345)]
+        [InlineData("")]
+        [InlineData("1")]
+        [InlineData("0-200-xxxxx-x")]
+        [InlineData("1-714-2x4x3-x")]
+        [InlineData("0-6480000-x-x")]
+        [InlineData("0-9999999-x-x")]
+        [InlineData("1-7320000-x-x")]
+        [InlineData("1-915999-xx-x")]
+        [InlineData("1-86719-xxx-x")]
+        [InlineData("ISBN 1-7320000-x-8")]
+        [InlineData("ISBN1-915999-87-x")]
+        [InlineData("ISBN:131-86719-xxx-x")]
+        [InlineData("ISBN 9718-0615-856-73-5")]
+        [InlineData("ISBN: X9780615856735")]
+        [InlineData("ISBN-13: 978-0615-56-73-5")]
+        [InlineData("ISBN-13: 9780X765335999")]
+        public void ParseResult_GivenObject_ThrowSerializationException(object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseResultToThrowSerializationException<IsbnType>(value);
         }
     }
 }

@@ -412,5 +412,170 @@ namespace HotChocolate.Types.Scalars
             // assert
             ExpectSerializeToThrowSerializationException<IPv6Type>(value);
         }
+
+        [Theory]
+        [InlineData(typeof(StringValueNode), "a:b:c:d:e::1.2.3.4/13")]
+        [InlineData(typeof(StringValueNode), "a:b:c:d:e::1.2.3.4/64")]
+        [InlineData(typeof(StringValueNode), "FEDC:BA98:7654:3210:FEDC:BA98:7654:3210/0")]
+        [InlineData(typeof(StringValueNode), "FEDC:BA98:7654:3210:FEDC:BA98:7654:3210/32")]
+        [InlineData(typeof(StringValueNode), "FEDC:BA98:7654:3210:FEDC:BA98:7654:3210/128")]
+        [InlineData(typeof(StringValueNode), "1080:0:0:0:8:800:200C:417A/27")]
+        [InlineData(typeof(StringValueNode), "2001:db8::7")]
+        [InlineData(typeof(StringValueNode), "a:b:c:d:e::1.2.3.4")]
+        [InlineData(typeof(StringValueNode), "FEDC:BA98:7654:3210:FEDC:BA98:7654:3210")]
+        [InlineData(typeof(StringValueNode), "1080:0:0:0:8:800:200C:417A")]
+        [InlineData(typeof(StringValueNode), "::1:2:3:4:5:6:7")]
+        [InlineData(typeof(StringValueNode), "::1:2:3:4:5:6")]
+        [InlineData(typeof(StringValueNode), "1::1:2:3:4:5:6")]
+        [InlineData(typeof(StringValueNode), "::1:2:3:4:5")]
+        [InlineData(typeof(StringValueNode), "1::1:2:3:4:5")]
+        [InlineData(typeof(StringValueNode), "2:1::1:2:3:4:5")]
+        [InlineData(typeof(StringValueNode), "::1:2:3:4")]
+        [InlineData(typeof(StringValueNode), "1::1:2:3:4")]
+        [InlineData(typeof(StringValueNode), "2:1::1:2:3:4")]
+        [InlineData(typeof(StringValueNode), "3:2:1::1:2:3:4")]
+        [InlineData(typeof(StringValueNode), "::1:2:3")]
+        [InlineData(typeof(StringValueNode), "1::1:2:3")]
+        [InlineData(typeof(StringValueNode), "2:1::1:2:3")]
+        [InlineData(typeof(StringValueNode), "2:1::")]
+        [InlineData(typeof(StringValueNode), "3:2:1::1:2:3")]
+        [InlineData(typeof(StringValueNode), "4:3:2:1::1:2:3")]
+        [InlineData(typeof(StringValueNode), "::1:2")]
+        [InlineData(typeof(StringValueNode), "1::1:2")]
+        [InlineData(typeof(StringValueNode), "2:1::1:2")]
+        [InlineData(typeof(StringValueNode), "3:2:1::1:2")]
+        [InlineData(typeof(StringValueNode), "4:3:2:1::1:2")]
+        [InlineData(typeof(StringValueNode), "5:4:3:2:1::1:2")]
+        [InlineData(typeof(StringValueNode), "::1")]
+        [InlineData(typeof(StringValueNode), "1::1")]
+        [InlineData(typeof(StringValueNode), "2:1::1")]
+        [InlineData(typeof(StringValueNode), "3:2:1::1")]
+        [InlineData(typeof(StringValueNode), "4:3:2:1::1")]
+        [InlineData(typeof(StringValueNode), "5:4:3:2:1::1")]
+        [InlineData(typeof(StringValueNode), "6:5:4:3:2:1::1")]
+        [InlineData(typeof(StringValueNode), "::")]
+        [InlineData(typeof(StringValueNode), "1::")]
+        [InlineData(typeof(StringValueNode), "3:2:1::")]
+        [InlineData(typeof(StringValueNode), "4:3:2:1::")]
+        [InlineData(typeof(StringValueNode), "5:4:3:2:1::")]
+        [InlineData(typeof(StringValueNode), "6:5:4:3:2:1::")]
+        [InlineData(typeof(StringValueNode), "7:6:5:4:3:2:1::")]
+        [InlineData(typeof(NullValueNode), null)]
+        public void ParseValue_GivenObject_MatchExpectedType(Type type, object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseValueToMatchType<IPv6Type>(value, type);
+        }
+
+        [Theory]
+        [InlineData(TestEnum.Foo)]
+        [InlineData(1d)]
+        [InlineData(1)]
+        [InlineData(12345)]
+        [InlineData("")]
+        [InlineData("1")]
+        [InlineData("1.2")]
+        [InlineData("1.2.3")]
+        [InlineData("19.117.63.126")]
+        [InlineData("300.256.256.256")]
+        [InlineData("255.300.256.256")]
+        [InlineData("255.256.300.256")]
+        [InlineData("255.256.256.300")]
+        [InlineData("255.255.255.255/33")]
+        [InlineData("a:b:c:d:e::1.2.3.22:100")]
+        [InlineData("a:b:c:d:e::1.2.3..4/13")]
+        [InlineData("FEDC:BA98:7654:3210FEDC:BA98:7654:3210")]
+        public void ParseValue_GivenObject_ThrowSerializationException(object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseValueToThrowSerializationException<IPv6Type>(value);
+        }
+
+        [Theory]
+        [InlineData(typeof(StringValueNode), "a:b:c:d:e::1.2.3.4/13")]
+        [InlineData(typeof(StringValueNode), "a:b:c:d:e::1.2.3.4/64")]
+        [InlineData(typeof(StringValueNode), "FEDC:BA98:7654:3210:FEDC:BA98:7654:3210/0")]
+        [InlineData(typeof(StringValueNode), "FEDC:BA98:7654:3210:FEDC:BA98:7654:3210/32")]
+        [InlineData(typeof(StringValueNode), "FEDC:BA98:7654:3210:FEDC:BA98:7654:3210/128")]
+        [InlineData(typeof(StringValueNode), "1080:0:0:0:8:800:200C:417A/27")]
+        [InlineData(typeof(StringValueNode), "2001:db8::7")]
+        [InlineData(typeof(StringValueNode), "a:b:c:d:e::1.2.3.4")]
+        [InlineData(typeof(StringValueNode), "FEDC:BA98:7654:3210:FEDC:BA98:7654:3210")]
+        [InlineData(typeof(StringValueNode), "1080:0:0:0:8:800:200C:417A")]
+        [InlineData(typeof(StringValueNode), "::1:2:3:4:5:6:7")]
+        [InlineData(typeof(StringValueNode), "::1:2:3:4:5:6")]
+        [InlineData(typeof(StringValueNode), "1::1:2:3:4:5:6")]
+        [InlineData(typeof(StringValueNode), "::1:2:3:4:5")]
+        [InlineData(typeof(StringValueNode), "1::1:2:3:4:5")]
+        [InlineData(typeof(StringValueNode), "2:1::1:2:3:4:5")]
+        [InlineData(typeof(StringValueNode), "::1:2:3:4")]
+        [InlineData(typeof(StringValueNode), "1::1:2:3:4")]
+        [InlineData(typeof(StringValueNode), "2:1::1:2:3:4")]
+        [InlineData(typeof(StringValueNode), "3:2:1::1:2:3:4")]
+        [InlineData(typeof(StringValueNode), "::1:2:3")]
+        [InlineData(typeof(StringValueNode), "1::1:2:3")]
+        [InlineData(typeof(StringValueNode), "2:1::1:2:3")]
+        [InlineData(typeof(StringValueNode), "2:1::")]
+        [InlineData(typeof(StringValueNode), "3:2:1::1:2:3")]
+        [InlineData(typeof(StringValueNode), "4:3:2:1::1:2:3")]
+        [InlineData(typeof(StringValueNode), "::1:2")]
+        [InlineData(typeof(StringValueNode), "1::1:2")]
+        [InlineData(typeof(StringValueNode), "2:1::1:2")]
+        [InlineData(typeof(StringValueNode), "3:2:1::1:2")]
+        [InlineData(typeof(StringValueNode), "4:3:2:1::1:2")]
+        [InlineData(typeof(StringValueNode), "5:4:3:2:1::1:2")]
+        [InlineData(typeof(StringValueNode), "::1")]
+        [InlineData(typeof(StringValueNode), "1::1")]
+        [InlineData(typeof(StringValueNode), "2:1::1")]
+        [InlineData(typeof(StringValueNode), "3:2:1::1")]
+        [InlineData(typeof(StringValueNode), "4:3:2:1::1")]
+        [InlineData(typeof(StringValueNode), "5:4:3:2:1::1")]
+        [InlineData(typeof(StringValueNode), "6:5:4:3:2:1::1")]
+        [InlineData(typeof(StringValueNode), "::")]
+        [InlineData(typeof(StringValueNode), "1::")]
+        [InlineData(typeof(StringValueNode), "3:2:1::")]
+        [InlineData(typeof(StringValueNode), "4:3:2:1::")]
+        [InlineData(typeof(StringValueNode), "5:4:3:2:1::")]
+        [InlineData(typeof(StringValueNode), "6:5:4:3:2:1::")]
+        [InlineData(typeof(StringValueNode), "7:6:5:4:3:2:1::")]
+        [InlineData(typeof(NullValueNode), null)]
+        [InlineData(typeof(NullValueNode), null)]
+        public void ParseResult_GivenObject_MatchExpectedType(Type type, object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseResultToMatchType<IPv6Type>(value, type);
+        }
+
+        [Theory]
+        [InlineData(TestEnum.Foo)]
+        [InlineData(1d)]
+        [InlineData(1)]
+        [InlineData(12345)]
+        [InlineData("")]
+        [InlineData("1")]
+        [InlineData("1.2")]
+        [InlineData("1.2.3")]
+        [InlineData("19.117.63.126")]
+        [InlineData("300.256.256.256")]
+        [InlineData("255.300.256.256")]
+        [InlineData("255.256.300.256")]
+        [InlineData("255.256.256.300")]
+        [InlineData("255.255.255.255/33")]
+        [InlineData("a:b:c:d:e::1.2.3.22:100")]
+        [InlineData("a:b:c:d:e::1.2.3..4/13")]
+        [InlineData("FEDC:BA98:7654:3210FEDC:BA98:7654:3210")]
+        public void ParseResult_GivenObject_ThrowSerializationException(object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseResultToThrowSerializationException<IPv6Type>(value);
+        }
     }
 }
