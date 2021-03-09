@@ -2,6 +2,7 @@ namespace HotChocolate.Types
 {
     internal static class WellKnownScalarTypes
     {
+        public const string Duration = nameof(Duration);
         public const string EmailAddress = nameof(EmailAddress);
         public const string HexColor = nameof(HexColor);
         public const string Hsl = nameof(Hsl);
