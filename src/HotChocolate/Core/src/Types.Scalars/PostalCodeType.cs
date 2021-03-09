@@ -71,28 +71,6 @@ namespace HotChocolate.Types.Scalars
         }
 
         /// <inheritdoc />
-        protected override string ParseLiteral(StringValueNode valueSyntax)
-        {
-            if (!ValidatePostCode(valueSyntax.Value))
-            {
-                throw ThrowHelper.PostalCodeType_ParseLiteral_IsInvalid(this);
-            }
-
-            return base.ParseLiteral(valueSyntax);
-        }
-
-        /// <inheritdoc />
-        protected override StringValueNode ParseValue(string runtimeValue)
-        {
-            if (!ValidatePostCode(runtimeValue))
-            {
-                throw ThrowHelper.PostalCodeType_ParseValue_IsInvalid(this);
-            }
-
-            return base.ParseValue(runtimeValue);
-        }
-
-        /// <inheritdoc />
         public override bool TrySerialize(object? runtimeValue, out object? resultValue)
         {
             if (runtimeValue is null)
@@ -130,6 +108,18 @@ namespace HotChocolate.Types.Scalars
 
             runtimeValue = null;
             return false;
+        }
+
+        /// <inheritdoc />
+        protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
+        {
+            return ThrowHelper.PostalCodeType_ParseLiteral_IsInvalid(this);
+        }
+
+        /// <inheritdoc />
+        protected override SerializationException CreateParseValueError(object runtimeValue)
+        {
+            return ThrowHelper.PostalCodeType_ParseValue_IsInvalid(this);
         }
 
         private static bool ValidatePostCode(string postCode)

@@ -61,28 +61,6 @@ namespace HotChocolate.Types.Scalars
         }
 
         /// <inheritdoc />
-        protected override string ParseLiteral(StringValueNode valueSyntax)
-        {
-            if (!_validationRegex.IsMatch(valueSyntax.Value))
-            {
-                throw CreateParseLiteralError(valueSyntax);
-            }
-
-            return base.ParseLiteral(valueSyntax);
-        }
-
-        /// <inheritdoc />
-        protected override StringValueNode ParseValue(string runtimeValue)
-        {
-            if (!_validationRegex.IsMatch(runtimeValue))
-            {
-                throw CreateParseValueError(runtimeValue);
-            }
-
-            return base.ParseValue(runtimeValue);
-        }
-
-        /// <inheritdoc />
         public override bool TrySerialize(object? runtimeValue, out object? resultValue)
         {
             if (runtimeValue is null)
@@ -122,32 +100,14 @@ namespace HotChocolate.Types.Scalars
             return false;
         }
 
-        /// <summary>
-        /// Creates the exception that will be thrown when <see cref="ParseLiteral"/> encountered an
-        /// invalid pattern
-        /// </summary>
-        /// <param name="valueSyntax">
-        /// The value syntax that should be parsed
-        /// </param>
-        /// <returns>
-        /// The created exception that should be thrown
-        /// </returns>
-        protected virtual Exception CreateParseLiteralError(StringValueNode valueSyntax)
+        /// <inheritdoc />
+        protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
         {
             return ThrowHelper.RegexType_ParseLiteral_IsInvalid(this, Name);
         }
 
-        /// <summary>
-        /// Creates the exception that will be thrown when <see cref="ParseValue"/> encountered an
-        /// invalid pattern
-        /// </summary>
-        /// <param name="runtimeValue">
-        /// The runtimeValue that should be parsed
-        /// </param>
-        /// <returns>
-        /// The created exception that should be thrown
-        /// </returns>
-        protected virtual Exception CreateParseValueError(string runtimeValue)
+        /// <inheritdoc />
+        protected override SerializationException CreateParseValueError(object runtimeValue)
         {
             return ThrowHelper.RegexType_ParseValue_IsInvalid(this, Name);
         }
