@@ -11,7 +11,8 @@ namespace HotChocolate.Types.Scalars
     public class RgbType : RegexType
     {
         private const string _validationPattern =
-            "^rgb\\(\\s*(-?\\d+|-?\\d*\\.\\d+(?=%))(%?)\\s*,\\s*(-?\\d+|-?\\d*\\.\\d+(?=%))(\\2)\\s*,\\s*(-?\\d+|-?\\d*\\.\\d+(?=%))(\\2)\\s*\\)$";
+            "^rgb\\(\\s*(-?\\d+|-?\\d*\\.\\d+(?=%))(%?)\\s*,\\s*(-?\\d+|-?\\d*\\.\\d+(?=%))(\\2)\\s*," +
+            "\\s*(-?\\d+|-?\\d*\\.\\d+(?=%))(\\2)\\s*\\)$";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RgbType"/> class.
@@ -25,14 +26,17 @@ namespace HotChocolate.Types.Scalars
         {
         }
 
-        protected override Exception CreateParseLiteralError(StringValueNode valueSyntax)
+        /// <inheritdoc />
+        protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
         {
             return ThrowHelper.RgbType_ParseLiteral_IsInvalid(this);
         }
 
-        protected override Exception CreateParseValueError(string runtimeValue)
+        /// <inheritdoc />
+        protected override SerializationException CreateParseValueError(object runtimeValue)
         {
             return ThrowHelper.RgbType_ParseValue_IsInvalid(this);
         }
+
     }
 }

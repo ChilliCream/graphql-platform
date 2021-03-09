@@ -194,5 +194,85 @@ namespace HotChocolate.Types.Scalars
             // assert
             ExpectSerializeToThrowSerializationException<RgbType>(value);
         }
+
+        [Theory]
+        [InlineData(typeof(StringValueNode), "rgb(255,0,0)")]
+        [InlineData(typeof(StringValueNode), "rgb(100%, 0%, 0%)")]
+        [InlineData(typeof(StringValueNode), "rgb(300,0,0)")]
+        [InlineData(typeof(StringValueNode), "rgb(110%, 0%, 0%)")]
+        [InlineData(typeof(StringValueNode), "rgb(100%,0%,60%)")]
+        [InlineData(typeof(StringValueNode), "rgb(100%, 0%, 60%)")]
+        [InlineData(typeof(NullValueNode), null)]
+        public void ParseValue_GivenObject_MatchExpectedType(Type type, object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseValueToMatchType<RgbType>(value, type);
+        }
+
+        [Theory]
+        [InlineData(TestEnum.Foo)]
+        [InlineData(1d)]
+        [InlineData(1)]
+        [InlineData(12345)]
+        [InlineData("")]
+        [InlineData("1")]
+        [InlineData("rgb(255 0 153)")]
+        [InlineData("rgb(255, 0, 153, 1)")]
+        [InlineData("rgb(255, 0, 153, 100%)")]
+        [InlineData("rgb(255 0 153 / 1)")]
+        [InlineData("rgb(255 0 153 / 100%)")]
+        [InlineData("rgb(255, 0, 153.6, 1)")]
+        [InlineData("rgb(1e2, .5e1, .5e0, +.25e2%)")]
+        [InlineData("hsl(270,60%,70%)")]
+        [InlineData("hsla(240 100% 50% / .05)")]
+        public void ParseValue_GivenObject_ThrowSerializationException(object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseValueToThrowSerializationException<RgbType>(value);
+        }
+
+        [Theory]
+        [InlineData(typeof(StringValueNode), "rgb(255,0,0)")]
+        [InlineData(typeof(StringValueNode), "rgb(100%, 0%, 0%)")]
+        [InlineData(typeof(StringValueNode), "rgb(300,0,0)")]
+        [InlineData(typeof(StringValueNode), "rgb(110%, 0%, 0%)")]
+        [InlineData(typeof(StringValueNode), "rgb(100%,0%,60%)")]
+        [InlineData(typeof(StringValueNode), "rgb(100%, 0%, 60%)")]
+        [InlineData(typeof(NullValueNode), null)]
+        public void ParseResult_GivenObject_MatchExpectedType(Type type, object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseResultToMatchType<RgbType>(value, type);
+        }
+
+        [Theory]
+        [InlineData(TestEnum.Foo)]
+        [InlineData(1d)]
+        [InlineData(1)]
+        [InlineData(12345)]
+        [InlineData("")]
+        [InlineData("1")]
+        [InlineData("rgb(255 0 153)")]
+        [InlineData("rgb(255, 0, 153, 1)")]
+        [InlineData("rgb(255, 0, 153, 100%)")]
+        [InlineData("rgb(255 0 153 / 1)")]
+        [InlineData("rgb(255 0 153 / 100%)")]
+        [InlineData("rgb(255, 0, 153.6, 1)")]
+        [InlineData("rgb(1e2, .5e1, .5e0, +.25e2%)")]
+        [InlineData("hsl(270,60%,70%)")]
+        [InlineData("hsla(240 100% 50% / .05)")]
+        public void ParseResult_GivenObject_ThrowSerializationException(object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseResultToThrowSerializationException<RgbType>(value);
+        }
     }
 }
