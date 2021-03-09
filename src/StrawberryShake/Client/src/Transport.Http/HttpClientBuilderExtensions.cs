@@ -21,9 +21,14 @@ namespace StrawberryShake
         /// <param name="configureClient">
         /// A delegate that is used to configure an <see cref="HttpClient"/>.
         /// </param>
+        /// <param name="configureClientBuilder">
+        /// A delegate that is used to additionally configure the <see cref="HttpClient"/>
+        /// with a <see cref="IHttpClientBuilder"/>
+        /// </param>
         public static IClientBuilder ConfigureHttpClient(
             this IClientBuilder clientBuilder,
-            Action<HttpClient> configureClient)
+            Action<HttpClient> configureClient,
+            Action<IHttpClientBuilder>? configureClientBuilder = null)
         {
             if (clientBuilder == null)
             {
@@ -35,7 +40,12 @@ namespace StrawberryShake
                 throw new ArgumentNullException(nameof(configureClient));
             }
 
-            clientBuilder.Services.AddHttpClient(clientBuilder.ClientName, configureClient);
+
+            IHttpClientBuilder builder = clientBuilder.Services
+                .AddHttpClient(clientBuilder.ClientName, configureClient);
+
+            configureClientBuilder?.Invoke(builder);
+
             return clientBuilder;
         }
 
@@ -50,9 +60,14 @@ namespace StrawberryShake
         /// <param name="configureClient">
         /// A delegate that is used to configure an <see cref="HttpClient"/>.
         /// </param>
+        /// <param name="configureClientBuilder">
+        /// A delegate that is used to additionally configure the <see cref="HttpClient"/>
+        /// with a <see cref="IHttpClientBuilder"/>
+        /// </param>
         public static IClientBuilder ConfigureHttpClient(
             this IClientBuilder clientBuilder,
-            Action<IServiceProvider, HttpClient> configureClient)
+            Action<IServiceProvider, HttpClient> configureClient,
+            Action<IHttpClientBuilder>? configureClientBuilder = null)
         {
             if (clientBuilder == null)
             {
@@ -64,7 +79,11 @@ namespace StrawberryShake
                 throw new ArgumentNullException(nameof(configureClient));
             }
 
-            clientBuilder.Services.AddHttpClient(clientBuilder.ClientName, configureClient);
+            IHttpClientBuilder builder = clientBuilder.Services
+                .AddHttpClient(clientBuilder.ClientName, configureClient);
+
+            configureClientBuilder?.Invoke(builder);
+
             return clientBuilder;
         }
     }
