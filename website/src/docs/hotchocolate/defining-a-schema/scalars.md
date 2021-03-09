@@ -394,5 +394,5 @@ services
 | PhoneNumber      | The `PhoneNumber` scalar type represents a value that conforms to the standard E.164 format as specified in: https://en.wikipedia.org/wiki/E.164.
 | PositiveInt      | The `PositiveInt` scalar type represents a signed 32‐bit numeric non‐fractional value of at least the value 1.
 | PostalCode       | The `PostalCode` scalar type represents a valid postal code.
-| Port             | The `Port` scalar type represents a field whose value is a valid TCP port within the range of 0 to 65535 as defined here https://en.wikipedia.org/wiki/Transmission_Control_Protocol#TCP_ports
+| Port             | The `Port` scalar type represents a field whose value is a valid TCP port within the range of 0 to 65535.
 | UnsignedInt      | The `UnsignedInt` scalar type represents a unsigned 32‐bit numeric non‐fractional value greater than or equal to 0.
