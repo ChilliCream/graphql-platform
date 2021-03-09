@@ -43,25 +43,21 @@ namespace HotChocolate.Types.Scalars
         }
 
         /// <inheritdoc />
-        protected override int ParseLiteral(IntValueNode valueSyntax)
+        protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
         {
-            if (valueSyntax.ToInt32() < MinValue || valueSyntax.ToInt32() > MaxValue)
-            {
-                throw ThrowHelper.PortType_ParseLiteral_OutOfRange(this);
-            }
-
-            return base.ParseLiteral(valueSyntax);
+            throw ThrowHelper.PortType_ParseLiteral_OutOfRange(this);
         }
 
         /// <inheritdoc />
-        protected override IntValueNode ParseValue(int runtimeValue)
+        protected override SerializationException CreateParseValueError(object runtimeValue)
         {
-            if (runtimeValue < MinValue || runtimeValue > MaxValue)
-            {
-                throw ThrowHelper.PortType_ParseValue_OutOfRange(this);
-            }
+            throw ThrowHelper.PortType_ParseValue_OutOfRange(this);
+        }
 
-            return base.ParseValue(runtimeValue);
+        /// <inheritdoc />
+        protected override SerializationException CreateParseResultError(object runtimeValue)
+        {
+            throw ThrowHelper.PortType_ParseValue_OutOfRange(this);
         }
     }
 }

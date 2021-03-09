@@ -214,5 +214,39 @@ namespace HotChocolate.Types.Scalars
             // assert
             ExpectSerializeToThrowSerializationException<PortType>(value);
         }
+
+        [Theory]
+        [InlineData(typeof(IntValueNode), 0)]
+        [InlineData(typeof(IntValueNode), 1337)]
+        [InlineData(typeof(IntValueNode), 3000)]
+        [InlineData(typeof(IntValueNode), 4000)]
+        [InlineData(typeof(IntValueNode), 5000)]
+        [InlineData(typeof(IntValueNode), 8080)]
+        [InlineData(typeof(IntValueNode), 65535)]
+        [InlineData(typeof(NullValueNode), null)]
+        public void ParseResult_GivenObject_MatchExpectedType(Type type, object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseResultToMatchType<PortType>(value, type);
+        }
+
+        [Theory]
+        [InlineData(TestEnum.Foo)]
+        [InlineData(1d)]
+        [InlineData(true)]
+        [InlineData("foo")]
+        [InlineData(int.MinValue)]
+        [InlineData(int.MaxValue)]
+        [InlineData(-1)]
+        [InlineData(65536)]
+        public void ParseResult_GivenObject_ThrowSerializationException(object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseResultToThrowSerializationException<PortType>(value);
+        }
     }
 }
