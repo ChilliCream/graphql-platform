@@ -18,7 +18,7 @@ namespace HotChocolate.Types.Scalars
             schema.ToString().MatchSnapshot();
         }
 
-                [Theory]
+        [Theory]
         [InlineData(typeof(EnumValueNode), TestEnum.Foo, false)]
         [InlineData(typeof(FloatValueNode), 1d, false)]
         [InlineData(typeof(IntValueNode), 1, false)]
@@ -285,11 +285,6 @@ namespace HotChocolate.Types.Scalars
             ExpectSerializeToThrowSerializationException<IsbnType>(value);
         }
 
-        // HERE: HERE: HERE
-
-
-
-
         [Theory]
         [InlineData(typeof(StringValueNode), "ISBN-13: 978-0-596-52068-7")]
         [InlineData(typeof(StringValueNode), "978 0 596 52068 7")]
@@ -401,6 +396,5 @@ namespace HotChocolate.Types.Scalars
             // assert
             ExpectParseResultToThrowSerializationException<IsbnType>(value);
         }
-
     }
 }
