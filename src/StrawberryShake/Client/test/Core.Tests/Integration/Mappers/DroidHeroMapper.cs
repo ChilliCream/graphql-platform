@@ -20,10 +20,10 @@ namespace StrawberryShake.Integration.Mappers
             _droidMapper = droidMapper ?? throw new ArgumentNullException(nameof(droidMapper));
         }
 
-        public DroidHero Map(DroidEntity entity)
+        public DroidHero Map(DroidEntity entity, IEntityStoreSnapshot? snapshot = null)
         {
             var friends = new List<ICharacter>();
-            IEntityStoreSnapshot snapshot = _entityStore.CurrentSnapshot;
+            snapshot ??= _entityStore.CurrentSnapshot;
 
             foreach (EntityId friendId in entity.Friends)
             {
