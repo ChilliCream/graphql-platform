@@ -381,7 +381,7 @@ services
 | Hsl              | The `Hsl` scalar type represents a valid a CSS HSL color as defined here https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors.
 | Hsla             | The `Hsla` scalar type represents a valid a CSS HSLA color as defined here https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors.
 | IPv4             | The `IPv4` scalar type represents a valid a IPv4 address as defined here https://en.wikipedia.org/wiki/IPv4.
-| IPv6            | The `IPv6` scalar type represents a valid a IPv6 address as defined here [RFC8064](https://tools.ietf.org/html/rfc8064)
+| IPv6             | The `IPv6` scalar type represents a valid a IPv6 address as defined here [RFC8064](https://tools.ietf.org/html/rfc8064).
 | Isbn             | The `ISBN` scalar type is a ISBN-10 or ISBN-13 number: https:\/\/en.wikipedia.org\/wiki\/International_Standard_Book_Number.
 | MacAddress       | The `MacAddess` scalar type represents a IEEE 802 48-bit Mac address, represented as UTF-8 character sequences. The scalar follows the specification defined in [RFC7042](https://tools.ietf.org/html/rfc7042#page-19)
 | NegativeFloat    | The `NegativeFloat` scalar type represents a double‐precision fractional value less than 0
