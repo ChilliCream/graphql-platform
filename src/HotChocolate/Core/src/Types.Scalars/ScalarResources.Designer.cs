@@ -135,6 +135,24 @@ namespace HotChocolate.Types.Scalars {
             }
         }
 
+        internal static string MacAddressType_Description {
+            get {
+                return ResourceManager.GetString("MacAddressType_Description", resourceCulture);
+            }
+        }
+
+        internal static string MacAddressType_IsInvalid_ParseLiteral {
+            get {
+                return ResourceManager.GetString("MacAddressType_IsInvalid_ParseLiteral", resourceCulture);
+            }
+        }
+
+        internal static string MacAddressType_IsInvalid_ParseValue {
+            get {
+                return ResourceManager.GetString("MacAddressType_IsInvalid_ParseValue", resourceCulture);
+            }
+        }
+
         internal static string NegativeFloatType_Description {
             get {
                 return ResourceManager.GetString("NegativeFloatType_Description", resourceCulture);
