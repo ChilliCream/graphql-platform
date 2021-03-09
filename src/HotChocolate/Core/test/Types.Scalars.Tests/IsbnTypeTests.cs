@@ -284,5 +284,45 @@ namespace HotChocolate.Types.Scalars
             // assert
             ExpectSerializeToThrowSerializationException<IsbnType>(value);
         }
+
+        // HERE: HERE: HERE
+
+
+
+
+        [Theory]
+        [InlineData(typeof(StringValueNode), "978 787 7878")]
+        [InlineData(typeof(StringValueNode), "978-0615-856")]
+        [InlineData(typeof(StringValueNode), "978-0615856735")]
+        [InlineData(typeof(StringValueNode), "ISBN 978 787 78 78788")]
+        [InlineData(typeof(StringValueNode), "ISBN 97907653359990")]
+        [InlineData(typeof(StringValueNode), "ISBN-13: 978-0615856735")]
+        [InlineData(typeof(StringValueNode), "ISBN: 978-0615-856")]
+        [InlineData(typeof(StringValueNode), "ISBN 978-0-596-52068-7")]
+        [InlineData(typeof(StringValueNode), "ISBN-13: 978-0-596-52068-7")]
+        [InlineData(typeof(StringValueNode), "978 0 596 52068 7")]
+        [InlineData(typeof(StringValueNode), "9780596520687")]
+        [InlineData(typeof(StringValueNode), "ISBN-10 0-596-52068-9")]
+        [InlineData(typeof(StringValueNode), "0-596-52068-9")]
+        [InlineData(typeof(StringValueNode), "ISBN: 9780615856")]
+        [InlineData(typeof(StringValueNode), "1577677171")]
+        [InlineData(typeof(StringValueNode), "978 787 78 78")]
+        [InlineData(typeof(StringValueNode), "9790765335")]
+        [InlineData(typeof(StringValueNode), "979076533X")]
+        [InlineData(typeof(StringValueNode), "9780615856")]
+        [InlineData(typeof(StringValueNode), "ISBN 978-0615-856-73-5")]
+        [InlineData(typeof(StringValueNode), "ISBN-13: 978-0615-856-73-5")]
+        [InlineData(typeof(StringValueNode), "ISBN-13: 9780765335999")]
+        [InlineData(typeof(StringValueNode), "ISBN: 9780615856735")]
+        [InlineData(typeof(StringValueNode), "978-0615-856-73-5")]
+        [InlineData(typeof(StringValueNode), "9780765335999")]
+        [InlineData(typeof(NullValueNode), null)]
+        public void ParseValue_GivenObject_MatchExpectedType(Type type, object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseValueToMatchType<IsbnType>(value, type);
+        }
     }
 }
