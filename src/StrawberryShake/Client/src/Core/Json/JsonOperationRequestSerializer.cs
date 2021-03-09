@@ -8,19 +8,29 @@ namespace StrawberryShake.Json
 {
     public class JsonOperationRequestSerializer
     {
-        public void Serialize(OperationRequest request, IBufferWriter<byte> bufferWriter)
+        public void Serialize(
+            OperationRequest request,
+            IBufferWriter<byte> bufferWriter,
+            bool ignoreExtensions = false)
         {
             using var jsonWriter = new Utf8JsonWriter(bufferWriter);
-            Serialize(request, jsonWriter);
+            Serialize(request, jsonWriter, ignoreExtensions);
         }
 
-        public void Serialize(OperationRequest request, Utf8JsonWriter jsonWriter)
+        public void Serialize(
+            OperationRequest request,
+            Utf8JsonWriter jsonWriter,
+            bool ignoreExtensions = false)
         {
             jsonWriter.WriteStartObject();
 
             WriteRequest(request, jsonWriter);
             WriteVariables(request, jsonWriter);
-            WriteExtensions(request, jsonWriter);
+
+            if (!ignoreExtensions)
+            {
+                WriteExtensions(request, jsonWriter);
+            }
 
             jsonWriter.WriteEndObject();
         }

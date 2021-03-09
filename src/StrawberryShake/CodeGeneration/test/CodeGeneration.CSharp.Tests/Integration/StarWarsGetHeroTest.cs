@@ -105,7 +105,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
             IDisposable session =
                 client.GetHero
                     .Watch(ExecutionStrategy.CacheFirst)
-                    .Subscribe(result => name = result.Data?.Hero?.Name);
+                    .Subscribe(result =>
+                    {
+                        name = result.Data?.Hero?.Name;
+                    });
 
             while (name is null && !ct.IsCancellationRequested)
             {

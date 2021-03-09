@@ -20,9 +20,10 @@ namespace StrawberryShake
         /// <param name="configureClient">
         /// A delegate that is used to configure an <see cref="WebSocketClient"/>.
         /// </param>
-        public static IClientBuilder ConfigureWebSocketClient(
-            this IClientBuilder clientBuilder,
+        public static IClientBuilder<T> ConfigureWebSocketClient<T>(
+            this IClientBuilder<T> clientBuilder,
             Action<ISocketClient> configureClient)
+            where T : IStoreAccessor
         {
             if (clientBuilder == null)
             {
@@ -49,9 +50,10 @@ namespace StrawberryShake
         /// <param name="configureClient">
         /// A delegate that is used to configure an <see cref="WebSocketClient"/>.
         /// </param>
-        public static IClientBuilder ConfigureWebSocketClient(
-            this IClientBuilder clientBuilder,
+        public static IClientBuilder<T> ConfigureWebSocketClient<T>(
+            this IClientBuilder<T> clientBuilder,
             Action<IServiceProvider, ISocketClient> configureClient)
+            where T : IStoreAccessor
         {
             if (clientBuilder == null)
             {

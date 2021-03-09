@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>StrawberryShake.Persistence.SQLite</PackageId>
+    <RootNamespace>StrawberryShake.Persistence.SQLite</RootNamespace>
+    <Nullable>enable</Nullable>
+    <Description>GraphQL over WebSocket transport implementation for StrawberryShake GraphQL clients.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="LiteDB" Version="5.0.10" />
+    <PackageReference Include="System.Reactive" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core\StrawberryShake.Core.csproj" />
+    <ProjectReference Include="..\Resources\StrawberryShake.Resources.csproj" />
+  </ItemGroup>
+
+</Project>

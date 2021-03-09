@@ -1,111 +1,39 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Threading;
 
 namespace StrawberryShake
 {
+    /// <summary>
+    /// The entity store can be used to access and mutate entities.
+    /// </summary>
     public class EntityStore : IEntityStore
     {
-        private readonly SemaphoreSlim _semaphore = new(1, 1);
+        private readonly object _sync = new();
         private readonly EntityUpdateObservable _entityUpdateObservable = new();
-        private readonly ConcurrentDictionary<EntityId, object> _entities = new();
-        private ulong _version;
-        private UpdateSession? _currentUpdateSession;
+        private EntityStoreSnapshot _snapshot = new();
 
-        public TEntity GetOrCreate<TEntity>(EntityId id)
-            where TEntity : class, new()
+        /// <inheritdoc />
+        public IEntityStoreSnapshot CurrentSnapshot => _snapshot;
+
+        /// <inheritdoc />
+        public void Update(Action<IEntityStoreUpdateSession> action)
         {
-            if (id == default)
+            lock (_sync)
             {
-                throw new ArgumentException("Invalid entity id.", nameof(id));
-            }
+                var session = new EntityStoreUpdateSession(_snapshot);
 
-            UpdateSession? session = _currentUpdateSession;
+                action(session);
 
-            if (session is null)
-            {
-                throw new InvalidOperationException(
-                    "You need to first acquire an update session.");
-            }
-
-            session.EntityIds.Add(id);
-
-            if (_entities.GetOrAdd(id, k => new TEntity()) is TEntity entity)
-            {
-                return entity;
-            }
-
-            throw new InvalidOperationException(
-                "The entity type does not match the stored entity.");
-        }
-
-        public TEntity? GetEntity<TEntity>(EntityId id)
-            where TEntity : class
-        {
-            if (id == default)
-            {
-                throw new ArgumentException("Invalid entity id.", nameof(id));
-            }
-
-            if (_currentUpdateSession is null)
-            {
-                throw new InvalidOperationException(
-                    "You need to first acquire an update session.");
-            }
-
-            if (_entities.TryGetValue(id, out object? o) && o is TEntity entity)
-            {
-                return entity;
-            }
-
-            return default;
-        }
-
-        public IReadOnlyList<TEntity> GetEntities<TEntity>(IEnumerable<EntityId> ids)
-            where TEntity : class
-        {
-            if (ids is null)
-            {
-                throw new ArgumentNullException(nameof(ids));
-            }
-
-            if (_currentUpdateSession is null)
-            {
-                throw new InvalidOperationException(
-                    "You need to first acquire a update session.");
-            }
-
-            var entities = new List<TEntity>();
-
-            foreach (EntityId id in ids)
-            {
-                if (id != default &&
-                    _entities.TryGetValue(id, out object? o) &&
-                    o is TEntity entity)
-                {
-                    entities.Add(entity);
-                }
-            }
-
-            return entities;
-        }
-
-        public IEntityUpdateSession BeginUpdate()
-        {
-            _semaphore.Wait();
-
-            return _currentUpdateSession = new UpdateSession(++_version, FinalizeUpdate);
-
-            void FinalizeUpdate(ulong version, ISet<EntityId> updatedEntityIds)
-            {
-                _entityUpdateObservable.OnUpdated(updatedEntityIds, version);
-                _currentUpdateSession = null;
-                _semaphore.Release();
+                _snapshot = session.CurrentSnapshot;
+                _entityUpdateObservable.OnUpdated(
+                    session.CurrentSnapshot,
+                    session.UpdatedEntityIds,
+                    session.CurrentSnapshot.Version);
             }
         }
 
+        /// <inheritdoc />
         public IObservable<EntityUpdate> Watch() => _entityUpdateObservable;
 
         private class EntityUpdateObservable : IObservable<EntityUpdate>
@@ -124,13 +52,16 @@ namespace StrawberryShake
                 return new Subscription(this, observer);
             }
 
-            public void OnUpdated(ISet<EntityId> entityIds, ulong version)
+            public void OnUpdated(
+                IEntityStoreSnapshot snapshot,
+                ISet<EntityId> entityIds,
+                ulong version)
             {
                 ImmutableList<IObserver<EntityUpdate>> observers = _observers;
 
                 if (observers.Count > 0)
                 {
-                    var update = new EntityUpdate(entityIds, version);
+                    var update = new EntityUpdate(snapshot, entityIds, version);
 
                     foreach (var observer in observers)
                     {
@@ -163,32 +94,6 @@ namespace StrawberryShake
                         }
                         _disposed = true;
                     }
-                }
-            }
-        }
-
-        private class UpdateSession : IEntityUpdateSession
-        {
-            private readonly ulong _version;
-            private readonly Action<ulong, ISet<EntityId>> _dispose;
-            private bool _disposed;
-
-            public UpdateSession(ulong version, Action<ulong, ISet<EntityId>> dispose)
-            {
-                _version = version;
-                _dispose = dispose;
-            }
-
-            public ulong Version => _version;
-
-            public HashSet<EntityId> EntityIds { get; } = new();
-
-            public void Dispose()
-            {
-                if (!_disposed)
-                {
-                    _dispose(_version, EntityIds);
-                    _disposed = true;
                 }
             }
         }

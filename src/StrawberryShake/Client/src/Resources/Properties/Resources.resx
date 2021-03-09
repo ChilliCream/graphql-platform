@@ -117,4 +117,7 @@
   <data name="JsonErrorParser_ParseErrors_Error" xml:space="preserve">
     <value>Error parsing a server error.</value>
   </data>
+  <data name="EntityStore_InvalidEntityId" xml:space="preserve">
+    <value>Invalid entity id.</value>
+  </data>
 </root>

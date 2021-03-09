@@ -143,7 +143,7 @@ namespace StrawberryShake
 
                         if (_request.Document.Kind == OperationKind.Subscription)
                         {
-                            _operationStore.ClearResult<TResult>(_request);
+                            _operationStore.Reset(_request);
                         }
                     }
                 }

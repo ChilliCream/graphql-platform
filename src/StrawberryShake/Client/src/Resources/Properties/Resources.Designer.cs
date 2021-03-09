@@ -242,5 +242,11 @@ namespace StrawberryShake.Properties {
                 return ResourceManager.GetString("JsonErrorParser_ParseErrors_Error", resourceCulture);
             }
         }
+        
+        internal static string EntityStore_InvalidEntityId {
+            get {
+                return ResourceManager.GetString("EntityStore_InvalidEntityId", resourceCulture);
+            }
+        }
     }
 }

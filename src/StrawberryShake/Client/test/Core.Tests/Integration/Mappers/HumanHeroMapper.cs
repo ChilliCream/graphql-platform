@@ -22,6 +22,7 @@ namespace StrawberryShake.Integration.Mappers
         public HumanHero Map(HumanEntity entity)
         {
             var friends = new List<ICharacter>();
+            IEntityStoreSnapshot snapshot = _entityStore.CurrentSnapshot;
 
             foreach (EntityId friendId in entity.Friends)
             {
@@ -29,13 +30,13 @@ namespace StrawberryShake.Integration.Mappers
                 {
                     friends.Add(
                         _humanMapper.Map(
-                            _entityStore.GetEntity<HumanEntity>(friendId)!));
+                            snapshot.GetEntity<HumanEntity>(friendId)!));
                 }
                 else if (friendId.Name.Equals("Droid", StringComparison.Ordinal))
                 {
                     friends.Add(
                         _droidMapper.Map(
-                            _entityStore.GetEntity<DroidEntity>(friendId)!));
+                            snapshot.GetEntity<DroidEntity>(friendId)!));
                 }
                 else
                 {

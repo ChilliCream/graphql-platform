@@ -17,7 +17,14 @@ namespace StrawberryShake
         /// <param name="dataInfo">
         /// The data info that provides all the entity ids used by the result.
         /// </param>
-        /// <returns></returns>
-        TResultData Create(IOperationResultDataInfo dataInfo);
+        /// <param name="snapshot">
+        /// An optional store snapshot that shall be used instead of the newest snapshot.
+        /// </param>
+        /// <returns>
+        /// Returns the constructed result model.
+        /// </returns>
+        TResultData Create(
+            IOperationResultDataInfo dataInfo,
+            IEntityStoreSnapshot? snapshot = null);
     }
 }

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Utilities;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using StrawberryShake.Transport.WebSockets;
 using Xunit;
 
@@ -36,6 +37,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
             // act
             serviceCollection.AddMultiProfileClient(
                 profile: MultiProfileClientProfileKind.Default);
+
+
+            serviceCollection.TryAddSingleton(sp => CachePolicies.NoCache(sp.GetRequiredService<IStoreAccessor>()));
+
             IServiceProvider services = serviceCollection.BuildServiceProvider();
             MultiProfileClient client = services.GetRequiredService<MultiProfileClient>();
 
