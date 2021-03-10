@@ -7,7 +7,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
     /// <summary>
     /// Represents the StarWarsClient GraphQL client
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.1.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class StarWarsClient
     {
         private readonly global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.GetPeopleQuery _getPeople;

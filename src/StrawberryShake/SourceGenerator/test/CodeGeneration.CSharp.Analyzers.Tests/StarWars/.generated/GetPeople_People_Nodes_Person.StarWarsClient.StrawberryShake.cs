@@ -4,7 +4,7 @@
 
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
 {
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.1.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeople_People_Nodes_Person
         : global::System.IEquatable<GetPeople_People_Nodes_Person>
         , IGetPeople_People_Nodes_Person

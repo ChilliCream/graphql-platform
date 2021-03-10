@@ -4,12 +4,12 @@
 
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
 {
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.1.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleResult
         : global::System.IEquatable<GetPeopleResult>
         , IGetPeopleResult
     {
-        public GetPeopleResult(IGetPeople_People? people)
+        public GetPeopleResult(global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IGetPeople_People? people)
         {
             People = people;
         }
@@ -17,7 +17,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
         /// <summary>
         /// Gets access to all the people known to this service.
         /// </summary>
-        public IGetPeople_People? People { get; }
+        public global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IGetPeople_People? People { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
