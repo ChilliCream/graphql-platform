@@ -15,7 +15,7 @@ namespace StrawberryShake
         /// with the correct name
         /// </summary>
         /// <param name="clientBuilder">
-        /// The <see cref="IClientBuilder"/>
+        /// The <see cref="IClientBuilder{T}"/>
         /// </param>
         /// <param name="configureClient">
         /// A delegate that is used to configure an <see cref="WebSocketClient"/>.
@@ -45,7 +45,7 @@ namespace StrawberryShake
         /// with the correct name
         /// </summary>
         /// <param name="clientBuilder">
-        /// The <see cref="IClientBuilder"/>
+        /// The <see cref="IClientBuilder{T}"/>
         /// </param>
         /// <param name="configureClient">
         /// A delegate that is used to configure an <see cref="WebSocketClient"/>.

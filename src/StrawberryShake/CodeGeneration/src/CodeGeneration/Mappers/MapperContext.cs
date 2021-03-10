@@ -20,6 +20,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
         private ClientDescriptor? _client;
         private EntityIdFactoryDescriptor? _entityIdFactory;
         private DependencyInjectionDescriptor? _dependencyInjectionDescriptor;
+        private StoreAccessorDescriptor? _storeAccessorDescriptor;
 
         public MapperContext(
             string @namespace,
@@ -65,6 +66,9 @@ namespace StrawberryShake.CodeGeneration.Mappers
         public DependencyInjectionDescriptor DependencyInjection =>
             _dependencyInjectionDescriptor ?? throw new NotImplementedException();
 
+        public StoreAccessorDescriptor StoreAccessor =>
+            _storeAccessorDescriptor ?? throw new NotImplementedException();
+
         public IEnumerable<ICodeDescriptor> GetAllDescriptors()
         {
             foreach (var entityTypeDescriptor in EntityTypes)
@@ -97,6 +101,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
             yield return EntityIdFactory;
 
             yield return DependencyInjection;
+
+            yield return StoreAccessor;
         }
 
         public RuntimeTypeInfo GetRuntimeType(NameString typeName, TypeKind kind)
@@ -168,6 +174,11 @@ namespace StrawberryShake.CodeGeneration.Mappers
         public void Register(DependencyInjectionDescriptor dependencyInjectionDescriptor)
         {
             _dependencyInjectionDescriptor = dependencyInjectionDescriptor;
+        }
+
+        public void Register(StoreAccessorDescriptor storeAccessorDescriptor)
+        {
+            _storeAccessorDescriptor = storeAccessorDescriptor;
         }
 
         public bool Register(NameString typeName, TypeKind kind, RuntimeTypeInfo runtimeType)

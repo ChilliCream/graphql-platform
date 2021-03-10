@@ -170,15 +170,21 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .SetReturnType(typeReference.ToStateTypeReference())
                     .SetName(methodName);
 
-                methodBuilder
-                    .AddParameter(_obj)
-                    .SetType(TypeNames.JsonElement.MakeNullable());
 
                 if (typeReference.IsEntityType() || typeReference.ContainsEntity())
                 {
                     methodBuilder
-                        .AddParameter(_entityIds)
-                        .SetType(TypeNames.ISet.WithGeneric(TypeNames.EntityId));
+                        .AddParameter(_session, x => x.SetType(TypeNames.IEntityStoreUpdateSession))
+                        .AddParameter(_obj, x => x.SetType(TypeNames.JsonElement.MakeNullable()))
+                        .AddParameter(
+                            _entityIds,
+                            x => x.SetType(TypeNames.ISet.WithGeneric(TypeNames.EntityId)));
+                }
+                else
+                {
+                    methodBuilder
+                        .AddParameter(_obj)
+                        .SetType(TypeNames.JsonElement.MakeNullable());
                 }
 
                 IfBuilder jsonElementNullCheck = IfBuilder
@@ -286,7 +292,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                                 ConditionBuilder
                                     .New()
                                     .Set("response.Body.RootElement.TryGetProperty(\"data\"," +
-                                         $" out {TypeNames.JsonElement} dataElement)"))
+                                        $" out {TypeNames.JsonElement} dataElement)"))
                             .AddCode("data = BuildData(dataElement);"))
                     .AddCode(
                         IfBuilder
@@ -295,7 +301,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                                 ConditionBuilder
                                     .New()
                                     .Set("response.Body.RootElement.TryGetProperty(\"errors\"," +
-                                         $" out {TypeNames.JsonElement} errorsElement)"))
+                                        $" out {TypeNames.JsonElement} errorsElement)"))
                             .AddCode($"errors = {TypeNames.ParseError}(errorsElement);")));
 
             buildMethod.AddEmptyLine();
@@ -331,11 +337,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .Inline()
                 .SetMethodName(DeserializerMethodNameFromTypeName(property));
 
-            deserializeMethodCaller.AddArgument(argument);
-
             if (property.IsEntityType() || property.ContainsEntity())
             {
-                deserializeMethodCaller.AddArgument(_entityIds);
+                deserializeMethodCaller
+                    .AddArgument(_session)
+                    .AddArgument(argument)
+                    .AddArgument(_entityIds);
+            }
+            else
+            {
+                deserializeMethodCaller.AddArgument(argument);
             }
 
             return deserializeMethodCaller;
@@ -365,8 +376,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
                 INamedTypeDescriptor { Kind: TypeKind.EntityType } d =>
                     CreateEntityType(
-                        d.RuntimeType.Name,
-                        d.RuntimeType.NamespaceWithoutGlobal)
+                            d.RuntimeType.Name,
+                            d.RuntimeType.NamespaceWithoutGlobal)
                         .Name,
 
                 INamedTypeDescriptor d =>

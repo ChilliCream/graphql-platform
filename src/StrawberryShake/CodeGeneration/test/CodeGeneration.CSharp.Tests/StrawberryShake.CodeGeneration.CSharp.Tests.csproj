@@ -17,7 +17,6 @@
     <ProjectReference Include="..\..\..\Client\src\Transport.InMemory\StrawberryShake.Transport.InMemory.csproj" />
     <ProjectReference Include="..\..\..\Client\test\Transport.WebSocket.Tests\StrawberryShake.Transport.WebSocket.Tests.csproj" />
     <ProjectReference Include="..\..\src\CodeGeneration.CSharp\StrawberryShake.CodeGeneration.CSharp.csproj" />
-    <Compile Remove="Integration\**\*.*" />
   </ItemGroup>
 
   <ItemGroup>

@@ -23,25 +23,37 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class PersonEntity
     {
+        public PersonEntity(
+            global::Foo.Bar.State.PersonConnectionData? friends,
+            global::System.String name,
+            global::System.String email,
+            global::System.Boolean isOnline)
+        {
+            Friends = friends;
+            Name = name;
+            Email = email;
+            IsOnline = isOnline;
+        }
+
         /// <summary>
         /// Field friends
         /// </summary>
-        public global::Foo.Bar.State.PersonConnectionData? Friends { get; set; }
+        public global::Foo.Bar.State.PersonConnectionData? Friends { get; }
 
         /// <summary>
         /// Field name
         /// </summary>
-        public global::System.String Name { get; set; } = default!;
+        public global::System.String Name { get; }
 
         /// <summary>
         /// Field email
         /// </summary>
-        public global::System.String Email { get; set; } = default!;
+        public global::System.String Email { get; }
 
         /// <summary>
         /// Field isOnline
         /// </summary>
-        public global::System.Boolean IsOnline { get; set; } = default!;
+        public global::System.Boolean IsOnline { get; }
     }
 }
 
@@ -71,17 +83,28 @@ namespace Foo.Bar.State
                  ?? throw new global::System.ArgumentNullException(nameof(getPeople_Me_PersonFromPersonEntityMapper));
         }
 
-        public GetPeopleResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo)
+        public GetPeopleResult Create(
+            global::StrawberryShake.IOperationResultDataInfo dataInfo,
+            global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             if (dataInfo is GetPeopleResultInfo info)
             {
-                return new GetPeopleResult(MapNonNullableIGetPeople_Me(info.Me));
+                return new GetPeopleResult(MapNonNullableIGetPeople_Me(
+                    info.Me,
+                    snapshot));
             }
 
             throw new global::System.ArgumentException("GetPeopleResultInfo expected.");
         }
 
-        private global::Foo.Bar.IGetPeople_Me MapNonNullableIGetPeople_Me(global::StrawberryShake.EntityId entityId)
+        private global::Foo.Bar.IGetPeople_Me MapNonNullableIGetPeople_Me(
+            global::StrawberryShake.EntityId entityId,
+            global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
 
             if (entityId.Name.Equals(
@@ -89,7 +112,7 @@ namespace Foo.Bar.State
                     global::System.StringComparison.Ordinal))
             {
                 return _getPeople_Me_PersonFromPersonEntityMapper.Map(
-                    _entityStore.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId)
+                    snapshot.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
@@ -258,12 +281,23 @@ namespace Foo.Bar.State
                  ?? throw new global::System.ArgumentNullException(nameof(getPeople_Me_Friends_Nodes_PersonFromPersonEntityMapper));
         }
 
-        public GetPeople_Me_Person Map(global::Foo.Bar.State.PersonEntity entity)
+        public GetPeople_Me_Person Map(
+            global::Foo.Bar.State.PersonEntity entity,
+            global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
-            return new GetPeople_Me_Person(MapIGetPeople_Me_Friends(entity.Friends));
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new GetPeople_Me_Person(MapIGetPeople_Me_Friends(
+                entity.Friends,
+                snapshot));
         }
 
-        private global::Foo.Bar.IGetPeople_Me_Friends? MapIGetPeople_Me_Friends(global::Foo.Bar.State.PersonConnectionData? data)
+        private global::Foo.Bar.IGetPeople_Me_Friends? MapIGetPeople_Me_Friends(
+            global::Foo.Bar.State.PersonConnectionData? data,
+            global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
             if (data is null)
             {
@@ -276,7 +310,9 @@ namespace Foo.Bar.State
                     "PersonConnection",
                     global::System.StringComparison.Ordinal) ?? false)
             {
-                returnValue = new GetPeople_Me_Friends_PersonConnection(MapIGetPeople_Me_Friends_NodesArray(data.Nodes));
+                returnValue = new GetPeople_Me_Friends_PersonConnection(MapIGetPeople_Me_Friends_NodesArray(
+                    data.Nodes,
+                    snapshot));
             }
             else
             {
@@ -285,7 +321,9 @@ namespace Foo.Bar.State
             return returnValue;
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetPeople_Me_Friends_Nodes?>? MapIGetPeople_Me_Friends_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetPeople_Me_Friends_Nodes?>? MapIGetPeople_Me_Friends_NodesArray(
+            global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list,
+            global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
             if (list is null)
             {
@@ -296,13 +334,17 @@ namespace Foo.Bar.State
 
             foreach (global::StrawberryShake.EntityId? child in list)
             {
-                persons.Add(MapIGetPeople_Me_Friends_Nodes(child));
+                persons.Add(MapIGetPeople_Me_Friends_Nodes(
+                    child,
+                    snapshot));
             }
 
             return persons;
         }
 
-        private global::Foo.Bar.IGetPeople_Me_Friends_Nodes? MapIGetPeople_Me_Friends_Nodes(global::StrawberryShake.EntityId? entityId)
+        private global::Foo.Bar.IGetPeople_Me_Friends_Nodes? MapIGetPeople_Me_Friends_Nodes(
+            global::StrawberryShake.EntityId? entityId,
+            global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
             if (entityId is null)
             {
@@ -315,7 +357,7 @@ namespace Foo.Bar.State
                     global::System.StringComparison.Ordinal))
             {
                 return _getPeople_Me_Friends_Nodes_PersonFromPersonEntityMapper.Map(
-                    _entityStore.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId.Value)
+                    snapshot.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId.Value)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
@@ -528,7 +570,9 @@ namespace Foo.Bar.State
     public partial class GetPeople_Me_Friends_Nodes_PersonFromPersonEntityMapper
         : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetPeople_Me_Friends_Nodes_Person>
     {
-        public GetPeople_Me_Friends_Nodes_Person Map(global::Foo.Bar.State.PersonEntity entity)
+        public GetPeople_Me_Friends_Nodes_Person Map(
+            global::Foo.Bar.State.PersonEntity entity,
+            global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             return new GetPeople_Me_Friends_Nodes_Person(
                 entity.Name,
@@ -999,19 +1043,26 @@ namespace Foo.Bar.State
 
         private (IGetPeopleResult, GetPeopleResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
         {
-            using global::StrawberryShake.IEntityUpdateSession session = _entityStore.BeginUpdate();
             var entityIds = new global::System.Collections.Generic.HashSet<global::StrawberryShake.EntityId>();
+            global::StrawberryShake.IEntityStoreSnapshot snapshot = default!;
 
-            global::StrawberryShake.EntityId meId = UpdateNonNullableIGetPeople_MeEntity(
-                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                    obj,
-                    "me"),
-                entityIds);
+            global::StrawberryShake.EntityId meId = default!;
+            _entityStore.Update(session => 
+            {
+                meId = UpdateNonNullableIGetPeople_MeEntity(
+                    session,
+                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                        obj,
+                        "me"),
+                    entityIds);
+
+                snapshot = session.CurrentSnapshot;
+            });
 
             var resultInfo = new GetPeopleResultInfo(
                 meId,
                 entityIds,
-                session.Version);
+                snapshot.Version);
 
             return (
                 _resultDataFactory.Create(resultInfo),
@@ -1020,6 +1071,7 @@ namespace Foo.Bar.State
         }
 
         private global::StrawberryShake.EntityId UpdateNonNullableIGetPeople_MeEntity(
+            global::StrawberryShake.IEntityStoreUpdateSession session,
             global::System.Text.Json.JsonElement? obj,
             global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
@@ -1036,12 +1088,38 @@ namespace Foo.Bar.State
                     "Person",
                     global::System.StringComparison.Ordinal))
             {
-                global::Foo.Bar.State.PersonEntity entity = _entityStore.GetOrCreate<global::Foo.Bar.State.PersonEntity>(entityId);
-                entity.Friends = DeserializeIGetPeople_Me_Friends(
-                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                        obj,
-                        "friends"),
-                    entityIds);
+                if (session.CurrentSnapshot.TryGetEntity(
+                        entityId,
+                        out global::Foo.Bar.State.PersonEntity? entity))
+                {
+                    session.SetEntity(
+                        entityId,
+                        new global::Foo.Bar.State.PersonEntity(
+                            DeserializeIGetPeople_Me_Friends(
+                                session,
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "friends"),
+                                entityIds),
+                            entity.Name,
+                            entity.Email,
+                            entity.IsOnline));
+                }
+                else
+                {
+                    session.SetEntity(
+                        entityId,
+                        new global::Foo.Bar.State.PersonEntity(
+                            DeserializeIGetPeople_Me_Friends(
+                                session,
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "friends"),
+                                entityIds),
+                            default!,
+                            default!,
+                            default!));
+                }
 
                 return entityId;
             }
@@ -1050,6 +1128,7 @@ namespace Foo.Bar.State
         }
 
         private global::Foo.Bar.State.PersonConnectionData? DeserializeIGetPeople_Me_Friends(
+            global::StrawberryShake.IEntityStoreUpdateSession session,
             global::System.Text.Json.JsonElement? obj,
             global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
@@ -1067,6 +1146,7 @@ namespace Foo.Bar.State
                 return new global::Foo.Bar.State.PersonConnectionData(
                     typename,
                     nodes: UpdateIGetPeople_Me_Friends_NodesEntityArray(
+                        session,
                         global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                             obj,
                             "nodes"),
@@ -1077,6 +1157,7 @@ namespace Foo.Bar.State
         }
 
         private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? UpdateIGetPeople_Me_Friends_NodesEntityArray(
+            global::StrawberryShake.IEntityStoreUpdateSession session,
             global::System.Text.Json.JsonElement? obj,
             global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
@@ -1090,6 +1171,7 @@ namespace Foo.Bar.State
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
                 persons.Add(UpdateIGetPeople_Me_Friends_NodesEntity(
+                    session,
                     child,
                     entityIds));
             }
@@ -1098,6 +1180,7 @@ namespace Foo.Bar.State
         }
 
         private global::StrawberryShake.EntityId? UpdateIGetPeople_Me_Friends_NodesEntity(
+            global::StrawberryShake.IEntityStoreUpdateSession session,
             global::System.Text.Json.JsonElement? obj,
             global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
@@ -1114,19 +1197,46 @@ namespace Foo.Bar.State
                     "Person",
                     global::System.StringComparison.Ordinal))
             {
-                global::Foo.Bar.State.PersonEntity entity = _entityStore.GetOrCreate<global::Foo.Bar.State.PersonEntity>(entityId);
-                entity.Name = DeserializeNonNullableString(
-                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                        obj,
-                        "name"));
-                entity.Email = DeserializeNonNullableString(
-                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                        obj,
-                        "email"));
-                entity.IsOnline = DeserializeNonNullableBoolean(
-                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                        obj,
-                        "isOnline"));
+                if (session.CurrentSnapshot.TryGetEntity(
+                        entityId,
+                        out global::Foo.Bar.State.PersonEntity? entity))
+                {
+                    session.SetEntity(
+                        entityId,
+                        new global::Foo.Bar.State.PersonEntity(
+                            entity.Friends,
+                            DeserializeNonNullableString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "name")),
+                            DeserializeNonNullableString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "email")),
+                            DeserializeNonNullableBoolean(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "isOnline"))));
+                }
+                else
+                {
+                    session.SetEntity(
+                        entityId,
+                        new global::Foo.Bar.State.PersonEntity(
+                            default!,
+                            DeserializeNonNullableString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "name")),
+                            DeserializeNonNullableString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "email")),
+                            DeserializeNonNullableBoolean(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "isOnline"))));
+                }
 
                 return entityId;
             }
@@ -1270,7 +1380,7 @@ namespace Microsoft.Extensions.DependencyInjection
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class FooClientServiceCollectionExtensions
     {
-        public static global::StrawberryShake.IClientBuilder AddFooClient(
+        public static global::StrawberryShake.IClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor> AddFooClient(
             this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
             global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
@@ -1288,6 +1398,14 @@ namespace Microsoft.Extensions.DependencyInjection
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
+                sp => new global::Foo.Bar.State.FooClientStoreAccessor(
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)),
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp))));
+
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
+                services,
                 sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.GetPeopleQuery>(
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
 
@@ -1296,7 +1414,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.FooClient>(
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
 
-            return new global::StrawberryShake.ClientBuilder(
+            return new global::StrawberryShake.ClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor>(
                 "FooClient",
                 services);
         }
@@ -1312,9 +1430,7 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IEntityStore, global::StrawberryShake.EntityStore>(services);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IOperationStore>(
                 services,
-                sp => new global::StrawberryShake.OperationStore(
-                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(sp)
-                    .Watch()));
+                sp => new global::StrawberryShake.OperationStore(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
                 sp => 
@@ -1388,6 +1504,33 @@ namespace Microsoft.Extensions.DependencyInjection
                 }
             }
         }
+    }
+}
+
+
+// FooClientStoreAccessor
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.StoreAccessorGenerator
+
+#nullable enable
+
+namespace Foo.Bar.State
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FooClientStoreAccessor
+        : global::StrawberryShake.IStoreAccessor
+    {
+        public FooClientStoreAccessor(
+            global::StrawberryShake.IOperationStore operationStore,
+            global::StrawberryShake.IEntityStore entityStore)
+        {
+            EntityStore = entityStore;
+            OperationStore = operationStore;
+        }
+
+        public global::StrawberryShake.IOperationStore OperationStore { get; }
+
+        public global::StrawberryShake.IEntityStore EntityStore { get; }
     }
 }
 

@@ -37,6 +37,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
         ClientDescriptor Client { get; }
 
+        StoreAccessorDescriptor StoreAccessor { get; }
+
         void Register(IEnumerable<INamedTypeDescriptor> typeDescriptors);
 
         void Register(IEnumerable<EntityTypeDescriptor> entityTypeDescriptor);
@@ -52,6 +54,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
         void Register(EntityIdFactoryDescriptor entityIdFactoryDescriptor);
 
         void Register(DependencyInjectionDescriptor dependencyInjectionDescriptor);
+
+        void Register(StoreAccessorDescriptor storeAccessorDescriptor);
 
         bool Register(NameString typeName, TypeKind kind, RuntimeTypeInfo runtimeType);
 

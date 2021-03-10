@@ -20,42 +20,62 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class PersonEntity
     {
-        public global::System.String Id { get; set; } = default!;
+        public PersonEntity(
+            global::System.String id,
+            global::System.Int64 key,
+            global::System.String? displayName,
+            global::System.Boolean isActive,
+            global::StrawberryShake.EntityId? department,
+            global::System.Uri? image,
+            global::System.String title,
+            global::StrawberryShake.EntityId? manager)
+        {
+            Id = id;
+            Key = key;
+            DisplayName = displayName;
+            IsActive = isActive;
+            Department = department;
+            Image = image;
+            Title = title;
+            Manager = manager;
+        }
+
+        public global::System.String Id { get; }
 
         /// <summary>
         /// The database primary key for the person.
         /// </summary>
-        public global::System.Int64 Key { get; set; } = default!;
+        public global::System.Int64 Key { get; }
 
         /// <summary>
         /// The full of the person.
         /// </summary>
-        public global::System.String? DisplayName { get; set; }
+        public global::System.String? DisplayName { get; }
 
         /// <summary>
         /// Indicates if the person is active.
         /// </summary>
-        public global::System.Boolean IsActive { get; set; } = default!;
+        public global::System.Boolean IsActive { get; }
 
         /// <summary>
         /// The department the person belongs to.
         /// </summary>
-        public global::StrawberryShake.EntityId? Department { get; set; }
+        public global::StrawberryShake.EntityId? Department { get; }
 
         /// <summary>
         /// Url to image, you can specify a size in pixels by appending '?size=300' to get a square image.
         /// </summary>
-        public global::System.Uri? Image { get; set; }
+        public global::System.Uri? Image { get; }
 
         /// <summary>
         /// The job title of the person.
         /// </summary>
-        public global::System.String Title { get; set; } = default!;
+        public global::System.String Title { get; }
 
         /// <summary>
         /// The person managing the person.
         /// </summary>
-        public global::StrawberryShake.EntityId? Manager { get; set; }
+        public global::StrawberryShake.EntityId? Manager { get; }
     }
 }
 
@@ -71,12 +91,20 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class DepartmentEntity
     {
-        public global::System.String Id { get; set; } = default!;
+        public DepartmentEntity(
+            global::System.String id,
+            global::System.String name)
+        {
+            Id = id;
+            Name = name;
+        }
+
+        public global::System.String Id { get; }
 
         /// <summary>
         /// The name of the department.
         /// </summary>
-        public global::System.String Name { get; set; } = default!;
+        public global::System.String Name { get; }
     }
 }
 
@@ -114,17 +142,28 @@ namespace Foo.Bar.State
                  ?? throw new global::System.ArgumentNullException(nameof(peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper));
         }
 
-        public PeopleSearchResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo)
+        public PeopleSearchResult Create(
+            global::StrawberryShake.IOperationResultDataInfo dataInfo,
+            global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             if (dataInfo is PeopleSearchResultInfo info)
             {
-                return new PeopleSearchResult(MapIPeopleSearch_People(info.People));
+                return new PeopleSearchResult(MapIPeopleSearch_People(
+                    info.People,
+                    snapshot));
             }
 
             throw new global::System.ArgumentException("PeopleSearchResultInfo expected.");
         }
 
-        private global::Foo.Bar.IPeopleSearch_People? MapIPeopleSearch_People(global::Foo.Bar.State.PersonCollectionSegmentData? data)
+        private global::Foo.Bar.IPeopleSearch_People? MapIPeopleSearch_People(
+            global::Foo.Bar.State.PersonCollectionSegmentData? data,
+            global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
             if (data is null)
             {
@@ -139,8 +178,12 @@ namespace Foo.Bar.State
             {
                 returnValue = new PeopleSearch_People_PersonCollectionSegment(
                     data.TotalCount ?? throw new global::System.ArgumentNullException(),
-                    MapNonNullableIPeopleSearch_People_PageInfo(data.PageInfo ?? throw new global::System.ArgumentNullException()),
-                    MapIPeopleSearch_People_ItemsNonNullableArray(data.Items));
+                    MapNonNullableIPeopleSearch_People_PageInfo(
+                        data.PageInfo ?? throw new global::System.ArgumentNullException(),
+                        snapshot),
+                    MapIPeopleSearch_People_ItemsNonNullableArray(
+                        data.Items,
+                        snapshot));
             }
             else
             {
@@ -149,7 +192,9 @@ namespace Foo.Bar.State
             return returnValue;
         }
 
-        private global::Foo.Bar.IPeopleSearch_People_PageInfo MapNonNullableIPeopleSearch_People_PageInfo(global::Foo.Bar.State.CollectionSegmentInfoData data)
+        private global::Foo.Bar.IPeopleSearch_People_PageInfo MapNonNullableIPeopleSearch_People_PageInfo(
+            global::Foo.Bar.State.CollectionSegmentInfoData data,
+            global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
             IPeopleSearch_People_PageInfo returnValue = default!;
 
@@ -168,7 +213,9 @@ namespace Foo.Bar.State
             return returnValue;
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IPeopleSearch_People_Items>? MapIPeopleSearch_People_ItemsNonNullableArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId>? list)
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IPeopleSearch_People_Items>? MapIPeopleSearch_People_ItemsNonNullableArray(
+            global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId>? list,
+            global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
             if (list is null)
             {
@@ -179,13 +226,17 @@ namespace Foo.Bar.State
 
             foreach (global::StrawberryShake.EntityId child in list)
             {
-                persons.Add(MapNonNullableIPeopleSearch_People_Items(child));
+                persons.Add(MapNonNullableIPeopleSearch_People_Items(
+                    child,
+                    snapshot));
             }
 
             return persons;
         }
 
-        private global::Foo.Bar.IPeopleSearch_People_Items MapNonNullableIPeopleSearch_People_Items(global::StrawberryShake.EntityId entityId)
+        private global::Foo.Bar.IPeopleSearch_People_Items MapNonNullableIPeopleSearch_People_Items(
+            global::StrawberryShake.EntityId entityId,
+            global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
 
             if (entityId.Name.Equals(
@@ -193,13 +244,15 @@ namespace Foo.Bar.State
                     global::System.StringComparison.Ordinal))
             {
                 return _peopleSearch_People_Items_PersonFromPersonEntityMapper.Map(
-                    _entityStore.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId)
+                    snapshot.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
         }
 
-        private global::Foo.Bar.IPeopleSearch_People_Items_Department? MapIPeopleSearch_People_Items_Department(global::StrawberryShake.EntityId? entityId)
+        private global::Foo.Bar.IPeopleSearch_People_Items_Department? MapIPeopleSearch_People_Items_Department(
+            global::StrawberryShake.EntityId? entityId,
+            global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
             if (entityId is null)
             {
@@ -212,13 +265,15 @@ namespace Foo.Bar.State
                     global::System.StringComparison.Ordinal))
             {
                 return _peopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper.Map(
-                    _entityStore.GetEntity<global::Foo.Bar.State.DepartmentEntity>(entityId.Value)
+                    snapshot.GetEntity<global::Foo.Bar.State.DepartmentEntity>(entityId.Value)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
         }
 
-        private global::Foo.Bar.IPeopleSearch_People_Items_Manager? MapIPeopleSearch_People_Items_Manager(global::StrawberryShake.EntityId? entityId)
+        private global::Foo.Bar.IPeopleSearch_People_Items_Manager? MapIPeopleSearch_People_Items_Manager(
+            global::StrawberryShake.EntityId? entityId,
+            global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
             if (entityId is null)
             {
@@ -231,7 +286,7 @@ namespace Foo.Bar.State
                     global::System.StringComparison.Ordinal))
             {
                 return _peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper.Map(
-                    _entityStore.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId.Value)
+                    snapshot.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId.Value)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
@@ -613,20 +668,33 @@ namespace Foo.Bar.State
                  ?? throw new global::System.ArgumentNullException(nameof(peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper));
         }
 
-        public PeopleSearch_People_Items_Person Map(global::Foo.Bar.State.PersonEntity entity)
+        public PeopleSearch_People_Items_Person Map(
+            global::Foo.Bar.State.PersonEntity entity,
+            global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             return new PeopleSearch_People_Items_Person(
                 entity.Id,
                 entity.Key,
                 entity.DisplayName,
                 entity.IsActive,
-                MapIPeopleSearch_People_Items_Department(entity.Department),
+                MapIPeopleSearch_People_Items_Department(
+                    entity.Department,
+                    snapshot),
                 entity.Image,
                 entity.Title,
-                MapIPeopleSearch_People_Items_Manager(entity.Manager));
+                MapIPeopleSearch_People_Items_Manager(
+                    entity.Manager,
+                    snapshot));
         }
 
-        private global::Foo.Bar.IPeopleSearch_People_Items_Department? MapIPeopleSearch_People_Items_Department(global::StrawberryShake.EntityId? entityId)
+        private global::Foo.Bar.IPeopleSearch_People_Items_Department? MapIPeopleSearch_People_Items_Department(
+            global::StrawberryShake.EntityId? entityId,
+            global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
             if (entityId is null)
             {
@@ -639,13 +707,15 @@ namespace Foo.Bar.State
                     global::System.StringComparison.Ordinal))
             {
                 return _peopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper.Map(
-                    _entityStore.GetEntity<global::Foo.Bar.State.DepartmentEntity>(entityId.Value)
+                    snapshot.GetEntity<global::Foo.Bar.State.DepartmentEntity>(entityId.Value)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
         }
 
-        private global::Foo.Bar.IPeopleSearch_People_Items_Manager? MapIPeopleSearch_People_Items_Manager(global::StrawberryShake.EntityId? entityId)
+        private global::Foo.Bar.IPeopleSearch_People_Items_Manager? MapIPeopleSearch_People_Items_Manager(
+            global::StrawberryShake.EntityId? entityId,
+            global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
             if (entityId is null)
             {
@@ -658,7 +728,7 @@ namespace Foo.Bar.State
                     global::System.StringComparison.Ordinal))
             {
                 return _peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper.Map(
-                    _entityStore.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId.Value)
+                    snapshot.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId.Value)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
@@ -845,7 +915,9 @@ namespace Foo.Bar.State
     public partial class PeopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper
         : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.DepartmentEntity, PeopleSearch_People_Items_Department_Department>
     {
-        public PeopleSearch_People_Items_Department_Department Map(global::Foo.Bar.State.DepartmentEntity entity)
+        public PeopleSearch_People_Items_Department_Department Map(
+            global::Foo.Bar.State.DepartmentEntity entity,
+            global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             return new PeopleSearch_People_Items_Department_Department(
                 entity.Id,
@@ -961,7 +1033,9 @@ namespace Foo.Bar.State
     public partial class PeopleSearch_People_Items_Manager_PersonFromPersonEntityMapper
         : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, PeopleSearch_People_Items_Manager_Person>
     {
-        public PeopleSearch_People_Items_Manager_Person Map(global::Foo.Bar.State.PersonEntity entity)
+        public PeopleSearch_People_Items_Manager_Person Map(
+            global::Foo.Bar.State.PersonEntity entity,
+            global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             return new PeopleSearch_People_Items_Manager_Person(
                 entity.Id,
@@ -1670,18 +1744,26 @@ namespace Foo.Bar.State
 
         private (IPeopleSearchQueryResult, PeopleSearchResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
         {
-            using global::StrawberryShake.IEntityUpdateSession session = _entityStore.BeginUpdate();
             var entityIds = new global::System.Collections.Generic.HashSet<global::StrawberryShake.EntityId>();
+            global::StrawberryShake.IEntityStoreSnapshot snapshot = default!;
 
-
-            var resultInfo = new PeopleSearchResultInfo(
-                DeserializeIPeopleSearch_People(
+            global::Foo.Bar.State.PersonCollectionSegmentData? peopleId = default!;
+            _entityStore.Update(session => 
+            {
+                peopleId = DeserializeIPeopleSearch_People(
+                    session,
                     global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
                         "people"),
-                    entityIds),
+                    entityIds);
+
+                snapshot = session.CurrentSnapshot;
+            });
+
+            var resultInfo = new PeopleSearchResultInfo(
+                peopleId,
                 entityIds,
-                session.Version);
+                snapshot.Version);
 
             return (
                 _resultDataFactory.Create(resultInfo),
@@ -1690,6 +1772,7 @@ namespace Foo.Bar.State
         }
 
         private global::Foo.Bar.State.PersonCollectionSegmentData? DeserializeIPeopleSearch_People(
+            global::StrawberryShake.IEntityStoreUpdateSession session,
             global::System.Text.Json.JsonElement? obj,
             global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
@@ -1715,6 +1798,7 @@ namespace Foo.Bar.State
                             obj,
                             "pageInfo")),
                     items: UpdateIPeopleSearch_People_ItemsEntityNonNullableArray(
+                        session,
                         global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                             obj,
                             "items"),
@@ -1773,6 +1857,7 @@ namespace Foo.Bar.State
         }
 
         private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId>? UpdateIPeopleSearch_People_ItemsEntityNonNullableArray(
+            global::StrawberryShake.IEntityStoreUpdateSession session,
             global::System.Text.Json.JsonElement? obj,
             global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
@@ -1786,6 +1871,7 @@ namespace Foo.Bar.State
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
                 persons.Add(UpdateNonNullableIPeopleSearch_People_ItemsEntity(
+                    session,
                     child,
                     entityIds));
             }
@@ -1794,6 +1880,7 @@ namespace Foo.Bar.State
         }
 
         private global::StrawberryShake.EntityId UpdateNonNullableIPeopleSearch_People_ItemsEntity(
+            global::StrawberryShake.IEntityStoreUpdateSession session,
             global::System.Text.Json.JsonElement? obj,
             global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
@@ -1810,41 +1897,92 @@ namespace Foo.Bar.State
                     "Person",
                     global::System.StringComparison.Ordinal))
             {
-                global::Foo.Bar.State.PersonEntity entity = _entityStore.GetOrCreate<global::Foo.Bar.State.PersonEntity>(entityId);
-                entity.Id = DeserializeNonNullableString(
-                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                        obj,
-                        "id"));
-                entity.Key = DeserializeNonNullableInt64(
-                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                        obj,
-                        "key"));
-                entity.DisplayName = DeserializeString(
-                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                        obj,
-                        "displayName"));
-                entity.IsActive = DeserializeNonNullableBoolean(
-                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                        obj,
-                        "isActive"));
-                entity.Department = UpdateIPeopleSearch_People_Items_DepartmentEntity(
-                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                        obj,
-                        "department"),
-                    entityIds);
-                entity.Image = DeserializeUri(
-                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                        obj,
-                        "image"));
-                entity.Title = DeserializeNonNullableString(
-                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                        obj,
-                        "title"));
-                entity.Manager = UpdateIPeopleSearch_People_Items_ManagerEntity(
-                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                        obj,
-                        "manager"),
-                    entityIds);
+                if (session.CurrentSnapshot.TryGetEntity(
+                        entityId,
+                        out global::Foo.Bar.State.PersonEntity? entity))
+                {
+                    session.SetEntity(
+                        entityId,
+                        new global::Foo.Bar.State.PersonEntity(
+                            DeserializeNonNullableString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "id")),
+                            DeserializeNonNullableInt64(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "key")),
+                            DeserializeString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "displayName")),
+                            DeserializeNonNullableBoolean(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "isActive")),
+                            UpdateIPeopleSearch_People_Items_DepartmentEntity(
+                                session,
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "department"),
+                                entityIds),
+                            DeserializeUri(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "image")),
+                            DeserializeNonNullableString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "title")),
+                            UpdateIPeopleSearch_People_Items_ManagerEntity(
+                                session,
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "manager"),
+                                entityIds)));
+                }
+                else
+                {
+                    session.SetEntity(
+                        entityId,
+                        new global::Foo.Bar.State.PersonEntity(
+                            DeserializeNonNullableString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "id")),
+                            DeserializeNonNullableInt64(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "key")),
+                            DeserializeString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "displayName")),
+                            DeserializeNonNullableBoolean(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "isActive")),
+                            UpdateIPeopleSearch_People_Items_DepartmentEntity(
+                                session,
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "department"),
+                                entityIds),
+                            DeserializeUri(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "image")),
+                            DeserializeNonNullableString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "title")),
+                            UpdateIPeopleSearch_People_Items_ManagerEntity(
+                                session,
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "manager"),
+                                entityIds)));
+                }
 
                 return entityId;
             }
@@ -1883,6 +2021,7 @@ namespace Foo.Bar.State
         }
 
         private global::StrawberryShake.EntityId? UpdateIPeopleSearch_People_Items_DepartmentEntity(
+            global::StrawberryShake.IEntityStoreUpdateSession session,
             global::System.Text.Json.JsonElement? obj,
             global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
@@ -1899,15 +2038,36 @@ namespace Foo.Bar.State
                     "Department",
                     global::System.StringComparison.Ordinal))
             {
-                global::Foo.Bar.State.DepartmentEntity entity = _entityStore.GetOrCreate<global::Foo.Bar.State.DepartmentEntity>(entityId);
-                entity.Id = DeserializeNonNullableString(
-                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                        obj,
-                        "id"));
-                entity.Name = DeserializeNonNullableString(
-                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                        obj,
-                        "name"));
+                if (session.CurrentSnapshot.TryGetEntity(
+                        entityId,
+                        out global::Foo.Bar.State.DepartmentEntity? entity))
+                {
+                    session.SetEntity(
+                        entityId,
+                        new global::Foo.Bar.State.DepartmentEntity(
+                            DeserializeNonNullableString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "id")),
+                            DeserializeNonNullableString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "name"))));
+                }
+                else
+                {
+                    session.SetEntity(
+                        entityId,
+                        new global::Foo.Bar.State.DepartmentEntity(
+                            DeserializeNonNullableString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "id")),
+                            DeserializeNonNullableString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "name"))));
+                }
 
                 return entityId;
             }
@@ -1926,6 +2086,7 @@ namespace Foo.Bar.State
         }
 
         private global::StrawberryShake.EntityId? UpdateIPeopleSearch_People_Items_ManagerEntity(
+            global::StrawberryShake.IEntityStoreUpdateSession session,
             global::System.Text.Json.JsonElement? obj,
             global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
@@ -1942,19 +2103,54 @@ namespace Foo.Bar.State
                     "Person",
                     global::System.StringComparison.Ordinal))
             {
-                global::Foo.Bar.State.PersonEntity entity = _entityStore.GetOrCreate<global::Foo.Bar.State.PersonEntity>(entityId);
-                entity.Id = DeserializeNonNullableString(
-                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                        obj,
-                        "id"));
-                entity.Key = DeserializeNonNullableInt64(
-                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                        obj,
-                        "key"));
-                entity.DisplayName = DeserializeString(
-                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                        obj,
-                        "displayName"));
+                if (session.CurrentSnapshot.TryGetEntity(
+                        entityId,
+                        out global::Foo.Bar.State.PersonEntity? entity))
+                {
+                    session.SetEntity(
+                        entityId,
+                        new global::Foo.Bar.State.PersonEntity(
+                            DeserializeNonNullableString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "id")),
+                            DeserializeNonNullableInt64(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "key")),
+                            DeserializeString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "displayName")),
+                            entity.IsActive,
+                            entity.Department,
+                            entity.Image,
+                            entity.Title,
+                            entity.Manager));
+                }
+                else
+                {
+                    session.SetEntity(
+                        entityId,
+                        new global::Foo.Bar.State.PersonEntity(
+                            DeserializeNonNullableString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "id")),
+                            DeserializeNonNullableInt64(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "key")),
+                            DeserializeString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "displayName")),
+                            default!,
+                            default!,
+                            default!,
+                            default!,
+                            default!));
+                }
 
                 return entityId;
             }
@@ -2137,7 +2333,7 @@ namespace Microsoft.Extensions.DependencyInjection
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class FooClientServiceCollectionExtensions
     {
-        public static global::StrawberryShake.IClientBuilder AddFooClient(
+        public static global::StrawberryShake.IClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor> AddFooClient(
             this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
             global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
@@ -2155,6 +2351,14 @@ namespace Microsoft.Extensions.DependencyInjection
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
+                sp => new global::Foo.Bar.State.FooClientStoreAccessor(
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)),
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp))));
+
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
+                services,
                 sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.PeopleSearchQuery>(
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
 
@@ -2163,7 +2367,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.FooClient>(
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
 
-            return new global::StrawberryShake.ClientBuilder(
+            return new global::StrawberryShake.ClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor>(
                 "FooClient",
                 services);
         }
@@ -2179,9 +2383,7 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IEntityStore, global::StrawberryShake.EntityStore>(services);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IOperationStore>(
                 services,
-                sp => new global::StrawberryShake.OperationStore(
-                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(sp)
-                    .Watch()));
+                sp => new global::StrawberryShake.OperationStore(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
                 sp => 
@@ -2256,6 +2458,33 @@ namespace Microsoft.Extensions.DependencyInjection
                 }
             }
         }
+    }
+}
+
+
+// FooClientStoreAccessor
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.StoreAccessorGenerator
+
+#nullable enable
+
+namespace Foo.Bar.State
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FooClientStoreAccessor
+        : global::StrawberryShake.IStoreAccessor
+    {
+        public FooClientStoreAccessor(
+            global::StrawberryShake.IOperationStore operationStore,
+            global::StrawberryShake.IEntityStore entityStore)
+        {
+            EntityStore = entityStore;
+            OperationStore = operationStore;
+        }
+
+        public global::StrawberryShake.IOperationStore OperationStore { get; }
+
+        public global::StrawberryShake.IEntityStore EntityStore { get; }
     }
 }
 

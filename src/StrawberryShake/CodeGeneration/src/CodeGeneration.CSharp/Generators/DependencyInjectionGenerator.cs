@@ -61,7 +61,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .AddMethod($"Add{descriptor.Name}")
                 .SetPublic()
                 .SetStatic()
-                .SetReturnType(TypeNames.IClientBuilder)
+                .SetReturnType(
+                    TypeNames.IClientBuilder.WithGeneric(descriptor.StoreAccessor.RuntimeType))
                 .AddParameter(
                     _services,
                     x => x.SetThis().SetType(TypeNames.IServiceCollection))
@@ -201,6 +202,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         .AddArgument(_sp)
                         .SetCode(GenerateClientServiceProviderFactory(descriptor))))
                 .AddEmptyLine()
+                .AddCode(RegisterStoreAccessor(descriptor.StoreAccessor))
+                .AddEmptyLine()
                 .ForEach(
                     descriptor.Operations,
                     (builder, operation) =>
@@ -213,7 +216,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .AddMethodCall(x => x
                     .SetReturn()
                     .SetNew()
-                    .SetMethodName(TypeNames.ClientBuilder)
+                    .SetMethodName(
+                        TypeNames.ClientBuilder.WithGeneric(descriptor.StoreAccessor.RuntimeType))
                     .AddArgument(descriptor.Name.AsStringToken())
                     .AddArgument(_services));
 
@@ -251,6 +255,39 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                                     .AddGeneric(
                                         TypeNames.IEnumerable.WithGeneric(TypeNames.ISerializer))
                                     .AddArgument(_sp)))));
+
+        private static ICode RegisterStoreAccessor(StoreAccessorDescriptor storeAccessor) =>
+            MethodCallBuilder
+                .New()
+                .SetMethodName(TypeNames.AddSingleton)
+                .AddArgument(_services)
+                .AddArgument(LambdaBuilder
+                    .New()
+                    .AddArgument(_sp)
+                    .SetCode(MethodCallBuilder
+                        .Inline()
+                        .SetNew()
+                        .SetMethodName(storeAccessor.RuntimeType.ToString())
+                        .AddArgument(MethodCallBuilder
+                            .Inline()
+                            .SetMethodName(TypeNames.GetRequiredService)
+                            .SetWrapArguments()
+                            .AddArgument(MethodCallBuilder
+                                .Inline()
+                                .SetMethodName(TypeNames.GetRequiredService)
+                                .AddGeneric("ClientServiceProvider")
+                                .AddArgument(_sp))
+                            .AddGeneric(TypeNames.IOperationStore))
+                        .AddArgument(MethodCallBuilder
+                            .Inline()
+                            .SetMethodName(TypeNames.GetRequiredService)
+                            .SetWrapArguments()
+                            .AddArgument(MethodCallBuilder
+                                .Inline()
+                                .SetMethodName(TypeNames.GetRequiredService)
+                                .AddGeneric("ClientServiceProvider")
+                                .AddArgument(_sp))
+                            .AddGeneric(TypeNames.IEntityStore))));
 
         private static ICode ForwardSingletonToClientServiceProvider(string generic) =>
             MethodCallBuilder
@@ -669,8 +706,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                                 .Inline()
                                 .SetMethodName(TypeNames.GetRequiredService)
                                 .AddGeneric(TypeNames.IEntityStore)
-                                .AddArgument(_sp)
-                                .Chain(x => x.SetMethodName("Watch"))))));
+                                .AddArgument(_sp)))));
 
         private static string _clientServiceProvider = @"
         private class ClientServiceProvider

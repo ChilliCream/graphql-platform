@@ -20,11 +20,21 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchableStoreEntity
     {
-        public global::System.String Id { get; set; } = default!;
+        public SearchableStoreEntity(
+            global::System.String id,
+            global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BookData?>? books,
+            global::Foo.Bar.State.ISearchResultData? search)
+        {
+            Id = id;
+            Books = books;
+            Search = search;
+        }
 
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BookData?>? Books { get; set; }
+        public global::System.String Id { get; }
 
-        public global::Foo.Bar.State.ISearchResultData? Search { get; set; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BookData?>? Books { get; }
+
+        public global::Foo.Bar.State.ISearchResultData? Search { get; }
     }
 }
 
@@ -54,17 +64,28 @@ namespace Foo.Bar.State
                  ?? throw new global::System.ArgumentNullException(nameof(getStore2_SearchableStore_SearchableStoreFromSearchableStoreEntityMapper));
         }
 
-        public GetStore2Result Create(global::StrawberryShake.IOperationResultDataInfo dataInfo)
+        public GetStore2Result Create(
+            global::StrawberryShake.IOperationResultDataInfo dataInfo,
+            global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             if (dataInfo is GetStore2ResultInfo info)
             {
-                return new GetStore2Result(MapNonNullableIGetStore2_SearchableStore(info.SearchableStore));
+                return new GetStore2Result(MapNonNullableIGetStore2_SearchableStore(
+                    info.SearchableStore,
+                    snapshot));
             }
 
             throw new global::System.ArgumentException("GetStore2ResultInfo expected.");
         }
 
-        private global::Foo.Bar.IGetStore2_SearchableStore MapNonNullableIGetStore2_SearchableStore(global::StrawberryShake.EntityId entityId)
+        private global::Foo.Bar.IGetStore2_SearchableStore MapNonNullableIGetStore2_SearchableStore(
+            global::StrawberryShake.EntityId entityId,
+            global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
 
             if (entityId.Name.Equals(
@@ -72,7 +93,7 @@ namespace Foo.Bar.State
                     global::System.StringComparison.Ordinal))
             {
                 return _getStore2_SearchableStore_SearchableStoreFromSearchableStoreEntityMapper.Map(
-                    _entityStore.GetEntity<global::Foo.Bar.State.SearchableStoreEntity>(entityId)
+                    snapshot.GetEntity<global::Foo.Bar.State.SearchableStoreEntity>(entityId)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
@@ -219,15 +240,23 @@ namespace Foo.Bar.State
     public partial class GetStore2_SearchableStore_SearchableStoreFromSearchableStoreEntityMapper
         : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.SearchableStoreEntity, GetStore2_SearchableStore_SearchableStore>
     {
-        public GetStore2_SearchableStore_SearchableStore Map(global::Foo.Bar.State.SearchableStoreEntity entity)
+        public GetStore2_SearchableStore_SearchableStore Map(
+            global::Foo.Bar.State.SearchableStoreEntity entity,
+            global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             return new GetStore2_SearchableStore_SearchableStore(
                 entity.Id,
-                MapIGetStore2_SearchableStore_BooksArray(entity.Books),
-                MapISearchResultData(entity.Search));
+                MapIGetStore2_SearchableStore_BooksArray(
+                    entity.Books,
+                    snapshot),
+                MapISearchResultData(
+                    entity.Search,
+                    snapshot));
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetStore2_SearchableStore_Books?>? MapIGetStore2_SearchableStore_BooksArray(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BookData?>? list)
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetStore2_SearchableStore_Books?>? MapIGetStore2_SearchableStore_BooksArray(
+            global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BookData?>? list,
+            global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
             if (list is null)
             {
@@ -238,13 +267,17 @@ namespace Foo.Bar.State
 
             foreach (global::Foo.Bar.State.BookData? child in list)
             {
-                books.Add(MapIGetStore2_SearchableStore_Books(child));
+                books.Add(MapIGetStore2_SearchableStore_Books(
+                    child,
+                    snapshot));
             }
 
             return books;
         }
 
-        private global::Foo.Bar.IGetStore2_SearchableStore_Books? MapIGetStore2_SearchableStore_Books(global::Foo.Bar.State.BookData? data)
+        private global::Foo.Bar.IGetStore2_SearchableStore_Books? MapIGetStore2_SearchableStore_Books(
+            global::Foo.Bar.State.BookData? data,
+            global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
             if (data is null)
             {
@@ -268,7 +301,9 @@ namespace Foo.Bar.State
             return returnValue;
         }
 
-        private global::Foo.Bar.IGetStore2_SearchableStore_Search? MapISearchResultData(global::Foo.Bar.State.ISearchResultData? data)
+        private global::Foo.Bar.IGetStore2_SearchableStore_Search? MapISearchResultData(
+            global::Foo.Bar.State.ISearchResultData? data,
+            global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
             if (data is null)
             {
@@ -999,19 +1034,26 @@ namespace Foo.Bar.State
 
         private (IGetStore2Result, GetStore2ResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
         {
-            using global::StrawberryShake.IEntityUpdateSession session = _entityStore.BeginUpdate();
             var entityIds = new global::System.Collections.Generic.HashSet<global::StrawberryShake.EntityId>();
+            global::StrawberryShake.IEntityStoreSnapshot snapshot = default!;
 
-            global::StrawberryShake.EntityId searchableStoreId = UpdateNonNullableIGetStore2_SearchableStoreEntity(
-                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                    obj,
-                    "searchableStore"),
-                entityIds);
+            global::StrawberryShake.EntityId searchableStoreId = default!;
+            _entityStore.Update(session => 
+            {
+                searchableStoreId = UpdateNonNullableIGetStore2_SearchableStoreEntity(
+                    session,
+                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                        obj,
+                        "searchableStore"),
+                    entityIds);
+
+                snapshot = session.CurrentSnapshot;
+            });
 
             var resultInfo = new GetStore2ResultInfo(
                 searchableStoreId,
                 entityIds,
-                session.Version);
+                snapshot.Version);
 
             return (
                 _resultDataFactory.Create(resultInfo),
@@ -1020,6 +1062,7 @@ namespace Foo.Bar.State
         }
 
         private global::StrawberryShake.EntityId UpdateNonNullableIGetStore2_SearchableStoreEntity(
+            global::StrawberryShake.IEntityStoreUpdateSession session,
             global::System.Text.Json.JsonElement? obj,
             global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
@@ -1036,19 +1079,44 @@ namespace Foo.Bar.State
                     "SearchableStore",
                     global::System.StringComparison.Ordinal))
             {
-                global::Foo.Bar.State.SearchableStoreEntity entity = _entityStore.GetOrCreate<global::Foo.Bar.State.SearchableStoreEntity>(entityId);
-                entity.Id = DeserializeNonNullableString(
-                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                        obj,
-                        "id"));
-                entity.Books = DeserializeIGetStore2_SearchableStore_BooksArray(
-                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                        obj,
-                        "books"));
-                entity.Search = DeserializeISearchResultData(
-                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                        obj,
-                        "search"));
+                if (session.CurrentSnapshot.TryGetEntity(
+                        entityId,
+                        out global::Foo.Bar.State.SearchableStoreEntity? entity))
+                {
+                    session.SetEntity(
+                        entityId,
+                        new global::Foo.Bar.State.SearchableStoreEntity(
+                            DeserializeNonNullableString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "id")),
+                            DeserializeIGetStore2_SearchableStore_BooksArray(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "books")),
+                            DeserializeISearchResultData(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "search"))));
+                }
+                else
+                {
+                    session.SetEntity(
+                        entityId,
+                        new global::Foo.Bar.State.SearchableStoreEntity(
+                            DeserializeNonNullableString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "id")),
+                            DeserializeIGetStore2_SearchableStore_BooksArray(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "books")),
+                            DeserializeISearchResultData(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "search"))));
+                }
 
                 return entityId;
             }
@@ -1315,7 +1383,7 @@ namespace Microsoft.Extensions.DependencyInjection
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class FooClientServiceCollectionExtensions
     {
-        public static global::StrawberryShake.IClientBuilder AddFooClient(
+        public static global::StrawberryShake.IClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor> AddFooClient(
             this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
             global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
@@ -1333,6 +1401,14 @@ namespace Microsoft.Extensions.DependencyInjection
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
+                sp => new global::Foo.Bar.State.FooClientStoreAccessor(
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)),
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp))));
+
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
+                services,
                 sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.GetStore2Query>(
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
 
@@ -1341,7 +1417,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.FooClient>(
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
 
-            return new global::StrawberryShake.ClientBuilder(
+            return new global::StrawberryShake.ClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor>(
                 "FooClient",
                 services);
         }
@@ -1357,9 +1433,7 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IEntityStore, global::StrawberryShake.EntityStore>(services);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IOperationStore>(
                 services,
-                sp => new global::StrawberryShake.OperationStore(
-                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(sp)
-                    .Watch()));
+                sp => new global::StrawberryShake.OperationStore(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
                 sp => 
@@ -1432,6 +1506,33 @@ namespace Microsoft.Extensions.DependencyInjection
                 }
             }
         }
+    }
+}
+
+
+// FooClientStoreAccessor
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.StoreAccessorGenerator
+
+#nullable enable
+
+namespace Foo.Bar.State
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FooClientStoreAccessor
+        : global::StrawberryShake.IStoreAccessor
+    {
+        public FooClientStoreAccessor(
+            global::StrawberryShake.IOperationStore operationStore,
+            global::StrawberryShake.IEntityStore entityStore)
+        {
+            EntityStore = entityStore;
+            OperationStore = operationStore;
+        }
+
+        public global::StrawberryShake.IOperationStore OperationStore { get; }
+
+        public global::StrawberryShake.IEntityStore EntityStore { get; }
     }
 }
 

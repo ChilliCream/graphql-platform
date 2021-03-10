@@ -3,6 +3,9 @@ namespace StrawberryShake.CodeGeneration
     public static class TypeNames
     {
         public const string IEntityStore = StrawberryshakeNamespace + "IEntityStore";
+        public const string IStoreAccessor = StrawberryshakeNamespace + "IStoreAccessor";
+        public const string IEntityStoreSnapshot = StrawberryshakeNamespace + "IEntityStoreSnapshot";
+        public const string IEntityStoreUpdateSession = StrawberryshakeNamespace + "IEntityStoreUpdateSession";
         public const string EntityStore = StrawberryshakeNamespace + "EntityStore";
         public const string IOperationStore = StrawberryshakeNamespace + "IOperationStore";
         public const string OperationStore = StrawberryshakeNamespace + "OperationStore";

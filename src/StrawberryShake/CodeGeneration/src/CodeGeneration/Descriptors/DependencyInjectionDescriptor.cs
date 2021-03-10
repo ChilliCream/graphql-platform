@@ -17,13 +17,15 @@ namespace StrawberryShake.CodeGeneration.Descriptors
             IReadOnlyList<EntityTypeDescriptor> entities,
             List<OperationDescriptor> operations,
             IReadOnlyList<ITypeDescriptor> typeDescriptors,
-            IReadOnlyList<TransportProfile> transportProfiles)
+            IReadOnlyList<TransportProfile> transportProfiles,
+            StoreAccessorDescriptor storeAccessorDescriptor)
         {
             RuntimeType = new(name, @namespace);
             Entities = entities;
             Operations = operations;
             TypeDescriptors = typeDescriptors;
             TransportProfiles = transportProfiles;
+            StoreAccessor = storeAccessorDescriptor;
             EnumTypeDescriptor = typeDescriptors.OfType<EnumTypeDescriptor>().ToList();;
         }
 
@@ -41,6 +43,8 @@ namespace StrawberryShake.CodeGeneration.Descriptors
         public IReadOnlyList<EnumTypeDescriptor> EnumTypeDescriptor { get; }
 
         public IReadOnlyList<TransportProfile> TransportProfiles { get; }
+
+        public StoreAccessorDescriptor StoreAccessor { get; }
 
         /// <summary>
         /// The operations that are contained in this client class

@@ -29,17 +29,28 @@ namespace Foo.Bar.State
                  ?? throw new global::System.ArgumentNullException(nameof(entityStore));
         }
 
-        public GetAllResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo)
+        public GetAllResult Create(
+            global::StrawberryShake.IOperationResultDataInfo dataInfo,
+            global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             if (dataInfo is GetAllResultInfo info)
             {
-                return new GetAllResult(MapNonNullableIGetAll_Listings(info.Listings));
+                return new GetAllResult(MapNonNullableIGetAll_Listings(
+                    info.Listings,
+                    snapshot));
             }
 
             throw new global::System.ArgumentException("GetAllResultInfo expected.");
         }
 
-        private global::Foo.Bar.IGetAll_Listings MapNonNullableIGetAll_Listings(global::Foo.Bar.State.ListingsPayloadData data)
+        private global::Foo.Bar.IGetAll_Listings MapNonNullableIGetAll_Listings(
+            global::Foo.Bar.State.ListingsPayloadData data,
+            global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
             IGetAll_Listings returnValue = default!;
 
@@ -47,7 +58,9 @@ namespace Foo.Bar.State
                     "ListingsPayload",
                     global::System.StringComparison.Ordinal))
             {
-                returnValue = new GetAll_Listings_ListingsPayload(MapNonNullableIListingDataNonNullableArray(data.Items ?? throw new global::System.ArgumentNullException()));
+                returnValue = new GetAll_Listings_ListingsPayload(MapNonNullableIListingDataNonNullableArray(
+                    data.Items ?? throw new global::System.ArgumentNullException(),
+                    snapshot));
             }
             else
             {
@@ -56,19 +69,25 @@ namespace Foo.Bar.State
             return returnValue;
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetAll_Listings_Items> MapNonNullableIListingDataNonNullableArray(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.IListingData>? list)
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetAll_Listings_Items> MapNonNullableIListingDataNonNullableArray(
+            global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.IListingData>? list,
+            global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
             var listings = new global::System.Collections.Generic.List<global::Foo.Bar.IGetAll_Listings_Items>();
 
             foreach (global::Foo.Bar.State.IListingData child in list)
             {
-                listings.Add(MapNonNullableIListingData(child));
+                listings.Add(MapNonNullableIListingData(
+                    child,
+                    snapshot));
             }
 
             return listings;
         }
 
-        private global::Foo.Bar.IGetAll_Listings_Items MapNonNullableIListingData(global::Foo.Bar.State.IListingData data)
+        private global::Foo.Bar.IGetAll_Listings_Items MapNonNullableIListingData(
+            global::Foo.Bar.State.IListingData data,
+            global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
             IGetAll_Listings_Items? returnValue;
 
@@ -861,9 +880,14 @@ namespace Foo.Bar.State
 
         private (IGetAllResult, GetAllResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
         {
-            using global::StrawberryShake.IEntityUpdateSession session = _entityStore.BeginUpdate();
             var entityIds = new global::System.Collections.Generic.HashSet<global::StrawberryShake.EntityId>();
+            global::StrawberryShake.IEntityStoreSnapshot snapshot = default!;
 
+            _entityStore.Update(session => 
+            {
+
+                snapshot = session.CurrentSnapshot;
+            });
 
             var resultInfo = new GetAllResultInfo(
                 DeserializeNonNullableIGetAll_Listings(
@@ -871,7 +895,7 @@ namespace Foo.Bar.State
                         obj,
                         "listings")),
                 entityIds,
-                session.Version);
+                snapshot.Version);
 
             return (
                 _resultDataFactory.Create(resultInfo),
@@ -1158,7 +1182,7 @@ namespace Microsoft.Extensions.DependencyInjection
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class FooClientServiceCollectionExtensions
     {
-        public static global::StrawberryShake.IClientBuilder AddFooClient(
+        public static global::StrawberryShake.IClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor> AddFooClient(
             this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
             global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
@@ -1176,6 +1200,14 @@ namespace Microsoft.Extensions.DependencyInjection
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
+                sp => new global::Foo.Bar.State.FooClientStoreAccessor(
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)),
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp))));
+
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
+                services,
                 sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.GetAllQuery>(
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
 
@@ -1184,7 +1216,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.FooClient>(
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
 
-            return new global::StrawberryShake.ClientBuilder(
+            return new global::StrawberryShake.ClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor>(
                 "FooClient",
                 services);
         }
@@ -1200,9 +1232,7 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IEntityStore, global::StrawberryShake.EntityStore>(services);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IOperationStore>(
                 services,
-                sp => new global::StrawberryShake.OperationStore(
-                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(sp)
-                    .Watch()));
+                sp => new global::StrawberryShake.OperationStore(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
                 sp => 
@@ -1274,6 +1304,33 @@ namespace Microsoft.Extensions.DependencyInjection
                 }
             }
         }
+    }
+}
+
+
+// FooClientStoreAccessor
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.StoreAccessorGenerator
+
+#nullable enable
+
+namespace Foo.Bar.State
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FooClientStoreAccessor
+        : global::StrawberryShake.IStoreAccessor
+    {
+        public FooClientStoreAccessor(
+            global::StrawberryShake.IOperationStore operationStore,
+            global::StrawberryShake.IEntityStore entityStore)
+        {
+            EntityStore = entityStore;
+            OperationStore = operationStore;
+        }
+
+        public global::StrawberryShake.IOperationStore OperationStore { get; }
+
+        public global::StrawberryShake.IEntityStore EntityStore { get; }
     }
 }
 
