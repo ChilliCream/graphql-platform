@@ -188,7 +188,7 @@ namespace StrawberryShake.CodeGeneration.Utilities
             TryAddLeafType(leafTypes, ScalarNames.DateTime, TypeNames.DateTimeOffset);
             TryAddLeafType(leafTypes, ScalarNames.Date, TypeNames.DateTime);
             TryAddLeafType(leafTypes, ScalarNames.TimeSpan, TypeNames.TimeSpan);
-            TryAddLeafType(leafTypes, ScalarNames.ByteArray, TypeNames.ByteArray);
+            TryAddLeafType(leafTypes, ScalarNames.ByteArray, TypeNames.ByteArray, TypeNames.ByteArray);
         }
 
         private static bool TryGetKeys(
