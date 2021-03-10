@@ -324,7 +324,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .Inline()
                 .SetMethodName(TypeNames.GetPropertyOrNull)
                 .AddArgument(_obj)
-                .AddArgument(GetParameterName(property.Name).AsStringToken());
+                .AddArgument(property.FieldName.AsStringToken());
 
             return BuildUpdateMethodCall(property.Type, propertyAccessor).SetWrapArguments();
         }

@@ -214,9 +214,9 @@ namespace StrawberryShake.CodeGeneration.Mappers
             {
                 RuntimeTypeInfo runtimeType =
                     ExtractRuntimeType(
-                        clientModel, 
-                        context, 
-                        outputType.Implements.Single(), 
+                        clientModel,
+                        context,
+                        outputType.Implements.Single(),
                         kind);
 
                 return new NameString[] { runtimeType.Name };
@@ -392,6 +392,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     properties.Add(
                         new PropertyDescriptor(
                             field.Name,
+                            field.ResponseName,
                             BuildFieldType(
                                 field.Type,
                                 fieldType),

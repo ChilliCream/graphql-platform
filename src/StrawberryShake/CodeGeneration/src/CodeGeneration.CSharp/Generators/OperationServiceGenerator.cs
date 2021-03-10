@@ -284,7 +284,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
                 foreach (var arg in descriptor.Arguments)
                 {
-                    var argName = GetParameterName(arg.Name);
+                    var argName = GetParameterName(arg.FieldName);
 
                     method.AddParameter(argName, x => x.SetType(arg.Type.ToTypeReference()));
 

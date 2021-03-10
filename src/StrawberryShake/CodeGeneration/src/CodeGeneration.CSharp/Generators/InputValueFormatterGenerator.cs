@@ -117,7 +117,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         .Inline()
                         .SetNew()
                         .SetMethodName(_keyValuePair)
-                        .AddArgument(GetParameterName(property.Name).AsStringToken())
+                        .AddArgument(property.FieldName.AsStringToken())
                         .AddArgument(MethodCallBuilder
                             .Inline()
                             .SetMethodName(serializerMethodName)
