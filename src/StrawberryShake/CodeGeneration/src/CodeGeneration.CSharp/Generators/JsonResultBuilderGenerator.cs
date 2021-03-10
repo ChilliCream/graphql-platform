@@ -380,8 +380,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                             d.RuntimeType.NamespaceWithoutGlobal)
                         .Name,
 
+                // TODO: we should look a better way to solve the array naming issue.
                 INamedTypeDescriptor d =>
-                    d.RuntimeType.Name,
+                    d.RuntimeType.ToString() == TypeNames.ByteArray
+                        ? "ByteArray"
+                        : d.RuntimeType.Name,
 
                 NonNullTypeDescriptor nonNullTypeDescriptor => parentIsList
                     ? BuildDeserializeMethodName(nonNullTypeDescriptor.InnerType) + "NonNullable"

@@ -359,7 +359,7 @@ namespace Foo.Bar.State
             });
 
             var resultInfo = new GetAttachmentResultInfo(
-                DeserializeNonNullableByte[](
+                DeserializeNonNullableByteArray(
                     global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
                         "byteArray")),
@@ -372,7 +372,7 @@ namespace Foo.Bar.State
             );
         }
 
-        private global::System.Byte[] DeserializeNonNullableByte[](global::System.Text.Json.JsonElement? obj)
+        private global::System.Byte[] DeserializeNonNullableByteArray(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {
