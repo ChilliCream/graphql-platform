@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
 namespace StrawberryShake
 {
@@ -23,7 +25,7 @@ namespace StrawberryShake
             return new(_entities);
         }
 
-        public ulong Version { get; } = 0;
+        public ulong Version { get; }
 
         public TEntity? GetEntity<TEntity>(EntityId id)
             where TEntity : class
@@ -63,6 +65,18 @@ namespace StrawberryShake
             }
 
             return list;
+        }
+
+        public IEnumerable<EntityInfo> GetEntities(string? typeName = null)
+        {
+            if (typeName is not null)
+            {
+                return _entities
+                    .Where(t => t.Key.Name.Equals(typeName, StringComparison.Ordinal))
+                    .Select(t => new EntityInfo(t.Key, t.Value));
+            }
+
+            return _entities.Select(t => new EntityInfo(t.Key, t.Value));
         }
 
         public IReadOnlyCollection<EntityId> GetEntityIds() =>

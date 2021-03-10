@@ -60,8 +60,14 @@ namespace StrawberryShake
             where TEntity : class;
 
         /// <summary>
+        /// Gets all the entities or the entities of a specific type.
+        /// </summary>
+        IEnumerable<EntityInfo> GetEntities(string? typeName = null);
+
+        /// <summary>
         /// Gets all the entity ids that are currently managed by the store.
         /// </summary>
         IReadOnlyCollection<EntityId> GetEntityIds();
+
     }
 }

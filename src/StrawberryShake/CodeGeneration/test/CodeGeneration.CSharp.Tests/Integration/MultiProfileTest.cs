@@ -38,9 +38,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
             serviceCollection.AddMultiProfileClient(
                 profile: MultiProfileClientProfileKind.Default);
 
-
-            serviceCollection.TryAddSingleton(sp => CachePolicies.NoCache(sp.GetRequiredService<IStoreAccessor>()));
-
             IServiceProvider services = serviceCollection.BuildServiceProvider();
             MultiProfileClient client = services.GetRequiredService<MultiProfileClient>();
 

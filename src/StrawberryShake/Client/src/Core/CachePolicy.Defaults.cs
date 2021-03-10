@@ -1,9 +1,9 @@
 using System;
-using System.Linq;
+using StrawberryShake.Extensions;
 
 namespace StrawberryShake
 {
-    public static class CachePolicies
+    public partial class CachePolicy
     {
         public static CachePolicy Default(IStoreAccessor storeAccessor) =>
             Default(storeAccessor, TimeSpan.FromMinutes(5));

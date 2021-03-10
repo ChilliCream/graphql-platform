@@ -1,0 +1,85 @@
+using System;
+using System.Threading;
+using System.Threading.Channels;
+using System.Threading.Tasks;
+using LiteDB;
+using JsonSerializer = System.Text.Json.JsonSerializer;
+
+namespace StrawberryShake.Persistence.SQLite
+{
+    public class LiteDBPersistence : IDisposable
+    {
+        private readonly CancellationTokenSource _cts = new();
+        private readonly Channel<IEntityStoreSnapshot> _entityQueue =
+            Channel.CreateUnbounded<IEntityStoreSnapshot>();
+        private readonly IStoreAccessor _storeAccessor;
+        private readonly LiteDatabase _database;
+        private readonly IDisposable _subscription;
+        private bool _disposed;
+
+        public LiteDBPersistence(IStoreAccessor storeAccessor, LiteDatabase database)
+        {
+            _storeAccessor = storeAccessor;
+            _database = database;
+
+            _subscription = storeAccessor.EntityStore
+                .Watch()
+                .Subscribe(
+                    onNext: update => _entityQueue.Writer.TryWrite(update.Snapshot),
+                    onCompleted: () => _cts.Cancel());
+
+            BeginWriteEntities();
+        }
+
+        private void BeginWriteEntities() =>
+            Task.Run(async () => await WriteEntities(_cts.Token));
+
+        private async Task WriteEntities(CancellationToken cancellationToken)
+        {
+            var collection = _database.GetCollection<EntityDto>();
+
+            await foreach (IEntityStoreSnapshot snapshot in
+                _entityQueue.Reader.ReadAllAsync(cancellationToken))
+            {
+                foreach (EntityId entityId in snapshot.GetEntityIds())
+                {
+                    object entity = snapshot.GetEntity<object>(entityId)!;
+                    string typeName = entity.GetType().FullName!;
+
+                    collection.Upsert(
+                        entityId.ToString(),
+                        new EntityDto
+                        {
+                            Id = entityId.ToString(),
+                            Entity = JsonSerializer.Serialize(entity),
+                            TypeName = typeName,
+                            Version = snapshot.Version
+                        });
+                }
+            }
+        }
+
+        public void Dispose()
+        {
+            if (!_disposed)
+            {
+                _cts.Cancel();
+                _database.Dispose();
+                _subscription.Dispose();
+                _cts.Dispose();
+                _disposed = true;
+            }
+        }
+    }
+
+    public class EntityDto
+    {
+        public string Id { get; set; }
+
+        public string Entity { get; set; }
+
+        public string TypeName { get; set; }
+
+        public ulong Version { get; set; }
+    }
+}

@@ -4,12 +4,22 @@
     <PackageId>StrawberryShake.Persistence.SQLite</PackageId>
     <RootNamespace>StrawberryShake.Persistence.SQLite</RootNamespace>
     <Nullable>enable</Nullable>
-    <Description>GraphQL over WebSocket transport implementation for StrawberryShake GraphQL clients.</Description>
+    <Description>A LiteDB store persistence layer.</Description>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="LiteDB" Version="5.0.10" />
     <PackageReference Include="System.Reactive" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'NETSTANDARD2_0'">
+    <PackageReference Include="System.Threading.Channels" Version="5.0.0" />
+    <PackageReference Include="System.Text.Json" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'NETSTANDARD2_1'">
+    <PackageReference Include="System.Threading.Channels" Version="5.0.0" />
+    <PackageReference Include="System.Text.Json" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup>

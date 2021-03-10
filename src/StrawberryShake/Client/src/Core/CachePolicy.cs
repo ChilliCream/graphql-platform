@@ -2,7 +2,7 @@ using System;
 
 namespace StrawberryShake
 {
-    public class CachePolicy : IDisposable
+    public partial class CachePolicy : IDisposable
     {
         private readonly IDisposable _session;
 

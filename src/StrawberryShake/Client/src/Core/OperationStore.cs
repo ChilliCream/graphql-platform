@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using StrawberryShake.Extensions;
 
 namespace StrawberryShake
 {
@@ -62,6 +63,7 @@ namespace StrawberryShake
             if (_results.TryGetValue(operationRequest, out var storedOperation))
             {
                 storedOperation.ClearResult();
+                CleanEntityStore();
             }
         }
 
@@ -80,13 +82,7 @@ namespace StrawberryShake
             if (_results.TryRemove(operationRequest, out var storedOperation))
             {
                 storedOperation.Complete();
-
-                _entityStore.Update(session =>
-                {
-                    session.RemoveEntityRange(
-                        _entityStore.CurrentSnapshot.GetEntityIds().Except(
-                            _results.Values.SelectMany(t => t.EntityIds)));
-                });
+                CleanEntityStore();
             }
         }
 
@@ -105,6 +101,11 @@ namespace StrawberryShake
                 result.Complete();
             }
 
+            CleanEntityStore();
+        }
+
+        private void CleanEntityStore()
+        {
             _entityStore.Update(session =>
             {
                 session.RemoveEntityRange(
