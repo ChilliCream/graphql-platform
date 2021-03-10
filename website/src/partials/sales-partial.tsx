@@ -1,6 +1,9 @@
 import React, { FunctionComponent, useState } from "react";
 import styled from "styled-components";
-import { SalesCard } from "../components/sales-card";
+import { SalesCard } from "../components/support/sales-card";
+import { SalesCardPerk } from "../components/support/sales-card-perk";
+import { SalesCardPerkItem } from "../components/support/sales-card-perk-item";
+import { IsMobile, IsSmallDesktop, IsPhablet } from "../shared-style";
 
 type Cycle = "monthly" | "biannualy" | "annualy";
 type Plan = "Basic" | "Enterprise";
@@ -27,7 +30,7 @@ export const SalesPartial: FunctionComponent = () => {
         <Title>Support Plans</Title>
         <LeadingText>
           Do you use HotChocolate or any other ChilliCream product? Do you need
-          help? Choose one of our support plans.
+          help?<br></br>Choose one of our support plans.
         </LeadingText>
         <CycleContainer>
           <CyclePlan
@@ -59,52 +62,85 @@ export const SalesPartial: FunctionComponent = () => {
           and prioritised bug fixes for reported incidents."
           price={planPrices.Basic[cycle]}
           cycle="mo"
-          perks={[
-            "Your own company slack channel, where a maintainer answers your questions",
-            "24 hours response time based on european working days",
-            "One prioritized incident per month",
-          ]}
-        />
+        >
+          <SalesCardPerk>
+            Your own company slack channel, where a maintainer answers your
+            questions
+          </SalesCardPerk>
+          <SalesCardPerk>
+            24 hours response time based on european working days
+          </SalesCardPerk>
+          <SalesCardPerk>One prioritized incident per month</SalesCardPerk>
+        </SalesCard>
         <SalesCard
           name="Enterprise"
           description="The support plan for companies that need a GraphQL sparring partner and want a dedicated time pensum for their project per month."
           price={planPrices.Enterprise[cycle]}
           cycle="mo"
-          perks={[
-            "Your own company slack channel, where a maintainer answers your questions",
-            "24 hours response time based on european working days",
-            "Two prioritized incidents per month",
-            "12 hours per month at your free disposal<div style=\"margin-top:7px;\">The time can be spend on:</div>&nbsp;&nbsp;- Educating your team with workshops<br>&nbsp;&nbsp;- Consulting on GraphQL, testing and architecture<br>&nbsp;&nbsp;- Regular code reviews<br>&nbsp;&nbsp;- Pushing a feature of your choice",
-          ]}
-        />
+        >
+          <SalesCardPerk>
+            Your own company slack channel, where a maintainer answers your
+            questions
+          </SalesCardPerk>
+          <SalesCardPerk>
+            24 hours response time based on european working days
+          </SalesCardPerk>
+          <SalesCardPerk>Two prioritized incidents per month</SalesCardPerk>
+          <SalesCardPerk>
+            12 hours per month at your free disposal
+            <PerkItemlistHeader>The time can be spend on:</PerkItemlistHeader>
+            <SalesCardPerkItem>
+              Educating your team with workshops
+            </SalesCardPerkItem>
+            <SalesCardPerkItem>
+              Consulting on GraphQL, testing and architecture
+            </SalesCardPerkItem>
+            <SalesCardPerkItem>Regular code reviews</SalesCardPerkItem>
+            <SalesCardPerkItem>
+              Pushing a feature of your choice
+            </SalesCardPerkItem>
+          </SalesCardPerk>
+        </SalesCard>
       </CardContainer>
     </Container>
   );
 };
 
+const PerkItemlistHeader = styled.div`
+  margin-top: 5px;
+  margin-bottom: 5px;
+`;
+
 const Container = styled.div`
-  @media (max-width: 640px) {
-    padding: 10px
-  }
+  width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+
+  ${IsSmallDesktop(`
+      padding: 40px;
+      padding-top: 0;
+    `)}
+
+  ${IsMobile(`  
+      padding: 15px;
+      padding-top: 0;
+    `)}
 `;
 
 const SwiterContainer = styled.div`
-  @media (min-width: 640px) {
-    display: flex;
-    flex-direction: column;
-  }
+  display: flex;
+  flex-direction: column;
 `;
 
 const Title = styled.h1`
-  margin: 0;
-  color: rgb(17, 24, 39);
-  font-size: 3rem;
-  line-height: 1;
-  font-weight: 800;
+  flex: 0 0 auto;
+  font-size: 1.75em;
+  color: #667;
+  text-align: center;
 
-  @media (min-width: 640px) {
+  ${IsPhablet(`
     text-align: center;
-  }
+  `)}
 `;
 
 const LeadingText = styled.p`
@@ -112,12 +148,11 @@ const LeadingText = styled.p`
   margin-top: 1.25rem;
   font-size: 1.25rem;
   line-height: 1.75rem;
+  max-width: 800px;
+  align-self: center;
 
   color: rgb(107, 114, 128);
-
-  @media (min-width: 640px) {
-    text-align: center;
-  }
+  text-align: center;
 `;
 
 interface CyclePlanpRrops {
@@ -125,9 +160,10 @@ interface CyclePlanpRrops {
 }
 
 const CyclePlan = styled.button<CyclePlanpRrops>`
-  padding: 0;
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
+  padding-left: 2rem;
+  padding-right: 2rem;
   cursor: pointer;
   color: rgb(55, 65, 81);
 
@@ -138,14 +174,12 @@ const CyclePlan = styled.button<CyclePlanpRrops>`
   border-color: rgb(229, 231, 235);
   background-color: ${(p) => (p.isActive ? "rgb(255, 255, 255)" : "inherit")};
   box-shadow: ${(p) =>
-    p.isActive
-      ? "rgba(0, 0, 0, 0.25) 0px 1px 2px 0px"
-      : "none"};
+    p.isActive ? "rgba(0, 0, 0, 0.25) 0px 1px 2px 0px" : "none"};
 
-  @media (min-width: 640px) {
-    padding-left: 2rem;
-    padding-right: 2rem;
-  }
+  ${IsMobile(`
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  `)}
 `;
 
 const CycleContainer = styled.div`
@@ -162,34 +196,35 @@ const CycleContainer = styled.div`
     width: 50%;
   }
 
-  @media (min-width: 640px) {
+  ${IsMobile(`
     ${CyclePlan} {
       width: auto;
     }
-  }
+  `)}
 `;
 
 const CardContainer = styled.div`
-  margin-top: 3rem;
+  margin-top: 1.5rem;
+  justify-items: center;
 
   > :not(:first-child) {
     margin-top: 16px;
   }
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 
-  @media (min-width: 640px) {
-    margin-top: 1rem;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
 
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
 
-    max-width: 56rem;
-    margin-left: auto;
-    margin-right: auto;
-
-    gap: 1.5rem;
-
-    > div {
-      margin-top: 0 !important;
-    }
+  > div {
+    margin-top: 0 !important;
   }
+
+  ${IsPhablet(`
+    margin-top: 1rem;
+    grid-template-columns: minmax(0, 1fr)
+  `)}
 `;

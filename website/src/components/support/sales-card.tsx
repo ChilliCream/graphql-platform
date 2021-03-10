@@ -6,7 +6,6 @@ export interface SalesCardProps {
   cycle: string;
   name: string;
   description: string;
-  perks: string[];
 }
 
 export const SalesCard: FunctionComponent<SalesCardProps> = ({
@@ -14,7 +13,7 @@ export const SalesCard: FunctionComponent<SalesCardProps> = ({
   description,
   price,
   cycle,
-  perks,
+  children,
 }) => {
   return (
     <Container>
@@ -30,25 +29,7 @@ export const SalesCard: FunctionComponent<SalesCardProps> = ({
       </TopHalf>
       <BottomHalf>
         <PerkLeadingText>What's included</PerkLeadingText>
-        <Perks>
-          {perks.map((p, i) => (
-            <Perk key={i}>
-              <PerkIcon
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                  clipRule="evenodd"
-                />
-              </PerkIcon>
-              <PerkText dangerouslySetInnerHTML={{ __html: p }} />
-            </Perk>
-          ))}
-        </Perks>
+        <Perks>{children}</Perks>
       </BottomHalf>
     </Container>
   );
@@ -57,6 +38,7 @@ export const SalesCard: FunctionComponent<SalesCardProps> = ({
 const USFormat = new Intl.NumberFormat();
 
 const Container = styled.div`
+  max-width: 350px;
   margin: 10px;
   box-shadow: rgba(0, 0, 0, 0.25) 0px 3px 6px 0px;
   border: 1px solid rgb(229, 231, 235);
@@ -133,7 +115,6 @@ const PerkLeadingText = styled.h3`
   margin: 0;
   font-family: "Roboto", sans-serif;
   letter-spacing: 0.025em;
-  text-transform: uppercase;
   color: rgb(17, 24, 39);
   font-size: 0.75rem;
   line-height: 1rem;
@@ -147,23 +128,4 @@ const Perks = styled.ul`
   list-style: none;
 
   margin-top: 1.5rem;
-`;
-
-const Perk = styled.li`
-  display: flex;
-`;
-
-const PerkIcon = styled.svg`
-  flex-shrink: 0;
-  width: 1.25rem;
-  height: 1.25rem;
-  color: rgb(16, 185, 129);
-`;
-
-const PerkText = styled.span`
-  color: rgb(107, 114, 128);
-  font-family: "Roboto", sans-serif;
-  margin-left: 12px;
-  font-size: 0.875rem;
-  line-height: 1.25rem;
 `;
