@@ -38,6 +38,8 @@ namespace StrawberryShake
 
         public IOperationResultDataFactory<T> DataFactory { get; }
 
+        object IOperationResult.DataFactory => DataFactory;
+
         public IReadOnlyList<IClientError> Errors { get; }
 
         public IReadOnlyDictionary<string, object?> Extensions { get; }

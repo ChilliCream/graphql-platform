@@ -1,13 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AssemblyName>StrawberryShake.Persistence.SQLLite.Tests</AssemblyName>
     <RootNamespace>StrawberryShake.Persistence.SQLLite</RootNamespace>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
-    
+    <ProjectReference Include="..\..\src\Persistence.SQLLite\StrawberryShake.Persistence.LiteDB.csproj" />
   </ItemGroup>
 
   <ItemGroup>
