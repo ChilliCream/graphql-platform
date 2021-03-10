@@ -134,6 +134,7 @@ namespace StrawberryShake.Persistence.SQLLite
                 : base(
                     operationStore,
                     entityStore,
+                    null,
                     new IOperationRequestFactory[0],
                     new IOperationResultDataFactory[0])
             {

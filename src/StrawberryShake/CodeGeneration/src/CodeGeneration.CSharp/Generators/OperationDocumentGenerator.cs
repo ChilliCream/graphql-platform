@@ -98,8 +98,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .AddArgument("Body"))
                 .AddCode("#endif");
 
-
-
             CodeFileBuilder
                 .New()
                 .SetNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal)

@@ -20,7 +20,7 @@ namespace StrawberryShake
             {
 #if NETSTANDARD2_0 || NETSTANDARD2_1
                 while (!_cts.Token.IsCancellationRequested ||
-                       !_updates.Reader.Completion.IsCompleted)
+                    !_updates.Reader.Completion.IsCompleted)
                 {
                     var update = await _updates.Reader.ReadAsync(_cts.Token);
 
