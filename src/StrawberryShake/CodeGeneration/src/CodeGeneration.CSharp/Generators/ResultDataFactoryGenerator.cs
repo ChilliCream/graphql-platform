@@ -38,8 +38,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .New()
                     .SetName(fileName)
                     .AddImplements(
-                        TypeNames.IOperationResultDataFactory
-                            .WithGeneric(descriptor.RuntimeType.Name));
+                        TypeNames.IOperationResultDataFactory.WithGeneric(descriptor.RuntimeType));
 
             ConstructorBuilder constructorBuilder = classBuilder
                 .AddConstructor()
@@ -104,6 +103,28 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 constructorBuilder,
                 processed,
                 true);
+
+            classBuilder
+                .AddProperty("ResultType")
+                .SetType(TypeNames.Type)
+                .AsLambda($"typeof({descriptor.RuntimeType})")
+                .SetInterface(TypeNames.IOperationResultDataFactory);
+
+            classBuilder
+                .AddMethod("Create")
+                .SetInterface(TypeNames.IOperationResultDataFactory)
+                .SetReturnType(TypeNames.Object)
+                .AddParameter(_dataInfo, b => b.SetType(TypeNames.IOperationResultDataInfo))
+                .AddParameter(
+                    _snapshot,
+                    b => b.SetType(TypeNames.IEntityStoreSnapshot.MakeNullable()))
+                .AddCode(
+                    MethodCallBuilder
+                        .New()
+                        .SetReturn()
+                        .SetMethodName("Create")
+                        .AddArgument(_dataInfo)
+                        .AddArgument(_snapshot));
 
             CodeFileBuilder
                 .New()

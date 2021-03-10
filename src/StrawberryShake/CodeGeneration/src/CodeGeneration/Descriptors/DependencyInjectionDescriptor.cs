@@ -18,6 +18,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors
             List<OperationDescriptor> operations,
             IReadOnlyList<ITypeDescriptor> typeDescriptors,
             IReadOnlyList<TransportProfile> transportProfiles,
+            EntityIdFactoryDescriptor entityIdFactoryDescriptor,
             StoreAccessorDescriptor storeAccessorDescriptor)
         {
             RuntimeType = new(name, @namespace);
@@ -25,6 +26,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors
             Operations = operations;
             TypeDescriptors = typeDescriptors;
             TransportProfiles = transportProfiles;
+            EntityIdFactoryDescriptor = entityIdFactoryDescriptor;
             StoreAccessor = storeAccessorDescriptor;
             EnumTypeDescriptor = typeDescriptors.OfType<EnumTypeDescriptor>().ToList();;
         }
@@ -43,6 +45,8 @@ namespace StrawberryShake.CodeGeneration.Descriptors
         public IReadOnlyList<EnumTypeDescriptor> EnumTypeDescriptor { get; }
 
         public IReadOnlyList<TransportProfile> TransportProfiles { get; }
+
+        public EntityIdFactoryDescriptor EntityIdFactoryDescriptor { get; }
 
         public StoreAccessorDescriptor StoreAccessor { get; }
 

@@ -14,7 +14,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
     public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuilderDescriptor>
     {
         private const string _entityStore = "_entityStore";
-        private const string _extractId = "_extractId";
+        private const string _idSerializer = "_idSerializer";
         private const string _resultDataFactory = "_resultDataFactory";
         private const string _serializerResolver = "serializerResolver";
         private const string _entityIds = "entityIds";
@@ -56,8 +56,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 constructorBuilder);
 
             AddConstructorAssignedField(
-                TypeNames.Func.WithGeneric(TypeNames.JsonElement, TypeNames.EntityId),
-                _extractId,
+                TypeNames.IEntityIdSerializer,
+                _idSerializer,
                 classBuilder,
                 constructorBuilder);
 

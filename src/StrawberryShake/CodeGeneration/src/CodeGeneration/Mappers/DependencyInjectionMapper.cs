@@ -18,6 +18,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     context.Operations.ToList(),
                     context.Types,
                     context.TransportProfiles,
+                    context.EntityIdFactory,
                     context.StoreAccessor));
         }
     }

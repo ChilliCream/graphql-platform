@@ -39,6 +39,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
         StoreAccessorDescriptor StoreAccessor { get; }
 
+        EntityIdFactoryDescriptor EntityIdFactory { get; }
+
         void Register(IEnumerable<INamedTypeDescriptor> typeDescriptors);
 
         void Register(IEnumerable<EntityTypeDescriptor> entityTypeDescriptor);

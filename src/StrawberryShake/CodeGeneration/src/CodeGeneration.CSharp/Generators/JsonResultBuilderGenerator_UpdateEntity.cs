@@ -24,7 +24,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .SetRighthandSide(
                         MethodCallBuilder
                             .Inline()
-                            .SetMethodName(_extractId)
+                            .SetMethodName(_idSerializer, "Parse")
                             .AddArgument($"{_obj}.Value")));
 
             methodBuilder.AddCode(

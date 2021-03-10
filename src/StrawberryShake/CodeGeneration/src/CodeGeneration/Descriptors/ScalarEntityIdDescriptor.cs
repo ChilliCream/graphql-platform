@@ -1,33 +1,30 @@
-using System;
-using System.Collections.Generic;
-
 namespace StrawberryShake.CodeGeneration.Descriptors
 {
     /// <summary>
     /// Represents the entity for which the ID shall be generated or an id field of that entity.
     /// </summary>
-    public class EntityIdDescriptor
+    public class ScalarEntityIdDescriptor
     {
         /// <summary>
-        /// Creates a new instance of <see cref="EntityIdDescriptor"/>.
+        /// Creates a new instance of <see cref="ScalarEntityIdDescriptor"/>.
         /// </summary>
         /// <param name="name">
-        /// The GraphQL name of entity entity.
+        /// The name of the field or entity.
         /// </param>
         /// <param name="typeName">
         /// The serialization type name of the entity id field, eg. String.
         /// </param>
-        /// <param name="fields">
-        /// The child fields.
+        /// <param name="serializationType">
+        /// The .NET serialization type.
         /// </param>
-        public EntityIdDescriptor(
+        public ScalarEntityIdDescriptor(
             string name,
             string typeName,
-            IReadOnlyList<ScalarEntityIdDescriptor> fields )
+            RuntimeTypeInfo serializationType)
         {
             Name = name;
             TypeName = typeName;
-            Fields = fields;
+            SerializationType = serializationType;
         }
 
         /// <summary>
@@ -37,13 +34,14 @@ namespace StrawberryShake.CodeGeneration.Descriptors
         public string Name { get; }
 
         /// <summary>
-        /// Gets the type name of the entity id field.
+        /// Gets the GraphQL type name of the entity id field.
         /// </summary>
         public string TypeName { get; }
 
         /// <summary>
-        /// Gets the child fields.
+        /// Gets the .NET serialization type.
+        /// (the way we transport a leaf value.)
         /// </summary>
-        public IReadOnlyList<ScalarEntityIdDescriptor> Fields { get; }
+        public RuntimeTypeInfo SerializationType { get; }
     }
 }

@@ -22,6 +22,6 @@ namespace StrawberryShake
         /// <returns>
         /// Returns a new operation request.
         /// </returns>
-        OperationRequest Create(IDictionary<string, object?>? variables);
+        OperationRequest Create(IReadOnlyDictionary<string, object?>? variables);
     }
 }
