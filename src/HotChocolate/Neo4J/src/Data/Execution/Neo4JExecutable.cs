@@ -1,8 +1,11 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Data.Neo4J.Language;
+using HotChocolate.Data.Neo4J.Sorting;
+using HotChocolate.Language;
 using Neo4j.Driver;
 using ServiceStack;
 
@@ -23,7 +26,7 @@ namespace HotChocolate.Data.Neo4J.Execution
         /// <summary>
         /// The sort definition that was set by <see cref="WithSorting"/>
         /// </summary>
-        private OrderBy? Sorting { get; set; }
+        private Neo4JSortDefinition[] Sorting { get; set; }
 
         /// <summary>
         /// The projection definition that was set by <see cref="WithProjection"/>
@@ -66,7 +69,7 @@ namespace HotChocolate.Data.Neo4J.Execution
             return this;
         }
 
-        public INeo4JExecutable WithSorting(OrderBy sorting)
+        public INeo4JExecutable WithSorting(Neo4JSortDefinition[] sorting)
         {
             Sorting = sorting;
             return this;
@@ -96,7 +99,22 @@ namespace HotChocolate.Data.Neo4J.Execution
 
             if (Sorting is not null)
             {
+                var sorts = new List<SortItem>();
 
+                foreach (Neo4JSortDefinition sort in Sorting)
+                {
+                    SortItem? sortItem = Cypher.Sort(node.Property(sort.Field));
+                    if (sort.Direction == SortDirection.Ascending)
+                    {
+                        sorts.Push(sortItem.Ascending());
+                    }
+                    else if (sort.Direction == SortDirection.Descending)
+                    {
+                        sorts.Push(sortItem.Descending());
+                    }
+
+                }
+                statement.OrderBy(sorts);
             }
 
             // IResultCursor cursor = await _session.RunAsync(@"

@@ -19,14 +19,12 @@ namespace HotChocolate.Data.Neo4J.Projections
         {
         }
 
-        public bool IsRelationship { get; set; } = false;
-
-        public Node? ParentNode { get; set; }
-
-        public Node? CurrentNode { get; set; }
-        public Relationship? Relationship { get; set; }
-
-        public List<object> RelationshipProjections { get; } = new();
+        public int CurrentLevel { get; set; } = 0;
+        public Stack<Node> StartNodes { get; } = new();
+        public Stack<Node> EndNodes { get; } = new();
+        public Stack<Relationship> Relationships { get; } = new();
+        public Stack<Neo4JRelationshipAttribute> RelationshipTypes { get; } = new();
+        public Dictionary<int, Queue<object>> RelationshipProjections { get; } = new();
 
         /// <summary>
         /// A list of already projected fields

@@ -75,9 +75,9 @@ namespace HotChocolate.Data.Neo4J.Language
         public SymbolicName? GetSymbolicName() => _details.GetSymbolicName();
 
 
-        public SymbolicName GetRequiredSymbolicName()
+        public SymbolicName? GetRequiredSymbolicName()
         {
-            throw new NotImplementedException();
+            return _details.GetSymbolicName();
         }
 
         public Property Property(string name)
@@ -97,12 +97,12 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public MapProjection Project(List<object> entries)
         {
-            throw new NotImplementedException();
+            return Project(entries.ToArray());
         }
 
         public MapProjection Project(params object[] entries)
         {
-            throw new NotImplementedException();
+            return GetSymbolicName().Project(entries);
         }
 
         public Relationship WithProperties(MapExpression? newProperties)

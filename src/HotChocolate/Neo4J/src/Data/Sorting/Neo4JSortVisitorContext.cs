@@ -4,7 +4,7 @@ using HotChocolate.Data.Sorting;
 
 namespace HotChocolate.Data.Neo4J.Sorting
 {
-    public class Neo4JSortVisitorContext : SortVisitorContext<SortItem>
+    public class Neo4JSortVisitorContext : SortVisitorContext<Neo4JSortDefinition>
     {
         public Neo4JSortVisitorContext(ISortInputType initialType)
             : base(initialType)
@@ -14,6 +14,6 @@ namespace HotChocolate.Data.Neo4J.Sorting
         /// <summary>
         /// The path from the root to the current position in the input object
         /// </summary>
-        public Stack<string> Path { get; } = new ();
+        public List<string> Path { get; } = new ();
     }
 }

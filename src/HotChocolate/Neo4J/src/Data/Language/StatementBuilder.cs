@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Data.Neo4J.Filtering;
 
@@ -54,6 +55,18 @@ namespace HotChocolate.Data.Neo4J.Language
         public StatementBuilder OrderBy(params SortItem[] items)
         {
             _orderBy = new OrderBy(items.ToList());
+            return this;
+        }
+
+        public StatementBuilder OrderBy(List<SortItem> items)
+        {
+            _orderBy = new OrderBy(items);
+            return this;
+        }
+
+        public StatementBuilder OrderBy(OrderBy orderBy)
+        {
+            _orderBy = orderBy;
             return this;
         }
 

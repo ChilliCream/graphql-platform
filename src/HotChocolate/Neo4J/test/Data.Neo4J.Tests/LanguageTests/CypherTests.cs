@@ -272,7 +272,9 @@ namespace HotChocolate.Data.Neo4J.Language
                         "owns",
                         new PatternComprehension(
                             _userNode.RelationshipTo(_bikeNode, "OWNS"),
-                            _bikeNode.Project("age"))
+                            _bikeNode.Project("age", "test",  new PatternComprehension(
+                                _userNode.RelationshipTo(_bikeNode, "TEST"),
+                                _bikeNode.Project("test")) ))
                     ))
                     .OrderBy(Cypher.Sort(_userNode.Property("name")).Descending());;
                 statement.Build().MatchSnapshot();

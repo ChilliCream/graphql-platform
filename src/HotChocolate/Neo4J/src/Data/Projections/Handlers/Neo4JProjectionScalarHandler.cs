@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using HotChocolate.Data.Neo4J.Language;
 using HotChocolate.Data.Projections;
 using HotChocolate.Execution.Processing;
@@ -22,17 +24,36 @@ namespace HotChocolate.Data.Neo4J.Projections
             IObjectField field = selection.Field;
             action = SelectionVisitor.SkipAndLeave;
 
-            if (context.IsRelationship == false)
+            if (!context.StartNodes.Any())
             {
                 context.Projections.Add(field.GetName());
                 return true;
             }
+            if(context.StartNodes.Count != context.EndNodes.Count)
+                context.EndNodes.Push(Cypher.NamedNode(selection.DeclaringType.Name.Value));
 
-
-            context.CurrentNode ??= Cypher.NamedNode(selection.DeclaringType.Name.Value);
-            context.Relationship ??= context.ParentNode?.RelationshipTo(context.CurrentNode, "RELATED_TO");
-
-            context.RelationshipProjections.Add(field.GetName());
+            if (context.StartNodes.Count != context.Relationships.Count)
+            {
+                Neo4JRelationshipAttribute rel = context.RelationshipTypes.Peek();
+                Node startNode = context.StartNodes.Peek();
+                Node endNode = context.EndNodes.Peek();
+                switch (rel.Direction)
+                {
+                    case RelationshipDirection.Incoming:
+                        context.Relationships.Push(startNode.RelationshipFrom(endNode, rel.Name));
+                        break;
+                    case RelationshipDirection.Outgoing:
+                        context.Relationships.Push(startNode.RelationshipTo(endNode, rel.Name));
+                        break;
+                    case RelationshipDirection.None:
+                        context.Relationships.Push(startNode.RelationshipBetween(endNode, rel.Name));
+                        break;
+                    default:
+                        throw new InvalidOperationException("Relationship direction not set!");
+                        break;
+                }
+            }
+            context.RelationshipProjections[context.CurrentLevel].Enqueue(selection.Field.GetName());
 
             return true;
         }

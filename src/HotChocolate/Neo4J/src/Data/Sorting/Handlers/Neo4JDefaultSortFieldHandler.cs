@@ -10,7 +10,7 @@ using HotChocolate.Language.Visitors;
 namespace HotChocolate.Data.Neo4J.Sorting
 {
     public class Neo4JDefaultSortFieldHandler
-        : SortFieldHandler<Neo4JSortVisitorContext, SortItem>
+        : SortFieldHandler<Neo4JSortVisitorContext, Neo4JSortDefinition>
     {
         /// <inheritdoc />
         public override bool CanHandle(
@@ -48,7 +48,6 @@ namespace HotChocolate.Data.Neo4J.Sorting
             [NotNullWhen(true)] out ISyntaxVisitorAction? action)
         {
             context.Path.Pop();
-
             action = SyntaxVisitor.Continue;
             return true;
         }

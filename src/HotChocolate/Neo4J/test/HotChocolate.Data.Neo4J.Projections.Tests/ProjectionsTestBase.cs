@@ -12,7 +12,7 @@ namespace HotChocolate.Data.Neo4J.Projections
 {
     public class ProjectionsTestBase
     {
-        protected static async Task<IRequestExecutor> CreateSchema<TEntity>(
+        protected async Task<IRequestExecutor> CreateSchema<TEntity>(
             Neo4jResource neo4JResource,
             string query,
             bool usePaging = false,

@@ -3,9 +3,16 @@
     "root": [
       {
         "barBool": true,
+        "barString": "a",
         "bars": [
           {
-            "name": "b"
+            "name": "b",
+            "number": 2,
+            "bazs": [
+              {
+                "name": "c"
+              }
+            ]
           }
         ]
       }

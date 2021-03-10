@@ -10,7 +10,7 @@ namespace HotChocolate.Data.Neo4J.Projections.Relationship
         : IClassFixture<Neo4jResource>
     {
         private readonly string _fooEntities = @"
-            CREATE (:Foo {BarBool: true, BarString: 'a', BarInt: 1, BarDouble: 1.5})-[:RELATED_TO]->(:Bar {Name: 'b', Number: 2})-[:RELATED_TO]->(:Baz {Name: 'c', Number: 3})
+            CREATE (:Foo {BarBool: true, BarString: 'a', BarInt: 1, BarDouble: 1.5})-[:RELATED_TO]->(:Bar {Name: 'b', Number: 2})<-[:RELATED_FROM]-(:Baz {Name: 'c', Number: 3})
         ";
 
         public class Foo
@@ -29,7 +29,7 @@ namespace HotChocolate.Data.Neo4J.Projections.Relationship
             public string Name { get; set; } = null!;
             public int Number { get; set; }
 
-            [Neo4JRelationship("RELATED_TO")]
+            [Neo4JRelationship("RELATED_FROM", RelationshipDirection.Incoming)]
             public List<Baz> Bazs { get; set; }
         }
 
@@ -61,9 +61,15 @@ namespace HotChocolate.Data.Neo4J.Projections.Relationship
                         {
                             root {
                                 barBool
+                                barString
                                 bars
                                 {
                                     name
+                                    number
+                                    bazs
+                                    {
+                                        name
+                                    }
                                 }
                             }
                         }

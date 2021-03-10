@@ -25,9 +25,10 @@ namespace HotChocolate.Data.Neo4J.Projections
         public static bool TryCreateRelationshipProjection(this Neo4JProjectionVisitorContext context,
             out PatternComprehension patternComprehension)
         {
+
             patternComprehension = new PatternComprehension(
-                context.Relationship,
-                context.CurrentNode.Project(context.RelationshipProjections));
+                 context.Relationships.Peek(),
+                 context.EndNodes.Peek().Project(context.RelationshipProjections[context.CurrentLevel].ToArray()));
 
             return true;
         }

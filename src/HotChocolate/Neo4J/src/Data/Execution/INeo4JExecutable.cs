@@ -1,4 +1,5 @@
 using HotChocolate.Data.Neo4J.Language;
+using HotChocolate.Data.Neo4J.Sorting;
 
 namespace HotChocolate.Data.Neo4J.Execution
 {
@@ -19,7 +20,7 @@ namespace HotChocolate.Data.Neo4J.Execution
         /// </summary>
         /// <param name="sorting">The sorting definition</param>
         /// <returns>A executable that contains the sorting definition</returns>
-        INeo4JExecutable WithSorting(OrderBy sorting);
+        INeo4JExecutable WithSorting(Neo4JSortDefinition[] sorting);
 
         /// <summary>
         /// Applies the projection definition to the executable

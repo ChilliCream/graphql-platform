@@ -31,7 +31,7 @@ namespace HotChocolate.Data.Neo4J
             descriptor
                 .Extend()
                 .OnBeforeCreate(x =>
-                    x.ContextData.Add(nameof(Neo4JRelationshipAttribute), new {Name, Direction}));
+                    x.ContextData.Add(nameof(Neo4JRelationshipAttribute), this));
         }
     }
 }

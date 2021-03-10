@@ -30,7 +30,7 @@ namespace HotChocolate.Data.Neo4J.Projections
 
             return _cache.GetOrAdd(
                 key,
-                k => ProjectionsTestBase.CreateSchema<T>(
+                k => base.CreateSchema<T>(
                     _resource,
                     query));
         }

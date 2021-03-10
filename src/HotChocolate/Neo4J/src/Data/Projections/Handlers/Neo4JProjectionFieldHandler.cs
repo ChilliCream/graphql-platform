@@ -1,4 +1,7 @@
+using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using HotChocolate.Data.Neo4J.Language;
 using HotChocolate.Data.Projections;
 using HotChocolate.Execution.Processing;
@@ -22,9 +25,26 @@ namespace HotChocolate.Data.Neo4J.Projections
             ISelection selection,
             [NotNullWhen(true)] out ISelectionVisitorAction? action)
         {
-            context.IsRelationship = true;
-            context.ParentNode ??= Cypher.NamedNode(selection.DeclaringType.Name.Value);
-            context.Projections.Push(selection.Field.GetName());
+            ++context.CurrentLevel;
+            selection.Field.ContextData.TryGetValue(nameof(Neo4JRelationshipAttribute), out object? relationship);
+            if (relationship is Neo4JRelationshipAttribute rel)
+            {
+                context.RelationshipTypes.Push(rel);
+            }
+
+            context.StartNodes.Push(Cypher.NamedNode(selection.DeclaringType.Name.Value));
+
+            if (context.RelationshipProjections.ContainsKey(context.CurrentLevel))
+            {
+                context.RelationshipProjections[context.CurrentLevel].Enqueue(selection.Field.GetName());
+            }
+            else
+            {
+                Queue<object> queue = new ();
+                queue.Enqueue(selection.Field.GetName());
+                context.RelationshipProjections.Add(context.CurrentLevel, queue);
+            }
+
             action = SelectionVisitor.Continue;
             return true;
         }
@@ -35,14 +55,36 @@ namespace HotChocolate.Data.Neo4J.Projections
             ISelection selection,
             [NotNullWhen(true)] out ISelectionVisitorAction? action)
         {
-            context.TryCreateRelationshipProjection(out PatternComprehension? projections);
-            context.Projections.Push(projections);
+            if (context.StartNodes.Any())
+            {
+                object? field = context.RelationshipProjections[context.CurrentLevel].Dequeue();
 
-            context.IsRelationship = false;
-            context.Relationship = null;
-            context.CurrentNode = null;
-            context.ParentNode = null;
-            context.RelationshipProjections.Clear();
+                context.TryCreateRelationshipProjection(out PatternComprehension? projections);
+
+                switch (context.CurrentLevel)
+                {
+                    case > 1:
+                        context.RelationshipProjections[context.CurrentLevel - 1].Enqueue(field);
+                        context.RelationshipProjections[context.CurrentLevel - 1].Enqueue(projections);
+                        break;
+                    case 1:
+                        context.Projections.Push(field);
+                        context.Projections.Push(projections);
+                        break;
+                }
+            }
+
+            --context.CurrentLevel;
+
+            context.StartNodes.Pop();
+            context.EndNodes.Pop();
+            context.Relationships.Pop();
+
+            if (context.CurrentLevel == 0)
+            {
+                context.RelationshipProjections.Clear();
+            }
+
             action = SelectionVisitor.Continue;
             return true;
         }

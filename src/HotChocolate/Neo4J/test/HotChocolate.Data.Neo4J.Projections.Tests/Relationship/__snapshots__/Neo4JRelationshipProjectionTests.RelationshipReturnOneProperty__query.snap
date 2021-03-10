@@ -1,1 +1,1 @@
-﻿MATCH (foo:Foo) RETURN foo {.BarBool, Bars: [(foo:Foo)-[:RELATED_TO]->(bar:Bar) | bar {.Name}]}
+﻿MATCH (foo:Foo) RETURN foo {.BarBool, .BarString, Bars: [(foo:Foo)-[:RELATED_TO]->(bar:Bar) | bar {.Name, .Number, Bazs: [(bar:Bar)<-[:RELATED_FROM]-(baz:Baz) | baz {.Name}]}]}
