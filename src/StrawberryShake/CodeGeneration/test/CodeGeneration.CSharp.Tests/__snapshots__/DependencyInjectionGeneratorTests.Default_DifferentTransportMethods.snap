@@ -1149,7 +1149,7 @@ namespace Foo.Bar
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetPersonQuery
+    public partial class GetPersonQuery : IOperationRequestFactory
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetPersonResult> _operationExecutor;
 
@@ -1180,13 +1180,16 @@ namespace Foo.Bar
 
         private global::StrawberryShake.OperationRequest CreateRequest()
         {
-
             return new global::StrawberryShake.OperationRequest(
                 id: GetPersonQueryDocument.Instance.Hash.Value,
                 name: "GetPerson",
                 document: GetPersonQueryDocument.Instance,
                 strategy: global::StrawberryShake.RequestStrategy.Default);
         }
+
+        OperationRequest IOperationRequestFactory.Create(
+            IReadOnlyDictionary<string, object?>? variables) =>
+            CreateRequest();
     }
 }
 
@@ -1465,7 +1468,7 @@ namespace Foo.Bar.State
             global::StrawberryShake.IEntityStoreSnapshot snapshot = default!;
 
             global::StrawberryShake.EntityId? personId = default!;
-            _entityStore.Update(session => 
+            _entityStore.Update(session =>
             {
                 personId = UpdateIGetPerson_PersonEntity(
                     session,
@@ -1609,7 +1612,7 @@ namespace Foo.Bar.State
             global::StrawberryShake.IEntityStoreSnapshot snapshot = default!;
 
             global::StrawberryShake.EntityId? onPersonId = default!;
-            _entityStore.Update(session => 
+            _entityStore.Update(session =>
             {
                 onPersonId = UpdateIOnPerson_OnPersonEntity(
                     session,
@@ -1753,7 +1756,7 @@ namespace Foo.Bar.State
             global::StrawberryShake.IEntityStoreSnapshot snapshot = default!;
 
             global::StrawberryShake.EntityId? createPersonId = default!;
-            _entityStore.Update(session => 
+            _entityStore.Update(session =>
             {
                 createPersonId = UpdateICreatePerson_CreatePersonEntity(
                     session,
@@ -1933,7 +1936,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
-                sp => 
+                sp =>
                 {
                     var serviceCollection = ConfigureClientShared(
                         sp,
@@ -1988,7 +1991,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 sp => new global::StrawberryShake.OperationStore(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
-                sp => 
+                sp =>
                 {
                     var clientFactory = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.InMemory.IInMemoryClientFactory>(parentServices);
                     return new global::StrawberryShake.Transport.InMemory.InMemoryConnection(async ct => await clientFactory.CreateAsync(
@@ -1997,14 +2000,14 @@ namespace Microsoft.Extensions.DependencyInjection
                 });
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
-                sp => 
+                sp =>
                 {
                     var clientFactory = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Net.Http.IHttpClientFactory>(parentServices);
                     return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("FooClient"));
                 });
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
-                sp => 
+                sp =>
                 {
                     var sessionPool = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.WebSockets.ISessionPool>(parentServices);
                     return new global::StrawberryShake.Transport.WebSockets.WebSocketConnection(() => sessionPool.CreateAsync(

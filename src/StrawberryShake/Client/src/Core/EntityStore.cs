@@ -1,17 +1,25 @@
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Channels;
 
 namespace StrawberryShake
 {
     /// <summary>
     /// The entity store can be used to access and mutate entities.
     /// </summary>
-    public class EntityStore : IEntityStore
+    public partial class EntityStore : IEntityStore
     {
         private readonly object _sync = new();
+        private readonly CancellationTokenSource _cts = new();
+        private readonly Channel<EntityUpdate> _updates = Channel.CreateUnbounded<EntityUpdate>();
         private readonly EntityUpdateObservable _entityUpdateObservable = new();
         private EntityStoreSnapshot _snapshot = new();
+        private bool _disposed;
+
+        public EntityStore()
+        {
+            BeginProcessEntityUpdates();
+        }
 
         /// <inheritdoc />
         public IEntityStoreSnapshot CurrentSnapshot => _snapshot;
@@ -26,75 +34,22 @@ namespace StrawberryShake
                 action(session);
 
                 _snapshot = session.CurrentSnapshot;
-                _entityUpdateObservable.OnUpdated(
+                _updates.Writer.TryWrite(new EntityUpdate(
                     session.CurrentSnapshot,
-                    session.UpdatedEntityIds,
-                    session.CurrentSnapshot.Version);
+                    session.UpdatedEntityIds));
             }
         }
 
         /// <inheritdoc />
         public IObservable<EntityUpdate> Watch() => _entityUpdateObservable;
 
-        private class EntityUpdateObservable : IObservable<EntityUpdate>
+        public void Dispose()
         {
-            private readonly object _sync = new();
-            private ImmutableList<IObserver<EntityUpdate>> _observers =
-                ImmutableList<IObserver<EntityUpdate>>.Empty;
-
-            public IDisposable Subscribe(IObserver<EntityUpdate> observer)
+            if (!_disposed)
             {
-                lock (_sync)
-                {
-                    _observers = _observers.Add(observer);
-                }
-
-                return new Subscription(this, observer);
-            }
-
-            public void OnUpdated(
-                IEntityStoreSnapshot snapshot,
-                ISet<EntityId> entityIds,
-                ulong version)
-            {
-                ImmutableList<IObserver<EntityUpdate>> observers = _observers;
-
-                if (observers.Count > 0)
-                {
-                    var update = new EntityUpdate(snapshot, entityIds, version);
-
-                    foreach (var observer in observers)
-                    {
-                        observer.OnNext(update);
-                    }
-                }
-            }
-
-            private class Subscription : IDisposable
-            {
-                private readonly EntityUpdateObservable _observable;
-                private readonly IObserver<EntityUpdate> _observer;
-                private bool _disposed;
-
-                public Subscription(
-                    EntityUpdateObservable observable,
-                    IObserver<EntityUpdate> observer)
-                {
-                    _observable = observable;
-                    _observer = observer;
-                }
-
-                public void Dispose()
-                {
-                    if (!_disposed)
-                    {
-                        lock (_observable._sync)
-                        {
-                            _observable._observers = _observable._observers.Remove(_observer);
-                        }
-                        _disposed = true;
-                    }
-                }
+                _cts.Cancel();
+                _cts.Dispose();
+                _disposed = true;
             }
         }
     }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reflection;
 using StrawberryShake.Extensions;
 
 namespace StrawberryShake
@@ -12,6 +13,10 @@ namespace StrawberryShake
         : IOperationStore
         , IDisposable
     {
+        private static readonly MethodInfo _setGeneric = typeof(OperationStore)
+            .GetMethods(BindingFlags.Instance | BindingFlags.Public)
+            .First(t => t.IsGenericMethod && t.Name.Equals(nameof(Set), StringComparison.Ordinal));
+
         private readonly ConcurrentDictionary<OperationRequest, IStoredOperation> _results = new();
         private readonly IEntityStore _entityStore;
         private readonly OperationStoreObservable _operationStoreObservable = new();
@@ -46,6 +51,13 @@ namespace StrawberryShake
 
             StoredOperation<T> storedOperation = GetOrAddStoredOperation<T>(operationRequest);
             storedOperation.SetResult(operationResult);
+        }
+
+        public void Set(OperationRequest operationRequest, IOperationResult operationResult)
+        {
+            _setGeneric
+                .MakeGenericMethod(operationResult.DataType)
+                .Invoke(this, new object[] { operationRequest, operationRequest });
         }
 
         public void Reset(OperationRequest operationRequest)

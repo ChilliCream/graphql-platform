@@ -5,7 +5,7 @@ namespace StrawberryShake
     /// <summary>
     /// The entity store can be used to access and mutate entities.
     /// </summary>
-    public interface IEntityStore
+    public interface IEntityStore : IDisposable
     {
         /// <summary>
         /// Gets the current snapshot of the store.

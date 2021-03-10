@@ -120,4 +120,7 @@
   <data name="EntityStore_InvalidEntityId" xml:space="preserve">
     <value>Invalid entity id.</value>
   </data>
+  <data name="StoreAccessor_GetOperationRequestFactory_InvalidResultType" xml:space="preserve">
+    <value>The specified result type is invalid.</value>
+  </data>
 </root>

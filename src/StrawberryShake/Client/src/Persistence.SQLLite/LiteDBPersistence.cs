@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -13,7 +15,9 @@ namespace StrawberryShake.Persistence.SQLite
     {
         private readonly JsonSerializerSettings _serializerSettings = new()
         {
-            Formatting = Formatting.None, TypeNameHandling = TypeNameHandling.All
+            Formatting = Formatting.None,
+            TypeNameHandling = TypeNameHandling.All,
+            TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple
         };
 
         private readonly JsonOperationRequestSerializer _requestSerializer = new();
@@ -54,15 +58,49 @@ namespace StrawberryShake.Persistence.SQLite
             {
                 foreach (var entityDto in collection.FindAll())
                 {
+                    EntityId entityId = entityDto.EntityId;
                     Type type = Type.GetType(entityDto.TypeName)!;
                     object entity = JsonConvert.DeserializeObject(
                         entityDto.Entity,
                         type,
                         _serializerSettings);
-                    EntityId entityId = JsonConvert.DeserializeObject<EntityId>(
-                        entityDto.Id,
-                        _serializerSettings);
                     session.SetEntity(entityId, entity);
+                }
+            });
+        }
+
+        private void ReadOperations()
+        {
+            var collection = _database.GetCollection<OperationDto>("operations");
+
+            _storeAccessor.EntityStore.Update(session =>
+            {
+                foreach (var entityDto in collection.FindAll())
+                {
+                    /*
+                    var resultType = Type.GetType(entityDto.ResultTypeName)!;
+                    var variables = entityDto.Variables is not null
+                        ? JsonConvert.DeserializeObject<Dictionary<string, object?>>(
+                            entityDto.Variables,
+                            _serializerSettings)
+                        : null;
+                    var dataInfo = JsonConvert.DeserializeObject<IOperationResultDataInfo>(
+                        entityDto.DataInfo,
+                        _serializerSettings);
+
+                    var requestFactory = _storeAccessor.GetOperationRequestFactory(resultType);
+                    var dataFactory = _storeAccessor.GetOperationResultDataFactory(resultType);
+
+                    OperationRequest request = requestFactory.Create(variables);
+                    IOperationResult result = OperationResult.Create(
+                        dataFactory.Create(dataInfo),
+                        resultType,
+                        dataInfo,
+                        dataFactory,
+                        null);
+
+                    _storeAccessor.OperationStore.Set(request, result);
+                    */
                 }
             });
         }
@@ -84,8 +122,6 @@ namespace StrawberryShake.Persistence.SQLite
             BeginWriteEntities();
             BeginWriteOperations();
         }
-
-
 
         private void BeginWriteEntities() =>
             Task.Run(async () => await WriteEntitiesAsync(_cts.Token));
@@ -136,6 +172,7 @@ namespace StrawberryShake.Persistence.SQLite
                     new EntityDto
                     {
                         Id = serializedId,
+                        EntityId = entityId,
                         Entity = JsonConvert.SerializeObject(entity, _serializerSettings),
                         TypeName = typeName,
                         Version = snapshot.Version
@@ -188,18 +225,25 @@ namespace StrawberryShake.Persistence.SQLite
             StoredOperationVersion operationVersion,
             ILiteCollection<OperationDto> collection)
         {
-            using var writer = new ArrayWriter();
-            _requestSerializer.Serialize(operationVersion.Request, writer);
-
-            var operationDto = new OperationDto
+            if (operationVersion.Result is not null &&
+                operationVersion.Result.Errors.Count == 0 &&
+                operationVersion.Result.DataInfo is not null)
             {
-                Id = operationVersion.Request.GetHash(),
-                Request = Convert.ToBase64String(writer.GetInternalBuffer(), 0, writer.Length),
-                DataInfo = JsonConvert.SerializeObject(operationVersion.Result!.DataInfo),
-                DataType = operationVersion.Result.DataType.FullName!
-            };
+                using var writer = new ArrayWriter();
+                _requestSerializer.Serialize(operationVersion.Request, writer);
 
-            collection.Upsert(operationDto.Id, operationDto);
+                var operationDto = new OperationDto
+                {
+                    Id = operationVersion.Request.GetHash(),
+                    Variables = operationVersion.Request.Variables.ToDictionary(
+                        t => t.Key,
+                        t => t.Value),
+                    DataInfo = operationVersion.Result.DataInfo,
+                    ResultTypeName = operationVersion.Result.DataType.FullName!
+                };
+
+                collection.Upsert(operationDto.Id, operationDto);
+            }
         }
 
         private void DeleteOperation(
@@ -225,18 +269,20 @@ namespace StrawberryShake.Persistence.SQLite
 
     public class OperationDto
     {
-        public string Id { get; set; }
+        public string Id { get; set; } = default!;
 
-        public string Request { get; set; }
+        public Dictionary<string, object?>? Variables { get; set; }
 
-        public string DataInfo { get; set; }
+        public string ResultTypeName { get; set; } = default!;
 
-        public string DataType { get; set; }
+        public IOperationResultDataInfo DataInfo { get; set; } = default!;
     }
 
     public class EntityDto
     {
         public string Id { get; set; }
+
+        public EntityId EntityId { get; set; }
 
         public string Entity { get; set; }
 

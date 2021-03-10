@@ -7,14 +7,13 @@ namespace StrawberryShake
     {
         public EntityUpdate(
             IEntityStoreSnapshot snapshot,
-            ISet<EntityId> updatedEntityIds,
-            ulong version)
+            ISet<EntityId> updatedEntityIds)
         {
             Snapshot = snapshot ??
                 throw new ArgumentNullException(nameof(snapshot));
             UpdatedEntityIds = updatedEntityIds ??
                 throw new ArgumentNullException(nameof(updatedEntityIds));
-            Version = version;
+            Version = snapshot.Version;
         }
 
         /// <summary>

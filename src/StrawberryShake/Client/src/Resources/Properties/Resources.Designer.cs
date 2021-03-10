@@ -248,5 +248,11 @@ namespace StrawberryShake.Properties {
                 return ResourceManager.GetString("EntityStore_InvalidEntityId", resourceCulture);
             }
         }
+        
+        internal static string StoreAccessor_GetOperationRequestFactory_InvalidResultType {
+            get {
+                return ResourceManager.GetString("StoreAccessor_GetOperationRequestFactory_InvalidResultType", resourceCulture);
+            }
+        }
     }
 }

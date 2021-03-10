@@ -104,7 +104,7 @@ namespace StrawberryShake.Persistence.SQLLite
                         info =>
                         {
                             Assert.Equal("ABC", info.Id.Name);
-                            Assert.Equal(1L, info.Id.Value);
+                            Assert.Equal(1, info.Id.Value);
                             MockEntity entity = Assert.IsType<MockEntity>(info.Entity);
                             Assert.Equal("abc", entity.Name);
                         });
@@ -126,16 +126,18 @@ namespace StrawberryShake.Persistence.SQLLite
             public string Name { get; }
         }
 
-        public class MockStoreAccessor : IStoreAccessor
+        public class MockStoreAccessor : StoreAccessor
         {
-            public MockStoreAccessor(IOperationStore operationStore, IEntityStore entityStore)
+            public MockStoreAccessor(
+                IOperationStore operationStore,
+                IEntityStore entityStore)
+                : base(
+                    operationStore,
+                    entityStore,
+                    new IOperationRequestFactory[0],
+                    new IOperationResultDataFactory[0])
             {
-                OperationStore = operationStore;
-                EntityStore = entityStore;
             }
-
-            public IOperationStore OperationStore { get; }
-            public IEntityStore EntityStore { get; }
         }
     }
 }
