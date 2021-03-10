@@ -178,6 +178,15 @@
   <data name="IPv4Type_IsInvalid_ParseValue" xml:space="preserve">
     <value>IPv4Type cannot parse the provided value. The provided value is not a valid IPv4 address.</value>
   </data>
+  <data name="IsbnType_Description" xml:space="preserve">
+    <value>The ISBN scalar type is a ISBN-10 or ISBN-13 number: https://en.wikipedia.org/wiki/International_Standard_Book_Number.</value>
+  </data>
+  <data name="IsbnType_IsInvalid_ParseLiteral" xml:space="preserve">
+    <value>IsbnType cannot parse the provided literal. The provided value is not a valid ISBN number.</value>
+  </data>
+  <data name="IsbnType_IsInvalid_ParseValue" xml:space="preserve">
+    <value>IsbnType cannot parse the provided value. The provided value is not a valid ISBN number.</value>
+  </data>
   <data name="NegativeFloatType_Description" xml:space="preserve">
     <value>The NegativeFloat scalar type represents a double‐precision fractional value less than 0.</value>
   </data>
