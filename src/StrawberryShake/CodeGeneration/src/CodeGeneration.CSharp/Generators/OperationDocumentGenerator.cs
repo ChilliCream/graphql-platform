@@ -84,11 +84,21 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .SetPublic()
                 .SetOverride()
                 .SetReturnType(TypeNames.String)
+                .AddCode("#if NETSTANDARD2_0")
                 .AddCode(MethodCallBuilder
                     .New()
                     .SetReturn()
                     .SetMethodName(TypeNames.EncodingUtf8, nameof(Encoding.UTF8.GetString))
-                    .AddArgument("Body"));
+                    .AddArgument("Body.ToArray()"))
+                .AddCode("#else")
+                .AddCode(MethodCallBuilder
+                    .New()
+                    .SetReturn()
+                    .SetMethodName(TypeNames.EncodingUtf8, nameof(Encoding.UTF8.GetString))
+                    .AddArgument("Body"))
+                .AddCode("#endif");
+
+
 
             CodeFileBuilder
                 .New()
