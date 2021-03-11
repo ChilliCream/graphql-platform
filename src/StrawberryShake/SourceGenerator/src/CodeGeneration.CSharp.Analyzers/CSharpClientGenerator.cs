@@ -169,7 +169,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
             try
             {
-                foreach (string fileName in Directory.GetFiles(context.OutputDirectory, "*.cs"))
+                foreach (string fileName in Directory.GetFiles(
+                    context.OutputDirectory, 
+                    "*.cs", 
+                    SearchOption.AllDirectories))
                 {
                     if (!context.FileNames.Contains(fileName))
                     {
