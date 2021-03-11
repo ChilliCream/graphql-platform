@@ -1,18 +1,14 @@
 using System;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Utilities;
-using LiteDB;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 using StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.State;
 using StrawberryShake.Transport.WebSockets;
-using StrawberryShake.Extensions;
+using StrawberryShake.Persistence.LiteDB;
 using Xunit;
-using Xunit.Sdk;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
 {

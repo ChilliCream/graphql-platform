@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using LiteDB;
 using StrawberryShake.Internal;
+using StrawberryShake.Persistence.LiteDB;
 using Xunit;
 
 namespace StrawberryShake.Persistence.SQLLite
