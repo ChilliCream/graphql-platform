@@ -1,5 +1,7 @@
+using System;
 using System.IO;
 using System.Text;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using IOPath = System.IO.Path;
 
@@ -8,6 +10,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
     public class SingleFileDocumentWriter : IDocumentWriter
     {
         private StringBuilder _content = new();
+        private GeneratorExecutionContext? _execution;
         private string? _fileName;
 
         public void WriteDocument(ClientGeneratorContext context, SourceDocument document)
@@ -15,28 +18,30 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             string documentName = $"{document.Name}.StrawberryShake.cs";
             context.Log.WriteDocument(documentName);
 
-            context.Execution.AddSource(
-                documentName,
-                SourceText.From(document.SourceText, Encoding.UTF8));
+            _content.AppendLine(documentName);
+            _content.AppendLine(document.SourceText);
+            _content.AppendLine();
 
-            if (context.OutputFiles)
+            if (context.OutputFiles && _fileName is null)
             {
-                if (_fileName is null)
-                {
-                    _fileName = IOPath.Combine(
-                        context.OutputDirectory,
-                        "Generated.StrawberryShake.cs");
-                    context.FileNames.Add(_fileName);
-                }
-
-                _content.AppendLine(documentName);
-                _content.AppendLine(document.SourceText);
-                _content.AppendLine();
+                _fileName = IOPath.Combine(
+                    context.OutputDirectory,
+                    "Generated.StrawberryShake.cs");
+                context.FileNames.Add(_fileName);
             }
         }
 
         public void Flush()
         {
+            if (_execution is null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            _execution.Value.AddSource(
+                IOPath.GetFileName(_fileName),
+                SourceText.From(_content.ToString(), Encoding.UTF8));
+
             if (_fileName is not null)
             {
                 string directory = IOPath.GetDirectoryName(_fileName);
