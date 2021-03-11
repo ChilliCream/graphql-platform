@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Channels;
@@ -10,7 +9,7 @@ using StrawberryShake.Internal;
 using StrawberryShake.Json;
 using static StrawberryShake.Json.JsonSerializationHelper;
 
-namespace StrawberryShake.Persistence.SQLite
+namespace StrawberryShake.Persistence.LiteDB
 {
     public class LiteDBPersistence : IDisposable
     {
@@ -184,31 +183,24 @@ namespace StrawberryShake.Persistence.SQLite
             IEntityStoreSnapshot snapshot,
             ILiteCollection<EntityDto> collection)
         {
-            try
-            {
-                string serializedId = _storeAccessor.EntityIdSerializer.Format(entityId);
+            string serializedId = _storeAccessor.EntityIdSerializer.Format(entityId);
 
-                if (snapshot.TryGetEntity(entityId, out object? entity))
-                {
-                    collection.Upsert(
-                        serializedId,
-                        new EntityDto
-                        {
-                            Id = serializedId,
-                            Entity = JsonConvert.SerializeObject(entity,
-                                _serializerSettings),
-                            TypeName = entity.GetType().FullName!,
-                            Version = snapshot.Version
-                        });
-                }
-                else
-                {
-                    collection.Delete(serializedId);
-                }
+            if (snapshot.TryGetEntity(entityId, out object? entity))
+            {
+                collection.Upsert(
+                    serializedId,
+                    new EntityDto
+                    {
+                        Id = serializedId,
+                        Entity = JsonConvert.SerializeObject(entity,
+                            _serializerSettings),
+                        TypeName = entity.GetType().FullName!,
+                        Version = snapshot.Version
+                    });
             }
-            catch (Exception ex)
+            else
             {
-
+                collection.Delete(serializedId);
             }
         }
 

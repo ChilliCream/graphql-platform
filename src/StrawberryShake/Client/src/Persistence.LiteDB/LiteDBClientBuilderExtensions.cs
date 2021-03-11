@@ -1,5 +1,5 @@
 using StrawberryShake;
-using StrawberryShake.Persistence.SQLite;
+using StrawberryShake.Persistence.LiteDB;
 
 namespace Microsoft.Extensions.DependencyInjection
 {

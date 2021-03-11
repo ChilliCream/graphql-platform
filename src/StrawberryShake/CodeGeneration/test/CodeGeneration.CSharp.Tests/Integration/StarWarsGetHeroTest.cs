@@ -11,7 +11,6 @@ using Snapshooter.Xunit;
 using StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.State;
 using StrawberryShake.Transport.WebSockets;
 using StrawberryShake.Extensions;
-using StrawberryShake.Persistence.SQLite;
 using Xunit;
 using Xunit.Sdk;
 
