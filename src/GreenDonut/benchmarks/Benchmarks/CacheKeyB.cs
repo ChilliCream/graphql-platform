@@ -15,7 +15,7 @@ namespace GreenDonut.Benchmarks
         {
             if (ReferenceEquals(null, obj))
             {
-                return ReferenceEquals(null, this);
+                return false;
             }
 
             return Equals((CacheKeyB<TKey>)obj);

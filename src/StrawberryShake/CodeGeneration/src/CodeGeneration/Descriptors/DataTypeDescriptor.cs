@@ -43,6 +43,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors
                             namedTypeReferenceDescriptor.Name,
                             new PropertyDescriptor(
                                 namedTypeReferenceDescriptor.Name,
+                                namedTypeReferenceDescriptor.Name,
                                 nonNull.InnerType,
                                 namedTypeReferenceDescriptor.Description));
                     }

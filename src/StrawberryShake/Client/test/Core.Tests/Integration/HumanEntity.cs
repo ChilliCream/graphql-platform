@@ -4,10 +4,17 @@ namespace StrawberryShake.Integration
 {
     public class HumanEntity
     {
-        public EntityId Id { get; set; }
+        public HumanEntity(EntityId id, string name, List<EntityId> friends)
+        {
+            Id = id;
+            Name = name;
+            Friends = friends;
+        }
 
-        public string Name { get; set; }
+        public EntityId Id { get; }
 
-        public List<EntityId> Friends { get; set; }
+        public string Name { get; }
+
+        public List<EntityId> Friends { get; }
     }
 }
