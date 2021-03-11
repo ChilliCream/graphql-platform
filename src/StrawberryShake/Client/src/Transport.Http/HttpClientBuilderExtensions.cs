@@ -25,10 +25,11 @@ namespace StrawberryShake
         /// A delegate that is used to additionally configure the <see cref="HttpClient"/>
         /// with a <see cref="IHttpClientBuilder"/>
         /// </param>
-        public static IClientBuilder ConfigureHttpClient(
-            this IClientBuilder clientBuilder,
+        public static IClientBuilder<T> ConfigureHttpClient<T>(
+            this IClientBuilder<T> clientBuilder,
             Action<HttpClient> configureClient,
             Action<IHttpClientBuilder>? configureClientBuilder = null)
+            where T : IStoreAccessor
         {
             if (clientBuilder == null)
             {
@@ -64,10 +65,11 @@ namespace StrawberryShake
         /// A delegate that is used to additionally configure the <see cref="HttpClient"/>
         /// with a <see cref="IHttpClientBuilder"/>
         /// </param>
-        public static IClientBuilder ConfigureHttpClient(
-            this IClientBuilder clientBuilder,
+        public static IClientBuilder<T> ConfigureHttpClient<T>(
+            this IClientBuilder<T> clientBuilder,
             Action<IServiceProvider, HttpClient> configureClient,
             Action<IHttpClientBuilder>? configureClientBuilder = null)
+            where T : IStoreAccessor
         {
             if (clientBuilder == null)
             {

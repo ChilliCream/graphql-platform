@@ -177,6 +177,26 @@ namespace StrawberryShake.CodeGeneration.CSharp
         }
 
         [Fact]
+        public void Create_GetFeatById()
+        {
+            AssertResult(
+                @"query GetFeatById($id: Uuid!) {
+                    feats(where: {id: {eq: $id}}) {
+                        items {
+                            id,
+                            name,
+                            level,
+                            details {
+                                text
+                            }
+                        }
+                    }
+                }",
+                "extend schema @key(fields: \"id\")",
+                FileResource.Open("Schema_Bug_1.graphql"));
+        }
+
+        [Fact]
         public void Create_DataType_Query()
         {
             AssertResult(
