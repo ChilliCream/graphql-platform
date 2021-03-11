@@ -61,6 +61,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     properties.Add(
                         new PropertyDescriptor(
                             field.Name,
+                            field.Field.Name,
                             BuildFieldType(
                                 field.Type,
                                 fieldType),

@@ -7,7 +7,7 @@ namespace StrawberryShake
     {
         new T? Data { get; }
 
-        IOperationResultDataFactory<T> DataFactory { get; }
+        new IOperationResultDataFactory<T> DataFactory { get; }
 
         IOperationResult<T> WithData(T data, IOperationResultDataInfo dataInfo);
     }
@@ -19,6 +19,8 @@ namespace StrawberryShake
         Type DataType { get; }
 
         IOperationResultDataInfo? DataInfo { get; }
+
+        object DataFactory { get; }
 
         IReadOnlyList<IClientError> Errors { get; }
 

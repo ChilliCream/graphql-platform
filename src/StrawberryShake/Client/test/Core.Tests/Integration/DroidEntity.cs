@@ -4,8 +4,15 @@ namespace StrawberryShake.Integration
 {
     public class DroidEntity
     {
-        public EntityId Id { get; set; }
-        public string Name { get; set; }
-        public List<EntityId> Friends { get; set; }
+        public DroidEntity(EntityId id, string name, List<EntityId> friends)
+        {
+            Id = id;
+            Name = name;
+            Friends = friends;
+        }
+
+        public EntityId Id { get; }
+        public string Name { get; }
+        public List<EntityId> Friends { get; }
     }
 }
