@@ -7,7 +7,7 @@ namespace StrawberryShake
     /// <summary>
     /// The entity store can be used to access and mutate entities.
     /// </summary>
-    public partial class EntityStore : IEntityStore
+    public sealed partial class EntityStore : IEntityStore
     {
         private readonly object _sync = new();
         private readonly CancellationTokenSource _cts = new();
@@ -47,6 +47,7 @@ namespace StrawberryShake
         {
             if (!_disposed)
             {
+                _updates.Writer.TryComplete();
                 _cts.Cancel();
                 _cts.Dispose();
                 _disposed = true;

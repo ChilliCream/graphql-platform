@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace StrawberryShake
@@ -8,7 +9,7 @@ namespace StrawberryShake
     public class EntityStoreTests
     {
         [Fact]
-        public void UpdateEntity()
+        public async Task UpdateEntity()
         {
             // arrange
             var entityStore = new EntityStore();
@@ -28,6 +29,8 @@ namespace StrawberryShake
             {
                 session.SetEntity(entityId, new MockEntity("abc", 1));
             });
+
+            await Task.Delay(250);
 
             // assert
             Assert.Collection(

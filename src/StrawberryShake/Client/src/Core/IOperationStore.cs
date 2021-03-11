@@ -7,7 +7,7 @@ namespace StrawberryShake
     /// <summary>
     /// The operation store tracks and stores results by requests.
     /// </summary>
-    public interface IOperationStore
+    public interface IOperationStore : IDisposable
     {
         /// <summary>
         /// Stores the <paramref name="operationResult"/> for the specified

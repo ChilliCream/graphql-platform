@@ -18,9 +18,8 @@ namespace StrawberryShake
         {
             try
             {
-#if NETSTANDARD2_0 || NETSTANDARD2_1
                 while (!_cts.Token.IsCancellationRequested ||
-                    !_updates.Reader.Completion.IsCompleted)
+                       !_updates.Reader.Completion.IsCompleted)
                 {
                     var update = await _updates.Reader.ReadAsync(_cts.Token);
 
@@ -31,23 +30,16 @@ namespace StrawberryShake
 
                     _entityUpdateObservable.OnUpdated(update);
                 }
-#else
-                await foreach (EntityUpdate update in _updates.Reader.ReadAllAsync(_cts.Token))
-                {
-                    if (_cts.Token.IsCancellationRequested)
-                    {
-                        break;
-                    }
-
-                    _entityUpdateObservable.OnUpdated(update);
-                }
-#endif
             }
             catch (ObjectDisposedException)
             {
                 // we ignore disposed exceptions.
             }
             catch (OperationCanceledException)
+            {
+                // we ignore cancellation exceptions.
+            }
+            catch (ChannelClosedException)
             {
                 // we ignore cancellation exceptions.
             }

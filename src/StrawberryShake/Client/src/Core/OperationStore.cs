@@ -1,28 +1,30 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Channels;
 using StrawberryShake.Extensions;
 
 namespace StrawberryShake
 {
-    public sealed class OperationStore
-        : IOperationStore
-        , IDisposable
+    public sealed partial class OperationStore : IOperationStore
     {
         private static readonly MethodInfo _setGeneric = typeof(OperationStore)
             .GetMethods(BindingFlags.Instance | BindingFlags.Public)
-            .First(t => 
-                t.IsGenericMethodDefinition && 
+            .First(t =>
+                t.IsGenericMethodDefinition &&
                 t.Name.Equals(nameof(Set), StringComparison.Ordinal));
 
+        private readonly CancellationTokenSource _cts = new();
         private readonly ConcurrentDictionary<OperationRequest, IStoredOperation> _results = new();
         private readonly IEntityStore _entityStore;
         private readonly OperationStoreObservable _operationStoreObservable = new();
         private readonly IDisposable _entityChangeObserverSession;
+        private readonly Channel<OperationUpdate> _updates =
+            Channel.CreateUnbounded<OperationUpdate>();
         private bool _disposed;
 
         public OperationStore(IEntityStore entityStore)
@@ -53,18 +55,7 @@ namespace StrawberryShake
 
             StoredOperation<T> storedOperation = GetOrAddStoredOperation<T>(operationRequest);
             storedOperation.SetResult(operationResult);
-
-            _operationStoreObservable.Next(
-                new OperationUpdate(
-                    OperationUpdateKind.Updated,
-                    new []
-                    {
-                        new StoredOperationVersion(
-                            operationRequest,
-                            operationResult,
-                            storedOperation.Subscribers,
-                            storedOperation.LastModified)
-                    }));
+            OnUpdate(storedOperation, OperationUpdateKind.Updated);
         }
 
         public void Set(OperationRequest operationRequest, IOperationResult operationResult)
@@ -90,18 +81,7 @@ namespace StrawberryShake
             {
                 storedOperation.ClearResult();
                 CleanEntityStore();
-
-                _operationStoreObservable.Next(
-                    new OperationUpdate(
-                        OperationUpdateKind.Removed,
-                        new []
-                        {
-                            new StoredOperationVersion(
-                                operationRequest,
-                                storedOperation.LastResult,
-                                storedOperation.Subscribers,
-                                storedOperation.LastModified)
-                        }));
+                OnUpdate(storedOperation, OperationUpdateKind.Removed);
             }
         }
 
@@ -121,18 +101,7 @@ namespace StrawberryShake
             {
                 storedOperation.Complete();
                 CleanEntityStore();
-
-                _operationStoreObservable.Next(
-                    new OperationUpdate(
-                        OperationUpdateKind.Removed,
-                        new []
-                        {
-                            new StoredOperationVersion(
-                                operationRequest,
-                                storedOperation.LastResult,
-                                storedOperation.Subscribers,
-                                storedOperation.LastModified)
-                        }));
+                OnUpdate(storedOperation, OperationUpdateKind.Removed);
             }
         }
 
@@ -143,26 +112,16 @@ namespace StrawberryShake
                 throw new ObjectDisposedException(nameof(OperationStore));
             }
 
-            var removed = new List<StoredOperationVersion>();
             ICollection<IStoredOperation> results = _results.Values;
             _results.Clear();
 
             foreach (var result in results)
             {
                 result.Complete();
-                removed.Add(new StoredOperationVersion(
-                    result.Request,
-                    result.LastResult,
-                    result.Subscribers,
-                    result.LastModified));
             }
 
             CleanEntityStore();
-
-            _operationStoreObservable.Next(
-                new OperationUpdate(
-                    OperationUpdateKind.Removed,
-                    removed));
+            OnUpdate(results, OperationUpdateKind.Removed);
         }
 
         private void CleanEntityStore()
@@ -279,8 +238,7 @@ namespace StrawberryShake
             if (updated.Count > 0)
             {
                 // The observables will run in the current edit session
-                _operationStoreObservable.Next(
-                    new OperationUpdate(OperationUpdateKind.Updated, updated));
+                OnUpdate(updated, OperationUpdateKind.Updated);
             }
         }
 
@@ -297,102 +255,55 @@ namespace StrawberryShake
             throw new InvalidOperationException();
         }
 
+        private void OnUpdate(
+            IStoredOperation operation,
+            OperationUpdateKind kind)
+        {
+            OnUpdate(
+                new []
+                {
+                    new StoredOperationVersion(
+                        operation.Request,
+                        operation.LastResult,
+                        operation.Subscribers,
+                        operation.LastModified)
+                },
+                kind);
+        }
+
+        private void OnUpdate(
+            IEnumerable<IStoredOperation> operations,
+            OperationUpdateKind kind)
+        {
+            OnUpdate(operations
+                .Select(t => new StoredOperationVersion(
+                    t.Request,
+                    t.LastResult,
+                    t.Subscribers,
+                    t.LastModified))
+                .ToArray(),
+                kind);
+        }
+
+        private void OnUpdate(
+            IReadOnlyList<StoredOperationVersion> operations,
+            OperationUpdateKind kind)
+        {
+            _updates.Writer.TryWrite(
+                new OperationUpdate(
+                    kind,
+                    operations));
+        }
+
         public void Dispose()
         {
             if (!_disposed)
             {
+                _updates.Writer.TryComplete();
+                _cts.Cancel();
+                _cts.Dispose();
                 _entityChangeObserverSession.Dispose();
                 _disposed = true;
-            }
-        }
-
-        private class OperationStoreObservable
-            : IObservable<OperationUpdate>
-            , IDisposable
-        {
-            private readonly object _sync = new();
-            private ImmutableList<OperationStoreSession> _sessions =
-                ImmutableList<OperationStoreSession>.Empty;
-
-            public void Next(OperationUpdate operationUpdate)
-            {
-                ImmutableList<OperationStoreSession> sessions = _sessions;
-
-                foreach (var session in sessions)
-                {
-                    session.Next(operationUpdate);
-                }
-            }
-
-            public void Complete()
-            {
-                ImmutableList<OperationStoreSession> sessions = _sessions;
-
-                foreach (var session in sessions)
-                {
-                    session.Complete();
-                }
-            }
-
-            public IDisposable Subscribe(IObserver<OperationUpdate> observer)
-            {
-                var session = new OperationStoreSession(observer, Unsubscribe);
-
-                lock (_sync)
-                {
-                    _sessions = _sessions.Add(session);
-                }
-
-                return session;
-            }
-
-            private void Unsubscribe(OperationStoreSession session)
-            {
-                lock (_sync)
-                {
-                    _sessions = _sessions.Remove(session);
-                }
-            }
-
-            public void Dispose()
-            {
-                ImmutableList<OperationStoreSession> sessions = _sessions;
-
-                foreach (var session in sessions)
-                {
-                    session.Complete();
-                    session.Dispose();
-                }
-            }
-
-            private class OperationStoreSession
-                : IDisposable
-            {
-                private readonly IObserver<OperationUpdate> _observer;
-                private readonly Action<OperationStoreSession> _unsubscribe;
-
-                public OperationStoreSession(
-                    IObserver<OperationUpdate> observer,
-                    Action<OperationStoreSession> unsubscribe)
-                {
-                    _observer = observer;
-                    _unsubscribe = unsubscribe;
-                }
-
-                public void Next(OperationUpdate operationUpdate)
-                {
-                    _observer.OnNext(operationUpdate);
-                }
-
-                public void Complete()
-                {
-                    _observer.OnCompleted();
-                }
-
-                public void Dispose()
-                {
-                    _unsubscribe(this);
-                }
             }
         }
     }
