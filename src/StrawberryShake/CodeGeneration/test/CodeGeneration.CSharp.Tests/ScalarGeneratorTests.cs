@@ -16,6 +16,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 "extend schema @key(fields: \"id\")");
 
         [Fact]
+        public void ByteArray_ScalarType() =>
+            AssertResult(
+                "query GetAttachment { byteArray }",
+                "type Query { byteArray: ByteArray! }",
+                "scalar ByteArray",
+                "extend schema @key(fields: \"id\")");
+
+        [Fact]
         public void Only_Custom_Scalars() =>
             AssertResult(
                 "query GetPerson { person { email } }",

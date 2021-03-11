@@ -19,7 +19,9 @@ namespace StrawberryShake
         /// <param name="clientBuilder">
         /// The <see cref="IClientBuilder"/>
         /// </param>
-        public static IClientBuilder ConfigureInMemoryClient(this IClientBuilder clientBuilder)
+        public static IClientBuilder<T> ConfigureInMemoryClient<T>(
+            this IClientBuilder<T> clientBuilder)
+            where T : IStoreAccessor
         {
             if (clientBuilder == null)
             {
@@ -41,9 +43,10 @@ namespace StrawberryShake
         /// <param name="configureClient">
         /// A delegate that is used to configure an <see cref="InMemoryClient"/>.
         /// </param>
-        public static IClientBuilder ConfigureInMemoryClient(
-            this IClientBuilder clientBuilder,
+        public static IClientBuilder<T> ConfigureInMemoryClient<T>(
+            this IClientBuilder<T> clientBuilder,
             Action<IInMemoryClient> configureClient)
+            where T : IStoreAccessor
         {
             if (clientBuilder == null)
             {
@@ -70,9 +73,10 @@ namespace StrawberryShake
         /// <param name="configureClient">
         /// A delegate that is used to configure an <see cref="InMemoryClient"/>.
         /// </param>
-        public static IClientBuilder ConfigureInMemoryClient(
-            this IClientBuilder clientBuilder,
+        public static IClientBuilder<T> ConfigureInMemoryClient<T>(
+            this IClientBuilder<T> clientBuilder,
             Action<IServiceProvider, IInMemoryClient> configureClient)
+            where T : IStoreAccessor
         {
             if (clientBuilder == null)
             {
@@ -99,9 +103,10 @@ namespace StrawberryShake
         /// <param name="configureClient">
         /// A delegate that is used to configure an <see cref="InMemoryClient"/>.
         /// </param>
-        public static IClientBuilder ConfigureInMemoryClientAsync(
-            this IClientBuilder clientBuilder,
+        public static IClientBuilder<T> ConfigureInMemoryClientAsync<T>(
+            this IClientBuilder<T> clientBuilder,
             Func<IInMemoryClient, CancellationToken, ValueTask> configureClient)
+            where T : IStoreAccessor
         {
             if (clientBuilder == null)
             {
@@ -129,9 +134,10 @@ namespace StrawberryShake
         /// <param name="configureClient">
         /// A delegate that is used to configure an <see cref="InMemoryClient"/>.
         /// </param>
-        public static IClientBuilder ConfigureInMemoryClientAsync(
-            this IClientBuilder clientBuilder,
+        public static IClientBuilder<T> ConfigureInMemoryClientAsync<T>(
+            this IClientBuilder<T> clientBuilder,
             Func<IServiceProvider, IInMemoryClient, CancellationToken, ValueTask> configureClient)
+            where T : IStoreAccessor
         {
             if (clientBuilder == null)
             {

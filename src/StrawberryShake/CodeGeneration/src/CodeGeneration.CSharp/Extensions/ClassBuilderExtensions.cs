@@ -113,7 +113,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                             .SetMethodName(nameof(ReferenceEquals))
                             .AddArgument("this")
                             .AddArgument(obj))
-                        .AddCode("return false;"))
+                        .AddCode("return true;"))
                     .AddEmptyLine()
                     .AddCode(IfBuilder
                         .New()
@@ -165,7 +165,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                             .SetMethodName(nameof(ReferenceEquals))
                             .AddArgument("this")
                             .AddArgument(other))
-                        .AddCode("return false;"))
+                        .AddCode("return true;"))
                     .AddEmptyLine()
                     .AddCode(IfBuilder
                         .New()

@@ -42,23 +42,31 @@ namespace HotChocolate.Types.Scalars
         /// <inheritdoc />
         protected override uint ParseLiteral(IntValueNode valueSyntax)
         {
-            if (valueSyntax.ToUInt32() < MinValue)
-            {
-                throw ThrowHelper.UnsignedIntType_ParseLiteral_IsNotUnsigned(this);
-            }
-
             return valueSyntax.ToUInt32();
         }
 
         /// <inheritdoc />
         protected override IntValueNode ParseValue(uint runtimeValue)
         {
-            if (runtimeValue < MinValue)
-            {
-                throw ThrowHelper.UnsignedIntType_ParseValue_IsNotUnsigned(this);
-            }
+            return new(runtimeValue);
+        }
 
-            return new IntValueNode(runtimeValue);
+        /// <inheritdoc />
+        protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
+        {
+            throw ThrowHelper.UnsignedIntType_ParseLiteral_IsNotUnsigned(this);
+        }
+
+        /// <inheritdoc />
+        protected override SerializationException CreateParseValueError(object runtimeValue)
+        {
+            throw ThrowHelper.UnsignedIntType_ParseValue_IsNotUnsigned(this);
+        }
+
+        /// <inheritdoc />
+        protected override SerializationException CreateParseResultError(object runtimeValue)
+        {
+            throw ThrowHelper.UnsignedIntType_ParseValue_IsNotUnsigned(this);
         }
     }
 }

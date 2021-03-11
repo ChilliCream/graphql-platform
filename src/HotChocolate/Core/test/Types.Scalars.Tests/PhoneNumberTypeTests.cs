@@ -167,5 +167,65 @@ namespace HotChocolate.Types.Scalars
             // assert
             ExpectSerializeToThrowSerializationException<PhoneNumberType>(value);
         }
+
+        [Theory]
+        [InlineData(typeof(StringValueNode), "+16873271234")]
+        [InlineData(typeof(StringValueNode), "+76543678901234")]
+        [InlineData(typeof(StringValueNode), "+178955512343598")]
+        [InlineData(typeof(NullValueNode), null)]
+        public void ParseValue_GivenObject_MatchExpectedType(Type type, object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseValueToMatchType<PhoneNumberType>(value, type);
+        }
+
+        [Theory]
+        [InlineData(TestEnum.Foo)]
+        [InlineData(1d)]
+        [InlineData(1)]
+        [InlineData(true)]
+        [InlineData("+765436789012345678901234")]
+        [InlineData("765436789012345678901234")]
+        [InlineData("(123)-456-7890")]
+        [InlineData("123-456-7890")]
+        public void ParseValue_GivenObject_ThrowSerializationException(object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseValueToThrowSerializationException<PhoneNumberType>(value);
+        }
+
+        [Theory]
+        [InlineData(typeof(StringValueNode), "+16873271234")]
+        [InlineData(typeof(StringValueNode), "+76543678901234")]
+        [InlineData(typeof(StringValueNode), "+178955512343598")]
+        [InlineData(typeof(NullValueNode), null)]
+        public void ParseResult_GivenObject_MatchExpectedType(Type type, object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseResultToMatchType<PhoneNumberType>(value, type);
+        }
+
+        [Theory]
+        [InlineData(TestEnum.Foo)]
+        [InlineData(1d)]
+        [InlineData(1)]
+        [InlineData(true)]
+        [InlineData("+765436789012345678901234")]
+        [InlineData("765436789012345678901234")]
+        [InlineData("(123)-456-7890")]
+        [InlineData("123-456-7890")]
+        public void ParseResult_GivenObject_ThrowSerializationException(object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseResultToThrowSerializationException<PhoneNumberType>(value);
+        }
     }
 }

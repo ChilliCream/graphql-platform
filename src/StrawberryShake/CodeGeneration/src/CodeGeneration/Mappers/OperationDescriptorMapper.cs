@@ -26,13 +26,14 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
                         return new PropertyDescriptor(
                             arg.Name,
+                            arg.Variable.Variable.Name.Value,
                             Rewrite(arg.Type, namedTypeDescriptor),
                             null);
                     })
                     .ToList();
 
                 RuntimeTypeInfo resultType = context.GetRuntimeType(
-                    modelOperation.ResultType.Name, 
+                    modelOperation.ResultType.Name,
                     Descriptors.TypeDescriptors.TypeKind.ResultType);
 
                 string bodyString = modelOperation.Document.ToString();

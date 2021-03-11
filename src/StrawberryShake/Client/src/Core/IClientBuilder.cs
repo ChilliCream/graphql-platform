@@ -5,7 +5,7 @@ namespace StrawberryShake
     /// <summary>
     /// Represents a builder that can be used to configure a client
     /// </summary>
-    public interface IClientBuilder
+    public interface IClientBuilder<T> where T : IStoreAccessor
     {
         /// <summary>
         /// The name of the client
