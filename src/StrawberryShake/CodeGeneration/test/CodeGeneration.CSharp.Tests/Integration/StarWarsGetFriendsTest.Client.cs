@@ -229,7 +229,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends
                     this,
                     obj))
             {
-                return false;
+                return true;
             }
 
             if (obj.GetType() != GetType())
@@ -253,7 +253,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends
                     this,
                     other))
             {
-                return false;
+                return true;
             }
 
             if (other.GetType() != GetType())
@@ -445,7 +445,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends
                     this,
                     obj))
             {
-                return false;
+                return true;
             }
 
             if (obj.GetType() != GetType())
@@ -469,7 +469,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends
                     this,
                     other))
             {
-                return false;
+                return true;
             }
 
             if (other.GetType() != GetType())
@@ -664,7 +664,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends
                     this,
                     obj))
             {
-                return false;
+                return true;
             }
 
             if (obj.GetType() != GetType())
@@ -688,7 +688,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends
                     this,
                     other))
             {
-                return false;
+                return true;
             }
 
             if (other.GetType() != GetType())
@@ -759,7 +759,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends
                     this,
                     obj))
             {
-                return false;
+                return true;
             }
 
             if (obj.GetType() != GetType())
@@ -783,7 +783,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends
                     this,
                     other))
             {
-                return false;
+                return true;
             }
 
             if (other.GetType() != GetType())
@@ -875,7 +875,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends
                     this,
                     obj))
             {
-                return false;
+                return true;
             }
 
             if (obj.GetType() != GetType())
@@ -899,7 +899,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends
                     this,
                     other))
             {
-                return false;
+                return true;
             }
 
             if (other.GetType() != GetType())
@@ -980,7 +980,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends
                     this,
                     obj))
             {
-                return false;
+                return true;
             }
 
             if (obj.GetType() != GetType())
@@ -1004,7 +1004,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends
                     this,
                     other))
             {
-                return false;
+                return true;
             }
 
             if (other.GetType() != GetType())

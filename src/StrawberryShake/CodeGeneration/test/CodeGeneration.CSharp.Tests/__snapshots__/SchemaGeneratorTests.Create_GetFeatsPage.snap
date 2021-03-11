@@ -286,7 +286,7 @@ namespace Foo.Bar
                     this,
                     obj))
             {
-                return false;
+                return true;
             }
 
             if (obj.GetType() != GetType())
@@ -310,7 +310,7 @@ namespace Foo.Bar
                     this,
                     other))
             {
-                return false;
+                return true;
             }
 
             if (other.GetType() != GetType())
@@ -372,7 +372,7 @@ namespace Foo.Bar
                     this,
                     obj))
             {
-                return false;
+                return true;
             }
 
             if (obj.GetType() != GetType())
@@ -396,7 +396,7 @@ namespace Foo.Bar
                     this,
                     other))
             {
-                return false;
+                return true;
             }
 
             if (other.GetType() != GetType())
@@ -541,7 +541,7 @@ namespace Foo.Bar
                     this,
                     obj))
             {
-                return false;
+                return true;
             }
 
             if (obj.GetType() != GetType())
@@ -565,7 +565,7 @@ namespace Foo.Bar
                     this,
                     other))
             {
-                return false;
+                return true;
             }
 
             if (other.GetType() != GetType())
@@ -655,7 +655,7 @@ namespace Foo.Bar
                     this,
                     obj))
             {
-                return false;
+                return true;
             }
 
             if (obj.GetType() != GetType())
@@ -679,7 +679,7 @@ namespace Foo.Bar
                     this,
                     other))
             {
-                return false;
+                return true;
             }
 
             if (other.GetType() != GetType())
