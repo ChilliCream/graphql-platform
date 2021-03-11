@@ -363,8 +363,7 @@ namespace HotChocolate.Types.Scalars
                 type);
         }
 
-        public static SerializationException PortType_ParseLiteral_OutOfRange(
-            IType type)
+        public static SerializationException PortType_ParseLiteral_OutOfRange(IType type)
         {
             return new SerializationException(
                 ErrorBuilder.New()
@@ -375,8 +374,7 @@ namespace HotChocolate.Types.Scalars
                 type);
         }
 
-        public static SerializationException PortType_ParseValue_OutOfRange(
-            IType type)
+        public static SerializationException PortType_ParseValue_OutOfRange(IType type)
         {
             return new SerializationException(
                 ErrorBuilder.New()
