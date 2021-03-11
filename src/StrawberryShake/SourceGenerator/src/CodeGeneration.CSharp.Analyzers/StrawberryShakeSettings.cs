@@ -17,6 +17,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
         public string? HashAlgorithm { get; set; }
 
+        public bool UseSingleFile { get; set; } = false;
+
         public RequestStrategy RequestStrategy { get; set; } = RequestStrategy.Default;
 
         public string OutputDirectoryName { get; set; } = "Generated";

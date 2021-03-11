@@ -106,13 +106,19 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 }
 
                 // If the generator has no errors we will write the documents.
-                var directories = new HashSet<string>();
+                IDocumentWriter writer = context.Settings.UseSingleFile
+                    ? new SingleFileDocumentWriter()
+                    : new FileDocumentWriter();
+
                 foreach (SourceDocument document in
                     result.Documents.Where(t => t.Kind == SourceDocumentKind.CSharp))
                 {
-                    WriteDocument(context, directories, document);
+                    writer.WriteDocument(context, document);
                 }
 
+                writer.Flush();
+
+                // if we have persisted query support enabled we need to write the query files.
                 string? persistedQueryDirectory = context.GetPersistedQueryDirectory();
                 if (context.Settings.RequestStrategy == RequestStrategy.PersistedQuery &&
                     persistedQueryDirectory is not null)
@@ -139,38 +145,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             }
         }
 
-        private void WriteDocument(
-            ClientGeneratorContext context,
-            HashSet<string> directories,
-            SourceDocument document)
-        {
-            string documentName = $"{document.Name}.{context.Settings.Name}.StrawberryShake.cs";
-            context.Log.WriteDocument(documentName);
-
-            var directory = document.Path is null
-                ? context.OutputDirectory
-                : IOPath.Combine(context.OutputDirectory, document.Path);
-
-            if (directories.Add(directory) &&
-                context.OutputFiles &&
-                !Directory.Exists(directory))
-            {
-                Directory.CreateDirectory(directory);
-            }
-
-            var fileName = IOPath.Combine(directory, documentName);
-
-            context.FileNames.Add(fileName);
-            context.Execution.AddSource(
-                documentName,
-                SourceText.From(document.SourceText, Encoding.UTF8));
-
-            if (context.OutputFiles)
-            {
-                WriteFile(fileName, document.SourceText);
-            }
-        }
-
         private void WriteGraphQLQuery(
             ClientGeneratorContext context,
             string persistedQueryDirectory,
@@ -181,7 +155,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
             context.Log.WriteDocument(documentName);
 
-            WriteFile(fileName, document.SourceText);
+            if (File.Exists(fileName))
+            {
+                File.Delete(fileName);
+            }
+
+            File.WriteAllText(fileName, document.SourceText, Encoding.UTF8);
         }
 
         private void Clean(ClientGeneratorContext context)
@@ -378,16 +357,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             {
                 Directory.CreateDirectory(directory);
             }
-        }
-
-        private void WriteFile(string fileName, string sourceText)
-        {
-            if (File.Exists(fileName))
-            {
-                File.Delete(fileName);
-            }
-
-            File.WriteAllText(fileName, sourceText, Encoding.UTF8);
         }
 
         private ILogger CreateLogger(GeneratorExecutionContext context)
