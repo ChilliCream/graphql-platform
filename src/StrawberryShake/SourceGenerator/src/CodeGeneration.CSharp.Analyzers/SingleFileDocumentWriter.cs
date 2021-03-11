@@ -18,7 +18,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             string documentName = $"{document.Name}.StrawberryShake.cs";
             context.Log.WriteDocument(documentName);
 
-            _content.AppendLine(documentName);
+            _content.AppendLine("// " + documentName);
             _content.AppendLine(document.SourceText);
             _content.AppendLine();
 
