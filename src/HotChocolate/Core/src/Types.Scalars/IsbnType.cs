@@ -4,18 +4,19 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types.Scalars
 {
+    /// <summary>
+    /// The `ISBN` scalar type is a ISBN-10 or ISBN-13 number:
+    /// <a>https://en.wikipedia.org/wiki/International_Standard_Book_Number</a>.
+    /// </summary>
     public class IsbnType : RegexType
     {
-        /// <summary>
-        /// The `ISBN` scalar type is a ISBN-10 or ISBN-13 number: https://en.wikipedia.org/wiki/International_Standard_Book_Number.
-        /// </summary>
-
-        private static readonly string _validationPattern =
-            "^(?:ISBN(-1(?:(0)|3))?:?\\ )?" +
-            "(?(1)(?(2)(?=[0-9X]{10}$|(?=(?:[0-9]+[- ]){3})[- 0-9X]{13}$)[0-9]{1,5}[- ]?[0-9]+[- ]?[0-9]+[- ]?[0-9X]" +
-            "|(?=[0-9]{13}$|(?=(?:[0-9]+[- ]){4})[- 0-9]{17}$)97[89][- ]?[0-9]{1,5}[- ]?[0-9]+[- ]?[0-9]+[- ]?[0-9]"  +
-            ")|(?=[0-9X]{10}$|(?=(?:[0-9]+[- ]){3})[- 0-9X]{13}$|97[89][0-9]{10}$|(?=(?:[0-9]+[- ]){4})[- 0-9]{17}$)" +
-            "(?:97[89][- ]?)?[0-9]{1,5}[- ]?[0-9]+[- ]?[0-9]+[- ]?[0-9X])$";
+        private const string _validationPattern =
+            "^(?:ISBN(-1(?:(0)|3))?:?\\ )?(?(1)(?(2)(?=[0-9X]{10}$|(?=(?:[0-9]+[- ]){3})[- 0" +
+            "-9X]{13}$)[0-9]{1,5}[- ]?[0-9]+[- ]?[0-9]+[- ]?[0-9X]|(?=[0-9]{13}$|(?=(?:[0-9]" +
+            "+[- ]){4})[- 0-9]{17}$)97[89][- ]?[0-9]{1,5}[- ]?[0-9]+[- ]?[0-9]+[- ]?[0-9])|(" +
+            "?=[0-9X]{10}$|(?=(?:[0-9]+[- ]){3})[- 0-9X]{13}$|97[89][0-9]{10}$|(?=(?:[0-9]+[" +
+            "- ]){4})[- 0-9]{17}$)(?:97[89][- ]?)?[0-9]{1,5}[- ]?[0-9]+[- ]?[0-9]+[- ]?[0-9X" +
+            "])$";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="IsbnType"/> class.
@@ -39,6 +40,5 @@ namespace HotChocolate.Types.Scalars
         {
             return ThrowHelper.IsbnType_ParseValue_IsInvalid(this);
         }
-
     }
 }
