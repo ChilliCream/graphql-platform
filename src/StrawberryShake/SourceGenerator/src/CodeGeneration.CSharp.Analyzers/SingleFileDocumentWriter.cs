@@ -29,6 +29,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     "Generated.StrawberryShake.cs");
                 context.FileNames.Add(_fileName);
             }
+
+            if (!_execution.HasValue)
+            {
+                _execution = context.Execution;
+            }
         }
 
         public void Flush()
