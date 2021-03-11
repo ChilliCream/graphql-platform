@@ -8,11 +8,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private AccessModifier _accessModifier = AccessModifier.Private;
         private Inheritance _inheritance = Inheritance.None;
         private bool _isStatic;
+        private bool _isOverride;
         private bool _is;
         private TypeReferenceBuilder _returnType = TypeReferenceBuilder.New().SetName("void");
         private string? _name;
         private readonly List<ParameterBuilder> _parameters = new();
         private readonly List<ICode> _lines = new();
+        private bool _isAsync;
+        private string? _interface;
 
         public static MethodBuilder New() => new();
 
@@ -25,6 +28,24 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         public MethodBuilder SetStatic()
         {
             _isStatic = true;
+            return this;
+        }
+
+        public MethodBuilder SetAsync()
+        {
+            _isAsync = true;
+            return this;
+        }
+
+        public MethodBuilder SetInterface(string value)
+        {
+            _interface = value;
+            return this;
+        }
+
+        public MethodBuilder SetOverride()
+        {
+            _isOverride = true;
             return this;
         }
 
@@ -46,6 +67,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             {
                 _returnType = TypeReferenceBuilder.New().SetName(value);
             }
+
             return this;
         }
 
@@ -55,6 +77,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             {
                 _returnType = value;
             }
+
             return this;
         }
 
@@ -76,6 +99,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             {
                 _lines.Add(CodeLineBuilder.New().SetLine(code));
             }
+
             return this;
         }
 
@@ -85,6 +109,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             {
                 _lines.Add(code);
             }
+
             return this;
         }
 
@@ -111,20 +136,41 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
             writer.WriteIndent();
 
-            writer.Write($"{modifier} ");
 
-            if (_isStatic)
+            if (_interface is null)
             {
-                writer.Write("static ");
+                writer.Write($"{modifier} ");
+
+                if (_isStatic)
+                {
+                    writer.Write("static ");
+                }
+
+                if (_isOverride)
+                {
+                    writer.Write("override ");
+                }
+
+                if (_isAsync)
+                {
+                    writer.Write("async ");
+                }
+
+                if (_is)
+                {
+                    writer.Write(" ");
+                }
+
+                writer.Write($"{CreateInheritance()}");
             }
 
-            if (_is)
-            {
-                writer.Write(" ");
-            }
-
-            writer.Write($"{CreateInheritance()}");
             _returnType.Build(writer);
+
+            if (_interface is not null)
+            {
+                writer.Write(_interface);
+                writer.Write(".");
+            }
             writer.Write($"{_name}(");
 
             if (_parameters.Count == 0)

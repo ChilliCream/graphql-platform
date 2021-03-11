@@ -8,8 +8,10 @@ using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using HotChocolate;
+using HotChocolate.Language;
 using HotChocolate.Utilities;
 using Newtonsoft.Json;
+using StrawberryShake.CodeGeneration.Descriptors.Operations;
 using IOPath = System.IO.Path;
 using static StrawberryShake.CodeGeneration.CSharp.Analyzers.DiagnosticErrorHelper;
 
@@ -104,9 +106,33 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 }
 
                 // If the generator has no errors we will write the documents.
-                foreach (CSharpDocument document in result.CSharpDocuments)
+                IDocumentWriter writer = context.Settings.UseSingleFile
+                    ? new SingleFileDocumentWriter()
+                    : new FileDocumentWriter();
+
+                foreach (SourceDocument document in
+                    result.Documents.Where(t => t.Kind == SourceDocumentKind.CSharp))
                 {
-                    WriteDocument(context, document);
+                    writer.WriteDocument(context, document);
+                }
+
+                writer.Flush();
+
+                // if we have persisted query support enabled we need to write the query files.
+                string? persistedQueryDirectory = context.GetPersistedQueryDirectory();
+                if (context.Settings.RequestStrategy == RequestStrategy.PersistedQuery &&
+                    persistedQueryDirectory is not null)
+                {
+                    if (!Directory.Exists(persistedQueryDirectory))
+                    {
+                        Directory.CreateDirectory(persistedQueryDirectory);
+                    }
+
+                    foreach (SourceDocument document in
+                        result.Documents.Where(t => t.Kind == SourceDocumentKind.GraphQL))
+                    {
+                        WriteGraphQLQuery(context, persistedQueryDirectory, document);
+                    }
                 }
 
                 // remove files that are now obsolete
@@ -119,20 +145,22 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             }
         }
 
-        private void WriteDocument(
+        private void WriteGraphQLQuery(
             ClientGeneratorContext context,
-            CSharpDocument document)
+            string persistedQueryDirectory,
+            SourceDocument document)
         {
-            string documentName = $"{document.Name}.{context.Settings.Name}.StrawberryShake.cs";
+            string documentName = document.Hash + ".graphql";
+            string fileName = IOPath.Combine(persistedQueryDirectory, documentName);
+
             context.Log.WriteDocument(documentName);
 
-            var fileName = IOPath.Combine(context.OutputDirectory, documentName);
-            var sourceText = SourceText.From(document.SourceText, Encoding.UTF8);
-            context.FileNames.Add(fileName);
+            if (File.Exists(fileName))
+            {
+                File.Delete(fileName);
+            }
 
-            context.Execution.AddSource(documentName, sourceText);
-
-            WriteFile(fileName, document.SourceText);
+            File.WriteAllText(fileName, document.SourceText, Encoding.UTF8);
         }
 
         private void Clean(ClientGeneratorContext context)
@@ -141,7 +169,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
             try
             {
-                foreach (string fileName in Directory.GetFiles(context.OutputDirectory, "*.cs"))
+                foreach (string fileName in Directory.GetFiles(
+                    context.OutputDirectory, 
+                    "*.cs", 
+                    SearchOption.AllDirectories))
                 {
                     if (!context.FileNames.Contains(fileName))
                     {
@@ -169,11 +200,52 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
             try
             {
-                var name = context.Settings.Name;
-                var @namespace = context.GetNamespace();
-                var documents = context.GetDocuments();
+                var settings = new CSharpGeneratorSettings
+                {
+                    ClientName = context.Settings.Name,
+                    Namespace = context.GetNamespace(),
+                    RequestStrategy = context.Settings.RequestStrategy,
+                    StrictSchemaValidation = context.Settings.StrictSchemaValidation,
+                    HashProvider = context.Settings.HashAlgorithm?.ToLowerInvariant() switch
+                    {
+                        "sha1" => new Sha1DocumentHashProvider(HashFormat.Hex),
+                        "sha256" => new Sha256DocumentHashProvider(HashFormat.Hex),
+                        "md5" => new MD5DocumentHashProvider(HashFormat.Hex),
+                        _ => new Sha1DocumentHashProvider(HashFormat.Hex)
+                    }
+                };
 
-                result = new CSharpGenerator().Generate(documents, name, @namespace);
+                if (context.Settings.TransportProfiles?
+                    .Where(t => !string.IsNullOrEmpty(t.Name))
+                    .ToList() is { Count: > 0 } profiles)
+                {
+                    var names = new HashSet<string>();
+                    settings.TransportProfiles.Clear();
+
+                    foreach (var profile in profiles)
+                    {
+                        settings.TransportProfiles.Add(
+                            new TransportProfile(
+                                profile.Name,
+                                profile.Default,
+                                profile.Query,
+                                profile.Mutation,
+                                profile.Subscription));
+                    }
+                }
+
+                string? persistedQueryDirectory = context.GetPersistedQueryDirectory();
+
+                context.Log.SetGeneratorSettings(settings);
+                context.Log.SetPersistedQueryLocation(persistedQueryDirectory);
+
+                if (settings.RequestStrategy == RequestStrategy.PersistedQuery &&
+                    persistedQueryDirectory is null)
+                {
+                    settings.RequestStrategy = RequestStrategy.Default;
+                }
+
+                result = CSharpGenerator.Generate(context.GetDocuments(), settings);
                 return true;
             }
             catch (GraphQLException ex)
@@ -266,7 +338,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                         ErrorBuilder.New()
                             .SetMessage(ex.Message)
                             .SetException(ex)
-                            .SetExtension(CodeGenerationThrowHelper.FileExtensionKey, configLocation)
+                            .SetExtension(ErrorHelper.FileExtensionKey, configLocation)
                             .AddLocation(new HotChocolate.Location(1, 1))
                             .Build());
                 }
@@ -282,22 +354,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 .Where(t => IOPath.GetFileName(t).EqualsOrdinal(".graphqlrc.json"))
                 .ToList();
 
-        private void CreateDirectoryIfNotExists(string directory)
+        private void CreateDirectoryIfNotExists(string? directory)
         {
             if (!Directory.Exists(directory))
             {
                 Directory.CreateDirectory(directory);
             }
-        }
-
-        private void WriteFile(string fileName, string sourceText)
-        {
-            if (File.Exists(fileName))
-            {
-                File.Delete(fileName);
-            }
-
-            File.WriteAllText(fileName, sourceText, Encoding.UTF8);
         }
 
         private ILogger CreateLogger(GeneratorExecutionContext context)

@@ -1,46 +1,41 @@
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
-    public class InputTypeGenerator : CodeGenerator<NamedTypeDescriptor>
+    public class InputTypeGenerator : CodeGenerator<InputObjectTypeDescriptor>
     {
-        protected override bool CanHandle(NamedTypeDescriptor descriptor)
-        {
-            return descriptor.Kind == TypeKind.InputType;
-        }
+        protected override bool CanHandle(InputObjectTypeDescriptor descriptor) => true;
 
         protected override void Generate(
             CodeWriter writer,
-            NamedTypeDescriptor namedTypeDescriptor,
-            out string fileName)
+            InputObjectTypeDescriptor namedTypeDescriptor,
+            out string fileName,
+            out string? path)
         {
             fileName = namedTypeDescriptor.Name;
-            ClassBuilder classBuilder = ClassBuilder.New()
+            path = null;
+
+            ClassBuilder classBuilder = ClassBuilder
+                .New()
+                .SetComment(namedTypeDescriptor.Documentation)
                 .SetName(fileName);
 
             foreach (var prop in namedTypeDescriptor.Properties)
             {
-                var propTypeBuilder = prop.Type.ToBuilder();
-
-                // Add Property to class
-                var propBuilder = PropertyBuilder
-                    .New()
+                classBuilder
+                    .AddProperty(prop.Name)
+                    .SetPublic()
+                    .SetComment(prop.Description)
+                    .SetType(prop.Type.ToTypeReference())
                     .MakeSettable()
-                    .SetName(prop.Name)
-                    .SetType(propTypeBuilder)
-                    .SetAccessModifier(AccessModifier.Public);
-                classBuilder.AddProperty(propBuilder);
-            }
-
-            foreach (var implement in namedTypeDescriptor.Implements)
-            {
-                classBuilder.AddImplements(implement);
+                    .SetValue("default!");
             }
 
             CodeFileBuilder
                 .New()
-                .SetNamespace(namedTypeDescriptor.Namespace)
+                .SetNamespace(namedTypeDescriptor.RuntimeType.NamespaceWithoutGlobal)
                 .AddType(classBuilder)
                 .Build(writer);
         }

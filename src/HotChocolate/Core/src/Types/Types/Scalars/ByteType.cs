@@ -5,7 +5,7 @@ using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
-    public sealed class ByteType : IntegerTypeBase<byte>
+    public class ByteType : IntegerTypeBase<byte>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ByteType"/> class.

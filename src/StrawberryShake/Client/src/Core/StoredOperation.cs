@@ -22,16 +22,23 @@ namespace StrawberryShake
 
         public IOperationResult<T>? LastResult { get; private set; }
 
+        IOperationResult? IStoredOperation.LastResult => LastResult;
+
         public IReadOnlyCollection<EntityId> EntityIds =>
             LastResult?.DataInfo?.EntityIds ??
             Array.Empty<EntityId>();
 
         public ulong Version => LastResult?.DataInfo?.Version ?? 0;
 
+        public int Subscribers => _subscriptions.Count;
+
+        public DateTime LastModified { get; private set; } = DateTime.UtcNow;
+
         public void SetResult(
             IOperationResult<T> result)
         {
             LastResult = result ?? throw new ArgumentNullException(nameof(result));
+            LastModified = DateTime.UtcNow;
 
             // capture current subscriber list
             ImmutableList<Subscription> observers = _subscriptions;
@@ -52,6 +59,7 @@ namespace StrawberryShake
         public void ClearResult()
         {
             LastResult = null;
+            LastModified = DateTime.UtcNow;
         }
 
         public void UpdateResult(ulong version)
@@ -63,6 +71,21 @@ namespace StrawberryShake
                         result.DataFactory.Create(result.DataInfo),
                         result.DataInfo.WithVersion(version)));
             }
+        }
+
+        public void Complete()
+        {
+            // capture current subscriber list
+            ImmutableList<Subscription> observers = _subscriptions;
+
+            // if we have subscribers we will dispose every one of them
+            foreach (Subscription observer in observers)
+            {
+                observer.Dispose();
+            }
+
+            // clear subscribers
+            _subscriptions = ImmutableList<Subscription>.Empty;
         }
 
         public IDisposable Subscribe(

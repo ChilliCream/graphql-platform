@@ -1,46 +1,45 @@
+using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
-using StrawberryShake.CodeGeneration.Extensions;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
-    public class ResultInterfaceGenerator: CodeGenerator<NamedTypeDescriptor>
+    public class ResultInterfaceGenerator : CodeGenerator<InterfaceTypeDescriptor>
     {
-        protected override bool CanHandle(NamedTypeDescriptor descriptor)
+        protected override bool CanHandle(InterfaceTypeDescriptor descriptor)
         {
-            return descriptor.IsInterface();
+            return true;
         }
 
         protected override void Generate(
             CodeWriter writer,
-            NamedTypeDescriptor descriptor,
-            out string fileName)
+            InterfaceTypeDescriptor descriptor,
+            out string fileName,
+            out string? path)
         {
-            fileName = descriptor.Name;
-            var interfaceBuilder = InterfaceBuilder.New()
+            fileName = descriptor.RuntimeType.Name;
+            path = null;
+
+            InterfaceBuilder interfaceBuilder = InterfaceBuilder
+                .New()
+                .SetComment(descriptor.Description)
                 .SetName(fileName);
 
             foreach (var prop in descriptor.Properties)
             {
-                var propTypeBuilder = prop.Type.ToBuilder();
-
-                // Add Property to class
-                var propBuilder = PropertyBuilder
-                    .New()
-                    .SetName(prop.Name)
-                    .SetType(propTypeBuilder)
-                    .SetAccessModifier(AccessModifier.Public);
-                interfaceBuilder.AddProperty(propBuilder);
+                interfaceBuilder
+                    .AddProperty(prop.Name)
+                    .SetComment(prop.Description)
+                    .SetType(prop.Type.ToTypeReference())
+                    .SetPublic();
             }
 
-            foreach (var implement in descriptor.Implements)
-            {
-                interfaceBuilder.AddImplements(implement);
-            }
+            interfaceBuilder.AddImplementsRange(descriptor.Implements.Select(x => x.Value));
 
             CodeFileBuilder
                 .New()
-                .SetNamespace(descriptor.Namespace)
+                .SetNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal)
                 .AddType(interfaceBuilder)
                 .Build(writer);
         }

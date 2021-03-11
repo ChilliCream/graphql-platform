@@ -1,128 +1,105 @@
 using System;
 using HotChocolate;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
-using static StrawberryShake.CodeGeneration.NamingConventions;
+using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Extensions
 {
     public static class DescriptorExtensions
     {
-        public static NameString ExtractMapperName(this NamedTypeDescriptor descriptor)
+        public static NameString ExtractMapperName(this INamedTypeDescriptor descriptor)
         {
             return descriptor.Kind == TypeKind.EntityType
-                ? EntityMapperNameFromGraphQLTypeName(
-                    descriptor.Name,
-                    descriptor.GraphQLTypeName!)
-                : DataMapperNameFromGraphQLTypeName(
-                    descriptor.Name,
-                    descriptor.GraphQLTypeName!);
+                ? CreateEntityMapperName(
+                    descriptor.RuntimeType.Name,
+                    descriptor.Name)
+                : CreateDataMapperName(
+                    descriptor.RuntimeType.Name,
+                    descriptor.Name);
         }
 
-        public static NameString ExtractTypeName(this NamedTypeDescriptor descriptor)
+        public static RuntimeTypeInfo ExtractType(
+            this INamedTypeDescriptor descriptor)
         {
             return descriptor.IsEntityType()
-                ? EntityTypeNameFromGraphQLTypeName(descriptor.GraphQLTypeName!)
-                : descriptor.Name;
+                ? CreateEntityType(descriptor.Name, descriptor.RuntimeType.NamespaceWithoutGlobal)
+                : new (descriptor.Name, descriptor.RuntimeType.NamespaceWithoutGlobal);
         }
 
-        public static TypeReferenceBuilder ToBuilder(
+        public static TypeReferenceBuilder ToTypeReference(
             this ITypeDescriptor typeReferenceDescriptor,
-            string? nameOverride = null,
-            TypeReferenceBuilder? builder = null,
-            bool isNonNull = false)
-        {
-            var actualBuilder = builder ?? TypeReferenceBuilder.New();
-            switch (typeReferenceDescriptor)
-            {
-                case ListTypeDescriptor listTypeDescriptor:
-                    actualBuilder.SetIsNullable(!isNonNull);
-                    actualBuilder.SetListType();
-                    ToBuilder(
-                        listTypeDescriptor.InnerType,
-                        nameOverride,
-                        actualBuilder);
-                    break;
-                case NamedTypeDescriptor namedTypeDescriptor:
-                    actualBuilder.SetIsNullable(!isNonNull);
-                    if (namedTypeDescriptor.IsLeafType() && !namedTypeDescriptor.IsEnum)
-                    {
-                        actualBuilder.SetName(
-                            $"{namedTypeDescriptor.Namespace}." +
-                            (nameOverride ?? namedTypeDescriptor.Name));
-                    }
-                    else
-                    {
-                        actualBuilder.SetName(nameOverride ?? namedTypeDescriptor.Name);
-                    }
-                    break;
-                case NonNullTypeDescriptor nonNullTypeDescriptor:
-                    ToBuilder(
-                        nonNullTypeDescriptor.InnerType,
-                        nameOverride,
-                        actualBuilder,
-                        true);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(typeReferenceDescriptor));
-            }
-
-            return actualBuilder;
-        }
-
-        public static TypeReferenceBuilder ToEntityIdBuilder(
-            this ITypeDescriptor typeDescriptor,
-            TypeReferenceBuilder? builder = null,
-            bool isNonNull = false)
+            TypeReferenceBuilder? builder = null)
         {
             TypeReferenceBuilder actualBuilder = builder ?? TypeReferenceBuilder.New();
-            switch (typeDescriptor)
+
+            if (typeReferenceDescriptor is NonNullTypeDescriptor n)
             {
-                case ListTypeDescriptor listTypeDescriptor:
-                    actualBuilder.SetIsNullable(!isNonNull);
-                    actualBuilder.SetListType();
-                    ToEntityIdBuilder(
-                        listTypeDescriptor.InnerType,
-                        actualBuilder);
-                    break;
-                case NamedTypeDescriptor namedTypeDescriptor:
-                    actualBuilder.SetIsNullable(!isNonNull);
-                    if (namedTypeDescriptor.IsLeafType() && !namedTypeDescriptor.IsEnum)
-                    {
-                        actualBuilder.SetName(
-                            $"{namedTypeDescriptor.Namespace}.{namedTypeDescriptor.Name}");
-                    }
-                    else if (namedTypeDescriptor.IsDataType())
-                    {
-                        actualBuilder.SetName(
-                            namedTypeDescriptor.Kind == TypeKind.ComplexDataType
-                                ? $"global::{namedTypeDescriptor.Namespace}.State.I" +
-                                    DataTypeNameFromTypeName(
-                                        namedTypeDescriptor.ComplexDataTypeParent!)
-                                : $"global::{namedTypeDescriptor.Namespace}.State." + 
-                                    DataTypeNameFromTypeName(
-                                        namedTypeDescriptor.GraphQLTypeName!));
-                    }
-                    else if (namedTypeDescriptor.IsEntityType())
-                    {
-                        actualBuilder.SetName(TypeNames.EntityId);
-                    }
-                    else
-                    {
-                        actualBuilder.SetName(typeDescriptor.Name);
-                    }
-                    break;
-                case NonNullTypeDescriptor nonNullTypeDescriptor:
-                    ToEntityIdBuilder(
-                        nonNullTypeDescriptor.InnerType,
-                        actualBuilder,
-                        true);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(typeDescriptor));
+                typeReferenceDescriptor = n.InnerType;
+            }
+            else
+            {
+                actualBuilder.SetIsNullable(true);
             }
 
-            return actualBuilder;
+            return typeReferenceDescriptor switch
+            {
+                ListTypeDescriptor list =>
+                    ToTypeReference(list.InnerType, actualBuilder.SetListType()),
+
+                EnumTypeDescriptor @enum =>
+                    actualBuilder.SetName(@enum.RuntimeType.ToString()),
+
+                ILeafTypeDescriptor leaf =>
+                    actualBuilder.SetName(leaf.RuntimeType.ToString()),
+
+                INamedTypeDescriptor named =>
+                    actualBuilder.SetName(named.RuntimeType.ToString()),
+
+                _ => throw new ArgumentOutOfRangeException(nameof(typeReferenceDescriptor))
+            };
+        }
+
+        public static TypeReferenceBuilder ToStateTypeReference(
+            this ITypeDescriptor typeDescriptor,
+            TypeReferenceBuilder? builder = null)
+        {
+            TypeReferenceBuilder actualBuilder = builder ?? TypeReferenceBuilder.New();
+
+            if (typeDescriptor is NonNullTypeDescriptor n)
+            {
+                typeDescriptor = n.InnerType;
+            }
+            else
+            {
+                actualBuilder.SetIsNullable(true);
+            }
+
+            return typeDescriptor switch
+            {
+                ListTypeDescriptor listTypeDescriptor =>
+                    ToStateTypeReference(listTypeDescriptor.InnerType, actualBuilder.SetListType()),
+
+                EnumTypeDescriptor @enum =>
+                    actualBuilder.SetName(@enum.RuntimeType.ToString()),
+
+                ILeafTypeDescriptor leaf =>
+                    actualBuilder.SetName(leaf.RuntimeType.ToString()),
+
+                ComplexTypeDescriptor { ParentRuntimeType: { } parentRuntimeType }  =>
+                    actualBuilder.SetName(parentRuntimeType.ToString()),
+
+                INamedTypeDescriptor { Kind: TypeKind.DataType } d =>
+                    actualBuilder.SetName(d.RuntimeType.ToString()),
+
+                INamedTypeDescriptor { Kind: TypeKind.EntityType } =>
+                    actualBuilder.SetName(TypeNames.EntityId),
+
+                INamedTypeDescriptor d => actualBuilder.SetName(d.RuntimeType.ToString()),
+
+                _ => throw new ArgumentOutOfRangeException(nameof(typeDescriptor))
+            };
         }
     }
 }
