@@ -4,8 +4,8 @@ namespace HotChocolate.Data.Neo4J.Language
 {
     /// <summary>
     /// A symbolic name to identify nodes, relationships and aliased items.
-    /// See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/SchemaName.html">SchemaName</a>
-    /// <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/SymbolicName.html">SymbolicName</a>
+    /// See <see href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/SchemaName.html">SchemaName</see>
+    /// <see href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/SymbolicName.html">SymbolicName</see>
     /// </summary>
     public class SymbolicName : Expression
     {
@@ -22,7 +22,7 @@ namespace HotChocolate.Data.Neo4J.Language
         public static SymbolicName Of(string name)
         {
             Ensure.HasText(name, "Name must not be empty.");
-            //Assertions.IsTrue();
+            //Ensure.IsTrue();
             return new SymbolicName(name);
         }
 

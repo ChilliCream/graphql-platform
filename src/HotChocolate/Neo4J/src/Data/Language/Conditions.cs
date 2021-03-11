@@ -109,6 +109,5 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public static Condition IsFalse() =>
             ConstantCondition.False;
-
     }
 }

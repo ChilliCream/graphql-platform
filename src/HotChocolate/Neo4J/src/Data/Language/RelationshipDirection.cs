@@ -9,7 +9,7 @@ namespace HotChocolate.Data.Neo4J.Language
         private readonly string _symbolLeft;
         private readonly string _symbolRight;
 
-        private RelationshipDirection(string symbolLeft, string symbolRight)
+        public RelationshipDirection(string symbolLeft, string symbolRight)
         {
             _symbolLeft = symbolLeft;
             _symbolRight = symbolRight;

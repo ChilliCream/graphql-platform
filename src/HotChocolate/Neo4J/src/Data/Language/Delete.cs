@@ -3,7 +3,7 @@
 namespace HotChocolate.Data.Neo4J.Language
 {
     /// <summary>
-    /// Delete = [(D,E,T,A,C,H), SP], (D,E,L,E,T,E), [SP], Expression, { [SP], ',', [SP], Expression } ;
+    ///
     /// See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/Delete.html">Delete</a>.
     /// </summary>
     public class Delete : Visitable, IUpdatingClause
@@ -18,7 +18,7 @@ namespace HotChocolate.Data.Neo4J.Language
             _detach = detatch;
         }
 
-        public bool IsDetach => _detach;
+        public bool IsDetach() => _detach;
 
         public override void Visit(CypherVisitor cypherVisitor)
         {

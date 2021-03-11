@@ -3,7 +3,8 @@
 namespace HotChocolate.Data.Neo4J.Language
 {
     /// <summary>
-    /// https://s3.amazonaws.com/artifacts.opencypher.org/M15/railroad/ProjectionBody.html
+    /// The container or "body" for return items, order and optional skip things.
+    /// <see href="https://s3.amazonaws.com/artifacts.opencypher.org/M15/railroad/ProjectionBody.html" />
     /// </summary>
     public class ProjectionBody : Visitable
     {

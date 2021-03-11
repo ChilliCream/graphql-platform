@@ -54,7 +54,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
             descriptor.Operation(DefaultFilterOperations.Any).Name("any");
             descriptor.Operation(DefaultFilterOperations.And).Name("and");
             descriptor.Operation(DefaultFilterOperations.Or).Name("or");
-            descriptor.Operation(DefaultFilterOperations.Data).Name("data");
+            //descriptor.Operation(DefaultFilterOperations.Data).Name("data");
 
             return descriptor;
         }

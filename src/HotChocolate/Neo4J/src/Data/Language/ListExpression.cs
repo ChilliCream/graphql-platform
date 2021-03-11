@@ -12,14 +12,14 @@ namespace HotChocolate.Data.Neo4J.Language
             return expressions.Length == 1 ? expressions[0] : Create(expressions);
         }
 
-        static ListExpression Create(params Expression[] expressions) {
+        private static ListExpression Create(params Expression[] expressions) {
 
             return new (new ExpressionList(expressions));
         }
 
         private readonly ExpressionList _content;
 
-        private ListExpression(ExpressionList content) {
+        public ListExpression(ExpressionList content) {
             _content = content;
         }
 

@@ -251,5 +251,28 @@ namespace HotChocolate.Data.Neo4J.Language
             _writer.Write(" ");
             _writer.Write(sortDirection.GetSymbol());
         }
+
+        private void EnterVisitable(With with)
+        {
+            _writer.Write("WITH ");
+        }
+
+        private void LeaveVisitable(With with)
+        {
+            _writer.Write(" ");
+        }
+
+        private void EnterVisitable(Delete delete)
+        {
+            if (delete.IsDetach())
+                _writer.Write("DETACH ");
+
+            _writer.Write("DELETE ");
+        }
+
+        private void LeaveVisitable(Delete delete)
+        {
+            _writer.Write(" ");
+        }
     }
 }

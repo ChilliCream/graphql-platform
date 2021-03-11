@@ -1,8 +1,8 @@
 ﻿namespace HotChocolate.Data.Neo4J.Language
 {
     /// <summary>
-    /// https://s3.amazonaws.com/artifacts.opencypher.org/railroad/Match.html#Where
-    /// Where = (W,H,E,R,E), SP, Expression ;
+    /// WHERE adds constraints to the patterns in a MATCH or OPTIONAL MATCH clause or filters the results of a WITH clause.
+    /// <see href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/Match.html#Where" />
     /// </summary>
     public class Where : Visitable
     {
