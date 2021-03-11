@@ -47,7 +47,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .AddImplements(
                     TypeNames.IOperationResultBuilder.WithGeneric(
                         TypeNames.JsonDocument,
-                        resultTypeDescriptor.RuntimeType.Name));
+                        resultTypeDescriptor.RuntimeType.ToString()));
 
             AddConstructorAssignedField(
                 TypeNames.IEntityStore,
@@ -63,7 +63,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             AddConstructorAssignedField(
                 TypeNames.IOperationResultDataFactory
-                    .WithGeneric(resultTypeDescriptor.RuntimeType.Name),
+                    .WithGeneric(resultTypeDescriptor.RuntimeType.ToString()),
                 _resultDataFactory,
                 classBuilder,
                 constructorBuilder);

@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <PackageId>StrawberryShake.Persistence.SQLite</PackageId>
-    <RootNamespace>StrawberryShake.Persistence.SQLite</RootNamespace>
+    <PackageId>StrawberryShake.Persistence.LiteDB</PackageId>
+    <RootNamespace>StrawberryShake.Persistence.LiteDB</RootNamespace>
     <Nullable>enable</Nullable>
     <Description>A LiteDB store persistence layer.</Description>
   </PropertyGroup>

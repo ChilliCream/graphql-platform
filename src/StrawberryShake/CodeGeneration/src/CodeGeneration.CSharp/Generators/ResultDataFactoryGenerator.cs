@@ -107,7 +107,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             classBuilder
                 .AddProperty("ResultType")
                 .SetType(TypeNames.Type)
-                .AsLambda($"typeof({descriptor.RuntimeType})")
+                .AsLambda($"typeof({descriptor.RuntimeType.Namespace}.{ descriptor.Implements[0]})")
                 .SetInterface(TypeNames.IOperationResultDataFactory);
 
             classBuilder

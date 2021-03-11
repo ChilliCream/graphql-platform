@@ -1,9 +1,10 @@
 ﻿using System.IO;
-using System.Linq;
+using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using LiteDB;
-using Moq;
+using StrawberryShake.Internal;
 using StrawberryShake.Persistence.SQLite;
 using Xunit;
 
@@ -22,11 +23,11 @@ namespace StrawberryShake.Persistence.SQLLite
                 using var ct = new CancellationTokenSource(20_000);
                 var entityStore = new EntityStore();
                 using var operationStore = new OperationStore(entityStore);
-                var db = new LiteDatabase(fileName);
                 var storeAccessor = new MockStoreAccessor(operationStore, entityStore);
+                using var db = new LiteDatabase(fileName);
                 using var persistence = new LiteDBPersistence(storeAccessor, db);
 
-                persistence.Begin();
+                persistence.BeginInitialize();
 
                 await Task.Delay(250, ct.Token);
 
@@ -40,7 +41,7 @@ namespace StrawberryShake.Persistence.SQLLite
                 while (!ct.IsCancellationRequested && count == 0)
                 {
                     await Task.Delay(50, ct.Token);
-                    count = db.GetCollection("entities").Count();
+                    count = db.GetCollection(LiteDBPersistence.Entities).Count();
                 }
 
                 Assert.Equal(1, count);
@@ -63,11 +64,11 @@ namespace StrawberryShake.Persistence.SQLLite
                     using var ct = new CancellationTokenSource(20_000);
                     var entityStore = new EntityStore();
                     using var operationStore = new OperationStore(entityStore);
-                    var db = new LiteDatabase(fileName);
+                    using var db = new LiteDatabase(fileName);
                     var storeAccessor = new MockStoreAccessor(operationStore, entityStore);
                     using var persistence = new LiteDBPersistence(storeAccessor, db);
 
-                    persistence.Begin();
+                    persistence.BeginInitialize();
 
                     await Task.Delay(250, ct.Token);
 
@@ -87,15 +88,16 @@ namespace StrawberryShake.Persistence.SQLLite
                     Assert.Equal(1, count);
                 }
 
+                // now we recreate the context and should get entities from the database
                 {
                     using var ct = new CancellationTokenSource(20_000);
                     var entityStore = new EntityStore();
                     using var operationStore = new OperationStore(entityStore);
-                    var db = new LiteDatabase(fileName);
                     var storeAccessor = new MockStoreAccessor(operationStore, entityStore);
+                    using var db = new LiteDatabase(fileName);
                     using var persistence = new LiteDBPersistence(storeAccessor, db);
 
-                    persistence.Begin();
+                    persistence.BeginInitialize();
 
                     await Task.Delay(500, ct.Token);
 
@@ -134,10 +136,32 @@ namespace StrawberryShake.Persistence.SQLLite
                 : base(
                     operationStore,
                     entityStore,
-                    null,
+                    new MockEntityIdSerializer(),
                     new IOperationRequestFactory[0],
                     new IOperationResultDataFactory[0])
             {
+            }
+        }
+
+        public class MockEntityIdSerializer : IEntityIdSerializer
+        {
+            public EntityId Parse(JsonElement obj)
+            {
+                return new(
+                    obj.GetProperty("__typename").GetString()!,
+                    obj.GetProperty("id").GetInt32());
+            }
+
+            public string Format(EntityId entityId)
+            {
+                using var writer = new ArrayWriter();
+                using var jsonWriter = new Utf8JsonWriter(writer);
+                jsonWriter.WriteStartObject();
+                jsonWriter.WriteString("__typename", entityId.Name);
+                jsonWriter.WriteNumber("id", (int)entityId.Value);
+                jsonWriter.WriteEndObject();
+                jsonWriter.Flush();
+                return Encoding.UTF8.GetString(writer.GetInternalBuffer(), 0, writer.Length);
             }
         }
     }

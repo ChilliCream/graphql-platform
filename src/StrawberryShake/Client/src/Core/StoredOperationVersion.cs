@@ -16,9 +16,6 @@ namespace StrawberryShake
         /// <param name="result">
         /// The last result.
         /// </param>
-        /// <param name="version">
-        /// The current entity store version of this operation.
-        /// </param>
         /// <param name="subscribers">
         /// The count of subscribers that are listening to this operation.
         /// </param>
@@ -28,7 +25,6 @@ namespace StrawberryShake
         public StoredOperationVersion(
             OperationRequest request,
             IOperationResult? result,
-            ulong version,
             int subscribers,
             DateTime lastModified)
         {
@@ -36,7 +32,6 @@ namespace StrawberryShake
             Result = result;
             Subscribers = subscribers;
             LastModified = lastModified;
-            Version = version;
         }
 
         /// <summary>
@@ -48,11 +43,6 @@ namespace StrawberryShake
         /// Gets the last result.
         /// </summary>
         public IOperationResult? Result { get; }
-
-        /// <summary>
-        /// Gets the current entity store version of this operation.
-        /// </summary>
-        public ulong Version { get; }
 
         /// <summary>
         /// Gets the count of subscribers that are listening to this operation.

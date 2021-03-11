@@ -19,6 +19,11 @@ namespace StrawberryShake
         IEntityStore EntityStore { get; }
 
         /// <summary>
+        /// Gets the entity ID serializer.
+        /// </summary>
+        IEntityIdSerializer EntityIdSerializer { get; }
+
+        /// <summary>
         /// Gets the operation request factory to recreate a request..
         /// </summary>
         /// <param name="resultType">

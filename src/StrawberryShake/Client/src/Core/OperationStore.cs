@@ -15,7 +15,9 @@ namespace StrawberryShake
     {
         private static readonly MethodInfo _setGeneric = typeof(OperationStore)
             .GetMethods(BindingFlags.Instance | BindingFlags.Public)
-            .First(t => t.IsGenericMethod && t.Name.Equals(nameof(Set), StringComparison.Ordinal));
+            .First(t => 
+                t.IsGenericMethodDefinition && 
+                t.Name.Equals(nameof(Set), StringComparison.Ordinal));
 
         private readonly ConcurrentDictionary<OperationRequest, IStoredOperation> _results = new();
         private readonly IEntityStore _entityStore;
@@ -51,13 +53,25 @@ namespace StrawberryShake
 
             StoredOperation<T> storedOperation = GetOrAddStoredOperation<T>(operationRequest);
             storedOperation.SetResult(operationResult);
+
+            _operationStoreObservable.Next(
+                new OperationUpdate(
+                    OperationUpdateKind.Updated,
+                    new []
+                    {
+                        new StoredOperationVersion(
+                            operationRequest,
+                            operationResult,
+                            storedOperation.Subscribers,
+                            storedOperation.LastModified)
+                    }));
         }
 
         public void Set(OperationRequest operationRequest, IOperationResult operationResult)
         {
             _setGeneric
                 .MakeGenericMethod(operationResult.DataType)
-                .Invoke(this, new object[] { operationRequest, operationRequest });
+                .Invoke(this, new object[] { operationRequest, operationResult });
         }
 
         public void Reset(OperationRequest operationRequest)
@@ -76,6 +90,18 @@ namespace StrawberryShake
             {
                 storedOperation.ClearResult();
                 CleanEntityStore();
+
+                _operationStoreObservable.Next(
+                    new OperationUpdate(
+                        OperationUpdateKind.Removed,
+                        new []
+                        {
+                            new StoredOperationVersion(
+                                operationRequest,
+                                storedOperation.LastResult,
+                                storedOperation.Subscribers,
+                                storedOperation.LastModified)
+                        }));
             }
         }
 
@@ -95,6 +121,18 @@ namespace StrawberryShake
             {
                 storedOperation.Complete();
                 CleanEntityStore();
+
+                _operationStoreObservable.Next(
+                    new OperationUpdate(
+                        OperationUpdateKind.Removed,
+                        new []
+                        {
+                            new StoredOperationVersion(
+                                operationRequest,
+                                storedOperation.LastResult,
+                                storedOperation.Subscribers,
+                                storedOperation.LastModified)
+                        }));
             }
         }
 
@@ -105,15 +143,26 @@ namespace StrawberryShake
                 throw new ObjectDisposedException(nameof(OperationStore));
             }
 
+            var removed = new List<StoredOperationVersion>();
             ICollection<IStoredOperation> results = _results.Values;
             _results.Clear();
 
             foreach (var result in results)
             {
                 result.Complete();
+                removed.Add(new StoredOperationVersion(
+                    result.Request,
+                    result.LastResult,
+                    result.Subscribers,
+                    result.LastModified));
             }
 
             CleanEntityStore();
+
+            _operationStoreObservable.Next(
+                new OperationUpdate(
+                    OperationUpdateKind.Removed,
+                    removed));
         }
 
         private void CleanEntityStore()
@@ -163,7 +212,6 @@ namespace StrawberryShake
                 op => new StoredOperationVersion(
                     op.Request,
                     op.LastResult,
-                    op.Version,
                     op.Subscribers,
                     op.LastModified));
         }
@@ -223,7 +271,6 @@ namespace StrawberryShake
                     updated.Add(new(
                         operation.Request,
                         operation.LastResult,
-                        operation.Version,
                         operation.Subscribers,
                         operation.LastModified));
                 }

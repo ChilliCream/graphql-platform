@@ -96,7 +96,9 @@ namespace StrawberryShake
         private static readonly MethodInfo _factory =
             typeof(OperationResult)
                 .GetMethods(BindingFlags.Public | BindingFlags.Static)
-                .First(m => m.IsGenericMethod);
+                .First(m => 
+                    m.IsGenericMethodDefinition && 
+                    m.Name.Equals(nameof(Create), StringComparison.Ordinal));
 
         public static IOperationResult Create(
             object? data,
@@ -109,7 +111,9 @@ namespace StrawberryShake
         {
             return (IOperationResult)_factory
                 .MakeGenericMethod(dataType)
-                .Invoke(null,new[] { data, dataInfo, dataFactory, errors, extensions, contextData });
+                .Invoke(
+                    null,
+                    new[] { data, dataInfo, dataFactory, errors, extensions, contextData })!;
         }
 
         public static IOperationResult<TData> Create<TData>(
