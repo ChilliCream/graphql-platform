@@ -1,3 +1,4 @@
+using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,8 +18,13 @@ namespace Neo4jDemo
             IAuthToken authToken = AuthTokens.Basic("neo4j", "test123");
             IDriver driver = GraphDatabase.Driver("bolt://localhost:7687", authToken);
 
+            var context = new Neo4JContext(Assembly.GetExecutingAssembly());
+            var repository = new Neo4JRepository(driver, "neo4j", context);
+
+
             services
                 .AddSingleton(driver)
+                .AddSingleton(repository)
                 .AddGraphQLServer()
                     .AddQueryType(d => d.Name("Query"))
                         .AddType<Schema.Queries>()

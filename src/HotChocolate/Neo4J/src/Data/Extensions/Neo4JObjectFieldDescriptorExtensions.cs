@@ -16,5 +16,15 @@ namespace HotChocolate.Data.Neo4J
                         .AsyncSession(o => o.WithDatabase(dbName)),
                 dispose: null);
         }
+
+        public static IObjectFieldDescriptor UseNeo4JRepository(
+            this IObjectFieldDescriptor descriptor)
+        {
+            return descriptor.UseScopedService(
+                create: s =>
+                    s.GetRequiredService<Neo4JRepository>()
+                        ,
+                dispose: null);
+        }
     }
 }

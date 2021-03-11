@@ -27,6 +27,7 @@ namespace HotChocolate.Data.Neo4J
 
         public T Create<T>(T entity)
         {
+            var meta = _context.GetMetaData(entity.GetType());
 
             return entity;
         }

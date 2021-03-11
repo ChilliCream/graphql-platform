@@ -21,7 +21,7 @@ namespace HotChocolate.Data.Neo4J
         {
             descriptor
                 .Extend()
-                .OnBeforeCreate(x => x.ContextData.Add(nameof(Neo4JNodeAttribute), new {Key, Labels}));
+                .OnBeforeCreate(x => x.ContextData.Add(nameof(Neo4JNodeAttribute), this));
         }
     }
 }
