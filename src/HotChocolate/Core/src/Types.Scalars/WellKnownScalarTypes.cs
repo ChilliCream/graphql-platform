@@ -18,6 +18,7 @@ namespace HotChocolate.Types
         public const string NonPositiveInt = nameof(NonPositiveInt);
         public const string NonNegativeFloat = nameof(NonNegativeFloat);
         public const string PhoneNumber = nameof(PhoneNumber);
+        public const string Port = nameof(Port);
         public const string PositiveInt = nameof(PositiveInt);
         public const string PostalCode = nameof(PostalCode);
         public const string UnsignedInt = nameof(UnsignedInt);
