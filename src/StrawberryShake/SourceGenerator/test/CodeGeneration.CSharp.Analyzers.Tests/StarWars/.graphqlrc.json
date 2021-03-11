@@ -10,6 +10,7 @@
       "requestStrategy": "PersistedQuery",
       "hashAlgorithm": "md5",
       "outputDirectoryName": ".generated",
+      "useSingleFile": true,
       "transportProfiles": [
         {
           "name": "Default",

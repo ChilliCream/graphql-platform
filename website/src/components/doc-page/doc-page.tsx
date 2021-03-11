@@ -24,7 +24,7 @@ import {
   IsPhablet,
   IsSmallDesktop,
   IsTablet,
-} from "./shared-style";
+} from "../../shared-style";
 import { Article } from "../articles/article";
 import {
   ArticleWrapper,

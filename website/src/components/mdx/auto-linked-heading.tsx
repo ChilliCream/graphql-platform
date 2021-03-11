@@ -1,7 +1,7 @@
 import { Link } from "gatsby";
 import React, { FunctionComponent } from "react";
 import styled from "styled-components";
-import { IsSmallDesktop, IsPhablet } from "../doc-page/shared-style";
+import { IsSmallDesktop, IsPhablet } from "../../shared-style";
 const slugger = require("github-slugger").slug;
 
 interface AutoLinkedHeadingProps {

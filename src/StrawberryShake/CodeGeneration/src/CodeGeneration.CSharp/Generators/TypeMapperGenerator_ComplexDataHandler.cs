@@ -31,6 +31,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .MakeNullable(!isNonNullable))
                 .SetName(_dataParameterName);
 
+            method
+                .AddParameter(_snapshot)
+                .SetType(TypeNames.IEntityStoreSnapshot);
+
             if (!isNonNullable)
             {
                 method.AddCode(EnsureProperNullability(_dataParameterName, isNonNullable));

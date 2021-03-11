@@ -11,6 +11,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private string? _name;
         private XmlCommentBuilder? _xmlComment;
         private string? _value;
+        private string? _interface;
         private bool _isStatic;
 
         public static PropertyBuilder New() => new();
@@ -61,6 +62,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
+        public PropertyBuilder SetInterface(string value)
+        {
+            _interface = value;
+            return this;
+        }
+
         public PropertyBuilder SetValue(string? value)
         {
             _value = value;
@@ -90,15 +97,25 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             _xmlComment?.Build(writer);
 
             writer.WriteIndent();
-            writer.Write(modifier);
-            writer.WriteSpace();
-            if (_isStatic)
+            if (_interface is null)
             {
-                writer.Write("static");
+                writer.Write(modifier);
                 writer.WriteSpace();
+                if (_isStatic)
+                {
+                    writer.Write("static");
+                    writer.WriteSpace();
+                }
             }
 
             _type.Build(writer);
+
+            if (_interface is not null)
+            {
+                writer.Write(_interface);
+                writer.Write(".");
+            }
+
             writer.Write(_name);
 
             if (_lambdaResolver is not null)
