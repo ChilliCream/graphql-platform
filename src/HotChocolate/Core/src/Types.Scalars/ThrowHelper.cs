@@ -459,6 +459,28 @@ namespace HotChocolate.Types.Scalars
                 type);
         }
 
+        public static SerializationException RgbType_ParseLiteral_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.RgbType_IsInvalid_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.Rgb)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException RgbType_ParseValue_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.RgbType_IsInvalid_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.Rgb)
+                    .Build(),
+                type);
+        }
+
         public static SerializationException UnsignedIntType_ParseLiteral_IsNotUnsigned(IType type)
         {
             return new SerializationException(

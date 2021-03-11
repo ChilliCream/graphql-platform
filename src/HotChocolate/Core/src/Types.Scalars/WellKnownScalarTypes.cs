@@ -21,6 +21,7 @@ namespace HotChocolate.Types
         public const string Port = nameof(Port);
         public const string PositiveInt = nameof(PositiveInt);
         public const string PostalCode = nameof(PostalCode);
+        public const string Rgb = nameof(Rgb);
         public const string UnsignedInt = nameof(UnsignedInt);
     }
 }
