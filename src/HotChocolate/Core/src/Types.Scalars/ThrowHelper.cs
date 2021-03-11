@@ -481,7 +481,7 @@ namespace HotChocolate.Types.Scalars
                 type);
         }
 
-        public static SerializationException UnsignedIntType_ParseValue_IsNotUnsigned(IType type)
+        public static SerializationException UnsignedIntType_ParseLiteral_IsNotUnsigned(IType type)
         {
             return new SerializationException(
                 ErrorBuilder.New()
