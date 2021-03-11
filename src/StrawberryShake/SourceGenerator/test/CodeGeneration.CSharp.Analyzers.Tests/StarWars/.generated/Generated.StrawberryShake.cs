@@ -1,4 +1,4 @@
-﻿PersonEntity.StrawberryShake.cs
+﻿// PersonEntity.StrawberryShake.cs
 // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
 
 #nullable enable
@@ -31,7 +31,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State
 }
 
 
-GetPeopleResultFactory.StrawberryShake.cs
+// GetPeopleResultFactory.StrawberryShake.cs
 // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
 
 #nullable enable
@@ -156,7 +156,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State
 }
 
 
-GetPeopleResultInfo.StrawberryShake.cs
+// GetPeopleResultInfo.StrawberryShake.cs
 // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
 
 #nullable enable
@@ -201,7 +201,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State
 }
 
 
-GetPeopleResult.StrawberryShake.cs
+// GetPeopleResult.StrawberryShake.cs
 // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
 
 #nullable enable
@@ -289,7 +289,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
 }
 
 
-GetPeople_People_PersonConnection.StrawberryShake.cs
+// GetPeople_People_PersonConnection.StrawberryShake.cs
 // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
 
 #nullable enable
@@ -388,7 +388,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
 }
 
 
-GetPeople_People_Nodes_PersonFromPersonEntityMapper.StrawberryShake.cs
+// GetPeople_People_Nodes_PersonFromPersonEntityMapper.StrawberryShake.cs
 // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
 
 #nullable enable
@@ -413,7 +413,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State
 }
 
 
-GetPeople_People_Nodes_Person.StrawberryShake.cs
+// GetPeople_People_Nodes_Person.StrawberryShake.cs
 // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
 
 #nullable enable
@@ -517,7 +517,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
 }
 
 
-IGetPeopleResult.StrawberryShake.cs
+// IGetPeopleResult.StrawberryShake.cs
 // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
@@ -535,7 +535,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
 }
 
 
-IGetPeople_People.StrawberryShake.cs
+// IGetPeople_People.StrawberryShake.cs
 // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
@@ -556,7 +556,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
 }
 
 
-IGetPeople_People_PersonConnection.StrawberryShake.cs
+// IGetPeople_People_PersonConnection.StrawberryShake.cs
 // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
@@ -574,7 +574,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
 }
 
 
-IGetPeople_People_Nodes.StrawberryShake.cs
+// IGetPeople_People_Nodes.StrawberryShake.cs
 // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
@@ -595,7 +595,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
 }
 
 
-IGetPeople_People_Nodes_Person.StrawberryShake.cs
+// IGetPeople_People_Nodes_Person.StrawberryShake.cs
 // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
 #nullable enable
@@ -610,7 +610,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
 }
 
 
-GetPeopleQueryDocument.StrawberryShake.cs
+// GetPeopleQueryDocument.StrawberryShake.cs
 // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
 
 #nullable enable
@@ -665,7 +665,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
 }
 
 
-GetPeopleQuery.StrawberryShake.cs
+// GetPeopleQuery.StrawberryShake.cs
 // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
 
 #nullable enable
@@ -749,7 +749,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
 }
 
 
-GetPeopleBuilder.StrawberryShake.cs
+// GetPeopleBuilder.StrawberryShake.cs
 // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
 
 #nullable enable
@@ -996,7 +996,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State
 }
 
 
-PersonConnectionData.StrawberryShake.cs
+// PersonConnectionData.StrawberryShake.cs
 // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
 
 #nullable enable
@@ -1028,7 +1028,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State
 }
 
 
-StarWarsClient.StrawberryShake.cs
+// StarWarsClient.StrawberryShake.cs
 // StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
 
 #nullable enable
@@ -1056,7 +1056,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
 }
 
 
-StarWarsClientEntityIdFactory.StrawberryShake.cs
+// StarWarsClientEntityIdFactory.StrawberryShake.cs
 // StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator
 
 #nullable enable
@@ -1131,7 +1131,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State
 }
 
 
-StarWarsClientServiceCollectionExtensions.StrawberryShake.cs
+// StarWarsClientServiceCollectionExtensions.StrawberryShake.cs
 // StrawberryShake.CodeGeneration.CSharp.Generators.DependencyInjectionGenerator
 
 #nullable enable
@@ -1351,7 +1351,7 @@ namespace Microsoft.Extensions.DependencyInjection
 }
 
 
-StarWarsClientProfileKind.StrawberryShake.cs
+// StarWarsClientProfileKind.StrawberryShake.cs
 // StrawberryShake.CodeGeneration.CSharp.Generators.TransportProfileEnumGenerator
 
 #nullable enable
@@ -1367,7 +1367,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
 }
 
 
-StarWarsClientStoreAccessor.StrawberryShake.cs
+// StarWarsClientStoreAccessor.StrawberryShake.cs
 // StrawberryShake.CodeGeneration.CSharp.Generators.StoreAccessorGenerator
 
 #nullable enable
