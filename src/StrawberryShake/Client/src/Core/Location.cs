@@ -1,4 +1,5 @@
 using System;
+using StrawberryShake.Properties;
 
 namespace StrawberryShake
 {
@@ -10,14 +11,14 @@ namespace StrawberryShake
             {
                 throw new ArgumentOutOfRangeException(
                     nameof(line), line,
-                    "line is a 1-base index and cannot be less than one.");
+                    Resources.Location_Location_Line_OutOfRange);
             }
 
             if (column < 1)
             {
                 throw new ArgumentOutOfRangeException(
                     nameof(column), column,
-                    "column is a 1-base index and cannot be less than one.");
+                    Resources.Location_Location_Column_OutOfRange);
             }
 
             Line = line;

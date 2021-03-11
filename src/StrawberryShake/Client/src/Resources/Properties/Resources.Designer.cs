@@ -218,5 +218,41 @@ namespace StrawberryShake.Properties {
                 return ResourceManager.GetString("InMemoryClient_ExecuteAsync_NoExecutorFound", resourceCulture);
             }
         }
+        
+        internal static string JsonErrorParser_ParseError_MessageCannotBeNull {
+            get {
+                return ResourceManager.GetString("JsonErrorParser_ParseError_MessageCannotBeNull", resourceCulture);
+            }
+        }
+        
+        internal static string Location_Location_Line_OutOfRange {
+            get {
+                return ResourceManager.GetString("Location_Location_Line_OutOfRange", resourceCulture);
+            }
+        }
+        
+        internal static string Location_Location_Column_OutOfRange {
+            get {
+                return ResourceManager.GetString("Location_Location_Column_OutOfRange", resourceCulture);
+            }
+        }
+        
+        internal static string JsonErrorParser_ParseErrors_Error {
+            get {
+                return ResourceManager.GetString("JsonErrorParser_ParseErrors_Error", resourceCulture);
+            }
+        }
+        
+        internal static string EntityStore_InvalidEntityId {
+            get {
+                return ResourceManager.GetString("EntityStore_InvalidEntityId", resourceCulture);
+            }
+        }
+        
+        internal static string StoreAccessor_GetOperationRequestFactory_InvalidResultType {
+            get {
+                return ResourceManager.GetString("StoreAccessor_GetOperationRequestFactory_InvalidResultType", resourceCulture);
+            }
+        }
     }
 }

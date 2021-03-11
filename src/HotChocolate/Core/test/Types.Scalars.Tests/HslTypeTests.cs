@@ -193,5 +193,79 @@ namespace HotChocolate.Types.Scalars
             // assert
             ExpectSerializeToThrowSerializationException<HslType>(value);
         }
+
+        [Theory]
+        [InlineData(typeof(StringValueNode), "hsl(270,60%,70%)")]
+        [InlineData(typeof(StringValueNode), "hsl(270, 60%, 70%)")]
+        [InlineData(typeof(StringValueNode), "hsl(270 60% 70%)")]
+        [InlineData(typeof(StringValueNode), "hsl(270deg, 60%, 70%)")]
+        [InlineData(typeof(StringValueNode), "hsl(270, 60%, 50%, .15)")]
+        [InlineData(typeof(StringValueNode), "hsl(270, 60%, 50%, 15%)")]
+        [InlineData(typeof(StringValueNode), "hsl(270 60% 50% / .15)")]
+        [InlineData(typeof(StringValueNode), "hsl(270 60% 50% / 15%)")]
+        [InlineData(typeof(StringValueNode), "hsl(270, 100%, 50%)")]
+        [InlineData(typeof(NullValueNode), null)]
+        public void ParseValue_GivenObject_MatchExpectedType(Type type, object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseValueToMatchType<HslType>(value, type);
+        }
+
+        [Theory]
+        [InlineData(TestEnum.Foo)]
+        [InlineData(1d)]
+        [InlineData(1)]
+        [InlineData(true)]
+        [InlineData("hsl(090)")]
+        [InlineData("hsl(#FFFFFF)")]
+        [InlineData("hsl(FF, A5, 00)")]
+        [InlineData("hsl(270, FF, 50)")]
+        [InlineData("hsl(270%, A0, 5F)")]
+        public void ParseValue_GivenObject_ThrowSerializationException(object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseValueToThrowSerializationException<HslType>(value);
+        }
+
+        [Theory]
+        [InlineData(typeof(StringValueNode), "hsl(270,60%,70%)")]
+        [InlineData(typeof(StringValueNode), "hsl(270, 60%, 70%)")]
+        [InlineData(typeof(StringValueNode), "hsl(270 60% 70%)")]
+        [InlineData(typeof(StringValueNode), "hsl(270deg, 60%, 70%)")]
+        [InlineData(typeof(StringValueNode), "hsl(270, 60%, 50%, .15)")]
+        [InlineData(typeof(StringValueNode), "hsl(270, 60%, 50%, 15%)")]
+        [InlineData(typeof(StringValueNode), "hsl(270 60% 50% / .15)")]
+        [InlineData(typeof(StringValueNode), "hsl(270 60% 50% / 15%)")]
+        [InlineData(typeof(StringValueNode), "hsl(270, 100%, 50%)")]
+        [InlineData(typeof(NullValueNode), null)]
+        public void ParseResult_GivenObject_MatchExpectedType(Type type, object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseResultToMatchType<HslType>(value, type);
+        }
+
+        [Theory]
+        [InlineData(TestEnum.Foo)]
+        [InlineData(1d)]
+        [InlineData(1)]
+        [InlineData(true)]
+        [InlineData("hsl(090)")]
+        [InlineData("hsl(#FFFFFF)")]
+        [InlineData("hsl(FF, A5, 00)")]
+        [InlineData("hsl(270, FF, 50)")]
+        [InlineData("hsl(270%, A0, 5F)")]
+        public void ParseResult_GivenObject_ThrowSerializationException(object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseResultToThrowSerializationException<HslType>(value);
+        }
     }
 }
