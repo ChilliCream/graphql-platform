@@ -47,18 +47,28 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
             foreach (KeyValuePair<NameString, HashSet<NameString>> entityType in entityTypes)
             {
-                var runtimeType = CreateEntityType(entityType.Key, context.Namespace);
+                RuntimeTypeInfo runtimeType =
+                    CreateEntityType(entityType.Key, context.Namespace);
 
                 descriptions.TryGetValue(entityType.Key, out var description);
 
-                yield return new EntityTypeDescriptor(
+                var possibleTypes = entityType.Value
+                    .Select(name => context.Types.Single(t => t.RuntimeType.Name.Equals(name)))
+                    .OfType<ComplexTypeDescriptor>()
+                    .ToList();
+
+                var entityTypeDescriptor = new EntityTypeDescriptor(
                     entityType.Key,
                     runtimeType,
-                    entityType.Value
-                        .Select(name => context.Types.Single(t => t.RuntimeType.Name.Equals(name)))
-                        .OfType<ComplexTypeDescriptor>()
-                        .ToList(),
+                    possibleTypes,
                     description);
+
+                foreach (var type in possibleTypes.OfType<ObjectTypeDescriptor>())
+                {
+                    type.CompleteEntityType(entityTypeDescriptor);
+                }
+
+                yield return entityTypeDescriptor;
             }
         }
     }

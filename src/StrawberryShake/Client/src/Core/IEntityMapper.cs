@@ -14,10 +14,15 @@ namespace StrawberryShake
         /// Maps the data from the entity to a new read-only model
         /// that is used by the result data object.
         /// </summary>
-        /// <param name="entity">The entity from which we want to create the model.</param>
+        /// <param name="entity">
+        /// The entity from which we want to create the model.
+        /// </param>
+        /// <param name="snapshot">
+        /// An optional store snapshot that shall be used instead of the newest snapshot.
+        /// </param>
         /// <returns>
         /// Returns a new read-only instance of the model that was created by using the entity.
         /// </returns>
-        TModel Map(TEntity entity);
+        TModel Map(TEntity entity, IEntityStoreSnapshot? snapshot = null);
     }
 }

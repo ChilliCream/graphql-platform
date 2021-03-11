@@ -22,6 +22,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .SetType(namedTypeDescriptor.ParentRuntimeType!
                     .ToString()
                     .MakeNullable(!isNonNullable));
+            method
+                .AddParameter(_snapshot)
+                .SetType(TypeNames.IEntityStoreSnapshot);
 
             if (!isNonNullable)
             {
