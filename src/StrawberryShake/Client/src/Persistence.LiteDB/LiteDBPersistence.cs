@@ -68,6 +68,7 @@ namespace StrawberryShake.Persistence.LiteDB
             _storeAccessor.EntityStore.Update(session =>
             {
                 var collection = _database.GetCollection<EntityDto>(Entities);
+
                 foreach (var entityDto in collection.FindAll())
                 {
                     using var json = JsonDocument.Parse(entityDto.Id);
@@ -123,10 +124,7 @@ namespace StrawberryShake.Persistence.LiteDB
             _operationStoreSubscription = _storeAccessor.OperationStore
                 .Watch()
                 .Subscribe(
-                    onNext: update =>
-                    {
-                        _queue.Writer.TryWrite(update);
-                    },
+                    onNext: update => _queue.Writer.TryWrite(update),
                     onCompleted: () => _cts.Cancel());
 
             Task.Run(async () => await WriteAsync(_cts.Token));
