@@ -31,6 +31,7 @@ namespace StrawberryShake
         {
             _entityStore = entityStore ?? throw new ArgumentNullException(nameof(entityStore));
             _entityChangeObserverSession = _entityStore.Watch().Subscribe(OnEntityUpdate);
+            BeginProcessOperationUpdates();
         }
 
         public void Set<T>(
