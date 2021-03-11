@@ -1,7 +1,7 @@
 using HotChocolate.Language;
 using HotChocolate.Types.Scalars;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Scalars
 {
     /// <summary>
     /// The NonEmptyString scalar type represents non empty textual data, represented as
@@ -44,28 +44,6 @@ namespace HotChocolate.Types
         }
 
         /// <inheritdoc />
-        protected override string ParseLiteral(StringValueNode valueSyntax)
-        {
-            if (valueSyntax.Value == string.Empty)
-            {
-                throw ThrowHelper.NonEmptyStringType_ParseLiteral_IsEmpty(this);
-            }
-
-            return base.ParseLiteral(valueSyntax);
-        }
-
-        /// <inheritdoc />
-        protected override StringValueNode ParseValue(string runtimeValue)
-        {
-            if (runtimeValue == string.Empty)
-            {
-                throw ThrowHelper.NonEmptyStringType_ParseValue_IsEmpty(this);
-            }
-
-            return base.ParseValue(runtimeValue);
-        }
-
-        /// <inheritdoc />
         public override bool TrySerialize(object? runtimeValue, out object? resultValue)
         {
             if (runtimeValue is string s && s == string.Empty)
@@ -91,6 +69,18 @@ namespace HotChocolate.Types
             }
 
             return true;
+        }
+
+        /// <inheritdoc />
+        protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
+        {
+            throw ThrowHelper.NonEmptyStringType_ParseLiteral_IsEmpty(this);
+        }
+
+        /// <inheritdoc />
+        protected override SerializationException CreateParseValueError(object runtimeValue)
+        {
+            throw ThrowHelper.NonEmptyStringType_ParseValue_IsEmpty(this);
         }
     }
 }

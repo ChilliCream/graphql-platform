@@ -40,6 +40,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             new ResultFromEntityTypeMapperGenerator(),
             new ResultInfoGenerator(),
             new ResultTypeGenerator(),
+            new StoreAccessorGenerator(),
             new InputTypeGenerator(),
             new ResultInterfaceGenerator(),
             new DataTypeGenerator()
@@ -180,6 +181,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             // now we execute all mappers that depend on the previous type mappers.
             OperationDescriptorMapper.Map(clientModel, context);
+            StoreAccessorMapper.Map(clientModel, context);
             DependencyInjectionMapper.Map(clientModel, context);
             DataTypeDescriptorMapper.Map(clientModel, context);
             EntityTypeDescriptorMapper.Map(clientModel, context);

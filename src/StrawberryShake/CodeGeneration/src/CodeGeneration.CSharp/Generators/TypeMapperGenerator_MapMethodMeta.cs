@@ -165,9 +165,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                             .SetCode(ExceptionBuilder.Inline(TypeNames.ArgumentNullException));
                     }
 
-                    mapperMethodCall.AddArgument(argString);
-
-                    return mapperMethodCall;
+                    return mapperMethodCall
+                        .AddArgument(argString)
+                        .AddArgument(_snapshot);
 
                 default:
                     throw new ArgumentOutOfRangeException();

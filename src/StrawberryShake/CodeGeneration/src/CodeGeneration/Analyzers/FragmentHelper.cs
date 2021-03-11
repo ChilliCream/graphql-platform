@@ -112,6 +112,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 .Select(
                     t => new OutputFieldModel(
                         GetPropertyName(t.ResponseName),
+                        t.ResponseName,
                         t.Field.Description,
                         t.Field,
                         t.Field.Type,
@@ -258,6 +259,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     .Select(
                         t => new OutputFieldModel(
                             GetPropertyName(t.ResponseName),
+                            t.ResponseName,
                             t.Field.Description,
                             t.Field,
                             t.Field.Type,
