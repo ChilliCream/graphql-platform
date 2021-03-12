@@ -71,7 +71,10 @@ namespace HotChocolate.Types
             return false;
         }
 
-        public IEnumerator<T> GetEnumerator() => new FieldEnumerator(_fields);
+        public IEnumerator<T> GetEnumerator() =>
+            _fields.Length == 0
+                ? EmptyFieldEnumerator.Instance
+                : new FieldEnumerator(_fields);
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
@@ -135,6 +138,23 @@ namespace HotChocolate.Types
             {
                 Reset();
             }
+        }
+
+        private sealed class EmptyFieldEnumerator : IEnumerator<T>
+        {
+            private EmptyFieldEnumerator() { }
+
+            public bool MoveNext() => false;
+
+            public void Reset() { }
+
+            public T Current { get; } = default!;
+
+            object IEnumerator.Current => Current;
+
+            public void Dispose() { }
+
+            internal static readonly EmptyFieldEnumerator Instance = new();
         }
     }
 }

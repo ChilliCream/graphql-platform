@@ -106,13 +106,14 @@ namespace HotChocolate.Types
                 Fields = FieldCollection<ObjectField>.From(fields, sortByName);
 
                 // resolve interface references
-                if (definition.GetInterfaces().Any())
+                IReadOnlyList<ITypeReference> interfaces = definition.GetInterfaces();
+                if (interfaces.Count > 0)
                 {
                     var implements = new List<InterfaceType>();
 
                     CompleteInterfaces(
                         context,
-                        definition,
+                        interfaces,
                         RuntimeType,
                         implements,
                         this, SyntaxNode);
@@ -150,15 +151,15 @@ namespace HotChocolate.Types
             ITypeCompletionContext context,
             ObjectTypeDefinition definition)
         {
-            ObjectFieldDefinition[] invalidFields =
-                definition.Fields.Where(t => t.Type is null).ToArray();
+            var hasErrors = false;
 
-            foreach (ObjectFieldDefinition field in invalidFields)
+            foreach (ObjectFieldDefinition field in definition.Fields.Where(t => t.Type is null))
             {
+                hasErrors = true;
                 context.ReportError(ObjectType_UnableToInferOrResolveType(Name, this, field));
             }
 
-            return invalidFields.Length == 0;
+            return !hasErrors;
         }
 
         private bool IsOfTypeWithClrType(

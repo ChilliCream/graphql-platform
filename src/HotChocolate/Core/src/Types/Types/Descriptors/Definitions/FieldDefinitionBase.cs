@@ -14,7 +14,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
         /// <summary>
         /// Gets the field type.
         /// </summary>
-        public ITypeReference Type { get; set; }
+        public ITypeReference? Type { get; set; }
 
         /// <summary>
         /// Defines if this field is ignored and will
