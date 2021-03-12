@@ -12,8 +12,7 @@ namespace HotChocolate.Types
         : IFieldCollection<T>
         where T : class, IField
     {
-        private readonly Dictionary<NameString, (int Index, T Field)> _fieldsLookup;
-
+        private readonly Dictionary<NameString, T> _fieldsLookup;
         private readonly T[] _fields;
 
         public FieldCollection(IEnumerable<T> fields, bool sortByName = false)
@@ -25,28 +24,34 @@ namespace HotChocolate.Types
 
             _fields = sortByName
                 ? fields.OrderBy(t => t.Name).ToArray()
-                : fields is T[] list ? list : fields.ToArray();
+                : fields is T[] array ? array : fields.ToArray();
 
-            _fieldsLookup = new Dictionary<NameString, (int Index, T Field)>(_fields.Length);
+            _fieldsLookup = new Dictionary<NameString, T>(_fields.Length);
 
-            for (var i = 0; i < _fields.Length; i++)
+            foreach (var field in _fields)
             {
-                T field = _fields[i];
-                _fieldsLookup.Add(field.Name, (i, field));
+                _fieldsLookup.Add(field.Name, field);
             }
         }
 
-        public T this[string fieldName] => _fieldsLookup[fieldName].Field;
+        public T this[string fieldName] => _fieldsLookup[fieldName];
 
         public T this[int index] => _fields[index];
 
         public int Count => _fields.Length;
 
+        [Obsolete("This method will be removed soon.")]
         public int IndexOfField(NameString fieldName)
         {
-            return _fieldsLookup.TryGetValue(fieldName, out (int Index, T Field) item)
-                ? item.Index
-                : -1;
+            for (var i = 0; i < _fields.Length; i++)
+            {
+                if (fieldName.Equals(_fields[i].Name))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
         }
 
         public bool ContainsField(NameString fieldName) =>
@@ -56,9 +61,9 @@ namespace HotChocolate.Types
         {
             if (_fieldsLookup.TryGetValue(
                 fieldName.EnsureNotEmpty(nameof(fieldName)),
-                out (int Index, T Field) item))
+                out var item))
             {
-                field = item.Field;
+                field = item;
                 return true;
             }
 
@@ -74,10 +79,7 @@ namespace HotChocolate.Types
             }
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         public static FieldCollection<T> From(IEnumerable<T> fields, bool sortByName = false)
         {
