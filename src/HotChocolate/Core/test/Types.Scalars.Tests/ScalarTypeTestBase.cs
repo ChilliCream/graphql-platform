@@ -35,6 +35,8 @@ namespace HotChocolate.Types.Scalars
                     return new IntValueNode(i);
                 case nameof(IntValueNode) when value is uint i:
                     return new IntValueNode(i);
+                case nameof(IntValueNode) when value is ulong i:
+                    return new IntValueNode(i);
                 case nameof(BooleanValueNode) when value is bool b:
                     return new BooleanValueNode(b);
                 case nameof(StringValueNode) when value is string s:
