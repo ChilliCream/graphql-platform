@@ -3,7 +3,7 @@ using HotChocolate.Language;
 namespace HotChocolate.Types.Scalars
 {
     /// <summary>
-    /// The UnsignedLong scalar type represents a signed 32‐bit numeric non‐fractional
+    /// The UnsignedLong scalar type represents a signed 64‐bit numeric non‐fractional
     /// value greater than or equal to 0.
     /// </summary>
     public class UnsignedLongType : IntegerTypeBase<ulong>
