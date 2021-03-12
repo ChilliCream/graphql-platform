@@ -112,6 +112,7 @@ namespace HotChocolate.Types.Scalars
         [InlineData(typeof(StringValueNode), "")]
         [InlineData(typeof(StringValueNode), "1")]
         [InlineData(typeof(StringValueNode), "rgb(1e2, .5e1, .5e0, +.25e2%)")]
+        [InlineData(typeof(StringValueNode), "rgba(255, 0, 153.6, 1)")]
         [InlineData(typeof(StringValueNode), "rgba(1e2, .5e1, .5e0, +.25e2%)")]
         public void ParseLiteral_GivenValueNode_ThrowSerializationException(Type type, object value)
         {
@@ -154,6 +155,7 @@ namespace HotChocolate.Types.Scalars
         [InlineData(12345)]
         [InlineData("")]
         [InlineData("rgb(1e2, .5e1, .5e0, +.25e2%)")]
+        [InlineData("rgba(255, 0, 153.6, 1)")]
         [InlineData("rgba(1e2, .5e1, .5e0, +.25e2%)")]
         public void Deserialize_GivenValue_ThrowSerializationException(object value)
         {
@@ -195,6 +197,7 @@ namespace HotChocolate.Types.Scalars
         [InlineData("")]
         [InlineData("1")]
         [InlineData("rgb(1e2, .5e1, .5e0, +.25e2%)")]
+        [InlineData("rgba(255, 0, 153.6, 1)")]
         [InlineData("rgba(1e2, .5e1, .5e0, +.25e2%)")]
         public void Serialize_GivenObject_ThrowSerializationException(object value)
         {
@@ -234,6 +237,7 @@ namespace HotChocolate.Types.Scalars
         [InlineData("")]
         [InlineData("1")]
         [InlineData("rgb(1e2, .5e1, .5e0, +.25e2%)")]
+        [InlineData("rgba(255, 0, 153.6, 1)")]
         [InlineData("rgba(1e2, .5e1, .5e0, +.25e2%)")]
         public void ParseValue_GivenObject_ThrowSerializationException(object value)
         {
@@ -273,6 +277,7 @@ namespace HotChocolate.Types.Scalars
         [InlineData("")]
         [InlineData("1")]
         [InlineData("rgb(1e2, .5e1, .5e0, +.25e2%)")]
+        [InlineData("rgba(255, 0, 153.6, 1)")]
         [InlineData("rgba(1e2, .5e1, .5e0, +.25e2%)")]
         public void ParseResult_GivenObject_ThrowSerializationException(object value)
         {
