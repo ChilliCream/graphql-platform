@@ -1,51 +1,44 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
-using static StrawberryShake.CodeGeneration.NamingConventions;
+using StrawberryShake.CodeGeneration.Descriptors.Operations;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
 namespace StrawberryShake.CodeGeneration.Mappers
 {
     public static class OperationDescriptorMapper
     {
-        public static void Map(
-            ClientModel model,
-            IMapperContext context)
+        public static void Map(ClientModel model, IMapperContext context)
         {
             foreach (OperationModel modelOperation in model.Operations)
             {
                 var arguments = modelOperation.Arguments.Select(
-                        arg =>
-                        {
-                            if (arg.Type.IsEnumType())
-                            {
-                                var enumType =
-                                    context.EnumTypes.Single(type =>
-                                        type.Name == arg.Type.TypeName());
+                    arg =>
+                    {
+                        NameString typeName = arg.Type.TypeName();
 
-                                return new PropertyDescriptor(
-                                    arg.Name,
-                                    Unwrap(arg.Type,
-                                        _ => new NamedTypeDescriptor(
-                                            enumType.Name,
-                                            enumType.Namespace,
-                                            false,
-                                            graphQLTypeName: enumType.Name,
-                                            isEnum: true)));
-                            }
+                        INamedTypeDescriptor namedTypeDescriptor =
+                            context.Types.Single(type => type.Name.Equals(typeName));
 
-                            return new PropertyDescriptor(
-                                arg.Name,
-                                Unwrap(arg.Type,
-                                    _ => context.Types.First(
-                                        type => type.GraphQLTypeName == arg.Type.TypeName()
-                                    )));
-                        })
+                        return new PropertyDescriptor(
+                            arg.Name,
+                            arg.Variable.Variable.Name.Value,
+                            Rewrite(arg.Type, namedTypeDescriptor),
+                            null);
+                    })
                     .ToList();
 
-                var resultTypeName = ResultRootTypeNameFromTypeName(modelOperation.ResultType.Name);
+                RuntimeTypeInfo resultType = context.GetRuntimeType(
+                    modelOperation.ResultType.Name,
+                    Descriptors.TypeDescriptors.TypeKind.ResultType);
+
+                string bodyString = modelOperation.Document.ToString();
+                byte[] body = Encoding.UTF8.GetBytes(modelOperation.Document.ToString(false));
+                string hash = context.HashProvider.ComputeHash(body);
 
                 switch (modelOperation.OperationType)
                 {
@@ -54,52 +47,67 @@ namespace StrawberryShake.CodeGeneration.Mappers
                             modelOperation.Name,
                             new QueryOperationDescriptor(
                                 modelOperation.Name,
-                                context.Types.Single(
-                                    t => t.Name.Equals(resultTypeName)),
                                 context.Namespace,
+                                context.Types.Single(t => t.RuntimeType.Equals(resultType)),
                                 arguments,
-                                modelOperation.Document.ToString()));
+                                body,
+                                bodyString,
+                                context.HashProvider.Name,
+                                hash,
+                                context.RequestStrategy));
                         break;
+
                     case OperationType.Mutation:
                         context.Register(
                             modelOperation.Name,
                             new MutationOperationDescriptor(
                                 modelOperation.Name,
-                                context.Types.Single(
-                                    t => t.Name.Equals(resultTypeName)),
                                 context.Namespace,
+                                context.Types.Single(t => t.RuntimeType.Equals(resultType)),
                                 arguments,
-                                modelOperation.Document.ToString()));
+                                body,
+                                bodyString,
+                                context.HashProvider.Name,
+                                hash,
+                                context.RequestStrategy));
                         break;
+
                     case OperationType.Subscription:
                         context.Register(
                             modelOperation.Name,
                             new SubscriptionOperationDescriptor(
                                 modelOperation.Name,
-                                context.Types.Single(
-                                    t => t.Name.Equals(resultTypeName)),
                                 context.Namespace,
+                                context.Types.Single(t => t.RuntimeType.Equals(resultType)),
                                 arguments,
-                                modelOperation.Document.ToString()));
+                                body,
+                                bodyString,
+                                context.HashProvider.Name,
+                                hash,
+                                context.RequestStrategy));
                         break;
+
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
             }
         }
 
-        private static ITypeDescriptor Unwrap(
+        private static ITypeDescriptor Rewrite(
             IType type,
-            Func<INamedType, NamedTypeDescriptor> mapNamedType)
+            INamedTypeDescriptor namedTypeDescriptor)
         {
             switch (type)
             {
-                case NonNullType descriptor:
-                    return new NonNullTypeDescriptor(Unwrap(descriptor.InnerType(), mapNamedType));
-                case ListType descriptor:
-                    return new ListTypeDescriptor(Unwrap(descriptor.InnerType(), mapNamedType));
-                case INamedType descriptor:
-                    return mapNamedType(descriptor);
+                case NonNullType nnt:
+                    return new NonNullTypeDescriptor(Rewrite(nnt.InnerType(), namedTypeDescriptor));
+
+                case ListType lt:
+                    return new ListTypeDescriptor(Rewrite(lt.InnerType(), namedTypeDescriptor));
+
+                case INamedType:
+                    return namedTypeDescriptor;
+
                 default:
                     throw new InvalidOperationException();
             }

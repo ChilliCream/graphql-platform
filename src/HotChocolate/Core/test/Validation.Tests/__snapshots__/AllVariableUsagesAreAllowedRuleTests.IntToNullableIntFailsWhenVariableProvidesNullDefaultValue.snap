@@ -23,6 +23,26 @@
       "locationType": "Int!",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variable-Usages-are-Allowed"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Variable",
+      "Location": {
+        "Start": 135,
+        "End": 143,
+        "Line": 4,
+        "Column": 52
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 136,
+          "End": 143,
+          "Line": 4,
+          "Column": 53
+        },
+        "Value": "intVar"
+      },
+      "Value": "intVar"
+    }
   }
 ]

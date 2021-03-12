@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
+using HotChocolate.Language;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using Xunit;
 using static StrawberryShake.CodeGeneration.Mappers.TestDataHelper;
@@ -37,7 +38,15 @@ namespace StrawberryShake.CodeGeneration.Mappers
             ");
 
             // act
-            var context = new MapperContext("Foo.Bar", "FooClient");
+            var context = new MapperContext(
+                "Foo.Bar",
+                "FooClient",
+                new Sha1DocumentHashProvider(),
+                Descriptors.Operations.RequestStrategy.Default,
+                new[]
+                {
+                    TransportProfile.Default
+                });
             TypeDescriptorMapper.Map(clientModel, context);
             OperationDescriptorMapper.Map(clientModel, context);
 
@@ -46,15 +55,15 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 context.Operations.OrderBy(t => t.Name),
                 operation =>
                 {
-                    Assert.Equal("CreateReviewMutation", operation.Name);
+                    Assert.Equal("CreateReview", operation.Name);
                 },
                 operation =>
                 {
-                    Assert.Equal("GetHeroQuery", operation.Name);
+                    Assert.Equal("GetHero", operation.Name);
                 },
                 operation =>
                 {
-                    Assert.Equal("OnReviewSubscription", operation.Name);
+                    Assert.Equal("OnReview", operation.Name);
                 });
         }
     }

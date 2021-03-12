@@ -1,61 +1,64 @@
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
+using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 
-namespace StrawberryShake.CodeGeneration
+namespace StrawberryShake.CodeGeneration.Descriptors
 {
     public class EntityTypeDescriptor : ICodeDescriptor
     {
         /// <summary>
-        ///
+        /// Create a new instance of <see cref="EntityTypeDescriptor" />
         /// </summary>
-        /// <param name="graphQLTypeName">
-        ///
+        /// <param name="name">
+        /// The name of the GraphQL type
         /// </param>
-        /// <param name="namespace">
-        ///
+        /// <param name="runtimeType"></param>
+        /// <param name="possibleTypes">
+        /// The possible types this entity can have
         /// </param>
-        /// <param name="operationTypes">
-        /// The types that are subsets of the EntityType represented by this descriptor.
+        /// <param name="documentation">
+        /// The documentation of this entity
         /// </param>
         public EntityTypeDescriptor(
-            NameString graphQLTypeName,
-            string @namespace,
-            IReadOnlyList<NamedTypeDescriptor> operationTypes)
+            NameString name,
+            RuntimeTypeInfo runtimeType,
+            IReadOnlyList<ComplexTypeDescriptor> possibleTypes,
+            string? documentation)
         {
             var allProperties = new Dictionary<string, PropertyDescriptor>();
 
             foreach (PropertyDescriptor namedTypeReferenceDescriptor in
-                operationTypes.SelectMany(operationType => operationType.Properties))
+                possibleTypes.SelectMany(operationType => operationType.Properties))
             {
                 if (!allProperties.ContainsKey(namedTypeReferenceDescriptor.Name))
                 {
-                    allProperties.Add(
-                        namedTypeReferenceDescriptor.Name,
-                        namedTypeReferenceDescriptor);
+                    allProperties
+                        .Add(namedTypeReferenceDescriptor.Name, namedTypeReferenceDescriptor);
                 }
             }
 
+            Name = name;
+            RuntimeType = runtimeType;
             Properties = allProperties;
-            Name = NamingConventions.EntityTypeNameFromGraphQLTypeName(graphQLTypeName);
-            GraphQLTypeName = graphQLTypeName;
-            Namespace = @namespace;
+            Documentation = documentation;
         }
-
-        /// <summary>
-        /// Gets the entity name.
-        /// </summary>
-        public NameString Name { get; }
 
         /// <summary>
         /// Gets the GraphQL type name which this entity represents.
         /// </summary>
-        public NameString GraphQLTypeName { get; }
+        public NameString Name { get; }
 
         /// <summary>
-        /// Gets the namespace of the generated code file.
+        /// Gets the entity name.
         /// </summary>
-        public string Namespace { get; }
+        public RuntimeTypeInfo RuntimeType { get; }
+
+        /// <summary>
+        /// The documentation of this type
+        /// </summary>
+        public string? Documentation { get; }
 
         /// <summary>
         /// Gets the properties of this entity.

@@ -357,6 +357,8 @@ namespace StrawberryShake.Transport.WebSockets
 
             public ReadOnlySpan<byte> Body => _body;
 
+            public DocumentHash Hash { get; } = new("MD5", "ABC");
+
             public override string ToString() => _bodyString;
 
             public static GetHeroQueryDocument Instance { get; } = new();

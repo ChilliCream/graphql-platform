@@ -16,6 +16,14 @@ query GetMessages($email: String!) {
   }
 }
 
+mutation SendMessageInput($input: SendMessageInput!) {
+  sendMessage(input: $input) {
+    message {
+      ...Message
+    }
+  }
+}
+
 mutation SendMessageMut($email: String!, $text: String!) {
   sendMessage(input: { recipientEmail: $email, text: $text }) {
     message {
