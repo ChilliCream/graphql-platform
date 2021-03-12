@@ -1,3 +1,6 @@
+using System;
+using System.Globalization;
+
 namespace HotChocolate.Types.Scalars
 {
     internal static class ThrowHelper
@@ -45,6 +48,29 @@ namespace HotChocolate.Types.Scalars
                     .SetExtension("actualType", WellKnownScalarTypes.NegativeFloat)
                     .Build(),
                 type);
+        }
+
+        internal static string CurrencyType_Cannot_ParseResult(string typeName, Type valueType)
+        {
+
+            if (string.IsNullOrEmpty(typeName))
+            {
+                throw new ArgumentException(
+                    ScalarResources.CurrencyType_TypeNameEmptyOrNull,
+                    nameof(typeName));
+            }
+
+            if (valueType is null)
+            {
+                throw new ArgumentNullException(nameof(valueType));
+            }
+
+            return string.Format(
+                CultureInfo.InvariantCulture,
+                ScalarResources.CurrencyType_Cannot_ParseValue,
+                typeName,
+                valueType.FullName);
+
         }
 
         public static SerializationException NegativeIntType_ParseLiteral_IsNotNegative(IType type)
@@ -271,6 +297,27 @@ namespace HotChocolate.Types.Scalars
                     .SetMessage(ScalarResources.PostalCodeType_IsInvalid_ParseValue)
                     .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
                     .SetExtension("actualType", WellKnownScalarTypes.PostalCode)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException CurrencyType_ParseLiteral_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.CurrencyType_IsInvalid_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.Currency)
+                    .Build(),
+                type);
+        }
+        public static Exception CurrencyType_ParseValue_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.CurrencyType_IsInvalid_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.Currency)
                     .Build(),
                 type);
         }

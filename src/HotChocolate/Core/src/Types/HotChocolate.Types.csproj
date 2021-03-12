@@ -12,6 +12,19 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Resources\scalarresources.designer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="Resources\scalarresources.resx" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Resources\scalarresources.designer.cs" />
+    <None Include="Resources\scalarresources.resx" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="3.1.4" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="4.7.0" />
     <PackageReference Include="System.Text.Json" Version="4.7.0" />
@@ -39,6 +52,10 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>TypeResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
 
 </Project>

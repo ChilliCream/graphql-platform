@@ -17,6 +17,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Update="CurrencyCodes.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>CurrencyCodes.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Update="ScalarResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>ScalarResources.Designer.cs</LastGenOutput>
@@ -24,6 +28,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="CurrencyCodes.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>CurrencyCodes.resx</DependentUpon>
+    </Compile>
     <Compile Update="ScalarResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
