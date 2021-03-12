@@ -6,7 +6,7 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types.Factories
 {
-    internal class SchemaSyntaxVisitor
+    internal sealed class SchemaSyntaxVisitor
         : SyntaxVisitor<SchemaSyntaxVisitorContext>
     {
         private static readonly ObjectTypeFactory _objectTypeFactory = new();
@@ -211,7 +211,5 @@ namespace HotChocolate.Types.Factories
 
             return base.VisitChildren(node, context);
         }
-
-        public static readonly SchemaSyntaxVisitor Instance = new();
     }
 }

@@ -87,7 +87,12 @@ namespace HotChocolate
 
                 if (builder._documents.Count > 0)
                 {
-                    types.AddRange(ParseDocuments(builder, context, bindingLookup));
+                    types.AddRange(
+                        ParseDocuments(
+                            builder,
+                            context.Services,
+                            context.Options,
+                            bindingLookup));
                 }
 
                 if (builder._schema is null)
@@ -104,20 +109,20 @@ namespace HotChocolate
 
             private static IEnumerable<ITypeReference> ParseDocuments(
                 SchemaBuilder builder,
-                DescriptorContext context,
+                IServiceProvider services,
+                IReadOnlySchemaOptions options,
                 IBindingLookup bindingLookup)
             {
                 var types = new List<ITypeReference>();
 
                 foreach (LoadSchemaDocument fetchSchema in builder._documents)
                 {
-                    DocumentNode schemaDocument = fetchSchema(context.Services);
+                    DocumentNode schemaDocument = fetchSchema(services);
                     schemaDocument = schemaDocument.RemoveBuiltInTypes();
 
-                    var visitorContext =
-                        new SchemaSyntaxVisitorContext(bindingLookup, context.Options);
-
-                    SchemaSyntaxVisitor.Instance.Visit(schemaDocument, visitorContext);
+                    var visitorContext = new SchemaSyntaxVisitorContext(bindingLookup, options);
+                    var visitor = new SchemaSyntaxVisitor();
+                    visitor.Visit(schemaDocument, visitorContext);
 
                     types.AddRange(visitorContext.Types);
 
