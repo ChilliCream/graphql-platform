@@ -5,9 +5,7 @@ namespace HotChocolate.Types.Scalars
 {
     /// <summary>
     /// The `Rgba` scalar type represents a valid CSS RGBA color
-    /// <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#rgb()_and_rgba()">
-    /// MDN CSS Color
-    /// </a>
+    /// <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#rgb()_and_rgba()"></a>
     /// </summary>
     public class RgbaType : RegexType
     {
