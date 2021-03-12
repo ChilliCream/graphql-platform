@@ -9,11 +9,16 @@ namespace HotChocolate.Execution.Processing
         public static async Task ExecuteTasksAsync(
             IOperationContext operationContext)
         {
+            if (operationContext.Execution.TaskBacklog.IsEmpty)
+            {
+                return;
+            }
+
             var proposedTaskCount = operationContext.Operation.ProposedTaskCount;
 
             if (proposedTaskCount == 1)
             {
-                await StartExecutionTaskAsync(
+                await ExecuteResolversAsync(
                     operationContext.Execution,
                     HandleError,
                     operationContext.RequestAborted);
@@ -24,7 +29,7 @@ namespace HotChocolate.Execution.Processing
 
                 for (var i = 0; i < proposedTaskCount; i++)
                 {
-                    tasks[i] = StartExecutionTaskAsync(
+                    tasks[i] = ExecuteResolversAsync(
                         operationContext.Execution,
                         HandleError,
                         operationContext.RequestAborted);
@@ -48,13 +53,7 @@ namespace HotChocolate.Execution.Processing
             }
         }
 
-        private static Task StartExecutionTaskAsync(
-            IExecutionContext executionContext,
-            Action<Exception> handleError,
-            CancellationToken cancellationToken) =>
-            Task.Run(() => ExecuteResolvers(executionContext, handleError, cancellationToken));
-
-        private static async Task ExecuteResolvers(
+        private static async Task ExecuteResolversAsync(
             IExecutionContext executionContext,
             Action<Exception> handleError,
             CancellationToken cancellationToken)
@@ -74,7 +73,7 @@ namespace HotChocolate.Execution.Processing
                         .WaitForTaskAsync(cancellationToken)
                         .ConfigureAwait(false);
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     if (!cancellationToken.IsCancellationRequested)
                     {
