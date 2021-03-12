@@ -77,6 +77,16 @@ namespace HotChocolate.Types
 
         public static FieldCollection<T> From(IEnumerable<T> fields, bool sortByName = false)
         {
+            if (fields is IReadOnlyCollection<T> collection)
+            {
+                if (collection.Count == 0)
+                {
+                    return Empty;
+                }
+
+                return new FieldCollection<T>(fields, sortByName);
+            }
+
             if (fields.Any())
             {
                 return new FieldCollection<T>(fields, sortByName);

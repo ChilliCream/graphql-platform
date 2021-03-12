@@ -51,10 +51,11 @@ namespace HotChocolate.Types
             _implements.Any(t => t.Name.Equals(interfaceTypeName));
 
         public bool IsImplementing(InterfaceType interfaceType) =>
-            _implements.Contains(interfaceType);
+            Array.IndexOf(_implements, interfaceType) != -1;
 
         public bool IsImplementing(IInterfaceType interfaceType) =>
-            interfaceType is InterfaceType i && _implements.Contains(i);
+            interfaceType is InterfaceType i &&
+            Array.IndexOf(_implements, i) != -1;
 
         public override bool IsAssignableFrom(INamedType namedType)
         {
@@ -133,13 +134,15 @@ namespace HotChocolate.Types
 
             CompleteAbstractTypeResolver(context, definition.ResolveAbstractType);
 
-            if (definition.GetInterfaces().Any())
+            IReadOnlyList<ITypeReference> interfaces = definition.GetInterfaces();
+
+            if (interfaces.Count > 0)
             {
                 var implements = new List<InterfaceType>();
 
                 CompleteInterfaces(
                     context,
-                    definition,
+                    interfaces,
                     RuntimeType,
                     implements,
                     this,

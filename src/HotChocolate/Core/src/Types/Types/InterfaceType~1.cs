@@ -7,43 +7,29 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
-    public class InterfaceType<T>
-        : InterfaceType
+    public class InterfaceType<T> : InterfaceType
     {
         private Action<IInterfaceTypeDescriptor<T>>? _configure;
 
-        public InterfaceType()
-        {
+        public InterfaceType() =>
             _configure = Configure;
-        }
 
-        public InterfaceType(Action<IInterfaceTypeDescriptor<T>> configure)
+        public InterfaceType(Action<IInterfaceTypeDescriptor<T>> configure) =>
+            _configure = configure ?? throw new ArgumentNullException(nameof(configure));
+
+        protected override InterfaceTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
         {
-            _configure = configure
-                ?? throw new ArgumentNullException(nameof(configure));
-        }
+            var descriptor = InterfaceTypeDescriptor.New<T>(context.DescriptorContext);
 
-        protected override InterfaceTypeDefinition CreateDefinition(
-            ITypeDiscoveryContext context)
-        {
-            var descriptor =
-                InterfaceTypeDescriptor.New<T>(context.DescriptorContext);
-
-            _configure(descriptor);
+            _configure!(descriptor);
             _configure = null;
 
             return descriptor.CreateDefinition();
         }
 
-        protected virtual void Configure(IInterfaceTypeDescriptor<T> descriptor)
-        {
+        protected virtual void Configure(IInterfaceTypeDescriptor<T> descriptor) { }
 
-        }
-
-        protected sealed override void Configure(
-            IInterfaceTypeDescriptor descriptor)
-        {
+        protected sealed override void Configure(IInterfaceTypeDescriptor descriptor) =>
             throw new NotSupportedException();
-        }
     }
 }
