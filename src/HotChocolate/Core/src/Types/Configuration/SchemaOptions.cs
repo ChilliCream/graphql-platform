@@ -39,9 +39,9 @@ namespace HotChocolate.Configuration
         public bool SortFieldsByName { get; set; }
 
         /// <summary>
-        /// Defines if syntax nodes shall be kept on the type system objects
+        /// Defines if syntax nodes shall be preserved on the type system objects
         /// </summary>
-        public bool KeepSyntaxNodes { get; set; }
+        public bool PreserveSyntaxNodes { get; set; }
 
         /// <summary>
         /// Defines if types shall be removed from the schema that are
@@ -72,7 +72,7 @@ namespace HotChocolate.Configuration
                 UseXmlDocumentation = options.UseXmlDocumentation,
                 FieldMiddleware = options.FieldMiddleware,
                 DefaultBindingBehavior = options.DefaultBindingBehavior,
-                KeepSyntaxNodes = options.KeepSyntaxNodes
+                PreserveSyntaxNodes = options.PreserveSyntaxNodes
             };
         }
     }

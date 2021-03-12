@@ -109,7 +109,7 @@ namespace HotChocolate.Types.Factories
             {
                 c.Name(node.Name.Value);
                 c.Description(node.Description?.Value);
-                c.SyntaxNode(schemaOptions.KeepSyntaxNodes ? node : null);
+                c.SyntaxNode(schemaOptions.PreserveSyntaxNodes ? node : null);
 
                 if (bindingInfo.SourceType != null)
                 {
@@ -138,7 +138,7 @@ namespace HotChocolate.Types.Factories
                     .Argument(inputField.Name.Value)
                     .Description(inputField.Description?.Value)
                     .Type(inputField.Type)
-                    .SyntaxNode(schemaOptions.KeepSyntaxNodes ? inputField : null);
+                    .SyntaxNode(schemaOptions.PreserveSyntaxNodes ? inputField : null);
 
                 if (inputField.DefaultValue is { })
                 {

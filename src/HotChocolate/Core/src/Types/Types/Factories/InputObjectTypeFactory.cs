@@ -28,7 +28,7 @@ namespace HotChocolate.Types.Factories
 
             return new InputObjectType(d =>
             {
-                d.SyntaxNode(schemaOptions.KeepSyntaxNodes ? node : null)
+                d.SyntaxNode(schemaOptions.PreserveSyntaxNodes ? node : null)
                     .Name(node.Name.Value)
                     .Description(node.Description?.Value);
 
@@ -60,7 +60,7 @@ namespace HotChocolate.Types.Factories
                     .Field(inputField.Name.Value)
                     .Description(inputField.Description?.Value)
                     .Type(inputField.Type)
-                    .SyntaxNode(schemaOptions.KeepSyntaxNodes ? inputField : null);
+                    .SyntaxNode(schemaOptions.PreserveSyntaxNodes ? inputField : null);
 
                 if (inputField.DefaultValue is { })
                 {

@@ -27,7 +27,7 @@ namespace HotChocolate.Types.Factories
 
             return new UnionType(d =>
             {
-                d.SyntaxNode(schemaOptions.KeepSyntaxNodes ? node : null)
+                d.SyntaxNode(schemaOptions.PreserveSyntaxNodes ? node : null)
                     .Name(node.Name.Value)
                     .Description(node.Description?.Value);
 

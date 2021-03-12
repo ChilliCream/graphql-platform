@@ -22,7 +22,7 @@ namespace HotChocolate
                 UseXmlDocumentation = false,
                 DefaultBindingBehavior = BindingBehavior.Explicit,
                 FieldMiddleware = FieldMiddlewareApplication.AllFields,
-                KeepSyntaxNodes = true
+                PreserveSyntaxNodes = true
             };
 
             // act

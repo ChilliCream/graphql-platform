@@ -72,7 +72,7 @@ namespace HotChocolate.Types.Factories
                     .Field(fieldDefinition.Name.Value)
                     .Description(fieldDefinition.Description?.Value)
                     .Type(fieldDefinition.Type)
-                    .SyntaxNode(schemaOptions.KeepSyntaxNodes ? fieldDefinition : null);
+                    .SyntaxNode(schemaOptions.PreserveSyntaxNodes ? fieldDefinition : null);
 
                 if (bindingInfo.TryGetFieldMember(
                     fieldDefinition.Name.Value,
@@ -117,7 +117,7 @@ namespace HotChocolate.Types.Factories
                                 inputFieldDefinition.Description?.Value)
                             .Type(inputFieldDefinition.Type)
                             .DefaultValue(inputFieldDefinition.DefaultValue)
-                            .SyntaxNode(schemaOptions.KeepSyntaxNodes
+                            .SyntaxNode(schemaOptions.PreserveSyntaxNodes
                                 ? inputFieldDefinition
                                 : null);
 

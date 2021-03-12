@@ -68,7 +68,7 @@ namespace HotChocolate.Types.Factories
                     .Field(fieldDefinition.Name.Value)
                     .Description(fieldDefinition.Description?.Value)
                     .Type(fieldDefinition.Type)
-                    .SyntaxNode(schemaOptions.KeepSyntaxNodes ? fieldDefinition : null);
+                    .SyntaxNode(schemaOptions.PreserveSyntaxNodes ? fieldDefinition : null);
 
                 foreach (DirectiveNode directive in fieldDefinition.Directives)
                 {
@@ -108,7 +108,7 @@ namespace HotChocolate.Types.Factories
                         a.Description(inputFieldDefinition.Description?.Value)
                             .Type(inputFieldDefinition.Type)
                             .DefaultValue(inputFieldDefinition.DefaultValue)
-                            .SyntaxNode(schemaOptions.KeepSyntaxNodes
+                            .SyntaxNode(schemaOptions.PreserveSyntaxNodes
                                 ? inputFieldDefinition
                                 : null);
                     });

@@ -58,7 +58,7 @@ namespace HotChocolate.Types.Factories
                     .Field(inputField.Name.Value)
                     .Description(inputField.Description?.Value)
                     .Type(inputField.Type)
-                    .SyntaxNode(schemaOptions.KeepSyntaxNodes ? inputField : null);
+                    .SyntaxNode(schemaOptions.PreserveSyntaxNodes ? inputField : null);
 
                 if (inputField.DefaultValue is { })
                 {
