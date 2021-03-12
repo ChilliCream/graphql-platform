@@ -9,19 +9,17 @@ namespace HotChocolate.Types.Factories
     internal sealed class SchemaSyntaxVisitor
         : SyntaxVisitor<SchemaSyntaxVisitorContext>
     {
-        private static readonly ObjectTypeFactory _objectTypeFactory = new();
-        private static readonly ObjectTypeExtensionFactory _objectTypeExtensionFactory = new();
-        private static readonly InterfaceTypeFactory _interfaceTypeFactory = new();
-        private static readonly InterfaceTypeExtensionFactory
-            _interfaceTypeExtensionFactory = new();
-        private static readonly UnionTypeFactory _unionTypeFactory = new();
-        private static readonly UnionTypeExtensionFactory _unionTypeExtensionFactory = new();
-        private static readonly InputObjectTypeFactory _inputObjectTypeFactory = new();
-        private static readonly InputObjectTypeExtensionFactory _inputObjectTypeExtensionFactory =
-            new();
-        private static readonly EnumTypeFactory _enumTypeFactory = new();
-        private static readonly EnumTypeExtensionFactory _enumTypeExtensionFactory = new();
-        private static readonly DirectiveTypeFactory _directiveTypeFactory = new();
+        private readonly ObjectTypeFactory _objectTypeFactory = new();
+        private readonly ObjectTypeExtensionFactory _objectTypeExtensionFactory = new();
+        private readonly InterfaceTypeFactory _interfaceTypeFactory = new();
+        private readonly InterfaceTypeExtensionFactory _interfaceTypeExtensionFactory = new();
+        private readonly UnionTypeFactory _unionTypeFactory = new();
+        private readonly UnionTypeExtensionFactory _unionTypeExtensionFactory = new();
+        private readonly InputObjectTypeFactory _inputObjectTypeFactory = new();
+        private readonly InputObjectTypeExtensionFactory _inputObjectTypeExtensionFactory = new();
+        private readonly EnumTypeFactory _enumTypeFactory = new();
+        private readonly EnumTypeExtensionFactory _enumTypeExtensionFactory = new();
+        private readonly DirectiveTypeFactory _directiveTypeFactory = new();
 
         protected override ISyntaxVisitorAction DefaultAction => Continue;
 
