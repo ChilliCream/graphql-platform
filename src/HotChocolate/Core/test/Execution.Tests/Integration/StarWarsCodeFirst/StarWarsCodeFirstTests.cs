@@ -729,14 +729,45 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
         public async Task Skip_With_Variable(bool ifValue)
         {
             Snapshot.FullName(new SnapshotNameExtension(ifValue));
-            await ExpectValid($@"
-                query ($if: Boolean!) {{
-                    human(id: ""1000"") {{
+            await ExpectValid(@"
+                query ($if: Boolean!) {
+                    human(id: ""1000"") {
                         name @skip(if: $if)
                         height
-                    }}
-                }}",
+                    }
+                }",
                 request: r=> r.SetVariableValue("if", ifValue))
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task SkipAll()
+        {
+            Snapshot.FullName();
+
+            await ExpectValid(@"
+                query ($if: Boolean!) {
+                    human(id: ""1000"") @skip(if: $if) {
+                        name
+                        height
+                    }
+                }",
+                request: r=> r.SetVariableValue("if", true))
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task SkipAllSecondLevelFields()
+        {
+            Snapshot.FullName();
+
+            await ExpectValid(@"
+                query ($if: Boolean!) {
+                    human(id: ""1000"")  {
+                        name @skip(if: $if)
+                    }
+                }",
+                request: r=> r.SetVariableValue("if", true))
                 .MatchSnapshotAsync();
         }
 
