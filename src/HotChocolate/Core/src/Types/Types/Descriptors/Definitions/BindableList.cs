@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 #nullable enable
 
@@ -13,29 +14,9 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
         public BindingBehavior BindingBehavior { get; set; }
 
-        public void AddRange(IEnumerable<T> items)
-        {
-            _list ??= new List<T>();
-            _list.AddRange(items);
-        }
+        public int Count => _list?.Count ?? 0;
 
-        public IEnumerator<T> GetEnumerator()
-        {
-            if (_list is null)
-            {
-                yield break;
-            }
-
-            foreach (var element in _list)
-            {
-                yield return element;
-            }
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+        public bool IsReadOnly => false;
 
         public void Add(T item)
         {
@@ -43,8 +24,15 @@ namespace HotChocolate.Types.Descriptors.Definitions
             _list.Add(item);
         }
 
+        public void AddRange(IEnumerable<T> items)
+        {
+            _list ??= new List<T>();
+            _list.AddRange(items);
+        }
+
         public void Clear()
         {
+            _list?.Clear();
             _list = null;
         }
 
@@ -74,10 +62,6 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
             return result;
         }
-
-        int ICollection<T>.Count => _list?.Count ?? 0;
-
-        public bool IsReadOnly => false;
 
         public int IndexOf(T item)
         {
@@ -110,6 +94,19 @@ namespace HotChocolate.Types.Descriptors.Definitions
             }
         }
 
-        int IReadOnlyCollection<T>.Count => _list?.Count ?? 0;
+        public IEnumerator<T> GetEnumerator()
+        {
+            if (_list is null)
+            {
+                return Enumerable.Empty<T>().GetEnumerator();
+            }
+
+            return _list.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
     }
 }
