@@ -392,6 +392,7 @@ services
 | NonPositiveFloat | The `NonPositiveFloat` scalar type represents a double‐precision fractional value less than or equal to 0.
 | NonPositiveInt   | The `NonPositiveInt` scalar type represents a signed 32-bit numeric non-fractional value less than or equal to 0.
 | PhoneNumber      | The `PhoneNumber` scalar type represents a value that conforms to the standard E.164 format as specified in: https://en.wikipedia.org/wiki/E.164.
+| Port             | The `Port` scalar type represents a field whose value is a valid TCP port within the range of 0 to 65535.
 | PositiveInt      | The `PositiveInt` scalar type represents a signed 32‐bit numeric non‐fractional value of at least the value 1.
 | PostalCode       | The `PostalCode` scalar type represents a valid postal code. TCP port within the range of 0 to 65535.
 | Rgb              | The `RGB` scalar type represents a valid CSS RGB color as defined here [MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#rgb()_and_rgba()).
