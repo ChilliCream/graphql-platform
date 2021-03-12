@@ -10,10 +10,21 @@ namespace HotChocolate.Types
     {
         private readonly IInputValueFormatter[] _formatters;
 
-        public AggregateInputValueFormatter(IList<IInputValueFormatter> formatters)
+        public AggregateInputValueFormatter(IEnumerable<IInputValueFormatter> formatters)
         {
-            _formatters = formatters.ToArray()
-                ?? throw new ArgumentNullException(nameof(formatters));
+            if (formatters is null)
+            {
+                throw new ArgumentNullException(nameof(formatters));
+            }
+
+            if (formatters is IInputValueFormatter[] array)
+            {
+                _formatters = array;
+            }
+            else
+            {
+                _formatters = formatters.ToArray();
+            }
         }
 
         public object? OnAfterDeserialize(object? runtimeValue)
