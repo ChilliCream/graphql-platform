@@ -28,7 +28,7 @@ namespace HotChocolate.Types
             {
                 0 => null,
                 1 => formatters[0],
-                _ => new AggregateInputValueFormatter(definition.Formatters)
+                _ => new AggregateInputValueFormatter(formatters)
             };
 
             Type? propertyType = definition.Property?.PropertyType;
