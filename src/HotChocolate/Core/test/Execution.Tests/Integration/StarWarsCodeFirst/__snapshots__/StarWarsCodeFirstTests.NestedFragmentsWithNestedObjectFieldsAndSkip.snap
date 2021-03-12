@@ -8,6 +8,7 @@
               "__typename": "Human",
               "name": "Han Solo",
               "otherHuman": {
+                "__typename": "Human",
                 "name": "Luke Skywalker"
               }
             }
@@ -17,6 +18,7 @@
               "__typename": "Human",
               "name": "Leia Organa",
               "otherHuman": {
+                "__typename": "Human",
                 "name": "Luke Skywalker"
               }
             }

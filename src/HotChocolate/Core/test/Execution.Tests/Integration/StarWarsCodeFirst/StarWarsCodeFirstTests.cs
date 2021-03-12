@@ -833,7 +833,8 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
                     # interestingly it seems like this passes in this test, but
                     # if run against the StarWars asp.net core sample app, this
                     # is an empty object!
-                    otherHuman { 
+                    otherHuman {
+                      __typename
                       name
                     }
                 }
