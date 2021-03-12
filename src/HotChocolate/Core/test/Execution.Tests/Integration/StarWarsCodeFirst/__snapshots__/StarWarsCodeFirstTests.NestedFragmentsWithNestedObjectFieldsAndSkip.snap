@@ -1,0 +1,38 @@
+﻿{
+  "data": {
+    "human": {
+      "friends": {
+        "edges": [
+          {
+            "node": {
+              "__typename": "Human",
+              "name": "Han Solo",
+              "otherHuman": {
+                "name": "Luke Skywalker"
+              }
+            }
+          },
+          {
+            "node": {
+              "__typename": "Human",
+              "name": "Leia Organa",
+              "otherHuman": {
+                "name": "Luke Skywalker"
+              }
+            }
+          },
+          {
+            "node": {
+              "__typename": "Droid"
+            }
+          },
+          {
+            "node": {
+              "__typename": "Droid"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

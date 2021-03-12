@@ -61,33 +61,35 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Execution.Benc
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Fetching", "src\Fetching\HotChocolate.Fetching.csproj", "{3ED68361-0D3D-45F5-8A83-444DD3D5C1BF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Subscriptions.Redis.Tests", "test\Subscriptions.Redis.Tests\HotChocolate.Subscriptions.Redis.Tests.csproj", "{14648C7D-8958-4C94-B837-7F90F2F10081}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Subscriptions.Redis.Tests", "test\Subscriptions.Redis.Tests\HotChocolate.Subscriptions.Redis.Tests.csproj", "{14648C7D-8958-4C94-B837-7F90F2F10081}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Subscriptions.InMemory.Tests", "test\Subscriptions.InMemory.Tests\HotChocolate.Subscriptions.InMemory.Tests.csproj", "{F72E72DE-F163-4BCC-A442-94DB331D3C35}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Subscriptions.InMemory.Tests", "test\Subscriptions.InMemory.Tests\HotChocolate.Subscriptions.InMemory.Tests.csproj", "{F72E72DE-F163-4BCC-A442-94DB331D3C35}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Fetching.Tests", "test\Fetching.Tests\HotChocolate.Fetching.Tests.csproj", "{2A319702-6C2E-4184-8E71-43F87745B38D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Fetching.Tests", "test\Fetching.Tests\HotChocolate.Fetching.Tests.csproj", "{2A319702-6C2E-4184-8E71-43F87745B38D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.StarWars", "benchmark\StarWars\HotChocolate.StarWars.csproj", "{BB53E6F4-2CA0-494C-85FD-DF22530476C0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.StarWars", "benchmark\StarWars\HotChocolate.StarWars.csproj", "{BB53E6F4-2CA0-494C-85FD-DF22530476C0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Types.CursorPagination", "src\Types.CursorPagination\HotChocolate.Types.CursorPagination.csproj", "{91F00C73-78E5-4400-8F9F-910BE99EDFD5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Types.CursorPagination", "src\Types.CursorPagination\HotChocolate.Types.CursorPagination.csproj", "{91F00C73-78E5-4400-8F9F-910BE99EDFD5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Types.OffsetPagination", "src\Types.OffsetPagination\HotChocolate.Types.OffsetPagination.csproj", "{738F2483-286E-4517-9660-5BFEEF343595}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Types.OffsetPagination", "src\Types.OffsetPagination\HotChocolate.Types.OffsetPagination.csproj", "{738F2483-286E-4517-9660-5BFEEF343595}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Types.CursorPagination.Tests", "test\Types.CursorPagination.Tests\HotChocolate.Types.CursorPagination.Tests.csproj", "{31AF3FED-A6C5-4DD5-99DF-03D4B4186D39}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Types.CursorPagination.Tests", "test\Types.CursorPagination.Tests\HotChocolate.Types.CursorPagination.Tests.csproj", "{31AF3FED-A6C5-4DD5-99DF-03D4B4186D39}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Types.OffsetPagination.Tests", "test\Types.OffsetPagination.Tests\HotChocolate.Types.OffsetPagination.Tests.csproj", "{9EF119AD-4168-49F8-B2B2-8F6F1B5E47C8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Types.OffsetPagination.Tests", "test\Types.OffsetPagination.Tests\HotChocolate.Types.OffsetPagination.Tests.csproj", "{9EF119AD-4168-49F8-B2B2-8F6F1B5E47C8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Types.Records.Tests", "test\Types.Records.Tests\HotChocolate.Types.Records.Tests.csproj", "{CF2FA420-6295-4F83-8F87-340D8365282D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Types.Records.Tests", "test\Types.Records.Tests\HotChocolate.Types.Records.Tests.csproj", "{CF2FA420-6295-4F83-8F87-340D8365282D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "benchmark10", "benchmark10", "{4882F732-028B-48E9-99D6-E94E56B6406E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Execution.Benchmarks", "benchmark10\Execution.Benchmarks\HotChocolate.Execution.Benchmarks.csproj", "{CBA38330-E94C-472F-8FFE-DA70DF0368EC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Execution.Benchmarks", "benchmark10\Execution.Benchmarks\HotChocolate.Execution.Benchmarks.csproj", "{CBA38330-E94C-472F-8FFE-DA70DF0368EC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.StarWars", "benchmark10\StarWars\HotChocolate.StarWars.csproj", "{0BE70B30-33CC-4BB7-8EEA-4981A2E9417C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.StarWars", "benchmark10\StarWars\HotChocolate.StarWars.csproj", "{0BE70B30-33CC-4BB7-8EEA-4981A2E9417C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Types.Scalars", "src\Types.Scalars\HotChocolate.Types.Scalars.csproj", "{8B7EEF6D-DFF2-4D7B-9E5D-6CA34A8BC260}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Types.Scalars", "src\Types.Scalars\HotChocolate.Types.Scalars.csproj", "{8B7EEF6D-DFF2-4D7B-9E5D-6CA34A8BC260}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Types.Scalars.Tests", "test\Types.Scalars.Tests\HotChocolate.Types.Scalars.Tests.csproj", "{480E09E8-A0C4-49A7-AAC4-4AA5EC0733C5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Types.Scalars.Tests", "test\Types.Scalars.Tests\HotChocolate.Types.Scalars.Tests.csproj", "{480E09E8-A0C4-49A7-AAC4-4AA5EC0733C5}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.AspNetCore", "..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj", "{70AB2443-3FE1-4C65-BBB3-4A57872CC2A4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -555,6 +557,18 @@ Global
 		{480E09E8-A0C4-49A7-AAC4-4AA5EC0733C5}.Release|x64.Build.0 = Release|Any CPU
 		{480E09E8-A0C4-49A7-AAC4-4AA5EC0733C5}.Release|x86.ActiveCfg = Release|Any CPU
 		{480E09E8-A0C4-49A7-AAC4-4AA5EC0733C5}.Release|x86.Build.0 = Release|Any CPU
+		{70AB2443-3FE1-4C65-BBB3-4A57872CC2A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{70AB2443-3FE1-4C65-BBB3-4A57872CC2A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{70AB2443-3FE1-4C65-BBB3-4A57872CC2A4}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{70AB2443-3FE1-4C65-BBB3-4A57872CC2A4}.Debug|x64.Build.0 = Debug|Any CPU
+		{70AB2443-3FE1-4C65-BBB3-4A57872CC2A4}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{70AB2443-3FE1-4C65-BBB3-4A57872CC2A4}.Debug|x86.Build.0 = Debug|Any CPU
+		{70AB2443-3FE1-4C65-BBB3-4A57872CC2A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{70AB2443-3FE1-4C65-BBB3-4A57872CC2A4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{70AB2443-3FE1-4C65-BBB3-4A57872CC2A4}.Release|x64.ActiveCfg = Release|Any CPU
+		{70AB2443-3FE1-4C65-BBB3-4A57872CC2A4}.Release|x64.Build.0 = Release|Any CPU
+		{70AB2443-3FE1-4C65-BBB3-4A57872CC2A4}.Release|x86.ActiveCfg = Release|Any CPU
+		{70AB2443-3FE1-4C65-BBB3-4A57872CC2A4}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
