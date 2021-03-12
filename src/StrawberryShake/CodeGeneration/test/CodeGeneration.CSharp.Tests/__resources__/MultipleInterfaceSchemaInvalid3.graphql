@@ -1,0 +1,19 @@
+schema {
+  query: Query
+  mutation: null
+  subscription: null
+}
+type Query {
+  listings: Listing!
+}
+interface Listing {
+  listingId: ID!
+  title : String
+}
+interface ListingSimple implements Listing {
+  listingId: ID!
+}
+type Offer implements ListingSimple {
+  listingId: ID!
+  title : String
+}

@@ -240,5 +240,73 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 "extend schema @key(fields: \"id\")",
                 FileResource.Open("Schema_Bug_2.graphql"));
         }
+
+        [Fact]
+        public void Create_Nested_Property_Should_Succeceed()
+        {
+            AssertResult(
+                @"query getAll($currency : Currency!){
+                        listings{
+                            ... ListingsPayload
+                        }
+                    }
+
+                    fragment ListingsPayload on ListingsPayload{
+                        items{
+                            ... HasListingId
+                            ... Offer
+                            ... Auction
+                        }
+                    }
+
+                    fragment HasListingId on Listing{
+                        listingId
+                    }
+
+                    fragment Offer on Offer{
+                        price{
+                            ... Price
+                        }
+                    }
+
+                    fragment Auction on Auction{
+                        startingPrice{
+                            ... Price
+                        }
+                    }
+
+                    fragment Price on Price{
+                        value(currency : $currency)
+                    }",
+                "extend schema @key(fields: \"id\")",
+                FileResource.Open("MultipleInterfaceSchema2.graphql"));
+        }
+
+        [Fact]
+        public void Invalid_Schema__Should_Fail()
+        {
+            AssertError(
+                @"query getFilterCount {
+                    listings {
+                        listingId
+                        title
+                    }
+                }",
+                "extend schema @key(fields: \"id\")",
+                FileResource.Open("MultipleInterfaceSchemaInvalid3.graphql"));
+        }
+
+        [Fact]
+        public void NotNullForArgs_Directive_Should_Succeed()
+        {
+            AssertResult(
+                @"query getFilterCount {
+                    listings {
+                        count
+                    }
+                }",
+                "extend schema @key(fields: \"id\")",
+                FileResource.Open("MultipleInterfaceSchema4.graphql"));
+        }
     }
 }

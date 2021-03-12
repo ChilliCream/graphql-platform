@@ -1,0 +1,67 @@
+schema {
+  query: Query
+  mutation: null
+  subscription: null
+}
+type Query {
+  listing(
+    listingId: ID!
+      @possibleTypes(
+        abstractType: "Listing"
+        concreteTypes: ["Offer", "Auction", "Project"]
+      )
+  ): Listing!
+
+  listings: ListingsPayload!
+}
+interface Listing {
+  listingId: ID!
+}
+interface ListingSimple implements Listing {
+  listingId: ID!
+}
+type Auction implements Listing {
+  listingId: ID!
+  startingPrice: Price!
+}
+type Offer implements Listing {
+  listingId: ID!
+  price: Price!
+}
+type ListingsPayload {
+  items(
+    sort: ListingSort! = RELEVANCE
+    limit: Int! = 10 @intConstraint(min: 0, max: 1000)
+    offset: Int! = 0 @intConstraint(min: 0)
+  ): [Listing!]!
+  count: Int!
+}
+type Price {
+  value(currency: Currency! = CZK): Float!
+  originalCurrency: Currency!
+}
+enum Currency {
+  "Koruna česká"
+  CZK
+  "Euro"
+  EUR
+  "Americký dolar"
+  USD
+  "Ruský rubl"
+  RUB
+}
+enum ListingSort {
+  RELEVANCE
+  NEWEST
+  CHEAPEST
+  MOST_EXPENSIVE
+}
+directive @intConstraint(
+  min: Int
+  max: Int
+  oneOf: [Int!] @listConstraint(minItems: 1)
+) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+directive @possibleTypes(
+  abstractType: String
+  concreteTypes: [String!]!
+) on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
