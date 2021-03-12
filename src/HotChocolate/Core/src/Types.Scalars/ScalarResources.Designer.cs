@@ -434,5 +434,23 @@ namespace HotChocolate.Types.Scalars {
                 return ResourceManager.GetString("UnsignedIntType_IsNotUnsigned_ParseValue", resourceCulture);
             }
         }
+        
+        internal static string UtcOffsetType_Description {
+            get {
+                return ResourceManager.GetString("UtcOffsetType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string UtcOffsetType_IsInvalid_ParseLiteral {
+            get {
+                return ResourceManager.GetString("UtcOffsetType_IsInvalid_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        internal static string UtcOffsetType_IsInvalid_ParseValue {
+            get {
+                return ResourceManager.GetString("UtcOffsetType_IsInvalid_ParseValue", resourceCulture);
+            }
+        }
     }
 }
