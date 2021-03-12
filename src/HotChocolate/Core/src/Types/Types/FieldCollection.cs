@@ -71,13 +71,7 @@ namespace HotChocolate.Types
             return false;
         }
 
-        public IEnumerator<T> GetEnumerator()
-        {
-            foreach (var field in _fields)
-            {
-                yield return field;
-            }
-        }
+        public IEnumerator<T> GetEnumerator() => new FieldEnumerator(_fields);
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
@@ -92,5 +86,45 @@ namespace HotChocolate.Types
         }
 
         public static FieldCollection<T> Empty { get; } = new(Array.Empty<T>());
+
+        private sealed class FieldEnumerator : IEnumerator<T>
+        {
+            private readonly T[] _fields;
+            private int _index = -1;
+
+            public FieldEnumerator(T[] fields)
+            {
+                _fields = fields;
+            }
+
+            public T Current { get; private set; } = default!;
+
+            object? IEnumerator.Current => Current;
+
+            public bool MoveNext()
+            {
+                _index++;
+
+                if (_index < _fields.Length)
+                {
+                    Current = _fields[_index];
+                    return true;
+                }
+
+                Current = default!;
+                return false;
+            }
+
+            public void Reset()
+            {
+                Current = default!;
+                _index = -1;
+            }
+
+            public void Dispose()
+            {
+                Reset();
+            }
+        }
     }
 }
