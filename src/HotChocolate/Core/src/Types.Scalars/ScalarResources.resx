@@ -283,4 +283,13 @@
   <data name="UnsignedIntType_IsNotUnsigned_ParseValue" xml:space="preserve">
     <value>UnsignedIntType cannot parse the provided value. The provided value is not greater than or equal to 0.</value>
   </data>
+  <data name="UnsignedLongType_Description" xml:space="preserve">
+    <value>The UnsignedLong scalar type represents a unsigned 64-bit numeric non-fractional value greater than or equal to 0.</value>
+  </data>
+  <data name="UnsignedLongType_IsNotUnsigned_ParseLiteral" xml:space="preserve">
+    <value>UnsignedLong cannot parse the provided literal. The provided value is not greater than or equal to 0.</value>
+  </data>
+  <data name="UnsignedLongType_IsNotUnsigned_ParseValue" xml:space="preserve">
+    <value>UnsignedLong cannot parse the provided value. The provided value is not greater than or equal to 0.</value>
+  </data>
 </root>
