@@ -1,5 +1,7 @@
 using System;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     [Serializable]
@@ -9,11 +11,11 @@ namespace HotChocolate.Types
         {
         }
 
-        public DeprecatedDirective(string reason)
+        public DeprecatedDirective(string? reason)
         {
             Reason = reason;
         }
 
-        public string Reason { get; }
+        public string? Reason { get; }
     }
 }

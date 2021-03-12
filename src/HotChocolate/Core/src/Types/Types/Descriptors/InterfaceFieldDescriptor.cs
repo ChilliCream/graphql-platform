@@ -51,9 +51,7 @@ namespace HotChocolate.Types.Descriptors
 
             if (member is MethodInfo m)
             {
-                Parameters = m.GetParameters()
-                    .ToDictionary(
-                        t => new NameString(t.Name));
+                Parameters = m.GetParameters().ToDictionary(t => new NameString(t.Name));
             }
         }
 

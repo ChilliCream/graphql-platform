@@ -7,6 +7,8 @@ using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
 
+#nullable enable
+
 namespace HotChocolate.Types.Descriptors
 {
     public abstract class OutputFieldDescriptorBase<TDefinition>
@@ -14,7 +16,7 @@ namespace HotChocolate.Types.Descriptors
         where TDefinition : OutputFieldDefinitionBase
     {
         private bool _deprecatedDependencySet;
-        private DirectiveDefinition _deprecatedDirective;
+        private DirectiveDefinition? _deprecatedDirective;
         private ICollection<ArgumentDescriptor>? _arguments;
 
         protected OutputFieldDescriptorBase(IDescriptorContext context)
@@ -38,8 +40,7 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
-        protected void SyntaxNode(
-            FieldDefinitionNode syntaxNode)
+        protected void SyntaxNode(FieldDefinitionNode syntaxNode)
         {
             Definition.SyntaxNode = syntaxNode;
         }
@@ -112,10 +113,10 @@ namespace HotChocolate.Types.Descriptors
 
             name.EnsureNotEmpty(nameof(name));
 
-            ParameterInfo parameter = null;
+            ParameterInfo? parameter = null;
             Parameters?.TryGetValue(name, out parameter);
 
-            ArgumentDescriptor descriptor = parameter is null
+            ArgumentDescriptor? descriptor = parameter is null
                 ? Arguments.FirstOrDefault(t => t.Definition.Name.Equals(name))
                 : Arguments.FirstOrDefault(t => t.Definition.Parameter == parameter);
 
@@ -150,7 +151,7 @@ namespace HotChocolate.Types.Descriptors
             AddDeprecatedDirective(null);
         }
 
-        private void AddDeprecatedDirective(string reason)
+        private void AddDeprecatedDirective(string? reason)
         {
             if (_deprecatedDirective != null)
             {
