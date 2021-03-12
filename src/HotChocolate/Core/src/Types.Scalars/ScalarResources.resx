@@ -274,6 +274,15 @@
   <data name="RegexType_IsInvalid_ParseValue" xml:space="preserve">
     <value>{0}Type cannot parse the provided value. The provided value does not match the regular expression pattern.</value>
   </data>
+  <data name="RgbaType_Description" xml:space="preserve">
+    <value>The Rgba scalar type represents a  valid CSS RGBA color as defined in https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#rgb()_and_rgba(). </value>
+  </data>
+  <data name="RgbaType_IsInvalid_ParseLiteral" xml:space="preserve">
+    <value>RgbaType cannot parse the provided literal. The provided value is not a valid CSS RGBA color.</value>
+  </data>
+  <data name="RgbaType_IsInvalid_ParseValue" xml:space="preserve">
+    <value>RgbaType cannot parse the provided value. The provided value is not a valid CSS RGBA color.</value>
+  </data>
   <data name="UnsignedIntType_Description" xml:space="preserve">
     <value>The UnsignedInt scalar type represents a unsigned 32-bit numeric non-fractional value greater than or equal to 0.</value>
   </data>
