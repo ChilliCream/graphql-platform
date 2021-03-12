@@ -1,23 +1,21 @@
 using System.Collections.Generic;
 using HotChocolate;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
-namespace StrawberryShake.CodeGeneration
+namespace StrawberryShake.CodeGeneration.Descriptors
 {
     /// <summary>
     /// Contains the information that are needed to generate a resultBuilder
     /// </summary>
     public class ResultBuilderDescriptor : ICodeDescriptor
     {
-        private readonly string _name;
-
         public ResultBuilderDescriptor(
-            string name,
+            RuntimeTypeInfo runtimeType,
             INamedTypeDescriptor resultNamedType,
             IReadOnlyCollection<ValueParserDescriptor> valueParsers)
         {
-            _name = name;
             ResultNamedType = resultNamedType;
-            RuntimeType = new(NamingConventions.CreateResultBuilderName(_name));
+            RuntimeType = runtimeType;
             ValueParsers = valueParsers;
         }
 

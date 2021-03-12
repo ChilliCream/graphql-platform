@@ -4,14 +4,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
+using StrawberryShake.CodeGeneration.Descriptors.Operations;
 using StrawberryShake.CodeGeneration.Extensions;
 using StrawberryShake.CodeGeneration.Properties;
-using StrawberryShake.Serialization;
-using static StrawberryShake.CodeGeneration.CSharp.InputValueFormatterGenerator;
-using static StrawberryShake.CodeGeneration.NamingConventions;
+using static StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator;
+using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
     {
@@ -26,10 +26,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         protected override void Generate(
             CodeWriter writer,
-            OperationDescriptor operationDescriptor,
-            out string fileName)
+            OperationDescriptor descriptor,
+            out string fileName,
+            out string? path)
         {
-            fileName = operationDescriptor.RuntimeType.Name;
+            fileName = descriptor.RuntimeType.Name;
+            path = null;
 
             ClassBuilder classBuilder = ClassBuilder
                 .New()
@@ -39,8 +41,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         .SetSummary(
                             string.Format(
                                 CodeGenerationResources.OperationServiceDescriptor_Description,
-                                operationDescriptor.Name))
-                        .AddCode(operationDescriptor.BodyString))
+                                descriptor.Name))
+                        .AddCode(descriptor.BodyString))
+                .AddImplements(TypeNames.IOperationRequestFactory)
                 .SetName(fileName);
 
             ConstructorBuilder constructorBuilder = classBuilder
@@ -48,7 +51,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetTypeName(fileName);
 
             var runtimeTypeName =
-                operationDescriptor.ResultTypeReference.GetRuntimeType().Name;
+                descriptor.ResultTypeReference.GetRuntimeType().Name;
 
             AddConstructorAssignedField(
                 TypeNames.IOperationExecutor.WithGeneric(runtimeTypeName),
@@ -56,47 +59,76 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 classBuilder,
                 constructorBuilder);
 
-            AddInjectedSerializers(operationDescriptor, constructorBuilder, classBuilder);
+            AddInjectedSerializers(descriptor, constructorBuilder, classBuilder);
 
-            if (operationDescriptor is not SubscriptionOperationDescriptor)
+            if (descriptor is not SubscriptionOperationDescriptor)
             {
-                classBuilder.AddMethod(CreateExecuteMethod(operationDescriptor, runtimeTypeName));
+                classBuilder.AddMethod(CreateExecuteMethod(descriptor, runtimeTypeName));
             }
 
-            classBuilder.AddMethod(CreateWatchMethod(operationDescriptor, runtimeTypeName));
-            classBuilder.AddMethod(CreateRequestMethod(operationDescriptor));
+            classBuilder.AddMethod(CreateWatchMethod(descriptor, runtimeTypeName));
+            classBuilder.AddMethod(CreateRequestMethod(descriptor));
+            classBuilder.AddMethod(CreateRequestVariablesMethod(descriptor));
 
-            AddFormatMethods(operationDescriptor, classBuilder);
+            AddFormatMethods(descriptor, classBuilder);
+
+            classBuilder
+                .AddProperty("ResultType")
+                .SetType(TypeNames.Type)
+                .AsLambda($"typeof({runtimeTypeName})")
+                .SetInterface(TypeNames.IOperationRequestFactory);
+
+            MethodCallBuilder createRequestCall = MethodCallBuilder
+                .New()
+                .SetReturn()
+                .SetMethodName(_createRequest);
+
+            if (descriptor.Arguments.Count > 0)
+            {
+                createRequestCall.AddArgument($"{_variables}!");
+            }
+
+            classBuilder
+                .AddMethod("Create")
+                .SetReturnType(TypeNames.OperationRequest)
+                .SetInterface(TypeNames.IOperationRequestFactory)
+                .AddParameter(
+                    _variables,
+                    x => x.SetType(
+                        TypeNames.IReadOnlyDictionary
+                            .WithGeneric(TypeNames.String, TypeNames.Object.MakeNullable())
+                            .MakeNullable()))
+                .AddCode(createRequestCall);
 
             CodeFileBuilder
                 .New()
-                .SetNamespace(operationDescriptor.RuntimeType.NamespaceWithoutGlobal)
+                .SetNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal)
                 .AddType(classBuilder)
                 .Build(writer);
         }
 
         private static void AddFormatMethods(
-            OperationDescriptor operationDescriptor,
+            OperationDescriptor descriptor,
             ClassBuilder classBuilder)
         {
-            foreach (var argument in operationDescriptor.Arguments)
+            foreach (var argument in descriptor.Arguments)
             {
                 classBuilder
                     .AddMethod()
                     .SetPrivate()
                     .SetReturnType(TypeNames.Object.MakeNullable())
                     .SetName("Format" + GetPropertyName(argument.Name))
-                    .AddParameter(_value, x => x.SetType(argument.Type.ToBuilder()))
+                    .AddParameter(_value, x => x.SetType(argument.Type.ToTypeReference()))
                     .AddCode(GenerateSerializer(argument.Type, _value));
             }
         }
 
         private static void AddInjectedSerializers(
-            OperationDescriptor operationDescriptor,
+            OperationDescriptor descriptor,
             ConstructorBuilder constructorBuilder,
             ClassBuilder classBuilder)
         {
-            var neededSerializers = operationDescriptor
+            var neededSerializers = descriptor
                 .Arguments
                 .GroupBy(x => x.Type.Name)
                 .ToDictionary(x => x.Key, x => x.First());
@@ -125,7 +157,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                         .Inline()
                                         .SetMethodName(
                                             _serializerResolver,
-                                            nameof(ISerializerResolver.GetInputValueFormatter))
+                                            "GetInputValueFormatter")
                                         .AddArgument(name.AsStringToken())));
 
                     classBuilder
@@ -138,7 +170,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 else
                 {
                     throw new InvalidOperationException(
-                        $"Serializer for property {operationDescriptor.RuntimeType.Name}." +
+                        $"Serializer for property {descriptor.RuntimeType.Name}." +
                         $"{property.Name} could not be created. GraphQLTypeName was empty");
                 }
             }
@@ -159,7 +191,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         }
 
         private MethodBuilder CreateWatchMethod(
-            OperationDescriptor operationDescriptor,
+            OperationDescriptor descriptor,
             string runtimeTypeName)
         {
             MethodBuilder watchMethod =
@@ -171,12 +203,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
                             .WithGeneric(TypeNames.IOperationResult.WithGeneric(runtimeTypeName)))
                     .SetName(TypeNames.Watch);
 
-            foreach (var arg in operationDescriptor.Arguments)
+            foreach (var arg in descriptor.Arguments)
             {
                 watchMethod
                     .AddParameter()
                     .SetName(GetParameterName(arg.Name))
-                    .SetType(arg.Type.ToBuilder());
+                    .SetType(arg.Type.ToTypeReference());
             }
 
             watchMethod.AddParameter()
@@ -189,12 +221,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     AssignmentBuilder
                         .New()
                         .SetLefthandSide($"var {_request}")
-                        .SetRighthandSide(CreateRequestMethodCall(operationDescriptor)))
+                        .SetRighthandSide(CreateRequestMethodCall(descriptor)))
                 .AddCode(
                     MethodCallBuilder
                         .New()
                         .SetReturn()
-                        .SetMethodName(_operationExecutor, nameof(IOperationExecutor<object>.Watch))
+                        .SetMethodName(_operationExecutor, "Watch")
                         .AddArgument(_request)
                         .AddArgument(_strategy));
         }
@@ -217,7 +249,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 executeMethod
                     .AddParameter()
                     .SetName(GetParameterName(arg.Name))
-                    .SetType(arg.Type.ToBuilder());
+                    .SetType(arg.Type.ToTypeReference());
             }
 
             executeMethod
@@ -237,9 +269,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         .New()
                         .SetReturn()
                         .SetAwait()
-                        .SetMethodName(
-                            _operationExecutor,
-                            nameof(IOperationExecutor<object>.ExecuteAsync))
+                        .SetMethodName(_operationExecutor, "ExecuteAsync")
                         .AddArgument(_request)
                         .AddArgument(_cancellationToken)
                         .Chain(x => x
@@ -247,24 +277,54 @@ namespace StrawberryShake.CodeGeneration.CSharp
                             .AddArgument("false")));
         }
 
-        private MethodBuilder CreateRequestMethod(OperationDescriptor operationDescriptor)
+        private MethodBuilder CreateRequestVariablesMethod(OperationDescriptor descriptor)
         {
-            string typeName = CreateDocumentTypeName(operationDescriptor.RuntimeType.Name);
+            string typeName = CreateDocumentTypeName(descriptor.RuntimeType.Name);
 
             MethodBuilder method = MethodBuilder
                 .New()
                 .SetName(_createRequest)
-                .SetReturnType(TypeNames.OperationRequest);
+                .SetReturnType(TypeNames.OperationRequest)
+                .AddParameter(
+                    _variables,
+                    x => x.SetType(
+                        TypeNames.IReadOnlyDictionary
+                            .WithGeneric(TypeNames.String, TypeNames.Object.MakeNullable())
+                            .MakeNullable()));
 
             MethodCallBuilder newOperationRequest = MethodCallBuilder
                 .New()
                 .SetReturn()
                 .SetNew()
                 .SetMethodName(TypeNames.OperationRequest)
-                .AddArgument(operationDescriptor.Name.AsStringToken())
-                .AddArgument($"{typeName}.Instance");
+                .AddArgument($"id: {typeName}.Instance.Hash.Value")
+                .AddArgument("name: " + descriptor.Name.AsStringToken())
+                .AddArgument($"document: {typeName}.Instance")
+                .AddArgument($"strategy: {TypeNames.RequestStrategy}.{descriptor.Strategy}");
 
-            if (operationDescriptor.Arguments.Count > 0)
+            if (descriptor.Arguments.Count > 0)
+            {
+                newOperationRequest.AddArgument("variables:" + _variables);
+            }
+
+            return method
+                .AddEmptyLine()
+                .AddCode(newOperationRequest);
+        }
+
+        private MethodBuilder CreateRequestMethod(OperationDescriptor descriptor)
+        {
+            MethodBuilder method = MethodBuilder
+                .New()
+                .SetName(_createRequest)
+                .SetReturnType(TypeNames.OperationRequest);
+
+            MethodCallBuilder createRequestWithVariables = MethodCallBuilder
+                .New()
+                .SetReturn()
+                .SetMethodName(_createRequest);
+
+            if (descriptor.Arguments.Count > 0)
             {
                 method
                     .AddCode(
@@ -280,11 +340,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                     .AddGeneric(TypeNames.Object.MakeNullable())))
                     .AddEmptyLine();
 
-                foreach (var arg in operationDescriptor.Arguments)
+                foreach (var arg in descriptor.Arguments)
                 {
-                    var argName = GetParameterName(arg.Name);
+                    var argName = GetParameterName(arg.FieldName);
 
-                    method.AddParameter(argName, x => x.SetType(arg.Type.ToBuilder()));
+                    method.AddParameter(argName, x => x.SetType(arg.Type.ToTypeReference()));
 
                     method.AddCode(
                         MethodCallBuilder
@@ -298,12 +358,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                     .AddArgument(argName)));
                 }
 
-                newOperationRequest.AddArgument(_variables);
+                createRequestWithVariables.AddArgument(_variables);
+            }
+            else
+            {
+                createRequestWithVariables.AddArgument("null");
             }
 
             return method
                 .AddEmptyLine()
-                .AddCode(newOperationRequest);
+                .AddCode(createRequestWithVariables);
         }
     }
 }

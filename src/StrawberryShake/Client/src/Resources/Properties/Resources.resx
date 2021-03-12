@@ -105,4 +105,22 @@
   <data name="InMemoryClient_ExecuteAsync_NoExecutorFound" xml:space="preserve">
     <value>There was no executor configured for client {0}</value>
   </data>
+  <data name="JsonErrorParser_ParseError_MessageCannotBeNull" xml:space="preserve">
+    <value>The error format is invalid and was missing the property `message`.</value>
+  </data>
+  <data name="Location_Location_Line_OutOfRange" xml:space="preserve">
+    <value>line is a 1-base index and cannot be less than one.</value>
+  </data>
+  <data name="Location_Location_Column_OutOfRange" xml:space="preserve">
+    <value>column is a 1-base index and cannot be less than one.</value>
+  </data>
+  <data name="JsonErrorParser_ParseErrors_Error" xml:space="preserve">
+    <value>Error parsing a server error.</value>
+  </data>
+  <data name="EntityStore_InvalidEntityId" xml:space="preserve">
+    <value>Invalid entity id.</value>
+  </data>
+  <data name="StoreAccessor_GetOperationRequestFactory_InvalidResultType" xml:space="preserve">
+    <value>The specified result type is invalid.</value>
+  </data>
 </root>

@@ -1,7 +1,7 @@
 using HotChocolate.Language;
 using HotChocolate.Types.Scalars;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Scalars
 {
     /// <summary>
     /// The PositiveInt scalar type represents a signed 32‐bit numeric non‐fractional
@@ -38,27 +38,15 @@ namespace HotChocolate.Types
         }
 
         /// <inheritdoc />
-        protected override int ParseLiteral(IntValueNode valueSyntax)
+        protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
         {
-            var result =  base.ParseLiteral(valueSyntax);
-
-            if (result < MinValue)
-            {
-                throw ThrowHelper.PositiveIntType_ParseLiteral_ZeroOrLess(this);
-            }
-
-            return result;
+            throw ThrowHelper.PositiveIntType_ParseLiteral_ZeroOrLess(this);
         }
 
         /// <inheritdoc />
-        protected override IntValueNode ParseValue(int runtimeValue)
+        protected override SerializationException CreateParseValueError(object runtimeValue)
         {
-            if (runtimeValue < MinValue)
-            {
-                throw ThrowHelper.PositiveIntType_ParseValue_ZeroOrLess(this);
-            }
-
-            return base.ParseValue(runtimeValue);
+            throw ThrowHelper.PositiveIntType_ParseValue_ZeroOrLess(this);
         }
     }
 }
