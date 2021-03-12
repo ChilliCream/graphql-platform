@@ -1,11 +1,14 @@
 using System.Linq;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
+using StrawberryShake.CodeGeneration.Descriptors;
 
 namespace StrawberryShake.CodeGeneration.Mappers
 {
     public static class DependencyInjectionMapper
     {
-        public static void Map(ClientModel model, IMapperContext context)
+        public static void Map(
+            ClientModel model,
+            IMapperContext context)
         {
             context.Register(
                 new DependencyInjectionDescriptor(
@@ -13,7 +16,10 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     context.Namespace,
                     context.EntityTypes.ToList(),
                     context.Operations.ToList(),
-                    context.Types));
+                    context.Types,
+                    context.TransportProfiles,
+                    context.EntityIdFactory,
+                    context.StoreAccessor));
         }
     }
 }

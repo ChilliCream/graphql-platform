@@ -1,0 +1,560 @@
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+scalar Guid
+
+enum ApplyPolicy {
+  BEFORE_RESOLVER
+  AFTER_RESOLVER
+}
+
+type Query {
+  account: AccountQuery
+  project: ProjectQuery
+  userProfile: UserProfileQuery
+}
+
+type Mutation {
+  account: AccountMutations!
+  project: ProjectMutations!
+  userProfile: UserProfileMutations!
+}
+
+type ProjectQuery {
+  cards: [Card]
+  groupClassifications: [String]
+  myProjects: [Project]
+  recentProjects(input: RecentProjectsQueryInput): [Project]
+  project(input: ProjectQueryInput): Project
+  step(input: ProjectStepQueryInput): ProjectStep
+}
+
+type AccountQuery {
+  isSignedIn: Boolean!
+}
+
+type UserProfileQuery {
+  userProfile: UserProfile
+}
+
+type AccountMutations {
+  "Confirm your email address"
+  confirmEmail(input: ConfirmEmailInput!): MutationResult
+  "Perform a password reset"
+  passwordReset(input: PasswordResetInput!): MutationResult
+  "Request a password reset link"
+  requestPasswordResetLink(input: RequestPasswordResetLinkInput!): MutationResult
+  "Sign-in action"
+  signIn(input: SignInInput!): MutationResult
+  "Sign-out action"
+  signOut: MutationResult
+  "Sign-up action"
+  signUp(input: SignUpInput!): MutationResult
+}
+
+type ProjectMutations {
+  "Accept a project share invitation"
+  acceptShareInvitation(input: AcceptProjectShareInvitationInput!): MutationResultOfAcceptedProjectShareInfoResult
+  "Adds a step to a project"
+  addStep(input: AddStepToProjectInput!): MutationResultOfAddedStepInfoResult
+  "Creates a new project"
+  createProject(input: CreateProjectInput!): MutationResult
+  "Deletes a project"
+  deleteProject(input: DeleteProjectInput!): MutationResult
+  "Duplicate a project"
+  duplicateProject(input: DuplicateProjectInput!): MutationResult
+  "Leaves a project"
+  leaveProject(input: LeaveProjectInput!): MutationResult
+  "Move a step in a project"
+  moveStep(input: MoveStepInProjectInput!): MutationResult
+  "Move a step to a different track"
+  moveStepToTrack(input: MoveStepToTrackInput!): MutationResult
+  "Register that the current user has visited a project"
+  registerProjectVisit(input: RegisterProjectVisitInput!): MutationResult
+  "Remove pending project share invitations"
+  removePendingShareInvitations(input: RemovePendingProjectShareInvitationsInput!): MutationResult
+  "Remove a step from a project"
+  removeStep(input: RemoveStepFromProjectInput!): MutationResult
+  "Renames a project"
+  renameProject(input: RenameProjectInput!): MutationResult
+  "Shares a project"
+  shareProject(input: ShareProjectInput!): MutationResult
+  "Updates the general info of a project"
+  updateGeneralInfo(input: UpdateProjectGeneralInfoInput!): MutationResult
+  "Update the project members"
+  updateMembers(input: UpdateProjectMembersInput!): MutationResult
+  "Updates the tags of a project"
+  updateTags(input: UpdateProjectTagsInput!): MutationResult
+  "Update a step in a project"
+  updateStep(input: UpdateStepInput!): MutationResult
+}
+
+type UserProfileMutations {
+  "Request a new email confirmation link"
+  requestEmailConfirmationLink: MutationResult
+  "Update avatar of the currently logged in user"
+  updateAvatar(input: UpdateAvatarInput!): MutationResult
+  "Update the user profile of the currently logged in user"
+  updateUserProfile(input: UpdateUserProfileInput!): MutationResult
+}
+
+input ProjectStepQueryInput {
+  projectId: Guid!
+  stepId: Int!
+}
+
+input ProjectQueryInput {
+  projectId: Guid!
+}
+
+input RecentProjectsQueryInput {
+  limit: Int
+}
+
+type ProjectStep {
+  id: Int!
+  card: Card!
+  track: ProjectTrack!
+  hasTechniques: Boolean!
+  hasMedia: Boolean!
+  hasGoals: Boolean!
+  hasEvaluation: Boolean!
+  techniques: [ProjectStepTechnique]
+  timeInMinutes: Int
+  groupClassification: String
+  media: String
+  mediaLinks: [Url]
+  goals: [ProjectStepGoal]
+  evaluation: String
+}
+
+type Project {
+  generalInfo: ProjectGeneralInfo
+  steps: [ProjectStep]
+  tags: [String]
+  members: [ProjectMember]
+  pendingShareInvitations: [ProjectShareInvitation]
+  id: Guid!
+  name: String!
+  leadTimeInHours: Int!
+  createdAtUtc: DateTime!
+  updatedAtUtc: DateTime
+  userPermissions: ProjectUserPermissions
+  pdfExportUrl: Url
+}
+
+type Card {
+  id: String!
+  cardType: CardType!
+  imageFileNameWithoutExtension: String!
+}
+
+type UserProfile {
+  firstName: String
+  lastName: String
+  email: String
+  emailConfirmed: Boolean!
+  preferredLocale: String
+  avatarUrl: Url
+  about: String
+}
+
+type MutationResult {
+  subjectId: Guid
+  correlationId: Guid!
+}
+
+"Confirm your email address"
+input ConfirmEmailInput {
+  "The confirmation data"
+  confirmationData: String!
+}
+
+"Perform a password reset"
+input PasswordResetInput {
+  "The password reset data"
+  passwordResetData: String!
+  "The new password"
+  password: String!
+}
+
+"Request a password reset link"
+input RequestPasswordResetLinkInput {
+  "The email address"
+  email: String!
+  "Optional return url to navigate to after password reset"
+  returnUrl: String
+}
+
+"Sign-in action"
+input SignInInput {
+  "Your email address"
+  email: String!
+  "Your password"
+  password: String!
+  "Remember the signed in after the browser session is closed and reopened"
+  rememberMe: Boolean!
+}
+
+"Sign-up action"
+input SignUpInput {
+  "The email address"
+  email: String!
+  "The password"
+  password: String!
+  "The first name of the user"
+  firstName: String!
+  "The last name of the user"
+  lastName: String!
+  "The preferred locale of the user, defaults to 'en'"
+  preferredLocale: String
+}
+
+type MutationResultOfAcceptedProjectShareInfoResult {
+  subjectId: Guid
+  correlationId: Guid!
+  result: AcceptedProjectShareInfoResult
+}
+
+type MutationResultOfAddedStepInfoResult {
+  subjectId: Guid
+  correlationId: Guid!
+  result: AddedStepInfoResult
+}
+
+"Accept a project share invitation"
+input AcceptProjectShareInvitationInput {
+  "The invitation data"
+  invitationData: String!
+}
+
+"Adds a step to a project"
+input AddStepToProjectInput {
+  "The project id"
+  id: Guid!
+  "The id of the step after which to insert this step (null to add a step in the beginning)"
+  insertAfterStepId: Int
+  "The id of the card"
+  cardId: String!
+  "The track (open \/ restricted \/ closed)"
+  track: ProjectTrack!
+  "The techniques for this step"
+  techniques: [AddStepTechniqueInput]!
+  "The time in minutes needed for this step"
+  timeInMinutes: Int
+  "The group classification used for this step"
+  groupClassification: String
+  "The media used for this step"
+  media: String
+  "The media links for this step"
+  mediaLinks: [Url]!
+  "The goals for this step"
+  goals: [AddStepGoalInput]!
+  "The evaluation for this step"
+  evaluation: String
+}
+
+"Creates a new project"
+input CreateProjectInput {
+  "The name of the project"
+  name: String!
+  "The starting challenge of the project"
+  startingChallenge: String
+  "The lead time in hours estimated of the project"
+  leadTimeInHours: Int!
+  "The target audience"
+  targetAudience: String
+  "The goals of the project"
+  goals: String
+  "The available resources of the project"
+  availableResources: String
+  "The stakeholders of the project"
+  stakeholders: String
+  "The desired outcome of the project"
+  desiredOutcome: String
+}
+
+"Deletes a project"
+input DeleteProjectInput {
+  "The project id"
+  id: Guid!
+}
+
+"Duplicate a project"
+input DuplicateProjectInput {
+  "The id of the project to be duplicated"
+  originalProjectId: Guid!
+  "The name of the newly duplicated project"
+  name: String!
+}
+
+"Leaves a project"
+input LeaveProjectInput {
+  "The project id"
+  id: Guid!
+}
+
+"Move a step in a project"
+input MoveStepInProjectInput {
+  "The project id"
+  id: Guid!
+  "The id of the step to move"
+  stepId: Int!
+  "The id of the step after which to move this step (null to move the step to the beginning)"
+  moveAfterStepId: Int
+}
+
+"Move a step to a different track"
+input MoveStepToTrackInput {
+  "The project id"
+  id: Guid!
+  "The id of the step to move"
+  stepId: Int!
+  "The track (open \/ restricted \/ closed) to move the step to"
+  track: ProjectTrack!
+}
+
+"Register that the current user has visited a project"
+input RegisterProjectVisitInput {
+  "The id of the project being visited"
+  id: Guid!
+}
+
+"Remove pending project share invitations"
+input RemovePendingProjectShareInvitationsInput {
+  "The id of the project"
+  id: Guid!
+  "The list of project share invitations to remove"
+  shareInvitationIds: [Guid!]!
+}
+
+"Remove a step from a project"
+input RemoveStepFromProjectInput {
+  "The project id"
+  id: Guid!
+  "The id of the step to remove"
+  stepId: Int!
+}
+
+"Renames a project"
+input RenameProjectInput {
+  "The project id"
+  id: Guid!
+  "The name of the project"
+  name: String!
+}
+
+"Shares a project"
+input ShareProjectInput {
+  "The id of the project to share"
+  id: Guid!
+  "The invitees to share the project with"
+  invitees: [ShareProjectInviteeInput]!
+}
+
+"Updates the general info of a project"
+input UpdateProjectGeneralInfoInput {
+  "The project id"
+  id: Guid!
+  "The starting challenge of the project"
+  startingChallenge: String
+  "The lead time in hours estimated of the project"
+  leadTimeInHours: Int!
+  "The target audience"
+  targetAudience: String
+  "The goals of the project"
+  goals: String
+  "The available resources of the project"
+  availableResources: String
+  "The stakeholders of the project"
+  stakeholders: String
+  "The desired outcome of the project"
+  desiredOutcome: String
+}
+
+"Update the project members"
+input UpdateProjectMembersInput {
+  "The id of the project"
+  id: Guid!
+  "A member of the project"
+  members: [UpdateProjectMemberInput]!
+}
+
+"Updates the tags of a project"
+input UpdateProjectTagsInput {
+  "The project id"
+  id: Guid!
+  "List of tags to assign to the project"
+  tags: [String]!
+}
+
+"Update a step in a project"
+input UpdateStepInput {
+  "The project id"
+  id: Guid!
+  "The id of the step to update"
+  stepId: Int!
+  "The id of the card"
+  cardId: String!
+  "The techniques for this step"
+  techniques: [UpdateStepTechniqueInput]!
+  "The time in minutes needed for this step"
+  timeInMinutes: Int
+  "The group classification used for this step"
+  groupClassification: String
+  "The media used for this step"
+  media: String
+  "The media links for this step"
+  mediaLinks: [Url]!
+  "The goals for this step"
+  goals: [UpdateStepGoalInput]!
+  "The evaluation for this step"
+  evaluation: String
+}
+
+"Update avatar of the currently logged in user"
+input UpdateAvatarInput {
+  "The Base64 url data of the new avatar"
+  avatarBase64Url: String!
+}
+
+"Update the user profile of the currently logged in user"
+input UpdateUserProfileInput {
+  "The first name of the user"
+  firstName: String!
+  "The last name of the user"
+  lastName: String!
+  "The email address of the user"
+  email: String!
+  "The preferred locale of the user"
+  preferredLocale: String!
+  "The 'About me' description of the user"
+  about: String
+}
+
+input UpdateStepGoalInput {
+  "The name of the goal"
+  name: String!
+  "The description of the goal"
+  description: String
+}
+
+input UpdateStepTechniqueInput {
+  "The name of the technique"
+  name: String!
+  "The description of the technique"
+  description: String
+}
+
+input UpdateProjectMemberInput {
+  "The member id"
+  id: Guid!
+  "The type of role the user has on the project, only used when Remove is false"
+  type: ProjectUserRoleType!
+  "True will remove the member from the project"
+  remove: Boolean!
+}
+
+input ShareProjectInviteeInput {
+  "The email address of the invitee"
+  email: String!
+  "True to invite the user as an editor on the project, otherwise the user will be a project viewer"
+  inviteAsEditor: Boolean!
+}
+
+input AddStepGoalInput {
+  "The name of the goal"
+  name: String!
+  "The description of the goal"
+  description: String
+}
+
+scalar Url
+
+input AddStepTechniqueInput {
+  "The name of the technique"
+  name: String!
+  "The description of the technique"
+  description: String
+}
+
+enum ProjectTrack {
+  OPEN
+  RESTRICTED
+  CLOSED
+}
+
+type AddedStepInfoResult {
+  "The project id"
+  projectId: Guid!
+  "The id of the newly added step"
+  stepId: Int!
+}
+
+type AcceptedProjectShareInfoResult {
+  "The project id"
+  projectId: Guid!
+  "The name of the accepted project"
+  projectName: String
+  "True if the project was already accepted in the past"
+  alreadyAccepted: Boolean!
+}
+
+enum CardType {
+  ACTION_CARD
+  DESIGN_GOAL_CARD
+  INQUIRY_GOAL_CARD
+}
+
+type ProjectUserPermissions {
+  canEdit: Boolean!
+  canDelete: Boolean!
+  canShare: Boolean!
+  canLeave: Boolean!
+}
+
+"The `DateTime` scalar represents an ISO-8601 compliant date time type."
+scalar DateTime
+
+type ProjectShareInvitation {
+  id: Guid!
+  email: String
+  invitationExpired: Boolean!
+}
+
+type ProjectMember {
+  id: Guid!
+  name: String
+  type: ProjectUserRoleType!
+  avatarUrl: Url
+}
+
+type ProjectGeneralInfo {
+  startingChallenge: String
+  leadTimeInHours: Int!
+  targetAudience: String
+  goals: String
+  availableResources: String
+  stakeholders: String
+  desiredOutcome: String
+}
+
+type ProjectStepGoal {
+  name: String
+  description: String
+}
+
+type ProjectStepTechnique {
+  name: String
+  description: String
+}
+
+enum ProjectUserRoleType {
+  VIEWER
+  EDITOR
+  OWNER
+}
+
+directive @authorize("The name of the authorization policy that determines access to the annotated resource." policy: String "Roles that are allowed to access the annotated resource." roles: [String!] "Defines when when the resolver shall be executed.By default the resolver is executed after the policy has determined that the current user is allowed to access the field." apply: ApplyPolicy! = BEFORE_RESOLVER) repeatable on SCHEMA | OBJECT | FIELD_DEFINITION

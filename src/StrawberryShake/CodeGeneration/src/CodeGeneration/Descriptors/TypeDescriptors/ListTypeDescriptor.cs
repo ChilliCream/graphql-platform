@@ -1,6 +1,6 @@
 using HotChocolate;
 
-namespace StrawberryShake.CodeGeneration
+namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors
 {
     public class ListTypeDescriptor: ITypeDescriptor
     {

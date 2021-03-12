@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public partial class TypeMapperGenerator
     {
@@ -106,7 +107,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .New()
                     .SetAccessModifier(AccessModifier.Private)
                     .SetName(methodName)
-                    .SetReturnType(typeReference.ToBuilder());
+                    .SetReturnType(typeReference.ToTypeReference());
 
                 classBuilder.AddMethod(methodBuilder);
 
@@ -125,7 +126,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             IfBuilder ifBuilder = IfBuilder
                 .New()
-                .SetCondition($"{propertyName} == default")
+                .SetCondition($"{propertyName} is null")
                 .AddCode(
                     isNonNullType
                         ? ExceptionBuilder.New(TypeNames.ArgumentNullException)
@@ -164,9 +165,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
                             .SetCode(ExceptionBuilder.Inline(TypeNames.ArgumentNullException));
                     }
 
-                    mapperMethodCall.AddArgument(argString);
-
-                    return mapperMethodCall;
+                    return mapperMethodCall
+                        .AddArgument(argString)
+                        .AddArgument(_snapshot);
 
                 default:
                     throw new ArgumentOutOfRangeException();

@@ -173,7 +173,10 @@ namespace StrawberryShake.Transport.InMemory
         public class StubDocument : IDocument
         {
             public OperationKind Kind => OperationKind.Query;
+
             public ReadOnlySpan<byte> Body => Encoding.UTF8.GetBytes("{ foo }");
+
+            public DocumentHash Hash { get; } = new("MD5", "ABC");
         }
     }
 }

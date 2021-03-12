@@ -1,10 +1,12 @@
 using System;
 using System.Linq;
+using System.Text;
 using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
-using static StrawberryShake.CodeGeneration.NamingConventions;
+using StrawberryShake.CodeGeneration.Descriptors.Operations;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
 namespace StrawberryShake.CodeGeneration.Mappers
 {
@@ -24,12 +26,19 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
                         return new PropertyDescriptor(
                             arg.Name,
+                            arg.Variable.Variable.Name.Value,
                             Rewrite(arg.Type, namedTypeDescriptor),
                             null);
                     })
                     .ToList();
 
-                var resultTypeName = CreateResultRootTypeName(modelOperation.ResultType.Name);
+                RuntimeTypeInfo resultType = context.GetRuntimeType(
+                    modelOperation.ResultType.Name,
+                    Descriptors.TypeDescriptors.TypeKind.ResultType);
+
+                string bodyString = modelOperation.Document.ToString();
+                byte[] body = Encoding.UTF8.GetBytes(modelOperation.Document.ToString(false));
+                string hash = context.HashProvider.ComputeHash(body);
 
                 switch (modelOperation.OperationType)
                 {
@@ -39,9 +48,13 @@ namespace StrawberryShake.CodeGeneration.Mappers
                             new QueryOperationDescriptor(
                                 modelOperation.Name,
                                 context.Namespace,
-                                context.Types.Single(t => t.RuntimeType.Name.Equals(resultTypeName)),
+                                context.Types.Single(t => t.RuntimeType.Equals(resultType)),
                                 arguments,
-                                modelOperation.Document.ToString()));
+                                body,
+                                bodyString,
+                                context.HashProvider.Name,
+                                hash,
+                                context.RequestStrategy));
                         break;
 
                     case OperationType.Mutation:
@@ -50,9 +63,13 @@ namespace StrawberryShake.CodeGeneration.Mappers
                             new MutationOperationDescriptor(
                                 modelOperation.Name,
                                 context.Namespace,
-                                context.Types.Single(t => t.RuntimeType.Name.Equals(resultTypeName)),
+                                context.Types.Single(t => t.RuntimeType.Equals(resultType)),
                                 arguments,
-                                modelOperation.Document.ToString()));
+                                body,
+                                bodyString,
+                                context.HashProvider.Name,
+                                hash,
+                                context.RequestStrategy));
                         break;
 
                     case OperationType.Subscription:
@@ -61,9 +78,13 @@ namespace StrawberryShake.CodeGeneration.Mappers
                             new SubscriptionOperationDescriptor(
                                 modelOperation.Name,
                                 context.Namespace,
-                                context.Types.Single(t => t.RuntimeType.Name.Equals(resultTypeName)),
+                                context.Types.Single(t => t.RuntimeType.Equals(resultType)),
                                 arguments,
-                                modelOperation.Document.ToString()));
+                                body,
+                                bodyString,
+                                context.HashProvider.Name,
+                                hash,
+                                context.RequestStrategy));
                         break;
 
                     default:

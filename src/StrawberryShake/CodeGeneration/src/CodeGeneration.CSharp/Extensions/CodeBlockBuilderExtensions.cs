@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 
@@ -32,11 +31,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         public static AssignmentBuilder AddAssigment(
             this CodeBlockBuilder builder,
-            string assignedTo)
+            string? assignedTo = null)
         {
             AssignmentBuilder assignmentBuilder = AssignmentBuilder
-                .New()
-                .SetLefthandSide(assignedTo);
+                .New();
+
+            if (assignedTo is not null)
+            {
+                assignmentBuilder.SetLefthandSide(assignedTo);
+            }
 
             builder.AddCode(assignmentBuilder);
 

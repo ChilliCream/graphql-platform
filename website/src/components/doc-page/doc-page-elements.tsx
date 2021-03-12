@@ -1,5 +1,5 @@
 import styled, { createGlobalStyle } from "styled-components";
-import { IsMobile, IsTablet } from "./shared-style";
+import { IsMobile, IsTablet } from "../../shared-style";
 
 export const MostProminentSection = styled.div``;
 
@@ -25,7 +25,7 @@ export const DocPageStickySideBarStyle = `
 export const BodyStyle = createGlobalStyle<{ disableScrolling: boolean }>`
   body {
     overflow-y: ${({ disableScrolling }) =>
-      disableScrolling ? "hidden" : "initial"};
+    disableScrolling ? "hidden" : "initial"};
 
     @media only screen and (min-width: 600px) {
       overflow-y: initial;
