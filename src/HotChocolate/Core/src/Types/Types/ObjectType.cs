@@ -58,7 +58,7 @@ namespace HotChocolate.Types
             _implements.Any(t => t.Name.Equals(interfaceTypeName));
 
         public bool IsImplementing(InterfaceType interfaceType) =>
-            _implements.Contains(interfaceType);
+            Array.IndexOf(_implements, interfaceType) != -1;
 
         public bool IsImplementing(IInterfaceType interfaceType) =>
             interfaceType is InterfaceType i && _implements.Contains(i);
