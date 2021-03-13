@@ -36,6 +36,7 @@ namespace HotChocolate.Data.Neo4J.Language
         Node,
         NodeLabel,
         NodeLabels,
+        NotCondition,
         Operation,
         Operator,
         OptionalMatch,

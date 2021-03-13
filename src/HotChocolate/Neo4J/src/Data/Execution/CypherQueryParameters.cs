@@ -15,6 +15,6 @@ namespace HotChocolate.Data.Neo4J
         {
         }
 
-        public static Func<(string key, object value), object> ValueConvert = o => o.value;
+        public static readonly Func<(string key, object value), object> ValueConvert = o => o.value;
     }
 }

@@ -43,5 +43,7 @@ namespace HotChocolate.Data.Neo4J
         public bool IsWrite() => _isWrite;
 
         public override string ToString() => _text;
+
+        public CypherQueryParameters GetParameters() => _parameters;
     }
 }

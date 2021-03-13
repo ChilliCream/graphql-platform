@@ -6,7 +6,7 @@ namespace HotChocolate.Data.Neo4J.Language
     /// <typeparam name="T"></typeparam>
     public interface IExposesProperties<out T> where T :  IPropertyContainer
     {
-        T WithProperties(MapExpression newProps);
+        T WithProperties(MapExpression newProperties);
         T WithProperties(params object[] keysAndValues);
     }
 }
