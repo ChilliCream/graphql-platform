@@ -6,7 +6,9 @@ using HotChocolate.Language;
 using HotChocolate.Tests;
 using Snapshooter;
 using Snapshooter.Xunit;
+using ChilliCream.Testing;
 using Xunit;
+using Snapshot = Snapshooter.Xunit.Snapshot;
 using static HotChocolate.Tests.TestHelper;
 
 namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
@@ -784,6 +786,42 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
                         name
                     }
                 }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Ensure_Benchmark_Query_GetHeroQuery()
+        {
+            Snapshot.FullName();
+            await ExpectValid(
+                FileResource.Open("GetHeroQuery.graphql"))
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Ensure_Benchmark_Query_GetHeroWithFriendsQuery()
+        {
+            Snapshot.FullName();
+            await ExpectValid(
+                FileResource.Open("GetHeroWithFriendsQuery.graphql"))
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Ensure_Benchmark_Query_GetTwoHerosWithFriendsQuery()
+        {
+            Snapshot.FullName();
+            await ExpectValid(
+                FileResource.Open("GetTwoHerosWithFriendsQuery.graphql"))
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Ensure_Benchmark_Query_LargeQuery()
+        {
+            Snapshot.FullName();
+            await ExpectValid(
+                FileResource.Open("LargeQuery.graphql"))
                 .MatchSnapshotAsync();
         }
     }

@@ -24,7 +24,7 @@ namespace HotChocolate.Stitching.Utilities
             {
                 foreach (ObjectFieldDefinition objectField in objectTypeDef.Fields)
                 {
-                    if (objectField.Directives.Any(IsDelegatedField))
+                    if (objectField.GetDirectives().Any(IsDelegatedField))
                     {
                         FieldMiddleware handleDictionary =
                             FieldClassMiddlewareFactory.Create<DictionaryResultMiddleware>();

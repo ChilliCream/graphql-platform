@@ -23,17 +23,19 @@ namespace HotChocolate.Types
             SyntaxNode = definition.SyntaxNode;
             DefaultValue = definition.DefaultValue;
 
-            if (definition.Formatters.Count == 0)
+            var formatters = definition.GetFormatters();
+
+            if (formatters.Count == 0)
             {
                 Formatter = null;
             }
-            else if (definition.Formatters.Count == 1)
+            else if (formatters.Count == 1)
             {
-                Formatter = definition.Formatters[0];
+                Formatter = formatters[0];
             }
             else
             {
-                Formatter = new AggregateInputValueFormatter(definition.Formatters);
+                Formatter = new AggregateInputValueFormatter(formatters);
             }
         }
 
