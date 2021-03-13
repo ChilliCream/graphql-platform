@@ -124,12 +124,19 @@ namespace HotChocolate.Types
 
             OnAfterCompleteType(context, definition, _contextData);
 
-            if (_contextData.Count == 0)
+            MarkCompleted();
+        }
+
+        internal sealed override void FinalizeType(ITypeCompletionContext context)
+        {
+            // if the ExtensionData object has no data we will release it so it can be
+            // collected by the GC.
+            if (_contextData!.Count == 0)
             {
                 _contextData = ExtensionData.Empty;
             }
 
-            MarkCompleted();
+            MarkFinalized();
         }
 
         protected virtual void OnCompleteType(
