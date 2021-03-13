@@ -47,7 +47,7 @@ namespace HotChocolate.Data.Neo4J
 
         public RelationshipProperty(PropertyInfo info, Neo4JRelationshipAttribute attribute) : base(info)
         {
-            var t = Info.PropertyType;
+            Type t = Info.PropertyType;
             IsCollection = Info.IsCollection();
             EntityType = IsCollection ? t.GetTypeInfo().GenericTypeArguments[0] : t;
             Direction = attribute.Direction;

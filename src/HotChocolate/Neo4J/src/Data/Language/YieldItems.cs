@@ -1,6 +1,4 @@
-﻿// This code is ported from Java implementation of cypher dsl
-
-using System;
+﻿using System;
 
 namespace HotChocolate.Data.Neo4J.Language
 {

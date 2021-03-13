@@ -11,7 +11,8 @@ namespace HotChocolate.Data.Neo4J
         public EntityPropertyAccessor()
         {
             var allProperties = typeof(T).GetAllProperties();
-            var nodeIdProperty = allProperties.SingleOrDefault(p => p.HasAttributeNamed(nameof(Neo4JNodeIdAttribute)));
+            var nodeIdProperty = allProperties
+                .SingleOrDefault(p => p.HasAttributeNamed(nameof(Neo4JNodeIdAttribute)));
             if (nodeIdProperty == null) return;
 
             nodeIdPropertySetter = nodeIdProperty.CreateSetter();

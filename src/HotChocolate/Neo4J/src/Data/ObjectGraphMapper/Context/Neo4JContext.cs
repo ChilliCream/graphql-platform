@@ -1,40 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Neo4j.Driver;
 
 #nullable enable
 
 namespace HotChocolate.Data.Neo4J
 {
-    public class Neo4JContext
+    public partial class Neo4JContext
     {
-        private static readonly Type _nodeType = typeof(Neo4JNodeAttribute);
-        private static readonly Type _relationshipType = typeof(Neo4JRelationshipAttribute);
-        private static readonly Type _nodeIdType = typeof(Neo4JNodeIdAttribute);
-        private static readonly Type _ignoredType = typeof(Neo4JIgnoreAttribute);
-
-        private static readonly Neo4jException _duplicateNodeEntityKey =
-            new ("Duplicate node entity key");
-
-        private static readonly Neo4jException _unsupportedNodeEntityType =
-            new ("Unsupported entity type");
-
-        private static readonly Neo4jException _unsupportedRelationshipType =
-            new ("Unsupported relationship type");
-
-        private static readonly Neo4jException _illegalNodeEntityException =
-            new ("Invalid neo4j node entity");
-
-        private static readonly Neo4jException _idIsMissingException =
-            new ("Id property is missing");
-
-        private static readonly Neo4jException _duplicateIdException =
-            new ("Duplicate id property");
-
-        private static readonly Neo4jException _illegalIdFormatException =
-            new ("Id property is not nullable long");
-
         private readonly IDictionary<Type, Meta> _allTypes = new Dictionary<Type, Meta>();
 
         private readonly IDictionary<string, Meta> _allKeys = new Dictionary<string, Meta>();

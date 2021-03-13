@@ -68,6 +68,11 @@ namespace HotChocolate.Data.Neo4J.Language
             return Statement.Builder().Create(patternElements);
         }
 
+        public static StatementBuilder Create(List<IPatternElement> patternElements)
+        {
+            return Statement.Builder().Create(patternElements);
+        }
+
         public static SymbolicName Name(string value) => SymbolicName.Of(value);
         public static Property Property(Expression expression, string name) => Language.Property.Create(expression, name);
         public static Property Property(string containerName, string name) => Property(Name(containerName), name);
@@ -75,6 +80,7 @@ namespace HotChocolate.Data.Neo4J.Language
         public static Literal<bool> LiteralTrue() => BooleanLiteral.True;
         public static Literal<bool> LiteralFalse() => BooleanLiteral.False;
         public static Asterisk Asterisk => Asterisk.Instance;
+
 
         public static SortItem Sort(Expression expression) =>
             SortItem.Create(expression, null);

@@ -2,7 +2,7 @@ namespace HotChocolate.Data.Neo4J.Language
 {
     /// <summary>
     /// With UNWIND, you can transform any list back into individual rows.
-    /// These lists can be parameters that were passed in, previously collect -ed result or other list expressions.
+    /// These lists can be parameters that were passed in, previously collected result or other list expressions.
     ///
     /// One common usage of unwind is to create distinct lists. Another is to create data from parameter lists that are provided to the query.
     /// <see href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/Unwind.html" />
@@ -15,7 +15,9 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public Unwind(Expression expressionToUnwind, string variable)
         {
-            _expressionToUnwind = _expressionToUnwind is IAliased ? ((IAliased)expressionToUnwind).AsName() : expressionToUnwind;
+            _expressionToUnwind = _expressionToUnwind is IAliased
+                ? ((IAliased)expressionToUnwind).AsName()
+                : expressionToUnwind;
             _variable = variable;
         }
 

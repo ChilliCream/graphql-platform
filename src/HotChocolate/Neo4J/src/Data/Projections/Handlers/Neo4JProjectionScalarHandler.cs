@@ -50,7 +50,6 @@ namespace HotChocolate.Data.Neo4J.Projections
                         break;
                     default:
                         throw new InvalidOperationException("Relationship direction not set!");
-                        break;
                 }
             }
             context.RelationshipProjections[context.CurrentLevel].Enqueue(selection.Field.GetName());

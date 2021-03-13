@@ -25,6 +25,13 @@ namespace HotChocolate.Data.Neo4J.Language
             return this;
         }
 
+        public StatementBuilder Create(List<IPatternElement> elements)
+        {
+            _isWrite = true;
+            _create = new Create(new Pattern(elements));
+            return this;
+        }
+
         public StatementBuilder OptionalMatch(params IPatternElement[] elements) =>
             Match(true, elements);
 

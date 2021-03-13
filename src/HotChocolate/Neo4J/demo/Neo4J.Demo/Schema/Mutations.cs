@@ -10,17 +10,24 @@ namespace Neo4jDemo.Schema
     public class Mutations
     {
         [UseNeo4JRepository]
-        public bool CreateBusinesses([ScopedService] Neo4JRepository repo)
+        public Business CreateBusiness([ScopedService] Neo4JRepository repo, Business input)
         {
-            var a = new Business() {Name = "A"};
-            var r = new Review() {Text = "text"};
-            a.Reviews = new List<Review>() {r};
+            Business entity = repo.Create(input);
+            return entity;
+        }
 
-            repo.Create(a);
+        [UseNeo4JRepository]
+        public Business UpdateBusiness([ScopedService] Neo4JRepository repo, Business input)
+        {
+            Business entity = repo.Update(input);
+            return entity;
+        }
 
+        [UseNeo4JRepository]
+        public bool DeleteBusiness([ScopedService] Neo4JRepository repo, long id)
+        {
+            repo.DeleteById<Business>(id);
             return true;
         }
-        public bool UpdateBusinesses(List<Business> businesses) => true;
-        public bool DeleteBusinesses(List<Business> businesses) => true;
     }
 }

@@ -7,7 +7,7 @@ namespace Neo4jDemo.Models
     [Neo4JNode("Business")]
     public class Business
     {
-        [Neo4JNodeId]
+        [Neo4JNodeId, GraphQLIgnore]
         public long? Id { get; set; }
         [GraphQLNonNullType]
         public string Name { get; set; }

@@ -8,14 +8,21 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class ProjectionBody : Visitable
     {
-        public override ClauseKind Kind => ClauseKind.Default;
+        public override ClauseKind Kind => ClauseKind.ProjectionBody;
+        private readonly Distinct? _distinct;
         private readonly ExpressionList _returnItems;
         private readonly OrderBy? _order;
         private readonly Skip? _skip;
         private readonly Limit? _limit;
 
-        public ProjectionBody(ExpressionList returnItems, OrderBy? order, Skip? skip, Limit? limit)
+        public ProjectionBody(
+            bool distinct,
+            ExpressionList returnItems,
+            OrderBy? order,
+            Skip? skip,
+            Limit? limit)
         {
+            _distinct = distinct ? Distinct.Instance : null;
             _returnItems = returnItems;
             _order = order;
             _skip = skip;
@@ -24,6 +31,7 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public new void Visit(CypherVisitor cypherVisitor)
         {
+            _distinct?.Visit(cypherVisitor);
             _returnItems.Visit(cypherVisitor);
             _order?.Visit(cypherVisitor);
             _skip?.Visit(cypherVisitor);

@@ -26,7 +26,7 @@ namespace HotChocolate.Data.Neo4J.Execution
         /// <summary>
         /// The sort definition that was set by <see cref="WithSorting"/>
         /// </summary>
-        private Neo4JSortDefinition[] Sorting { get; set; }
+        private Neo4JSortDefinition[]? Sorting { get; set; }
 
         /// <summary>
         /// The projection definition that was set by <see cref="WithProjection"/>
@@ -97,30 +97,24 @@ namespace HotChocolate.Data.Neo4J.Execution
                 statement.Return(node.Project(Projection));
             }
 
-            if (Sorting is not null)
+            if (Sorting is null) return statement;
+
+            var sorts = new List<SortItem>();
+
+            foreach (Neo4JSortDefinition sort in Sorting)
             {
-                var sorts = new List<SortItem>();
-
-                foreach (Neo4JSortDefinition sort in Sorting)
+                SortItem? sortItem = Cypher.Sort(node.Property(sort.Field));
+                if (sort.Direction == SortDirection.Ascending)
                 {
-                    SortItem? sortItem = Cypher.Sort(node.Property(sort.Field));
-                    if (sort.Direction == SortDirection.Ascending)
-                    {
-                        sorts.Push(sortItem.Ascending());
-                    }
-                    else if (sort.Direction == SortDirection.Descending)
-                    {
-                        sorts.Push(sortItem.Descending());
-                    }
-
+                    sorts.Push(sortItem.Ascending());
                 }
-                statement.OrderBy(sorts);
-            }
+                else if (sort.Direction == SortDirection.Descending)
+                {
+                    sorts.Push(sortItem.Descending());
+                }
 
-            // IResultCursor cursor = await _session.RunAsync(@"
-            //     MATCH (business:Business)
-            //     RETURN business { .name, .city, .state, reviews: [(business)<-[:REVIEWS]-(reviews) | reviews {.rating, .text}] }
-            // ").ConfigureAwait(false);
+            }
+            statement.OrderBy(sorts);
 
             return statement;
         }
