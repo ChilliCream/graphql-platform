@@ -434,5 +434,23 @@ namespace HotChocolate.Types.Scalars {
                 return ResourceManager.GetString("UnsignedIntType_IsNotUnsigned_ParseValue", resourceCulture);
             }
         }
+
+        internal static string LocalDateType_Description {
+            get {
+                return ResourceManager.GetString("LocalDateType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string LocalDateType_IsInvalid_ParseLiteral {
+            get {
+                return ResourceManager.GetString("LocalDateType_IsInvalid_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        internal static string LocalDateType_IsInvalid_ParseValue {
+            get {
+                return ResourceManager.GetString("LocalDateType_IsInvalid_ParseValue", resourceCulture);
+            }
+        }
     }
 }
