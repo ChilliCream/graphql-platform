@@ -156,6 +156,28 @@ namespace HotChocolate.Types.Scalars
                 type);
         }
 
+        public static SerializationException LocalDateType_ParseValue_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.LocalDateType_IsInvalid_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.LocalDate)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException LocalDateType_ParseLiteral_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.LocalDateType_IsInvalid_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.LocalDate)
+                    .Build(),
+                type);
+        }
+
         public static SerializationException MacAddressType_ParseValue_IsInvalid(IType type)
         {
             return new SerializationException(
@@ -499,28 +521,6 @@ namespace HotChocolate.Types.Scalars
                     .SetMessage(ScalarResources.UnsignedIntType_IsNotUnsigned_ParseValue)
                     .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
                     .SetExtension("actualType", WellKnownScalarTypes.UnsignedInt)
-                    .Build(),
-                type);
-        }
-
-        public static SerializationException LocalDateType_ParseValue_IsInvalid(IType type)
-        {
-            return new SerializationException(
-                ErrorBuilder.New()
-                    .SetMessage(ScalarResources.LocalDateType_IsInvalid_ParseValue)
-                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                    .SetExtension("actualType", WellKnownScalarTypes.LocalDate)
-                    .Build(),
-                type);
-        }
-
-        public static SerializationException LocalDateType_ParseLiteral_IsInvalid(IType type)
-        {
-            return new SerializationException(
-                ErrorBuilder.New()
-                    .SetMessage(ScalarResources.LocalDateType_IsInvalid_ParseLiteral)
-                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
-                    .SetExtension("actualType", WellKnownScalarTypes.LocalDate)
                     .Build(),
                 type);
         }
