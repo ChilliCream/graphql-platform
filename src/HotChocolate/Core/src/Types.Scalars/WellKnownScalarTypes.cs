@@ -9,6 +9,7 @@ namespace HotChocolate.Types
         public const string Isbn = nameof(Isbn);
         public const string IPv4 = nameof(IPv4);
         public const string IPv6 = nameof(IPv6);
+        public const string LocalTime = nameof(LocalTime);
         public const string MacAddress = nameof(MacAddress);
         public const string NegativeFloat = nameof(NegativeFloat);
         public const string NegativeInt = nameof(NegativeInt);

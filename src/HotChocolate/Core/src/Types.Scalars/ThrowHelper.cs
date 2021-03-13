@@ -156,6 +156,28 @@ namespace HotChocolate.Types.Scalars
                 type);
         }
 
+        public static SerializationException LocalTimeType_ParseValue_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.LocalTimeType_IsInvalid_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.LocalTime)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException LocalTimeType_ParseLiteral_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.LocalTimeType_IsInvalid_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.LocalTime)
+                    .Build(),
+                type);
+        }
+
         public static SerializationException MacAddressType_ParseValue_IsInvalid(IType type)
         {
             return new SerializationException(

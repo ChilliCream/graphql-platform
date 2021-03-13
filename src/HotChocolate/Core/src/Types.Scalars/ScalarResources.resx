@@ -162,6 +162,15 @@
   <data name="HslaType_IsInvalid_ParseValue" xml:space="preserve">
     <value>HslaType cannot parse the provided value. The provided value is not a valid CSS HSLA color code.</value>
   </data>
+  <data name="LocalTimeType_Description" xml:space="preserve">
+    <value>The `LocalTime` scalar type represents a local time string in 24-hr HH:mm[:ss[.SSS]] format.</value>
+  </data>
+  <data name="LocalTimeType_IsInvalid_ParseLiteral" xml:space="preserve">
+    <value>LocalTimeType cannot parse the provided literal. The provided value is not a valid Local Time.</value>
+  </data>
+  <data name="LocalTimeType_IsInvalid_ParseValue" xml:space="preserve">
+    <value>LocalTimeType cannot parse the provided value. The provided value is not a valid Local Time.</value>
+  </data>
   <data name="MacAddressType_Description" xml:space="preserve">
     <value>The `MacAddress` scalar type represents a IEEE 802 48-bit Mac address, represented as UTF-8 character sequences. The scalar follows the specification defined in RFC7042</value>
   </data>
