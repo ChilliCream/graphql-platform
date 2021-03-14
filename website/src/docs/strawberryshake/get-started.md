@@ -119,7 +119,7 @@ Now that everything is in place let us write our first query to ask for a list o
 code ./Demo
 ```
 
-3. Create new query document `GetSessions.graphql` with the following content:
+4. Create new query document `GetSessions.graphql` with the following content:
 
 ```graphql
 query GetSessions {
@@ -131,7 +131,7 @@ query GetSessions {
 }
 ```
 
-4. Compile your project.
+5. Compile your project.
 
 ```bash
 dotnet build
@@ -139,9 +139,9 @@ dotnet build
 
 With the project compiled you now should see a directory `Generated`. The generated code is just there for the IDE, the actual code was injected directly into roslyn through source generators.
 
-IMAGE 1
+![Visual Studio code showing the generated directory.](../shared/berry_generated.png)
 
-5. Head over to the `Program.cs` and add the new `ConferenceClient` to the dependency injection.
+6. Head over to the `Program.cs` and add the new `ConferenceClient` to the dependency injection.
 
 > In some IDEs it is still necessary to reload the project after the code was generated to update the IntelliSense. So, if you have any issues in the next step with IntelliSense just reload the project and everything should be fine.
 
@@ -155,20 +155,16 @@ public class Program
 
         builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
-        // adds the conference client to the dependency injection.
-        builder.Services.AddConferenceClient();
-
-        // configures the transport for the conference client.
-        builder.Services.AddHttpClient(
-            ConferenceClient.ClientName,
-            client => client.BaseAddress = new Uri("https://hc-conference-app.azurewebsites.net/graphql"));
+        builder.Services
+            .AddConferenceClient()
+            .ConfigureHttpClient(client => client.BaseAddress = new Uri("https://hc-conference-app.azurewebsites.net/graphql"));
 
         await builder.Build().RunAsync();
     }
 }
 ```
 
-6. Go to `_Imports.razor` and add `Demo.GraphQL` to the common imports
+7. Go to `_Imports.razor` and add `Demo.GraphQL` to the common imports
 
 ```razor
 @using System.Net.Http
@@ -192,20 +188,14 @@ In this section we will perform a simple fetch with our `ConferenceClient`. We w
 
 2. Add inject the `ConferenceClient` beneath the `@pages` directive.
 
-```razor
+```html
 @page "/"
 @inject ConferenceClient ConferenceClient;
-
-<h1>Hello, world!</h1>
-
-Welcome to your new app.
-
-<SurveyPrompt Title="How is Blazor working for you?" />
 ```
 
-3. Introduce a code section at the bottom of the file.
+3. Introduce a code directive at the bottom of the file.
 
-```razor
+```html
 @page "/"
 @inject ConferenceClient ConferenceClient;
 
@@ -222,7 +212,7 @@ Welcome to your new app.
 
 4. Now lets fetch the titles with our client.
 
-```razor
+```html
 @page "/"
 @inject ConferenceClient ConferenceClient;
 
@@ -249,9 +239,45 @@ Welcome to your new app.
 }
 ```
 
-5. Start the Blazor application with `dotnet run ./Demo` and see if your code works.
+5. Last, lets render the titles on our page as a list.
 
-IMAGE BROWSER
+```html
+@page "/"
+@inject ConferenceClient ConferenceClient;
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+
+<SurveyPrompt Title="How is Blazor working for you?" />
+
+<ul>
+    @foreach (string title in titles)
+    {
+        <li>@title</li>
+    }
+</ul>
+
+@code {
+    private string[] titles = Array.Empty<string>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Execute our GetSessions query
+        var result = await ConferenceClient.GetSessions.ExecuteAsync();
+
+        // aggregate the titles from the result
+        titles = result.Data.Sessions.Nodes.Select(t => t.Title).ToArray();
+
+        // signal the components that the state has changed.
+        StateHasChanged();
+    }
+}
+```
+
+5. Start the Blazor application with `dotnet run --project ./Demo` and see if your code works.
+
+![Started Blazor application in Microsoft Edge](../shared/berry_session_list.png)
 
 ## Step 6: Using the built-in store with reactive APIs.
 
