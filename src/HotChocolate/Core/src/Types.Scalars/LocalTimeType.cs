@@ -1,16 +1,16 @@
 using System;
+using System.Globalization;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types.Scalars
 {
+    /// <summary>
+    /// The `LocalTime` scalar type is a local time string (i.e., with no associated timezone)
+    /// in 24-hr HH:mm[:ss[.SSS]].
+    /// </summary>
     public class LocalTimeType : ScalarType<DateTimeOffset, StringValueNode>
     {
-        public LocalTimeType(
-            NameString name,
-            BindingBehavior bind = BindingBehavior.Explicit)
-            : base(name, bind)
-        {
-        }
+        private const string _localFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffzzz";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LocalTimeType"/> class.
@@ -47,7 +47,14 @@ namespace HotChocolate.Types.Scalars
 
         protected override StringValueNode ParseValue(DateTimeOffset runtimeValue)
         {
-            throw new NotImplementedException();
+            return new(Serialize(runtimeValue));
+        }
+
+        private static string Serialize(DateTimeOffset value)
+        {
+            return value.ToString(
+                _localFormat,
+                CultureInfo.InvariantCulture);
         }
     }
 }
