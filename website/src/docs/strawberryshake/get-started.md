@@ -401,3 +401,4 @@ The Blazor application just fetched a single time from the network and now only 
 
 ## Step 7: Using GraphQL mutations
 
+In this step we will introduce a mutation that will allow us to rename a session.
