@@ -291,7 +291,7 @@ dotnet add Demo package System.Reactive
 
 2. Next, let us update the `_Imports.razor` with some more imports, namely `System`, `System.Reactive.Linq`, `System.Linq` and `StrawberryShake`.
 
-```razor
+```csharp
 @using System
 @using System.Reactive.Linq
 @using System.Linq
@@ -330,6 +330,12 @@ protected override void OnInitialized()
             });
 }
 ```
+
+Instead of fetching the data we watch the data for our request. Every time entities of our results are updated in the entity store our subscribe method will be triggered.
+
+Also we specified on our watch method that we want to first look at the store and only of there is nothing in the store we want to fetch the data from the network.
+
+Last, note that we are storing a disposable on our component state called `storeSession`. This represents our session with the store. We need to dispose the session when we no longer display our component.
 
 4. Implement `IDisposable` and handle the `storeSession` dispose.
 
@@ -372,7 +378,14 @@ Welcome to your new app.
 
     public void Dispose()
     {
-        storeSession.Dispose();
+        storeSession?.Dispose();
     }
 }
 ```
+
+Every time we move away from our index page Blazor will dispose our page which consequently will dispose our store session.
+
+5. Start the Blazor application with `dotnet run --project ./Demo` and see if your code works.
+
+## Step 7: Using GraphQL mutations
+
