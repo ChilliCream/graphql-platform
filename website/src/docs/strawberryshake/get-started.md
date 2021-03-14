@@ -387,5 +387,17 @@ Every time we move away from our index page Blazor will dispose our page which c
 
 5. Start the Blazor application with `dotnet run --project ./Demo` and see if your code works.
 
+![Started Blazor application in Microsoft Edge](../shared/berry_session_list.png)
+
+The page will look unchanged.
+
+6. Next, open the developer tools of your browser and switch to the developer tools console. Refresh the site so that we get a fresh output.
+
+![Microsoft Edge developer tools show just one network interaction.](../shared/berry_session_list_network.png)
+
+7. Switch between the `Index` and the `Counter` page (back and forth) and watch the console output. 
+
+The Blazor application just fetched a single time from the network and now only gets the data from the store.
+
 ## Step 7: Using GraphQL mutations
 
