@@ -3,15 +3,19 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types.Scalars
 {
+    /// <summary>
+    /// The `USCurrency` scalar type represents a valid US currency.
+    /// </summary>
     public class USCurrencyType : RegexType
     {
         private const string _validationPattern =
-            "(^(?:(?:(?:0?0?[0-9]|0?[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\\.){3}(?:0?0?" +
-            "[0-9]|0?[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])(?:\\/(?:[0-9]|[1-2][0-9]|3[0" +
-            "-2]))?)$)";
+            "^\\$?\\-?([1-9]{1}[0-9]{0,2}(\\,\\d{3})*(\\.\\d{0,2})?|[1-9]{1}\\d{0,}(\\.\\d{0,2})?|0" +
+            "(\\.\\d{0,2})?|(\\.\\d{1,2}))$|^\\-?\\$?([1-9]{1}\\d{0,2}(\\,\\d{3})*(\\.\\d{0,2})?|[1-9]" +
+            "{1}\\d{0,}(\\.\\d{0,2})?|0(\\.\\d{0,2})?|(\\.\\d{1,2}))$|^\\(\\$?([1-9]{1}\\d{0,2}(\\,\\d{3})*" +
+            "(\\.\\d{0,2})?|[1-9]{1}\\d{0,}(\\.\\d{0,2})?|0(\\.\\d{0,2})?|(\\.\\d{1,2}))\\)$";
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="IPv4Type"/> class.
+        /// Initializes a new instance of the <see cref="USCurrencyType"/> class.
         /// </summary>
         public USCurrencyType()
             : base(

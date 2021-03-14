@@ -322,12 +322,12 @@
     <value>UnsignedIntType cannot parse the provided value. The provided value is not greater than or equal to 0.</value>
   </data>
   <data name="USCurrencyType_Description" xml:space="preserve">
-    <value>The USCurrency scalar type represents a US currency value.</value>
+    <value>The USCurrency scalar type represents a  valid US currency.</value>
   </data>
   <data name="USCurrencyType_IsInvalid_ParseLiteral" xml:space="preserve">
-    <value>USCurrencyType cannot parse the provided literal. The provided value is not a US currency value.</value>
+    <value>USCurrencyType cannot parse the provided literal. The provided value is not a valid US currency.</value>
   </data>
   <data name="USCurrencyType_IsInvalid_ParseValue" xml:space="preserve">
-    <value>USCurrencyType cannot parse the provided value. The provided value is not a US currency value.</value>
+    <value>USCurrencyType cannot parse the provided value. The provided value is not a valid US currency.</value>
   </data>
 </root>
