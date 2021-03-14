@@ -136,9 +136,11 @@ namespace HotChocolate.Types.Scalars
             [NotNullWhen(true)]out DateTimeOffset? value)
         {
             if (serialized is not null
-                && DateTimeOffset.TryParse(
+                && DateTime.TryParse(
                     serialized,
-                    out DateTimeOffset dt))
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.AssumeLocal,
+                    out DateTime dt))
             {
                 value = dt;
                 return true;
