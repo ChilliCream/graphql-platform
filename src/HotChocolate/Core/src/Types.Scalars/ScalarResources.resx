@@ -198,6 +198,18 @@
   <data name="IsbnType_IsInvalid_ParseValue" xml:space="preserve">
     <value>IsbnType cannot parse the provided value. The provided value is not a valid ISBN number.</value>
   </data>
+  <data name="LocalTimeType_Description" xml:space="preserve">
+    <value>The LocalTime scalar type represents a double‐precision fractional value less than 0.</value>
+  </data>
+  <data name="LocalTimeType_IsInvalid_ParseLiteral" xml:space="preserve">
+    <value>LocalTimeType cannot parse the provided literal. The provided value is not a valid local time.</value>
+  </data>
+  <data name="LocalTimeType_IsInvalid_ParseValue" xml:space="preserve">
+    <value>LocalTimeType cannot parse the provided value. The provided value is not a valid local time.</value>
+  </data>
+  <data name="LocalTimeType_TypeNameEmptyOrNull" xml:space="preserve">
+    <value>The LocalTimeType mustn't be null or empty.</value>
+  </data>
   <data name="NegativeFloatType_Description" xml:space="preserve">
     <value>The NegativeFloat scalar type represents a double‐precision fractional value less than 0.</value>
   </data>
