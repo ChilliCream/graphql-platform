@@ -18,11 +18,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
         public IDocumentHashProvider HashProvider { get; set; } =
             new Sha1DocumentHashProvider(HashFormat.Hex);
 
-        public List<CSharpGeneratorTransportProfile> TransportProfiles { get; } =
+        public List<TransportProfile> TransportProfiles { get; set; } =
             new()
             {
-                new CSharpGeneratorTransportProfile(
-                    "Default",
+                new TransportProfile(
+                    TransportProfile.DefaultProfileName,
                     TransportType.Http,
                     subscription: TransportType.WebSocket)
             };

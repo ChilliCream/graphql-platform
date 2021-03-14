@@ -14,20 +14,29 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
             foreach (var entity in model.Entities)
             {
-                var fields = new List<EntityIdDescriptor>();
+                var fields = new List<ScalarEntityIdDescriptor>();
 
                 foreach (var field in entity.Fields)
                 {
-                    fields.Add(new EntityIdDescriptor(
-                        field.Name,
-                        ((ILeafType)field.Type.NamedType()).GetSerializationType()));
+                    if (field.Type.NamedType() is ILeafType leafType)
+                    {
+                        fields.Add(
+                            new ScalarEntityIdDescriptor(
+                                field.Name,
+                                leafType.Name,
+                                TypeInfos.From(leafType.GetSerializationType())));
+                    }
                 }
 
-                entities.Add(new EntityIdDescriptor(entity.Name, entity.Name, fields));
+                entities.Add(
+                    new EntityIdDescriptor(entity.Name, entity.Name, fields));
             }
 
             context.Register(
-                new EntityIdFactoryDescriptor("EntityIdFactory", entities, context.Namespace));
+                new EntityIdFactoryDescriptor(
+                    context.ClientName + "EntityIdFactory",
+                    entities,
+                    NamingConventions.CreateStateNamespace(context.Namespace)));
         }
     }
 }

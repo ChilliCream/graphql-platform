@@ -13,23 +13,27 @@ namespace StrawberryShake.CodeGeneration.Mappers
         private readonly List<INamedTypeDescriptor> _types = new();
         private readonly List<EntityTypeDescriptor> _entityTypes = new();
         private readonly List<DataTypeDescriptor> _dataTypes = new();
-        private readonly Dictionary<NameString, EnumTypeDescriptor> _enums = new();
         private readonly Dictionary<NameString, OperationDescriptor> _operations = new();
         private readonly Dictionary<NameString, ResultBuilderDescriptor> _resultBuilder = new();
+        private readonly Dictionary<(string, TypeKind), RuntimeTypeInfo> _runtimeTypes = new();
+        private readonly HashSet<string> _runtimeTypeNames = new();
         private ClientDescriptor? _client;
         private EntityIdFactoryDescriptor? _entityIdFactory;
         private DependencyInjectionDescriptor? _dependencyInjectionDescriptor;
+        private StoreAccessorDescriptor? _storeAccessorDescriptor;
 
         public MapperContext(
             string @namespace,
             string clientName,
             IDocumentHashProvider hashProvider,
-            RequestStrategy requestStrategy)
+            RequestStrategy requestStrategy,
+            IReadOnlyList<TransportProfile> transportProfiles)
         {
             Namespace = @namespace;
             ClientName = clientName;
             HashProvider = hashProvider;
             RequestStrategy = requestStrategy;
+            TransportProfiles = transportProfiles;
         }
 
         public string ClientName { get; }
@@ -40,6 +44,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
         public RequestStrategy RequestStrategy { get; }
 
         public IDocumentHashProvider HashProvider { get; }
+
+        public IReadOnlyList<TransportProfile> TransportProfiles { get; }
 
         public IReadOnlyList<INamedTypeDescriptor> Types => _types;
 
@@ -59,6 +65,9 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
         public DependencyInjectionDescriptor DependencyInjection =>
             _dependencyInjectionDescriptor ?? throw new NotImplementedException();
+
+        public StoreAccessorDescriptor StoreAccessor =>
+            _storeAccessorDescriptor ?? throw new NotImplementedException();
 
         public IEnumerable<ICodeDescriptor> GetAllDescriptors()
         {
@@ -92,6 +101,13 @@ namespace StrawberryShake.CodeGeneration.Mappers
             yield return EntityIdFactory;
 
             yield return DependencyInjection;
+
+            yield return StoreAccessor;
+        }
+
+        public RuntimeTypeInfo GetRuntimeType(NameString typeName, TypeKind kind)
+        {
+            return _runtimeTypes[(typeName, kind)];
         }
 
         public void Register(IEnumerable<INamedTypeDescriptor> typeDescriptors)
@@ -135,7 +151,9 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 throw new ArgumentNullException(nameof(operationDescriptor)));
         }
 
-        public void Register(NameString operationName, ResultBuilderDescriptor resultBuilderDescriptor)
+        public void Register(
+            NameString operationName,
+            ResultBuilderDescriptor resultBuilderDescriptor)
         {
             _resultBuilder.Add(
                 operationName.EnsureNotEmpty(nameof(operationName)),
@@ -156,6 +174,29 @@ namespace StrawberryShake.CodeGeneration.Mappers
         public void Register(DependencyInjectionDescriptor dependencyInjectionDescriptor)
         {
             _dependencyInjectionDescriptor = dependencyInjectionDescriptor;
+        }
+
+        public void Register(StoreAccessorDescriptor storeAccessorDescriptor)
+        {
+            _storeAccessorDescriptor = storeAccessorDescriptor;
+        }
+
+        public bool Register(NameString typeName, TypeKind kind, RuntimeTypeInfo runtimeType)
+        {
+            // we already have a registration.
+            if (_runtimeTypes.ContainsKey((typeName, kind)))
+            {
+                return false;
+            }
+
+            // the type name is not unique.
+            if (!_runtimeTypeNames.Add(runtimeType.ToString()))
+            {
+                return false;
+            }
+
+            _runtimeTypes.Add((typeName, kind), runtimeType);
+            return true;
         }
     }
 }

@@ -18,13 +18,6 @@ namespace StrawberryShake.CodeGeneration.Mappers
         string Namespace { get; }
 
         /// <summary>
-        /// Gets the client state namespace.
-        /// This namespace is where we have all the store related APIs.
-        /// </summary>
-        /// <value></value>
-        string StateNamespace { get; }
-
-        /// <summary>
         /// Gets the client request strategy.
         /// </summary>
         RequestStrategy RequestStrategy { get; }
@@ -40,7 +33,13 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
         IReadOnlyCollection<OperationDescriptor> Operations { get; }
 
+        IReadOnlyList<TransportProfile> TransportProfiles { get; }
+
         ClientDescriptor Client { get; }
+
+        StoreAccessorDescriptor StoreAccessor { get; }
+
+        EntityIdFactoryDescriptor EntityIdFactory { get; }
 
         void Register(IEnumerable<INamedTypeDescriptor> typeDescriptors);
 
@@ -57,5 +56,11 @@ namespace StrawberryShake.CodeGeneration.Mappers
         void Register(EntityIdFactoryDescriptor entityIdFactoryDescriptor);
 
         void Register(DependencyInjectionDescriptor dependencyInjectionDescriptor);
+
+        void Register(StoreAccessorDescriptor storeAccessorDescriptor);
+
+        bool Register(NameString typeName, TypeKind kind, RuntimeTypeInfo runtimeType);
+
+        RuntimeTypeInfo GetRuntimeType(NameString typeName, TypeKind kind);
     }
 }

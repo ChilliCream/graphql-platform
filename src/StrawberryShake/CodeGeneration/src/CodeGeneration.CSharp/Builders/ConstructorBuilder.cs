@@ -10,6 +10,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private string? _typeName;
         private readonly List<ParameterBuilder> _parameters = new();
         private readonly List<ICode> _lines = new();
+        private readonly List<ICode> _base = new();
 
         public static ConstructorBuilder New() => new ConstructorBuilder();
 
@@ -45,6 +46,18 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         public ConstructorBuilder AddCode(string value)
         {
             _lines.Add(CodeLineBuilder.New().SetLine(value));
+            return this;
+        }
+
+        public ConstructorBuilder AddBase(ICode value)
+        {
+            _base.Add(value);
+            return this;
+        }
+
+        public ConstructorBuilder AddBase(string value)
+        {
+            _base.Add(CodeInlineBuilder.New().SetText(value));
             return this;
         }
 
@@ -88,6 +101,42 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                         {
                             writer.Write(",");
                             writer.WriteLine();
+                        }
+                    }
+                }
+            }
+
+            if (_base.Count > 0)
+            {
+                writer.WriteLine();
+
+                using (writer.IncreaseIndent())
+                {
+                    writer.WriteIndent();
+                    writer.Write(": base(");
+                    if (_base.Count == 1)
+                    {
+                        _base[0].Build(writer);
+                        writer.Write(")");
+                    }
+                    else
+                    {
+                        using (writer.IncreaseIndent())
+                        {
+                            for (var i = 0; i < _base.Count; i++)
+                            {
+                                writer.WriteLine();
+                                writer.WriteIndent();
+                                _base[i].Build(writer);
+                                if (i == _base.Count - 1)
+                                {
+                                    writer.Write(")");
+                                }
+                                else
+                                {
+                                    writer.Write(",");
+                                }
+                            }
                         }
                     }
                 }

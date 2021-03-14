@@ -11,9 +11,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         protected override void Generate(
             CodeWriter writer,
             InputObjectTypeDescriptor namedTypeDescriptor,
-            out string fileName)
+            out string fileName,
+            out string? path)
         {
             fileName = namedTypeDescriptor.Name;
+            path = null;
 
             ClassBuilder classBuilder = ClassBuilder
                 .New()
@@ -26,7 +28,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .AddProperty(prop.Name)
                     .SetPublic()
                     .SetComment(prop.Description)
-                    .SetType(prop.Type.ToBuilder())
+                    .SetType(prop.Type.ToTypeReference())
                     .MakeSettable()
                     .SetValue("default!");
             }

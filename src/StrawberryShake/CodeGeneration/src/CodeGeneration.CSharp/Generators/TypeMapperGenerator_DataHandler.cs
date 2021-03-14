@@ -19,7 +19,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         {
             method
                 .AddParameter(_dataParameterName)
-                .SetType(namedTypeDescriptor.ParentRuntimeType!.ToString());
+                .SetType(namedTypeDescriptor.ParentRuntimeType!
+                    .ToString()
+                    .MakeNullable(!isNonNullable));
+            method
+                .AddParameter(_snapshot)
+                .SetType(TypeNames.IEntityStoreSnapshot);
 
             if (!isNonNullable)
             {
@@ -78,7 +83,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             foreach (PropertyDescriptor prop in objectTypeDescriptor.Properties)
             {
                 var propAccess = $"{_dataParameterName}.{prop.Name}";
-                if (prop.Type.IsEntityType())
+                if (prop.Type.IsEntityType() || prop.Type.IsDataType())
                 {
                     constructorCall.AddArgument(BuildMapMethodCall(_dataParameterName, prop, true));
                 }

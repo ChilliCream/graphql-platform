@@ -12,28 +12,6 @@ namespace StrawberryShake.CodeGeneration.Utilities
 {
     public static class SchemaHelper
     {
-        private static readonly HashSet<string> _knownScalars = new()
-        {
-            ScalarNames.String,
-            ScalarNames.ID,
-            ScalarNames.Boolean,
-            ScalarNames.Byte,
-            ScalarNames.Short,
-            ScalarNames.Int,
-            ScalarNames.Long,
-            ScalarNames.Float,
-            ScalarNames.Decimal,
-            ScalarNames.Url,
-            ScalarNames.Uuid,
-            ScalarNames.DateTime,
-            ScalarNames.Date,
-            ScalarNames.MultiplierPath,
-            ScalarNames.Name,
-            ScalarNames.ByteArray,
-            ScalarNames.Any,
-            ScalarNames.TimeSpan
-        };
-
         public static ISchema Load(
             IEnumerable<GraphQLFile> files,
             bool strictValidation = true)
@@ -80,7 +58,7 @@ namespace StrawberryShake.CodeGeneration.Utilities
                 {
                     foreach (var scalar in document.Definitions.OfType<ScalarTypeDefinitionNode>())
                     {
-                        if (!_knownScalars.Contains(scalar.Name.Value))
+                        if (!BuiltInScalarNames.IsBuiltInScalar(scalar.Name.Value))
                         {
                             builder.AddType(new AnyType(
                                 scalar.Name.Value,
@@ -210,7 +188,7 @@ namespace StrawberryShake.CodeGeneration.Utilities
             TryAddLeafType(leafTypes, ScalarNames.DateTime, TypeNames.DateTimeOffset);
             TryAddLeafType(leafTypes, ScalarNames.Date, TypeNames.DateTime);
             TryAddLeafType(leafTypes, ScalarNames.TimeSpan, TypeNames.TimeSpan);
-            TryAddLeafType(leafTypes, ScalarNames.ByteArray, TypeNames.ByteArray);
+            TryAddLeafType(leafTypes, ScalarNames.ByteArray, TypeNames.ByteArray, TypeNames.ByteArray);
         }
 
         private static bool TryGetKeys(

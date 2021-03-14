@@ -29,6 +29,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             new EntityTypeGenerator(),
             new EntityIdFactoryGenerator(),
             new DependencyInjectionGenerator(),
+            new TransportProfileEnumGenerator(),
             new InputValueFormatterGenerator(),
             new EnumGenerator(),
             new EnumParserGenerator(),
@@ -39,6 +40,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             new ResultFromEntityTypeMapperGenerator(),
             new ResultInfoGenerator(),
             new ResultTypeGenerator(),
+            new StoreAccessorGenerator(),
             new InputTypeGenerator(),
             new ResultInterfaceGenerator(),
             new DataTypeGenerator()
@@ -166,7 +168,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 settings.Namespace,
                 settings.ClientName,
                 settings.HashProvider,
-                settings.RequestStrategy);
+                settings.RequestStrategy,
+                settings.TransportProfiles);
 
             // First we run all mappers that do not have any dependencies on others.
             EntityIdFactoryDescriptorMapper.Map(clientModel, context);
@@ -178,6 +181,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             // now we execute all mappers that depend on the previous type mappers.
             OperationDescriptorMapper.Map(clientModel, context);
+            StoreAccessorMapper.Map(clientModel, context);
             DependencyInjectionMapper.Map(clientModel, context);
             DataTypeDescriptorMapper.Map(clientModel, context);
             EntityTypeDescriptorMapper.Map(clientModel, context);
@@ -186,7 +190,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             // Lastly we generate the client mapper
             ClientDescriptorMapper.Map(clientModel, context);
 
-            // Last we execute all our generators with the descriptiptors.
+            // Last we execute all our generators with the descriptors.
             var code = new StringBuilder();
             var documents = new List<SourceDocument>();
 
@@ -230,10 +234,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
             writer.WriteLine();
 #endif
 
-            generator.Generate(writer, descriptor, out string fileName);
+            generator.Generate(writer, descriptor, out var fileName, out var path);
 
             writer.Flush();
-            return new(fileName, code.ToString(), SourceDocumentKind.CSharp);
+
+            return new(
+                fileName,
+                code.ToString(),
+                SourceDocumentKind.CSharp,
+                path: path);
         }
 
         private static bool TryParseDocuments(

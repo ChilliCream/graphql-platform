@@ -9,9 +9,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private ICode? _rightHandSide;
         private bool _assertNonNull;
         private string? _nonNullAssertTypeNameOverride;
+        private string _operator = "=";
         private ICode? _assertException;
 
-        public static AssignmentBuilder New() => new AssignmentBuilder();
+        public static AssignmentBuilder New() => new();
 
         public AssignmentBuilder SetLefthandSide(ICode value)
         {
@@ -22,6 +23,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         public AssignmentBuilder SetLefthandSide(string value)
         {
             _leftHandSide = new CodeInlineBuilder().SetText(value);
+            return this;
+        }
+
+        public AssignmentBuilder SetOperator(string value)
+        {
+            _operator = value;
             return this;
         }
 
@@ -75,7 +82,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
             writer.WriteIndent();
             _leftHandSide.Build(writer);
-            writer.Write(" = ");
+
+            writer.Write(" ");
+            writer.Write(_operator);
+            writer.Write(" ");
+
             _rightHandSide.Build(writer);
             if (_assertNonNull)
             {

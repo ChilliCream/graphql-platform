@@ -11,6 +11,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
     {
         private const string _entityStore = "_entityStore";
         private const string _dataInfo = "dataInfo";
+        private const string _snapshot = "snapshot";
         private const string _info = "info";
 
         protected override bool CanHandle(ITypeDescriptor descriptor)
@@ -21,7 +22,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         protected override void Generate(
             CodeWriter writer,
             ITypeDescriptor typeDescriptor,
-            out string fileName)
+            out string fileName,
+            out string? path)
         {
             ComplexTypeDescriptor descriptor =
                 typeDescriptor as ComplexTypeDescriptor ??
@@ -29,14 +31,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     "A result data factory can only be generated for complex types");
 
             fileName = CreateResultFactoryName(descriptor.RuntimeType.Name);
+            path = State;
 
             ClassBuilder classBuilder =
                 ClassBuilder
                     .New()
                     .SetName(fileName)
                     .AddImplements(
-                        TypeNames.IOperationResultDataFactory
-                            .WithGeneric(descriptor.RuntimeType.Name));
+                        TypeNames.IOperationResultDataFactory.WithGeneric(descriptor.RuntimeType));
 
             ConstructorBuilder constructorBuilder = classBuilder
                 .AddConstructor()
@@ -71,6 +73,19 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .SetAccessModifier(AccessModifier.Public)
                 .SetReturnType(descriptor.RuntimeType.Name)
                 .AddParameter(_dataInfo, b => b.SetType(TypeNames.IOperationResultDataInfo))
+                .AddParameter(
+                    _snapshot,
+                    b => b.SetDefault("null")
+                        .SetType(TypeNames.IEntityStoreSnapshot.MakeNullable()))
+                .AddCode(
+                    IfBuilder.New()
+                        .SetCondition($"{_snapshot} is null")
+                        .AddCode(
+                            AssignmentBuilder
+                                .New()
+                                .SetLefthandSide(_snapshot)
+                                .SetRighthandSide($"{_entityStore}.CurrentSnapshot")))
+                .AddEmptyLine()
                 .AddCode(ifHasCorrectType)
                 .AddEmptyLine()
                 .AddCode(
@@ -89,9 +104,31 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 processed,
                 true);
 
+            classBuilder
+                .AddProperty("ResultType")
+                .SetType(TypeNames.Type)
+                .AsLambda($"typeof({descriptor.RuntimeType.Namespace}.{ descriptor.Implements[0]})")
+                .SetInterface(TypeNames.IOperationResultDataFactory);
+
+            classBuilder
+                .AddMethod("Create")
+                .SetInterface(TypeNames.IOperationResultDataFactory)
+                .SetReturnType(TypeNames.Object)
+                .AddParameter(_dataInfo, b => b.SetType(TypeNames.IOperationResultDataInfo))
+                .AddParameter(
+                    _snapshot,
+                    b => b.SetType(TypeNames.IEntityStoreSnapshot.MakeNullable()))
+                .AddCode(
+                    MethodCallBuilder
+                        .New()
+                        .SetReturn()
+                        .SetMethodName("Create")
+                        .AddArgument(_dataInfo)
+                        .AddArgument(_snapshot));
+
             CodeFileBuilder
                 .New()
-                .SetNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal)
+                .SetNamespace(CreateStateNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal))
                 .AddType(classBuilder)
                 .Build(writer);
         }

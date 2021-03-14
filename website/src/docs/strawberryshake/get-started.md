@@ -119,7 +119,11 @@ Now that everything is in place let us write our first query to ask for a list o
 code ./Demo
 ```
 
+<<<<<<< HEAD
 4. Create new query document `GetSessions.graphql` with the following content:
+=======
+3. Create new query document `GetSessions.graphql` with the following content:
+>>>>>>> strawberry-shake-docs
 
 ```graphql
 query GetSessions {
@@ -131,7 +135,11 @@ query GetSessions {
 }
 ```
 
+<<<<<<< HEAD
 5. Compile your project.
+=======
+4. Compile your project.
+>>>>>>> strawberry-shake-docs
 
 ```bash
 dotnet build
@@ -139,9 +147,15 @@ dotnet build
 
 With the project compiled you now should see a directory `Generated`. The generated code is just there for the IDE, the actual code was injected directly into roslyn through source generators.
 
+<<<<<<< HEAD
 ![Visual Studio code showing the generated directory.](../shared/berry_generated.png)
 
 6. Head over to the `Program.cs` and add the new `ConferenceClient` to the dependency injection.
+=======
+IMAGE 1
+
+5. Head over to the `Program.cs` and add the new `ConferenceClient` to the dependency injection.
+>>>>>>> strawberry-shake-docs
 
 > In some IDEs it is still necessary to reload the project after the code was generated to update the IntelliSense. So, if you have any issues in the next step with IntelliSense just reload the project and everything should be fine.
 
@@ -155,16 +169,30 @@ public class Program
 
         builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
+<<<<<<< HEAD
         builder.Services
             .AddConferenceClient()
             .ConfigureHttpClient(client => client.BaseAddress = new Uri("https://hc-conference-app.azurewebsites.net/graphql"));
+=======
+        // adds the conference client to the dependency injection.
+        builder.Services.AddConferenceClient();
+
+        // configures the transport for the conference client.
+        builder.Services.AddHttpClient(
+            ConferenceClient.ClientName,
+            client => client.BaseAddress = new Uri("https://hc-conference-app.azurewebsites.net/graphql"));
+>>>>>>> strawberry-shake-docs
 
         await builder.Build().RunAsync();
     }
 }
 ```
 
+<<<<<<< HEAD
 7. Go to `_Imports.razor` and add `Demo.GraphQL` to the common imports
+=======
+6. Go to `_Imports.razor` and add `Demo.GraphQL` to the common imports
+>>>>>>> strawberry-shake-docs
 
 ```razor
 @using System.Net.Http
@@ -188,6 +216,7 @@ In this section we will perform a simple fetch with our `ConferenceClient`. We w
 
 2. Add inject the `ConferenceClient` beneath the `@pages` directive.
 
+<<<<<<< HEAD
 ```html
 @page "/"
 @inject ConferenceClient ConferenceClient;
@@ -196,6 +225,9 @@ In this section we will perform a simple fetch with our `ConferenceClient`. We w
 3. Introduce a code directive at the bottom of the file.
 
 ```html
+=======
+```razor
+>>>>>>> strawberry-shake-docs
 @page "/"
 @inject ConferenceClient ConferenceClient;
 
@@ -204,6 +236,7 @@ In this section we will perform a simple fetch with our `ConferenceClient`. We w
 Welcome to your new app.
 
 <SurveyPrompt Title="How is Blazor working for you?" />
+<<<<<<< HEAD
 
 @code {
 
@@ -213,6 +246,13 @@ Welcome to your new app.
 4. Now lets fetch the titles with our client.
 
 ```html
+=======
+```
+
+3. Introduce a code section at the bottom of the file.
+
+```razor
+>>>>>>> strawberry-shake-docs
 @page "/"
 @inject ConferenceClient ConferenceClient;
 
@@ -223,6 +263,7 @@ Welcome to your new app.
 <SurveyPrompt Title="How is Blazor working for you?" />
 
 @code {
+<<<<<<< HEAD
     private string[] titles = Array.Empty<string>();
 
     protected override async Task OnInitializedAsync()
@@ -242,6 +283,15 @@ Welcome to your new app.
 5. Last, lets render the titles on our page as a list.
 
 ```html
+=======
+
+}
+```
+
+4. Now lets fetch the titles with our client.
+
+```razor
+>>>>>>> strawberry-shake-docs
 @page "/"
 @inject ConferenceClient ConferenceClient;
 
@@ -251,6 +301,7 @@ Welcome to your new app.
 
 <SurveyPrompt Title="How is Blazor working for you?" />
 
+<<<<<<< HEAD
 <ul>
     @foreach (string title in titles)
     {
@@ -258,6 +309,8 @@ Welcome to your new app.
     }
 </ul>
 
+=======
+>>>>>>> strawberry-shake-docs
 @code {
     private string[] titles = Array.Empty<string>();
 
@@ -275,9 +328,15 @@ Welcome to your new app.
 }
 ```
 
+<<<<<<< HEAD
 5. Start the Blazor application with `dotnet run --project ./Demo` and see if your code works.
 
 ![Started Blazor application in Microsoft Edge](../shared/berry_session_list.png)
+=======
+5. Start the Blazor application with `dotnet run ./Demo` and see if your code works.
+
+IMAGE BROWSER
+>>>>>>> strawberry-shake-docs
 
 ## Step 6: Using the built-in store with reactive APIs.
 
@@ -291,7 +350,11 @@ dotnet add Demo package System.Reactive
 
 2. Next, let us update the `_Imports.razor` with some more imports, namely `System`, `System.Reactive.Linq`, `System.Linq` and `StrawberryShake`.
 
+<<<<<<< HEAD
 ```csharp
+=======
+```razor
+>>>>>>> strawberry-shake-docs
 @using System
 @using System.Reactive.Linq
 @using System.Linq
@@ -331,12 +394,15 @@ protected override void OnInitialized()
 }
 ```
 
+<<<<<<< HEAD
 Instead of fetching the data we watch the data for our request. Every time entities of our results are updated in the entity store our subscribe method will be triggered.
 
 Also we specified on our watch method that we want to first look at the store and only of there is nothing in the store we want to fetch the data from the network.
 
 Last, note that we are storing a disposable on our component state called `storeSession`. This represents our session with the store. We need to dispose the session when we no longer display our component.
 
+=======
+>>>>>>> strawberry-shake-docs
 4. Implement `IDisposable` and handle the `storeSession` dispose.
 
 ```csharp
@@ -378,6 +444,7 @@ Welcome to your new app.
 
     public void Dispose()
     {
+<<<<<<< HEAD
         storeSession?.Dispose();
     }
 }
@@ -402,3 +469,9 @@ The Blazor application just fetched a single time from the network and now only 
 ## Step 7: Using GraphQL mutations
 
 In this step we will introduce a mutation that will allow us to rename a session.
+=======
+        storeSession.Dispose();
+    }
+}
+```
+>>>>>>> strawberry-shake-docs
