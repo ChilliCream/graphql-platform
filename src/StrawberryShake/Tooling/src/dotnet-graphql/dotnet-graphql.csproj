@@ -5,6 +5,7 @@
     <IsPackable>true</IsPackable>
     <PackAsTool>true</PackAsTool>
     <NoWarn>$(NoWarn);CA1062</NoWarn>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -19,11 +20,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\HotChocolate\Core\src\Core\HotChocolate.Core.csproj" />
     <ProjectReference Include="..\..\..\..\HotChocolate\Utilities\src\Utilities.Introspection\HotChocolate.Utilities.Introspection.csproj" />
-    <ProjectReference Include="..\..\..\Client\src\Http\StrawberryShake.Http.csproj" />
-    <ProjectReference Include="..\..\..\CodeGeneration\src\CodeGeneration.CSharp\StrawberryShake.CodeGeneration.CSharp.csproj" />
-    <ProjectReference Include="..\..\..\CodeGeneration\src\CodeGeneration\StrawberryShake.CodeGeneration.csproj" />
-    <ProjectReference Include="..\..\..\CodeGeneration\src\Generators\StrawberryShake.Generators.csproj" />
   </ItemGroup>
 
 </Project>

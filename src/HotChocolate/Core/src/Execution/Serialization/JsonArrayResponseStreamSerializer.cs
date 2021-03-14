@@ -1,19 +1,33 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace HotChocolate.Execution.Serialization
 {
-    public sealed class JsonArrayResponseStreamSerializer
-        : IResponseStreamSerializer
+    public sealed class JsonArrayResponseStreamSerializer : IResponseStreamSerializer
     {
         private const byte _leftBracket = (byte)'[';
         private const byte _rightBracket = (byte)']';
         private const byte _comma = (byte)',';
-        private readonly JsonQueryResultSerializer _serializer =
-            new JsonQueryResultSerializer();
+        private readonly JsonQueryResultSerializer _serializer;
+
+        /// <summary>
+        /// Creates a new instance of <see cref="JsonArrayResponseStreamSerializer" />.
+        /// </summary>
+        /// <param name="indented">
+        /// Defines whether the underlying <see cref="Utf8JsonWriter"/>
+        /// should pretty print the JSON which includes:
+        /// indenting nested JSON tokens, adding new lines, and adding
+        /// white space between property names and values.
+        /// By default, the JSON is written without any extra white space.
+        /// </param>
+        public JsonArrayResponseStreamSerializer(bool indented = false)
+        {
+            _serializer = new(indented);
+        }
 
         public Task SerializeAsync(
             IResponseStream responseStream,
@@ -67,7 +81,9 @@ namespace HotChocolate.Execution.Serialization
         {
             if (delimiter)
             {
-                await outputStream.WriteAsync(new[] { _comma }, 0, 1).ConfigureAwait(false);
+                await outputStream.WriteAsync(
+                    new[] { _comma }, 0, 1, cancellationToken)
+                    .ConfigureAwait(false);
             }
 
             await _serializer.SerializeAsync(

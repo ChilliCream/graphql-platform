@@ -449,7 +449,7 @@ namespace HotChocolate.Data.Sorting.Expressions
                 QueryRequestBuilder.New()
                     .SetQuery(
                         @"
-                         query testSort($order: [BarSortInput]) {
+                         query testSort($order: [BarSortInput!]) {
                             root(order: $order) {
                                 foo {
                                     barBool
@@ -480,7 +480,7 @@ namespace HotChocolate.Data.Sorting.Expressions
                 QueryRequestBuilder.New()
                     .SetQuery(
                         @"
-                         query testSort($order: [BarSortInput]) {
+                         query testSort($order: [BarSortInput!]) {
                             root(order: $order) {
                                 foo {
                                     barBool
@@ -514,7 +514,7 @@ namespace HotChocolate.Data.Sorting.Expressions
                 QueryRequestBuilder.New()
                     .SetQuery(
                         @"
-                         query testSort($order: [BarSortInput]) {
+                         query testSort($order: [BarSortInput!]) {
                             root(order: $order) {
                                 foo {
                                     barBool
@@ -545,7 +545,7 @@ namespace HotChocolate.Data.Sorting.Expressions
                 QueryRequestBuilder.New()
                     .SetQuery(
                         @"
-                         query testSort($order: [BarSortInput]) {
+                         query testSort($order: [BarSortInput!]) {
                             root(order: $order) {
                                 foo {
                                     barBool

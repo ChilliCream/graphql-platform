@@ -18,12 +18,84 @@ namespace HotChocolate.Data
             IServiceProvider services =
                 new ServiceCollection()
                     .AddPooledDbContextFactory<BookContext>(
-                        b => b.UseInMemoryDatabase("Data Source=books1.db"))
+                        b => b.UseInMemoryDatabase(CreateConnectionString()))
                     .AddGraphQL()
                     .AddFiltering()
                     .AddSorting()
                     .AddProjections()
                     .AddQueryType<Query>()
+                    .Services
+                    .BuildServiceProvider();
+
+            IRequestExecutor executor =
+                await services.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
+
+            IDbContextFactory<BookContext> contextFactory =
+                services.GetRequiredService<IDbContextFactory<BookContext>>();
+
+            await using (BookContext context = contextFactory.CreateDbContext())
+            {
+                await context.Authors.AddAsync(new Author { Name = "foo" });
+                await context.SaveChangesAsync();
+            }
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync("{ authors { name } }");
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Execute_Queryable_Task()
+        {
+            // arrange
+            IServiceProvider services =
+                new ServiceCollection()
+                    .AddPooledDbContextFactory<BookContext>(
+                        b => b.UseInMemoryDatabase(CreateConnectionString()))
+                    .AddGraphQL()
+                    .AddFiltering()
+                    .AddSorting()
+                    .AddProjections()
+                    .AddQueryType<QueryTask>()
+                    .Services
+                    .BuildServiceProvider();
+
+            IRequestExecutor executor =
+                await services.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
+
+            IDbContextFactory<BookContext> contextFactory =
+                services.GetRequiredService<IDbContextFactory<BookContext>>();
+
+            await using (BookContext context = contextFactory.CreateDbContext())
+            {
+                await context.Authors.AddAsync(new Author { Name = "foo" });
+                await context.SaveChangesAsync();
+            }
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync("{ authors { name } }");
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Execute_Queryable_ValueTask()
+        {
+            // arrange
+            IServiceProvider services =
+                new ServiceCollection()
+                    .AddPooledDbContextFactory<BookContext>(
+                        b => b.UseInMemoryDatabase(CreateConnectionString()))
+                    .AddGraphQL()
+                    .AddFiltering()
+                    .AddSorting()
+                    .AddProjections()
+                    .AddQueryType<QueryValueTask>()
                     .Services
                     .BuildServiceProvider();
 
@@ -54,12 +126,110 @@ namespace HotChocolate.Data
             IServiceProvider services =
                 new ServiceCollection()
                     .AddPooledDbContextFactory<BookContext>(
-                        b => b.UseInMemoryDatabase("Data Source=books2.db"))
+                        b => b.UseInMemoryDatabase(CreateConnectionString()))
                     .AddGraphQL()
                     .AddFiltering()
                     .AddSorting()
                     .AddProjections()
                     .AddQueryType<Query>()
+                    .Services
+                    .BuildServiceProvider();
+
+            IRequestExecutor executor =
+                await services.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
+
+            IDbContextFactory<BookContext> contextFactory =
+                services.GetRequiredService<IDbContextFactory<BookContext>>();
+
+            await using (BookContext context = contextFactory.CreateDbContext())
+            {
+                await context.Authors.AddAsync(new Author { Name = "foo" });
+                await context.Authors.AddAsync(new Author { Name = "bar" });
+                await context.SaveChangesAsync();
+            }
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"query Test {
+                    authorOffsetPaging {
+                        items {
+                            name
+                        }
+                        pageInfo {
+                            hasNextPage
+                            hasPreviousPage
+                        }
+                        totalCount
+                    }
+                }");
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Execute_Queryable_OffsetPaging_TotalCount_Task()
+        {
+            // arrange
+            IServiceProvider services =
+                new ServiceCollection()
+                    .AddPooledDbContextFactory<BookContext>(
+                        b => b.UseInMemoryDatabase(CreateConnectionString()))
+                    .AddGraphQL()
+                    .AddFiltering()
+                    .AddSorting()
+                    .AddProjections()
+                    .AddQueryType<QueryTask>()
+                    .Services
+                    .BuildServiceProvider();
+
+            IRequestExecutor executor =
+                await services.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
+
+            IDbContextFactory<BookContext> contextFactory =
+                services.GetRequiredService<IDbContextFactory<BookContext>>();
+
+            await using (BookContext context = contextFactory.CreateDbContext())
+            {
+                await context.Authors.AddAsync(new Author { Name = "foo" });
+                await context.Authors.AddAsync(new Author { Name = "bar" });
+                await context.SaveChangesAsync();
+            }
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"query Test {
+                    authorOffsetPaging {
+                        items {
+                            name
+                        }
+                        pageInfo {
+                            hasNextPage
+                            hasPreviousPage
+                        }
+                        totalCount
+                    }
+                }");
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Execute_Queryable_OffsetPaging_TotalCount_ValueTask()
+        {
+            // arrange
+            IServiceProvider services =
+                new ServiceCollection()
+                    .AddPooledDbContextFactory<BookContext>(
+                        b => b.UseInMemoryDatabase(CreateConnectionString()))
+                    .AddGraphQL()
+                    .AddFiltering()
+                    .AddSorting()
+                    .AddProjections()
+                    .AddQueryType<QueryValueTask>()
                     .Services
                     .BuildServiceProvider();
 
@@ -103,12 +273,108 @@ namespace HotChocolate.Data
             IServiceProvider services =
                 new ServiceCollection()
                     .AddPooledDbContextFactory<BookContext>(
-                        b => b.UseInMemoryDatabase("Data Source=books3.db"))
+                        b => b.UseInMemoryDatabase(CreateConnectionString()))
                     .AddGraphQL()
                     .AddFiltering()
                     .AddSorting()
                     .AddProjections()
                     .AddQueryType<Query>()
+                    .Services
+                    .BuildServiceProvider();
+
+            IRequestExecutor executor =
+                await services.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
+
+            IDbContextFactory<BookContext> contextFactory =
+                services.GetRequiredService<IDbContextFactory<BookContext>>();
+
+            await using (BookContext context = contextFactory.CreateDbContext())
+            {
+                await context.Authors.AddAsync(new Author { Name = "foo" });
+                await context.Authors.AddAsync(new Author { Name = "bar" });
+                await context.SaveChangesAsync();
+            }
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"query Test {
+                    authorOffsetPaging {
+                        items {
+                            name
+                        }
+                        pageInfo {
+                            hasNextPage
+                            hasPreviousPage
+                        }
+                    }
+                }");
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Execute_Queryable_OffsetPaging_Task()
+        {
+            // arrange
+            IServiceProvider services =
+                new ServiceCollection()
+                    .AddPooledDbContextFactory<BookContext>(
+                        b => b.UseInMemoryDatabase(CreateConnectionString()))
+                    .AddGraphQL()
+                    .AddFiltering()
+                    .AddSorting()
+                    .AddProjections()
+                    .AddQueryType<QueryTask>()
+                    .Services
+                    .BuildServiceProvider();
+
+            IRequestExecutor executor =
+                await services.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
+
+            IDbContextFactory<BookContext> contextFactory =
+                services.GetRequiredService<IDbContextFactory<BookContext>>();
+
+            await using (BookContext context = contextFactory.CreateDbContext())
+            {
+                await context.Authors.AddAsync(new Author { Name = "foo" });
+                await context.Authors.AddAsync(new Author { Name = "bar" });
+                await context.SaveChangesAsync();
+            }
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"query Test {
+                    authorOffsetPaging {
+                        items {
+                            name
+                        }
+                        pageInfo {
+                            hasNextPage
+                            hasPreviousPage
+                        }
+                    }
+                }");
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Execute_Queryable_OffsetPaging_ValueTask()
+        {
+            // arrange
+            IServiceProvider services =
+                new ServiceCollection()
+                    .AddPooledDbContextFactory<BookContext>(
+                        b => b.UseInMemoryDatabase(CreateConnectionString()))
+                    .AddGraphQL()
+                    .AddFiltering()
+                    .AddSorting()
+                    .AddProjections()
+                    .AddQueryType<QueryValueTask>()
                     .Services
                     .BuildServiceProvider();
 
@@ -151,7 +417,7 @@ namespace HotChocolate.Data
             IServiceProvider services =
                 new ServiceCollection()
                     .AddPooledDbContextFactory<BookContext>(
-                        b => b.UseInMemoryDatabase("Data Source=books4.db"))
+                        b => b.UseInMemoryDatabase(CreateConnectionString()))
                     .AddGraphQL()
                     .AddFiltering()
                     .AddSorting()
@@ -188,7 +454,7 @@ namespace HotChocolate.Data
             async Task CreateSchema() =>
                 await new ServiceCollection()
                     .AddPooledDbContextFactory<BookContext>(
-                        b => b.UseInMemoryDatabase("Data Source=books5.db"))
+                        b => b.UseInMemoryDatabase(CreateConnectionString()))
                     .AddGraphQL()
                     .AddFiltering()
                     .AddSorting()
@@ -200,5 +466,68 @@ namespace HotChocolate.Data
             SchemaException exception = await Assert.ThrowsAsync<SchemaException>(CreateSchema);
             exception.Errors.First().Message.MatchSnapshot();
         }
+
+        [Fact]
+        public async Task Infer_Schema_From_IQueryable_Fields()
+        {
+            // arrange
+            // act
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddPooledDbContextFactory<BookContext>(
+                        b => b.UseInMemoryDatabase(CreateConnectionString()))
+                    .AddGraphQL()
+                    .AddFiltering()
+                    .AddSorting()
+                    .AddProjections()
+                    .AddQueryType<Query>()
+                    .BuildSchemaAsync();
+
+            // assert
+            schema.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Infer_Schema_From_IQueryable_Task_Fields()
+        {
+            // arrange
+            // act
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddPooledDbContextFactory<BookContext>(
+                        b => b.UseInMemoryDatabase(CreateConnectionString()))
+                    .AddGraphQL()
+                    .AddFiltering()
+                    .AddSorting()
+                    .AddProjections()
+                    .AddQueryType<QueryTask>()
+                    .BuildSchemaAsync();
+
+            // assert
+            schema.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Infer_Schema_From_IQueryable_ValueTask_Fields()
+        {
+            // arrange
+            // act
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddPooledDbContextFactory<BookContext>(
+                        b => b.UseInMemoryDatabase(CreateConnectionString()))
+                    .AddGraphQL()
+                    .AddFiltering()
+                    .AddSorting()
+                    .AddProjections()
+                    .AddQueryType<QueryValueTask>()
+                    .BuildSchemaAsync();
+
+            // assert
+            schema.Print().MatchSnapshot();
+        }
+
+        private static string CreateConnectionString() =>
+            $"Data Source={Guid.NewGuid():N}.db";
     }
 }

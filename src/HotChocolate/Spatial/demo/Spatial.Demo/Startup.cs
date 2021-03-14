@@ -1,44 +1,36 @@
+using System;
 using HotChocolate;
-using HotChocolate.Data.Filters;
-using HotChocolate.Data.Filters.Expressions;
-using HotChocolate.Data.Filters;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using HotChocolate.Types.Spatial;
 
 namespace Spatial.Demo
 {
     public class Startup
     {
-        public static readonly ILoggerFactory loggerFactory =
-            LoggerFactory.Create(x => x.AddConsole());
-
-        private const string connectionString =
+        private const string CONNECTION_STRING =
             "Database=opensgid;Host=opensgid.agrc.utah.gov;Username=agrc;Password=agrc";
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContextPool<ApplicationDbContext>(
-                    options =>
-                        options.UseNpgsql(
-                                connectionString,
-                                o =>
-                                    o.UseNetTopologySuite())
-                            .UseLoggerFactory(loggerFactory)
-                )
+            services.AddPooledDbContextFactory<ApplicationDbContext>(
+                    options => options
+                        .UseNpgsql(CONNECTION_STRING, o => o.UseNetTopologySuite())
+                        .LogTo(Console.WriteLine))
                 .AddGraphQLServer()
-                .AddSpatialTypes()
-                .AddFiltering(
-                    x => x
-                        .AddDefaults()
-                        .AddSpatialOperations()
-                        .BindSpatialTypes()
-                        .Provider(
-                            new QueryableFilterProvider(
-                                p => p.AddSpatialHandlers().AddDefaultFieldHandlers())))
+                .AddFiltering()
+                .AddProjections()
+                .AddSpatialTypes(x => x
+                    .DefaultSrid(26912)
+                    .AddWebMercator()
+                    .AddWGS84()
+                    .AddCoordinateSystemFromString(29912, DemoResources.CS26912)
+                    .AddCoordinateSystemFromString(29918, DemoResources.CS26918))
+                .AddSpatialProjections()
+                .AddSpatialFiltering()
                 .AddQueryType<Query>();
         }
 

@@ -1,0 +1,22 @@
+query GetBookTitles {
+  books {
+    ... BookInfo
+  }
+}
+
+query GetBooksAndAuthor {
+  books {
+    ... BookInfo
+    author {
+      ... AuthorInfo
+    }
+  }
+}
+
+fragment BookInfo on Book {
+  title
+}
+
+fragment AuthorInfo on Author {
+  name
+}

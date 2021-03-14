@@ -17,6 +17,36 @@
       "field": "name",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Input-Object-Field-Uniqueness"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "ObjectField",
+      "Location": {
+        "Start": 69,
+        "End": 80,
+        "Line": 3,
+        "Column": 51
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 69,
+          "End": 74,
+          "Line": 3,
+          "Column": 51
+        },
+        "Value": "name"
+      },
+      "Value": {
+        "Kind": "StringValue",
+        "Location": {
+          "Start": 75,
+          "End": 80,
+          "Line": 3,
+          "Column": 57
+        },
+        "Value": "B",
+        "Block": false
+      }
+    }
   }
 ]

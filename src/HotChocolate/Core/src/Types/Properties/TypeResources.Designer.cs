@@ -1142,5 +1142,17 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("NodeType_TypeDescription", resourceCulture);
             }
         }
+        
+        internal static string AnyType_CycleInObjectGraph {
+            get {
+                return ResourceManager.GetString("AnyType_CycleInObjectGraph", resourceCulture);
+            }
+        }
+        
+        internal static string UuidType_FormatUnknown {
+            get {
+                return ResourceManager.GetString("UuidType_FormatUnknown", resourceCulture);
+            }
+        }
     }
 }

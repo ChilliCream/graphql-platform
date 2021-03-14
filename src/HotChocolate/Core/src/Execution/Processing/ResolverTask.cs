@@ -93,7 +93,9 @@ namespace HotChocolate.Execution.Processing
             switch (_context.Result)
             {
                 case IExecutable executable:
-                    _context.Result = await executable.ToListAsync(cancellationToken);
+                    _context.Result = await executable
+                        .ToListAsync(cancellationToken)
+                        .ConfigureAwait(false);
                     break;
 
                 case IQueryable queryable:
@@ -175,7 +177,7 @@ namespace HotChocolate.Execution.Processing
                 // if we detect a non-null violation we will stash it for later.
                 // the non-null propagation is delayed so that we can parallelize better.
                 _operationContext.Result.AddNonNullViolation(
-                    _context.FieldSelection,
+                    _context.Selection.SyntaxNode,
                     _context.Path,
                     _context.ResultMap);
             }

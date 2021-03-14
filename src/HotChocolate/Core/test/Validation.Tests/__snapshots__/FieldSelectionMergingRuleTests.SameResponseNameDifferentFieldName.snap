@@ -24,6 +24,68 @@
       "responseNameB": "catOrDog",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selection-Merging"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 124,
+          "End": 133,
+          "Line": 6,
+          "Column": 21
+        },
+        "Value": "catOrDog"
+      },
+      "Arguments": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 145,
+          "End": 218,
+          "Line": 6,
+          "Column": 42
+        },
+        "Selections": [
+          {
+            "Kind": "FragmentSpread",
+            "Location": {
+              "Start": 171,
+              "End": 200,
+              "Line": 7,
+              "Column": 25
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 175,
+                "End": 200,
+                "Line": 7,
+                "Column": 29
+              },
+              "Value": "dog"
+            },
+            "Directives": []
+          }
+        ]
+      },
+      "Location": {
+        "Start": 124,
+        "End": 218,
+        "Line": 6,
+        "Column": 21
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 134,
+          "End": 146,
+          "Line": 6,
+          "Column": 31
+        },
+        "Value": "dogOrHuman"
+      },
+      "Directives": []
+    }
   }
 ]

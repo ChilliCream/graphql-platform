@@ -301,7 +301,7 @@ namespace HotChocolate.Data.Tests
             // arrange
             ISchema builder = SchemaBuilder.New()
                 .AddFiltering()
-                .AddQueryType<CustomHandlerQueryType >()
+                .AddQueryType<CustomHandlerQueryType>()
                 .Create();
 
             // act
@@ -330,8 +330,49 @@ namespace HotChocolate.Data.Tests
 
             // assert
             Assert.NotNull(type);
-            Assert.IsType<CustomHandler>(Assert.IsType<FilterField>(type.Fields["friends"]).Handler);
-            Assert.IsType<QueryableDefaultFieldHandler>(Assert.IsType<FilterField>(type.Fields["name"]).Handler);
+            Assert.IsType<CustomHandler>(
+                Assert.IsType<FilterField>(type.Fields["friends"]).Handler);
+            Assert.IsType<QueryableDefaultFieldHandler>(
+                Assert.IsType<FilterField>(type.Fields["name"]).Handler);
+        }
+
+        public void FilterInputType_Should_IgnoreFieldWithoutCallingConvention()
+        {
+            // arrange
+            ISchemaBuilder builder = SchemaBuilder.New()
+                .AddFiltering(
+                    x => x.AddDefaultOperations()
+                        .BindRuntimeType<string, StringOperationFilterInputType>()
+                        .Provider(new QueryableFilterProvider(y => y.AddDefaultFieldHandlers())))
+                .AddQueryType(
+                    new ObjectType(
+                        x => x.Name("Query")
+                            .Field("foo")
+                            .Resolve(new List<IgnoreTest>())
+                            .UseFiltering<IgnoreTestFilterInputType>()));
+
+            // act
+            ISchema schema = builder.Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void FilterInputType_Should_InfereType_When_ItIsAInterface()
+        {
+            // arrange
+            ISchemaBuilder builder = SchemaBuilder.New()
+                .AddFiltering()
+                .AddQueryType<TestingType<ITest<Foo>>>()
+                .AddObjectType<ITest<Foo>>();
+
+            // act
+            ISchema schema = builder.Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+            schema.Print().MatchSnapshot();
         }
 
         public class FooDirectiveType
@@ -400,6 +441,40 @@ namespace HotChocolate.Data.Tests
             public List<User> Friends { get; set; } = default!;
         }
 
+        public interface ITest
+        {
+            public string Prop { get; set; }
+            public string Prop2 { get; set; }
+        }
+
+        public interface ITest<T>
+        {
+            T Prop { get; set; }
+        }
+
+        public class InterfaceImpl1 : ITest
+        {
+            public string Prop { get; set; }
+
+            public string Prop2 { get; set; }
+        }
+
+        public class IgnoreTest
+        {
+            public int Id { get; set; }
+
+            public string Name { get; set; } = default!;
+        }
+
+        public class IgnoreTestFilterInputType
+            : FilterInputType<IgnoreTest>
+        {
+            protected override void Configure(IFilterInputTypeDescriptor<IgnoreTest> descriptor)
+            {
+                descriptor.Ignore(x => x.Id);
+            }
+        }
+
         public class UserFilterInput : FilterInputType<User>
         {
             protected override void Configure(IFilterInputTypeDescriptor<User> descriptor)
@@ -444,6 +519,20 @@ namespace HotChocolate.Data.Tests
                     .Field("foo")
                     .Resolve(new List<User>())
                     .UseFiltering<CustomHandlerFilterInputType>();
+            }
+        }
+
+        public class TestObject<T>
+        {
+            public T Root { get; set; }
+        }
+
+        public class TestingType<T> : ObjectType<TestObject<T>>
+        {
+            protected override void Configure(IObjectTypeDescriptor<TestObject<T>> descriptor)
+            {
+                descriptor.Name(nameof(Query));
+                descriptor.Field(x => x.Root).UseFiltering();
             }
         }
 

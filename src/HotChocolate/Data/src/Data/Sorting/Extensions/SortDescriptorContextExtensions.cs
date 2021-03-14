@@ -1,8 +1,9 @@
 using HotChocolate.Configuration;
+using HotChocolate.Data.Sorting;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.Data.ThrowHelper;
 
-namespace HotChocolate.Data.Sorting
+namespace HotChocolate.Data
 {
     public static class SortDescriptorContextExtensions
     {

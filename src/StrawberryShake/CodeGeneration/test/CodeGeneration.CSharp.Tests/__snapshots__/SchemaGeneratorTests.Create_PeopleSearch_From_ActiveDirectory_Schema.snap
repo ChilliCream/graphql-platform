@@ -1,0 +1,2594 @@
+﻿// ReSharper disable BuiltInTypeReferenceStyle
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable UnusedType.Global
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable ConvertToAutoProperty
+// ReSharper disable UnusedMember.Global
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable InconsistentNaming
+
+// PersonEntity
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
+
+#nullable enable
+
+namespace Foo.Bar.State
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class PersonEntity
+    {
+        public PersonEntity(
+            global::System.String id,
+            global::System.Int64 key,
+            global::System.String? displayName,
+            global::System.Boolean isActive,
+            global::StrawberryShake.EntityId? department,
+            global::System.Uri? image,
+            global::System.String title,
+            global::StrawberryShake.EntityId? manager)
+        {
+            Id = id;
+            Key = key;
+            DisplayName = displayName;
+            IsActive = isActive;
+            Department = department;
+            Image = image;
+            Title = title;
+            Manager = manager;
+        }
+
+        public global::System.String Id { get; }
+
+        /// <summary>
+        /// The database primary key for the person.
+        /// </summary>
+        public global::System.Int64 Key { get; }
+
+        /// <summary>
+        /// The full of the person.
+        /// </summary>
+        public global::System.String? DisplayName { get; }
+
+        /// <summary>
+        /// Indicates if the person is active.
+        /// </summary>
+        public global::System.Boolean IsActive { get; }
+
+        /// <summary>
+        /// The department the person belongs to.
+        /// </summary>
+        public global::StrawberryShake.EntityId? Department { get; }
+
+        /// <summary>
+        /// Url to image, you can specify a size in pixels by appending '?size=300' to get a square image.
+        /// </summary>
+        public global::System.Uri? Image { get; }
+
+        /// <summary>
+        /// The job title of the person.
+        /// </summary>
+        public global::System.String Title { get; }
+
+        /// <summary>
+        /// The person managing the person.
+        /// </summary>
+        public global::StrawberryShake.EntityId? Manager { get; }
+    }
+}
+
+
+// DepartmentEntity
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
+
+#nullable enable
+
+namespace Foo.Bar.State
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class DepartmentEntity
+    {
+        public DepartmentEntity(
+            global::System.String id,
+            global::System.String name)
+        {
+            Id = id;
+            Name = name;
+        }
+
+        public global::System.String Id { get; }
+
+        /// <summary>
+        /// The name of the department.
+        /// </summary>
+        public global::System.String Name { get; }
+    }
+}
+
+
+// PeopleSearchResultFactory
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
+
+#nullable enable
+
+namespace Foo.Bar.State
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class PeopleSearchResultFactory
+        : global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.PeopleSearchResult>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, PeopleSearch_People_Items_Person> _peopleSearch_People_Items_PersonFromPersonEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.DepartmentEntity, PeopleSearch_People_Items_Department_Department> _peopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, PeopleSearch_People_Items_Manager_Person> _peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper;
+
+        public PeopleSearchResultFactory(
+            global::StrawberryShake.IEntityStore entityStore,
+            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, PeopleSearch_People_Items_Person> peopleSearch_People_Items_PersonFromPersonEntityMapper,
+            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.DepartmentEntity, PeopleSearch_People_Items_Department_Department> peopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper,
+            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, PeopleSearch_People_Items_Manager_Person> peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _peopleSearch_People_Items_PersonFromPersonEntityMapper = peopleSearch_People_Items_PersonFromPersonEntityMapper
+                 ?? throw new global::System.ArgumentNullException(nameof(peopleSearch_People_Items_PersonFromPersonEntityMapper));
+            _peopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper = peopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper
+                 ?? throw new global::System.ArgumentNullException(nameof(peopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper));
+            _peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper = peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper
+                 ?? throw new global::System.ArgumentNullException(nameof(peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper));
+        }
+
+        global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::Foo.Bar.IPeopleSearchQueryResult);
+
+        public PeopleSearchResult Create(
+            global::StrawberryShake.IOperationResultDataInfo dataInfo,
+            global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            if (dataInfo is PeopleSearchResultInfo info)
+            {
+                return new PeopleSearchResult(MapIPeopleSearch_People(
+                    info.People,
+                    snapshot));
+            }
+
+            throw new global::System.ArgumentException("PeopleSearchResultInfo expected.");
+        }
+
+        private global::Foo.Bar.IPeopleSearch_People? MapIPeopleSearch_People(
+            global::Foo.Bar.State.PersonCollectionSegmentData? data,
+            global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (data is null)
+            {
+                return null;
+            }
+
+            IPeopleSearch_People returnValue = default!;
+
+            if (data?.__typename.Equals(
+                    "PersonCollectionSegment",
+                    global::System.StringComparison.Ordinal) ?? false)
+            {
+                returnValue = new PeopleSearch_People_PersonCollectionSegment(
+                    data.TotalCount ?? throw new global::System.ArgumentNullException(),
+                    MapNonNullableIPeopleSearch_People_PageInfo(
+                        data.PageInfo ?? throw new global::System.ArgumentNullException(),
+                        snapshot),
+                    MapIPeopleSearch_People_ItemsNonNullableArray(
+                        data.Items,
+                        snapshot));
+            }
+            else
+            {
+                throw new global::System.NotSupportedException();
+            }
+            return returnValue;
+        }
+
+        private global::Foo.Bar.IPeopleSearch_People_PageInfo MapNonNullableIPeopleSearch_People_PageInfo(
+            global::Foo.Bar.State.CollectionSegmentInfoData data,
+            global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            IPeopleSearch_People_PageInfo returnValue = default!;
+
+            if (data.__typename.Equals(
+                    "CollectionSegmentInfo",
+                    global::System.StringComparison.Ordinal))
+            {
+                returnValue = new PeopleSearch_People_PageInfo_CollectionSegmentInfo(
+                    data.HasNextPage ?? throw new global::System.ArgumentNullException(),
+                    data.HasPreviousPage ?? throw new global::System.ArgumentNullException());
+            }
+            else
+            {
+                throw new global::System.NotSupportedException();
+            }
+            return returnValue;
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IPeopleSearch_People_Items>? MapIPeopleSearch_People_ItemsNonNullableArray(
+            global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId>? list,
+            global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (list is null)
+            {
+                return null;
+            }
+
+            var persons = new global::System.Collections.Generic.List<global::Foo.Bar.IPeopleSearch_People_Items>();
+
+            foreach (global::StrawberryShake.EntityId child in list)
+            {
+                persons.Add(MapNonNullableIPeopleSearch_People_Items(
+                    child,
+                    snapshot));
+            }
+
+            return persons;
+        }
+
+        private global::Foo.Bar.IPeopleSearch_People_Items MapNonNullableIPeopleSearch_People_Items(
+            global::StrawberryShake.EntityId entityId,
+            global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+
+            if (entityId.Name.Equals(
+                    "Person",
+                    global::System.StringComparison.Ordinal))
+            {
+                return _peopleSearch_People_Items_PersonFromPersonEntityMapper.Map(
+                    snapshot.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId)
+                        ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::Foo.Bar.IPeopleSearch_People_Items_Department? MapIPeopleSearch_People_Items_Department(
+            global::StrawberryShake.EntityId? entityId,
+            global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (entityId is null)
+            {
+                return null;
+            }
+
+
+            if (entityId.Value.Name.Equals(
+                    "Department",
+                    global::System.StringComparison.Ordinal))
+            {
+                return _peopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper.Map(
+                    snapshot.GetEntity<global::Foo.Bar.State.DepartmentEntity>(entityId.Value)
+                        ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::Foo.Bar.IPeopleSearch_People_Items_Manager? MapIPeopleSearch_People_Items_Manager(
+            global::StrawberryShake.EntityId? entityId,
+            global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (entityId is null)
+            {
+                return null;
+            }
+
+
+            if (entityId.Value.Name.Equals(
+                    "Person",
+                    global::System.StringComparison.Ordinal))
+            {
+                return _peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper.Map(
+                    snapshot.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId.Value)
+                        ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+            throw new global::System.NotSupportedException();
+        }
+
+        global::System.Object global::StrawberryShake.IOperationResultDataFactory.Create(
+            global::StrawberryShake.IOperationResultDataInfo dataInfo,
+            global::StrawberryShake.IEntityStoreSnapshot? snapshot)
+        {
+            return Create(
+                dataInfo,
+                snapshot);
+        }
+    }
+}
+
+
+// PeopleSearchResultInfo
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
+
+#nullable enable
+
+namespace Foo.Bar.State
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class PeopleSearchResultInfo
+        : global::StrawberryShake.IOperationResultDataInfo
+    {
+        private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
+        private readonly global::System.UInt64 _version;
+
+        public PeopleSearchResultInfo(
+            global::Foo.Bar.State.PersonCollectionSegmentData? people,
+            global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds,
+            global::System.UInt64 version)
+        {
+            People = people;
+            _entityIds = entityIds
+                 ?? throw new global::System.ArgumentNullException(nameof(entityIds));
+            _version = version;
+        }
+
+        /// <summary>
+        /// Searches for people based on their id, name, and identites.
+        /// </summary>
+        public global::Foo.Bar.State.PersonCollectionSegmentData? People { get; }
+
+        public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
+
+        public global::System.UInt64 Version => _version;
+
+        public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
+        {
+            return new PeopleSearchResultInfo(
+                People,
+                _entityIds,
+                version);
+        }
+    }
+}
+
+
+// PeopleSearchResult
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class PeopleSearchResult
+        : global::System.IEquatable<PeopleSearchResult>
+        , IPeopleSearchQueryResult
+    {
+        public PeopleSearchResult(global::Foo.Bar.IPeopleSearch_People? people)
+        {
+            People = people;
+        }
+
+        /// <summary>
+        /// Searches for people based on their id, name, and identites.
+        /// </summary>
+        public global::Foo.Bar.IPeopleSearch_People? People { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((PeopleSearchResult)obj);
+        }
+
+        public global::System.Boolean Equals(PeopleSearchResult? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((People is null && other.People is null) ||People != null && People.Equals(other.People)));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                if (!(People is null))
+                {
+                    hash ^= 397 * People.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
+    }
+}
+
+
+// PeopleSearch_People_PersonCollectionSegment
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class PeopleSearch_People_PersonCollectionSegment
+        : global::System.IEquatable<PeopleSearch_People_PersonCollectionSegment>
+        , IPeopleSearch_People_PersonCollectionSegment
+    {
+        public PeopleSearch_People_PersonCollectionSegment(
+            global::System.Int32 totalCount,
+            global::Foo.Bar.IPeopleSearch_People_PageInfo pageInfo,
+            global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IPeopleSearch_People_Items>? items)
+        {
+            TotalCount = totalCount;
+            PageInfo = pageInfo;
+            Items = items;
+        }
+
+        public global::System.Int32 TotalCount { get; }
+
+        /// <summary>
+        /// Information to aid in pagination.
+        /// </summary>
+        public global::Foo.Bar.IPeopleSearch_People_PageInfo PageInfo { get; }
+
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IPeopleSearch_People_Items>? Items { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((PeopleSearch_People_PersonCollectionSegment)obj);
+        }
+
+        public global::System.Boolean Equals(PeopleSearch_People_PersonCollectionSegment? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (TotalCount == other.TotalCount)
+                && PageInfo.Equals(other.PageInfo)
+                && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(
+                        Items,
+                        other.Items);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * TotalCount.GetHashCode();
+
+                hash ^= 397 * PageInfo.GetHashCode();
+
+                if (!(Items is null))
+                {
+                    foreach (var Items_elm in Items)
+                    {
+                        hash ^= 397 * Items_elm.GetHashCode();
+                    }
+                }
+
+                return hash;
+            }
+        }
+    }
+}
+
+
+// PeopleSearch_People_PageInfo_CollectionSegmentInfo
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    /// <summary>
+    /// Information about the offset pagination.
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class PeopleSearch_People_PageInfo_CollectionSegmentInfo
+        : global::System.IEquatable<PeopleSearch_People_PageInfo_CollectionSegmentInfo>
+        , IPeopleSearch_People_PageInfo_CollectionSegmentInfo
+    {
+        public PeopleSearch_People_PageInfo_CollectionSegmentInfo(
+            global::System.Boolean hasNextPage,
+            global::System.Boolean hasPreviousPage)
+        {
+            HasNextPage = hasNextPage;
+            HasPreviousPage = hasPreviousPage;
+        }
+
+        /// <summary>
+        /// Indicates whether more items exist following the set defined by the clients arguments.
+        /// </summary>
+        public global::System.Boolean HasNextPage { get; }
+
+        /// <summary>
+        /// Indicates whether more items exist prior the set defined by the clients arguments.
+        /// </summary>
+        public global::System.Boolean HasPreviousPage { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((PeopleSearch_People_PageInfo_CollectionSegmentInfo)obj);
+        }
+
+        public global::System.Boolean Equals(PeopleSearch_People_PageInfo_CollectionSegmentInfo? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (HasNextPage == other.HasNextPage)
+                && HasPreviousPage == other.HasPreviousPage;
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * HasNextPage.GetHashCode();
+
+                hash ^= 397 * HasPreviousPage.GetHashCode();
+
+                return hash;
+            }
+        }
+    }
+}
+
+
+// PeopleSearch_People_Items_PersonFromPersonEntityMapper
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+
+#nullable enable
+
+namespace Foo.Bar.State
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class PeopleSearch_People_Items_PersonFromPersonEntityMapper
+        : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, PeopleSearch_People_Items_Person>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.DepartmentEntity, PeopleSearch_People_Items_Department_Department> _peopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, PeopleSearch_People_Items_Manager_Person> _peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper;
+
+        public PeopleSearch_People_Items_PersonFromPersonEntityMapper(
+            global::StrawberryShake.IEntityStore entityStore,
+            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.DepartmentEntity, PeopleSearch_People_Items_Department_Department> peopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper,
+            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, PeopleSearch_People_Items_Manager_Person> peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _peopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper = peopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper
+                 ?? throw new global::System.ArgumentNullException(nameof(peopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper));
+            _peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper = peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper
+                 ?? throw new global::System.ArgumentNullException(nameof(peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper));
+        }
+
+        public PeopleSearch_People_Items_Person Map(
+            global::Foo.Bar.State.PersonEntity entity,
+            global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new PeopleSearch_People_Items_Person(
+                entity.Id,
+                entity.Key,
+                entity.DisplayName,
+                entity.IsActive,
+                MapIPeopleSearch_People_Items_Department(
+                    entity.Department,
+                    snapshot),
+                entity.Image,
+                entity.Title,
+                MapIPeopleSearch_People_Items_Manager(
+                    entity.Manager,
+                    snapshot));
+        }
+
+        private global::Foo.Bar.IPeopleSearch_People_Items_Department? MapIPeopleSearch_People_Items_Department(
+            global::StrawberryShake.EntityId? entityId,
+            global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (entityId is null)
+            {
+                return null;
+            }
+
+
+            if (entityId.Value.Name.Equals(
+                    "Department",
+                    global::System.StringComparison.Ordinal))
+            {
+                return _peopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper.Map(
+                    snapshot.GetEntity<global::Foo.Bar.State.DepartmentEntity>(entityId.Value)
+                        ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::Foo.Bar.IPeopleSearch_People_Items_Manager? MapIPeopleSearch_People_Items_Manager(
+            global::StrawberryShake.EntityId? entityId,
+            global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (entityId is null)
+            {
+                return null;
+            }
+
+
+            if (entityId.Value.Name.Equals(
+                    "Person",
+                    global::System.StringComparison.Ordinal))
+            {
+                return _peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper.Map(
+                    snapshot.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId.Value)
+                        ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+            throw new global::System.NotSupportedException();
+        }
+    }
+}
+
+
+// PeopleSearch_People_Items_Person
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class PeopleSearch_People_Items_Person
+        : global::System.IEquatable<PeopleSearch_People_Items_Person>
+        , IPeopleSearch_People_Items_Person
+    {
+        public PeopleSearch_People_Items_Person(
+            global::System.String id,
+            global::System.Int64 key,
+            global::System.String? displayName,
+            global::System.Boolean isActive,
+            global::Foo.Bar.IPeopleSearch_People_Items_Department? department,
+            global::System.Uri? image,
+            global::System.String title,
+            global::Foo.Bar.IPeopleSearch_People_Items_Manager? manager)
+        {
+            Id = id;
+            Key = key;
+            DisplayName = displayName;
+            IsActive = isActive;
+            Department = department;
+            Image = image;
+            Title = title;
+            Manager = manager;
+        }
+
+        public global::System.String Id { get; }
+
+        /// <summary>
+        /// The database primary key for the person.
+        /// </summary>
+        public global::System.Int64 Key { get; }
+
+        /// <summary>
+        /// The full of the person.
+        /// </summary>
+        public global::System.String? DisplayName { get; }
+
+        /// <summary>
+        /// Indicates if the person is active.
+        /// </summary>
+        public global::System.Boolean IsActive { get; }
+
+        /// <summary>
+        /// The department the person belongs to.
+        /// </summary>
+        public global::Foo.Bar.IPeopleSearch_People_Items_Department? Department { get; }
+
+        /// <summary>
+        /// Url to image, you can specify a size in pixels by appending '?size=300' to get a square image.
+        /// </summary>
+        public global::System.Uri? Image { get; }
+
+        /// <summary>
+        /// The job title of the person.
+        /// </summary>
+        public global::System.String Title { get; }
+
+        /// <summary>
+        /// The person managing the person.
+        /// </summary>
+        public global::Foo.Bar.IPeopleSearch_People_Items_Manager? Manager { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((PeopleSearch_People_Items_Person)obj);
+        }
+
+        public global::System.Boolean Equals(PeopleSearch_People_Items_Person? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Id.Equals(other.Id))
+                && Key == other.Key
+                && ((DisplayName is null && other.DisplayName is null) ||DisplayName != null && DisplayName.Equals(other.DisplayName))
+                && IsActive == other.IsActive
+                && ((Department is null && other.Department is null) ||Department != null && Department.Equals(other.Department))
+                && ((Image is null && other.Image is null) ||Image != null && Image.Equals(other.Image))
+                && Title.Equals(other.Title)
+                && ((Manager is null && other.Manager is null) ||Manager != null && Manager.Equals(other.Manager));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * Id.GetHashCode();
+
+                hash ^= 397 * Key.GetHashCode();
+
+                if (!(DisplayName is null))
+                {
+                    hash ^= 397 * DisplayName.GetHashCode();
+                }
+
+                hash ^= 397 * IsActive.GetHashCode();
+
+                if (!(Department is null))
+                {
+                    hash ^= 397 * Department.GetHashCode();
+                }
+
+                if (!(Image is null))
+                {
+                    hash ^= 397 * Image.GetHashCode();
+                }
+
+                hash ^= 397 * Title.GetHashCode();
+
+                if (!(Manager is null))
+                {
+                    hash ^= 397 * Manager.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
+    }
+}
+
+
+// PeopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+
+#nullable enable
+
+namespace Foo.Bar.State
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class PeopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper
+        : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.DepartmentEntity, PeopleSearch_People_Items_Department_Department>
+    {
+        public PeopleSearch_People_Items_Department_Department Map(
+            global::Foo.Bar.State.DepartmentEntity entity,
+            global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            return new PeopleSearch_People_Items_Department_Department(
+                entity.Id,
+                entity.Name);
+        }
+    }
+}
+
+
+// PeopleSearch_People_Items_Department_Department
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class PeopleSearch_People_Items_Department_Department
+        : global::System.IEquatable<PeopleSearch_People_Items_Department_Department>
+        , IPeopleSearch_People_Items_Department_Department
+    {
+        public PeopleSearch_People_Items_Department_Department(
+            global::System.String id,
+            global::System.String name)
+        {
+            Id = id;
+            Name = name;
+        }
+
+        public global::System.String Id { get; }
+
+        /// <summary>
+        /// The name of the department.
+        /// </summary>
+        public global::System.String Name { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((PeopleSearch_People_Items_Department_Department)obj);
+        }
+
+        public global::System.Boolean Equals(PeopleSearch_People_Items_Department_Department? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Id.Equals(other.Id))
+                && Name.Equals(other.Name);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * Id.GetHashCode();
+
+                hash ^= 397 * Name.GetHashCode();
+
+                return hash;
+            }
+        }
+    }
+}
+
+
+// PeopleSearch_People_Items_Manager_PersonFromPersonEntityMapper
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+
+#nullable enable
+
+namespace Foo.Bar.State
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class PeopleSearch_People_Items_Manager_PersonFromPersonEntityMapper
+        : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, PeopleSearch_People_Items_Manager_Person>
+    {
+        public PeopleSearch_People_Items_Manager_Person Map(
+            global::Foo.Bar.State.PersonEntity entity,
+            global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            return new PeopleSearch_People_Items_Manager_Person(
+                entity.Id,
+                entity.Key,
+                entity.DisplayName);
+        }
+    }
+}
+
+
+// PeopleSearch_People_Items_Manager_Person
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class PeopleSearch_People_Items_Manager_Person
+        : global::System.IEquatable<PeopleSearch_People_Items_Manager_Person>
+        , IPeopleSearch_People_Items_Manager_Person
+    {
+        public PeopleSearch_People_Items_Manager_Person(
+            global::System.String id,
+            global::System.Int64 key,
+            global::System.String? displayName)
+        {
+            Id = id;
+            Key = key;
+            DisplayName = displayName;
+        }
+
+        public global::System.String Id { get; }
+
+        /// <summary>
+        /// The database primary key for the person.
+        /// </summary>
+        public global::System.Int64 Key { get; }
+
+        /// <summary>
+        /// The full of the person.
+        /// </summary>
+        public global::System.String? DisplayName { get; }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(
+                    null,
+                    obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((PeopleSearch_People_Items_Manager_Person)obj);
+        }
+
+        public global::System.Boolean Equals(PeopleSearch_People_Items_Manager_Person? other)
+        {
+            if (ReferenceEquals(
+                    null,
+                    other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(
+                    this,
+                    other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Id.Equals(other.Id))
+                && Key == other.Key
+                && ((DisplayName is null && other.DisplayName is null) ||DisplayName != null && DisplayName.Equals(other.DisplayName));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+
+                hash ^= 397 * Id.GetHashCode();
+
+                hash ^= 397 * Key.GetHashCode();
+
+                if (!(DisplayName is null))
+                {
+                    hash ^= 397 * DisplayName.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
+    }
+}
+
+
+// IPeopleSearchQueryResult
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IPeopleSearchQueryResult
+    {
+        /// <summary>
+        /// Searches for people based on their id, name, and identites.
+        /// </summary>
+        public global::Foo.Bar.IPeopleSearch_People? People { get; }
+    }
+}
+
+
+// IPeopleSearch_People
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IPeopleSearch_People
+    {
+        public global::System.Int32 TotalCount { get; }
+
+        /// <summary>
+        /// Information to aid in pagination.
+        /// </summary>
+        public global::Foo.Bar.IPeopleSearch_People_PageInfo PageInfo { get; }
+
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IPeopleSearch_People_Items>? Items { get; }
+    }
+}
+
+
+// IPeopleSearch_People_PersonCollectionSegment
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IPeopleSearch_People_PersonCollectionSegment
+        : IPeopleSearch_People
+    {
+    }
+}
+
+
+// IPeopleSearch_People_PageInfo
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    /// <summary>
+    /// Information about the offset pagination.
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IPeopleSearch_People_PageInfo
+    {
+        /// <summary>
+        /// Indicates whether more items exist following the set defined by the clients arguments.
+        /// </summary>
+        public global::System.Boolean HasNextPage { get; }
+
+        /// <summary>
+        /// Indicates whether more items exist prior the set defined by the clients arguments.
+        /// </summary>
+        public global::System.Boolean HasPreviousPage { get; }
+    }
+}
+
+
+// IPeopleSearch_People_PageInfo_CollectionSegmentInfo
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    /// <summary>
+    /// Information about the offset pagination.
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IPeopleSearch_People_PageInfo_CollectionSegmentInfo
+        : IPeopleSearch_People_PageInfo
+    {
+    }
+}
+
+
+// IPeopleSearchResult
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IPeopleSearchResult
+    {
+        public global::System.String Id { get; }
+
+        /// <summary>
+        /// The database primary key for the person.
+        /// </summary>
+        public global::System.Int64 Key { get; }
+
+        /// <summary>
+        /// The full of the person.
+        /// </summary>
+        public global::System.String? DisplayName { get; }
+
+        /// <summary>
+        /// Indicates if the person is active.
+        /// </summary>
+        public global::System.Boolean IsActive { get; }
+
+        /// <summary>
+        /// The department the person belongs to.
+        /// </summary>
+        public global::Foo.Bar.IPeopleSearch_People_Items_Department? Department { get; }
+
+        /// <summary>
+        /// Url to image, you can specify a size in pixels by appending '?size=300' to get a square image.
+        /// </summary>
+        public global::System.Uri? Image { get; }
+
+        /// <summary>
+        /// The job title of the person.
+        /// </summary>
+        public global::System.String Title { get; }
+
+        /// <summary>
+        /// The person managing the person.
+        /// </summary>
+        public global::Foo.Bar.IPeopleSearch_People_Items_Manager? Manager { get; }
+    }
+}
+
+
+// IPeopleSearch_People_Items
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IPeopleSearch_People_Items
+        : IPeopleSearchResult
+    {
+    }
+}
+
+
+// IPeopleSearch_People_Items_Person
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IPeopleSearch_People_Items_Person
+        : IPeopleSearch_People_Items
+    {
+    }
+}
+
+
+// IPeopleSearch_People_Items_Department
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IPeopleSearch_People_Items_Department
+    {
+        public global::System.String Id { get; }
+
+        /// <summary>
+        /// The name of the department.
+        /// </summary>
+        public global::System.String Name { get; }
+    }
+}
+
+
+// IPeopleSearch_People_Items_Department_Department
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IPeopleSearch_People_Items_Department_Department
+        : IPeopleSearch_People_Items_Department
+    {
+    }
+}
+
+
+// IPeopleSearch_People_Items_Manager
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IPeopleSearch_People_Items_Manager
+    {
+        public global::System.String Id { get; }
+
+        /// <summary>
+        /// The database primary key for the person.
+        /// </summary>
+        public global::System.Int64 Key { get; }
+
+        /// <summary>
+        /// The full of the person.
+        /// </summary>
+        public global::System.String? DisplayName { get; }
+    }
+}
+
+
+// IPeopleSearch_People_Items_Manager_Person
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IPeopleSearch_People_Items_Manager_Person
+        : IPeopleSearch_People_Items_Manager
+    {
+    }
+}
+
+
+// PeopleSearchQueryDocument
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    /// <summary>
+    /// Represents the operation service of the PeopleSearch GraphQL operation
+    /// <code>
+    /// query PeopleSearch($term: String!, $skip: Int, $take: Int, $inactive: Boolean) {
+    ///   people: peopleSearch(term: $term, includeInactive: $inactive, skip: $skip, take: $take) {
+    ///     __typename
+    ///     totalCount
+    ///     pageInfo {
+    ///       __typename
+    ///       hasNextPage
+    ///       hasPreviousPage
+    ///     }
+    ///     items {
+    ///       __typename
+    ///       ... PeopleSearchResult
+    ///       ... on Person {
+    ///         id
+    ///       }
+    ///     }
+    ///   }
+    /// }
+    /// 
+    /// fragment PeopleSearchResult on Person {
+    ///   id
+    ///   key
+    ///   displayName
+    ///   isActive
+    ///   department {
+    ///     __typename
+    ///     id
+    ///     name
+    ///     ... on Department {
+    ///       id
+    ///     }
+    ///   }
+    ///   image
+    ///   title
+    ///   manager {
+    ///     __typename
+    ///     id
+    ///     key
+    ///     displayName
+    ///     ... on Person {
+    ///       id
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class PeopleSearchQueryDocument
+        : global::StrawberryShake.IDocument
+    {
+        private PeopleSearchQueryDocument()
+        {
+        }
+
+        public static PeopleSearchQueryDocument Instance { get; } = new PeopleSearchQueryDocument();
+
+        public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
+
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{ 0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x50, 0x65, 0x6f, 0x70, 0x6c, 0x65, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x28, 0x24, 0x74, 0x65, 0x72, 0x6d, 0x3a, 0x20, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x21, 0x2c, 0x20, 0x24, 0x73, 0x6b, 0x69, 0x70, 0x3a, 0x20, 0x49, 0x6e, 0x74, 0x2c, 0x20, 0x24, 0x74, 0x61, 0x6b, 0x65, 0x3a, 0x20, 0x49, 0x6e, 0x74, 0x2c, 0x20, 0x24, 0x69, 0x6e, 0x61, 0x63, 0x74, 0x69, 0x76, 0x65, 0x3a, 0x20, 0x42, 0x6f, 0x6f, 0x6c, 0x65, 0x61, 0x6e, 0x29, 0x20, 0x7b, 0x20, 0x70, 0x65, 0x6f, 0x70, 0x6c, 0x65, 0x3a, 0x20, 0x70, 0x65, 0x6f, 0x70, 0x6c, 0x65, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x28, 0x74, 0x65, 0x72, 0x6d, 0x3a, 0x20, 0x24, 0x74, 0x65, 0x72, 0x6d, 0x2c, 0x20, 0x69, 0x6e, 0x63, 0x6c, 0x75, 0x64, 0x65, 0x49, 0x6e, 0x61, 0x63, 0x74, 0x69, 0x76, 0x65, 0x3a, 0x20, 0x24, 0x69, 0x6e, 0x61, 0x63, 0x74, 0x69, 0x76, 0x65, 0x2c, 0x20, 0x73, 0x6b, 0x69, 0x70, 0x3a, 0x20, 0x24, 0x73, 0x6b, 0x69, 0x70, 0x2c, 0x20, 0x74, 0x61, 0x6b, 0x65, 0x3a, 0x20, 0x24, 0x74, 0x61, 0x6b, 0x65, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x20, 0x70, 0x61, 0x67, 0x65, 0x49, 0x6e, 0x66, 0x6f, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x68, 0x61, 0x73, 0x4e, 0x65, 0x78, 0x74, 0x50, 0x61, 0x67, 0x65, 0x20, 0x68, 0x61, 0x73, 0x50, 0x72, 0x65, 0x76, 0x69, 0x6f, 0x75, 0x73, 0x50, 0x61, 0x67, 0x65, 0x20, 0x7d, 0x20, 0x69, 0x74, 0x65, 0x6d, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x50, 0x65, 0x6f, 0x70, 0x6c, 0x65, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x52, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x50, 0x65, 0x6f, 0x70, 0x6c, 0x65, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x52, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x6b, 0x65, 0x79, 0x20, 0x64, 0x69, 0x73, 0x70, 0x6c, 0x61, 0x79, 0x4e, 0x61, 0x6d, 0x65, 0x20, 0x69, 0x73, 0x41, 0x63, 0x74, 0x69, 0x76, 0x65, 0x20, 0x64, 0x65, 0x70, 0x61, 0x72, 0x74, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x69, 0x64, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x44, 0x65, 0x70, 0x61, 0x72, 0x74, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x69, 0x6d, 0x61, 0x67, 0x65, 0x20, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x20, 0x6d, 0x61, 0x6e, 0x61, 0x67, 0x65, 0x72, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x69, 0x64, 0x20, 0x6b, 0x65, 0x79, 0x20, 0x64, 0x69, 0x73, 0x70, 0x6c, 0x61, 0x79, 0x4e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d };
+
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "0aa0e07a3648d30f705916cfe5d398a1c5c4beac");
+
+        public override global::System.String ToString()
+        {
+            #if NETSTANDARD2_0
+            return global::System.Text.Encoding.UTF8.GetString(Body.ToArray());
+            #else
+            return global::System.Text.Encoding.UTF8.GetString(Body);
+            #endif
+        }
+    }
+}
+
+
+// PeopleSearchQuery
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    /// <summary>
+    /// Represents the operation service of the PeopleSearch GraphQL operation
+    /// <code>
+    /// query PeopleSearch($term: String!, $skip: Int, $take: Int, $inactive: Boolean) {
+    ///   people: peopleSearch(term: $term, includeInactive: $inactive, skip: $skip, take: $take) {
+    ///     __typename
+    ///     totalCount
+    ///     pageInfo {
+    ///       __typename
+    ///       hasNextPage
+    ///       hasPreviousPage
+    ///     }
+    ///     items {
+    ///       __typename
+    ///       ... PeopleSearchResult
+    ///       ... on Person {
+    ///         id
+    ///       }
+    ///     }
+    ///   }
+    /// }
+    /// 
+    /// fragment PeopleSearchResult on Person {
+    ///   id
+    ///   key
+    ///   displayName
+    ///   isActive
+    ///   department {
+    ///     __typename
+    ///     id
+    ///     name
+    ///     ... on Department {
+    ///       id
+    ///     }
+    ///   }
+    ///   image
+    ///   title
+    ///   manager {
+    ///     __typename
+    ///     id
+    ///     key
+    ///     displayName
+    ///     ... on Person {
+    ///       id
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class PeopleSearchQuery
+        : global::StrawberryShake.IOperationRequestFactory
+    {
+        private readonly global::StrawberryShake.IOperationExecutor<IPeopleSearchQueryResult> _operationExecutor;
+        private readonly global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter;
+        private readonly global::StrawberryShake.Serialization.IInputValueFormatter _intFormatter;
+        private readonly global::StrawberryShake.Serialization.IInputValueFormatter _booleanFormatter;
+
+        public PeopleSearchQuery(
+            global::StrawberryShake.IOperationExecutor<IPeopleSearchQueryResult> operationExecutor,
+            global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
+        {
+            _operationExecutor = operationExecutor
+                 ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
+            _stringFormatter = serializerResolver.GetInputValueFormatter("String");
+            _intFormatter = serializerResolver.GetInputValueFormatter("Int");
+            _booleanFormatter = serializerResolver.GetInputValueFormatter("Boolean");
+        }
+
+        global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IPeopleSearchQueryResult);
+
+        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IPeopleSearchQueryResult>> ExecuteAsync(
+            global::System.String term,
+            global::System.Int32? skip,
+            global::System.Int32? take,
+            global::System.Boolean? inactive,
+            global::System.Threading.CancellationToken cancellationToken = default)
+        {
+            var request = CreateRequest(
+                term,
+                skip,
+                take,
+                inactive);
+
+            return await _operationExecutor
+                .ExecuteAsync(
+                    request,
+                    cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        public global::System.IObservable<global::StrawberryShake.IOperationResult<IPeopleSearchQueryResult>> Watch(
+            global::System.String term,
+            global::System.Int32? skip,
+            global::System.Int32? take,
+            global::System.Boolean? inactive,
+            global::StrawberryShake.ExecutionStrategy? strategy = null)
+        {
+            var request = CreateRequest(
+                term,
+                skip,
+                take,
+                inactive);
+            return _operationExecutor.Watch(
+                request,
+                strategy);
+        }
+
+        private global::StrawberryShake.OperationRequest CreateRequest(
+            global::System.String term,
+            global::System.Int32? skip,
+            global::System.Int32? take,
+            global::System.Boolean? inactive)
+        {
+            var variables = new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>();
+
+            variables.Add(
+                "term",
+                FormatTerm(term));
+            variables.Add(
+                "skip",
+                FormatSkip(skip));
+            variables.Add(
+                "take",
+                FormatTake(take));
+            variables.Add(
+                "inactive",
+                FormatInactive(inactive));
+
+            return CreateRequest(variables);
+        }
+
+        private global::StrawberryShake.OperationRequest CreateRequest(global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object?>? variables)
+        {
+
+            return new global::StrawberryShake.OperationRequest(
+                id: PeopleSearchQueryDocument.Instance.Hash.Value,
+                name: "PeopleSearch",
+                document: PeopleSearchQueryDocument.Instance,
+                strategy: global::StrawberryShake.RequestStrategy.Default,
+                variables:variables);
+        }
+
+        private global::System.Object? FormatTerm(global::System.String value)
+        {
+            if (value is null)
+            {
+                throw new global::System.ArgumentNullException(nameof(value));
+            }
+
+            return _stringFormatter.Format(value);
+        }
+
+        private global::System.Object? FormatSkip(global::System.Int32? value)
+        {
+            return _intFormatter.Format(value);
+        }
+
+        private global::System.Object? FormatTake(global::System.Int32? value)
+        {
+            return _intFormatter.Format(value);
+        }
+
+        private global::System.Object? FormatInactive(global::System.Boolean? value)
+        {
+            return _booleanFormatter.Format(value);
+        }
+
+        global::StrawberryShake.OperationRequest global::StrawberryShake.IOperationRequestFactory.Create(global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object?>? variables)
+        {
+            return CreateRequest(variables!);
+        }
+    }
+}
+
+
+// PeopleSearchBuilder
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
+
+#nullable enable
+
+namespace Foo.Bar.State
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class PeopleSearchBuilder
+        : global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.IPeopleSearchQueryResult>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityIdSerializer _idSerializer;
+        private readonly global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IPeopleSearchQueryResult> _resultDataFactory;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Int32, global::System.Int32> _intParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _iDParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Int64, global::System.Int64> _longParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.Uri> _urlParser;
+
+        public PeopleSearchBuilder(
+            global::StrawberryShake.IEntityStore entityStore,
+            global::StrawberryShake.IEntityIdSerializer idSerializer,
+            global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IPeopleSearchQueryResult> resultDataFactory,
+            global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _idSerializer = idSerializer
+                 ?? throw new global::System.ArgumentNullException(nameof(idSerializer));
+            _resultDataFactory = resultDataFactory
+                 ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
+            _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String")
+                 ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
+            _intParser = serializerResolver.GetLeafValueParser<global::System.Int32, global::System.Int32>("Int")
+                 ?? throw new global::System.ArgumentException("No serializer for type `Int` found.");
+            _booleanParser = serializerResolver.GetLeafValueParser<global::System.Boolean, global::System.Boolean>("Boolean")
+                 ?? throw new global::System.ArgumentException("No serializer for type `Boolean` found.");
+            _iDParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("ID")
+                 ?? throw new global::System.ArgumentException("No serializer for type `ID` found.");
+            _longParser = serializerResolver.GetLeafValueParser<global::System.Int64, global::System.Int64>("Long")
+                 ?? throw new global::System.ArgumentException("No serializer for type `Long` found.");
+            _urlParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.Uri>("Url")
+                 ?? throw new global::System.ArgumentException("No serializer for type `Url` found.");
+        }
+
+        public global::StrawberryShake.IOperationResult<IPeopleSearchQueryResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
+        {
+            (IPeopleSearchQueryResult Result, PeopleSearchResultInfo Info)? data = null;
+            global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
+
+            if (response.Body != null)
+            {
+                if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement))
+                {
+                    data = BuildData(dataElement);
+                }
+                if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
+                {
+                    errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                }
+            }
+
+            return new global::StrawberryShake.OperationResult<IPeopleSearchQueryResult>(
+                data?.Result,
+                data?.Info,
+                _resultDataFactory,
+                errors);
+        }
+
+        private (IPeopleSearchQueryResult, PeopleSearchResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
+        {
+            var entityIds = new global::System.Collections.Generic.HashSet<global::StrawberryShake.EntityId>();
+            global::StrawberryShake.IEntityStoreSnapshot snapshot = default!;
+
+            global::Foo.Bar.State.PersonCollectionSegmentData? peopleId = default!;
+            _entityStore.Update(session => 
+            {
+                peopleId = DeserializeIPeopleSearch_People(
+                    session,
+                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                        obj,
+                        "people"),
+                    entityIds);
+
+                snapshot = session.CurrentSnapshot;
+            });
+
+            var resultInfo = new PeopleSearchResultInfo(
+                peopleId,
+                entityIds,
+                snapshot.Version);
+
+            return (
+                _resultDataFactory.Create(resultInfo),
+                resultInfo
+            );
+        }
+
+        private global::Foo.Bar.State.PersonCollectionSegmentData? DeserializeIPeopleSearch_People(
+            global::StrawberryShake.IEntityStoreUpdateSession session,
+            global::System.Text.Json.JsonElement? obj,
+            global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        {
+            if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            var typename = obj.Value
+                .GetProperty("__typename")
+                .GetString();
+
+            if (typename?.Equals("PersonCollectionSegment", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::Foo.Bar.State.PersonCollectionSegmentData(
+                    typename,
+                    totalCount: DeserializeNonNullableInt32(
+                        global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                            obj,
+                            "totalCount")),
+                    pageInfo: DeserializeNonNullableIPeopleSearch_People_PageInfo(
+                        global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                            obj,
+                            "pageInfo")),
+                    items: UpdateIPeopleSearch_People_ItemsEntityNonNullableArray(
+                        session,
+                        global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                            obj,
+                            "items"),
+                        entityIds));
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::System.Int32 DeserializeNonNullableInt32(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            return _intParser.Parse(obj.Value.GetInt32()!);
+        }
+
+        private global::Foo.Bar.State.CollectionSegmentInfoData DeserializeNonNullableIPeopleSearch_People_PageInfo(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            var typename = obj.Value
+                .GetProperty("__typename")
+                .GetString();
+
+            if (typename?.Equals("CollectionSegmentInfo", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::Foo.Bar.State.CollectionSegmentInfoData(
+                    typename,
+                    hasNextPage: DeserializeNonNullableBoolean(
+                        global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                            obj,
+                            "hasNextPage")),
+                    hasPreviousPage: DeserializeNonNullableBoolean(
+                        global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                            obj,
+                            "hasPreviousPage")));
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::System.Boolean DeserializeNonNullableBoolean(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            return _booleanParser.Parse(obj.Value.GetBoolean()!);
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId>? UpdateIPeopleSearch_People_ItemsEntityNonNullableArray(
+            global::StrawberryShake.IEntityStoreUpdateSession session,
+            global::System.Text.Json.JsonElement? obj,
+            global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        {
+            if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            var persons = new global::System.Collections.Generic.List<global::StrawberryShake.EntityId>();
+
+            foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
+            {
+                persons.Add(UpdateNonNullableIPeopleSearch_People_ItemsEntity(
+                    session,
+                    child,
+                    entityIds));
+            }
+
+            return persons;
+        }
+
+        private global::StrawberryShake.EntityId UpdateNonNullableIPeopleSearch_People_ItemsEntity(
+            global::StrawberryShake.IEntityStoreUpdateSession session,
+            global::System.Text.Json.JsonElement? obj,
+            global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            global::StrawberryShake.EntityId entityId = _idSerializer.Parse(obj.Value);
+            entityIds.Add(entityId);
+
+
+            if (entityId.Name.Equals(
+                    "Person",
+                    global::System.StringComparison.Ordinal))
+            {
+                if (session.CurrentSnapshot.TryGetEntity(
+                        entityId,
+                        out global::Foo.Bar.State.PersonEntity? entity))
+                {
+                    session.SetEntity(
+                        entityId,
+                        new global::Foo.Bar.State.PersonEntity(
+                            DeserializeNonNullableString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "id")),
+                            DeserializeNonNullableInt64(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "key")),
+                            DeserializeString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "displayName")),
+                            DeserializeNonNullableBoolean(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "isActive")),
+                            UpdateIPeopleSearch_People_Items_DepartmentEntity(
+                                session,
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "department"),
+                                entityIds),
+                            DeserializeUri(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "image")),
+                            DeserializeNonNullableString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "title")),
+                            UpdateIPeopleSearch_People_Items_ManagerEntity(
+                                session,
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "manager"),
+                                entityIds)));
+                }
+                else
+                {
+                    session.SetEntity(
+                        entityId,
+                        new global::Foo.Bar.State.PersonEntity(
+                            DeserializeNonNullableString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "id")),
+                            DeserializeNonNullableInt64(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "key")),
+                            DeserializeString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "displayName")),
+                            DeserializeNonNullableBoolean(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "isActive")),
+                            UpdateIPeopleSearch_People_Items_DepartmentEntity(
+                                session,
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "department"),
+                                entityIds),
+                            DeserializeUri(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "image")),
+                            DeserializeNonNullableString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "title")),
+                            UpdateIPeopleSearch_People_Items_ManagerEntity(
+                                session,
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "manager"),
+                                entityIds)));
+                }
+
+                return entityId;
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::System.String DeserializeNonNullableString(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            return _iDParser.Parse(obj.Value.GetString()!);
+        }
+
+        private global::System.Int64 DeserializeNonNullableInt64(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            return _longParser.Parse(obj.Value.GetInt64()!);
+        }
+
+        private global::System.String? DeserializeString(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            return _stringParser.Parse(obj.Value.GetString()!);
+        }
+
+        private global::StrawberryShake.EntityId? UpdateIPeopleSearch_People_Items_DepartmentEntity(
+            global::StrawberryShake.IEntityStoreUpdateSession session,
+            global::System.Text.Json.JsonElement? obj,
+            global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        {
+            if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            global::StrawberryShake.EntityId entityId = _idSerializer.Parse(obj.Value);
+            entityIds.Add(entityId);
+
+
+            if (entityId.Name.Equals(
+                    "Department",
+                    global::System.StringComparison.Ordinal))
+            {
+                if (session.CurrentSnapshot.TryGetEntity(
+                        entityId,
+                        out global::Foo.Bar.State.DepartmentEntity? entity))
+                {
+                    session.SetEntity(
+                        entityId,
+                        new global::Foo.Bar.State.DepartmentEntity(
+                            DeserializeNonNullableString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "id")),
+                            DeserializeNonNullableString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "name"))));
+                }
+                else
+                {
+                    session.SetEntity(
+                        entityId,
+                        new global::Foo.Bar.State.DepartmentEntity(
+                            DeserializeNonNullableString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "id")),
+                            DeserializeNonNullableString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "name"))));
+                }
+
+                return entityId;
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::System.Uri? DeserializeUri(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            return _urlParser.Parse(obj.Value.GetString()!);
+        }
+
+        private global::StrawberryShake.EntityId? UpdateIPeopleSearch_People_Items_ManagerEntity(
+            global::StrawberryShake.IEntityStoreUpdateSession session,
+            global::System.Text.Json.JsonElement? obj,
+            global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        {
+            if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            global::StrawberryShake.EntityId entityId = _idSerializer.Parse(obj.Value);
+            entityIds.Add(entityId);
+
+
+            if (entityId.Name.Equals(
+                    "Person",
+                    global::System.StringComparison.Ordinal))
+            {
+                if (session.CurrentSnapshot.TryGetEntity(
+                        entityId,
+                        out global::Foo.Bar.State.PersonEntity? entity))
+                {
+                    session.SetEntity(
+                        entityId,
+                        new global::Foo.Bar.State.PersonEntity(
+                            DeserializeNonNullableString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "id")),
+                            DeserializeNonNullableInt64(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "key")),
+                            DeserializeString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "displayName")),
+                            entity.IsActive,
+                            entity.Department,
+                            entity.Image,
+                            entity.Title,
+                            entity.Manager));
+                }
+                else
+                {
+                    session.SetEntity(
+                        entityId,
+                        new global::Foo.Bar.State.PersonEntity(
+                            DeserializeNonNullableString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "id")),
+                            DeserializeNonNullableInt64(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "key")),
+                            DeserializeString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "displayName")),
+                            default!,
+                            default!,
+                            default!,
+                            default!,
+                            default!));
+                }
+
+                return entityId;
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+    }
+}
+
+
+// PersonCollectionSegmentData
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+
+#nullable enable
+
+namespace Foo.Bar.State
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class PersonCollectionSegmentData
+    {
+        public PersonCollectionSegmentData(
+            global::System.String typename,
+            global::System.Int32? totalCount = null,
+            global::Foo.Bar.State.CollectionSegmentInfoData? pageInfo = null,
+            global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId>? items = null)
+        {
+            __typename = typename
+                 ?? throw new global::System.ArgumentNullException(nameof(typename));
+            TotalCount = totalCount;
+            PageInfo = pageInfo;
+            Items = items;
+        }
+
+        public global::System.String __typename { get; }
+
+        public global::System.Int32? TotalCount { get; }
+
+        /// <summary>
+        /// Information to aid in pagination.
+        /// </summary>
+        public global::Foo.Bar.State.CollectionSegmentInfoData? PageInfo { get; }
+
+        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId>? Items { get; }
+    }
+}
+
+
+// CollectionSegmentInfoData
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+
+#nullable enable
+
+namespace Foo.Bar.State
+{
+    /// <summary>
+    /// Information about the offset pagination.
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class CollectionSegmentInfoData
+    {
+        public CollectionSegmentInfoData(
+            global::System.String typename,
+            global::System.Boolean? hasNextPage = null,
+            global::System.Boolean? hasPreviousPage = null)
+        {
+            __typename = typename
+                 ?? throw new global::System.ArgumentNullException(nameof(typename));
+            HasNextPage = hasNextPage;
+            HasPreviousPage = hasPreviousPage;
+        }
+
+        public global::System.String __typename { get; }
+
+        /// <summary>
+        /// Indicates whether more items exist following the set defined by the clients arguments.
+        /// </summary>
+        public global::System.Boolean? HasNextPage { get; }
+
+        /// <summary>
+        /// Indicates whether more items exist prior the set defined by the clients arguments.
+        /// </summary>
+        public global::System.Boolean? HasPreviousPage { get; }
+    }
+}
+
+
+// FooClient
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    /// <summary>
+    /// Represents the FooClient GraphQL client
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FooClient
+    {
+        private readonly global::Foo.Bar.PeopleSearchQuery _peopleSearch;
+
+        public FooClient(global::Foo.Bar.PeopleSearchQuery peopleSearch)
+        {
+            _peopleSearch = peopleSearch
+                 ?? throw new global::System.ArgumentNullException(nameof(peopleSearch));
+        }
+
+        public static global::System.String ClientName => "FooClient";
+
+        public global::Foo.Bar.PeopleSearchQuery PeopleSearch => _peopleSearch;
+    }
+}
+
+
+// FooClientEntityIdFactory
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator
+
+#nullable enable
+
+namespace Foo.Bar.State
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FooClientEntityIdFactory
+        : global::StrawberryShake.IEntityIdSerializer
+    {
+        private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions(){ Indented = false };
+
+        public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
+        {
+            global::System.String typeName = obj
+                .GetProperty("__typename")
+                .GetString()!;
+
+            return typeName switch
+            {
+                "Person" => ParsePersonEntityId(
+                    obj,
+                    typeName),
+                "Department" => ParseDepartmentEntityId(
+                    obj,
+                    typeName),
+                _ => throw new global::System.NotSupportedException()
+            };
+        }
+
+        public global::System.String Format(global::StrawberryShake.EntityId entityId)
+        {
+            return entityId.Name switch
+            {
+                "Person" => FormatPersonEntityId(entityId),
+                "Department" => FormatDepartmentEntityId(entityId),
+                _ => throw new global::System.NotSupportedException()
+            };
+        }
+
+        private global::StrawberryShake.EntityId ParsePersonEntityId(
+            global::System.Text.Json.JsonElement obj,
+            global::System.String type)
+        {
+            return new global::StrawberryShake.EntityId(
+                type,
+                obj
+                    .GetProperty("id")
+                    .GetString()!);
+        }
+
+        private global::System.String FormatPersonEntityId(global::StrawberryShake.EntityId entityId)
+        {
+            using var writer = new global::StrawberryShake.Internal.ArrayWriter();
+            using var jsonWriter = new global::System.Text.Json.Utf8JsonWriter(
+                writer,
+                _options);
+            jsonWriter.WriteStartObject();
+
+            jsonWriter.WriteString(
+                "__typename",
+                entityId.Name);
+
+            jsonWriter.WriteString(
+                "id",
+                (global::System.String)entityId.Value);
+            jsonWriter.WriteEndObject();
+            jsonWriter.Flush();
+
+            return global::System.Text.Encoding.UTF8.GetString(
+                writer.GetInternalBuffer(),
+                0,
+                writer.Length);
+        }
+
+        private global::StrawberryShake.EntityId ParseDepartmentEntityId(
+            global::System.Text.Json.JsonElement obj,
+            global::System.String type)
+        {
+            return new global::StrawberryShake.EntityId(
+                type,
+                obj
+                    .GetProperty("id")
+                    .GetString()!);
+        }
+
+        private global::System.String FormatDepartmentEntityId(global::StrawberryShake.EntityId entityId)
+        {
+            using var writer = new global::StrawberryShake.Internal.ArrayWriter();
+            using var jsonWriter = new global::System.Text.Json.Utf8JsonWriter(
+                writer,
+                _options);
+            jsonWriter.WriteStartObject();
+
+            jsonWriter.WriteString(
+                "__typename",
+                entityId.Name);
+
+            jsonWriter.WriteString(
+                "id",
+                (global::System.String)entityId.Value);
+            jsonWriter.WriteEndObject();
+            jsonWriter.Flush();
+
+            return global::System.Text.Encoding.UTF8.GetString(
+                writer.GetInternalBuffer(),
+                0,
+                writer.Length);
+        }
+    }
+}
+
+
+// FooClientServiceCollectionExtensions
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.DependencyInjectionGenerator
+
+#nullable enable
+
+namespace Microsoft.Extensions.DependencyInjection
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public static partial class FooClientServiceCollectionExtensions
+    {
+        public static global::StrawberryShake.IClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor> AddFooClient(
+            this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
+            global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
+        {
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
+                services,
+                sp => 
+                {
+                    var serviceCollection = ConfigureClientDefault(
+                        sp,
+                        strategy);
+
+                    return new ClientServiceProvider(
+                        global::Microsoft.Extensions.DependencyInjection.ServiceCollectionContainerBuilderExtensions.BuildServiceProvider(serviceCollection));
+                });
+
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
+                services,
+                sp => new global::Foo.Bar.State.FooClientStoreAccessor(
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)),
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)),
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityIdSerializer>(
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)),
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory>>(
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)),
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory>>(
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp))));
+
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.PeopleSearchQuery>(
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.FooClient>(
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+
+            return new global::StrawberryShake.ClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor>(
+                "FooClient",
+                services);
+        }
+
+        private static global::Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureClientDefault(
+            global::System.IServiceProvider parentServices,
+            global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
+        {
+            var services = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
+            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IEntityStore, global::StrawberryShake.EntityStore>(services);
+            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IOperationStore>(
+                services,
+                sp => new global::StrawberryShake.OperationStore(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(sp)));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
+                services,
+                sp => 
+                {
+                    var clientFactory = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Net.Http.IHttpClientFactory>(parentServices);
+                    return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("FooClient"));
+                });
+
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, global::Foo.Bar.PeopleSearch_People_Items_Person>, global::Foo.Bar.State.PeopleSearch_People_Items_PersonFromPersonEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.DepartmentEntity, global::Foo.Bar.PeopleSearch_People_Items_Department_Department>, global::Foo.Bar.State.PeopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, global::Foo.Bar.PeopleSearch_People_Items_Manager_Person>, global::Foo.Bar.State.PeopleSearch_People_Items_Manager_PersonFromPersonEntityMapper>(services);
+
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.StringSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.BooleanSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ShortSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IntSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LongSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.FloatSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DecimalSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UrlSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UuidSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IdSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateTimeSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializerResolver>(
+                services,
+                sp => new global::StrawberryShake.Serialization.SerializerResolver(
+                    global::System.Linq.Enumerable.Concat(
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(
+                            parentServices),
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(
+                            sp))));
+
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IPeopleSearchQueryResult>, global::Foo.Bar.State.PeopleSearchResultFactory>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IPeopleSearchQueryResult>>(sp));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationRequestFactory>(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.PeopleSearchQuery>(sp));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.IPeopleSearchQueryResult>, global::Foo.Bar.State.PeopleSearchBuilder>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::Foo.Bar.IPeopleSearchQueryResult>>(
+                services,
+                sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::Foo.Bar.IPeopleSearchQueryResult>(
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.Http.HttpConnection>(sp),
+                    () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.IPeopleSearchQueryResult>>(sp),
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
+                    strategy));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.PeopleSearchQuery>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityIdSerializer, global::Foo.Bar.State.FooClientEntityIdFactory>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.FooClient>(services);
+            return services;
+        }
+
+        private class ClientServiceProvider
+            : System.IServiceProvider
+            , System.IDisposable
+        {
+            private readonly System.IServiceProvider _provider;
+
+            public ClientServiceProvider(System.IServiceProvider provider)
+            {
+                _provider = provider;
+            }
+
+            public object? GetService(System.Type serviceType)
+            {
+                return _provider.GetService(serviceType);
+            }
+
+            public void Dispose()
+            {
+                if (_provider is System.IDisposable d)
+                {
+                    d.Dispose();
+                }
+            }
+        }
+    }
+}
+
+
+// FooClientStoreAccessor
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.StoreAccessorGenerator
+
+#nullable enable
+
+namespace Foo.Bar.State
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FooClientStoreAccessor
+        : global::StrawberryShake.StoreAccessor
+    {
+        public FooClientStoreAccessor(
+            global::StrawberryShake.IOperationStore operationStore,
+            global::StrawberryShake.IEntityStore entityStore,
+            global::StrawberryShake.IEntityIdSerializer entityIdSerializer,
+            global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory> requestFactories,
+            global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory> resultDataFactories)
+            : base(
+                operationStore,
+                entityStore,
+                entityIdSerializer,
+                requestFactories,
+                resultDataFactories)
+        {
+        }
+    }
+}
+
+

@@ -8,8 +8,7 @@ using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
-    public abstract class TypeSystemObjectBase
-        : ITypeSystemObject
+    public abstract class TypeSystemObjectBase : ITypeSystemObject
     {
         private TypeStatus _status;
         private NameString _name;
@@ -69,31 +68,51 @@ namespace HotChocolate.Types
 
         public abstract IReadOnlyDictionary<string, object?> ContextData { get; }
 
-        protected internal bool IsCompleted =>
-            _status == TypeStatus.Completed;
-
-        protected bool IsNamed =>
-            _status == TypeStatus.Named
-            || _status == TypeStatus.Completed;
-
-        protected bool IsInitialized =>
+        protected internal bool IsInitialized =>
             _status == TypeStatus.Initialized
             || _status == TypeStatus.Named
             || _status == TypeStatus.Completed;
 
+        protected internal bool IsNamed =>
+            _status == TypeStatus.Named
+            || _status == TypeStatus.Completed;
+
+        protected internal bool IsCompleted =>
+            _status == TypeStatus.Completed;
+
+        /// <summary>
+        /// The type configuration is created and dependencies are registered.
+        /// </summary>
         internal virtual void Initialize(ITypeDiscoveryContext context)
         {
             MarkInitialized();
         }
 
+        /// <summary>
+        /// If this type has a dynamic type it will be completed in this step.
+        /// </summary>
         internal virtual void CompleteName(ITypeCompletionContext context)
         {
             MarkNamed();
         }
 
+        /// <summary>
+        /// All type properties are set and the type settings are completed.
+        /// </summary>
         internal virtual void CompleteType(ITypeCompletionContext context)
         {
             MarkCompleted();
+        }
+
+        /// <summary>
+        /// All types are completed at this point and the type can clean up any
+        /// temporary data structures.
+        ///
+        /// This step is mainly to cleanup.
+        /// </summary>
+        internal virtual void FinalizeType(ITypeCompletionContext context)
+        {
+            MarkFinalized();
         }
 
         protected void MarkInitialized()
@@ -130,6 +149,18 @@ namespace HotChocolate.Types
             }
 
             _status = TypeStatus.Completed;
+        }
+
+        protected void MarkFinalized()
+        {
+            Debug.Assert(_status == TypeStatus.Completed);
+
+            if (_status != TypeStatus.Completed)
+            {
+                throw new InvalidOperationException();
+            }
+
+            _status = TypeStatus.Finalized;
         }
     }
 }

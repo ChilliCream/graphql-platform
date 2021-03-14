@@ -1,6 +1,6 @@
 ﻿[
   {
-    "Message": "The GraphQL document has an operation complexity of 4 which exceeds the max allowed operation complexity of 3.",
+    "Message": "The GraphQL document has an execution depth of 4 which exceeds the max allowed execution depth of 3.",
     "Code": null,
     "Path": null,
     "Locations": [
@@ -10,9 +10,235 @@
       }
     ],
     "Extensions": {
-      "allowedComplexity": 3,
-      "detectedComplexity": 4
+      "allowedExecutionDepth": 3,
+      "detectedExecutionDepth": 4
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "OperationDefinition",
+      "Location": {
+        "Start": 17,
+        "End": 493,
+        "Line": 2,
+        "Column": 17
+      },
+      "Name": null,
+      "Operation": "Query",
+      "VariableDefinitions": [],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 23,
+          "End": 493,
+          "Line": 2,
+          "Column": 23
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": {
+              "Kind": "SelectionSet",
+              "Location": {
+                "Start": 54,
+                "End": 480,
+                "Line": 3,
+                "Column": 30
+              },
+              "Selections": [
+                {
+                  "Kind": "InlineFragment",
+                  "Location": {
+                    "Start": 80,
+                    "End": 462,
+                    "Line": 4,
+                    "Column": 25
+                  },
+                  "TypeCondition": {
+                    "Kind": "NamedType",
+                    "Location": {
+                      "Start": 87,
+                      "End": 95,
+                      "Line": 4,
+                      "Column": 32
+                    },
+                    "Name": {
+                      "Kind": "Name",
+                      "Location": {
+                        "Start": 87,
+                        "End": 95,
+                        "Line": 4,
+                        "Column": 32
+                      },
+                      "Value": "Level2"
+                    }
+                  },
+                  "Directives": [],
+                  "SelectionSet": {
+                    "Kind": "SelectionSet",
+                    "Location": {
+                      "Start": 94,
+                      "End": 462,
+                      "Line": 4,
+                      "Column": 39
+                    },
+                    "Selections": [
+                      {
+                        "Kind": "Field",
+                        "Alias": null,
+                        "Arguments": [],
+                        "SelectionSet": {
+                          "Kind": "SelectionSet",
+                          "Location": {
+                            "Start": 133,
+                            "End": 440,
+                            "Line": 5,
+                            "Column": 38
+                          },
+                          "Selections": [
+                            {
+                              "Kind": "InlineFragment",
+                              "Location": {
+                                "Start": 167,
+                                "End": 414,
+                                "Line": 6,
+                                "Column": 33
+                              },
+                              "TypeCondition": {
+                                "Kind": "NamedType",
+                                "Location": {
+                                  "Start": 174,
+                                  "End": 182,
+                                  "Line": 6,
+                                  "Column": 40
+                                },
+                                "Name": {
+                                  "Kind": "Name",
+                                  "Location": {
+                                    "Start": 174,
+                                    "End": 182,
+                                    "Line": 6,
+                                    "Column": 40
+                                  },
+                                  "Value": "Level3"
+                                }
+                              },
+                              "Directives": [],
+                              "SelectionSet": {
+                                "Kind": "SelectionSet",
+                                "Location": {
+                                  "Start": 181,
+                                  "End": 414,
+                                  "Line": 6,
+                                  "Column": 47
+                                },
+                                "Selections": [
+                                  {
+                                    "Kind": "Field",
+                                    "Alias": null,
+                                    "Arguments": [],
+                                    "SelectionSet": {
+                                      "Kind": "SelectionSet",
+                                      "Location": {
+                                        "Start": 264,
+                                        "End": 384,
+                                        "Line": 8,
+                                        "Column": 37
+                                      },
+                                      "Selections": [
+                                        {
+                                          "Kind": "Field",
+                                          "Alias": null,
+                                          "Arguments": [],
+                                          "SelectionSet": null,
+                                          "Location": {
+                                            "Start": 306,
+                                            "End": 350,
+                                            "Line": 9,
+                                            "Column": 41
+                                          },
+                                          "Name": {
+                                            "Kind": "Name",
+                                            "Location": {
+                                              "Start": 306,
+                                              "End": 350,
+                                              "Line": 9,
+                                              "Column": 41
+                                            },
+                                            "Value": "level4"
+                                          },
+                                          "Directives": []
+                                        }
+                                      ]
+                                    },
+                                    "Location": {
+                                      "Start": 219,
+                                      "End": 384,
+                                      "Line": 7,
+                                      "Column": 37
+                                    },
+                                    "Name": {
+                                      "Kind": "Name",
+                                      "Location": {
+                                        "Start": 219,
+                                        "End": 265,
+                                        "Line": 7,
+                                        "Column": 37
+                                      },
+                                      "Value": "level3_1"
+                                    },
+                                    "Directives": []
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        },
+                        "Location": {
+                          "Start": 124,
+                          "End": 440,
+                          "Line": 5,
+                          "Column": 29
+                        },
+                        "Name": {
+                          "Kind": "Name",
+                          "Location": {
+                            "Start": 124,
+                            "End": 134,
+                            "Line": 5,
+                            "Column": 29
+                          },
+                          "Value": "level2_1"
+                        },
+                        "Directives": []
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "Location": {
+              "Start": 45,
+              "End": 480,
+              "Line": 3,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 45,
+                "End": 55,
+                "Line": 3,
+                "Column": 21
+              },
+              "Value": "level1_1"
+            },
+            "Directives": []
+          }
+        ]
+      }
+    }
   }
 ]

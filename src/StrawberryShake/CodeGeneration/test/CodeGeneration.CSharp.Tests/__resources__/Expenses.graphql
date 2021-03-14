@@ -1,0 +1,310 @@
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type Expense {
+  "This is the receipt that belongs to the expense"
+  receipts: [Receipt]
+  amount: Decimal!
+  category: ExpenseCategory!
+  date: DateTime!
+  description: String
+  id: Uuid!
+  paymentMethod: PaymentMethod!
+  tags: [Tag]
+}
+
+type Income {
+  amount: Decimal!
+  category: IncomeCategory!
+  date: DateTime!
+  description: String
+  id: Uuid!
+  paymentMethod: PaymentMethod!
+  tags: [Tag]
+}
+
+type Receipt {
+  "The expense this receipt belongs to"
+  expense: Expense
+  expenseId: Uuid!
+  id: Uuid!
+  uploadDate: DateTime!
+  imageName: String
+}
+
+enum ApplyPolicy {
+  BEFORE_RESOLVER
+  AFTER_RESOLVER
+}
+
+type Query {
+  expense(where: ExpenseFilterInput order: [ExpenseSortInput!]): [Expense]
+  income(where: IncomeFilterInput order: [IncomeSortInput!]): [Income]
+}
+
+type Mutation {
+  addExpense(input: AddExpenseInput): AddExpensePayload
+  deleteExpense(input: DeleteExpenseInput): DeleteExpensePayload
+  addIncome(input: AddIncomeInput): AddIncomePayload
+  deleteIncome(input: DeleteIncomeInput): DeleteIncomePayload
+}
+
+"The built-in `Decimal` scalar type."
+scalar Decimal
+
+enum ExpenseCategory {
+  UNKNOWN_EXPENSE_CATEGORY
+  RENT
+  FOOD
+  BILLS
+  UTILITIES
+  TRANSPORTATION
+  INSURANCE
+  SHOPPING
+  ENTERTAINMENT
+  HEALTHCARE
+  HOUSING
+  TAX
+  CLOTHING
+  EDUCATION
+  MISCELLANEOUS
+  PERSONAL_CARE
+}
+
+"The `DateTime` scalar represents an ISO-8601 compliant date time type."
+scalar DateTime
+
+scalar Uuid
+
+enum PaymentMethod {
+  UNKNOWN_PAYMENT_METHOD
+  CASH
+  DEBIT_CARD
+  CREDIT_CARD
+  PAY_PAL
+}
+
+type Tag {
+  name: String
+}
+
+enum IncomeCategory {
+  UNKNOWN_INCOME_CATEGORY
+  SALARY
+  INTERESTS
+  BUSINESS
+  EXTRA_INCOME
+}
+
+input ExpenseFilterInput {
+  and: [ExpenseFilterInput!]
+  or: [ExpenseFilterInput!]
+  amount: ComparableDecimalOperationFilterInput
+  category: ExpenseCategoryOperationFilterInput
+  date: ComparableDateTimeOffsetOperationFilterInput
+  description: StringOperationFilterInput
+  id: ComparableGuidOperationFilterInput
+  paymentMethod: PaymentMethodOperationFilterInput
+  tags: ListFilterInputTypeOfTagFilterInput
+  userId: ComparableGuidOperationFilterInput
+  receipts: ListFilterInputTypeOfReceiptFilterInput
+}
+
+input ExpenseSortInput {
+  amount: SortEnumType
+  category: SortEnumType
+  date: SortEnumType
+  description: SortEnumType
+  id: SortEnumType
+  paymentMethod: SortEnumType
+  userId: SortEnumType
+}
+
+input IncomeFilterInput {
+  and: [IncomeFilterInput!]
+  or: [IncomeFilterInput!]
+  amount: ComparableDecimalOperationFilterInput
+  category: IncomeCategoryOperationFilterInput
+  date: ComparableDateTimeOffsetOperationFilterInput
+  description: StringOperationFilterInput
+  id: ComparableGuidOperationFilterInput
+  paymentMethod: PaymentMethodOperationFilterInput
+  tags: ListFilterInputTypeOfTagFilterInput
+  userId: ComparableGuidOperationFilterInput
+}
+
+input IncomeSortInput {
+  amount: SortEnumType
+  category: SortEnumType
+  date: SortEnumType
+  description: SortEnumType
+  id: SortEnumType
+  paymentMethod: SortEnumType
+  userId: SortEnumType
+}
+
+input ComparableDecimalOperationFilterInput {
+  eq: Decimal
+  neq: Decimal
+  in: [Decimal!]
+  nin: [Decimal!]
+  gt: Decimal
+  ngt: Decimal
+  gte: Decimal
+  ngte: Decimal
+  lt: Decimal
+  nlt: Decimal
+  lte: Decimal
+  nlte: Decimal
+}
+
+input ExpenseCategoryOperationFilterInput {
+  eq: ExpenseCategory
+  neq: ExpenseCategory
+  in: [ExpenseCategory!]
+  nin: [ExpenseCategory!]
+}
+
+input ComparableDateTimeOffsetOperationFilterInput {
+  eq: DateTime
+  neq: DateTime
+  in: [DateTime!]
+  nin: [DateTime!]
+  gt: DateTime
+  ngt: DateTime
+  gte: DateTime
+  ngte: DateTime
+  lt: DateTime
+  nlt: DateTime
+  lte: DateTime
+  nlte: DateTime
+}
+
+input StringOperationFilterInput {
+  and: [StringOperationFilterInput!]
+  or: [StringOperationFilterInput!]
+  eq: String
+  neq: String
+  contains: String
+  ncontains: String
+  in: [String]
+  nin: [String]
+  startsWith: String
+  nstartsWith: String
+  endsWith: String
+  nendsWith: String
+}
+
+input ComparableGuidOperationFilterInput {
+  eq: Uuid
+  neq: Uuid
+  in: [Uuid!]
+  nin: [Uuid!]
+  gt: Uuid
+  ngt: Uuid
+  gte: Uuid
+  ngte: Uuid
+  lt: Uuid
+  nlt: Uuid
+  lte: Uuid
+  nlte: Uuid
+}
+
+input PaymentMethodOperationFilterInput {
+  eq: PaymentMethod
+  neq: PaymentMethod
+  in: [PaymentMethod!]
+  nin: [PaymentMethod!]
+}
+
+input ListFilterInputTypeOfTagFilterInput {
+  all: TagFilterInput
+  none: TagFilterInput
+  some: TagFilterInput
+  any: Boolean
+}
+
+input ListFilterInputTypeOfReceiptFilterInput {
+  all: ReceiptFilterInput
+  none: ReceiptFilterInput
+  some: ReceiptFilterInput
+  any: Boolean
+}
+
+enum SortEnumType {
+  ASC
+  DESC
+}
+
+input IncomeCategoryOperationFilterInput {
+  eq: IncomeCategory
+  neq: IncomeCategory
+  in: [IncomeCategory!]
+  nin: [IncomeCategory!]
+}
+
+input TagFilterInput {
+  and: [TagFilterInput!]
+  or: [TagFilterInput!]
+  name: StringOperationFilterInput
+}
+
+input ReceiptFilterInput {
+  and: [ReceiptFilterInput!]
+  or: [ReceiptFilterInput!]
+  expenseId: ComparableGuidOperationFilterInput
+  expense: ExpenseFilterInput
+  id: ComparableGuidOperationFilterInput
+  uploadDate: ComparableDateTimeOffsetOperationFilterInput
+  imageName: StringOperationFilterInput
+}
+
+input DeleteIncomeInput {
+  id: Uuid!
+}
+
+input AddIncomeInput {
+  amount: Decimal!
+  category: IncomeCategory!
+  date: DateTime!
+  description: String
+  paymentMethod: PaymentMethod!
+  tags: [TagInput]
+}
+
+input DeleteExpenseInput {
+  id: Uuid!
+}
+
+input AddExpenseInput {
+  amount: Decimal!
+  category: ExpenseCategory!
+  date: DateTime!
+  description: String
+  paymentMethod: PaymentMethod!
+  tags: [TagInput]
+}
+
+type DeleteIncomePayload {
+  income: Income
+}
+
+type AddIncomePayload {
+  income: Income
+}
+
+type DeleteExpensePayload {
+  expense: Expense
+}
+
+type AddExpensePayload {
+  expense: Expense
+}
+
+input TagInput {
+  name: String
+}
+
+directive @authorize("The name of the authorization policy that determines access to the annotated resource." policy: String "Roles that are allowed to access the annotated resource." roles: [String!] "Defines when when the resolver shall be executed.By default the resolver is executed after the policy has determined that the current user is allowed to access the field." apply: ApplyPolicy! = BEFORE_RESOLVER) repeatable on SCHEMA | OBJECT | FIELD_DEFINITION

@@ -11,11 +11,11 @@ authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 
 **This post has been updated, please head over to the newer post [here](https://chillicream.com/blog/2019/11/25/strawberry-shake_2).**
 
-We for a while now have two big GraphQL server projects on the .NET platform. So, if you just want to build a decent GraphQL server you can pick and choose between _GraphQL .NET_ or _Hot Chocolate_.
+We for a while now have two big GraphQL server projects on the .NET platform. So, if you just want to build a decent GraphQL server you can pick and choose between _GraphQL .NET_ or Hot Chocolate.
 
 If you are looking at consuming a GraphQL server in your _Blazor_ or _Xamarin_ application, then things are not so promising. You can either go with a bare bone client from the _GraphQL .NET_ project or you can decide to go it alone and build on `HttpClient`.
 
-After the version 10 release of our _Hot Chocolate_ GraphQL server we have started to build a new GraphQL client API that is more in line with how people in JavaScript consume GraphQL endpoints.
+After the version 10 release of our Hot Chocolate GraphQL server we have started to build a new GraphQL client API that is more in line with how people in JavaScript consume GraphQL endpoints.
 
 ## Introduction
 
@@ -29,7 +29,7 @@ Before we get into it let me first outline what our goals for our approach are:
 - Support for local resolvers.
 - Support for custom scalars.
 
-The preview that we released today is a prototype that has a ton of bugs and is meant at the moment to get feedback. Starting with this preview we will now release every other day a new preview and think that we will release this new API with version 11 of _Hot Chocolate_.
+The preview that we released today is a prototype that has a ton of bugs and is meant at the moment to get feedback. Starting with this preview we will now release every other day a new preview and think that we will release this new API with version 11 of Hot Chocolate.
 
 ## Getting Started
 
@@ -37,7 +37,7 @@ Let us have a look at how we want to tackle things with _Strawberry Shake_. For 
 
 If you want to follow along then install the [.NET Core 3 SDK](https://dotnet.microsoft.com/download/dotnet-core/3.0) . We are also supporting other .NET variants but for this example you will need the .NET Core 3 SDK.
 
-Before we can start let us clone the _Hot Chocolate_ repository and start our _Star Wars_ server.
+Before we can start let us clone the Hot Chocolate repository and start our _Star Wars_ server.
 
 ```bash
 git clone https://github.com/ChilliCream/hotchocolate.git
@@ -340,7 +340,7 @@ Last but not least we have a lot to do on the tooling side. We want to have a ni
 
 Please check it out and give us feedback so we can adjust and refine the experience further.
 
-If you want to get into contact with us head over to our [slack channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q) and join our community.
+If you want to get into contact with us head over to our slack channel and join our community.
 
 [hot chocolate]: https://hotchocolate.io
 [hot chocolate source code]: https://github.com/ChilliCream/hotchocolate

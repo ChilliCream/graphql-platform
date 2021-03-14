@@ -11,8 +11,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution.Serialization
 {
-    public sealed class JsonQueryResultSerializer
-        : IQueryResultSerializer
+    public sealed class JsonQueryResultSerializer : IQueryResultSerializer
     {
         private const string _data = "data";
         private const string _errors = "errors";
@@ -25,6 +24,16 @@ namespace HotChocolate.Execution.Serialization
 
         private readonly JsonWriterOptions _options;
 
+        /// <summary>
+        /// Creates a new instance of <see cref="JsonQueryResultSerializer" />.
+        /// </summary>
+        /// <param name="indented">
+        /// Defines whether the underlying <see cref="Utf8JsonWriter"/>
+        /// should pretty print the JSON which includes:
+        /// indenting nested JSON tokens, adding new lines, and adding
+        /// white space between property names and values.
+        /// By default, the JSON is written without any extra white space.
+        /// </param>
         public JsonQueryResultSerializer(bool indented = false)
         {
             _options = new JsonWriterOptions { Indented = indented };
@@ -68,10 +77,10 @@ namespace HotChocolate.Execution.Serialization
 
             WriteResult(writer, result);
 
-            await writer.FlushAsync(cancellationToken);
+            await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        private static void WriteResult(Utf8JsonWriter writer, IQueryResult result)
+        private void WriteResult(Utf8JsonWriter writer, IQueryResult result)
         {
             writer.WriteStartObject();
 
@@ -109,7 +118,7 @@ namespace HotChocolate.Execution.Serialization
             }
         }
 
-        private static void WriteData(
+        private void WriteData(
             Utf8JsonWriter writer,
             IReadOnlyDictionary<string, object?>? data)
         {
@@ -128,7 +137,7 @@ namespace HotChocolate.Execution.Serialization
             }
         }
 
-        private static void WriteErrors(Utf8JsonWriter writer, IReadOnlyList<IError>? errors)
+        private void WriteErrors(Utf8JsonWriter writer, IReadOnlyList<IError>? errors)
         {
             if (errors is { } && errors.Count > 0)
             {
@@ -145,7 +154,7 @@ namespace HotChocolate.Execution.Serialization
             }
         }
 
-        private static void WriteError(Utf8JsonWriter writer, IError error)
+        private void WriteError(Utf8JsonWriter writer, IError error)
         {
             writer.WriteStartObject();
 
@@ -238,7 +247,7 @@ namespace HotChocolate.Execution.Serialization
             writer.WriteEndArray();
         }
 
-        private static void WriteExtensions(
+        private void WriteExtensions(
             Utf8JsonWriter writer,
             IReadOnlyDictionary<string, object?>? dict)
         {
@@ -249,7 +258,7 @@ namespace HotChocolate.Execution.Serialization
             }
         }
 
-        private static void WriteDictionary(
+        private void WriteDictionary(
             Utf8JsonWriter writer,
             IReadOnlyDictionary<string, object?> dict)
         {
@@ -264,7 +273,7 @@ namespace HotChocolate.Execution.Serialization
             writer.WriteEndObject();
         }
 
-        private static void WriteResultMap(
+        private void WriteResultMap(
             Utf8JsonWriter writer,
             IResultMap resultMap)
         {
@@ -283,7 +292,7 @@ namespace HotChocolate.Execution.Serialization
             writer.WriteEndObject();
         }
 
-        private static void WriteList(
+        private void WriteList(
             Utf8JsonWriter writer,
             IList list)
         {
@@ -297,7 +306,7 @@ namespace HotChocolate.Execution.Serialization
             writer.WriteEndArray();
         }
 
-        private static void WriteResultMapList(
+        private void WriteResultMapList(
             Utf8JsonWriter writer,
             IResultMapList list)
         {
@@ -318,7 +327,7 @@ namespace HotChocolate.Execution.Serialization
             writer.WriteEndArray();
         }
 
-        private static void WriteFieldValue(
+        private void WriteFieldValue(
             Utf8JsonWriter writer,
             object? value)
         {

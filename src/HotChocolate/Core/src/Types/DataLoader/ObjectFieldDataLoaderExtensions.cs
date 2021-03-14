@@ -146,7 +146,8 @@ namespace HotChocolate.Types
                 if (context.Result is IReadOnlyCollection<TKey> values)
                 {
                     IReadOnlyList<TValue[]> data = await dataloader
-                        .LoadAsync(values, context.RequestAborted);
+                        .LoadAsync(values, context.RequestAborted)
+                        .ConfigureAwait(false);
 
                     var result = new HashSet<object>();
                     for (var m = 0; m < data.Count; m++)
@@ -161,7 +162,9 @@ namespace HotChocolate.Types
                 }
                 else if (context.Result is TKey value)
                 {
-                    context.Result = await dataloader.LoadAsync(value, context.RequestAborted);
+                    context.Result = await dataloader
+                        .LoadAsync(value, context.RequestAborted)
+                        .ConfigureAwait(false);
                 }
             }
         }
@@ -186,11 +189,14 @@ namespace HotChocolate.Types
                 if (context.Result is IReadOnlyCollection<TKey> values)
                 {
                     context.Result = await dataloader
-                        .LoadAsync(values, context.RequestAborted);
+                        .LoadAsync(values, context.RequestAborted)
+                        .ConfigureAwait(false);
                 }
                 else if (context.Result is TKey value)
                 {
-                    context.Result = await dataloader.LoadAsync(value, context.RequestAborted);
+                    context.Result = await dataloader
+                        .LoadAsync(value, context.RequestAborted)
+                        .ConfigureAwait(false);
                 }
             }
         }

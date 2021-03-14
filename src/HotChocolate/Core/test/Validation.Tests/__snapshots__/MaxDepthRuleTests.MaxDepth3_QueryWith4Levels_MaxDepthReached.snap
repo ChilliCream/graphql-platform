@@ -1,6 +1,6 @@
 ﻿[
   {
-    "Message": "The GraphQL document has an operation complexity of 4 which exceeds the max allowed operation complexity of 3.",
+    "Message": "The GraphQL document has an execution depth of 4 which exceeds the max allowed execution depth of 3.",
     "Code": null,
     "Path": null,
     "Locations": [
@@ -10,9 +10,290 @@
       }
     ],
     "Extensions": {
-      "allowedComplexity": 3,
-      "detectedComplexity": 4
+      "allowedExecutionDepth": 3,
+      "detectedExecutionDepth": 4
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "OperationDefinition",
+      "Location": {
+        "Start": 17,
+        "End": 534,
+        "Line": 2,
+        "Column": 17
+      },
+      "Name": null,
+      "Operation": "Query",
+      "VariableDefinitions": [],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 23,
+          "End": 534,
+          "Line": 2,
+          "Column": 23
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": {
+              "Kind": "SelectionSet",
+              "Location": {
+                "Start": 54,
+                "End": 275,
+                "Line": 3,
+                "Column": 30
+              },
+              "Selections": [
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": {
+                    "Kind": "SelectionSet",
+                    "Location": {
+                      "Start": 89,
+                      "End": 246,
+                      "Line": 4,
+                      "Column": 34
+                    },
+                    "Selections": [
+                      {
+                        "Kind": "Field",
+                        "Alias": null,
+                        "Arguments": [],
+                        "SelectionSet": {
+                          "Kind": "SelectionSet",
+                          "Location": {
+                            "Start": 128,
+                            "End": 224,
+                            "Line": 5,
+                            "Column": 38
+                          },
+                          "Selections": [
+                            {
+                              "Kind": "Field",
+                              "Alias": null,
+                              "Arguments": [],
+                              "SelectionSet": null,
+                              "Location": {
+                                "Start": 162,
+                                "End": 198,
+                                "Line": 6,
+                                "Column": 33
+                              },
+                              "Name": {
+                                "Kind": "Name",
+                                "Location": {
+                                  "Start": 162,
+                                  "End": 198,
+                                  "Line": 6,
+                                  "Column": 33
+                                },
+                                "Value": "level4"
+                              },
+                              "Directives": []
+                            }
+                          ]
+                        },
+                        "Location": {
+                          "Start": 119,
+                          "End": 224,
+                          "Line": 5,
+                          "Column": 29
+                        },
+                        "Name": {
+                          "Kind": "Name",
+                          "Location": {
+                            "Start": 119,
+                            "End": 129,
+                            "Line": 5,
+                            "Column": 29
+                          },
+                          "Value": "level3_1"
+                        },
+                        "Directives": []
+                      }
+                    ]
+                  },
+                  "Location": {
+                    "Start": 80,
+                    "End": 246,
+                    "Line": 4,
+                    "Column": 25
+                  },
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": {
+                      "Start": 80,
+                      "End": 90,
+                      "Line": 4,
+                      "Column": 25
+                    },
+                    "Value": "level2_1"
+                  },
+                  "Directives": []
+                }
+              ]
+            },
+            "Location": {
+              "Start": 45,
+              "End": 275,
+              "Line": 3,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 45,
+                "End": 55,
+                "Line": 3,
+                "Column": 21
+              },
+              "Value": "level1_1"
+            },
+            "Directives": []
+          },
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": null,
+            "Location": {
+              "Start": 267,
+              "End": 304,
+              "Line": 10,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 267,
+                "End": 304,
+                "Line": 10,
+                "Column": 21
+              },
+              "Value": "level1_2"
+            },
+            "Directives": []
+          },
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": {
+              "Kind": "SelectionSet",
+              "Location": {
+                "Start": 325,
+                "End": 521,
+                "Line": 12,
+                "Column": 21
+              },
+              "Selections": [
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": null,
+                  "Location": {
+                    "Start": 351,
+                    "End": 392,
+                    "Line": 13,
+                    "Column": 25
+                  },
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": {
+                      "Start": 351,
+                      "End": 392,
+                      "Line": 13,
+                      "Column": 25
+                    },
+                    "Value": "level2_2"
+                  },
+                  "Directives": []
+                },
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": {
+                    "Kind": "SelectionSet",
+                    "Location": {
+                      "Start": 417,
+                      "End": 503,
+                      "Line": 15,
+                      "Column": 25
+                    },
+                    "Selections": [
+                      {
+                        "Kind": "Field",
+                        "Alias": null,
+                        "Arguments": [],
+                        "SelectionSet": null,
+                        "Location": {
+                          "Start": 447,
+                          "End": 481,
+                          "Line": 16,
+                          "Column": 29
+                        },
+                        "Name": {
+                          "Kind": "Name",
+                          "Location": {
+                            "Start": 447,
+                            "End": 481,
+                            "Line": 16,
+                            "Column": 29
+                          },
+                          "Value": "level3_2"
+                        },
+                        "Directives": []
+                      }
+                    ]
+                  },
+                  "Location": {
+                    "Start": 384,
+                    "End": 503,
+                    "Line": 14,
+                    "Column": 25
+                  },
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": {
+                      "Start": 384,
+                      "End": 418,
+                      "Line": 14,
+                      "Column": 25
+                    },
+                    "Value": "level2_3"
+                  },
+                  "Directives": []
+                }
+              ]
+            },
+            "Location": {
+              "Start": 296,
+              "End": 521,
+              "Line": 11,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 296,
+                "End": 326,
+                "Line": 11,
+                "Column": 21
+              },
+              "Value": "level1_2"
+            },
+            "Directives": []
+          }
+        ]
+      }
+    }
   }
 ]

@@ -4,11 +4,11 @@ title: Sorting
 
 # What is sorting
 
-Ordering results of a query dynamically is a common case. With _Hot Chocolate_ sorting, you can expose a sorting argument, that abstracts the complexity of ordering logic. 
-With little configuration your GraphQL API has sorting capabilities which translates to native database queries. 
-The default sort implementation translates sorting statements to expression trees that are applied to `IQueryable`. 
+Ordering results of a query dynamically is a common case. With Hot Chocolate sorting, you can expose a sorting argument, that abstracts the complexity of ordering logic.
+With little configuration your GraphQL API has sorting capabilities which translates to native database queries.
+The default sort implementation translates sorting statements to expression trees that are applied to `IQueryable`.
 Hot Chocolate by default will inspect your .NET model and infer the possible filter operations from it.
-Sorting uses `IQueryable` (`IEnumerable`) by default but you can also easily customize them to use other interfaces. 
+Sorting uses `IQueryable` (`IEnumerable`) by default but you can also easily customize them to use other interfaces.
 
 The following type would yield the following sorting operation
 
@@ -52,11 +52,11 @@ enum SortEnumType {
 }
 ```
 
-# Getting started 
+# Getting started
 
 Sorting is part of the `HotChocolate.Data` package. You can add the dependency with the `dotnet` cli
 
-```
+```bash
   dotnet add package HotChocolate.Data
 ```
 
@@ -72,7 +72,6 @@ Hot Chocolate will infer the sorting types directly from your .Net Model and the
 
 > ⚠️ **Note:** If you use more than middleware, keep in mind that **ORDER MATTERS**. The correct order is UsePaging > UseProjections > UseFiltering > UseSorting
 
-
 **Code First**
 
 ```csharp
@@ -87,7 +86,7 @@ public class QueryType
 
 public class Query
 {
-    public IQueryable<Person> GetPersons([Service]IPersonRepository repository) => 
+    public IQueryable<Person> GetPersons([Service]IPersonRepository repository) =>
         repository.GetPersons();
 }
 ```
@@ -107,11 +106,11 @@ public class Query
 }
 ```
 
-# Customization 
+# Customization
 
 Under the hood, sorting is based ontop of normal Hot Chocolate input types. You can easily customize them with a very familiar fluent interface. The sorting input types follow the same `descriptor` scheme as you are used to from the normal input types. Just extend the base class `SortInputType<T>` and override the descriptor method.
 
-`ISortInputTypeDescriptor<T>` supports most of the methods of `IInputTypeDescriptor<T>`. By default, operations are generated for all fields of the type. 
+`ISortInputTypeDescriptor<T>` supports most of the methods of `IInputTypeDescriptor<T>`. By default, operations are generated for all fields of the type.
 Members that are collections are skipped because you cannot order based on lists.
 If you do want to specify the sorting types by yourself you can change this behavior with `BindFields`, `BindFieldsExplicitly` or `BindFieldsImplicitly`.
 When fields are bound implicitly, meaning sorting is added for all valid properties, you may want to hide a few fields. You can do this with `Ignore(x => Bar)`.
@@ -131,7 +130,7 @@ public class UserSortType
 
 If you want to change the sorting operations on a field, you need to declare you own operation enum type.
 
-```csharp{7}
+```csharp {7}
 public class UserSortType
     : SortInputType<User>
 {
@@ -152,6 +151,7 @@ public class AscOnlySortEnumType
 }
 
 ```
+
 ```sdl
 type Query {
   users(order: [UserSortInput]): [User]
@@ -174,6 +174,7 @@ enum AscOnlySortEnumType {
 To apply this sorting type we just have to provide it to the `UseSorting` extension method with as the generic type argument.
 
 **Code First**
+
 ```csharp
 public class QueryType
     : ObjectType<Query>
@@ -186,7 +187,9 @@ public class QueryType
     }
 }
 ```
+
 **Pure Code First**
+
 ```csharp
 public class Query
 {
@@ -212,8 +215,8 @@ By default a new convention is empty. To add the default behaviour you have to a
 public class CustomConvention
     : SortConvention
 {
-    protected override void Configure(ISortConventionDescriptor descriptor) 
-    { 
+    protected override void Configure(ISortConventionDescriptor descriptor)
+    {
         descriptor.AddDefaults();
     }
 }
@@ -226,12 +229,13 @@ services.AddGraphQLServer()
 ```
 
 Often you just want to extend the default behaviour of sorting. If this is the case, you can also use `SortConventionExtension`
+
 ```csharp
 public class CustomConventionExtension
     : SortConventionExtension
 {
-    protected override void Configure(ISortConventionDescriptor descriptor) 
-    { 
+    protected override void Configure(ISortConventionDescriptor descriptor)
+    {
       // config
     }
 }
@@ -266,9 +270,11 @@ type Query {
 `SortInputType`'s **cannot** just be registered on the schema. You have to bind them to the runtime type on the convention.
 
 ### SortInputType bindings
+
 By default only the `string` type is bound explicitly. If you want to configure sorting globally you are free to bind additional types.
 
 **Configuration**
+
 ```csharp
 public class CustomSortInputType
     : SortInputType<User>
@@ -312,9 +318,8 @@ enum SortEnumType {
 
 ### Default bindings
 
-For fields all fields where no explicit binding is found, a default is applied. This default is `DefaultSortEnumType`. 
-This can be configured with the method `DefaultBinding`. 
-
+For fields all fields where no explicit binding is found, a default is applied. This default is `DefaultSortEnumType`.
+This can be configured with the method `DefaultBinding`.
 
 **Configuration**
 
@@ -348,9 +353,12 @@ enum AscOnlySortEnumType {
   ASC
 }
 ```
-## Extend Types 
+
+## Extend Types
+
 ### SortEnumType
-When you build extensions for sorting, you may want to modify or extend the `DefaultSortEnumType`. 
+
+When you build extensions for sorting, you may want to modify or extend the `DefaultSortEnumType`.
 
 ```csharp
 descriptor.ConfigureEnum<DefaultSortEnumType>(
@@ -365,10 +373,10 @@ enum SortEnumType {
 }
 ```
 
-
 ### SortType
+
 In case you want to change a specific sort type you can do this too.
-You can use `Configure<TSortType>()` to alter the configuration of a type. 
+You can use `Configure<TSortType>()` to alter the configuration of a type.
 
 ```csharp
 descriptor.Configure<CustomSortInputType>(

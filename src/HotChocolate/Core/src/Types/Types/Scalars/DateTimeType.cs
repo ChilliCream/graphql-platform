@@ -8,23 +8,37 @@ using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
-    public sealed class DateTimeType
-        : ScalarType<DateTimeOffset, StringValueNode>
+    /// <summary>
+    /// This GraphQL Scalar represents an exact point in time.
+    /// This point in time is specified by having an offset to UTC and does not use time zone.
+    ///
+    /// https://www.graphql-scalars.com/date-time/
+    /// </summary>
+    public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
     {
         private const string _utcFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffZ";
         private const string _localFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffzzz";
         private const string _specifiedBy = "https://www.graphql-scalars.com/date-time";
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DateTimeType"/> class.
+        /// </summary>
         public DateTimeType()
-            : this(ScalarNames.DateTime, TypeResources.DateTimeType_Description)
+            : this(
+                ScalarNames.DateTime,
+                TypeResources.DateTimeType_Description,
+                BindingBehavior.Implicit)
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DateTimeType"/> class.
+        /// </summary>
         public DateTimeType(
             NameString name,
             string? description = null,
-            BindingBehavior bindingBehavior = BindingBehavior.Implicit)
-            : base(name, bindingBehavior)
+            BindingBehavior bind = BindingBehavior.Explicit)
+            : base(name, bind)
         {
             Description = description;
             SpecifiedBy = new Uri(_specifiedBy);

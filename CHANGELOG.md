@@ -9,6 +9,257 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Addtional HotChocolate scalars  (HotChocolate.Types.Scalars)
+    - PhoneNumber (#2995)
+    - EmailAddress (#2989)
+    - NegativeFloat (#2996)
+    - NonPositiveFloat (#3024)
+    - NonNegativeFloat (#3015)
+    - NonPositiveInt (#3026) 
+    - PositiveInt (#2929)
+    - NonNegativeInt (#3020) 
+    - NegativeInt (#2940)
+    - NonNegativeInt (#3020)
+    - NonEmptyString (#2940)
+    - Rgb (#3213)
+    - Port (#3211)
+    - Ipv6 (#3206)
+    - ISBN (#3201)
+    - Regex (#3184, #3130)
+    - MacAddress (#3183)
+    - Hsla (#3141)
+    - Ipv4 (#3097)
+    - Hsl (#3082)
+    - HexColor (#3077)
+    - UnsignedInt (#3052)
+    - PostalCode (#3046)
+
+### Fixed
+
+- Fixed issue where the PagingHelper introduced a self-reference which cause type system initialization issues.
+
+## [11.0.9]
+
+### Added
+
+- Added result formatter options to minify the JSON payload. (#2897)
+- Added support for spatial transformation between different CRS. (#2904)
+
+### Changed
+
+- Relaxed UUID deserialization (by default we now allow for any UUID format). (#2896)
+
+### Fixed
+
+- Fixed selection optimizer were not resolved correctly. (#2889)
+- Fixed projection of edge type (#2888) 
+
+## [11.0.8]
+
+### Added
+
+- Added support for field coordinates. (#2881)
+- Added in-memory cache for persisted queries. (#2872)
+- Added a way to intercept the initialization flow (#2868)
+- Allow for re-fetching on mutation payloads. (#2851)
+- Allow local schemas to be used in schema stitching (#2835)
+- Allow to enumerate variables (#2833)
+
+### Changed
+
+- Reworked Type Inference to be stricter. (#2842)
+
+### Fixed
+
+- Fixed projections with multiple interceptors. (#2836)
+- Fixed string literals in places of enum values have to raise a query errors. (#2846)
+- Fixed issues with Apollo active persisted queries flow. (#2864)
+    
+
+## [11.0.7]
+
+### Added
+
+- Add HasErrors to IResolverContext (#2814)
+- Added GraphQL descriptions to delegate directive. (#2783)
+
+### Fixed
+
+- Fixed argument renaming during schema stitching. (#2784)
+- Fixed cursor backward pagination with two list elements (#2777)
+
+## [11.0.6]
+
+### Fixed
+
+- Fixed error filters not being activated (#2774)
+
+## [11.0.5]
+
+### Fixed
+
+- Fixes query rewriting when fields are merged during stitching. (#2765)
+
+## [11.0.4]
+
+### Fixed
+
+- Fixed executable detection (#2762)
+
+## [11.0.3]
+
+### Fixed
+
+- Added back the syntax serializers for backward compatibility (#2758)
+
+## [11.0.2]
+
+### Fixed
+
+- Fixed PagingAmountRewriter for stitching in migration guide (#2737)
+- Fixed execution of batch requests (#2726)
+
+## [11.0.1]
+
+### Added
+
+- Added backward compatibility for BindClrType (#2709)
+
+### Fixed
+
+- Fixed issue where interfaces cause filtering to fail (#2686)
+- Fixed ignoring fields on filtering and sorting types (#2690)
+- Fixed SubscribeAndResolve with ISourceStream (#2659)
+
+### Removed
+
+- Removed legacy syntax printer and ensured that only the new one is used. (#2711)
+
+## [11.0.0]
+
+### Added
+
+- Added FirstOrDefault Middleware & improved EF docs (#2635)
+- Added support for spatial types and spatial filters (#2419, #2541, #2566, #2567, #2637, #2638, #2639)
+- Added new data integration API (#2453, #2633, #2631, #2629, #2618, #2619, #2314, #2311, #2310, #2300, #2296, #2228, #2255)
+- Introduced new conventions API (#2455, #2457, #2451)
+- Added Banana Cake Pop middleware which replaces the Voyager, Playground and GraphiQL middleware. (#2417)
+- Added better error when root value cannot be created. (#2598)
+- Added schema error interceptor (#2581)
+- Added new Dataloader middleware (#2548)
+- Added support for IExecutable to Data (#2527)
+- Added support to use a page type directly (#2540)
+- Added conventions to executor builder (#2532)
+- Added support for federated stitching. (#2471)
+- Added pure code-first Node resolver (#2434)
+- Added support for records (#2428, #2331)
+- Added support for enums to GraphQLDescriptionAttribute (#2430)
+- Added Configuration API for the Global ID serializer. (#2370)
+- Added offset paging support (#2330).
+- Added a input value formatter that can be bound to input fields and arguments. (#2277)
+- SPEC: Custom Scalar Specification URLs  (#2614)
+- SPEC: Adds @defer. (#2359, #2377)
+
+### Changed
+
+- Refined converter API (#2593)
+- Changed schema endpoint route from `http://localhost/graphql/schema` to `http://localhost/graphql?sdl`
+- Changed ASP.NET Core integration by using the ASP.NET Core routing API.
+- Refined .NET Templates (#2570)
+- Reworked Stitching Variable Handling (#2533)
+- Reworked Stitching Error Handling (#2529)
+- Reworked diagnostic API.
+- Stitching: Allow for scalars to be renamed when stitching a schema. (#2424)
+- Stitching: Allow for list aggregations when delegating. (#2418)
+- Stitching: Migrates stitching to the new configuration API (#2403)
+- SPEC: Rewrote GraphQL middleware to align with current GraphQL over HTTP spec draft. (#2280, #2282, #2274)
+- SPEC: Re-implemented request validation to align better GraphQL spec and graphql-js.
+
+### Removed
+
+- Removed Voyager middleware.
+- Removed Playground middleware.
+- Removed GraphiQL middleware.
+- Remove legacy selections (#2478)
+
+### Fixed
+
+- Allow to annotate enums and enum values with GraphQLNameAttribute (#2315)
+- Fixed xml documentation inheritance issue. (#2645)
+- The type trimming now correctly handles executable directives (#2605)
+- Fixed issue when using subscriptions with variables. (#2596)
+- Fixed name convention interference with the introspection types. (#2588)
+- Fixed field resolver respect inheritance (#2515)
+- Fixed issue that directives were dropped when using the schema printer. (#2486)
+- Fixed Projection when using offset paging (#2476)
+- Fixed value coercion of enum values (#2477)
+- Fixed inference of enum values from GraphQL SDL
+- Fixed issue with non-null arguments that have defaults (#2441)
+
+## [10.5.5]
+
+### Fixed
+
+- Fixed operation serialization [#2646](https://github.com/ChilliCream/hotchocolate/pull/2646)
+
+## [10.5.4]
+
+### Fixed
+
+- Fixed QueryRequestBuild handling of extensions. [#2608](https://github.com/ChilliCream/hotchocolate/pull/2608)
+
+## [10.5.3]
+
+### Fixed
+
+- Fixed ConnectionMiddleware and IEnumerable + IConnection [#2378](https://github.com/ChilliCream/hotchocolate/pull/2378)
+
+## [10.5.2]
+
+### Fixed
+
+- Fixed ID serialization on input types [#2174](https://github.com/ChilliCream/hotchocolate/pull/2174)
+
+## [10.5.1]
+
+### Fixed
+
+- Fixed field discovery [#2167](https://github.com/ChilliCream/hotchocolate/pull/2167)
+
+## [10.5.0]
+
+### Added
+
+- Added new `ResolveWith` descriptor method. [#1892](https://github.com/ChilliCream/hotchocolate/pull/1892)
+- Added support for local schema authentication and multi delegation.
+- Added nullable detection with Required attribute.
+- Added support for expression syntax on field selectors `descriptor.Field(t => t.Foo.Bar)`. [#2157](https://github.com/ChilliCream/hotchocolate/pull/2157)
+- Added TimeSpan scalar.
+- Added support for field-scoped services (services that only live for the duration of the field execution).
+- Added new `ID` attribute to streamline global object identifiers. [#2165](https://github.com/ChilliCream/hotchocolate/pull/2165)
+- Added bew `ID` descriptor to streamline global object identifiers. [#2166](https://github.com/ChilliCream/hotchocolate/pull/2166)
+
+### Changed
+
+- Impoved the connection API for easier integration. [#1887](https://github.com/ChilliCream/hotchocolate/pull/1887)
+- Unsealed AuthorizeAttribute. [#1993](https://github.com/ChilliCream/hotchocolate/pull/1993)
+- Expose character-set in content-type.
+- Use invariant culture when parsing numbers in AnyType [#2134](https://github.com/ChilliCream/hotchocolate/pull/2134)
+- Changed behavior of `SubscribeAttribute` to align better with the behaviour of version 11.
+- Changed ID serializer to align better with the behaviour of version 11.
+
+### Fixed
+
+- Fixed ambiguous Nullable Attribute. [#1982](https://github.com/ChilliCream/hotchocolate/pull/1982)
+- Fixed projection of __typename. [#2009](https://github.com/ChilliCream/hotchocolate/pull/2009)
+- Fix stitching serialization invalid json. [#2024](https://github.com/ChilliCream/hotchocolate/pull/2024) [#1972](https://github.com/ChilliCream/hotchocolate/pull/1972) [#2091](https://github.com/ChilliCream/hotchocolate/pull/2091)
+- Fixed the serialization formatter for decimals. [#1940](https://github.com/ChilliCream/hotchocolate/pull/1940)
+- Fixed deprecation delegation for schema stitching.
+- Fixed optional handling when deserializing input values. [#2133](https://github.com/ChilliCream/hotchocolate/pull/2133) [#2153](https://github.com/ChilliCream/hotchocolate/pull/2153) [#2158](https://github.com/ChilliCream/hotchocolate/pull/2158)
+- Fixed compile error in templates.
+- Fixed schema type discovery issues.
+- Fixed field discovery for object type extensions.
+
 ## [10.4.0]
 
 ### Added

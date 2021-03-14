@@ -5,6 +5,7 @@ namespace HotChocolate.Types
         Uninitialized,
         Initialized,
         Named,
-        Completed
+        Completed,
+        Finalized
     }
 }

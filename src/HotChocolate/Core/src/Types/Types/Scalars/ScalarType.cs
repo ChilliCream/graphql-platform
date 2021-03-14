@@ -217,7 +217,6 @@ namespace HotChocolate.Types
                 this);
         }
 
-
         /// <summary>
         /// Tries to deserializes the value from the output format to the .net value representation.
         /// </summary>

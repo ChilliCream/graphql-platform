@@ -19,7 +19,36 @@
       "argument": "unknown",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Argument",
+      "Location": {
+        "Start": 85,
+        "End": 99,
+        "Line": 4,
+        "Column": 41
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 85,
+          "End": 93,
+          "Line": 4,
+          "Column": 41
+        },
+        "Value": "unknown"
+      },
+      "Value": {
+        "Kind": "BooleanValue",
+        "Location": {
+          "Start": 94,
+          "End": 99,
+          "Line": 4,
+          "Column": 50
+        },
+        "Value": true
+      }
+    }
   },
   {
     "Message": "The argument `dogCommand` is required.",
@@ -41,6 +70,59 @@
       "argument": "dogCommand",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": null,
+      "Arguments": [
+        {
+          "Kind": "Argument",
+          "Location": {
+            "Start": 85,
+            "End": 99,
+            "Line": 4,
+            "Column": 41
+          },
+          "Name": {
+            "Kind": "Name",
+            "Location": {
+              "Start": 85,
+              "End": 93,
+              "Line": 4,
+              "Column": 41
+            },
+            "Value": "unknown"
+          },
+          "Value": {
+            "Kind": "BooleanValue",
+            "Location": {
+              "Start": 94,
+              "End": 99,
+              "Line": 4,
+              "Column": 50
+            },
+            "Value": true
+          }
+        }
+      ],
+      "SelectionSet": null,
+      "Location": {
+        "Start": 69,
+        "End": 121,
+        "Line": 4,
+        "Column": 25
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 69,
+          "End": 85,
+          "Line": 4,
+          "Column": 25
+        },
+        "Value": "doesKnowCommand"
+      },
+      "Directives": []
+    }
   }
 ]

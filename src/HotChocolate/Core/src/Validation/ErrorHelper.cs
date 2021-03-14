@@ -80,6 +80,16 @@ namespace HotChocolate.Validation
                 .Build();
         }
 
+        public static IError DirectiveMustBeUniqueInLocation(
+            this IDocumentValidatorContext context,
+            DirectiveNode node) =>
+            ErrorBuilder.New()
+                .SetMessage(Resources.ErrorHelper_DirectiveMustBeUniqueInLocation)
+                .AddLocation(node)
+                .SetPath(context.CreateErrorPath())
+                .SpecifiedBy("sec-Directives-Are-Unique-Per-Location")
+                .Build();
+
         public static IError TypeSystemDefinitionNotAllowed(
             this IDocumentValidatorContext context,
             IDefinitionNode node)
@@ -588,6 +598,22 @@ namespace HotChocolate.Validation
                 .AddLocation(operation)
                 .SetExtension("allowedComplexity", allowedComplexity)
                 .SetExtension("detectedComplexity", detectedComplexity)
+                .Build();
+        }
+
+        public static IError MaxExecutionDepth(
+            this IDocumentValidatorContext context,
+            OperationDefinitionNode operation,
+            int allowedExecutionDepth,
+            int detectedExecutionDepth)
+        {
+            return ErrorBuilder.New()
+                .SetMessage(
+                    Resources.ErrorHelper_MaxExecutionDepth,
+                    detectedExecutionDepth, allowedExecutionDepth)
+                .AddLocation(operation)
+                .SetExtension("allowedExecutionDepth", allowedExecutionDepth)
+                .SetExtension("detectedExecutionDepth", detectedExecutionDepth)
                 .Build();
         }
     }

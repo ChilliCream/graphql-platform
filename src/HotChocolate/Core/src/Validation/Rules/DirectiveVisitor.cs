@@ -123,12 +123,12 @@ namespace HotChocolate.Validation.Rules
                     TryLookupLocation(parent, out DirectiveLoc location) &&
                     !dt.Locations.Contains(location))
                 {
-                    context.Errors.Add(ErrorHelper.DirectiveNotValidInLocation(context, node));
+                    context.Errors.Add(context.DirectiveNotValidInLocation(node));
                 }
             }
             else
             {
-                context.Errors.Add(ErrorHelper.DirectiveNotSupported(context, node));
+                context.Errors.Add(context.DirectiveNotSupported(node));
             }
             return Skip;
         }
@@ -145,13 +145,7 @@ namespace HotChocolate.Validation.Rules
                     && !dt.IsRepeatable
                     && !context.Names.Add(directive.Name.Value))
                 {
-                    context.Errors.Add(
-                        ErrorBuilder.New()
-                            .SetMessage("Only one of each directive is allowed per location.")
-                            .AddLocation(node)
-                            .SetPath(context.CreateErrorPath())
-                            .SpecifiedBy("sec-Directives-Are-Unique-Per-Location")
-                            .Build());
+                    context.Errors.Add(context.DirectiveMustBeUniqueInLocation(directive));
                 }
             }
         }

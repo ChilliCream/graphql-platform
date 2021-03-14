@@ -1,3 +1,5 @@
+#nullable enable
+
 namespace HotChocolate.Types.Relay
 {
     public interface IIdSerializer

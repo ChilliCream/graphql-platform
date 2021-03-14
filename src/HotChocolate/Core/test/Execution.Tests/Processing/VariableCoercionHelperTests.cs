@@ -28,7 +28,7 @@ namespace HotChocolate.Execution.Processing
             };
 
             var variableValues = new Dictionary<string, object>();
-            var coercedValues = new Dictionary<string, VariableValue>();
+            var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
 
             var helper = new VariableCoercionHelper();
 
@@ -46,7 +46,7 @@ namespace HotChocolate.Execution.Processing
             // arrange
             ISchema schema = SchemaBuilder.New().AddStarWarsTypes().Create();
             var variableValues = new Dictionary<string, object>();
-            var coercedValues = new Dictionary<string, VariableValue>();
+            var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
             var helper = new VariableCoercionHelper();
 
             // act
@@ -73,7 +73,7 @@ namespace HotChocolate.Execution.Processing
                     Array.Empty<DirectiveNode>())
             };
 
-            var coercedValues = new Dictionary<string, VariableValue>();
+            var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
 
             var helper = new VariableCoercionHelper();
 
@@ -130,7 +130,7 @@ namespace HotChocolate.Execution.Processing
             };
 
             var variableValues = new Dictionary<string, object>();
-            var coercedValues = new Dictionary<string, VariableValue>();
+            var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
 
             var helper = new VariableCoercionHelper();
 
@@ -169,7 +169,7 @@ namespace HotChocolate.Execution.Processing
                 {"abc", new StringValueNode("xyz")}
             };
 
-            var coercedValues = new Dictionary<string, VariableValue>();
+            var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
 
             var helper = new VariableCoercionHelper();
 
@@ -208,7 +208,7 @@ namespace HotChocolate.Execution.Processing
                 {"abc", "xyz"}
             };
 
-            var coercedValues = new Dictionary<string, VariableValue>();
+            var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
 
             var helper = new VariableCoercionHelper();
 
@@ -247,7 +247,7 @@ namespace HotChocolate.Execution.Processing
                 {"abc", NullValueNode.Default}
             };
 
-            var coercedValues = new Dictionary<string, VariableValue>();
+            var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
 
             var helper = new VariableCoercionHelper();
 
@@ -286,7 +286,7 @@ namespace HotChocolate.Execution.Processing
                 {"abc", null}
             };
 
-            var coercedValues = new Dictionary<string, VariableValue>();
+            var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
 
             var helper = new VariableCoercionHelper();
 
@@ -325,7 +325,7 @@ namespace HotChocolate.Execution.Processing
                 {"abc", new ObjectValueNode(new ObjectFieldNode("stars", 5))}
             };
 
-            var coercedValues = new Dictionary<string, VariableValue>();
+            var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
 
             var helper = new VariableCoercionHelper();
 
@@ -364,7 +364,7 @@ namespace HotChocolate.Execution.Processing
                 {"abc", new Dictionary<string, object> { {"stars", 5} }}
             };
 
-            var coercedValues = new Dictionary<string, VariableValue>();
+            var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
 
             var helper = new VariableCoercionHelper();
 
@@ -403,7 +403,7 @@ namespace HotChocolate.Execution.Processing
                 { "abc", new Review { Stars = 5 } }
             };
 
-            var coercedValues = new Dictionary<string, VariableValue>();
+            var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
 
             var helper = new VariableCoercionHelper();
 
@@ -442,7 +442,7 @@ namespace HotChocolate.Execution.Processing
                 {"abc", NullValueNode.Default}
             };
 
-            var coercedValues = new Dictionary<string, VariableValue>();
+            var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
 
             var helper = new VariableCoercionHelper();
 
@@ -475,7 +475,7 @@ namespace HotChocolate.Execution.Processing
                 {"abc", null}
             };
 
-            var coercedValues = new Dictionary<string, VariableValue>();
+            var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
 
             var helper = new VariableCoercionHelper();
 
@@ -508,7 +508,7 @@ namespace HotChocolate.Execution.Processing
                 {"abc", new IntValueNode(1)}
             };
 
-            var coercedValues = new Dictionary<string, VariableValue>();
+            var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
 
             var helper = new VariableCoercionHelper();
 
@@ -544,7 +544,7 @@ namespace HotChocolate.Execution.Processing
                 {"abc", 1}
             };
 
-            var coercedValues = new Dictionary<string, VariableValue>();
+            var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
 
             var helper = new VariableCoercionHelper();
 
@@ -577,7 +577,7 @@ namespace HotChocolate.Execution.Processing
                 {"abc", 1}
             };
 
-            var coercedValues = new Dictionary<string, VariableValue>();
+            var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
 
             var helper = new VariableCoercionHelper();
 
@@ -610,7 +610,7 @@ namespace HotChocolate.Execution.Processing
                 { "abc", new ObjectValueNode(new ObjectFieldNode("abc", "def")) }
             };
 
-            var coercedValues = new Dictionary<string, VariableValue>();
+            var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
 
             var helper = new VariableCoercionHelper();
 
@@ -669,7 +669,7 @@ namespace HotChocolate.Execution.Processing
                 }
             };
 
-            var coercedValues = new Dictionary<string, VariableValue>();
+            var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
 
             var helper = new VariableCoercionHelper();
 
@@ -731,7 +731,7 @@ namespace HotChocolate.Execution.Processing
                 }
             };
 
-            var coercedValues = new Dictionary<string, VariableValue>();
+            var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
 
             var helper = new VariableCoercionHelper();
 

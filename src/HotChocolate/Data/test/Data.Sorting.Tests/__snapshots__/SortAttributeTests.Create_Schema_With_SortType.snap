@@ -9,16 +9,16 @@ type Foo {
 }
 
 type Query1 {
-  foos(order: [FooSortInput]): [Foo!]!
+  foos(order: [FooSortInput!]): [Foo!]!
 }
 
 input FooSortInput {
-  bar: DefaultSortEnumType
-  baz: DefaultSortEnumType
-  qux: DefaultSortEnumType
+  bar: SortEnumType
+  baz: SortEnumType
+  qux: SortEnumType
 }
 
-enum DefaultSortEnumType {
+enum SortEnumType {
   ASC
   DESC
 }

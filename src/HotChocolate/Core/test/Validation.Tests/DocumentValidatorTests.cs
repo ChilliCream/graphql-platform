@@ -624,8 +624,8 @@ namespace HotChocolate.Validation
                 t =>
                 {
                     Assert.Equal(
-                        "The GraphQL document has an operation complexity of 2 " +
-                        "which exceeds the max allowed operation complexity of 1.",
+                        "The GraphQL document has an execution depth of 2 " +
+                        "which exceeds the max allowed execution depth of 1.",
                         t.Message);
                 });
         }
@@ -694,6 +694,27 @@ namespace HotChocolate.Validation
 
             // assert
             Assert.False(result.HasErrors);
+        }
+
+        [Fact]
+        public void Ensure_That_Merged_Fields_Are_Not_In_Violation_Of_Duplicate_Directives_Rule()
+        {
+            ExpectValid(@"
+                query ($a: Boolean!) {
+                    dog {
+                        ... inlineFragOnScalar
+                        owner @include(if: $a) {
+                            address
+                        }
+                    }
+                }
+
+                fragment inlineFragOnScalar on Dog {
+                    owner @include(if: $a) {
+                        name
+                    }
+                }
+            ");
         }
 
         private void ExpectValid(string sourceText) => ExpectValid(null, null, sourceText);

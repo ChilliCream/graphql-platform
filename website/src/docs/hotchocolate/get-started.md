@@ -51,7 +51,7 @@ namespace Demo
 {
     public class Book
     {
-         public string Title { get; set; }
+        public string Title { get; set; }
 
         public Author Author { get; set; }
     }
@@ -121,7 +121,7 @@ dotnet run --project ./Demo
 
 ![GraphQL IDE](../../images/get-started-bcp.png)
 
-3. Next, click on the `Book` icon on the left-hand navigation bar to explore the server GraphQL schema. In the schema explorer, we can see that we have one query root field exposed. By clicking on the field, we can drill into the schema structure.
+3. Next, click on the `Book` icon on the left-hand navigation bar to explore the server GraphQL schema. If this is the first time you are running the demo, you will need to enter `http://localhost:5000/graphql` as the schema endpoint URI.  In the schema explorer, we can see that we have one query root field exposed. By clicking on the field, we can drill into the schema structure.
 
 ![GraphQL IDE Schema Explorer](../../images/get-started-bcp-schema-explorer.png)
 
@@ -139,3 +139,13 @@ dotnet run --project ./Demo
 ```
 
 ![GraphQL IDE Execute Query](../../images/get-started-bcp-query.png)
+
+# Summary
+
+In this guide, we have learned how to set up a simple GraphQL server project and define a GraphQL schema with .NET.
+
+Moreover, we explored our GraphQL schema with our GraphQL IDE Banana Cake Pop and executed a simple query to test our server.
+
+If you want to dive deeper, you can start with our [GraphQL tutorial](https://github.com/ChilliCream/graphql-workshop) to get into several topics around GraphQL and Hot Chocolate.
+
+Further, you can learn more about defining GraphQL schemas in .NET [here](/docs/hotchocolate/defining-a-schema).

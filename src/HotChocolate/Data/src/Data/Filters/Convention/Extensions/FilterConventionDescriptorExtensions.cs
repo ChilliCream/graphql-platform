@@ -1,13 +1,30 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using HotChocolate.Data.Filters;
 
-namespace HotChocolate.Data.Filters
+namespace HotChocolate.Data
 {
     public static class FilterConventionDescriptorExtensions
     {
+        /// <summary>
+        /// Initializes the default configuration for <see cref="IQueryable"/> and
+        /// <see cref="IEnumerable{T}"/> on the convention
+        /// </summary>
+        /// <param name="descriptor">The descriptor where the handlers are registered</param>
+        /// <returns>The descriptor that was passed in as a parameter</returns>
         public static IFilterConventionDescriptor AddDefaults(
             this IFilterConventionDescriptor descriptor) =>
             descriptor.AddDefaultOperations().BindDefaultTypes().UseQueryableProvider();
 
+        /// <summary>
+        /// Adds default operations to the descriptor
+        /// </summary>
+        /// <param name="descriptor">The descriptor where the handlers are registered</param>
+        /// <returns>The descriptor that was passed in as a parameter</returns>
+        /// <exception cref="ArgumentNullException">
+        /// Throws in case the argument <paramref name="descriptor"/> is null
+        /// </exception>
         public static IFilterConventionDescriptor AddDefaultOperations(
             this IFilterConventionDescriptor descriptor)
         {
@@ -45,6 +62,14 @@ namespace HotChocolate.Data.Filters
             return descriptor;
         }
 
+        /// <summary>
+        /// Binds common runtime types to the according <see cref="FilterInputType"/>
+        /// </summary>
+        /// <param name="descriptor">The descriptor where the handlers are registered</param>
+        /// <returns>The descriptor that was passed in as a parameter</returns>
+        /// <exception cref="ArgumentNullException">
+        /// Throws in case the argument <paramref name="descriptor"/> is null
+        /// </exception>
         public static IFilterConventionDescriptor BindDefaultTypes(
             this IFilterConventionDescriptor descriptor)
         {
@@ -53,36 +78,34 @@ namespace HotChocolate.Data.Filters
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            descriptor
+            return descriptor
                 .BindRuntimeType<string, StringOperationFilterInputType>()
                 .BindRuntimeType<bool, BooleanOperationFilterInputType>()
-                .BindRuntimeType<byte, ComparableOperationFilterInputType<byte>>()
-                .BindRuntimeType<short, ComparableOperationFilterInputType<short>>()
-                .BindRuntimeType<int, ComparableOperationFilterInputType<int>>()
-                .BindRuntimeType<long, ComparableOperationFilterInputType<long>>()
-                .BindRuntimeType<float, ComparableOperationFilterInputType<float>>()
-                .BindRuntimeType<double, ComparableOperationFilterInputType<double>>()
-                .BindRuntimeType<decimal, ComparableOperationFilterInputType<decimal>>()
-                .BindRuntimeType<Guid, ComparableOperationFilterInputType<Guid>>()
-                .BindRuntimeType<DateTime, ComparableOperationFilterInputType<DateTime>>()
-                .BindRuntimeType<DateTimeOffset,
-                    ComparableOperationFilterInputType<DateTimeOffset>>()
-                .BindRuntimeType<TimeSpan, ComparableOperationFilterInputType<TimeSpan>>()
                 .BindRuntimeType<bool?, BooleanOperationFilterInputType>()
-                .BindRuntimeType<byte?, ComparableOperationFilterInputType<byte?>>()
-                .BindRuntimeType<short?, ComparableOperationFilterInputType<short?>>()
-                .BindRuntimeType<int?, ComparableOperationFilterInputType<int?>>()
-                .BindRuntimeType<long?, ComparableOperationFilterInputType<long?>>()
-                .BindRuntimeType<float?, ComparableOperationFilterInputType<float?>>()
-                .BindRuntimeType<double?, ComparableOperationFilterInputType<double?>>()
-                .BindRuntimeType<decimal?, ComparableOperationFilterInputType<decimal?>>()
-                .BindRuntimeType<Guid?, ComparableOperationFilterInputType<Guid?>>()
-                .BindRuntimeType<DateTime?, ComparableOperationFilterInputType<DateTime?>>()
-                .BindRuntimeType<DateTimeOffset?,
-                    ComparableOperationFilterInputType<DateTimeOffset?>>()
-                .BindRuntimeType<TimeSpan?, ComparableOperationFilterInputType<TimeSpan?>>();
+                .BindComparableType<byte>()
+                .BindComparableType<short>()
+                .BindComparableType<int>()
+                .BindComparableType<long>()
+                .BindComparableType<float>()
+                .BindComparableType<double>()
+                .BindComparableType<decimal>()
+                .BindComparableType<sbyte>()
+                .BindComparableType<ushort>()
+                .BindComparableType<uint>()
+                .BindComparableType<ulong>()
+                .BindComparableType<Guid>()
+                .BindComparableType<DateTime>()
+                .BindComparableType<DateTimeOffset>()
+                .BindComparableType<TimeSpan>();
+        }
 
-            return descriptor;
+        private static IFilterConventionDescriptor BindComparableType<T>(
+            this IFilterConventionDescriptor descriptor)
+            where T : struct
+        {
+            return descriptor
+                .BindRuntimeType<T, ComparableOperationFilterInputType<T>>()
+                .BindRuntimeType<T?, ComparableOperationFilterInputType<T?>>();
         }
     }
 }

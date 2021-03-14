@@ -1,15 +1,27 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
 
 namespace HotChocolate.Configuration
 {
-    public class TypeInterceptor : ITypeInitializationInterceptor
+    public class TypeInterceptor
+        : ITypeInterceptor
+        , ITypeInitializationFlowInterceptor
+        , ITypeRegistryInterceptor
     {
         public virtual bool TriggerAggregations => false;
 
         public virtual bool CanHandle(ITypeSystemObjectContext context) => true;
+
+        public virtual void OnBeforeDiscoverTypes()
+        {
+        }
+
+        public virtual void OnAfterDiscoverTypes()
+        {
+        }
 
         public virtual void OnBeforeInitialize(
             ITypeDiscoveryContext discoveryContext)
@@ -20,6 +32,11 @@ namespace HotChocolate.Configuration
             ITypeDiscoveryContext discoveryContext,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData)
+        {
+        }
+
+        public virtual void OnTypeRegistered(
+            ITypeDiscoveryContext discoveryContext)
         {
         }
 
@@ -42,6 +59,14 @@ namespace HotChocolate.Configuration
         {
         }
 
+        public virtual void OnBeforeCompleteTypeNames()
+        {
+        }
+
+        public virtual void OnAfterCompleteTypeNames()
+        {
+        }
+
         public virtual void OnBeforeCompleteName(
             ITypeCompletionContext completionContext,
             DefinitionBase? definition,
@@ -57,7 +82,23 @@ namespace HotChocolate.Configuration
         }
 
         public virtual void OnTypesCompletedName(
-            IReadOnlyCollection<ITypeCompletionContext> completionContext)
+            IReadOnlyCollection<ITypeCompletionContext> completionContexts)
+        {
+        }
+
+        public virtual void OnBeforeMergeTypeExtensions()
+        {
+        }
+
+        public virtual void OnAfterMergeTypeExtensions()
+        {
+        }
+
+        public virtual void OnBeforeCompleteTypes()
+        {
+        }
+
+        public virtual void OnAfterCompleteTypes()
         {
         }
 
@@ -76,8 +117,16 @@ namespace HotChocolate.Configuration
         }
 
         public virtual void OnTypesCompleted(
-            IReadOnlyCollection<ITypeCompletionContext> completionContext)
+            IReadOnlyCollection<ITypeCompletionContext> completionContexts)
         {
+        }
+
+        public virtual bool TryCreateScope(
+            ITypeDiscoveryContext discoveryContext,
+            [NotNullWhen(true)] out IReadOnlyList<TypeDependency>? typeDependencies)
+        {
+            typeDependencies = null;
+            return false;
         }
     }
 }

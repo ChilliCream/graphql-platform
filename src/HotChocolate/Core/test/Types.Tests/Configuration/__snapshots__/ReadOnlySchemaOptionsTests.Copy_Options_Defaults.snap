@@ -5,6 +5,7 @@
   "StrictValidation": true,
   "UseXmlDocumentation": true,
   "SortFieldsByName": false,
+  "PreserveSyntaxNodes": false,
   "RemoveUnreachableTypes": false,
   "DefaultBindingBehavior": "Implicit",
   "FieldMiddleware": "UserDefinedFields"

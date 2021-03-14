@@ -1,7 +1,11 @@
 ![ChilliCream GraphQL Platform](https://chillicream.com/resources/chillicream-graphql-banner.svg)
 
-[![Financial Contributors on Open Collective](https://opencollective.com/chillicream/all/badge.svg?label=financial+contributors)](https://opencollective.com/chillicream) [![GitHub release](https://img.shields.io/github/release/chillicream/HotChocolate.svg)](https://github.com/ChilliCream/hotchocolate/releases) [![NuGet Package](https://img.shields.io/nuget/v/hotchocolate.svg)](https://www.nuget.org/packages/HotChocolate/) [![License](https://img.shields.io/github/license/ChilliCream/hotchocolate.svg)](https://github.com/ChilliCream/hotchocolate/blob/main/LICENSE) [![Azure DevOps builds](https://img.shields.io/azure-devops/build/chillicream/414ff59c-4852-4687-b04d-6973125e7de2/68.svg)](https://chillicream.visualstudio.com/HotChocolate/_build?definitionId=68) [![Azure DevOps tests](https://img.shields.io/azure-devops/tests/chillicream/HotChocolate/68.svg)](https://chillicream.visualstudio.com/HotChocolate/_build?definitionId=68) [![Coverage Status](https://sonarcloud.io/api/project_badges/measure?project=HotChocolate&metric=coverage)](https://sonarcloud.io/dashboard?id=HotChocolate) [![Quality](https://sonarcloud.io/api/project_badges/measure?project=HotChocolate&metric=alert_status)](https://sonarcloud.io/dashboard?id=HotChocolate)
-[![Slack channel](https://img.shields.io/badge/join%20the%20community-on%20slack-blue.svg)](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q) [![Twitter](https://img.shields.io/badge/join%20us-on%20twitter-green.svg)](https://twitter.com/chilli_cream)
+[![NuGet Package](https://img.shields.io/nuget/v/hotchocolate.svg)](https://www.nuget.org/packages/HotChocolate/) 
+[![License](https://img.shields.io/github/license/ChilliCream/hotchocolate.svg)](https://github.com/ChilliCream/hotchocolate/blob/main/LICENSE) 
+[![Azure DevOps tests](https://img.shields.io/azure-devops/tests/chillicream/HotChocolate/70.svg)](https://chillicream.visualstudio.com/HotChocolate/_build?definitionId=70) 
+[![Coverage Status](https://sonarcloud.io/api/project_badges/measure?project=HotChocolate&metric=coverage)](https://sonarcloud.io/dashboard?id=HotChocolate) 
+[![Slack channel](https://img.shields.io/badge/join%20the%20community-on%20slack-blue.svg)](https://bit.ly/joinchilli) 
+[![Twitter](https://img.shields.io/badge/join%20us-on%20twitter-green.svg)](https://twitter.com/chilli_cream)
 
 ---
 

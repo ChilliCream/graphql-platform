@@ -1,6 +1,7 @@
 using System;
 using HotChocolate.Types;
 using HotChocolate.Execution;
+using Microsoft.AspNetCore.Mvc;
 
 namespace HotChocolate.AspNetCore.Utilities
 {
@@ -11,7 +12,7 @@ namespace HotChocolate.AspNetCore.Utilities
 
         public long Time() => _time.Ticks;
 
-        public bool Evict([Service]IRequestExecutorResolver executorResolver, ISchema schema)
+        public bool Evict([FromServices]IRequestExecutorResolver executorResolver, ISchema schema)
         {
             executorResolver.EvictRequestExecutor(schema.Name);
             return true;

@@ -158,7 +158,12 @@ namespace Microsoft.Extensions.DependencyInjection
                 .UseOperationExecution();
         }
 
+        [Obsolete("Use UseAutomaticPersistedQueryPipeline")]
         public static IRequestExecutorBuilder UseActivePersistedQueryPipeline(
+            this IRequestExecutorBuilder builder) =>
+            UseAutomaticPersistedQueryPipeline(builder);
+
+        public static IRequestExecutorBuilder UseAutomaticPersistedQueryPipeline(
             this IRequestExecutorBuilder builder)
         {
             if (builder is null)
@@ -171,6 +176,15 @@ namespace Microsoft.Extensions.DependencyInjection
                 .UseExceptions()
                 .UseDocumentCache()
                 .UseReadPersistedQuery()
+                .UseRequest(next => context =>
+                {
+                    if (context.Document is null && context.Request.Query is null)
+                    {
+                        throw ThrowHelper.ReadPersistedQueryMiddleware_PersistedQueryNotFound();
+                    }
+
+                    return next(context);
+                })
                 .UseWritePersistedQuery()
                 .UseDocumentParser()
                 .UseDocumentValidation()

@@ -7,14 +7,14 @@ type Foo {
 }
 
 type Query {
-  foos(order: [BarSortInput]): [Foo!]!
+  foos(order: [BarSortInput!]): [Foo!]!
 }
 
 input BarSortInput {
-  foo: DefaultSortEnumType
+  foo: SortEnumType
 }
 
-enum DefaultSortEnumType {
+enum SortEnumType {
   ASC
   DESC
 }

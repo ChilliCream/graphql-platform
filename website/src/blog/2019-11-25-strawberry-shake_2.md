@@ -9,7 +9,7 @@ authorUrl: https://github.com/michaelstaib
 authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
 
-We are busy, busy, busy working on version 11 of _Hot Chocolate_ and _Strawberry Shake_.
+We are busy, busy, busy working on version 11 of Hot Chocolate and _Strawberry Shake_.
 
 In this post I want to explore the client side of GraphQL on .NET more with a special emphasis on subscriptions.
 
@@ -21,7 +21,7 @@ Let us have a look at how we want to tackle things with _Strawberry Shake_. For 
 
 If you want to follow along then install the [.NET Core 3 SDK](https://dotnet.microsoft.com/download/dotnet-core/3.0) . We are also supporting other .NET variants but for this example you will need the .NET Core 3 SDK.
 
-Before we can start let us clone the _Hot Chocolate_ repository and start our _Star Wars_ server.
+Before we can start let us clone the Hot Chocolate repository and start our _Star Wars_ server.
 
 ```bash
 git clone https://github.com/ChilliCream/hotchocolate.git
@@ -448,8 +448,8 @@ So, in order to give the generator a hint about these things we need to extend o
 
 ```graphql
 extend scalar ByteArray
-@runtimeType(name: "System.Byte[]")
-@serializationType(name: "System.String")
+  @runtimeType(name: "System.Byte[]")
+  @serializationType(name: "System.String")
 ```
 
 The above example declares that for the `ByteArray` scalar the runtime type (the type that is used in the C# models) shall be a `System.Byte[]` and that the serialization type (the type which client and server use to send the data) shall be a `System.String`. For the generator that is enough to generate everything accordingly.
@@ -613,7 +613,7 @@ We have some more ground to cover before we have this version complete.
 
 I hope you enjoy what we are building. We are tying to bring GraphQL on .NET to the next level. While we still are miles away from what the JavaScript world has to offer we hope to close these gaps over the next year and even pull ahead in some areas. We love GraphQL and are passionate about it. We strongly believe that with our newest member _Strawberry Shake_ we really can make things like _Xamarin_ and _Blazor_ so much better. We have planned a lot more and hope to bring data fetching in .NET to a whole new level over the next year. Ideally you just want to decalre in your .NET component the data that you need and all the client logic is infered from that, kind of the way relay works in JavaScript.
 
-If you want to get into contact with us head over to our [slack channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q) and join our community.
+If you want to get into contact with us head over to our slack channel and join our community.
 
 [hot chocolate]: https://hotchocolate.io
 [hot chocolate source code]: https://github.com/ChilliCream/hotchocolate
