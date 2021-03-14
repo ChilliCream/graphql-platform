@@ -189,6 +189,24 @@ namespace HotChocolate.Types.Scalars {
             }
         }
         
+        internal static string LocalTimeType_Description {
+            get {
+                return ResourceManager.GetString("LocalTimeType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string LocalTimeType_IsInvalid_ParseLiteral {
+            get {
+                return ResourceManager.GetString("LocalTimeType_IsInvalid_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        internal static string LocalTimeType_IsInvalid_ParseValue {
+            get {
+                return ResourceManager.GetString("LocalTimeType_IsInvalid_ParseValue", resourceCulture);
+            }
+        }
+        
         internal static string NegativeFloatType_Description {
             get {
                 return ResourceManager.GetString("NegativeFloatType_Description", resourceCulture);
