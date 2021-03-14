@@ -38,7 +38,27 @@ namespace HotChocolate.Types.Scalars
 
         public override IValueNode ParseResult(object? resultValue)
         {
-            throw new NotImplementedException();
+            if (resultValue is null)
+            {
+                return NullValueNode.Default;
+            }
+
+            if (resultValue is string s)
+            {
+                return new StringValueNode(s);
+            }
+
+            if (resultValue is DateTimeOffset d)
+            {
+                return ParseValue(d);
+            }
+
+            if (resultValue is DateTime dt)
+            {
+                return ParseValue(new DateTimeOffset(dt));
+            }
+
+            throw new SerializationException(ScalarResources.LocalTimeType_IsInvalid_ParseValue, this);
         }
 
         protected override DateTimeOffset ParseLiteral(StringValueNode valueSyntax)
@@ -54,6 +74,54 @@ namespace HotChocolate.Types.Scalars
         protected override StringValueNode ParseValue(DateTimeOffset runtimeValue)
         {
             return new(Serialize(runtimeValue));
+        }
+
+        public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+        {
+            if (runtimeValue is null)
+            {
+                resultValue = null;
+                return true;
+            }
+
+            if (runtimeValue is DateTimeOffset dt)
+            {
+                resultValue = Serialize(dt);
+                return true;
+            }
+
+            resultValue = null;
+            return false;
+        }
+
+        public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
+        {
+            if (resultValue is null)
+            {
+                runtimeValue = null;
+                return true;
+            }
+
+            if (resultValue is string s && TryDeserializeFromString(s, out DateTimeOffset? d))
+            {
+                runtimeValue = d;
+                return true;
+            }
+
+            if (resultValue is DateTimeOffset)
+            {
+                runtimeValue = resultValue;
+                return true;
+            }
+
+            if (resultValue is DateTime dt)
+            {
+                runtimeValue = new DateTimeOffset(dt);
+                return true;
+            }
+
+            runtimeValue = null;
+            return false;
         }
 
         private static string Serialize(DateTimeOffset value)
