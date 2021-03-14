@@ -1,4 +1,5 @@
 using HotChocolate;
+using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
 namespace StrawberryShake.CodeGeneration.Descriptors
@@ -17,8 +18,16 @@ namespace StrawberryShake.CodeGeneration.Descriptors
         public static string CreateQueryServiceName(string typeName) =>
             typeName + "Query";
 
-        public static string CreateEntityTypeName(string typeName) =>
-            typeName + "Entity";
+        public static RuntimeTypeInfo CreateEntityType(
+            string graphqlTypeName,
+            string @namespace) =>
+            new(CreateEntityTypeName(graphqlTypeName), CreateStateNamespace(@namespace));
+
+        private static string CreateEntityTypeName(string graphqlTypeName) =>
+            graphqlTypeName + "Entity";
+
+        public static string CreateStateNamespace(string @namespace) =>
+            @namespace + ".State";
 
         public static string CreateDocumentTypeName(string operationTypeName) =>
             operationTypeName + "Document";
@@ -30,14 +39,14 @@ namespace StrawberryShake.CodeGeneration.Descriptors
 
         public static NameString CreateEntityMapperName(
             string typeName,
-            string graphqlTypename) =>
-            typeName + "From" + CreateEntityTypeName(graphqlTypename) + "Mapper";
+            string graphqlTypeName) =>
+            typeName + "From" + CreateEntityTypeName(graphqlTypeName) + "Mapper";
 
         public static string CreateResultFactoryName(string typeName) =>
             typeName + "Factory";
 
-        public static string CreateResultRootTypeName(string typeName) =>
-            typeName + "Result";
+        public static string CreateResultRootTypeName(string typeName, INamedType? type = null) =>
+            type is null ? typeName + "Result" : typeName + type.Name + "Result";
 
         public static string CreateResultBuilderName(string typeName) =>
             typeName + "Builder";
@@ -50,6 +59,9 @@ namespace StrawberryShake.CodeGeneration.Descriptors
 
         public static string CreateServiceCollectionExtensions(string clientName) =>
             clientName + "ServiceCollectionExtensions";
+
+        public static string CreateStoreAccessor(string clientName) =>
+            clientName + "StoreAccessor";
 
         public static string CreateClientProfileKind(string clientName) =>
             clientName + "ProfileKind";

@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
@@ -12,13 +13,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
     {
         private const string _session = "session";
         private const string _resultInfo = "resultInfo";
+        private const string _snapshot = "snapshot";
 
         private void AddBuildDataMethod(
             InterfaceTypeDescriptor resultNamedType,
             ClassBuilder classBuilder)
         {
             var concreteType =
-                CreateResultInfoName(resultNamedType.ImplementedBy.First().RuntimeType.Name);
+                CreateResultInfoName(
+                    resultNamedType.ImplementedBy.First().RuntimeType.Name);
 
             MethodBuilder buildDataMethod = classBuilder
                 .AddMethod()
@@ -29,34 +32,59 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .AddCode(
                     AssignmentBuilder
                         .New()
-                        .SetLefthandSide($"using {TypeNames.IEntityUpdateSession} {_session}")
-                        .SetRighthandSide(
-                            MethodCallBuilder
-                                .Inline()
-                                .SetMethodName(_entityStore, "BeginUpdate")))
-                .AddCode(
-                    AssignmentBuilder
-                        .New()
                         .SetLefthandSide($"var {_entityIds}")
                         .SetRighthandSide(MethodCallBuilder
                             .Inline()
                             .SetNew()
                             .SetMethodName(TypeNames.HashSet)
                             .AddGeneric(TypeNames.EntityId)))
+                .AddCode(
+                    AssignmentBuilder
+                        .New()
+                        .SetLefthandSide($"{TypeNames.IEntityStoreSnapshot} {_snapshot}")
+                        .SetRighthandSide("default!"))
                 .AddEmptyLine();
 
+
+            CodeBlockBuilder storeUpdateBody = CodeBlockBuilder.New();
+
             foreach (PropertyDescriptor property in
-                resultNamedType.Properties.Where(prop => prop.Type.IsEntityType()))
+                resultNamedType.Properties.Where(prop => prop.Type.IsOrContainsEntityType()))
             {
-                buildDataMethod.AddCode(
-                    AssignmentBuilder
+                var variableName = $"{GetParameterName(property.Name)}Id";
+
+                buildDataMethod
+                    .AddCode(AssignmentBuilder
                         .New()
                         .SetLefthandSide(CodeBlockBuilder
                             .New()
-                            .AddCode(property.Type.ToEntityIdBuilder())
-                            .AddCode($"{GetParameterName(property.Name)}Id"))
+                            .AddCode(property.Type.ToStateTypeReference())
+                            .AddCode(variableName))
+                        .SetRighthandSide("default!"));
+
+                storeUpdateBody
+                    .AddCode(AssignmentBuilder
+                        .New()
+                        .SetLefthandSide(variableName)
                         .SetRighthandSide(BuildUpdateMethodCall(property)));
             }
+
+            storeUpdateBody
+                .AddEmptyLine()
+                .AddCode(AssignmentBuilder
+                    .New()
+                    .SetLefthandSide(_snapshot)
+                    .SetRighthandSide($"{_session}.CurrentSnapshot"));
+
+            buildDataMethod
+                .AddCode(MethodCallBuilder
+                    .New()
+                    .SetMethodName(_entityStore, "Update")
+                    .AddArgument(LambdaBuilder
+                        .New()
+                        .AddArgument(_session)
+                        .SetBlock(true)
+                        .SetCode(storeUpdateBody)));
 
             buildDataMethod
                 .AddEmptyLine()
@@ -89,7 +117,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             foreach (PropertyDescriptor property in resultNamedType.Properties)
             {
-                if (property.Type.IsEntityType())
+                if (property.Type.IsOrContainsEntityType())
                 {
                     resultInfoConstructor.AddArgument($"{GetParameterName(property.Name)}Id");
                 }
@@ -101,7 +129,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             return resultInfoConstructor
                 .AddArgument(_entityIds)
-                .AddArgument($"{_session}.{TypeNames.IEntityUpdateSession_Version}");
+                .AddArgument($"{_snapshot}.Version");
         }
     }
 }

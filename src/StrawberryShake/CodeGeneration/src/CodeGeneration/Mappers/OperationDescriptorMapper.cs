@@ -7,7 +7,6 @@ using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Descriptors.Operations;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
-using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.Mappers
 {
@@ -27,12 +26,15 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
                         return new PropertyDescriptor(
                             arg.Name,
+                            arg.Variable.Variable.Name.Value,
                             Rewrite(arg.Type, namedTypeDescriptor),
                             null);
                     })
                     .ToList();
 
-                var resultTypeName = CreateResultRootTypeName(modelOperation.ResultType.Name);
+                RuntimeTypeInfo resultType = context.GetRuntimeType(
+                    modelOperation.ResultType.Name,
+                    Descriptors.TypeDescriptors.TypeKind.ResultType);
 
                 string bodyString = modelOperation.Document.ToString();
                 byte[] body = Encoding.UTF8.GetBytes(modelOperation.Document.ToString(false));
@@ -46,7 +48,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                             new QueryOperationDescriptor(
                                 modelOperation.Name,
                                 context.Namespace,
-                                context.Types.Single(t => t.RuntimeType.Name.Equals(resultTypeName)),
+                                context.Types.Single(t => t.RuntimeType.Equals(resultType)),
                                 arguments,
                                 body,
                                 bodyString,
@@ -61,7 +63,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                             new MutationOperationDescriptor(
                                 modelOperation.Name,
                                 context.Namespace,
-                                context.Types.Single(t => t.RuntimeType.Name.Equals(resultTypeName)),
+                                context.Types.Single(t => t.RuntimeType.Equals(resultType)),
                                 arguments,
                                 body,
                                 bodyString,
@@ -76,7 +78,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                             new SubscriptionOperationDescriptor(
                                 modelOperation.Name,
                                 context.Namespace,
-                                context.Types.Single(t => t.RuntimeType.Name.Equals(resultTypeName)),
+                                context.Types.Single(t => t.RuntimeType.Equals(resultType)),
                                 arguments,
                                 body,
                                 bodyString,

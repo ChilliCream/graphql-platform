@@ -10,6 +10,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
     public partial class TypeMapperGenerator
     {
         private const string _entityId = "entityId";
+        private const string _snapshot = "snapshot";
 
         private void AddEntityHandler(
             ClassBuilder classBuilder,
@@ -22,6 +23,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             method
                 .AddParameter(_entityId)
                 .SetType(TypeNames.EntityId.MakeNullable(!isNonNullable));
+            method
+                .AddParameter(_snapshot)
+                .SetType(TypeNames.IEntityStoreSnapshot);
 
             if (!isNonNullable)
             {
@@ -39,7 +43,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     {
                         var dataMapperType =
                             TypeNames.IEntityMapper.WithGeneric(
-                                CreateEntityTypeName(implementee.Name),
+                                CreateEntityType(
+                                        implementee.Name,
+                                        implementee.RuntimeType.NamespaceWithoutGlobal)
+                                    .ToString(),
                                 implementee.RuntimeType.Name);
 
                         AddConstructorAssignedField(
@@ -74,8 +81,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             MethodCallBuilder argument = MethodCallBuilder
                 .Inline()
-                .SetMethodName(StoreFieldName, "GetEntity")
-                .AddGeneric(CreateEntityTypeName(objectTypeDescriptor.Name))
+                .SetMethodName(_snapshot, "GetEntity")
+                .AddGeneric(CreateEntityType(
+                        objectTypeDescriptor.Name,
+                        objectTypeDescriptor.RuntimeType.NamespaceWithoutGlobal)
+                    .ToString())
                 .AddArgument(isNonNullable ? _entityId : $"{_entityId}.Value");
 
             constructorCall.AddArgument(

@@ -3,7 +3,7 @@
   <PropertyGroup>
     <AssemblyName>StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests</AssemblyName>
     <RootNamespace>StrawberryShake.CodeGeneration.CSharp.Analyzers</RootNamespace>
-    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <EmitCompilerGeneratedFiles>false</EmitCompilerGeneratedFiles>
     <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)\GeneratedFiles</CompilerGeneratedFilesOutputPath>
     <StrawberryShake_LogFile>$(BaseIntermediateOutputPath)\StrawberryShake.log</StrawberryShake_LogFile>
     <StrawberryShake_PersistedQueryDirectory>$(BaseIntermediateOutputPath)\GraphQL</StrawberryShake_PersistedQueryDirectory>
@@ -12,7 +12,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.8.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2" PrivateAssets="all" />
-    <PackageReference Include="StrawberryShake.CodeGeneration.CSharp.Analyzers" Version="11.1.0-pse-add-protocol-facotries-to-strawberry-shake.1" PrivateAssets="all" />
+    <PackageReference Include="StrawberryShake.CodeGeneration.CSharp.Analyzers" Version="11.1.0-local.403" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="3.1.4" />
   </ItemGroup>
 

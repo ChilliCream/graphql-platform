@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Security.Cryptography;
+using StrawberryShake.Internal;
+using StrawberryShake.Json;
 
 namespace StrawberryShake
 {
@@ -12,6 +15,7 @@ namespace StrawberryShake
         private readonly IReadOnlyDictionary<string, object?> _variables;
         private Dictionary<string, object?>? _extensions;
         private Dictionary<string, object?>? _contextData;
+        private string? _hash;
 
         /// <summary>
         /// Creates a new instance of <see cref="OperationRequest"/>.
@@ -204,6 +208,22 @@ namespace StrawberryShake
             }
 
             return true;
+        }
+
+        public string GetHash()
+        {
+            if (_hash is null)
+            {
+                using var writer = new ArrayWriter();
+                var serializer = new JsonOperationRequestSerializer();
+                serializer.Serialize(this, writer, ignoreExtensions: true);
+
+                using var sha256 = SHA256.Create();
+                byte[] buffer = sha256.ComputeHash(writer.GetInternalBuffer(), 0, writer.Length);
+                _hash = Convert.ToBase64String(buffer);
+            }
+
+            return _hash;
         }
 
         public override int GetHashCode()

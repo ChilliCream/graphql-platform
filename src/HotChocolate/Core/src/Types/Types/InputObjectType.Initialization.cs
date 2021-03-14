@@ -52,11 +52,12 @@ namespace HotChocolate.Types
         protected override InputObjectTypeDefinition CreateDefinition(
             ITypeDiscoveryContext context)
         {
-            var descriptor = InputObjectTypeDescriptor.FromSchemaType(
-                context.DescriptorContext,
-                GetType());
+            var descriptor =
+                InputObjectTypeDescriptor.FromSchemaType(context.DescriptorContext, GetType());
+
             _configure!(descriptor);
             _configure = null;
+
             return descriptor.CreateDefinition();
         }
 
@@ -85,7 +86,7 @@ namespace HotChocolate.Types
             var fields = new List<InputField>();
             OnCompleteFields(context, definition, fields);
 
-            Fields = new FieldCollection<InputField>(
+            Fields = FieldCollection<InputField>.From(
                 fields,
                 context.DescriptorContext.Options.SortFieldsByName);
             FieldInitHelper.CompleteFields(context, definition, Fields);

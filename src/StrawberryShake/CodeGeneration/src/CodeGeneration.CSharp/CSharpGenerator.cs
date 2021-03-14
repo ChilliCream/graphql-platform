@@ -40,6 +40,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             new ResultFromEntityTypeMapperGenerator(),
             new ResultInfoGenerator(),
             new ResultTypeGenerator(),
+            new StoreAccessorGenerator(),
             new InputTypeGenerator(),
             new ResultInterfaceGenerator(),
             new DataTypeGenerator()
@@ -180,6 +181,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             // now we execute all mappers that depend on the previous type mappers.
             OperationDescriptorMapper.Map(clientModel, context);
+            StoreAccessorMapper.Map(clientModel, context);
             DependencyInjectionMapper.Map(clientModel, context);
             DataTypeDescriptorMapper.Map(clientModel, context);
             EntityTypeDescriptorMapper.Map(clientModel, context);
@@ -232,10 +234,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
             writer.WriteLine();
 #endif
 
-            generator.Generate(writer, descriptor, out string fileName);
+            generator.Generate(writer, descriptor, out var fileName, out var path);
 
             writer.Flush();
-            return new(fileName, code.ToString(), SourceDocumentKind.CSharp);
+
+            return new(
+                fileName,
+                code.ToString(),
+                SourceDocumentKind.CSharp,
+                path: path);
         }
 
         private static bool TryParseDocuments(

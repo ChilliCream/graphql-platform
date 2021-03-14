@@ -13,13 +13,13 @@ namespace StrawberryShake.Transport.WebSockets
     /// </summary>
     public class WebSocketConnection : IConnection<JsonDocument>
     {
-        private readonly Func<Task<ISession>> _sessionFactory;
+        private readonly Func<CancellationToken, ValueTask<ISession>> _sessionFactory;
 
         /// <summary>
         /// Creates a new instance of a <see cref="WebSocketConnection"/>
         /// </summary>
         /// <param name="sessionFactory"></param>
-        public WebSocketConnection(Func<Task<ISession>> sessionFactory)
+        public WebSocketConnection(Func<CancellationToken, ValueTask<ISession>> sessionFactory)
         {
             _sessionFactory = sessionFactory ??
                 throw new ArgumentNullException(nameof(sessionFactory));
@@ -35,7 +35,7 @@ namespace StrawberryShake.Transport.WebSockets
                 throw new ArgumentNullException(nameof(request));
             }
 
-            await using ISession session = await _sessionFactory();
+            await using ISession session = await _sessionFactory(cancellationToken);
 
             await using ISocketOperation operation =
                 await session.StartOperationAsync(request, cancellationToken);

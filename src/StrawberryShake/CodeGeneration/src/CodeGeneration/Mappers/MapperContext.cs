@@ -15,9 +15,12 @@ namespace StrawberryShake.CodeGeneration.Mappers
         private readonly List<DataTypeDescriptor> _dataTypes = new();
         private readonly Dictionary<NameString, OperationDescriptor> _operations = new();
         private readonly Dictionary<NameString, ResultBuilderDescriptor> _resultBuilder = new();
+        private readonly Dictionary<(string, TypeKind), RuntimeTypeInfo> _runtimeTypes = new();
+        private readonly HashSet<string> _runtimeTypeNames = new();
         private ClientDescriptor? _client;
         private EntityIdFactoryDescriptor? _entityIdFactory;
         private DependencyInjectionDescriptor? _dependencyInjectionDescriptor;
+        private StoreAccessorDescriptor? _storeAccessorDescriptor;
 
         public MapperContext(
             string @namespace,
@@ -63,6 +66,9 @@ namespace StrawberryShake.CodeGeneration.Mappers
         public DependencyInjectionDescriptor DependencyInjection =>
             _dependencyInjectionDescriptor ?? throw new NotImplementedException();
 
+        public StoreAccessorDescriptor StoreAccessor =>
+            _storeAccessorDescriptor ?? throw new NotImplementedException();
+
         public IEnumerable<ICodeDescriptor> GetAllDescriptors()
         {
             foreach (var entityTypeDescriptor in EntityTypes)
@@ -95,6 +101,13 @@ namespace StrawberryShake.CodeGeneration.Mappers
             yield return EntityIdFactory;
 
             yield return DependencyInjection;
+
+            yield return StoreAccessor;
+        }
+
+        public RuntimeTypeInfo GetRuntimeType(NameString typeName, TypeKind kind)
+        {
+            return _runtimeTypes[(typeName, kind)];
         }
 
         public void Register(IEnumerable<INamedTypeDescriptor> typeDescriptors)
@@ -161,6 +174,29 @@ namespace StrawberryShake.CodeGeneration.Mappers
         public void Register(DependencyInjectionDescriptor dependencyInjectionDescriptor)
         {
             _dependencyInjectionDescriptor = dependencyInjectionDescriptor;
+        }
+
+        public void Register(StoreAccessorDescriptor storeAccessorDescriptor)
+        {
+            _storeAccessorDescriptor = storeAccessorDescriptor;
+        }
+
+        public bool Register(NameString typeName, TypeKind kind, RuntimeTypeInfo runtimeType)
+        {
+            // we already have a registration.
+            if (_runtimeTypes.ContainsKey((typeName, kind)))
+            {
+                return false;
+            }
+
+            // the type name is not unique.
+            if (!_runtimeTypeNames.Add(runtimeType.ToString()))
+            {
+                return false;
+            }
+
+            _runtimeTypes.Add((typeName, kind), runtimeType);
+            return true;
         }
     }
 }

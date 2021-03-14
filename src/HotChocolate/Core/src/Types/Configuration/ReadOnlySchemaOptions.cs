@@ -33,6 +33,7 @@ namespace HotChocolate.Configuration
             RemoveUnreachableTypes = options.RemoveUnreachableTypes;
             DefaultBindingBehavior = options.DefaultBindingBehavior;
             FieldMiddleware = options.FieldMiddleware;
+            PreserveSyntaxNodes = options.PreserveSyntaxNodes;
         }
 
         /// <summary>
@@ -65,6 +66,11 @@ namespace HotChocolate.Configuration
         /// Default: <c>false</c>
         /// </summary>
         public bool SortFieldsByName { get; }
+
+        /// <summary>
+        /// Defines if syntax nodes shall be preserved on the type system objects
+        /// </summary>
+        public bool PreserveSyntaxNodes { get; }
 
         /// <summary>
         /// Defines if types shall be removed from the schema that are

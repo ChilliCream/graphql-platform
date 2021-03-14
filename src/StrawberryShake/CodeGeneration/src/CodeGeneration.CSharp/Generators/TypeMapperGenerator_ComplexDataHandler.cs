@@ -31,6 +31,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .MakeNullable(!isNonNullable))
                 .SetName(_dataParameterName);
 
+            method
+                .AddParameter(_snapshot)
+                .SetType(TypeNames.IEntityStoreSnapshot);
+
             if (!isNonNullable)
             {
                 method.AddCode(EnsureProperNullability(_dataParameterName, isNonNullable));
@@ -104,7 +108,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 }
                 else
                 {
-                    constructorCall.AddArgument($"{matchedTypeName}.{prop.Name}");
+                    var isNonNullableValueType =
+                        prop.Type is NonNullTypeDescriptor
+                            { InnerType: ILeafTypeDescriptor leaf } &&
+                        leaf.RuntimeType.IsValueType;
+
+                    constructorCall
+                        .AddArgument(
+                            $"{matchedTypeName}.{prop.Name}" +
+                            (isNonNullableValueType ? ".Value" : ""));
                 }
             }
 

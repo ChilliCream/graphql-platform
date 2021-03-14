@@ -24,13 +24,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         protected override void Generate(
             CodeWriter writer,
             InputObjectTypeDescriptor namedTypeDescriptor,
-            out string fileName)
+            out string fileName,
+            out string? path)
         {
             const string serializerResolver = nameof(serializerResolver);
             const string runtimeValue = nameof(runtimeValue);
             const string value = nameof(value);
 
             fileName = CreateInputValueFormatter(namedTypeDescriptor);
+            path = Serialization;
 
             NameString typeName = namedTypeDescriptor.Name;
 
@@ -115,7 +117,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         .Inline()
                         .SetNew()
                         .SetMethodName(_keyValuePair)
-                        .AddArgument(GetParameterName(property.Name).AsStringToken())
+                        .AddArgument(property.FieldName.AsStringToken())
                         .AddArgument(MethodCallBuilder
                             .Inline()
                             .SetMethodName(serializerMethodName)
@@ -123,7 +125,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
                 classBuilder
                     .AddMethod(serializerMethodName)
-                    .AddParameter(value, x => x.SetType(property.Type.ToBuilder()))
+                    .AddParameter(value, x => x.SetType(property.Type.ToTypeReference()))
                     .SetReturnType(TypeNames.Object.MakeNullable())
                     .SetPrivate()
                     .AddCode(GenerateSerializer(property.Type, value));
