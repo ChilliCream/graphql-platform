@@ -1,11 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using HotChocolate.Language;
 using System.Text.RegularExpressions;
-using HotChocolate.Language;
 
 namespace HotChocolate.Types.Scalars
 {
@@ -18,9 +14,9 @@ namespace HotChocolate.Types.Scalars
     /// </summary>
     public class CurrencyType : StringType
     {
-        private const int _defaultRegexTimeoutInMs = 100;
+        private const int _defaultCurrencyTimeoutInMs = 100;
 
-        private readonly Dictionary<Tuple<string, string>, List<string>> _dic =
+        private readonly Dictionary<Tuple<string, string>, List<string>> _cuurencyCodes =
             new Dictionary<Tuple<string, string>, List<string>>
             {
                 { new Tuple<string, string> (".", "2"),
@@ -48,14 +44,14 @@ namespace HotChocolate.Types.Scalars
 
 
         private const string _validationPattern = "^(((?:(<block>)\u00A0)?" +
-             "((([-]?\\d{1,3})" +
-             "(?(?!(<separator>\\d{3}))((<3digit>\\d{3})*(<separator>(?<nd>)\\d{<digit>}(?<-nd>))<point>)|" +
-             "(?(<mixed>)((<separator>\\d{3})*)(<3digit>(?<nd>)\\d{<digit>}(?<-nd>))<point>)))|" +
-             "([-]?\\d{1,19}(<separator_n>(?<nd>)\\d{<digit>}(?<-nd>))<point>))?)|" +
-             "(((([-]?\\d{1,3})" +
-             "(?(?!(<separator>\\d{3}))((<3digit>\\d{3})*(<separator>(?<nd>)\\d{<digit>}(?<-nd>))<point>)|" +
-             "(?(<mixed>)((<separator>\\d{3})*)(<3digit>(?<nd>)\\d{<digit>}(?<-nd>))<point>)))|" +
-             "([-]?\\d{1,19}(<separator_n>(?<nd>)\\d{<digit>}(?<-nd>))<point>))" +
+             "((([-]?[1-9]\\d{0,2})" +
+             "(?(?!(<separator>\\d{3}))((<3digit>\\d{3}){0,6}(<separator>(?<nd>)\\d{<digit>}(?<-nd>))<point>)|" +
+             "(?(<mixed>)((<separator>\\d{3}){0,6})(<3digit>(?<nd>)\\d{<digit>}(?<-nd>))<point>)))|" +
+             "([-]?[1-9]\\d{0,18}(<separator_n>(?<nd>)\\d{<digit>}(?<-nd>))<point>))?)|" +
+             "(((([-]?[1-9]\\d{0,2})" +
+             "(?(?!(<separator>\\d{3}))((<3digit>\\d{3}){0,6}(<separator>(?<nd>)\\d{<digit>}(?<-nd>))<point>)|" +
+             "(?(<mixed>)((<separator>\\d{3}){0,6})(<3digit>(?<nd>)\\d{<digit>}(?<-nd>))<point>)))|" +
+             "([-]?[1-9]\\d{0,18}(<separator_n>(?<nd>)\\d{<digit>}(?<-nd>))<point>))" +
              "(?:\u00A0(<block>))?))(?(nd)(?!))$";
 
         private const string _suffixPattern =
@@ -227,7 +223,7 @@ namespace HotChocolate.Types.Scalars
             validationRegex = new Regex(
                     pattern,
                     RegexOptions.Compiled,
-                    TimeSpan.FromMilliseconds(_defaultRegexTimeoutInMs));
+                    TimeSpan.FromMilliseconds(_defaultCurrencyTimeoutInMs));
 
         }
 
@@ -235,11 +231,11 @@ namespace HotChocolate.Types.Scalars
             out string tdigit, out string separator, out string separator_n, out string mixed)
         {
             block = digit = point = tdigit = separator = mixed = separator_n = "";
-            bool vars = false;
-            foreach (Tuple<string, string> key in _dic.Keys)
+            bool gotPatterns = false;
+            foreach (Tuple<string, string> key in _cuurencyCodes.Keys)
             {
                 var value = new List<string> { };
-                if (_dic.TryGetValue(key, out value))
+                if (_cuurencyCodes.TryGetValue(key, out value))
                 {
                     if (value.Contains(matchValue))
                     {
@@ -250,13 +246,13 @@ namespace HotChocolate.Types.Scalars
                         separator = key.Item1.Equals(",.") ? "." : key.Item1;
                         separator_n = key.Item1.Equals(",.") ? "(,|\\.)" : key.Item1;
                         mixed = key.Item1.Equals(",.") ? "?=" : "?!";
-                        vars = true;
+                        gotPatterns = true;
                         break;
                     }
                 }
             }
 
-            return vars;
+            return gotPatterns;
         }
     }
 }
