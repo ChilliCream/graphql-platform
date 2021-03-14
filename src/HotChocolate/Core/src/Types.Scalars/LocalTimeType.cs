@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using HotChocolate.Language;
 
@@ -39,28 +40,9 @@ namespace HotChocolate.Types.Scalars
             throw new NotImplementedException();
         }
 
-        protected override StringValueNode ParseValue(DateTime runtimeValue) =>
-            new(Serialize(runtimeValue));
-
-        public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+        protected override StringValueNode ParseValue(DateTime runtimeValue)
         {
-            if (runtimeValue is null)
-            {
-                resultValue = null;
-                return true;
-            }
-
-            if (runtimeValue is DateTime dt)
-            {
-                resultValue = Serialize(dt);
-                return true;
-            }
-
-            resultValue = null;
-            return false;
+            throw new NotImplementedException();
         }
-
-        private static string Serialize(DateTime value) =>
-            value.ToLocalTime().ToString(_dateFormat);
     }
 }
