@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using HotChocolate.Language;
 
@@ -42,7 +43,12 @@ namespace HotChocolate.Types.Scalars
 
         protected override DateTimeOffset ParseLiteral(StringValueNode valueSyntax)
         {
-            throw new NotImplementedException();
+            if (TryDeserializeFromString(valueSyntax.Value, out DateTimeOffset? value))
+            {
+                return value.Value;
+            }
+
+            throw new SerializationException(ScalarResources.LocalTimeType_IsInvalid_ParseLiteral, this);
         }
 
         protected override StringValueNode ParseValue(DateTimeOffset runtimeValue)
@@ -55,6 +61,23 @@ namespace HotChocolate.Types.Scalars
             return value.ToString(
                 _localFormat,
                 CultureInfo.InvariantCulture);
+        }
+
+        private static bool TryDeserializeFromString(
+            string? serialized,
+            [NotNullWhen(true)]out DateTimeOffset? value)
+        {
+            if (serialized is not null
+                && DateTimeOffset.TryParse(
+                    serialized,
+                    out DateTimeOffset dt))
+            {
+                value = dt;
+                return true;
+            }
+
+            value = null;
+            return false;
         }
     }
 }
