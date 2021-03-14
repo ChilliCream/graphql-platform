@@ -13,6 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Language\src\Language.SyntaxTree\HotChocolate.Language.SyntaxTree.csproj" />
     <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
   </ItemGroup>
 

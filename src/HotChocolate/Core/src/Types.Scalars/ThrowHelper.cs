@@ -502,5 +502,27 @@ namespace HotChocolate.Types.Scalars
                     .Build(),
                 type);
         }
+
+        public static SerializationException USCurrencyType_ParseLiteral_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.USCurrencyType_IsInvalid_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.USCurrency)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException USCurrencyType_ParseValue_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.USCurrencyType_IsInvalid_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.USCurrency)
+                    .Build(),
+                type);
+        }
     }
 }
