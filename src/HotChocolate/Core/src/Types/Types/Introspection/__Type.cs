@@ -139,7 +139,7 @@ namespace HotChocolate.Types.Introspection
 
             public IEnumerable<DirectiveNode> GetAppliedDirectives([Parent] IType type) =>
                 type is IHasDirectives hasDirectives
-                    ? hasDirectives.Directives.Select(d => d.ToNode())
+                    ? hasDirectives.Directives.Where(t => t.Type.IsPublic).Select(d => d.ToNode())
                     : Enumerable.Empty<DirectiveNode>();
         }
 

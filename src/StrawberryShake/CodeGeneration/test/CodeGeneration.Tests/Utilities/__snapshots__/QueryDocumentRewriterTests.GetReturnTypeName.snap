@@ -2,12 +2,6 @@
   hero(episode: NEW_HOPE) {
     __typename
     ... Characters
-    ... on Droid {
-      id
-    }
-    ... on Human {
-      id
-    }
   }
 }
 

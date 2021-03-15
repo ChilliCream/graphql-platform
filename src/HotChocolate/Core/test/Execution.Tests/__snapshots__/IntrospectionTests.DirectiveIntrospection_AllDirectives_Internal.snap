@@ -5,52 +5,7 @@
         {
           "fields": [
             {
-              "appliedDirectives": [
-                {
-                  "name": "foo",
-                  "args": []
-                },
-                {
-                  "name": "bar",
-                  "args": [
-                    {
-                      "name": "baz",
-                      "value": "\u0022ABC\u0022"
-                    }
-                  ]
-                },
-                {
-                  "name": "bar",
-                  "args": [
-                    {
-                      "name": "baz",
-                      "value": "null"
-                    }
-                  ]
-                },
-                {
-                  "name": "bar",
-                  "args": [
-                    {
-                      "name": "quox",
-                      "value": "{ a: \u0022ABC\u0022 }"
-                    }
-                  ]
-                },
-                {
-                  "name": "bar",
-                  "args": [
-                    {
-                      "name": "quox",
-                      "value": "{  }"
-                    }
-                  ]
-                },
-                {
-                  "name": "bar",
-                  "args": []
-                }
-              ]
+              "appliedDirectives": []
             }
           ]
         },

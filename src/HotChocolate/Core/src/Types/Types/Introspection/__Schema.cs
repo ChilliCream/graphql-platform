@@ -56,7 +56,7 @@ namespace HotChocolate.Types.Introspection
             if (descriptor.Extend().Context.Options.EnableDirectiveIntrospection)
             {
                 descriptor
-                    .Field(t => t.Directives.Select(d => d.ToNode()))
+                    .Field(t => t.Directives.Where(d => d.Type.IsPublic).Select(d => d.ToNode()))
                     .Type<NonNullType<ListType<NonNullType<__AppliedDirective>>>>()
                     .Name(Names.AppliedDirectives);
             }

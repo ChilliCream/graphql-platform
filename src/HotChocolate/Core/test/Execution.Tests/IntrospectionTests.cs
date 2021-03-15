@@ -242,13 +242,14 @@ namespace HotChocolate.Execution
                 .AddGraphQL()
                 .AddDocumentFromString(
                     @"
-                        type Query { 
+                        type Query {
                             foo: String
                                 @foo
-                                @bar(baz: ""ABC"") 
+                                @bar(baz: ""ABC"")
+                                @bar(baz: null)
                                 @bar(quox: { a: ""ABC"" })
                                 @bar(quox: { })
-                                @bar 
+                                @bar
                         }
 
                         input SomeInput {
@@ -261,6 +262,111 @@ namespace HotChocolate.Execution
                     ")
                 .UseField(next => next)
                 .ModifyOptions(o => o.EnableDirectiveIntrospection = true)
+                .ExecuteRequestAsync(
+                    @"
+                        {
+                            __schema {
+                                types {
+                                    fields {
+                                        appliedDirectives {
+                                            name
+                                            args {
+                                                name
+                                                value
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    ")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task DirectiveIntrospection_AllDirectives_Internal()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddDocumentFromString(
+                    @"
+                        type Query {
+                            foo: String
+                                @foo
+                                @bar(baz: ""ABC"")
+                                @bar(baz: null)
+                                @bar(quox: { a: ""ABC"" })
+                                @bar(quox: { })
+                                @bar
+                        }
+
+                        input SomeInput {
+                            a: String!
+                        }
+
+                        directive @foo on FIELD_DEFINITION
+
+                        directive @bar(baz: String quox: SomeInput) repeatable on FIELD_DEFINITION
+                    ")
+                .UseField(next => next)
+                .ModifyOptions(o => o.EnableDirectiveIntrospection = true)
+                .ModifyOptions(o => o.DefaultDirectiveVisibility = DirectiveVisibility.Internal)
+                .ExecuteRequestAsync(
+                    @"
+                        {
+                            __schema {
+                                types {
+                                    fields {
+                                        appliedDirectives {
+                                            name
+                                            args {
+                                                name
+                                                value
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    ")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task DirectiveIntrospection_SomeDirectives_Internal()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddDocumentFromString(
+                    @"
+                        type Query {
+                            foo: String
+                                @foo
+                                @bar(baz: ""ABC"")
+                                @bar(baz: null)
+                                @bar(quox: { a: ""ABC"" })
+                                @bar(quox: { })
+                                @bar
+                        }
+
+                        input SomeInput {
+                            a: String!
+                        }
+
+                        directive @bar(baz: String quox: SomeInput) repeatable on FIELD_DEFINITION
+                    ")
+                .UseField(next => next)
+                .ModifyOptions(o => o.EnableDirectiveIntrospection = true)
+                .AddDirectiveType(new DirectiveType(d =>
+                {
+                    d.Name("foo");
+                    d.Location(DirectiveLocation.FieldDefinition);
+                    d.Internal();
+                }))
                 .ExecuteRequestAsync(
                     @"
                         {

@@ -120,6 +120,8 @@ namespace HotChocolate.Types
         /// </summary>
         public bool IsTypeSystemDirective { get; private set; }
 
+        internal bool IsPublic { get; private set; }
+
         protected override DirectiveTypeDefinition CreateDefinition(
             ITypeDiscoveryContext context)
         {
@@ -176,6 +178,7 @@ namespace HotChocolate.Types
                     .Select(t => new Argument(t, new FieldCoordinate(Name, t.Name))),
                 context.DescriptorContext.Options.SortFieldsByName);
             HasMiddleware = MiddlewareComponents.Count > 0;
+            IsPublic = definition.IsPublic;
 
             if (Locations.Count == 0)
             {
