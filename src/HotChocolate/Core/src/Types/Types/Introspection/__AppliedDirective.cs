@@ -7,8 +7,7 @@ using HotChocolate.Properties;
 namespace HotChocolate.Types.Introspection
 {
     /// <summary>
-    /// Directive arguments can have names and values.
-    /// The values are in graphql SDL syntax printed as a string.
+    /// An Applied Directive is an instances of a directive as applied to a schema element.
     /// This type is NOT specified by the graphql specification presently.
     /// </summary>
     public class __AppliedDirective : ObjectType<DirectiveNode>
@@ -31,7 +30,7 @@ namespace HotChocolate.Types.Introspection
             descriptor
                 .Field(Names.Args)
                 .Type<NonNullType<ListType<NonNullType<__DirectiveArgument>>>>()
-                .Resolve(c => c.Parent<DirectiveType>().Arguments);
+                .Resolve(c => c.Parent<DirectiveNode>().Arguments);
         }
 
         public static class Names

@@ -682,6 +682,9 @@ Type: `{0}`</value>
     <value>The argument name is invalid.</value>
   </data>
   <data name="__AppliedDirective_Description" xml:space="preserve">
+    <value>An Applied Directive is an instances of a directive as applied to a schema element. This type is NOT specified by the graphql specification presently.</value>
+  </data>
+  <data name="__DirectiveArgument_Description" xml:space="preserve">
     <value>Directive arguments can have names and values. The values are in graphql SDL syntax printed as a string. This type is NOT specified by the graphql specification presently.</value>
   </data>
 </root>

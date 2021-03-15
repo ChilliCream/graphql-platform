@@ -4,8 +4,10 @@ using ChilliCream.Testing;
 using HotChocolate.Configuration;
 using HotChocolate.Types;
 using HotChocolate.Tests;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
+using Snapshot = Snapshooter.Xunit.Snapshot;
 
 namespace HotChocolate.Execution
 {
@@ -229,6 +231,55 @@ namespace HotChocolate.Execution
             // assert
             Assert.Null(result.Errors);
             result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task DirectiveIntrospection_AllDirectives_Public()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddDocumentFromString(
+                    @"
+                        type Query { 
+                            foo: String
+                                @foo
+                                @bar(baz: ""ABC"") 
+                                @bar(quox: { a: ""ABC"" })
+                                @bar(quox: { })
+                                @bar 
+                        }
+
+                        input SomeInput {
+                            a: String!
+                        }
+
+                        directive @foo on FIELD_DEFINITION
+
+                        directive @bar(baz: String quox: SomeInput) repeatable on FIELD_DEFINITION
+                    ")
+                .UseField(next => next)
+                .ModifyOptions(o => o.EnableDirectiveIntrospection = true)
+                .ExecuteRequestAsync(
+                    @"
+                        {
+                            __schema {
+                                types {
+                                    fields {
+                                        appliedDirectives {
+                                            name
+                                            args {
+                                                name
+                                                value
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    ")
+                .MatchSnapshotAsync();
         }
 
         private static ISchema CreateSchema()

@@ -1,0 +1,233 @@
+﻿{
+  "data": {
+    "__schema": {
+      "types": [
+        {
+          "fields": [
+            {
+              "appliedDirectives": [
+                {
+                  "name": "foo",
+                  "args": []
+                },
+                {
+                  "name": "bar",
+                  "args": [
+                    {
+                      "name": "baz",
+                      "value": "\u0022ABC\u0022"
+                    }
+                  ]
+                },
+                {
+                  "name": "bar",
+                  "args": [
+                    {
+                      "name": "quox",
+                      "value": "{ a: \u0022ABC\u0022 }"
+                    }
+                  ]
+                },
+                {
+                  "name": "bar",
+                  "args": [
+                    {
+                      "name": "quox",
+                      "value": "{  }"
+                    }
+                  ]
+                },
+                {
+                  "name": "bar",
+                  "args": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "fields": null
+        },
+        {
+          "fields": [
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            }
+          ]
+        },
+        {
+          "fields": null
+        },
+        {
+          "fields": [
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            }
+          ]
+        },
+        {
+          "fields": [
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            }
+          ]
+        },
+        {
+          "fields": [
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            }
+          ]
+        },
+        {
+          "fields": [
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            }
+          ]
+        },
+        {
+          "fields": [
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            }
+          ]
+        },
+        {
+          "fields": null
+        },
+        {
+          "fields": null
+        },
+        {
+          "fields": null
+        },
+        {
+          "fields": [
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            }
+          ]
+        },
+        {
+          "fields": null
+        },
+        {
+          "fields": [
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

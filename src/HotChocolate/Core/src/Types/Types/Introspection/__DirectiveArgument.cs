@@ -1,11 +1,17 @@
 #pragma warning disable IDE1006 // Naming Styles
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
+using HotChocolate.Properties;
 
 #nullable enable
 
 namespace HotChocolate.Types.Introspection
 {
+    /// <summary>
+    /// Directive arguments can have names and values.
+    /// The values are in graphql SDL syntax printed as a string.
+    /// This type is NOT specified by the graphql specification presently.
+    /// </summary>
     public class __DirectiveArgument : ObjectType<ArgumentNode>
     {
         protected override void Configure(
@@ -13,6 +19,7 @@ namespace HotChocolate.Types.Introspection
         {
             descriptor
                 .Name(Names.__DirectiveArgument)
+                .Description(TypeResources.___DirectiveArgument_Description)
                 // Introspection types must always be bound explicitly so that we
                 // do not get any interference with conventions.
                 .BindFieldsExplicitly();
