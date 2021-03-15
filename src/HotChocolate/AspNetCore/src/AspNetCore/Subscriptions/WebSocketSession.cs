@@ -41,7 +41,12 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     _messageProcessor.Begin(cts.Token);
                     await _messageReceiver.ReceiveAsync(cts.Token);
                 }
-                catch(OperationCanceledException) { }
+                catch(OperationCanceledException) 
+                { 
+                    // OperationCanceledException are catched and will not
+                    // bubble further. We will just close the current subscription
+                    // context.
+                }
                 finally
                 {
                     cts.Cancel();
