@@ -9,6 +9,7 @@ using Xunit;
 
 namespace HotChocolate.Types.Sorting
 {
+    [Obsolete]
     public class SortingFieldCollectionExtensionTest
     {
         private readonly Expression<Func<Foo, string>> _property;
