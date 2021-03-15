@@ -6,6 +6,7 @@ using Xunit;
 
 namespace HotChocolate.Types.Filters
 {
+    [Obsolete]
     public class ArrayFilterInputTypeTests
         : TypeTestBase
     {
@@ -812,11 +813,11 @@ namespace HotChocolate.Types.Filters
         [Fact]
         public void Create_ArraySimpleFilter_FooImplicitBarImplicit_Collection()
         {
-            // arrange    
-            // act    
+            // arrange
+            // act
             var schema = CreateSchema(new FilterInputType<FooSimpleCollection>());
 
-            // assert    
+            // assert
             schema.ToString().MatchSnapshot();
         }
 
