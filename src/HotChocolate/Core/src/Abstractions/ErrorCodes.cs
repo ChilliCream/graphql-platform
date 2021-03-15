@@ -128,6 +128,12 @@ namespace HotChocolate
             /// is an iterable type.
             /// </summary>
             public const string NodeTypeUnkown = "HC0031";
+
+            /// <summary>
+            /// The element schema type for pagination must be a valid GraphQL output type
+            /// (ObjectType, InterfaceType, UnionType, EnumType, ScalarType).
+            /// </summary>
+            public const string SchemaTypeInvalid = "HC0032";
         }
     }
 }

@@ -1,4 +1,3 @@
-using System.Reflection;
 using static HotChocolate.Types.Properties.CursorResources;
 
 namespace HotChocolate.Utilities
@@ -16,7 +15,7 @@ namespace HotChocolate.Utilities
             new SchemaException(
                 SchemaErrorBuilder.New()
                     .SetMessage(PagingObjectFieldDescriptorExtensions_SchemaTypeNotValid)
-                    .SetCode("PAGINATION_SCHEMA_TYPE_INVALID")
+                    .SetCode(ErrorCodes.Types.SchemaTypeInvalid)
                     .Build());
     }
 }
