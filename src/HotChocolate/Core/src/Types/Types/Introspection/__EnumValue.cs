@@ -1,4 +1,5 @@
 #pragma warning disable IDE1006 // Naming Styles
+using System.Linq;
 using HotChocolate.Properties;
 
 #nullable enable
@@ -34,6 +35,14 @@ namespace HotChocolate.Types.Introspection
             descriptor
                 .Field(c => c.DeprecationReason)
                 .Name(Names.DeprecationReason);
+
+            if (descriptor.Extend().Context.Options.EnableDirectiveIntrospection)
+            {
+                descriptor
+                    .Field(t => t.Directives.Select(d => d.ToNode()))
+                    .Type<NonNullType<ListType<NonNullType<__AppliedDirective>>>>()
+                    .Name(Names.AppliedDirectives);
+            }
         }
 
         public static class Names
@@ -43,6 +52,7 @@ namespace HotChocolate.Types.Introspection
             public const string Description = "description";
             public const string IsDeprecated = "isDeprecated";
             public const string DeprecationReason = "deprecationReason";
+            public const string AppliedDirectives = "appliedDirectives";
         }
     }
 }

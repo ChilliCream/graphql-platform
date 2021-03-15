@@ -57,7 +57,7 @@ namespace HotChocolate.Types
             };
 
         private Action<IDirectiveTypeDescriptor>? _configure;
-        private ITypeConverter _converter;
+        private ITypeConverter _converter = default!;
 
         protected DirectiveType()
         {
@@ -70,17 +70,18 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(configure));
         }
 
-        public DirectiveDefinitionNode SyntaxNode { get; private set; }
+        public DirectiveDefinitionNode? SyntaxNode { get; private set; }
 
-        public Type RuntimeType { get; private set; }
+        public Type RuntimeType { get; private set; } = default!;
 
         public bool IsRepeatable { get; private set; }
 
-        public ICollection<DirectiveLocation> Locations { get; private set; }
+        public ICollection<DirectiveLocation> Locations { get; private set; } = default!;
 
-        public FieldCollection<Argument> Arguments { get; private set; }
+        public FieldCollection<Argument> Arguments { get; private set; }  = default!;
 
-        public IReadOnlyList<DirectiveMiddleware> MiddlewareComponents { get; private set; }
+        public IReadOnlyList<DirectiveMiddleware> MiddlewareComponents { get; private set; } =
+            default!;
 
         public bool HasMiddleware { get; private set; }
 
