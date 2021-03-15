@@ -63,5 +63,4 @@ namespace HotChocolate.Types.Filters
             NameString name,
             params ArgumentNode[] arguments);
     }
-
 }
