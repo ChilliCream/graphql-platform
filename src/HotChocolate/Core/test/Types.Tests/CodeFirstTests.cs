@@ -37,13 +37,13 @@ namespace HotChocolate
         public void Type_Is_Correctly_Upgraded()
         {
             SchemaBuilder.New()
-               .AddQueryType<Query>()
-               .AddType<Dog>()
-               .AddType<ObjectType<Dog>>()
-               .AddType<DogType>()
-               .Create()
-               .ToString()
-               .MatchSnapshot();
+                .AddQueryType<Query>()
+                .AddType<Dog>()
+                .AddType<ObjectType<Dog>>()
+                .AddType<DogType>()
+                .Create()
+                .ToString()
+                .MatchSnapshot();
         }
 
         [Fact]
@@ -124,8 +124,12 @@ namespace HotChocolate
             // [NullableContext(2)]
             // [return: Nullable(1)]
             public Task<GenericWrapper<IPet>> GetPets(
-                int? arg1, bool? arg2, bool? arg3, string? arg4,
-                GenericWrapper<string>? arg5, Greetings? arg6,
+                int? arg1,
+                bool? arg2,
+                bool? arg3,
+                string? arg4,
+                GenericWrapper<string>? arg5,
+                Greetings? arg6,
                 CancellationToken cancellationToken) =>
                 throw new NotImplementedException();
         }

@@ -24,5 +24,6 @@ namespace HotChocolate.Types
         public const string Rgb = nameof(Rgb);
         public const string Rgba = nameof(Rgba);
         public const string UnsignedInt = nameof(UnsignedInt);
+        public const string UnsignedLong = nameof(UnsignedLong);
     }
 }
