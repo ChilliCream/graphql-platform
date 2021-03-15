@@ -9,7 +9,7 @@ namespace HotChocolate.Types.Scalars
     /// The `LocalTime` scalar type is a local time string (i.e., with no associated timezone)
     /// in 24-hr HH:mm[:ss[.SSS]].
     /// </summary>
-    public class LocalTimeType : ScalarType<DateTimeOffset, StringValueNode>
+    public class LocalTimeType : ScalarType<DateTime, StringValueNode>
     {
         private const string _localFormat = "HH:mm:ss";
 
@@ -61,9 +61,9 @@ namespace HotChocolate.Types.Scalars
             throw new SerializationException(ScalarResources.LocalTimeType_IsInvalid_ParseValue, this);
         }
 
-        protected override DateTimeOffset ParseLiteral(StringValueNode valueSyntax)
+        protected override DateTime ParseLiteral(StringValueNode valueSyntax)
         {
-            if (TryDeserializeFromString(valueSyntax.Value, out DateTimeOffset? value))
+            if (TryDeserializeFromString(valueSyntax.Value, out DateTime? value))
             {
                 return value.Value;
             }
@@ -71,7 +71,7 @@ namespace HotChocolate.Types.Scalars
             throw new SerializationException(ScalarResources.LocalTimeType_IsInvalid_ParseLiteral, this);
         }
 
-        protected override StringValueNode ParseValue(DateTimeOffset runtimeValue)
+        protected override StringValueNode ParseValue(DateTime runtimeValue)
         {
             return new(Serialize(runtimeValue));
         }
@@ -102,7 +102,7 @@ namespace HotChocolate.Types.Scalars
                 return true;
             }
 
-            if (resultValue is string s && TryDeserializeFromString(s, out DateTimeOffset? d))
+            if (resultValue is string s && TryDeserializeFromString(s, out DateTime? d))
             {
                 runtimeValue = d;
                 return true;
@@ -133,7 +133,7 @@ namespace HotChocolate.Types.Scalars
 
         private static bool TryDeserializeFromString(
             string? serialized,
-            [NotNullWhen(true)]out DateTimeOffset? value)
+            [NotNullWhen(true)]out DateTime? value)
         {
             if (serialized is not null
                 && DateTime.TryParse(
