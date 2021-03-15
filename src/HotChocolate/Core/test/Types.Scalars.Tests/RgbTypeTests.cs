@@ -30,6 +30,11 @@ namespace HotChocolate.Types.Scalars
         [InlineData(typeof(StringValueNode), "rgb(110%, 0%, 0%)", true)]
         [InlineData(typeof(StringValueNode), "rgb(100%,0%,60%)", true)]
         [InlineData(typeof(StringValueNode), "rgb(100%, 0%, 60%)", true)]
+        [InlineData(typeof(StringValueNode), "rgb(255 0 153)", true)]
+        [InlineData(typeof(StringValueNode), "rgb(255, 0, 153, 1)", true)]
+        [InlineData(typeof(StringValueNode), "rgb(255, 0, 153, 100%)", true)]
+        [InlineData(typeof(StringValueNode), "rgb(255 0 153 / 1)", true)]
+        [InlineData(typeof(StringValueNode), "rgb(255 0 153 / 100%)", true)]
         [InlineData(typeof(NullValueNode), null, true)]
         public void IsInstanceOfType_GivenValueNode_MatchExpected(
             Type type,
@@ -56,6 +61,11 @@ namespace HotChocolate.Types.Scalars
         [InlineData("rgb(110%, 0%, 0%)", true)]
         [InlineData("rgb(100%,0%,60%)", true)]
         [InlineData("rgb(100%, 0%, 60%)", true)]
+        [InlineData("rgb(255 0 153)", true)]
+        [InlineData("rgb(255, 0, 153, 1)", true)]
+        [InlineData("rgb(255, 0, 153, 100%)", true)]
+        [InlineData("rgb(255 0 153 / 1)", true)]
+        [InlineData("rgb(255 0 153 / 100%)", true)]
         [InlineData(null, true)]
         public void IsInstanceOfType_GivenObject_MatchExpected(object value, bool expected)
         {
@@ -72,6 +82,11 @@ namespace HotChocolate.Types.Scalars
         [InlineData(typeof(StringValueNode), "rgb(110%, 0%, 0%)", "rgb(110%, 0%, 0%)")]
         [InlineData(typeof(StringValueNode), "rgb(100%,0%,60%)", "rgb(100%,0%,60%)")]
         [InlineData(typeof(StringValueNode), "rgb(100%, 0%, 60%)", "rgb(100%, 0%, 60%)")]
+        [InlineData(typeof(StringValueNode), "rgb(255 0 153)", "rgb(255 0 153)")]
+        [InlineData(typeof(StringValueNode), "rgb(255, 0, 153, 1)", "rgb(255, 0, 153, 1)")]
+        [InlineData(typeof(StringValueNode), "rgb(255, 0, 153, 100%)", "rgb(255, 0, 153, 100%)")]
+        [InlineData(typeof(StringValueNode), "rgb(255 0 153 / 1)", "rgb(255 0 153 / 1)")]
+        [InlineData(typeof(StringValueNode), "rgb(255 0 153 / 100%)", "rgb(255 0 153 / 100%)")]
         [InlineData(typeof(NullValueNode), null, null)]
         public void ParseLiteral_GivenValueNode_MatchExpected(
             Type type,
@@ -93,15 +108,8 @@ namespace HotChocolate.Types.Scalars
         [InlineData(typeof(IntValueNode), 12345)]
         [InlineData(typeof(StringValueNode), "")]
         [InlineData(typeof(StringValueNode), "1")]
-        [InlineData(typeof(StringValueNode), "rgb(255 0 153)")]
-        [InlineData(typeof(StringValueNode), "rgb(255, 0, 153, 1)")]
-        [InlineData(typeof(StringValueNode), "rgb(255, 0, 153, 100%)")]
-        [InlineData(typeof(StringValueNode), "rgb(255 0 153 / 1)")]
-        [InlineData(typeof(StringValueNode), "rgb(255 0 153 / 100%)")]
         [InlineData(typeof(StringValueNode), "rgb(255, 0, 153.6, 1)")]
         [InlineData(typeof(StringValueNode), "rgb(1e2, .5e1, .5e0, +.25e2%)")]
-        [InlineData(typeof(StringValueNode), "hsl(270,60%,70%)")]
-        [InlineData(typeof(StringValueNode), "hsla(240 100% 50% / .05)")]
         public void ParseLiteral_GivenValueNode_ThrowSerializationException(Type type, object value)
         {
             // arrange
@@ -119,6 +127,11 @@ namespace HotChocolate.Types.Scalars
         [InlineData("rgb(110%, 0%, 0%)", "rgb(110%, 0%, 0%)")]
         [InlineData("rgb(100%,0%,60%)", "rgb(100%,0%,60%)")]
         [InlineData("rgb(100%, 0%, 60%)", "rgb(100%, 0%, 60%)")]
+        [InlineData("rgb(255 0 153)", "rgb(255 0 153)")]
+        [InlineData("rgb(255, 0, 153, 1)", "rgb(255, 0, 153, 1)")]
+        [InlineData("rgb(255, 0, 153, 100%)", "rgb(255, 0, 153, 100%)")]
+        [InlineData("rgb(255 0 153 / 1)", "rgb(255 0 153 / 1)")]
+        [InlineData("rgb(255 0 153 / 100%)", "rgb(255 0 153 / 100%)")]
         [InlineData(null, null)]
         public void Deserialize_GivenValue_MatchExpected(
             object resultValue,
@@ -136,15 +149,9 @@ namespace HotChocolate.Types.Scalars
         [InlineData(1)]
         [InlineData(12345)]
         [InlineData("")]
-        [InlineData("rgb(255 0 153)")]
-        [InlineData("rgb(255, 0, 153, 1)")]
-        [InlineData("rgb(255, 0, 153, 100%)")]
-        [InlineData("rgb(255 0 153 / 1)")]
-        [InlineData("rgb(255 0 153 / 100%)")]
+        [InlineData("1")]
         [InlineData("rgb(255, 0, 153.6, 1)")]
         [InlineData("rgb(1e2, .5e1, .5e0, +.25e2%)")]
-        [InlineData("hsl(270,60%,70%)")]
-        [InlineData("hsla(240 100% 50% / .05)")]
         public void Deserialize_GivenValue_ThrowSerializationException(object value)
         {
             // arrange
@@ -160,6 +167,11 @@ namespace HotChocolate.Types.Scalars
         [InlineData("rgb(110%, 0%, 0%)", "rgb(110%, 0%, 0%)")]
         [InlineData("rgb(100%,0%,60%)", "rgb(100%,0%,60%)")]
         [InlineData("rgb(100%, 0%, 60%)", "rgb(100%, 0%, 60%)")]
+        [InlineData("rgb(255 0 153)", "rgb(255 0 153)")]
+        [InlineData("rgb(255, 0, 153, 1)", "rgb(255, 0, 153, 1)")]
+        [InlineData("rgb(255, 0, 153, 100%)", "rgb(255, 0, 153, 100%)")]
+        [InlineData("rgb(255 0 153 / 1)", "rgb(255 0 153 / 1)")]
+        [InlineData("rgb(255 0 153 / 100%)", "rgb(255 0 153 / 100%)")]
         [InlineData(null, null)]
         public void Serialize_GivenObject_MatchExpectedType(
             object runtimeValue,
@@ -178,15 +190,8 @@ namespace HotChocolate.Types.Scalars
         [InlineData(12345)]
         [InlineData("")]
         [InlineData("1")]
-        [InlineData("rgb(255 0 153)")]
-        [InlineData("rgb(255, 0, 153, 1)")]
-        [InlineData("rgb(255, 0, 153, 100%)")]
-        [InlineData("rgb(255 0 153 / 1)")]
-        [InlineData("rgb(255 0 153 / 100%)")]
         [InlineData("rgb(255, 0, 153.6, 1)")]
         [InlineData("rgb(1e2, .5e1, .5e0, +.25e2%)")]
-        [InlineData("hsl(270,60%,70%)")]
-        [InlineData("hsla(240 100% 50% / .05)")]
         public void Serialize_GivenObject_ThrowSerializationException(object value)
         {
             // arrange
@@ -202,6 +207,11 @@ namespace HotChocolate.Types.Scalars
         [InlineData(typeof(StringValueNode), "rgb(110%, 0%, 0%)")]
         [InlineData(typeof(StringValueNode), "rgb(100%,0%,60%)")]
         [InlineData(typeof(StringValueNode), "rgb(100%, 0%, 60%)")]
+        [InlineData(typeof(StringValueNode), "rgb(255 0 153)")]
+        [InlineData(typeof(StringValueNode), "rgb(255, 0, 153, 1)")]
+        [InlineData(typeof(StringValueNode), "rgb(255, 0, 153, 100%)")]
+        [InlineData(typeof(StringValueNode), "rgb(255 0 153 / 1)")]
+        [InlineData(typeof(StringValueNode), "rgb(255 0 153 / 100%)")]
         [InlineData(typeof(NullValueNode), null)]
         public void ParseValue_GivenObject_MatchExpectedType(Type type, object value)
         {
@@ -218,15 +228,8 @@ namespace HotChocolate.Types.Scalars
         [InlineData(12345)]
         [InlineData("")]
         [InlineData("1")]
-        [InlineData("rgb(255 0 153)")]
-        [InlineData("rgb(255, 0, 153, 1)")]
-        [InlineData("rgb(255, 0, 153, 100%)")]
-        [InlineData("rgb(255 0 153 / 1)")]
-        [InlineData("rgb(255 0 153 / 100%)")]
         [InlineData("rgb(255, 0, 153.6, 1)")]
         [InlineData("rgb(1e2, .5e1, .5e0, +.25e2%)")]
-        [InlineData("hsl(270,60%,70%)")]
-        [InlineData("hsla(240 100% 50% / .05)")]
         public void ParseValue_GivenObject_ThrowSerializationException(object value)
         {
             // arrange
@@ -242,6 +245,11 @@ namespace HotChocolate.Types.Scalars
         [InlineData(typeof(StringValueNode), "rgb(110%, 0%, 0%)")]
         [InlineData(typeof(StringValueNode), "rgb(100%,0%,60%)")]
         [InlineData(typeof(StringValueNode), "rgb(100%, 0%, 60%)")]
+        [InlineData(typeof(StringValueNode), "rgb(255 0 153)")]
+        [InlineData(typeof(StringValueNode), "rgb(255, 0, 153, 1)")]
+        [InlineData(typeof(StringValueNode), "rgb(255, 0, 153, 100%)")]
+        [InlineData(typeof(StringValueNode), "rgb(255 0 153 / 1)")]
+        [InlineData(typeof(StringValueNode), "rgb(255 0 153 / 100%)")]
         [InlineData(typeof(NullValueNode), null)]
         public void ParseResult_GivenObject_MatchExpectedType(Type type, object value)
         {
@@ -258,15 +266,8 @@ namespace HotChocolate.Types.Scalars
         [InlineData(12345)]
         [InlineData("")]
         [InlineData("1")]
-        [InlineData("rgb(255 0 153)")]
-        [InlineData("rgb(255, 0, 153, 1)")]
-        [InlineData("rgb(255, 0, 153, 100%)")]
-        [InlineData("rgb(255 0 153 / 1)")]
-        [InlineData("rgb(255 0 153 / 100%)")]
         [InlineData("rgb(255, 0, 153.6, 1)")]
         [InlineData("rgb(1e2, .5e1, .5e0, +.25e2%)")]
-        [InlineData("hsl(270,60%,70%)")]
-        [InlineData("hsla(240 100% 50% / .05)")]
         public void ParseResult_GivenObject_ThrowSerializationException(object value)
         {
             // arrange
