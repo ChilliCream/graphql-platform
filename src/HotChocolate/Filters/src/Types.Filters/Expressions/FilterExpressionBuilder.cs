@@ -5,6 +5,7 @@ using System.Reflection;
 
 namespace HotChocolate.Types.Filters.Expressions
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public static class FilterExpressionBuilder
     {
         private static readonly MethodInfo _startsWith =

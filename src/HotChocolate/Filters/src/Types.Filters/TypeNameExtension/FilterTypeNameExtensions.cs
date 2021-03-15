@@ -2,6 +2,7 @@ using System;
 
 namespace HotChocolate.Types.Filters
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public static class FilterTypeNameExtensions
     {
         public static IFilterInputTypeNameDependencyDescriptor<T> Name<T>(

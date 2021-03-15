@@ -4,6 +4,7 @@ using System.Linq.Expressions;
 
 namespace HotChocolate.Types.Filters
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public static class QueryableFilterVisitorContextExtensions
     {
         public static QueryableClosure AddClosure(

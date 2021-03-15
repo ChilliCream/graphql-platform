@@ -10,6 +10,7 @@ using HotChocolate.Types.Filters.Properties;
 
 namespace HotChocolate.Types
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public static class FilterObjectFieldDescriptorExtensions
     {
         private const string _whereArgumentNamePlaceholder = "placeholder";

@@ -6,6 +6,7 @@ using HotChocolate.Types.Filters.Properties;
 
 namespace HotChocolate.Types.Filters.Extensions
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public static class FilterFieldCollectionExtensions
     {
         public static T GetOrAddDescriptor<T>(
