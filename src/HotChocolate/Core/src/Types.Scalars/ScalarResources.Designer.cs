@@ -434,5 +434,23 @@ namespace HotChocolate.Types.Scalars {
                 return ResourceManager.GetString("UnsignedIntType_IsNotUnsigned_ParseValue", resourceCulture);
             }
         }
+        
+        internal static string UnsignedLongType_Description {
+            get {
+                return ResourceManager.GetString("UnsignedLongType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string UnsignedLongType_IsNotUnsigned_ParseLiteral {
+            get {
+                return ResourceManager.GetString("UnsignedLongType_IsNotUnsigned_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        internal static string UnsignedLongType_IsNotUnsigned_ParseValue {
+            get {
+                return ResourceManager.GetString("UnsignedLongType_IsNotUnsigned_ParseValue", resourceCulture);
+            }
+        }
     }
 }
