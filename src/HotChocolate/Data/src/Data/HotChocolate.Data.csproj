@@ -6,6 +6,7 @@
     <RootNamespace>HotChocolate.Data</RootNamespace>
     <Nullable>enable</Nullable>
     <NoWarn>$(NoWarn);CA1062</NoWarn>
+    <Description>Contains ready to use extensions for data management in HotChocolate. This includes filtering, projections and sorting</Description>
   </PropertyGroup>
 
   <ItemGroup>
