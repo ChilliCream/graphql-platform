@@ -476,7 +476,7 @@ namespace HotChocolate.Types.Scalars
                 ErrorBuilder.New()
                     .SetMessage(ScalarResources.RgbType_IsInvalid_ParseValue)
                     .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                    .SetExtension("actualType", WellKnownScalarTypes.Rgba)
+                    .SetExtension("actualType", WellKnownScalarTypes.Rgb)
                     .Build(),
                 type);
         }
