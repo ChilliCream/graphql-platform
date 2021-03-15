@@ -471,6 +471,16 @@ namespace HotChocolate.Types.Scalars
         }
 
         public static SerializationException RgbType_ParseValue_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.RgbType_IsInvalid_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.Rgba)
+                    .Build(),
+                type);
+        }
+
         public static SerializationException RgbaType_ParseValue_IsInvalid(IType type)
         {
             return new SerializationException(
