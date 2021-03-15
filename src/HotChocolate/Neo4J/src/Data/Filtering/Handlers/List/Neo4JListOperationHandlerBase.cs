@@ -20,9 +20,9 @@ namespace HotChocolate.Data.Neo4J.Filtering
     /// the field
     /// </summary>
     public abstract class Neo4JListOperationHandlerBase
-        //: FilterFieldHandler<Neo4JFilterVisitorContext, Condition>
+        : FilterFieldHandler<Neo4JFilterVisitorContext, Condition>
     {
-        /*/// <summary>
+        /// <summary>
         /// Specifies the identifier of the operations that should be handled by this handler
         /// </summary>
         protected abstract int Operation { get; }
@@ -82,7 +82,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
                 context.Scopes.Pop() is Neo4JFilterScope scope)
             {
                 var path = context.GetNeo4JFilterScope().GetPath();
-                Neo4JFilterDefinition combinedOperations = HandleListOperation(
+                Condition combinedOperations = HandleListOperation(
                     context,
                     field,
                     scope,
@@ -105,7 +105,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
         /// <param name="scope">The current scope of the visitor</param>
         /// <param name="path">The path that leads to this visitor</param>
         /// <returns></returns>
-        protected abstract Neo4JFilterDefinition HandleListOperation(
+        protected abstract Condition HandleListOperation(
             Neo4JFilterVisitorContext context,
             IFilterField field,
             Neo4JFilterScope scope,
@@ -125,8 +125,13 @@ namespace HotChocolate.Data.Neo4J.Filtering
                 return level.Peek();
             }
 
-            return new();
-            //return new AndFilterDefinition(level.ToArray());
-        }*/
+            var conditions = new CompoundCondition(Operator.And);
+            foreach (Condition condition in level)
+            {
+                conditions.And(condition);
+            }
+
+            return conditions;
+        }
     }
 }

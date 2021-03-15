@@ -148,10 +148,10 @@ namespace HotChocolate.Data.Neo4J.Filtering
             descriptor.AddFieldHandler<Neo4JStringContainsHandler>();
             descriptor.AddFieldHandler<Neo4JStringNotContainsHandler>();
 
-            //descriptor.AddFieldHandler<Neo4JListAllOperationHandler>();
-            //descriptor.AddFieldHandler<Neo4JListAnyOperationHandler>();
-            //descriptor.AddFieldHandler<Neo4JListNoneOperationHandler>();
-            //descriptor.AddFieldHandler<Neo4JListSomeOperationHandler>();
+            descriptor.AddFieldHandler<Neo4JListAllOperationHandler>();
+            descriptor.AddFieldHandler<Neo4JListAnyOperationHandler>();
+            descriptor.AddFieldHandler<Neo4JListNoneOperationHandler>();
+            descriptor.AddFieldHandler<Neo4JListSomeOperationHandler>();
 
             descriptor.AddFieldHandler<Neo4JDefaultFieldHandler>();
 

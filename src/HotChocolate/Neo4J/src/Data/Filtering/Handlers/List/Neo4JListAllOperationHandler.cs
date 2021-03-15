@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using HotChocolate.Data.Filters;
+using HotChocolate.Data.Neo4J.Language;
 
 namespace HotChocolate.Data.Neo4J.Filtering
 {
@@ -7,13 +8,13 @@ namespace HotChocolate.Data.Neo4J.Filtering
     /// This filter operation handler maps a All operation field to a
     /// <see cref="FilterDefinition{TDocument}"/>
     /// </summary>
-    public class Neo4JListAllOperationHandler// : Neo4JListOperationHandlerBase
+    public class Neo4JListAllOperationHandler : Neo4JListOperationHandlerBase
     {
-        /*/// <inheritdoc />
+        /// <inheritdoc />
         protected override int Operation => DefaultFilterOperations.All;
 
         /// <inheritdoc />
-        protected override Neo4JFilterDefinition HandleListOperation(
+        protected override Condition HandleListOperation(
             Neo4JFilterVisitorContext context,
             IFilterField field,
             Neo4JFilterScope scope,
@@ -22,43 +23,32 @@ namespace HotChocolate.Data.Neo4J.Filtering
                 ? CreateArrayAllScalar(scope, path)
                 : CreateArrayAll(scope, path);
 
-        private static Neo4JFilterDefinition CreateArrayAll(
+        private static Condition CreateArrayAll(
             Neo4JFilterScope scope,
             string path)
         {
-            var negatedChilds = new List<Neo4JFilterDefinition>();
-            Queue<Neo4JFilterDefinition> level = scope.Level.Peek();
+            var negatedChilds = new List<Condition>();
+            Queue<Condition> level = scope.Level.Peek();
             while (level.Count > 0)
             {
                 negatedChilds.Add(level.Dequeue());
             }
 
-            return new Neo4JFilterOperation(
-                path//,
-                // new Neo4JNotFilterDefinition(
-                //     new Neo4JFilterOperation(
-                //         "$elemMatch",
-                //         new Neo4JNotFilterDefinition(
-                //             new Neo4JOrFilterDefinition(negatedChilds))))
-                );
+            return new CompoundCondition(Operator.And);
         }
 
-        private static Neo4JFilterDefinition CreateArrayAllScalar(
+        private static Condition CreateArrayAllScalar(
             Neo4JFilterScope scope,
             string path)
         {
-            var negatedChilds = new List<Neo4JFilterDefinition>();
-            Queue<Neo4JFilterDefinition> level = scope.Level.Peek();
+            var negatedChilds = new List<Condition>();
+            Queue<Condition> level = scope.Level.Peek();
             while (level.Count > 0)
             {
-                negatedChilds.Add(
-                    new Neo4JFilterOperation(
-                        path,
-                        new Neo4JNotFilterDefinition(level.Dequeue())));
+                return new CompoundCondition(Operator.And);
             }
 
-            return new Neo4JNotFilterDefinition(
-                new Neo4JOrFilterDefinition(negatedChilds));
-        }*/
+            return new CompoundCondition(Operator.And);
+        }
     }
 }

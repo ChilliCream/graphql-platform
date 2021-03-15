@@ -45,10 +45,10 @@ namespace HotChocolate.Data.Neo4J.Filtering
 
                 if (parsedBool)
                 {
-                    return new Neo4JFilterDefinition();
+                    return new CompoundCondition(Operator.And);
                 }
 
-                return new Neo4JFilterDefinition();
+                return new CompoundCondition(Operator.And);
             }
 
             throw new InvalidOperationException();

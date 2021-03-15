@@ -78,6 +78,13 @@ namespace HotChocolate.Data.Neo4J.Language
                 _writer.Write("]");
             }
         }
+        private void EnterVisitable(Operation operation)
+        {
+
+            if (operation.NeedsGrouping()) {
+                _writer.Write("(");
+            }
+        }
 
         private void EnterVisitable(Operator op)
         {
@@ -91,6 +98,14 @@ namespace HotChocolate.Data.Neo4J.Language
             _writer.Write(op.GetRepresentation());
             if (type != Operator.Type.Postfix && op != Operator.Exponent) {
                 _writer.Write(" ");
+            }
+        }
+
+        private void LeaveVisitable(Operation operation)
+        {
+
+            if (operation.NeedsGrouping()) {
+                _writer.Write(")");
             }
         }
 
@@ -273,6 +288,17 @@ namespace HotChocolate.Data.Neo4J.Language
         private void LeaveVisitable(Delete delete)
         {
             _writer.Write(" ");
+        }
+
+        void EnterVisitable(FunctionInvocation functionInvocation)
+        {
+            _writer.Write(functionInvocation.GetFunctionName());
+            _writer.Write("(");
+        }
+
+        private void LeaveVisitable(FunctionInvocation functionInvocation)
+        {
+            _writer.Write(")");
         }
     }
 }

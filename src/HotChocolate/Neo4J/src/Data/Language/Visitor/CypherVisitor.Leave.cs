@@ -50,6 +50,12 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.Delete:
                     LeaveVisitable((Delete)visitable);
                     break;
+                case ClauseKind.FunctionInvocation:
+                    LeaveVisitable((FunctionInvocation)visitable);
+                    break;
+                case ClauseKind.Operation:
+                    LeaveVisitable((Operation)visitable);
+                    break;
                 case ClauseKind.AliasedExpression:
                 case ClauseKind.SortDirection:
                 case ClauseKind.Expression:
@@ -72,7 +78,7 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.SymbolicName:
                 case ClauseKind.NodeLabel:
                 case ClauseKind.NodeLabels:
-                case ClauseKind.Operation:
+
                 case ClauseKind.Relationship:
                 case ClauseKind.OptionalMatch:
                 case ClauseKind.Return:
@@ -103,7 +109,9 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.HasLabelCondition:
                 case ClauseKind.Where:
                 case ClauseKind.BooleanFunctionCondition:
-                case ClauseKind.FunctionInvocation:
+                case ClauseKind.ListComprehension:
+                case ClauseKind.NotCondition:
+                case ClauseKind.ProjectionBody:
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

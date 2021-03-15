@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 
 namespace HotChocolate.Data.Neo4J.Language
@@ -11,6 +12,15 @@ namespace HotChocolate.Data.Neo4J.Language
         private readonly Expression _left;
         private readonly Operator _op;
         private readonly Visitable _right;
+
+        private static readonly List<Operator> LabelOperators
+            = new() { Operator.SetLabel, Operator.RemoveLabel };
+
+        private static readonly List<Operator> DontGroup
+            = new()  { Operator.Exponent, Operator.Pipe };
+
+        private static readonly List<Operator.Type> NeedsGroupingByType
+            = new() { Operator.Type.Property, Operator.Type.Label };
 
         public Operation(Expression left, Operator op, Expression right)
         {
@@ -43,6 +53,10 @@ namespace HotChocolate.Data.Neo4J.Language
                 op1,
                 op,
                 new NodeLabels(nodeLabels.Select(x => new NodeLabel(x)).ToList()));
+        }
+
+        public bool NeedsGrouping() {
+            return NeedsGroupingByType.Contains(_op.GetType()) && !DontGroup.Contains(_op);
         }
 
         public override void Visit(CypherVisitor cypherVisitor)

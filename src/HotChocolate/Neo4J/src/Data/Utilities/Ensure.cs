@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Data.Neo4J.Extensions;
+using HotChocolate.Data.Neo4J.Language;
 
 namespace HotChocolate.Data.Neo4J
 {
@@ -45,6 +47,18 @@ namespace HotChocolate.Data.Neo4J
             {
                 throw new ArgumentException(message);
             }
+        }
+
+        public static void IsNotEmpty(Expression[] objects, string message)
+        {
+            if (!objects.Any())
+            {
+                throw new ArgumentException(message);
+            }
+        }
+
+        private static bool IsEmpty(IReadOnlyCollection<object> array) {
+            return array == null || array.Count == 0;
         }
     }
 }

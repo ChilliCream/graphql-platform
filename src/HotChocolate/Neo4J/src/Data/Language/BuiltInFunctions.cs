@@ -32,6 +32,7 @@ namespace HotChocolate.Data.Neo4J.Language
         public class Strings : FunctionDefinition
         {
             public static readonly Strings ToLower = new("toLower");
+            public static readonly Strings ToUpper = new("toUpper");
 
             public Strings(string implementationName) : base(implementationName) { }
         }
@@ -55,6 +56,15 @@ namespace HotChocolate.Data.Neo4J.Language
             public Aggregates(string implementationName) : base(implementationName) { }
 
             public new bool IsAggregate() => true;
+        }
+
+        public class Lists : FunctionDefinition
+        {
+            public static readonly Lists Keys = new("keys");
+            public static readonly Lists Labels = new("labels");
+
+            public Lists(string implementationName) : base(implementationName) { }
+
         }
     }
 }

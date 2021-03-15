@@ -1,4 +1,5 @@
 using HotChocolate.Data.Filters;
+using HotChocolate.Data.Neo4J.Language;
 
 namespace HotChocolate.Data.Neo4J.Filtering
 {
@@ -6,27 +7,19 @@ namespace HotChocolate.Data.Neo4J.Filtering
     /// This filter operation handler maps a Some operation field to a
     /// <see cref="FilterDefinition{TDocument}"/>
     /// </summary>
-    public class Neo4JListSomeOperationHandler// : Neo4JListOperationHandlerBase
+    public class Neo4JListSomeOperationHandler : Neo4JListOperationHandlerBase
     {
-        /*/// <inheritdoc />
+        /// <inheritdoc />
         protected override int Operation => DefaultFilterOperations.Some;
 
-        protected override Neo4JFilterDefinition HandleListOperation(Neo4JFilterVisitorContext context, IFilterField field, Neo4JFilterScope scope,
-            string path)
-        {
-            throw new System.NotImplementedException();
-        }
-
         /// <inheritdoc />
-        protected override Neo4JFilterDefinition HandleListOperation(
+        protected override Condition HandleListOperation(
             Neo4JFilterVisitorContext context,
             IFilterField field,
             Neo4JFilterScope scope,
             string path)
         {
-            return new Neo4JFilterOperation(
-                path,
-                new Neo4JFilterOperation("$elemMatch", CombineOperationsOfScope(scope)));
-        }*/
+            return new CompoundCondition(Operator.And);
+        }
     }
 }

@@ -29,6 +29,7 @@
     <ItemGroup>
       <Folder Include="Comparable\__snapshots__" />
       <Folder Include="Enum" />
+      <Folder Include="Lists\__snapshots__" />
       <Folder Include="Object" />
       <Folder Include="__snapshots__" />
     </ItemGroup>

@@ -24,8 +24,11 @@ namespace HotChocolate.Data.Neo4J.Language
         /// </summary>
         private readonly Expression _listDefinition;
 
-        private ListComprehension(SymbolicName variable, Expression listExpression,
-            Where where, Expression listDefinition) {
+        public ListComprehension(
+            SymbolicName variable,
+            Expression listExpression,
+            Where where,
+            Expression listDefinition) {
             _variable = variable;
             _listExpression = listExpression;
             _where = where;

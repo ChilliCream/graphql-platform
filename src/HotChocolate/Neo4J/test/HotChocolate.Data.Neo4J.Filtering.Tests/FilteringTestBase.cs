@@ -24,6 +24,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
 
             return new ServiceCollection()
                 .AddGraphQL()
+                .AddNeo4JProjections()
                 .AddFiltering(x => x.BindRuntimeType<TEntity, T>().AddNeo4JDefaults())
                 .AddQueryType(
                     c => c
@@ -39,7 +40,8 @@ namespace HotChocolate.Data.Neo4J.Filtering
                                     context.ContextData["query"] = executable.Print();
                                 }
                             })
-                        .UseFiltering<T>())
+                        .UseFiltering<T>()
+                        .UseProjection())
                 .UseRequest(
                     next => async context =>
                     {

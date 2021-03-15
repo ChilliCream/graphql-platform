@@ -1,3 +1,5 @@
+using System;
+
 namespace HotChocolate.Data.Neo4J.Language
 {
     public partial class CypherVisitor
@@ -98,6 +100,12 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.Delete:
                     EnterVisitable((Delete)visitable);
                     break;
+                case ClauseKind.FunctionInvocation:
+                    EnterVisitable((FunctionInvocation)visitable);
+                    break;
+                case ClauseKind.Operation:
+                    EnterVisitable((Operation)visitable);
+                    break;
                 case ClauseKind.MapProjection:
                 case ClauseKind.Expression:
                 case ClauseKind.Visitable:
@@ -112,7 +120,7 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.StringLiteral:
                 case ClauseKind.ExpressionList:
                 case ClauseKind.NodeLabels:
-                case ClauseKind.Operation:
+
                 case ClauseKind.Relationship:
                 case ClauseKind.OptionalMatch:
                 case ClauseKind.Unwind:
@@ -134,8 +142,12 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.ExpressionCondition:
                 case ClauseKind.HasLabelCondition:
                 case ClauseKind.BooleanFunctionCondition:
-                case ClauseKind.FunctionInvocation:
+                case ClauseKind.ListComprehension:
+                case ClauseKind.NotCondition:
+                case ClauseKind.ProjectionBody:
                     break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
         }
     }
