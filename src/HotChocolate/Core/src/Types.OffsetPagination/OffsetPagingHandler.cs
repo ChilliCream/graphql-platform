@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Pagination.Utilities;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Pagination

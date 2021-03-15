@@ -1,6 +1,6 @@
 using static HotChocolate.Types.Pagination.Properties.OffsetResources;
 
-namespace HotChocolate.Types.Pagination.Utilities
+namespace HotChocolate.Utilities
 {
     internal static class ThrowHelper
     {
