@@ -8,6 +8,7 @@ namespace HotChocolate.Types.Sorting.Extensions
     [Obsolete("Use HotChocolate.Data.")]
     public static class SortingFieldCollectionExtensions
     {
+        [Obsolete("Use HotChocolate.Data.")]
         public static T GetOrAddDescriptor<T>(
             this ICollection<SortOperationDescriptorBase> fields,
             PropertyInfo propertyInfo,

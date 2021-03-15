@@ -52,11 +52,13 @@ namespace HotChocolate.Types.Filters.Expressions
         private static readonly ConstantExpression _null =
             Expression.Constant(null, typeof(object));
 
+        [Obsolete("Use HotChocolate.Data.")]
         public static Expression Not(Expression expression)
         {
             return Expression.Not(expression);
         }
 
+        [Obsolete("Use HotChocolate.Data.")]
         public static Expression Equals(
             Expression property,
             object value)
@@ -66,6 +68,7 @@ namespace HotChocolate.Types.Filters.Expressions
                 NullableSafeConstantExpression(value, property.Type));
         }
 
+        [Obsolete("Use HotChocolate.Data.")]
         public static Expression NotEquals(
             Expression property,
             object value)
@@ -75,6 +78,7 @@ namespace HotChocolate.Types.Filters.Expressions
                 NullableSafeConstantExpression(value, property.Type));
         }
 
+        [Obsolete("Use HotChocolate.Data.")]
         public static Expression In(
             Expression property,
             Type genericType,
@@ -88,6 +92,7 @@ namespace HotChocolate.Types.Filters.Expressions
                 property);
         }
 
+        [Obsolete("Use HotChocolate.Data.")]
         public static Expression GreaterThan(
             Expression property,
             object value)
@@ -97,6 +102,7 @@ namespace HotChocolate.Types.Filters.Expressions
                 NullableSafeConstantExpression(value, property.Type));
         }
 
+        [Obsolete("Use HotChocolate.Data.")]
         public static Expression GreaterThanOrEqual(
             Expression property,
             object value)
@@ -106,6 +112,7 @@ namespace HotChocolate.Types.Filters.Expressions
                 NullableSafeConstantExpression(value, property.Type));
         }
 
+        [Obsolete("Use HotChocolate.Data.")]
         public static Expression LowerThan(
             Expression property,
             object value)
@@ -115,6 +122,7 @@ namespace HotChocolate.Types.Filters.Expressions
                 NullableSafeConstantExpression(value, property.Type));
         }
 
+        [Obsolete("Use HotChocolate.Data.")]
         public static Expression LowerThanOrEqual(
             Expression property,
             object value)
@@ -124,6 +132,7 @@ namespace HotChocolate.Types.Filters.Expressions
                 NullableSafeConstantExpression(value, property.Type));
         }
 
+        [Obsolete("Use HotChocolate.Data.")]
         public static Expression StartsWith(
             Expression property,
             object value)
@@ -133,6 +142,7 @@ namespace HotChocolate.Types.Filters.Expressions
                 Expression.Call(property, _startsWith, Expression.Constant(value)));
         }
 
+        [Obsolete("Use HotChocolate.Data.")]
         public static Expression EndsWith(
             Expression property,
             object value)
@@ -142,6 +152,7 @@ namespace HotChocolate.Types.Filters.Expressions
                 Expression.Call(property, _endsWith, Expression.Constant(value)));
         }
 
+        [Obsolete("Use HotChocolate.Data.")]
         public static Expression Contains(
             Expression property,
             object value)
@@ -151,16 +162,19 @@ namespace HotChocolate.Types.Filters.Expressions
                 Expression.Call(property, _contains, Expression.Constant(value)));
         }
 
+        [Obsolete("Use HotChocolate.Data.")]
         public static Expression NotNull(Expression expression)
         {
             return Expression.NotEqual(expression, _null);
         }
 
+        [Obsolete("Use HotChocolate.Data.")]
         public static Expression NotNullAndAlso(Expression property, Expression condition)
         {
             return Expression.AndAlso(NotNull(property), condition);
         }
 
+        [Obsolete("Use HotChocolate.Data.")]
         public static Expression Any(
             Type type,
             Expression property,
@@ -171,6 +185,7 @@ namespace HotChocolate.Types.Filters.Expressions
             return Any(type, property, lambda);
         }
 
+        [Obsolete("Use HotChocolate.Data.")]
         public static Expression Any(
             Type type,
             Expression property,
@@ -181,6 +196,7 @@ namespace HotChocolate.Types.Filters.Expressions
                 new Expression[] { property, lambda });
         }
 
+        [Obsolete("Use HotChocolate.Data.")]
         public static Expression Any(
             Type type,
             Expression property)
@@ -190,6 +206,7 @@ namespace HotChocolate.Types.Filters.Expressions
                 new Expression[] { property });
         }
 
+        [Obsolete("Use HotChocolate.Data.")]
         public static Expression All(
             Type type,
             Expression property,
@@ -200,6 +217,7 @@ namespace HotChocolate.Types.Filters.Expressions
                 new Expression[] { property, lambda });
         }
 
+        [Obsolete("Use HotChocolate.Data.")]
         public static Expression NotContains(
             Expression property,
             object value)

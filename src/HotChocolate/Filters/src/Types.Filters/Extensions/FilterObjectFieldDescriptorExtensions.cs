@@ -17,6 +17,7 @@ namespace HotChocolate.Types
         private static readonly Type _middlewareDefinition =
             typeof(QueryableFilterMiddleware<>);
 
+        [Obsolete("Use HotChocolate.Data.")]
         public static IObjectFieldDescriptor UseFiltering(
             this IObjectFieldDescriptor descriptor)
         {
@@ -28,6 +29,7 @@ namespace HotChocolate.Types
             return UseFiltering(descriptor, null);
         }
 
+        [Obsolete("Use HotChocolate.Data.")]
         public static IObjectFieldDescriptor UseFiltering<T>(
             this IObjectFieldDescriptor descriptor)
         {
@@ -44,6 +46,7 @@ namespace HotChocolate.Types
             return UseFiltering(descriptor, filterType);
         }
 
+        [Obsolete("Use HotChocolate.Data.")]
         public static IObjectFieldDescriptor UseFiltering<T>(
             this IObjectFieldDescriptor descriptor,
             Action<IFilterInputTypeDescriptor<T>> configure)
@@ -170,6 +173,7 @@ namespace HotChocolate.Types
                             c.TypeInspector.GetTypeRef(filterType, TypeContext.Input)));
         }
 
+        [Obsolete("Use HotChocolate.Data.")]
         public static IObjectFieldDescriptor AddFilterArguments<TFilter>(
             this IObjectFieldDescriptor descriptor)
             where TFilter : class, IInputType, IFilterInputType
@@ -178,6 +182,7 @@ namespace HotChocolate.Types
                 a => a.Type<TFilter>().Extend().ConfigureArgumentName());
         }
 
+        [Obsolete("Use HotChocolate.Data.")]
         public static IInterfaceFieldDescriptor AddFilterArguments<TFilter>(
             this IInterfaceFieldDescriptor descriptor)
             where TFilter : class, IInputType, IFilterInputType
