@@ -4,6 +4,7 @@ using System.Linq.Expressions;
 
 namespace HotChocolate.Types.Sorting
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public static class QueryableSortVisitorContextExtensions
     {
         public static SortOperationInvocation CreateSortOperation(

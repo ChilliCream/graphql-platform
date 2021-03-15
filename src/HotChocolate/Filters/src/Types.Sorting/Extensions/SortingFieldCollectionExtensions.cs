@@ -5,6 +5,7 @@ using System.Reflection;
 
 namespace HotChocolate.Types.Sorting.Extensions
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public static class SortingFieldCollectionExtensions
     {
         public static T GetOrAddDescriptor<T>(

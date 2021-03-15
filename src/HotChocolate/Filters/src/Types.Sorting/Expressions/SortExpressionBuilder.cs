@@ -1,7 +1,9 @@
+using System;
 using System.Linq.Expressions;
 
 namespace HotChocolate.Types.Sorting
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public static class SortExpressionBuilder
     {
         private static readonly ConstantExpression _null =

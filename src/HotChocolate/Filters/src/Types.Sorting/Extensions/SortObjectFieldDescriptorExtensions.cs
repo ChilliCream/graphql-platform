@@ -9,6 +9,7 @@ using HotChocolate.Types.Sorting;
 
 namespace HotChocolate.Types
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public static class SortObjectFieldDescriptorExtensions
     {
         private static readonly Type _middlewareDefinition = typeof(QueryableSortMiddleware<>);
