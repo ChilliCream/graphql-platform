@@ -14,6 +14,8 @@ namespace HotChocolate.Types.Descriptors
         : DescriptorBase<ObjectTypeDefinition>
         , IObjectTypeDescriptor
     {
+        private ICollection<Type>? _resolverTypes;
+
         protected ObjectTypeDescriptor(IDescriptorContext context, Type clrType)
             : base(context)
         {
@@ -47,8 +49,7 @@ namespace HotChocolate.Types.Descriptors
         protected ICollection<ObjectFieldDescriptor> Fields { get; } =
             new List<ObjectFieldDescriptor>();
 
-        protected ICollection<Type> ResolverTypes { get; } =
-            new HashSet<Type>();
+        protected ICollection<Type> ResolverTypes => _resolverTypes ??= new HashSet<Type>();
 
         protected override void OnCreateDefinition(
             ObjectTypeDefinition definition)

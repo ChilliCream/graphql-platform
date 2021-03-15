@@ -12,7 +12,7 @@ namespace HotChocolate.Types
         : EnumType
         , IEnumType<T>
     {
-        private readonly Action<IEnumTypeDescriptor<T>> _configure;
+        private Action<IEnumTypeDescriptor<T>>? _configure;
 
         public EnumType()
         {
@@ -21,7 +21,8 @@ namespace HotChocolate.Types
 
         public EnumType(Action<IEnumTypeDescriptor<T>> configure)
         {
-            _configure = configure ?? throw new ArgumentNullException(nameof(configure));
+            _configure = configure
+                ?? throw new ArgumentNullException(nameof(configure));
         }
 
         /// <inheritdoc />
@@ -50,9 +51,12 @@ namespace HotChocolate.Types
         protected override EnumTypeDefinition CreateDefinition(
             ITypeDiscoveryContext context)
         {
-            var descriptor = EnumTypeDescriptor.New<T>(
-                context.DescriptorContext);
+            var descriptor =
+                EnumTypeDescriptor.New<T>(context.DescriptorContext);
+
             _configure(descriptor);
+            _configure = null;
+
             return descriptor.CreateDefinition();
         }
     }
