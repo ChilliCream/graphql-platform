@@ -70,36 +70,11 @@ namespace HotChocolate
             public const string InvalidSyntaxFormat = "HC0002";
         }
 
-        public static class Apollo
-        {
-            public static class Federation
-            {
-                /// <summary>
-                /// The key attribute is used on the type level without specifying the the
-                /// fieldset.
-                /// </summary>
-                public const string KeyFieldSetNullOrEmpty = "HC0003";
-
-                /// <summary>
-                /// The provides attribute is used and the fieldset is set to <c>null</c> or
-                /// <see cref="string.Empty"/>.
-                /// </summary>
-                public const string ProvidesFieldSetNullOrEmpty = "HC0004";
-
-                /// <summary>
-                /// The requires attribute is used and the fieldset is set to <c>null</c> or
-                /// <see cref="string.Empty"/>.
-                /// </summary>
-                public const string RequiresFieldSetNullOrEmpty = "HC0005";
-            }
-        }
-
         public static class Filtering
         {
             public const string FilterObjectType = "FILTER_OBJECT_TYPE";
             public const string FilterFieldDescriptorType = "FILTER_FIELD_DESCRIPTOR_TYPE";
         }
-
 
         public static class Stitching
         {
@@ -141,6 +116,18 @@ namespace HotChocolate
             /// Type does not contain a valid node field. Only `items` and `nodes` are supported
             /// </summary>
             public const string NodeFieldWasNotFound = "HC0028";
+        }
+
+        public static class Types
+        {
+            /// <summary>
+            /// Unable to infer the element type from the current resolver.
+            /// This often happens if the resolver is not an iterable type like
+            /// IEnumerable, IQueryable, IList etc. Ensure that you either
+            /// explicitly specify the element type or that the return type of your resolver
+            /// is an iterable type.
+            /// </summary>
+            public const string NodeTypeUnkown = "HC0031";
         }
     }
 }

@@ -1154,5 +1154,11 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("UuidType_FormatUnknown", resourceCulture);
             }
         }
+        
+        internal static string ThrowHelper_UsePagingAttribute_NodeTypeUnknown {
+            get {
+                return ResourceManager.GetString("ThrowHelper_UsePagingAttribute_NodeTypeUnknown", resourceCulture);
+            }
+        }
     }
 }
