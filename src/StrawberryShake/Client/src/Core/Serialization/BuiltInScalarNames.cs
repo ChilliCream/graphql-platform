@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace StrawberryShake.Serialization
 {
     public static class BuiltInScalarNames
@@ -22,29 +20,5 @@ namespace StrawberryShake.Serialization
         public const string ByteArray = "ByteArray";
         public const string Any = "Any";
         public const string TimeSpan = "TimeSpan";
-
-        private static readonly HashSet<string> _typeNames = new()
-        {
-            String,
-            ID,
-            Boolean,
-            Byte,
-            Short,
-            Int,
-            Long,
-            Float,
-            Decimal,
-            Url,
-            Uuid,
-            DateTime,
-            Date,
-            MultiplierPath,
-            Name,
-            ByteArray,
-            Any,
-            TimeSpan
-        };
-
-        public static bool IsBuiltInScalar(string typeName) => _typeNames.Contains(typeName);
     }
 }

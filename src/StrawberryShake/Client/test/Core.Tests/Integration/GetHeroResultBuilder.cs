@@ -43,56 +43,93 @@ namespace StrawberryShake.Integration
 
         private (GetHeroResult, GetHeroResultInfo) BuildData(JsonElement obj)
         {
-            using IEntityUpdateSession session = _entityStore.BeginUpdate();
             var entityIds = new HashSet<EntityId>();
+            IEntityStoreSnapshot snapshot = default!;
+            EntityId heroId = default!;
 
             // store updates ...
-            EntityId heroId = UpdateHeroEntity(obj.GetProperty("hero"), entityIds);
+            _entityStore.Update(session =>
+            {
+                heroId = UpdateHeroEntity(session, obj.GetProperty("hero"), entityIds);
+                snapshot = session.CurrentSnapshot;
+            });
 
             // build result
             var resultInfo = new GetHeroResultInfo(
                 heroId,
                 DeserializeNonNullString(obj, "version"),
                 entityIds,
-                session.Version);
+                snapshot.Version);
 
-            return (_resultDataFactory.Create(resultInfo), resultInfo);
+            return (_resultDataFactory.Create(resultInfo, snapshot), resultInfo);
         }
 
-        private EntityId UpdateHeroEntity(JsonElement obj, ISet<EntityId> entityIds)
+        private EntityId UpdateHeroEntity(
+            IEntityStoreUpdateSession session,
+            JsonElement obj,
+            ISet<EntityId> entityIds)
         {
             EntityId entityId = _extractId(obj);
             entityIds.Add(entityId);
 
             if (entityId.Name.Equals("Human", StringComparison.Ordinal))
             {
-                HumanEntity entity = _entityStore.GetOrCreate<HumanEntity>(entityId);
-                entity.Name = DeserializeNonNullString(obj, "name");
-
                 var friends = new List<EntityId>();
 
                 foreach (JsonElement child in obj.GetProperty("friends").EnumerateArray())
                 {
-                    friends.Add(UpdateFriendEntity(child, entityIds));
+                    friends.Add(UpdateFriendEntity(session, child, entityIds));
                 }
 
-                entity.Friends = friends;
+                if (session.CurrentSnapshot.TryGetEntity(entityId, out HumanEntity? entity))
+                {
+                    // in case we update we will copy over fields that we do not know and insert
+                    // the ones that are from this request.
+                    entity = new HumanEntity(
+                        entity.Id,
+                        DeserializeNonNullString(obj, "name"),
+                        friends);
+                }
+                else
+                {
+                    // in the case we need to create the entity we will default things we
+                    // do not know.
+                    entity = new HumanEntity(
+                        default!,
+                        DeserializeNonNullString(obj, "name"),
+                        friends);
+                }
+
                 return entityId;
             }
 
             if (entityId.Name.Equals("Droid", StringComparison.Ordinal))
             {
-                DroidEntity entity = _entityStore.GetOrCreate<DroidEntity>(entityId);
-                entity.Name = DeserializeNonNullString(obj, "name");
-
                 var friends = new List<EntityId>();
 
                 foreach (JsonElement child in obj.GetProperty("friends").EnumerateArray())
                 {
-                    friends.Add(UpdateFriendEntity(child, entityIds));
+                    friends.Add(UpdateFriendEntity(session, child, entityIds));
                 }
 
-                entity.Friends = friends;
+                if (session.CurrentSnapshot.TryGetEntity(entityId, out DroidEntity? entity))
+                {
+                    // in case we update we will copy over fields that we do not know and insert
+                    // the ones that are from this request.
+                    entity = new DroidEntity(
+                        entity.Id,
+                        DeserializeNonNullString(obj, "name"),
+                        friends);
+                }
+                else
+                {
+                    // in the case we need to create the entity we will default things we
+                    // do not know.
+                    entity = new DroidEntity(
+                        default!,
+                        DeserializeNonNullString(obj, "name"),
+                        friends);
+                }
 
                 return entityId;
             }
@@ -100,7 +137,10 @@ namespace StrawberryShake.Integration
             throw new NotSupportedException();
         }
 
-        private EntityId UpdateFriendEntity(JsonElement obj, ISet<EntityId> entityIds)
+        private EntityId UpdateFriendEntity(
+            IEntityStoreUpdateSession session,
+            JsonElement obj,
+            ISet<EntityId> entityIds)
         {
             EntityId entityId = _extractId(obj);
             entityIds.Add(entityId);

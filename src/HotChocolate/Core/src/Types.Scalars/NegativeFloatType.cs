@@ -42,25 +42,21 @@ namespace HotChocolate.Types.Scalars
         }
 
         /// <inheritdoc />
-        protected override double ParseLiteral(IFloatValueLiteral valueSyntax)
+        protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
         {
-            if (valueSyntax.ToDouble() >= MaxValue)
-            {
-                throw ThrowHelper.NegativeFloatType_ParseLiteral_IsNotNegative(this);
-            }
-
-            return base.ParseLiteral(valueSyntax);
+            throw ThrowHelper.NegativeFloatType_ParseLiteral_IsNotNegative(this);
         }
 
         /// <inheritdoc />
-        protected override FloatValueNode ParseValue(double runtimeValue)
+        protected override SerializationException CreateParseValueError(object runtimeValue)
         {
-            if (runtimeValue >= MaxValue)
-            {
-                throw ThrowHelper.NegativeFloatType_ParseValue_IsNotNegative(this);
-            }
+            throw ThrowHelper.NegativeFloatType_ParseValue_IsNotNegative(this);
+        }
 
-            return base.ParseValue(runtimeValue);
+        /// <inheritdoc />
+        protected override SerializationException CreateParseResultError(object runtimeValue)
+        {
+            throw ThrowHelper.NegativeFloatType_ParseValue_IsNotNegative(this);
         }
     }
 }
