@@ -1,6 +1,7 @@
+using HotChocolate;
 using static HotChocolate.Types.Properties.CursorResources;
 
-namespace HotChocolate.Utilities
+namespace HHotChocolate.Types.Pagination.Utilities
 {
     internal static class ThrowHelper
     {

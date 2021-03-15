@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Pagination;
-using static HotChocolate.Utilities.ThrowHelper;
+using static HotChocolate.Types.Pagination.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types
 {
