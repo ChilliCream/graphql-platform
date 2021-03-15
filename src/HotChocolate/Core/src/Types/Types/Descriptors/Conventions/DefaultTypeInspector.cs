@@ -600,7 +600,7 @@ namespace HotChocolate.Types.Descriptors
             if (member is PropertyInfo property)
             {
                 return CanHandleReturnType(member, property.PropertyType) &&
-                    property.GetIndexParameters().Length > 0;
+                    property.GetIndexParameters().Length == 0;
             }
 
             if (member is MethodInfo method &&
