@@ -311,7 +311,7 @@ descriptor.Field(...).UsePaging(maxPageSize = 100)...
 
 ## Projections
 
-Selection middleware, that was available in `HotChocolate.Types.Selections` package was replaced by projection middleware from `HotChocolate.Data` package. 
+The selection middleware, that was available in `HotChocolate.Types.Selections` package was replaced by projection middleware from the `HotChocolate.Data` package. 
 
 **Old:**
 
@@ -325,7 +325,9 @@ descriptor.Field(...).UseSelection()...
 descriptor.Field(...).UseProjection()...
 ```
 
-Similarly, attribute `[UseSelection]` was replaced by `[UseProjection]`. To use projections with your GraphQL endpoint you have to register projections on the schema:
+Similarly, the attribute `[UseSelection]` was replaced by `[UseProjection]`. 
+
+To use projections with your GraphQL endpoint you have to register it on the schema:
 
 ```csharp
 services.AddGraphQLServer()
