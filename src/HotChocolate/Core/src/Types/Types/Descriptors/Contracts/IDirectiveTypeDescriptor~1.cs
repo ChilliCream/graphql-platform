@@ -10,14 +10,13 @@ namespace HotChocolate.Types
         : IDescriptor<DirectiveTypeDefinition>
         , IFluent
     {
-        // <summary>
+        /// <summary>
         /// Associates the specified <paramref name="directiveDefinitionNode"/>
         /// with the <see cref="DirectiveType"/>.
         /// </summary>
-        /// <param name="syntaxNode">
+        /// <param name="directiveDefinitionNode">
         /// The <see cref="DirectiveDefinitionNode"/> of a parsed schema.
         /// </param>
-
         IDirectiveTypeDescriptor<T> SyntaxNode(
             DirectiveDefinitionNode directiveDefinitionNode);
 
@@ -127,5 +126,15 @@ namespace HotChocolate.Types
         /// times in a single location.
         /// </summary>
         IDirectiveTypeDescriptor<T> Repeatable();
+
+        /// <summary>
+        /// Directive is public and visible within the type system and through introspection.
+        /// </summary>
+        IDirectiveTypeDescriptor<T> Public();
+
+        /// <summary>
+        /// Directive is internal and only visible within the type system.
+        /// </summary>
+        IDirectiveTypeDescriptor<T> Internal();
     }
 }
