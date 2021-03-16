@@ -18,59 +18,70 @@ namespace HotChocolate.Types.Scalars
             schema.ToString().MatchSnapshot();
         }
 
-        [Theory]
-        [InlineData(typeof(EnumValueNode), TestEnum.Foo, false)]
-        [InlineData(typeof(FloatValueNode), 1d, false)]
-        [InlineData(typeof(IntValueNode), 1, false)]
-        [InlineData(typeof(BooleanValueNode), true, false)]
-        [InlineData(typeof(StringValueNode), "31.10.2008", true)]
-        [InlineData(typeof(StringValueNode), "10/31/2008", true)]
-        [InlineData(typeof(StringValueNode), "31/10/2008", true)]
-        [InlineData(typeof(StringValueNode), "Freitag, 31. Oktober 2008", true)]
-        [InlineData(typeof(StringValueNode), "Friday, October 31, 2008", true)]
-        [InlineData(typeof(StringValueNode), "viernes, 31 de octubre de 2008", true)]
-        [InlineData(typeof(StringValueNode), "vendredi 31 octobre 2008", true)]
-        [InlineData(typeof(StringValueNode), "Freitag, 31. Oktober 2008 17:04", true)]
-        [InlineData(typeof(StringValueNode), "Friday, October 31, 2008 5:04 PM", true)]
-        [InlineData(typeof(StringValueNode), "viernes, 31 de octubre de 2008 17:04", true)]
-        [InlineData(typeof(StringValueNode), "vendredi 31 octobre 2008 17:04", true)]
-        [InlineData(typeof(StringValueNode), "Freitag, 31. Oktober 2008 17:04:32", true)]
-        [InlineData(typeof(StringValueNode), "Friday, October 31, 2008 5:04:32 PM", true)]
-        [InlineData(typeof(StringValueNode), "viernes, 31 de octubre de 2008 17:04:32", true)]
-        [InlineData(typeof(StringValueNode), "vendredi 31 octobre 2008 17:04:32", true)]
-        [InlineData(typeof(StringValueNode), "31.10.2008 17:04", true)]
-        [InlineData(typeof(StringValueNode), "10/31/2008 5:04 PM", true)]
-        [InlineData(typeof(StringValueNode), "31/10/2008 17:04", true)]
-        [InlineData(typeof(StringValueNode), "31.10.2008 17:04:32", true)]
-        [InlineData(typeof(StringValueNode), "10/31/2008 5:04:32 PM", true)]
-        [InlineData(typeof(StringValueNode), "31/10/2008 17:04:32", true)]
-        [InlineData(typeof(StringValueNode), "31. Oktober", true)]
-        [InlineData(typeof(StringValueNode), "October 31", true)]
-        [InlineData(typeof(StringValueNode), "31 de octubre", true)]
-        [InlineData(typeof(StringValueNode), "31 octobre", true)]
-        [InlineData(typeof(StringValueNode), "2008-10-31T17:04:32.0000000", true)]
-        [InlineData(typeof(StringValueNode), "Fri, 31 Oct 2008 17:04:32 GMT", true)]
-        [InlineData(typeof(StringValueNode), "2008-10-31T17:04:32", true)]
-        [InlineData(typeof(StringValueNode), "17:04", true)]
-        [InlineData(typeof(StringValueNode), "5:04 PM", true)]
-        [InlineData(typeof(StringValueNode), "17:04:32", true)]
-        [InlineData(typeof(StringValueNode), "5:04:32 PM", true)]
-        [InlineData(typeof(StringValueNode), "2008-10-31 17:04:32Z", true)]
-        [InlineData(typeof(StringValueNode), "Freitag, 31. Oktober 2008 09:04:32", true)]
-        [InlineData(typeof(StringValueNode), "viernes, 31 de octubre de 2008 9:04:32", true)]
-        [InlineData(typeof(StringValueNode), "vendredi 31 octobre 2008 09:04:32", true)]
-        [InlineData(typeof(NullValueNode), null, true)]
-        public void IsInstanceOfType_GivenValueNode_MatchExpected(
-            Type type,
-            object value,
-            bool expected)
+        [Fact]
+        public void Serialize_Utc_DateTimeOffset()
         {
             // arrange
-            IValueNode valueNode = CreateValueNode(type, value);
+            var dateTimeType = new LocalTimeType();
+            DateTimeOffset dateTime = new DateTime(
+                2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
+
+            string expectedValue = "08:46:14";
 
             // act
+            string serializedValue = (string)dateTimeType.Serialize(dateTime);
+
             // assert
-            ExpectIsInstanceOfTypeToMatch<LocalTimeType>(valueNode, expected);
+            Assert.Equal(expectedValue, serializedValue);
+        }
+
+        [Fact]
+        public void Serialize_DateTimeOffset()
+        {
+            // arrange
+            var dateTimeType = new LocalTimeType();
+            var dateTime = new DateTimeOffset(
+                new DateTime(2018, 6, 11, 8, 46, 14),
+                new TimeSpan(4, 0, 0));
+            string expectedValue = "08:46:14";
+
+            // act
+            string serializedValue = (string)dateTimeType.Serialize(dateTime);
+
+            // assert
+            Assert.Equal(expectedValue, serializedValue);
+        }
+
+        [Fact]
+        public void Serialize_String_Exception()
+        {
+            // arrange
+            var dateTimeType = new LocalTimeType();
+
+            // act
+            Action err = () => dateTimeType.Serialize("foo");
+
+            // assert
+            Assert.Throws<SerializationException>(err);
+        }
+
+        [Fact]
+        public void ParseLiteral_StringValueNode()
+        {
+            // arrange
+            var dateTimeType = new LocalTimeType();
+            var literal = new StringValueNode(
+                "06/28/2018 23:46:14");
+            var expectedDateTime = new DateTimeOffset(
+                new DateTime(2018, 6, 29, 8, 46, 14),
+                new TimeSpan(4, 0, 0));
+
+            // act
+            var dateTime = dateTimeType
+                .ParseLiteral(literal);
+
+            // assert
+            Assert.Equal(expectedDateTime, dateTime);
         }
     }
 }
