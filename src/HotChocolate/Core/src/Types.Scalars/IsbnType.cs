@@ -22,11 +22,25 @@ namespace HotChocolate.Types.Scalars
         /// Initializes a new instance of the <see cref="IsbnType"/> class.
         /// </summary>
         public IsbnType()
-            : base(WellKnownScalarTypes.Isbn,
+            : this(
+                WellKnownScalarTypes.Isbn,
+                ScalarResources.IsbnType_Description)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IsbnType"/> class.
+        /// </summary>
+        public IsbnType(
+            NameString name,
+            string? description = null,
+            BindingBehavior bind = BindingBehavior.Explicit)
+            : base(name,
                 _validationPattern,
                 ScalarResources.IsbnType_Description,
                 RegexOptions.Compiled | RegexOptions.IgnoreCase)
         {
+            Description = description;
         }
 
         /// <inheritdoc />

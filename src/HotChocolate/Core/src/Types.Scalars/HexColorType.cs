@@ -16,12 +16,25 @@ namespace HotChocolate.Types.Scalars
         /// Initializes a new instance of the <see cref="HexColorType"/> class.
         /// </summary>
         public HexColorType()
-            : base(
+            : this(
                 WellKnownScalarTypes.HexColor,
+                ScalarResources.HexColorType_Description)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="HexColorType"/> class.
+        /// </summary>
+        public HexColorType(
+            NameString name,
+            string? description = null,
+            BindingBehavior bind = BindingBehavior.Explicit)
+            : base(name,
                 _validationPattern,
                 ScalarResources.HexColorType_Description,
                 RegexOptions.Compiled | RegexOptions.IgnoreCase)
         {
+            Description = description;
         }
 
         /// <inheritdoc />

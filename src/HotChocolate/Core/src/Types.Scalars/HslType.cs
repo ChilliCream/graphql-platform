@@ -16,12 +16,25 @@ namespace HotChocolate.Types.Scalars
         /// Initializes a new instance of the <see cref="HslType"/> class.
         /// </summary>
         public HslType()
-            : base(
+            : this(
                 WellKnownScalarTypes.Hsl,
+                ScalarResources.HslType_Description)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="HslType"/> class.
+        /// </summary>
+        public HslType(
+            NameString name,
+            string? description = null,
+            BindingBehavior bind = BindingBehavior.Explicit)
+            : base(name,
                 _validationPattern,
                 ScalarResources.HslType_Description,
                 RegexOptions.Compiled | RegexOptions.IgnoreCase)
         {
+            Description = description;
         }
 
         /// <inheritdoc />

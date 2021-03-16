@@ -16,15 +16,28 @@ namespace HotChocolate.Types.Scalars
             "((?:rgba?)\\((?:\\d+%?(?:,|\\s)+){2,3}[\\s\\/]*[\\d\\.]+%?\\))";
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RgbType"/> class.
+        /// Initializes a new instance of the <see cref="IPv6Type"/> class.
         /// </summary>
         public RgbType()
-            : base(
+            : this(
                 WellKnownScalarTypes.Rgb,
+                ScalarResources.RgbType_Description)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RgbType"/> class.
+        /// </summary>
+        public RgbType(
+            NameString name,
+            string? description = null,
+            BindingBehavior bind = BindingBehavior.Explicit)
+            : base(name,
                 _validationPattern,
                 ScalarResources.RgbType_Description,
                 RegexOptions.Compiled | RegexOptions.IgnoreCase)
         {
+            Description = description;
         }
 
         /// <inheritdoc />
