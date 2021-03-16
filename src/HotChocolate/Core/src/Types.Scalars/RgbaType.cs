@@ -21,8 +21,8 @@ namespace HotChocolate.Types.Scalars
                 ScalarResources.RgbaType_Description)
         {
         }
-
-        /// <summary>
+        
+         /// <summary>
         /// Initializes a new instance of the <see cref="RgbaType"/> class.
         /// </summary>
         public RgbaType(
