@@ -1155,6 +1155,12 @@ namespace HotChocolate.Properties {
             }
         }
         
+        internal static string ThrowHelper_UsePagingAttribute_NodeTypeUnknown {
+            get {
+                return ResourceManager.GetString("ThrowHelper_UsePagingAttribute_NodeTypeUnknown", resourceCulture);
+            }
+        }
+        
         internal static string Schema_GetDirectiveType_DoesNotExist {
             get {
                 return ResourceManager.GetString("Schema_GetDirectiveType_DoesNotExist", resourceCulture);

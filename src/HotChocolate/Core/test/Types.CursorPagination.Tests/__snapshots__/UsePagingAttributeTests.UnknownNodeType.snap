@@ -1,0 +1,4 @@
+﻿{
+  "Message": "For more details look at the `Errors` property.\n\n1. Unable to infer the element type from the current resolver. This often happens if the resolver is not an iterable type like IEnumerable, IQueryable, IList etc. Ensure that you either explicitly specify the element type or that the return type of your resolver is an iterable type.\n",
+  "Code": null
+}

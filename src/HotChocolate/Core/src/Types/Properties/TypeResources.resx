@@ -678,6 +678,9 @@ Type: `{0}`</value>
     <value>Unknown format. Guid supports the following format chars: {{ `N`, `D`, `B`, `P` }}.
  https://docs.microsoft.com/en-us/dotnet/api/system.buffers.text.utf8parser.tryparse?view=netcore-3.1#System_Buffers_Text_Utf8Parser_TryParse_System_ReadOnlySpan_System_Byte__System_Guid__System_Int32__System_Char</value>
   </data>
+  <data name="ThrowHelper_UsePagingAttribute_NodeTypeUnknown" xml:space="preserve">
+    <value>Unable to infer the element type from the current resolver. This often happens if the resolver is not an iterable type like IEnumerable, IQueryable, IList etc. Ensure that you either explicitly specify the element type or that the return type of your resolver is an iterable type.</value>
+  </data>
   <data name="Schema_GetDirectiveType_DoesNotExist" xml:space="preserve">
     <value>The specified type `{0}` does not exist.</value>
   </data>
